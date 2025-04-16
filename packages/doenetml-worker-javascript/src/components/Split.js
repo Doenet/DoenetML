@@ -188,8 +188,6 @@ export default class Split extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let serializedReplacement = {
             componentType: "textList",
             state: { textsShadow: await component.stateValues.splitValues },
@@ -208,7 +206,6 @@ export default class Split extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: [serializedReplacement],
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

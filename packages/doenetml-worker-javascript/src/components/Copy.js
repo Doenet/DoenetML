@@ -3,8 +3,6 @@ import {
     convertAttributesForComponentType,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
-    countRegularComponentTypesInNamespace,
-    renameAutonameBasedOnNewCounts,
     restrictTNamesToNamespace,
 } from "../utils/copy";
 import {
@@ -42,9 +40,6 @@ export default class Copy extends CompositeComponent {
         delete attributes.isResponse;
         delete attributes.hide;
 
-        attributes.assignNewNamespaces = {
-            createPrimitiveOfType: "boolean",
-        };
         attributes.assignNamesSkip = {
             createPrimitiveOfType: "number",
         };
@@ -455,12 +450,6 @@ export default class Copy extends CompositeComponent {
                 let useReplacements = false;
 
                 if (stateValues.targetComponent !== null) {
-                    dependencies.targetComponentNewNamespace = {
-                        dependencyType: "attributePrimitive",
-                        parentIdx: stateValues.targetComponent.componentIdx,
-                        attributeName: "newNamespace",
-                    };
-
                     if (
                         stateValues.targetComponent.componentType === "copy" ||
                         stateValues.targetComponent.componentType ===
@@ -593,15 +582,6 @@ export default class Copy extends CompositeComponent {
                         dependencyType: "doenetAttribute",
                         attributeName: "noAttributesOrProp",
                     };
-                    if (stateValues.replacementSourceIdentities?.length > 0) {
-                        // since know we don't have a propName, then there can be only one source
-                        let source = stateValues.replacementSourceIdentities[0];
-                        dependencies[`newNamespaceSource`] = {
-                            dependencyType: "attributePrimitive",
-                            parentIdx: source.componentIdx,
-                            attributeName: "newNamespace",
-                        };
-                    }
                 }
 
                 return dependencies;
@@ -670,17 +650,20 @@ export default class Copy extends CompositeComponent {
                     ].implicitPropReturnsSameType;
 
                 // if the plain copy is returning the same type,
-                // then we shouldn't take the shortut of using the implicit prop
-                // if the source has a newNamespace or the copy has attributes.
-                // If either of those are true, then the state variables could
+                // then we shouldn't take the shortcut of using the implicit prop
+                // if the copy has attributes.
+                // If true, then the state variables could
                 // need to be recalculated from the children using new attributes
-                // or another component could reference one of the copied children by name,
                 // so we should include the children in the copy
                 // (i.e., not use an implicitProp)
+
+                // XXX: implicitProp used to be turned off if source had a new namespace
+                // because then a component could reference a replacement by name.
+                // In the new approach, should we always turn off implicitProp
+                // because it is always possible a replacement could be referenced?
                 if (
                     implicitPropReturnsSameType &&
-                    (dependencyValues.newNamespaceSource ||
-                        !dependencyValues.noAttributesOrProp)
+                    !dependencyValues.noAttributesOrProp
                 ) {
                     return { setValue: { implicitProp: null } };
                 }
@@ -1170,8 +1153,6 @@ export default class Copy extends CompositeComponent {
         workspace.sourceNames = [];
         workspace.uniqueIdentifiersUsedBySource = {};
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let compositeAttributesObj = this.createAttributesObject();
 
         let assignNames = await component.stateValues.effectiveAssignNames;
@@ -1186,6 +1167,10 @@ export default class Copy extends CompositeComponent {
                 serializedComponentsForCid.slice(1),
             );
 
+            // XXX: this restricting of sources to namespace won't work
+            // anymore as we've gotten rid of namespaces.
+            // How do we keep references from external components
+            // from reaching outside into the containing doc?
             if (replacements[0].children) {
                 let namespace;
                 if (replacements[0].componentIdx) {
@@ -1226,7 +1211,6 @@ export default class Copy extends CompositeComponent {
                             componentType: repl.componentType,
                             componentInfoObjects,
                             compositeAttributesObj,
-                            compositeCreatesNewNamespace: newNamespace,
                         });
 
                     for (let attrName in attributesFromComposite) {
@@ -1251,7 +1235,6 @@ export default class Copy extends CompositeComponent {
                         componentType: replacements[0].componentType,
                         componentInfoObjects,
                         compositeAttributesObj,
-                        compositeCreatesNewNamespace: newNamespace,
                     },
                 );
 
@@ -1272,14 +1255,11 @@ export default class Copy extends CompositeComponent {
 
             let processResult = processAssignNames({
                 assignNames,
-                assignNewNamespaces:
-                    component.attributes.assignNewNamespaces?.primitive,
                 assignNamesForCompositeReplacement:
                     component.doenetAttributes
                         .assignNamesForCompositeReplacement,
                 serializedComponents: replacements,
                 parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
             });
             errors.push(...processResult.errors);
@@ -1295,8 +1275,6 @@ export default class Copy extends CompositeComponent {
                 let res = this.addChildrenFromComposite({
                     replacements,
                     children: additionalChildren,
-                    assignNewNamespaces:
-                        component.attributes.assignNewNamespaces?.primitive,
                     componentInfoObjects,
                 });
                 errors.push(...res.errors);
@@ -1335,7 +1313,6 @@ export default class Copy extends CompositeComponent {
                 componentType: "number",
                 componentInfoObjects,
                 compositeAttributesObj,
-                compositeCreatesNewNamespace: newNamespace,
             });
 
             let replacements = [
@@ -1353,7 +1330,6 @@ export default class Copy extends CompositeComponent {
                         .assignNamesForCompositeReplacement,
                 serializedComponents: replacements,
                 parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
             });
             errors.push(...processResult.errors);
@@ -1409,7 +1385,6 @@ export default class Copy extends CompositeComponent {
                         componentType,
                         componentInfoObjects,
                         compositeAttributesObj,
-                        compositeCreatesNewNamespace: newNamespace,
                     },
                 );
 
@@ -1428,9 +1403,6 @@ export default class Copy extends CompositeComponent {
                 }
 
                 let attributes = attributesFromComposite;
-                if (component.attributes.assignNewNamespaces?.primitive) {
-                    attributes.newNamespace = { primitive: true };
-                }
 
                 replacements = [
                     {
@@ -1737,8 +1709,6 @@ export default class Copy extends CompositeComponent {
             )[sourceNum];
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let assignNames = await component.stateValues.effectiveAssignNames;
 
         // if creating copy from a prop
@@ -1770,7 +1740,6 @@ export default class Copy extends CompositeComponent {
                         .assignNamesForCompositeReplacement,
                 serializedComponents: results.serializedReplacements,
                 parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
                 indOffset: numNonStringReplacementsSoFar,
                 componentInfoObjects,
             });
@@ -1787,8 +1756,6 @@ export default class Copy extends CompositeComponent {
                 let res = this.addChildrenFromComposite({
                     replacements: serializedReplacements,
                     children: component.serializedChildren,
-                    assignNewNamespaces:
-                        component.attributes.assignNewNamespaces?.primitive,
                     componentInfoObjects,
                 });
                 errors.push(...res.errors);
@@ -1870,11 +1837,6 @@ export default class Copy extends CompositeComponent {
             unlinkExternalCopies: !link,
         });
 
-        if (serializedReplacements.length > 0) {
-            delete serializedReplacements[0].doenetAttributes
-                .haveNewNamespaceOnlyFromShadow;
-        }
-
         for (let repl of serializedReplacements) {
             if (typeof repl !== "object") {
                 continue;
@@ -1890,7 +1852,6 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
                 compositeAttributesObj,
                 dontSkipAttributes: ["asList"],
-                compositeCreatesNewNamespace: newNamespace,
             });
 
             // Since if either displayDigits or displayDecimals is supplied in the composite,
@@ -1907,13 +1868,6 @@ export default class Copy extends CompositeComponent {
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
-        if (
-            serializedReplacements[0].attributes.newNamespace?.primitive &&
-            !component.attributes.assignNewNamespaces?.primitive
-        ) {
-            serializedReplacements[0].doenetAttributes.haveNewNamespaceOnlyFromShadow = true;
-        }
-
         let parentIdx = component.componentIdx;
 
         if (component.doenetAttributes.parentNameForAssignNames) {
@@ -1927,16 +1881,13 @@ export default class Copy extends CompositeComponent {
 
         let processResult = processAssignNames({
             assignNames,
-            assignNewNamespaces:
-                component.attributes.assignNewNamespaces?.primitive,
             assignNamesForCompositeReplacement:
                 component.doenetAttributes.assignNamesForCompositeReplacement,
             serializedComponents: serializedReplacements,
             parentIdx,
-            parentCreatesNewNamespace: newNamespace,
             indOffset: numNonStringReplacementsSoFar,
             componentInfoObjects,
-            originalNamesAreConsistent: newNamespace, // && !assignNames,
+            // originalNamesAreConsistent: newNamespace, // && !assignNames,
             compositesParentNameForAssignNames,
         });
         errors.push(...processResult.errors);
@@ -1953,8 +1904,6 @@ export default class Copy extends CompositeComponent {
             let res = this.addChildrenFromComposite({
                 replacements: serializedReplacements,
                 children: component.serializedChildren,
-                assignNewNamespaces:
-                    component.attributes.assignNewNamespaces?.primitive,
                 componentInfoObjects,
             });
             errors.push(...res.errors);
@@ -1970,7 +1919,6 @@ export default class Copy extends CompositeComponent {
     static addChildrenFromComposite({
         replacements,
         children,
-        assignNewNamespaces,
         componentInfoObjects,
     }) {
         let errors = [];
@@ -1990,48 +1938,14 @@ export default class Copy extends CompositeComponent {
             );
         }
 
-        if (
-            replacements[0].attributes.newNamespace?.primitive &&
-            assignNewNamespaces
-        ) {
-            // if the new components were added with a new namespace
-            // and their parent had a new namespace
-            // make the auto numbered component names include the names
-            // from the original children so that don't have a name collision
-            // from the autonumbering
-            let componentCounts = countRegularComponentTypesInNamespace(
-                repl.children,
-            );
-
-            renameAutonameBasedOnNewCounts(newChildren, componentCounts);
-        }
-
         let processResult = processAssignNames({
             serializedComponents: newChildren,
             parentIdx: replacements[0].componentIdx,
-            parentCreatesNewNamespace: assignNewNamespaces,
             componentInfoObjects,
             originalNamesAreConsistent: true,
         });
         errors.push(...processResult.errors);
         warnings.push(...processResult.warnings);
-
-        if (
-            replacements[0].attributes.newNamespace?.primitive &&
-            !assignNewNamespaces
-        ) {
-            // the new components were added without a new namespace
-            // even though their parent had a new namespace
-            // The parent has already been marked as having a new namespace only because it is shadowing.
-            // Mark them to ignore their parent's new namespace.
-            // Then if the parent is copied directly,
-            // the children won't be given a new namespace
-            for (let comp of processResult.serializedComponents) {
-                if (typeof comp === "object") {
-                    comp.doenetAttributes.ignoreParentNewNamespace = true;
-                }
-            }
-        }
 
         repl.children.push(...processResult.serializedComponents);
 
@@ -2739,7 +2653,6 @@ export async function replacementFromProp({
 
     let serializedReplacements = [];
     let propVariablesCopiedByReplacement = [];
-    let newNamespace = component.attributes.newNamespace?.primitive;
 
     // if (replacementSource === null) {
     //   return { serializedReplacements, propVariablesCopiedByReplacement };
@@ -2933,7 +2846,6 @@ export async function replacementFromProp({
                             componentType: createComponentOfType,
                             componentInfoObjects,
                             compositeAttributesObj,
-                            compositeCreatesNewNamespace: newNamespace,
                         });
 
                     let attributeComponentsShadowingStateVariables;
@@ -3716,7 +3628,6 @@ export async function replacementFromProp({
                         componentType: replacement.componentType,
                         componentInfoObjects,
                         compositeAttributesObj,
-                        compositeCreatesNewNamespace: newNamespace,
                     },
                 );
 
@@ -3853,7 +3764,6 @@ export async function replacementFromProp({
                     stateVarObj.shadowingInstructions.createComponentOfType,
                 componentInfoObjects,
                 compositeAttributesObj,
-                compositeCreatesNewNamespace: newNamespace,
             });
 
             if (link) {

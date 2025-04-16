@@ -318,8 +318,6 @@ export default class TextList extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         // allow one to override the fixed and isResponse attributes
         // as well as rounding settings
         // by specifying it on the sequence
@@ -330,7 +328,6 @@ export default class TextList extends CompositeComponent {
                 attributes: attributesToConvert,
                 componentType: "text",
                 componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
             });
         }
 
@@ -373,7 +370,6 @@ export default class TextList extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

@@ -123,8 +123,6 @@ export default class Sequence extends CompositeComponent {
             exclude,
         };
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let sequenceValues = returnSequenceValues({
             from,
             step,
@@ -166,7 +164,6 @@ export default class Sequence extends CompositeComponent {
                     attributes: attributesToConvert,
                     componentType,
                     componentInfoObjects,
-                    compositeCreatesNewNamespace: newNamespace,
                 });
             }
 
@@ -185,7 +182,6 @@ export default class Sequence extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);
@@ -369,7 +365,6 @@ export default class Sequence extends CompositeComponent {
                 // Need to add more replacement components
 
                 let newSerializedReplacements = [];
-                let newNamespace = component.attributes.newNamespace?.primitive;
 
                 let attributesToConvert = {};
                 for (let attr of [
@@ -411,7 +406,6 @@ export default class Sequence extends CompositeComponent {
                                 attributes: attributesToConvert,
                                 componentType,
                                 componentInfoObjects,
-                                compositeCreatesNewNamespace: newNamespace,
                             });
                     }
 
@@ -428,7 +422,6 @@ export default class Sequence extends CompositeComponent {
                     assignNames: component.doenetAttributes.assignNames,
                     serializedComponents: newSerializedReplacements,
                     parentIdx: component.componentIdx,
-                    parentCreatesNewNamespace: newNamespace,
                     componentInfoObjects,
                     indOffset: prevlength,
                 });

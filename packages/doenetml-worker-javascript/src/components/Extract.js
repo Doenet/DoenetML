@@ -381,8 +381,6 @@ export default class Extract extends CompositeComponent {
         let propVariablesCopiedByReplacement =
             results.propVariablesCopiedByReplacement;
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let assignNames = component.doenetAttributes.assignNames;
 
         let processResult = processAssignNames({
@@ -390,7 +388,6 @@ export default class Extract extends CompositeComponent {
             serializedComponents: serializedReplacements,
             parentIdx: component.componentIdx,
             indOffset: numReplacementsSoFar,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

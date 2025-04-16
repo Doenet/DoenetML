@@ -362,12 +362,6 @@ export default class BaseComponent {
                 defaultValue: false,
                 public: true,
             },
-            newNamespace: {
-                createPrimitiveOfType: "boolean",
-                createStateVariable: "newNamespace",
-                defaultValue: false,
-                public: true,
-            },
             permid: {
                 createPrimitiveOfType: "string",
                 createStateVariable: "permid",

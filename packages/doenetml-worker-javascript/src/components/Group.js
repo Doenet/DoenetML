@@ -87,22 +87,6 @@ export default class Group extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.newNamespace = {
-            returnDependencies: () => ({
-                newNamespace: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "newNamespace",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        newNamespace: dependencyValues.newNamespace,
-                    },
-                };
-            },
-        };
-
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
                 rendered: {
@@ -249,8 +233,6 @@ export default class Group extends CompositeComponent {
                 await component.state.serializedChildren.value,
             );
 
-            let newNamespace = component.attributes.newNamespace?.primitive;
-
             if ("isResponse" in component.attributes) {
                 // pass isResponse to replacements
 
@@ -266,7 +248,6 @@ export default class Group extends CompositeComponent {
                             },
                             componentType: repl.componentType,
                             componentInfoObjects,
-                            compositeCreatesNewNamespace: newNamespace,
                         });
                     if (!repl.attributes) {
                         repl.attributes = {};
@@ -292,7 +273,6 @@ export default class Group extends CompositeComponent {
                 assignNames: component.doenetAttributes.assignNames,
                 serializedComponents: replacements,
                 parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
                 originalNamesAreConsistent: true,
             });

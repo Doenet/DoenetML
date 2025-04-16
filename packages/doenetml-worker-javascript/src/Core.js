@@ -2582,8 +2582,6 @@ export default class Core {
             uniqueIdentifiersUsed,
         });
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let compositeAttributesObj =
             compositeMediatingTheShadow.constructor.createAttributesObject();
 
@@ -2636,7 +2634,6 @@ export default class Core {
                 componentType: repl.componentType,
                 componentInfoObjects: this.componentInfoObjects,
                 compositeAttributesObj,
-                compositeCreatesNewNamespace: newNamespace,
             });
             Object.assign(repl.attributes, attributesFromComposite);
         }
@@ -2706,10 +2703,7 @@ export default class Core {
         }
 
         if (component.constructor.assignNamesToReplacements) {
-            let originalNamesAreConsistent =
-                this.determineOriginalNamesConsistentForShadowingComposite(
-                    component,
-                );
+            let originalNamesAreConsistent = true; // XXX: can we do this?
 
             let target =
                 this._components[
@@ -2726,18 +2720,13 @@ export default class Core {
             }
 
             let parentIdx = component.componentIdx;
-            let parentCreatesNewNamespace = newNamespace;
             if (component.doenetAttributes.parentNameForAssignNames) {
                 parentIdx = component.doenetAttributes.parentNameForAssignNames;
-                parentCreatesNewNamespace =
-                    this._components[parentIdx].attributes.newNamespace
-                        ?.primitive;
             }
 
             // If we added a level to assignNames, that means that this composite won't be assigning names
             // but that we are delegating that to the next composite.
             // But, we want to use the current parent name for assigning name
-            // (which is particularly relevant when parentCreatesNewNamespace, as parent name becomes the new namespace).
             // We set compositesParentNameForAssignNames to the current parent name.
             // Since we've added a level to assignNames, each name will be an array
             // and processAssignNames will set parentNameForAssignNames to be compositesParentNameForAssignNames
@@ -2754,7 +2743,6 @@ export default class Core {
                 serializedComponents: serializedReplacements,
                 parentIdx,
                 parentNameForUniqueNames: component.componentIdx,
-                parentCreatesNewNamespace,
                 componentInfoObjects: this.componentInfoObjects,
                 originalNamesAreConsistent,
                 shadowingComposite: true,
@@ -2794,9 +2782,6 @@ export default class Core {
                     serializedComponents: newReplacements,
                     parentIdx,
                     parentNameForUniqueNames: component.componentIdx,
-                    parentCreatesNewNamespace:
-                        compositeMediatingTheShadow.attributes
-                            .assignNewNamespaces?.primitive,
                     indOffset: serializedReplacements.length,
                     componentInfoObjects: this.componentInfoObjects,
                     originalNamesAreConsistent: true,
@@ -2816,15 +2801,13 @@ export default class Core {
                 );
             }
         } else {
-            // since original names came from the targetComponent
-            // we can use them only if we created a new namespace
-            let originalNamesAreConsistent = newNamespace;
+            // XXX: can we always keep original names in the new regime?
+            let originalNamesAreConsistent = true;
 
             let processResult = processAssignNames({
                 // assignNames: component.doenetAttributes.assignNames,
                 serializedComponents: serializedReplacements,
                 parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects: this.componentInfoObjects,
                 originalNamesAreConsistent,
                 shadowingComposite: true,
@@ -2899,93 +2882,6 @@ export default class Core {
         compositesExpanded.push(component.componentIdx);
 
         return { success: true, compositesExpanded };
-    }
-
-    // XXX: this is broken with the move from componentName to componentIdx
-    // and the removal of namespaces
-    determineOriginalNamesConsistentForShadowingComposite(shadowingComposite) {
-        // originalNamesAreConsistent means that processAssignNames should leave
-        // the original names in the serializedComponents as is
-        // (unless their names are assigned or have been marked to create unique)
-        // If originalNamesAreConsistent is false, then all components
-        // that don't have names assigned will be renamed to random names
-
-        // We set originalNamesAreConsistent to true if we can be sure (with an exception, see below)
-        // that we won't create any duplicate names.
-        // If the component shadowing has a newNamespace,
-        // or the composite mediating the shadow has a new namespace or assigns a new namespaces,
-        // or the namespace of the composite shadowing was due to the composite mediating the shadow
-        // that will, in most cases, be enough to prevent name collisions.
-
-        // If the composite mediating the shadow also assign names (or subnames)
-        // it is possible that those names will collide with the original names
-        // but we don't protect against that.
-
-        let compositeMediatingTheShadow =
-            this.components[shadowingComposite.shadows.compositeIdx];
-
-        let newNamespace =
-            shadowingComposite.attributes.newNamespace?.primitive;
-        let mediatingNewNamespace =
-            compositeMediatingTheShadow.attributes.newNamespace?.primitive;
-        let assignNewNamespaces =
-            compositeMediatingTheShadow.attributes.assignNewNamespaces
-                ?.primitive;
-
-        // check if the component that created the namespace for the shadowing composite
-        // is a replacement of the composite mediating the shadow
-        let lastSlash = shadowingComposite.componentIdx.lastIndexOf("/");
-        let nameForNamespaceOfShadowing = shadowingComposite.componentIdx.slice(
-            0,
-            lastSlash,
-        );
-        let componentCreatingNamespace =
-            this._components[nameForNamespaceOfShadowing];
-
-        let checkIfReplacementOfMediating = (comp) => {
-            if (!comp) {
-                return false;
-            }
-            let replacementOf = comp.replacementOf;
-            if (replacementOf) {
-                if (
-                    replacementOf.componentIdx ===
-                    compositeMediatingTheShadow.componentIdx
-                ) {
-                    return true;
-                }
-                if (checkIfReplacementOfMediating(replacementOf)) {
-                    return true;
-                }
-            }
-            if (
-                checkIfReplacementOfMediating(this._components[comp.parentIdx])
-            ) {
-                return true;
-            }
-
-            return false;
-        };
-
-        let namespaceFromReplacementOfMediating = checkIfReplacementOfMediating(
-            componentCreatingNamespace,
-        );
-
-        let originalNamesAreConsistent =
-            newNamespace ||
-            namespaceFromReplacementOfMediating ||
-            mediatingNewNamespace ||
-            assignNewNamespaces;
-
-        // console.log(`for shadowing composite: ${shadowingComposite.componentIdx}`);
-        // console.log({
-        //   newNamespace,
-        //   namespaceFromReplacementOfMediating,
-        //   mediatingNewNamespace,
-        //   assignNewNamespaces,
-        //   originalNamesAreConsistent,
-        // });
-        return originalNamesAreConsistent;
     }
 
     async createAndSetReplacements({ component, serializedReplacements }) {
@@ -8937,16 +8833,12 @@ export default class Core {
                     componentIdx: shadowingParent.shadows.compositeIdx,
                 });
 
-                let shadowingNewNamespace =
-                    shadowingParent.attributes.newNamespace?.primitive;
-                // we can use original only if we created a new namespace
-                let originalNamesAreConsistent = shadowingNewNamespace;
+                let originalNamesAreConsistent = true; // XXX: can we do this?
 
                 let processResult = processAssignNames({
                     indOffset: assignNamesOffset,
                     serializedComponents: shadowingSerializeChildren,
                     parentIdx: shadowingParent.componentIdx,
-                    parentCreatesNewNamespace: shadowingNewNamespace,
                     componentInfoObjects: this.componentInfoObjects,
                     originalNamesAreConsistent,
                 });
@@ -10057,9 +9949,6 @@ export default class Core {
                     componentIdx: shadowingComponent.shadows.compositeIdx,
                 });
 
-                let shadowingNewNamespace =
-                    shadowingComponent.attributes.newNamespace?.primitive;
-
                 // TODO: is isResponse the only attribute to convert?
                 if (shadowingComponent.attributes.isResponse) {
                     let compositeAttributesObj =
@@ -10084,8 +9973,6 @@ export default class Core {
                                 componentType: repl.componentType,
                                 componentInfoObjects: this.componentInfoObjects,
                                 compositeAttributesObj,
-                                compositeCreatesNewNamespace:
-                                    shadowingNewNamespace,
                             });
                         Object.assign(repl.attributes, attributesFromComposite);
                     }
@@ -10096,10 +9983,7 @@ export default class Core {
                 let compositeMediatingTheShadow =
                     this.components[nameOfCompositeMediatingTheShadow];
                 if (shadowingComponent.constructor.assignNamesToReplacements) {
-                    let originalNamesAreConsistent =
-                        this.determineOriginalNamesConsistentForShadowingComposite(
-                            shadowingComponent,
-                        );
+                    let originalNamesAreConsistent = true; // XXX: can we do this?
 
                     let assignNames =
                         shadowingComponent.doenetAttributes.assignNames;
@@ -10112,7 +9996,6 @@ export default class Core {
                     }
 
                     let parentIdx = shadowingComponent.componentIdx;
-                    let parentCreatesNewNamespace = shadowingNewNamespace;
                     if (
                         shadowingComponent.doenetAttributes
                             .parentNameForAssignNames
@@ -10120,15 +10003,11 @@ export default class Core {
                         parentIdx =
                             shadowingComponent.doenetAttributes
                                 .parentNameForAssignNames;
-                        parentCreatesNewNamespace =
-                            this._components[parentIdx].attributes.newNamespace
-                                ?.primitive;
                     }
 
                     // If we added a level to assignNames, that means that this composite won't be assigning names
                     // but that we are delegating that to the next composite.
                     // But, we want to use the current parent name for assigning name
-                    // (which is particularly relevant when parentCreatesNewNamespace, as parent name becomes the new namespace).
                     // We set compositesParentNameForAssignNames to the current parent name.
                     // Since we've added a level to assignNames, each name will be an array
                     // and processAssignNames will set parentNameForAssignNames to be compositesParentNameForAssignNames
@@ -10147,7 +10026,6 @@ export default class Core {
                         indOffset: assignNamesOffset,
                         serializedComponents: newSerializedReplacements,
                         parentIdx,
-                        parentCreatesNewNamespace,
                         componentInfoObjects: this.componentInfoObjects,
                         originalNamesAreConsistent,
                         compositesParentNameForAssignNames,
@@ -10164,16 +10042,13 @@ export default class Core {
                     newSerializedReplacements =
                         processResult.serializedComponents;
                 } else {
-                    // since original names came from the targetComponent
-                    // we can use them only if we created a new namespace
-                    let originalNamesAreConsistent = shadowingNewNamespace;
+                    let originalNamesAreConsistent = true; // XXX: can we do this?
 
                     let processResult = processAssignNames({
                         // assignNames: shadowingComponent.doenetAttributes.assignNames,
                         indOffset: assignNamesOffset,
                         serializedComponents: newSerializedReplacements,
                         parentIdx: shadowingComponent.componentIdx,
-                        parentCreatesNewNamespace: shadowingNewNamespace,
                         componentInfoObjects: this.componentInfoObjects,
                         originalNamesAreConsistent,
                     });

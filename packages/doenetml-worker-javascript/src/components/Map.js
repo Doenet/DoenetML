@@ -131,11 +131,7 @@ export default class Map extends CompositeComponent {
                 templateChild: {
                     dependencyType: "child",
                     childGroups: ["templates"],
-                    variableNames: [
-                        "serializedChildren",
-                        "newNamespace",
-                        "asList",
-                    ],
+                    variableNames: ["serializedChildren", "asList"],
                 },
             }),
             definition: function ({ dependencyValues }) {
@@ -154,9 +150,6 @@ export default class Map extends CompositeComponent {
                     originalName: templateChild.componentIdx,
                     attributes: {},
                 };
-                if (templateChild.stateValues.newNamespace) {
-                    template.attributes.newNamespace = { primitive: true };
-                }
                 if (templateChild.stateValues.asList) {
                     template.attributes.asList = { primitive: true };
                 }
@@ -373,7 +366,6 @@ export default class Map extends CompositeComponent {
         let warnings = [];
 
         let replacements = [deepClone(await component.stateValues.template)];
-        let newNamespace = component.attributes.newNamespace?.primitive;
         let compositeAttributesObj = this.createAttributesObject();
 
         // pass isResponse to replacements
@@ -384,7 +376,6 @@ export default class Map extends CompositeComponent {
             componentType: replacements[0].componentType,
             componentInfoObjects,
             compositeAttributesObj,
-            compositeCreatesNewNamespace: newNamespace,
         });
         if (!replacements[0].attributes) {
             replacements[0].attributes = {};
@@ -392,10 +383,8 @@ export default class Map extends CompositeComponent {
 
         Object.assign(replacements[0].attributes, attributesFromComposite);
 
-        if (
-            !replacements[0].attributes.newNamespace?.primitive &&
-            replacements[0].children
-        ) {
+        // XXX: do we delete this? It used to be here only if didn't have a new namespace
+        if (replacements[0].children) {
             markToCreateAllUniqueNames(replacements[0].children);
         }
 
@@ -403,7 +392,6 @@ export default class Map extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
             indOffset: iter,
         });
@@ -443,7 +431,6 @@ export default class Map extends CompositeComponent {
 
         let replacements = [];
         let newChildnumberArray = [...childnumberArray, 0];
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let numIterates = await component.stateValues.numIterates;
         let numSources = await component.stateValues.numSources;
@@ -468,7 +455,6 @@ export default class Map extends CompositeComponent {
                     componentType: serializedComponents[0].componentType,
                     componentInfoObjects,
                     compositeAttributesObj,
-                    compositeCreatesNewNamespace: newNamespace,
                 });
 
                 if (!serializedComponents[0].attributes) {
@@ -480,11 +466,8 @@ export default class Map extends CompositeComponent {
                     attributesFromComposite,
                 );
 
-                if (
-                    !serializedComponents[0].attributes.newNamespace
-                        ?.primitive &&
-                    serializedComponents[0].children
-                ) {
+                // XXX: do we delete this? It used to be here only if didn't have a new namespace
+                if (serializedComponents[0].children) {
                     markToCreateAllUniqueNames(
                         serializedComponents[0].children,
                     );
@@ -494,7 +477,6 @@ export default class Map extends CompositeComponent {
                     assignNames: component.doenetAttributes.assignNames,
                     serializedComponents,
                     parentIdx: component.componentIdx,
-                    parentCreatesNewNamespace: newNamespace,
                     componentInfoObjects,
                     indOffset: iterateNumber,
                 });

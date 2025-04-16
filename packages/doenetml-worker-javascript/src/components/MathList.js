@@ -572,8 +572,6 @@ export default class MathList extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         // allow one to override the fixed and isResponse attributes
         // as well as rounding settings
         // by specifying it on the mathList
@@ -584,7 +582,6 @@ export default class MathList extends CompositeComponent {
                 attributes: attributesToConvert,
                 componentType: "math",
                 componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
             });
         }
 
@@ -635,7 +632,6 @@ export default class MathList extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

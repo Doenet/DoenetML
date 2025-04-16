@@ -1039,23 +1039,15 @@ function convertComponentTarget({
 //   then that array becomes the assignNames for that composite component
 // - indOffset: offset assignNames by this value (compared to index of serialized components)
 //   and also offset the index used for creating unique names
-// - assignNewNamespaces: if true, also give the components a new namespace
-// - parentIdx: the way the name of the parent (typically the composite) is used to create the names
-//   depends on parentCreatesNewNamespace
-//   - if parentCreatesNewNamespace, then the entire parent name is used for the namespace of new names
-//   - else the namespace from the parent name (the part before the last slash) is used for the namespace/
-// - parentCreatesNewNamespace: see parentIdx, above
 // - shadowingComposite: If false, there is apparently some case where we have to create unique names
 //   TODO: figure out the circumstances where this special case occurs
 
 export function processAssignNames({
     assignNames = [],
-    assignNewNamespaces = false,
     assignNamesForCompositeReplacement,
     serializedComponents,
     parentIdx,
     parentNameForUniqueNames,
-    parentCreatesNewNamespace,
     componentInfoObjects,
     indOffset = 0,
     originalNamesAreConsistent = false,
@@ -1068,7 +1060,6 @@ export function processAssignNames({
     // console.log(assignNames);
     // console.log({
     //   parentIdx,
-    //   parentCreatesNewNamespace,
     //   compositesParentNameForAssignNames,
     // });
 

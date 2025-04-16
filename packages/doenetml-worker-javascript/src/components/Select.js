@@ -16,7 +16,6 @@ export default class Select extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
-    // static assignNewNamespaceToAllChildrenExcept = Object.keys(this.createAttributesObject()).map(x => x.toLowerCase());
     static assignNamesToReplacements = true;
 
     static createsVariants = true;
@@ -689,12 +688,6 @@ export default class Select extends CompositeComponent {
                 originalName: selectedChildName,
             };
 
-            if (selectedChild.attributes.newNamespace) {
-                serializedChild.attributes = {
-                    newNamespace: { primitive: true },
-                };
-            }
-
             replacements.push(serializedChild);
         }
 
@@ -724,8 +717,6 @@ export default class Select extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let assignNames = component.doenetAttributes.assignNames;
 
         if (
@@ -735,8 +726,9 @@ export default class Select extends CompositeComponent {
             assignNames = assignNames.map((x) => [x]);
         }
 
+        // XXX: do we delete this? It used to be here only if didn't have a new namespace
         for (let rep of replacements) {
-            if (!rep.attributes?.newNamespace?.primitive && rep.children) {
+            if (rep.children) {
                 markToCreateAllUniqueNames(rep.children);
             }
         }
@@ -748,7 +740,6 @@ export default class Select extends CompositeComponent {
                 assignNames,
                 serializedComponents: [rep],
                 parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
                 indOffset: ind,
             });

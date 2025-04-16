@@ -450,8 +450,6 @@ export default class Substitute extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let type = await component.stateValues.type;
         let serializedReplacement = {
             componentType: type,
@@ -508,7 +506,6 @@ export default class Substitute extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: [serializedReplacement],
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

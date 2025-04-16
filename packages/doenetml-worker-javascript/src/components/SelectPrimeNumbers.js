@@ -268,8 +268,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             };
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let replacements = [];
 
         for (let value of await component.stateValues.selectedValues) {
@@ -283,7 +281,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

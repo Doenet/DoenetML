@@ -207,8 +207,6 @@ export default class Intersection extends CompositeComponent {
             },
         }));
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let attributesToConvert = {};
         if (component.attributes.styleNumber) {
             attributesToConvert.styleNumber = component.attributes.styleNumber;
@@ -221,7 +219,6 @@ export default class Intersection extends CompositeComponent {
                         attributes: attributesToConvert,
                         componentType: repl.componentType,
                         componentInfoObjects,
-                        compositeCreatesNewNamespace: newNamespace,
                     },
                 );
 
@@ -236,7 +233,6 @@ export default class Intersection extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: serializedReplacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

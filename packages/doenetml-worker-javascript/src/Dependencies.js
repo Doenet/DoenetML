@@ -2494,7 +2494,7 @@ export class DependencyHandler {
         let componentTypesForUniqueNames = [];
         let linesForUniqueNames = [];
 
-        // remove namespaces and internally created component names
+        // remove internally created component names
         // and deduplicate while keeping order (so don't use Set)
         for (let comp of componentsInvolved) {
             let name = comp.componentIdx;

@@ -317,8 +317,6 @@ export default class BooleanList extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         // allow one to override the fixed and isResponse attributes
         // as well as rounding settings
         // by specifying it on the sequence
@@ -329,7 +327,6 @@ export default class BooleanList extends CompositeComponent {
                 attributes: attributesToConvert,
                 componentType: "boolean",
                 componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
             });
         }
 
@@ -372,7 +369,6 @@ export default class BooleanList extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

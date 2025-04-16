@@ -259,8 +259,6 @@ export default class SelectFromSequence extends Sequence {
             componentType = "text";
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let attributesToConvert = {};
         for (let attr of [
             "fixed",
@@ -281,7 +279,6 @@ export default class SelectFromSequence extends Sequence {
                 attributes: attributesToConvert,
                 componentType,
                 componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
             });
         }
 
@@ -299,7 +296,6 @@ export default class SelectFromSequence extends Sequence {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

@@ -478,8 +478,6 @@ export default class Collect extends CompositeComponent {
             };
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let propName = (
             await component.stateValues.effectivePropNameByComponent
         )[collectedNum];
@@ -530,7 +528,6 @@ export default class Collect extends CompositeComponent {
                         componentType: repl.componentType,
                         componentInfoObjects,
                         compositeAttributesObj,
-                        compositeCreatesNewNamespace: newNamespace,
                     },
                 );
                 Object.assign(repl.attributes, attributesFromComposite);
@@ -542,7 +539,6 @@ export default class Collect extends CompositeComponent {
             serializedComponents: serializedReplacements,
             parentIdx: component.componentIdx,
             indOffset: numReplacementsSoFar,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

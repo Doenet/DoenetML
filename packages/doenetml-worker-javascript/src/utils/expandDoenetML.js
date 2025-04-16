@@ -202,11 +202,6 @@ export async function expandDoenetMLsToFullSerializedComponents({
                             originalCopyWithUri.doenetAttributes = {};
                         }
 
-                        originalCopyWithUri.doenetAttributes.keptNewNamespaceOfLastChild =
-                            Boolean(comp.attributes.newNamespace?.primitive);
-
-                        comp.attributes.newNamespace = { primitive: true };
-
                         originalCopyWithUri.children = [
                             comp,
                             ...originalCopyWithUri.children,
@@ -218,12 +213,12 @@ export async function expandDoenetMLsToFullSerializedComponents({
                         originalCopyWithUri.doenetAttributes.nameFirstChildIndependently = true;
                     }
                 } else {
+                    // XXX: fix copying external content without using namespaces
                     let extContent = {
                         componentType: "externalContent",
                         children: JSON.parse(
                             JSON.stringify(serializedComponentsForCid),
                         ),
-                        attributes: { newNamespace: { primitive: true } },
                         doenetAttributes: { createUniqueName: true },
                     };
 
