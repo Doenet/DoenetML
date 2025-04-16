@@ -52,7 +52,7 @@ export default class Legend extends GraphicalComponent {
                         setValue: {
                             graphicalElementNames:
                                 dependencyValues.graphAncestor.stateValues.graphicalDescendants.map(
-                                    (x) => x.componentName,
+                                    (x) => x.componentIdx,
                                 ),
                         },
                     };
@@ -93,7 +93,7 @@ export default class Legend extends GraphicalComponent {
                     ] of stateValues.graphicalElementNames.entries()) {
                         dependencies[`graphicalElement${ind}`] = {
                             dependencyType: "multipleStateVariables",
-                            componentName: cName,
+                            componentIdx: cName,
                             variableNames: [
                                 "selectedStyle",
                                 "styleNumber",
@@ -103,11 +103,11 @@ export default class Legend extends GraphicalComponent {
                         };
                         dependencies[`graphicalElement${ind}AdapterSource`] = {
                             dependencyType: "adapterSource",
-                            componentName: cName,
+                            componentIdx: cName,
                         };
                         dependencies[`graphicalElement${ind}ShadowSource`] = {
                             dependencyType: "shadowSource",
-                            componentName: cName,
+                            componentIdx: cName,
                         };
                     }
                 }
@@ -135,31 +135,31 @@ export default class Legend extends GraphicalComponent {
                                 `graphicalElement${ind}AdapterSource`
                             ];
                         if (adapter) {
-                            // if have adapter, use that componentName instead,
+                            // if have adapter, use that componentIdx instead,
                             // since that would be the name used in forObjectComponentName
                             graphicalElement = { ...graphicalElement };
-                            graphicalElement.componentName =
-                                adapter.componentName;
+                            graphicalElement.componentIdx =
+                                adapter.componentIdx;
                         }
                         if (
-                            graphicalElement.componentName.slice(0, 3) === "/__"
+                            graphicalElement.componentIdx.slice(0, 3) === "/__"
                         ) {
                             let shadowSource =
                                 dependencyValues[
                                     `graphicalElement${ind}ShadowSource`
                                 ];
                             if (shadowSource) {
-                                // if have shadow source, use that componentName instead,
+                                // if have shadow source, use that componentIdx instead,
                                 graphicalElement = { ...graphicalElement };
-                                graphicalElement.componentName =
-                                    shadowSource.componentName;
+                                graphicalElement.componentIdx =
+                                    shadowSource.componentIdx;
                             }
                         }
                         graphicalDescendantsLeft.push(graphicalElement);
                     }
 
                     let graphicalDescendantComponentNamesLeft =
-                        graphicalDescendantsLeft.map((x) => x.componentName);
+                        graphicalDescendantsLeft.map((x) => x.componentIdx);
 
                     let labelsInOrder = [];
                     let labelsByComponentName = {};
@@ -245,7 +245,7 @@ export default class Legend extends GraphicalComponent {
                                 let comp = graphicalDescendantsLeft[ind];
                                 if (
                                     !(
-                                        comp.componentName in
+                                        comp.componentIdx in
                                         labelsByComponentName
                                     )
                                 ) {

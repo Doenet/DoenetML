@@ -309,8 +309,8 @@ describe("Unlinked Copying Tests", async () => {
                 // Unlinked copied content does not exist yet
                 expect(graph2Children.length).eqls(0);
             } else {
-                let P2 = graph2Children[0].componentName;
-                let Q2 = graph2Children[1].componentName;
+                let P2 = graph2Children[0].componentIdx;
+                let Q2 = graph2Children[1].componentIdx;
                 expect(
                     stateVariables[P2].stateValues.xs.map((v) => v.tree),
                 ).eqls(p2);

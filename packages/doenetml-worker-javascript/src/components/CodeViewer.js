@@ -217,7 +217,7 @@ export default class CodeViewer extends BlockComponent {
                     return {
                         setValue: {
                             codeSource:
-                                dependencyValues.codeEditorParent.componentName,
+                                dependencyValues.codeEditorParent.componentIdx,
                         },
                     };
                 } else {
@@ -231,7 +231,7 @@ export default class CodeViewer extends BlockComponent {
             returnDependencies: ({ stateValues }) => ({
                 doenetML: {
                     dependencyType: "stateVariable",
-                    componentName: stateValues.codeSource,
+                    componentIdx: stateValues.codeSource,
                     variableName: "text",
                     variablesOptional: true,
                 },
@@ -347,13 +347,13 @@ export default class CodeViewer extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "doenetML",
                 value: await this.stateValues.doenetMLFromSource,
             },
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "codeChanged",
                 value: false,
             },
@@ -376,7 +376,7 @@ export default class CodeViewer extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "errorsAndWarnings",
                 value: errorsAndWarnings,
             },
@@ -394,7 +394,7 @@ export default class CodeViewer extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

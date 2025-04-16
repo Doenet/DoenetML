@@ -27,7 +27,7 @@ export default React.memo(function Figure(props) {
         for (let [ind, child] of children.entries()) {
             //child might be null or a string
             if (
-                child?.props?.componentInstructions.componentName ===
+                child?.props?.componentInstructions.componentIdx ===
                 SVs.captionChildName
             ) {
                 captionChildInd = ind;

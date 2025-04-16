@@ -751,7 +751,7 @@ export default class ODESystem extends InlineComponent {
             arrayDefinitionByKey({
                 globalDependencyValues,
                 workspace,
-                componentName,
+                componentIdx,
             }) {
                 let numericalSolutions = {};
 
@@ -839,8 +839,8 @@ export default class ODESystem extends InlineComponent {
                                         " and tolerance " +
                                         tolerance +
                                         ", odesystem";
-                                    if (componentName !== undefined) {
-                                        message += " (" + componentName + ")";
+                                    if (componentIdx !== undefined) {
+                                        message += " (" + componentIdx + ")";
                                     }
                                     message +=
                                         " hit maxiterations (" +

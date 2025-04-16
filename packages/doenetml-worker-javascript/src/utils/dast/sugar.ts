@@ -30,16 +30,19 @@ export function applySugar({
     parentAttributes = {},
     componentInfoObjects,
     isAttributeComponent = false,
+    nComponents,
 }: {
     serializedComponents: (string | SerializedComponent)[];
     parentParametersFromSugar?: Record<string, any>;
     parentAttributes?: Record<string, any>;
     componentInfoObjects: ComponentInfoObjects;
     isAttributeComponent?: boolean;
+    nComponents: number;
 }): {
     components: (string | SerializedComponent)[];
     errors: ErrorRecord[];
     warnings: WarningRecord[];
+    nComponents: number;
 } {
     let errors: ErrorRecord[] = [];
     let warnings: WarningRecord[] = [];
@@ -126,6 +129,7 @@ export function applySugar({
                         componentInfoObjects,
                         isAttributeComponent,
                         createdFromMacro,
+                        nComponents,
                     });
 
                     if (sugarResults.warnings) {
@@ -139,6 +143,7 @@ export function applySugar({
                     }
 
                     if (sugarResults.success) {
+                        nComponents = sugarResults.nComponents;
                         let newChildren = sugarResults.newChildren;
                         let newAttributes = sugarResults.newAttributes;
 
@@ -223,12 +228,14 @@ export function applySugar({
                                 )
                             ) {
                                 const expandResult =
-                                    expandUnflattenedToSerializedComponents(
-                                        newChildren,
+                                    expandUnflattenedToSerializedComponents({
+                                        serializedComponents: newChildren,
                                         componentInfoObjects,
-                                    );
+                                        nComponents,
+                                    });
                                 newComponent.children = expandResult.components;
                                 errors.push(...expandResult.errors);
+                                nComponents = expandResult.nComponents;
                             } else {
                                 throw Error(
                                     "Invalid newChildren returned from sugar",
@@ -263,13 +270,16 @@ export function applySugar({
                                         unflattenedAttributes: newAttributes,
                                         componentClass,
                                         componentInfoObjects,
+                                        nComponents,
                                     });
                                 Object.assign(
                                     newComponent.attributes,
                                     expandResult.attributes,
                                 );
                                 errors.push(...expandResult.errors);
+                                nComponents = expandResult.nComponents;
                             } else {
+                                console.log({ newAttributes });
                                 throw Error(
                                     "Invalid newAttributes returned from sugar",
                                 );
@@ -293,10 +303,12 @@ export function applySugar({
                 parentParametersFromSugar: newParentParametersFromSugar,
                 parentAttributes: componentAttributes,
                 componentInfoObjects,
+                nComponents,
             });
             newComponent.children = res.components;
             errors.push(...res.errors);
             warnings.push(...res.warnings);
+            nComponents = res.nComponents;
 
             for (let attrName in newComponent.attributes) {
                 let attribute = newComponent.attributes[attrName];
@@ -307,11 +319,13 @@ export function applySugar({
                         parentAttributes: componentAttributes,
                         componentInfoObjects,
                         isAttributeComponent: true,
+                        nComponents,
                     });
                     attribute.component = res
                         .components[0] as SerializedComponent;
                     errors.push(...res.errors);
                     warnings.push(...res.warnings);
+                    nComponents = res.nComponents;
                 }
             }
 
@@ -330,5 +344,5 @@ export function applySugar({
         }
     }
 
-    return { errors, warnings, components: newComponents };
+    return { errors, warnings, components: newComponents, nComponents };
 }

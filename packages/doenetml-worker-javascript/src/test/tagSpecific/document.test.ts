@@ -35,7 +35,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/docCa"].stateValues.value).eq(0.5);
 
         let mathInputName =
-            stateVariables["/ans"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
 
         await updateMathInputValue({
             latex: "x",
@@ -67,7 +67,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/docCa"].stateValues.value).eq(0);
 
         let mathInputName =
-            stateVariables["/ans"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
 
         await updateMathInputValue({
             latex: "x",
@@ -106,15 +106,15 @@ describe("Document tag tests", async () => {
         ).eqls([0, 0, 0, 0, 0]);
 
         let mathInputXName =
-            stateVariables["/x"].stateValues.inputChildren[0].componentName;
+            stateVariables["/x"].stateValues.inputChildren[0].componentIdx;
         let mathInputYName =
-            stateVariables["/y"].stateValues.inputChildren[0].componentName;
+            stateVariables["/y"].stateValues.inputChildren[0].componentIdx;
         let mathInputZName =
-            stateVariables["/z"].stateValues.inputChildren[0].componentName;
+            stateVariables["/z"].stateValues.inputChildren[0].componentIdx;
         let mathInputAName =
-            stateVariables["/a"].stateValues.inputChildren[0].componentName;
+            stateVariables["/a"].stateValues.inputChildren[0].componentIdx;
         let mathInputBName =
-            stateVariables["/b"].stateValues.inputChildren[0].componentName;
+            stateVariables["/b"].stateValues.inputChildren[0].componentIdx;
 
         await updateMathInputValue({
             latex: "x",

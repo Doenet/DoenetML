@@ -135,7 +135,7 @@ export default class Shuffle extends CompositeComponent {
                             ...child.stateValues.componentNamesInList,
                         );
                     } else {
-                        originalComponentNames.push(child.componentName);
+                        originalComponentNames.push(child.componentIdx);
                     }
                 }
 
@@ -282,10 +282,10 @@ export default class Shuffle extends CompositeComponent {
                     ignoreReplacementsOfEncounteredComposites: true,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     seed: dependencyValues.variantSeed,
-                    meta: { createdBy: componentName },
+                    meta: { createdBy: componentIdx },
                     indices: dependencyValues.componentOrder,
                 };
 
@@ -347,7 +347,7 @@ export default class Shuffle extends CompositeComponent {
             let replacementSource = components[originalComponentNames[ind - 1]];
 
             if (replacementSource) {
-                componentsCopied.push(replacementSource.componentName);
+                componentsCopied.push(replacementSource.componentIdx);
 
                 replacements.push(
                     await replacementSource.serialize({
@@ -360,7 +360,7 @@ export default class Shuffle extends CompositeComponent {
         workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
@@ -369,7 +369,7 @@ export default class Shuffle extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: await component.stateValues.newNamespace,
             componentInfoObjects,
         });
@@ -404,7 +404,7 @@ export default class Shuffle extends CompositeComponent {
             let replacementSource = components[originalComponentNames[ind - 1]];
 
             if (replacementSource) {
-                componentsToCopy.push(replacementSource.componentName);
+                componentsToCopy.push(replacementSource.componentIdx);
             }
         }
 

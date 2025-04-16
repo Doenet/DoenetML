@@ -126,7 +126,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(pointNames.length).eq(2);
             expect(
@@ -138,7 +138,7 @@ describe("callAction tag tests", async () => {
         }
 
         await movePoint({
-            name: g1.stateValues.graphicalDescendants[1].componentName,
+            name: g1.stateValues.graphicalDescendants[1].componentIdx,
             x: -2,
             y: 5,
             core,
@@ -157,7 +157,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(
                 stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
@@ -177,7 +177,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(pointNames.length).eq(3);
             expect(
@@ -192,7 +192,7 @@ describe("callAction tag tests", async () => {
         }
 
         await movePoint({
-            name: g2.stateValues.graphicalDescendants[2].componentName,
+            name: g2.stateValues.graphicalDescendants[2].componentIdx,
             x: 7,
             y: -9,
             core,
@@ -212,7 +212,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(
                 stateVariables[pointNames[2]].stateValues.xs.map((x) => x.tree),
@@ -232,7 +232,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(pointNames.length).eq(2);
             expect(
@@ -244,7 +244,7 @@ describe("callAction tag tests", async () => {
         }
 
         await movePoint({
-            name: g3.stateValues.graphicalDescendants[1].componentName,
+            name: g3.stateValues.graphicalDescendants[1].componentIdx,
             x: 1,
             y: 0,
             core,
@@ -262,7 +262,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(
                 stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
@@ -282,7 +282,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(pointNames.length).eq(1);
             expect(
@@ -303,7 +303,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(pointNames.length).eq(1);
             expect(
@@ -324,7 +324,7 @@ describe("callAction tag tests", async () => {
 
         for (let g of gs) {
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
             expect(pointNames.length).eq(2);
             expect(
@@ -361,7 +361,7 @@ describe("callAction tag tests", async () => {
 
         let pointNames = stateVariables[
             "/g"
-        ].stateValues.graphicalDescendants.map((x) => x.componentName);
+        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
             stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
@@ -378,7 +378,7 @@ describe("callAction tag tests", async () => {
         );
 
         pointNames = stateVariables["/g"].stateValues.graphicalDescendants.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         expect(
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
@@ -508,7 +508,7 @@ describe("callAction tag tests", async () => {
 
             let pointNames = stateVariables[
                 `/set${ind}/g`
-            ].stateValues.graphicalDescendants.map((x) => x.componentName);
+            ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
             expect(pointNames.length).eq(2);
             expect(
                 stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
@@ -527,7 +527,7 @@ describe("callAction tag tests", async () => {
 
             pointNames = stateVariables[
                 `/set${ind}/g`
-            ].stateValues.graphicalDescendants.map((x) => x.componentName);
+            ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
             expect(
                 stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
             ).eqls([-2, 5]);
@@ -599,7 +599,7 @@ describe("callAction tag tests", async () => {
 
         let pointNames = stateVariables[
             "/g"
-        ].stateValues.graphicalDescendants.map((x) => x.componentName);
+        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
             stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
@@ -616,7 +616,7 @@ describe("callAction tag tests", async () => {
         );
 
         pointNames = stateVariables["/g"].stateValues.graphicalDescendants.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         expect(
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
@@ -642,7 +642,7 @@ describe("callAction tag tests", async () => {
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(3,4)");
 
         pointNames = stateVariables["/g"].stateValues.graphicalDescendants.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         expect(pointNames.length).eq(3);
         expect(
@@ -664,7 +664,7 @@ describe("callAction tag tests", async () => {
         );
 
         pointNames = stateVariables["/g"].stateValues.graphicalDescendants.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         expect(
             stateVariables[pointNames[2]].stateValues.xs.map((x) => x.tree),
@@ -954,17 +954,16 @@ describe("callAction tag tests", async () => {
 
         for (let ind = 0; ind < 2; ind++) {
             let templateName =
-                stateVariables["/_map1"].replacements![ind].componentName;
+                stateVariables["/_map1"].replacements![ind].componentIdx;
 
             let tReps = stateVariables[templateName].replacements;
-            let graphName = tReps![1].componentName;
-            let copyName = tReps![3].componentName;
-            let numsName = tReps![5].componentName;
+            let graphName = tReps![1].componentIdx;
+            let copyName = tReps![3].componentIdx;
+            let numsName = tReps![5].componentIdx;
 
             let PName =
-                stateVariables[graphName].activeChildren[0].componentName;
-            let P2Name =
-                stateVariables[copyName].replacements![0].componentName;
+                stateVariables[graphName].activeChildren[0].componentIdx;
+            let P2Name = stateVariables[copyName].replacements![0].componentIdx;
 
             let numbers = stateVariables[numsName].stateValues.text
                 .split(",")
@@ -1584,7 +1583,7 @@ describe("callAction tag tests", async () => {
 
         let pointNames = stateVariables[
             "/g"
-        ].stateValues.graphicalDescendants.map((x) => x.componentName);
+        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
             stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
@@ -1602,7 +1601,7 @@ describe("callAction tag tests", async () => {
         );
 
         pointNames = stateVariables["/g"].stateValues.graphicalDescendants.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         expect(
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
@@ -1656,7 +1655,7 @@ describe("callAction tag tests", async () => {
         expect(stateVariables["/sub"].stateValues.hidden).eq(true);
 
         let mathInputName =
-            stateVariables["/ans"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
 
         await updateMathInputValue({
             latex: "x",
@@ -1689,7 +1688,7 @@ describe("callAction tag tests", async () => {
 
         let pointNames = stateVariables[
             "/g"
-        ].stateValues.graphicalDescendants.map((x) => x.componentName);
+        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
             stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
@@ -1707,7 +1706,7 @@ describe("callAction tag tests", async () => {
         );
 
         pointNames = stateVariables["/g"].stateValues.graphicalDescendants.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         expect(
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
@@ -1781,7 +1780,7 @@ describe("callAction tag tests", async () => {
 
         let pointNames = stateVariables[
             "/g"
-        ].stateValues.graphicalDescendants.map((x) => x.componentName);
+        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
             stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
@@ -1799,7 +1798,7 @@ describe("callAction tag tests", async () => {
         );
 
         pointNames = stateVariables["/g"].stateValues.graphicalDescendants.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         expect(
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),

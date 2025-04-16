@@ -100,7 +100,7 @@ export default class ContentPicker extends BlockComponent {
                     ] of stateValues.childrenWithTitle.entries()) {
                         dependencies[`childTopics${ind}`] = {
                             dependencyType: "descendant",
-                            ancestorName: child.componentName,
+                            ancestorName: child.componentIdx,
                             componentTypes: ["topic"],
                             variableNames: ["value"],
                             includeNonActiveChildren: true,
@@ -119,7 +119,7 @@ export default class ContentPicker extends BlockComponent {
                     child,
                 ] of dependencyValues.childrenWithTitle.entries()) {
                     let childObject = {
-                        componentName: child.componentName,
+                        componentIdx: child.componentIdx,
                         title: child.stateValues.title || "Untitled",
                     };
                     childInfo.push(childObject);
@@ -227,7 +227,7 @@ export default class ContentPicker extends BlockComponent {
             let updateInstructions = [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "selectedIndices",
                     value: selectedIndices,
                 },
@@ -236,7 +236,7 @@ export default class ContentPicker extends BlockComponent {
             let event = {
                 verb: "selected",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -254,7 +254,7 @@ export default class ContentPicker extends BlockComponent {
             });
 
             return await this.coreFunctions.triggerChainedActions({
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -266,7 +266,7 @@ export default class ContentPicker extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

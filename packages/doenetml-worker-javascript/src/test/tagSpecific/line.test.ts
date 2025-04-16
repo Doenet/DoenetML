@@ -1401,28 +1401,28 @@ describe("Line tag tests", async () => {
             "Line must be through points of at least two dimensions",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(34);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(34);
 
         expect(errorWarnings.warnings[1].message).contain(
             "Line is through points that depend on variables: x, y",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(44);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(4);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(4);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(44);
 
         expect(errorWarnings.warnings[2].message).contain(
             "Line is through points that depend on variables: a, c",
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(60);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(6);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(6);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(60);
     });
 
     it("lines with bad equations", async () => {
@@ -1506,19 +1506,19 @@ describe("Line tag tests", async () => {
             "Invalid format for equation of line in variables x and y",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(8);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(8);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(32);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(8);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(8);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(32);
 
         expect(errorWarnings.warnings[1].message).contain(
             "Invalid format for equation of line in variables x and y",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(9);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(9);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(30);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(9);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(9);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(30);
     });
 
     it("line from points with strange constraints", async () => {

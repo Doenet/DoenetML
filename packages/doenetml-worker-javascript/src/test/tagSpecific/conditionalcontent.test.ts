@@ -137,7 +137,7 @@ describe("Conditional content tag tests", async () => {
 
             let p =
                 stateVariables[`/section${index}`].activeChildren[1]
-                    .componentName;
+                    .componentIdx;
 
             expect(
                 stateVariables[p].stateValues.text.replace(/\s+/g, " ").trim(),
@@ -655,7 +655,7 @@ describe("Conditional content tag tests", async () => {
                 let names1 = stateVariables[
                     calcFromContainers[0]
                 ].activeChildren
-                    .map((x) => x.componentName)
+                    .map((x) => x.componentIdx)
                     .filter((x) => x);
 
                 expect(stateVariables[names1[0]].stateValues.text).eq(animal);
@@ -667,7 +667,7 @@ describe("Conditional content tag tests", async () => {
                 let names2 = stateVariables[
                     calcFromContainers[1]
                 ].activeChildren
-                    .map((x) => x.componentName)
+                    .map((x) => x.componentIdx)
                     .filter((x) => x);
 
                 expect(stateVariables[names2[0]].stateValues.text).eq(animal);
@@ -1426,7 +1426,7 @@ describe("Conditional content tag tests", async () => {
 
         expect(stateVariables["/s"].activeChildren).eqls([
             "\n  ",
-            { componentName: "/n", componentType: "mathInput" },
+            { componentIdx: "/n", componentType: "mathInput" },
             "\n  before\n  ",
             "nothing: ",
             "\n  after\n",

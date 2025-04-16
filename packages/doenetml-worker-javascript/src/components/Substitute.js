@@ -457,10 +457,10 @@ export default class Substitute extends CompositeComponent {
             componentType: type,
             state: { value: await component.stateValues.value },
             downstreamDependencies: {
-                [component.componentName]: [
+                [component.componentIdx]: [
                     {
                         dependencyType: "referenceShadow",
-                        compositeName: component.componentName,
+                        compositeName: component.componentIdx,
                         propVariable: "value",
                     },
                 ],
@@ -486,9 +486,9 @@ export default class Substitute extends CompositeComponent {
                 let shadowComponent = {
                     componentType: attributesComponentTypes[attr],
                     downstreamDependencies: {
-                        [component.componentName]: [
+                        [component.componentIdx]: [
                             {
-                                compositeName: component.componentName,
+                                compositeName: component.componentIdx,
                                 dependencyType: "referenceShadow",
                                 propVariable: attr,
                             },
@@ -507,7 +507,7 @@ export default class Substitute extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: [serializedReplacement],
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });

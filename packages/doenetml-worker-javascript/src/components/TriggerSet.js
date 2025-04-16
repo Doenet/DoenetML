@@ -126,7 +126,7 @@ export default class triggerSet extends InlineComponent {
                 })
             ) {
                 await this.coreFunctions.performAction({
-                    componentName: child.componentName,
+                    componentIdx: child.componentIdx,
                     actionName: "updateValue",
                     args: {
                         actionId,
@@ -141,7 +141,7 @@ export default class triggerSet extends InlineComponent {
                 })
             ) {
                 await this.coreFunctions.performAction({
-                    componentName: child.componentName,
+                    componentIdx: child.componentIdx,
                     actionName: "callAction",
                     args: {
                         actionId,
@@ -153,7 +153,7 @@ export default class triggerSet extends InlineComponent {
         }
 
         return await this.coreFunctions.triggerChainedActions({
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             actionId,
             sourceInformation,
             skipRendererUpdate,
@@ -192,7 +192,7 @@ export default class triggerSet extends InlineComponent {
             actionId,
             sourceInformation,
             skipRendererUpdate,
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

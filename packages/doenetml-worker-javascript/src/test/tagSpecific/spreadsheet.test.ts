@@ -25,7 +25,7 @@ async function changeSpreadsheetText({
 }) {
     await core.requestAction({
         actionName: "onChange",
-        componentName: name,
+        componentIdx: name,
         args: { changes: [[row - 1, column - 1, prevText, text]] },
     });
 }
@@ -1497,12 +1497,12 @@ $s.cellA1{assignNames="c2"}
             );
             expect(
                 stateVariables["/row1"].activeChildren.map(
-                    (v) => v.componentName,
+                    (v) => v.componentIdx,
                 ),
             ).eqls(["/c11", "/c12", "/c13"]);
             expect(
                 stateVariables["/row2"].activeChildren.map(
-                    (v) => v.componentName,
+                    (v) => v.componentIdx,
                 ),
             ).eqls(["/c21", "/c22"]);
             expect(stateVariables["/c1"].stateValues.text).eq(B1);

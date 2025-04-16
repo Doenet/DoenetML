@@ -129,7 +129,7 @@ export default class Document extends BaseComponent {
                 let titleChildName = null;
                 if (dependencyValues.titleChild.length > 0) {
                     titleChildName =
-                        dependencyValues.titleChild[0].componentName;
+                        dependencyValues.titleChild[0].componentIdx;
                 }
                 return {
                     setValue: { titleChildName },
@@ -324,7 +324,7 @@ export default class Document extends BaseComponent {
                         dependenciesByKey[arrayKey] = {
                             creditAchieved: {
                                 dependencyType: "stateVariable",
-                                componentName: descendant.componentName,
+                                componentIdx: descendant.componentIdx,
                                 variableName: "creditAchieved",
                             },
                         };
@@ -358,7 +358,7 @@ export default class Document extends BaseComponent {
                     let descendant = stateValues.scoredDescendants[ind];
                     dependencies[`descendantsOf${ind}`] = {
                         dependencyType: "descendant",
-                        ancestorName: descendant.componentName,
+                        ancestorName: descendant.componentIdx,
                         componentTypes: ["answer"],
                         recurseToMatchedChildren: false,
                     };
@@ -378,7 +378,7 @@ export default class Document extends BaseComponent {
                         `descendantsOf${ind}`
                     ]) {
                         componentNumberByAnswerName[
-                            answerDescendant.componentName
+                            answerDescendant.componentIdx
                         ] = componentNumber;
                     }
                     if (
@@ -387,7 +387,7 @@ export default class Document extends BaseComponent {
                             baseComponentType: "answer",
                         })
                     ) {
-                        componentNumberByAnswerName[component.componentName] =
+                        componentNumberByAnswerName[component.componentIdx] =
                             componentNumber;
                     }
                 }
@@ -416,7 +416,7 @@ export default class Document extends BaseComponent {
                         dependenciesByKey[arrayKey] = {
                             generatedVariantInfo: {
                                 dependencyType: "stateVariable",
-                                componentName: descendant.componentName,
+                                componentIdx: descendant.componentIdx,
                                 variableName: "generatedVariantInfo",
                                 variablesOptional: true,
                             },
@@ -586,7 +586,7 @@ export default class Document extends BaseComponent {
                 ] of stateValues.scoredDescendants.entries()) {
                     dependencies["creditAchievedIfSubmit" + ind] = {
                         dependencyType: "stateVariable",
-                        componentName: descendant.componentName,
+                        componentIdx: descendant.componentIdx,
                         variableName: "creditAchievedIfSubmit",
                     };
                 }
@@ -642,12 +642,12 @@ export default class Document extends BaseComponent {
                     ignoreReplacementsOfEncounteredComposites: true,
                 },
             }),
-            definition({ dependencyValues, componentName, previousValues }) {
+            definition({ dependencyValues, componentIdx, previousValues }) {
                 let generatedVariantInfo = {
                     index: dependencyValues.variantIndex,
                     name: dependencyValues.variantName,
                     meta: {
-                        createdBy: componentName,
+                        createdBy: componentIdx,
                     },
                 };
 
@@ -703,7 +703,7 @@ export default class Document extends BaseComponent {
                     variableName: "documentWideCheckWork",
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let createSubmitAllButton = false;
                 let suppressAnswerSubmitButtons = false;
 
@@ -755,7 +755,7 @@ export default class Document extends BaseComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "submitted",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
         });
@@ -772,7 +772,7 @@ export default class Document extends BaseComponent {
 
         for (let [ind, answer] of answersToSubmit.entries()) {
             await this.coreFunctions.performAction({
-                componentName: answer.componentName,
+                componentIdx: answer.componentIdx,
                 actionName: "submitAnswer",
                 args: {
                     actionId,
@@ -788,7 +788,7 @@ export default class Document extends BaseComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

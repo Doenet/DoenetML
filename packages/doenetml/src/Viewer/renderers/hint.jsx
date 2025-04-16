@@ -38,7 +38,7 @@ export default React.memo(function Hint(props) {
         for (let [ind, child] of children.entries()) {
             //child might be null or a string
             if (
-                child?.props?.componentInstructions.componentName ===
+                child?.props?.componentInstructions.componentIdx ===
                 SVs.titleChildName
             ) {
                 title = children[ind];

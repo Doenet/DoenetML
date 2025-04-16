@@ -104,7 +104,7 @@ export async function moveGraphicalObjectWithAnchorAction({
     actionId,
     sourceInformation = {},
     skipRendererUpdate = false,
-    componentName,
+    componentIdx,
     componentType,
     coreFunctions,
 }) {
@@ -123,7 +123,7 @@ export async function moveGraphicalObjectWithAnchorAction({
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName,
+                    componentIdx,
                     stateVariable: "anchor",
                     value: me.fromAst(components),
                 },
@@ -138,7 +138,7 @@ export async function moveGraphicalObjectWithAnchorAction({
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName,
+                    componentIdx,
                     stateVariable: "anchor",
                     value: me.fromAst(components),
                 },
@@ -149,7 +149,7 @@ export async function moveGraphicalObjectWithAnchorAction({
             event: {
                 verb: "interacted",
                 object: {
-                    componentName,
+                    componentIdx,
                     componentType,
                 },
                 result: {

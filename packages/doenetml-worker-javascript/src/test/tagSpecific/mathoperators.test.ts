@@ -2008,7 +2008,7 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/P3"].stateValues.xs[1].tree).eq(clamp(x));
 
         let g2children = stateVariables["/g2"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
@@ -2030,7 +2030,7 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/P3"].stateValues.xs[1].tree).eq(clamp(x));
 
         g2children = stateVariables["/g2"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
@@ -2053,7 +2053,7 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/P3"].stateValues.xs[1].tree).eq(clamp(x));
 
         g2children = stateVariables["/g2"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
@@ -2076,7 +2076,7 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/P3"].stateValues.xs[1].tree).eq(clamp(x));
 
         g2children = stateVariables["/g2"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
@@ -2090,7 +2090,7 @@ describe("Math operator tests", async () => {
         y = -10;
 
         await movePoint({
-            name: stateVariables["/g2"].activeChildren[0].componentName,
+            name: stateVariables["/g2"].activeChildren[0].componentIdx,
             x,
             y,
             core,
@@ -2105,7 +2105,7 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/P3"].stateValues.xs[1].tree).eq(clamp(x));
 
         g2children = stateVariables["/g2"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
@@ -2119,7 +2119,7 @@ describe("Math operator tests", async () => {
         y = -13;
 
         await movePoint({
-            name: stateVariables["/g2"].activeChildren[1].componentName,
+            name: stateVariables["/g2"].activeChildren[1].componentIdx,
             x,
             y,
             core,
@@ -2135,7 +2135,7 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/P3"].stateValues.xs[1].tree).eq(clamp(x));
 
         g2children = stateVariables["/g2"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
@@ -2149,7 +2149,7 @@ describe("Math operator tests", async () => {
         y = 12;
 
         await movePoint({
-            name: stateVariables["/g2"].activeChildren[2].componentName,
+            name: stateVariables["/g2"].activeChildren[2].componentIdx,
             x: y,
             y: x,
             core,
@@ -2165,7 +2165,7 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/P3"].stateValues.xs[1].tree).eq(clamp(x));
 
         g2children = stateVariables["/g2"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
@@ -2646,7 +2646,7 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let g2ChildrenNames = stateVariables["/g2"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         let checkPoints = async function (x, y) {
@@ -3417,14 +3417,14 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/meanPrimeb"].stateValues.value.tree).eq(4.25);
         expect(
             stateVariables[
-                stateVariables["/pPrimeb"].activeChildren[1].componentName
+                stateVariables["/pPrimeb"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).eq(4.25);
         expect(stateVariables["/mean100"].stateValues.value.tree).eq(50.5);
         expect(stateVariables["/mean100b"].stateValues.value.tree).eq(50.5);
         expect(
             stateVariables[
-                stateVariables["/p100b"].activeChildren[1].componentName
+                stateVariables["/p100b"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).eq(50.5);
     });
@@ -4075,7 +4075,7 @@ describe("Math operator tests", async () => {
         ).closeTo(variancePrimes, 1e-12);
         expect(
             stateVariables[
-                stateVariables["/pPrimeb"].activeChildren[1].componentName
+                stateVariables["/pPrimeb"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(stateVariables["/variance100"].stateValues.value.tree).closeTo(
@@ -4088,7 +4088,7 @@ describe("Math operator tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/p100b"].activeChildren[1].componentName
+                stateVariables["/p100b"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
     });
@@ -4281,7 +4281,7 @@ describe("Math operator tests", async () => {
         ).closeTo(variancePrimes, 1e-12);
         expect(
             stateVariables[
-                stateVariables["/pPrimeb"].activeChildren[1].componentName
+                stateVariables["/pPrimeb"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(stateVariables["/variance100"].stateValues.value.tree).closeTo(
@@ -4294,7 +4294,7 @@ describe("Math operator tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/p100b"].activeChildren[1].componentName
+                stateVariables["/p100b"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
     });
@@ -4626,7 +4626,7 @@ describe("Math operator tests", async () => {
         ).closeTo(stdPrimes, 1e-12);
         expect(
             stateVariables[
-                stateVariables["/pPrimeb"].activeChildren[1].componentName
+                stateVariables["/pPrimeb"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
@@ -4637,7 +4637,7 @@ describe("Math operator tests", async () => {
         ).closeTo(std100, 1e-12);
         expect(
             stateVariables[
-                stateVariables["/p100b"].activeChildren[1].componentName
+                stateVariables["/p100b"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(std100, 1e-12);
     });
@@ -4836,7 +4836,7 @@ describe("Math operator tests", async () => {
         ).closeTo(stdPrimes, 1e-12);
         expect(
             stateVariables[
-                stateVariables["/pPrimeb"].activeChildren[1].componentName
+                stateVariables["/pPrimeb"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
@@ -4847,7 +4847,7 @@ describe("Math operator tests", async () => {
         ).closeTo(std100, 1e-12);
         expect(
             stateVariables[
-                stateVariables["/p100b"].activeChildren[1].componentName
+                stateVariables["/p100b"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(std100, 1e-12);
     });
@@ -5467,14 +5467,14 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/countPrimeb"].stateValues.value.tree).eq(4);
         expect(
             stateVariables[
-                stateVariables["/pPrimeb"].activeChildren[1].componentName
+                stateVariables["/pPrimeb"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).eq(4);
         expect(stateVariables["/count100"].stateValues.value.tree).eq(100);
         expect(stateVariables["/count100b"].stateValues.value.tree).eq(100);
         expect(
             stateVariables[
-                stateVariables["/p100b"].activeChildren[1].componentName
+                stateVariables["/p100b"].activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).eq(100);
     });
@@ -7754,10 +7754,10 @@ describe("Math operator tests", async () => {
             `Must specify a operandNumber when extracting a math operand`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(23);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(85);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(23);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(85);
     });
 
     it("math operators that take multiple inputs ignore composites with no replacements", async () => {

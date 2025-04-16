@@ -42,10 +42,10 @@ export function returnFeedbackDefinitionStateVariables() {
 
             for (let setupChild of stateValues.setupChildren) {
                 dependencies[
-                    `feedbackDefinitionsOf${setupChild.componentName}`
+                    `feedbackDefinitionsOf${setupChild.componentIdx}`
                 ] = {
                     dependencyType: "child",
-                    parentName: setupChild.componentName,
+                    parentIdx: setupChild.componentIdx,
                     childGroups: ["feedbackDefinitions"],
                     variableNames: ["value"],
                 };
@@ -75,7 +75,7 @@ export function returnFeedbackDefinitionStateVariables() {
             for (let child of dependencyValues.setupChildren) {
                 feedbackDefinitionChildren.push(
                     ...dependencyValues[
-                        `feedbackDefinitionsOf${child.componentName}`
+                        `feedbackDefinitionsOf${child.componentIdx}`
                     ],
                 );
             }

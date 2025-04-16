@@ -186,10 +186,10 @@ describe("Intersection tag tests", async () => {
             `Haven't implemented intersection for more than two items`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(40);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(7);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(7);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(40);
     });
 
     it("intersection of two lines hides dynamically", async () => {

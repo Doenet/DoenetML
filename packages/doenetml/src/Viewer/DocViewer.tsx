@@ -101,7 +101,7 @@ export function DocViewer({
         ({ snapshot, set }) =>
             async ({
                 coreId,
-                componentName,
+                componentIdx,
                 stateValues,
                 childrenInstructions,
                 sourceOfUpdate,
@@ -109,7 +109,7 @@ export function DocViewer({
                 actionId,
             }: {
                 coreId: string;
-                componentName: string;
+                componentIdx: string;
                 stateValues: Record<string, any>;
                 childrenInstructions?: Record<string, any>[];
                 sourceOfUpdate?: Record<string, any>;
@@ -118,7 +118,7 @@ export function DocViewer({
             }) => {
                 let ignoreUpdate = false;
 
-                let rendererName = coreId + componentName;
+                let rendererName = coreId + componentIdx;
 
                 if (baseStateVariable) {
                     let updatesToIgnore = snapshot.getLoadable(
@@ -138,7 +138,7 @@ export function DocViewer({
                                     (v, i) => valueFromCore[i] === v,
                                 ))
                         ) {
-                            // console.log(`ignoring update of ${componentName} to ${valueFromCore}`)
+                            // console.log(`ignoring update of ${componentIdx} to ${valueFromCore}`)
                             ignoreUpdate = true;
                             set(
                                 rendererUpdatesToIgnore(rendererName),
@@ -184,8 +184,8 @@ export function DocViewer({
     );
     const updateRendererUpdatesToIgnore = useRecoilCallback(
         ({ snapshot, set }) =>
-            async ({ coreId, componentName, baseVariableValue, actionId }) => {
-                let rendererName = coreId + componentName;
+            async ({ coreId, componentIdx, baseVariableValue, actionId }) => {
+                let rendererName = coreId + componentIdx;
 
                 // add to updates to ignore so don't apply change again
                 // if it comes back from core without any changes
@@ -240,7 +240,7 @@ export function DocViewer({
     const actionsBeforeCoreCreated = useRef<
         {
             actionName: string;
-            componentName: string | undefined;
+            componentIdx: string | undefined;
             args: Record<string, any>;
         }[]
     >([]);
@@ -254,10 +254,10 @@ export function DocViewer({
         {},
     );
     const actionTentativelySkipped = useRef<{
-        action: { actionName: string; componentName?: string };
+        action: { actionName: string; componentIdx?: string };
         args: Record<string, any>;
         baseVariableValue?: any;
-        componentName?: string;
+        componentIdx?: string;
         rendererType?: string;
         promiseResolve?: (value: any) => void;
     } | null>(null);
@@ -380,15 +380,15 @@ export function DocViewer({
             (window as any)["callAction" + postfixForWindowFunctions] =
                 async function ({
                     actionName,
-                    componentName,
+                    componentIdx,
                     args,
                 }: {
                     actionName: string;
-                    componentName: string;
+                    componentIdx: string;
                     args: Record<string, any>;
                 }) {
                     return await callAction({
-                        action: { actionName, componentName },
+                        action: { actionName, componentIdx },
                         args,
                     });
                 };
@@ -479,14 +479,14 @@ export function DocViewer({
         action,
         args,
         baseVariableValue,
-        componentName,
+        componentIdx,
         rendererType,
         promiseResolve,
     }: {
-        action: { actionName: string; componentName?: string };
+        action: { actionName: string; componentIdx?: string };
         args: Record<string, any>;
         baseVariableValue?: any;
-        componentName?: string;
+        componentIdx?: string;
         rendererType?: string;
         promiseResolve?: (value: any) => void;
     }) {
@@ -556,7 +556,7 @@ export function DocViewer({
                     action,
                     args,
                     baseVariableValue,
-                    componentName,
+                    componentIdx,
                     rendererType,
                     promiseResolve,
                 };
@@ -580,12 +580,12 @@ export function DocViewer({
         args = { ...args };
         args.actionId = actionId;
 
-        if (baseVariableValue !== undefined && componentName) {
+        if (baseVariableValue !== undefined && componentIdx) {
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
             updateRendererUpdatesToIgnore({
                 coreId: coreId.current,
-                componentName,
+                componentIdx,
                 baseVariableValue,
                 actionId,
             });
@@ -593,7 +593,7 @@ export function DocViewer({
 
         let actionArgs = {
             actionName: action.actionName,
-            componentName: action.componentName,
+            componentIdx: action.componentIdx,
             args,
         };
 
@@ -616,7 +616,7 @@ export function DocViewer({
 
     async function executeAction(actionArgs: {
         actionName: string;
-        componentName: string | undefined;
+        componentIdx: string | undefined;
         args: Record<string, any>;
     }) {
         if (!coreCreated.current) {
@@ -646,8 +646,8 @@ export function DocViewer({
         forceShowSolution: boolean;
         forceUnsuppressCheckwork: boolean;
     }) {
-        for (let componentName in rendererState) {
-            let stateValues = rendererState[componentName].stateValues;
+        for (let componentIdx in rendererState) {
+            let stateValues = rendererState[componentIdx].stateValues;
             if (forceDisable && stateValues.disabled === false) {
                 stateValues.disabled = true;
             }
@@ -662,13 +662,13 @@ export function DocViewer({
             }
             if (
                 forceShowSolution &&
-                rendererState[componentName].childrenInstructions?.length > 0
+                rendererState[componentIdx].childrenInstructions?.length > 0
             ) {
                 // look for a child that has a componentType solution
-                for (let childInst of rendererState[componentName]
+                for (let childInst of rendererState[componentIdx]
                     .childrenInstructions) {
                     if (childInst.componentType === "solution") {
-                        let solComponentName = childInst.componentName;
+                        let solComponentName = childInst.componentIdx;
                         if (
                             rendererState[solComponentName].stateValues.hidden
                         ) {
@@ -698,13 +698,13 @@ export function DocViewer({
                     forceUnsuppressCheckwork,
                 });
             }
-            for (let componentName in args.rendererState) {
+            for (let componentIdx in args.rendererState) {
                 updateRendererSVsWithRecoil({
                     coreId: coreId.current,
-                    componentName,
-                    stateValues: args.rendererState[componentName].stateValues,
+                    componentIdx,
+                    stateValues: args.rendererState[componentIdx].stateValues,
                     childrenInstructions:
-                        args.rendererState[componentName].childrenInstructions,
+                        args.rendererState[componentIdx].childrenInstructions,
                 });
             }
         }
@@ -779,7 +779,7 @@ export function DocViewer({
                     React.createElement(documentRendererClass, {
                         key:
                             coreId.current +
-                            documentComponentInstructions.componentName,
+                            documentComponentInstructions.componentIdx,
                         componentInstructions: documentComponentInstructions,
                         rendererClasses: newRendererClasses,
                         flags,
@@ -839,14 +839,14 @@ export function DocViewer({
         for (let instruction of updateInstructions) {
             if (instruction.instructionType === "updateRendererStates") {
                 for (let {
-                    componentName,
+                    componentIdx,
                     stateValues,
                     rendererType,
                     childrenInstructions,
                 } of instruction.rendererStatesToUpdate) {
                     updateRendererSVsWithRecoil({
                         coreId: coreId.current,
-                        componentName,
+                        componentIdx,
                         stateValues,
                         childrenInstructions,
                         sourceOfUpdate: instruction.sourceOfUpdate,
@@ -939,7 +939,7 @@ export function DocViewer({
                     callAction({
                         action: {
                             actionName: "updateValue",
-                            componentName:
+                            componentIdx:
                                 rendererState.__componentNeedingUpdateValue,
                         },
                         args: { doNotIgnore: true },
@@ -1069,7 +1069,7 @@ export function DocViewer({
             callAction({
                 action: {
                     actionName: "updateValue",
-                    componentName: rendererState.__componentNeedingUpdateValue,
+                    componentIdx: rendererState.__componentNeedingUpdateValue,
                 },
                 args: { doNotIgnore: true },
             });
@@ -1168,9 +1168,6 @@ export function DocViewer({
                 errorWarnings.current = dastResult.errorWarnings;
                 setErrorsAndWarningsCallback?.(errorWarnings.current);
             }
-
-            (window as any)["componentRangePieces" + docId] =
-                dastResult.componentRangePieces;
         } else {
             setIsInErrorState?.(true);
             setErrMsg(dastResult.errMsg);
@@ -1192,7 +1189,7 @@ export function DocViewer({
         delay,
         animationId,
     }: {
-        action: { actionName: string; componentName?: string };
+        action: { actionName: string; componentIdx?: string };
         actionArgs: Record<string, any>;
         delay?: number;
         animationId: string;
@@ -1225,7 +1222,7 @@ export function DocViewer({
         actionArgs,
         animationId,
     }: {
-        action: { actionName: string; componentName?: string };
+        action: { actionName: string; componentIdx?: string };
         actionArgs: Record<string, any>;
         animationId: string;
     }) {
@@ -1264,7 +1261,7 @@ export function DocViewer({
     }
 
     /**
-     * Request permission to view the solution of `componentName`
+     * Request permission to view the solution of `componentIdx`
      * using SPLICE messaging.
      *
      * Sends a "SPLICE.requestSolutionView". The returned promise will
@@ -1274,7 +1271,7 @@ export function DocViewer({
      * Return a promise that will resolve to an object with key:
      * allowView: whether or not the solution can be viewed
      */
-    function requestSolutionView(componentName: string) {
+    function requestSolutionView(componentIdx: string) {
         let messageId = nanoid();
         let requestSolutionPromiseResolve: (value: {
                 allowView: boolean;
@@ -1292,7 +1289,7 @@ export function DocViewer({
                     docId,
                     attemptNumber,
                     userId,
-                    componentName,
+                    componentIdx,
                 });
             },
         );

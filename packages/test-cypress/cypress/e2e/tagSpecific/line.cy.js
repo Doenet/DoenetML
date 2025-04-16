@@ -48,12 +48,12 @@ describe("Line Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/A",
+                componentIdx: "/A",
                 args: { x: 9, y: 8 },
             });
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/B",
+                componentIdx: "/B",
                 args: { x: 6, y: 7 },
             });
         });
@@ -103,7 +103,7 @@ describe("Line Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/A",
+                componentIdx: "/A",
                 args: { x: 0.5, y: 3.5 },
             });
         });
@@ -153,7 +153,7 @@ describe("Line Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/A",
+                componentIdx: "/A",
                 args: { x: 8.5, y: 1.5 },
             });
         });

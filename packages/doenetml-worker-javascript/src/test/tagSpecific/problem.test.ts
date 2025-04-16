@@ -25,23 +25,23 @@ describe("Problem tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathinput1Name =
-            stateVariables["/ans1"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans1"].stateValues.inputChildren[0].componentIdx;
         let mathinput2Name =
-            stateVariables["/ans2"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans2"].stateValues.inputChildren[0].componentIdx;
         let mathinput3Name =
-            stateVariables["/ans3"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans3"].stateValues.inputChildren[0].componentIdx;
         let mathinput4Name =
-            stateVariables["/ans4"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans4"].stateValues.inputChildren[0].componentIdx;
         let mathinput5Name =
-            stateVariables["/ans5"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans5"].stateValues.inputChildren[0].componentIdx;
         let mathinput6Name =
-            stateVariables["/ans6"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans6"].stateValues.inputChildren[0].componentIdx;
         let mathinput7Name =
-            stateVariables["/ans7"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans7"].stateValues.inputChildren[0].componentIdx;
         let mathinput8Name =
-            stateVariables["/ans8"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans8"].stateValues.inputChildren[0].componentIdx;
         let mathinput9Name =
-            stateVariables["/ans9"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans9"].stateValues.inputChildren[0].componentIdx;
 
         // enter first correct answer
         await updateMathInputValue({ latex: "u", name: mathinput1Name, core });
@@ -382,7 +382,7 @@ describe("Problem tag tests", async () => {
         ).eq(false);
 
         let twoxInputName =
-            stateVariables["/twox"].stateValues.inputChildren[0].componentName;
+            stateVariables["/twox"].stateValues.inputChildren[0].componentIdx;
         await updateMathInputValue({ latex: "2x", name: twoxInputName, core });
         await submitAnswer({ name: "/twox", core });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -390,7 +390,7 @@ describe("Problem tag tests", async () => {
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(0.25);
 
         let helloInputName =
-            stateVariables["/hello"].stateValues.inputChildren[0].componentName;
+            stateVariables["/hello"].stateValues.inputChildren[0].componentIdx;
         await updateTextInputValue({
             text: "hello",
             name: helloInputName,
@@ -443,7 +443,7 @@ describe("Problem tag tests", async () => {
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(false);
 
         await core.requestAction({
-            componentName: sectionName,
+            componentIdx: sectionName,
             actionName: "submitAllAnswers",
             args: {},
         });
@@ -460,7 +460,7 @@ describe("Problem tag tests", async () => {
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(false);
 
         await core.requestAction({
-            componentName: sectionName,
+            componentIdx: sectionName,
             actionName: "submitAllAnswers",
             args: {},
         });
@@ -615,7 +615,7 @@ describe("Problem tag tests", async () => {
         ).eq(false);
 
         let twoxInputName =
-            stateVariables["/twox"].stateValues.inputChildren[0].componentName;
+            stateVariables["/twox"].stateValues.inputChildren[0].componentIdx;
         await updateMathInputValue({ latex: "2x", name: twoxInputName, core });
         await submitAnswer({ name: "/twox", core });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -625,7 +625,7 @@ describe("Problem tag tests", async () => {
         );
 
         let helloInputName =
-            stateVariables["/hello"].stateValues.inputChildren[0].componentName;
+            stateVariables["/hello"].stateValues.inputChildren[0].componentIdx;
         await updateTextInputValue({
             text: "hello",
             name: helloInputName,
@@ -654,7 +654,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await core.requestAction({
-            componentName: "/subProblem",
+            componentIdx: "/subProblem",
             actionName: "submitAllAnswers",
             args: {},
         });
@@ -673,7 +673,7 @@ describe("Problem tag tests", async () => {
         await updateMathInputValue({ latex: "2", name: "/n1", core });
         await updateMathInputValue({ latex: "1", name: "/n2", core });
         await core.requestAction({
-            componentName: "/subProblem",
+            componentIdx: "/subProblem",
             actionName: "submitAllAnswers",
             args: {},
         });
@@ -710,7 +710,7 @@ describe("Problem tag tests", async () => {
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(false);
 
         await core.requestAction({
-            componentName: sectionName,
+            componentIdx: sectionName,
             actionName: "submitAllAnswers",
             args: {},
         });
@@ -729,7 +729,7 @@ describe("Problem tag tests", async () => {
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(false);
 
         await core.requestAction({
-            componentName: sectionName,
+            componentIdx: sectionName,
             actionName: "submitAllAnswers",
             args: {},
         });

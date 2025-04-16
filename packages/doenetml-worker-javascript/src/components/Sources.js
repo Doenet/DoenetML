@@ -97,7 +97,7 @@ export default class Sources extends BaseComponent {
             definition: function ({ dependencyValues }) {
                 let numChildren = dependencyValues.children.length;
                 let childComponentNames = dependencyValues.children.map(
-                    (x) => x.componentName,
+                    (x) => x.componentIdx,
                 );
                 return {
                     setValue: {

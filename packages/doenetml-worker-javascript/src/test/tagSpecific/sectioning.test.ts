@@ -19,23 +19,23 @@ describe("Sectioning tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathinput1Name =
-            stateVariables["/ans1"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans1"].stateValues.inputChildren[0].componentIdx;
         let mathinput2Name =
-            stateVariables["/ans2"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans2"].stateValues.inputChildren[0].componentIdx;
         let mathinput3Name =
-            stateVariables["/ans3"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans3"].stateValues.inputChildren[0].componentIdx;
         let mathinput4Name =
-            stateVariables["/ans4"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans4"].stateValues.inputChildren[0].componentIdx;
         let mathinput5Name =
-            stateVariables["/ans5"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans5"].stateValues.inputChildren[0].componentIdx;
         let mathinput6Name =
-            stateVariables["/ans6"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans6"].stateValues.inputChildren[0].componentIdx;
         let mathinput7Name =
-            stateVariables["/ans7"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans7"].stateValues.inputChildren[0].componentIdx;
         let mathinput8Name =
-            stateVariables["/ans8"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans8"].stateValues.inputChildren[0].componentIdx;
         let mathinput9Name =
-            stateVariables["/ans9"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans9"].stateValues.inputChildren[0].componentIdx;
 
         // enter first correct answer
         await updateMathInputValue({ latex: "u", name: mathinput1Name, core });
@@ -488,10 +488,10 @@ describe("Sectioning tag tests", async () => {
             `Cannot create submit all button for <section> because it doesn't aggregate scores.`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(14);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(4);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(14);
     });
 
     it("paragraphs", async () => {
@@ -510,7 +510,7 @@ describe("Sectioning tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ps"].stateValues.title).eq("Some paragraphs");
         let pNames = stateVariables["/ps"].activeChildren.map(
-            (v) => v.componentName,
+            (v) => v.componentIdx,
         );
 
         expect(stateVariables[pNames[2]].stateValues.text).eq("Paragraph 1");
@@ -922,7 +922,7 @@ describe("Sectioning tag tests", async () => {
 
         await core.requestAction({
             actionName: "revealSection",
-            componentName: "/aside1",
+            componentIdx: "/aside1",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -930,7 +930,7 @@ describe("Sectioning tag tests", async () => {
 
         await core.requestAction({
             actionName: "closeSection",
-            componentName: "/aside1",
+            componentIdx: "/aside1",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -952,7 +952,7 @@ describe("Sectioning tag tests", async () => {
 
         await core.requestAction({
             actionName: "revealSection",
-            componentName: "/aside",
+            componentIdx: "/aside",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -979,7 +979,7 @@ describe("Sectioning tag tests", async () => {
 
         await core.requestAction({
             actionName: "revealSection",
-            componentName: "/aside",
+            componentIdx: "/aside",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -1004,7 +1004,7 @@ describe("Sectioning tag tests", async () => {
 
         await core.requestAction({
             actionName: "revealSection",
-            componentName: "/proof",
+            componentIdx: "/proof",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -1031,7 +1031,7 @@ describe("Sectioning tag tests", async () => {
 
         await core.requestAction({
             actionName: "revealSection",
-            componentName: "/proof",
+            componentIdx: "/proof",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -1076,7 +1076,7 @@ describe("Sectioning tag tests", async () => {
         expect(stateVariables["/pSol"]).be.undefined;
 
         await core.requestAction({
-            componentName: "/hint",
+            componentIdx: "/hint",
             actionName: "revealHint",
             args: {},
         });
@@ -1086,7 +1086,7 @@ describe("Sectioning tag tests", async () => {
         expect(stateVariables["/pSol"]).be.undefined;
 
         await core.requestAction({
-            componentName: "/givenAnswer",
+            componentIdx: "/givenAnswer",
             actionName: "revealSolution",
             args: {},
         });
@@ -1097,7 +1097,7 @@ describe("Sectioning tag tests", async () => {
         expect(stateVariables["/pSol"]).be.undefined;
 
         await core.requestAction({
-            componentName: "/solution",
+            componentIdx: "/solution",
             actionName: "revealSolution",
             args: {},
         });

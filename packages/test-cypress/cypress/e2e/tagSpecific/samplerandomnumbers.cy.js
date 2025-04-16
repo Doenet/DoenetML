@@ -38,9 +38,9 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 (x) =>
                     stateVariables[
                         stateVariables[
-                            stateVariables[x.componentName].replacements[0]
-                                .componentName
-                        ].replacements[0].componentName
+                            stateVariables[x.componentIdx].replacements[0]
+                                .componentIdx
+                        ].replacements[0].componentIdx
                     ].stateValues.value,
             );
 
@@ -72,9 +72,9 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 (x) =>
                     stateVariables[
                         stateVariables[
-                            stateVariables[x.componentName].replacements[0]
-                                .componentName
-                        ].replacements[0].componentName
+                            stateVariables[x.componentIdx].replacements[0]
+                                .componentIdx
+                        ].replacements[0].componentIdx
                     ].stateValues.value,
             );
 
@@ -127,9 +127,9 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 (x) =>
                     stateVariables[
                         stateVariables[
-                            stateVariables[x.componentName].replacements[0]
-                                .componentName
-                        ].replacements[0].componentName
+                            stateVariables[x.componentIdx].replacements[0]
+                                .componentIdx
+                        ].replacements[0].componentIdx
                     ].stateValues.value,
             );
 
@@ -172,9 +172,9 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 (x) =>
                     stateVariables[
                         stateVariables[
-                            stateVariables[x.componentName].replacements[0]
-                                .componentName
-                        ].replacements[0].componentName
+                            stateVariables[x.componentIdx].replacements[0]
+                                .componentIdx
+                        ].replacements[0].componentIdx
                     ].stateValues.value,
             );
 

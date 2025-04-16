@@ -104,7 +104,7 @@ export default class Table extends BlockComponent {
                 let titleChildName = null;
                 if (dependencyValues.titleChild.length > 0) {
                     titleChildName =
-                        dependencyValues.titleChild[0].componentName;
+                        dependencyValues.titleChild[0].componentIdx;
                 }
                 return {
                     setValue: { titleChildName },
@@ -141,7 +141,7 @@ export default class Table extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

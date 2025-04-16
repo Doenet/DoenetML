@@ -43,7 +43,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePolyline",
-                componentName: "/gradedApplet/cobwebApplet/cobwebPolyline",
+                componentIdx: "/gradedApplet/cobwebApplet/cobwebPolyline",
                 args: {
                     pointCoords: { 0: [1, 0] },
                 },
@@ -93,7 +93,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePolyline",
-                componentName: "/gradedApplet/cobwebApplet/cobwebPolyline",
+                componentIdx: "/gradedApplet/cobwebApplet/cobwebPolyline",
                 args: {
                     pointCoords: { 1: [1, x1] },
                 },
@@ -163,7 +163,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePolyline",
-                componentName: "/gradedApplet/cobwebApplet/cobwebPolyline",
+                componentIdx: "/gradedApplet/cobwebApplet/cobwebPolyline",
                 args: {
                     pointCoords: { 2: [x1, x1] },
                 },
@@ -194,7 +194,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePolyline",
-                componentName: "/gradedApplet/cobwebApplet/cobwebPolyline",
+                componentIdx: "/gradedApplet/cobwebApplet/cobwebPolyline",
                 args: {
                     pointCoords: { 3: [x1, x2] },
                 },
@@ -219,7 +219,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePolyline",
-                componentName: "/gradedApplet/cobwebApplet/cobwebPolyline",
+                componentIdx: "/gradedApplet/cobwebApplet/cobwebPolyline",
                 args: {
                     pointCoords: { 4: [x2, x2] },
                 },
@@ -245,7 +245,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePolyline",
-                componentName: "/gradedApplet/cobwebApplet/cobwebPolyline",
+                componentIdx: "/gradedApplet/cobwebApplet/cobwebPolyline",
                 args: {
                     pointCoords: { 5: [x2, x3] },
                 },
@@ -277,7 +277,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePolyline",
-                componentName: "/gradedApplet/cobwebApplet/cobwebPolyline",
+                componentIdx: "/gradedApplet/cobwebApplet/cobwebPolyline",
                 args: {
                     pointCoords: { 6: [x3, x3] },
                 },
@@ -309,7 +309,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePolyline",
-                componentName: "/gradedApplet/cobwebApplet/cobwebPolyline",
+                componentIdx: "/gradedApplet/cobwebApplet/cobwebPolyline",
                 args: {
                     pointCoords: { 7: [x3, x4] },
                 },
@@ -359,7 +359,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/cobwebTutorial/P1",
+                componentIdx: "/cobwebTutorial/P1",
                 args: { x: 0.9, y: -0.1 },
             });
         });
@@ -377,7 +377,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "moveLine",
-                componentName: "/cobwebTutorial/v1",
+                componentIdx: "/cobwebTutorial/v1",
                 args: {
                     point1coords: [1.2, 1],
                     point2coords: [1.2, 2],
@@ -398,7 +398,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "moveLine",
-                componentName: "/cobwebTutorial/h1",
+                componentIdx: "/cobwebTutorial/h1",
                 args: {
                     point1coords: [2, 1.5],
                     point2coords: [3, 1.5],
@@ -414,7 +414,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/cobwebTutorial/P2",
+                componentIdx: "/cobwebTutorial/P2",
                 args: { x: -0.1, y: 1.7 },
             });
         });
@@ -432,7 +432,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/cobwebTutorial/P3",
+                componentIdx: "/cobwebTutorial/P3",
                 args: { x: 1.8, y: 0 },
             });
         });
@@ -450,7 +450,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "moveLine",
-                componentName: "/cobwebTutorial/v2",
+                componentIdx: "/cobwebTutorial/v2",
                 args: {
                     point1coords: [1.5, 3],
                     point2coords: [1.5, 4],
@@ -471,7 +471,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "moveLine",
-                componentName: "/cobwebTutorial/h2",
+                componentIdx: "/cobwebTutorial/h2",
                 args: {
                     point1coords: [4, 2.3],
                     point2coords: [5, 2.3],
@@ -489,7 +489,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/cobwebTutorial/P4",
+                componentIdx: "/cobwebTutorial/P4",
                 args: { x: 0.1, y: 2.5 },
             });
         });
@@ -519,7 +519,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/cobwebTutorial/P1",
+                componentIdx: "/cobwebTutorial/P1",
                 args: { x: 0.9, y: -0.1 },
             });
         });
@@ -537,7 +537,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "moveLine",
-                componentName: "/cobwebTutorial/v1",
+                componentIdx: "/cobwebTutorial/v1",
                 args: {
                     point1coords: [1.2, 1],
                     point2coords: [1.2, 2],
@@ -558,7 +558,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "moveLine",
-                componentName: "/cobwebTutorial/h1",
+                componentIdx: "/cobwebTutorial/h1",
                 args: {
                     point1coords: [2, 1.5],
                     point2coords: [3, 1.5],
@@ -576,7 +576,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/cobwebTutorial/P2",
+                componentIdx: "/cobwebTutorial/P2",
                 args: { x: -0.1, y: 1.7 },
             });
         });
@@ -594,7 +594,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/cobwebTutorial/P3",
+                componentIdx: "/cobwebTutorial/P3",
                 args: { x: 1.8, y: 0 },
             });
         });
@@ -612,7 +612,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "moveLine",
-                componentName: "/cobwebTutorial/v2",
+                componentIdx: "/cobwebTutorial/v2",
                 args: {
                     point1coords: [1.5, 3],
                     point2coords: [1.5, 4],
@@ -633,7 +633,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "moveLine",
-                componentName: "/cobwebTutorial/h2",
+                componentIdx: "/cobwebTutorial/h2",
                 args: {
                     point1coords: [4, 2.3],
                     point2coords: [5, 2.3],
@@ -651,7 +651,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/cobwebTutorial/P4",
+                componentIdx: "/cobwebTutorial/P4",
                 args: { x: 0.1, y: 2.5 },
             });
         });

@@ -375,7 +375,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     return await this.coreFunctions.performUpdate({
                         updateInstructions: [
                             {
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 updateType: "updateValue",
                                 stateVariable: "additionalPoints",
                                 value: additionalPoints,
@@ -387,7 +387,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                         event: {
                             verb: "interacted",
                             object: {
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 componentType: this.componentType,
                             },
                             result: {
@@ -421,7 +421,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                         event: {
                             verb: "interacted",
                             object: {
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 componentType: this.componentType,
                             },
                             result: {
@@ -455,7 +455,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             return await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         updateType: "updateValue",
                         stateVariable: "additionalPoints",
                         value: additionalPoints,
@@ -467,7 +467,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -616,7 +616,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -666,7 +666,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
         let updateInstructions = [
             {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 updateType: "updateValue",
                 stateVariable: "subsetValue",
                 value: newSubset,
@@ -675,7 +675,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
         if (modifiedAdditionalPoints) {
             updateInstructions.push({
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 updateType: "updateValue",
                 stateVariable: "additionalPoints",
                 value: additionalPoints.map(roundValue),
@@ -727,7 +727,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: [
                         {
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             updateType: "updateValue",
                             stateVariable: "additionalPoints",
                             value: additionalPoints,
@@ -742,7 +742,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: [
                         {
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             updateType: "updateValue",
                             stateVariable: "additionalPoints",
                             value: additionalPoints,
@@ -754,7 +754,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     event: {
                         verb: "interacted",
                         object: {
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             componentType: this.componentType,
                         },
                         result: {
@@ -818,7 +818,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     event: {
                         verb: "interacted",
                         object: {
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             componentType: this.componentType,
                         },
                         result: {
@@ -954,7 +954,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -1338,7 +1338,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -1371,7 +1371,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -1404,7 +1404,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -1421,7 +1421,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

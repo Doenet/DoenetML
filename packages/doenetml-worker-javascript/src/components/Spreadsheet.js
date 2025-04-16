@@ -603,7 +603,7 @@ export default class Spreadsheet extends BlockComponent {
                         dependenciesByKey[arrayKey] = {
                             cellText: {
                                 dependencyType: "stateVariable",
-                                componentName: cnbrc[rowInd][colInd],
+                                componentIdx: cnbrc[rowInd][colInd],
                                 variableName: "text",
                                 variablesOptional: true,
                             },
@@ -1450,7 +1450,7 @@ export default class Spreadsheet extends BlockComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "cells",
                         value: cellChanges,
                     },
@@ -1461,7 +1461,7 @@ export default class Spreadsheet extends BlockComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: cellChanges,
@@ -1474,7 +1474,7 @@ export default class Spreadsheet extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },
@@ -1663,7 +1663,7 @@ function addCellToMapping({
     cellNameToRowCol,
     cellNamesByRowCol,
 }) {
-    cellNameToRowCol[cell.componentName] = [rowIndex, colIndex];
+    cellNameToRowCol[cell.componentIdx] = [rowIndex, colIndex];
     if (cellNamesByRowCol[rowIndex] === undefined) {
         cellNamesByRowCol[rowIndex] = [];
     }
@@ -1676,5 +1676,5 @@ function addCellToMapping({
         let previousComponentName = cellNamesByRowCol[rowIndex][colIndex];
         cellNameToRowCol[previousComponentName] = null;
     }
-    cellNamesByRowCol[rowIndex][colIndex] = cell.componentName;
+    cellNamesByRowCol[rowIndex][colIndex] = cell.componentIdx;
 }

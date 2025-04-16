@@ -80,7 +80,7 @@ export default class ConstrainToInterior extends ConstraintComponent {
                     variableNames: ["scales"],
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let scales;
 
                 if (dependencyValues.relativeToGraphScales) {

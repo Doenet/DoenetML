@@ -234,7 +234,7 @@ export default class UpdateValue extends InlineComponent {
                         dependencies.targets = {
                             dependencyType: "replacement",
                             compositeName:
-                                stateValues.targetComponent.componentName,
+                                stateValues.targetComponent.componentIdx,
                             recursive: true,
                             componentIndex: stateValues.componentIndex,
                             targetSubnames: stateValues.targetSubnames,
@@ -319,7 +319,7 @@ export default class UpdateValue extends InlineComponent {
                             }
                             thisTarget = {
                                 dependencyType: "stateVariable",
-                                componentName: target.componentName,
+                                componentIdx: target.componentIdx,
                                 variableName: stateValues.propName,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
@@ -331,7 +331,7 @@ export default class UpdateValue extends InlineComponent {
                         } else {
                             thisTarget = {
                                 dependencyType: "stateVariable",
-                                componentName: target.componentName,
+                                componentIdx: target.componentIdx,
                                 variableName: "value",
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
@@ -444,7 +444,7 @@ export default class UpdateValue extends InlineComponent {
 
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: target.componentName,
+                componentIdx: target.componentIdx,
                 stateVariable,
                 value: newValue,
             });
@@ -458,7 +458,7 @@ export default class UpdateValue extends InlineComponent {
             event: {
                 verb: "selected",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -469,7 +469,7 @@ export default class UpdateValue extends InlineComponent {
         });
 
         return await this.coreFunctions.triggerChainedActions({
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             actionId,
             sourceInformation,
             skipRendererUpdate,
@@ -512,7 +512,7 @@ export default class UpdateValue extends InlineComponent {
             actionId,
             sourceInformation,
             skipRendererUpdate,
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

@@ -144,8 +144,8 @@ export function returnLabelStateVariableDefinitions() {
                 variableNames: ["componentNameAndShadowSourceNames"],
             },
         }),
-        definition({ dependencyValues, componentName }) {
-            let componentNameAndShadowSourceNames = [componentName];
+        definition({ dependencyValues, componentIdx }) {
+            let componentNameAndShadowSourceNames = [componentIdx];
             if (
                 dependencyValues.shadowSource?.stateValues
                     .componentNameAndShadowSourceNames
@@ -266,7 +266,7 @@ export function returnLabelStateVariableDefinitions() {
                     }
                 }
                 if (label[0] === "_") {
-                    // if label from componentName starts with two underscores,
+                    // if label from componentIdx starts with two underscores,
                     // it is an automatically generated component name that has random characters in it
                     // Don't display name, as they are for internal use only (and the user cannot refer to them)
                     // (Nov 2024) Also now that are phasing out automatically generated names with single _,

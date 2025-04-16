@@ -160,10 +160,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     variableName: "selectedValues",
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     values: dependencyValues.selectedValues,
-                    meta: { createdBy: componentName },
+                    meta: { createdBy: componentIdx },
                 };
 
                 return { setValue: { generatedVariantInfo } };
@@ -225,7 +225,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });

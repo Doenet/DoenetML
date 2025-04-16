@@ -100,7 +100,7 @@ export default class Angle extends GraphicalComponent {
 
                 if (dependencyValues.betweenLines !== null) {
                     betweenLinesName =
-                        dependencyValues.betweenLines.componentName;
+                        dependencyValues.betweenLines.componentIdx;
                 }
                 return { setValue: { betweenLinesName } };
             },
@@ -217,7 +217,7 @@ export default class Angle extends GraphicalComponent {
                 if (stateValues.betweenLinesName !== null) {
                     globalDependencies.lineChildren = {
                         dependencyType: "child",
-                        parentName: stateValues.betweenLinesName,
+                        parentIdx: stateValues.betweenLinesName,
                         childGroups: ["lines"],
                         variableNames: [
                             "points",

@@ -44,7 +44,7 @@ export default class TextList extends InlineComponent {
             return {
                 success: true,
                 newChildren: newChildren,
-                toDelete: [stringChild.componentName],
+                toDelete: [stringChild.componentIdx],
             };
         };
 
@@ -110,7 +110,7 @@ export default class TextList extends InlineComponent {
                 let texts = [];
 
                 let childNames = dependencyValues.textAndTextListChildren.map(
-                    (x) => x.componentName,
+                    (x) => x.componentIdx,
                 );
                 for (let childName of dependencyValues.childrenToRender) {
                     let index = childNames.indexOf(childName);
@@ -187,7 +187,7 @@ export default class TextList extends InlineComponent {
                             ...child.stateValues.childrenToRender,
                         );
                     } else {
-                        childrenToRender.push(child.componentName);
+                        childrenToRender.push(child.componentIdx);
                     }
                 }
 
@@ -226,7 +226,7 @@ export default class TextList extends InlineComponent {
     initializeRenderer() {
         if (this.renderer === undefined) {
             this.renderer = new this.availableRenderers.aslist({
-                key: this.componentName,
+                key: this.componentIdx,
             });
         }
     }

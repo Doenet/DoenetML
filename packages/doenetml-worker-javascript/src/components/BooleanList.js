@@ -131,7 +131,7 @@ export default class BooleanList extends CompositeComponent {
 
                 if (dependencyValues.booleanChildren.length > 0) {
                     childNameByComponent = dependencyValues.booleanChildren.map(
-                        (x) => x.componentName,
+                        (x) => x.componentIdx,
                     );
                     numComponents = dependencyValues.booleanChildren.length;
                 } else if (dependencyValues.booleansShadow !== null) {
@@ -342,16 +342,16 @@ export default class BooleanList extends CompositeComponent {
             let replacementSource = components[childName];
 
             if (replacementSource) {
-                componentsCopied.push(replacementSource.componentName);
+                componentsCopied.push(replacementSource.componentIdx);
             }
             replacements.push({
                 componentType: "boolean",
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 downstreamDependencies: {
-                    [component.componentName]: [
+                    [component.componentIdx]: [
                         {
                             dependencyType: "referenceShadow",
-                            compositeName: component.componentName,
+                            compositeName: component.componentIdx,
                             propVariable: `boolean${i + 1}`,
                         },
                     ],
@@ -362,7 +362,7 @@ export default class BooleanList extends CompositeComponent {
         workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
@@ -371,7 +371,7 @@ export default class BooleanList extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
@@ -410,7 +410,7 @@ export default class BooleanList extends CompositeComponent {
                 let replacementSource = components[childName];
 
                 if (replacementSource) {
-                    componentsToCopy.push(replacementSource.componentName);
+                    componentsToCopy.push(replacementSource.componentIdx);
                 }
             }
 

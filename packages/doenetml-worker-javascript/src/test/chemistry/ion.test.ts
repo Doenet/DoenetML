@@ -598,19 +598,19 @@ describe("Ion tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathinputClName =
-            stateVariables["/ansCl"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ansCl"].stateValues.inputChildren[0].componentIdx;
 
         let mathinputHName =
-            stateVariables["/ansH"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ansH"].stateValues.inputChildren[0].componentIdx;
 
         let mathinputMgName =
-            stateVariables["/ansMg"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ansMg"].stateValues.inputChildren[0].componentIdx;
 
         let mathinputPName =
-            stateVariables["/ansP"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ansP"].stateValues.inputChildren[0].componentIdx;
 
         let mathinputSName =
-            stateVariables["/ansS"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ansS"].stateValues.inputChildren[0].componentIdx;
 
         await updateMathInputValue({
             name: mathinputClName,

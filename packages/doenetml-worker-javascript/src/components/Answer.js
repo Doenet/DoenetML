@@ -763,9 +763,9 @@ export default class Answer extends InlineComponent {
                 if (stateValues.allInputChildrenIncludingSugared.length > 0) {
                     dependencies.firstInputFromSugar = {
                         dependencyType: "doenetAttribute",
-                        componentName:
+                        componentIdx:
                             stateValues.allInputChildrenIncludingSugared[0]
-                                .componentName,
+                                .componentIdx,
                         attributeName: "createdFromSugar",
                     };
                 }
@@ -911,7 +911,7 @@ export default class Answer extends InlineComponent {
                     ) {
                         dependencies["child" + ind] = {
                             dependencyType: "descendant",
-                            ancestorName: child.componentName,
+                            ancestorName: child.componentIdx,
                             componentTypes: ["_base"],
                             variableNames: ["isResponse", "numValues"],
                             variablesOptional: true,
@@ -927,7 +927,7 @@ export default class Answer extends InlineComponent {
                     ) {
                         dependencies["childNValues" + ind] = {
                             dependencyType: "stateVariable",
-                            componentName: child.componentName,
+                            componentIdx: child.componentIdx,
                             variableName: "numValues",
                             variablesOptional: true,
                         };
@@ -935,7 +935,7 @@ export default class Answer extends InlineComponent {
                         // considerAsResponses
                         dependencies["child" + ind] = {
                             dependencyType: "stateVariable",
-                            componentName: child.componentName,
+                            componentIdx: child.componentIdx,
                             variableName: "childrenWithNValues",
                         };
                     }
@@ -1057,7 +1057,7 @@ export default class Answer extends InlineComponent {
                     ) {
                         globalDependencies["child" + ind] = {
                             dependencyType: "descendant",
-                            ancestorName: child.componentName,
+                            ancestorName: child.componentIdx,
                             componentTypes: ["_base"],
                             variableNames: [
                                 "isResponse",
@@ -1080,19 +1080,19 @@ export default class Answer extends InlineComponent {
                     ) {
                         globalDependencies["childValue" + ind] = {
                             dependencyType: "stateVariable",
-                            componentName: child.componentName,
+                            componentIdx: child.componentIdx,
                             variableName: "value",
                             variablesOptional: true,
                         };
                         globalDependencies["childValues" + ind] = {
                             dependencyType: "stateVariable",
-                            componentName: child.componentName,
+                            componentIdx: child.componentIdx,
                             variableName: "values",
                             variablesOptional: true,
                         };
                         globalDependencies["childComponentType" + ind] = {
                             dependencyType: "stateVariable",
-                            componentName: child.componentName,
+                            componentIdx: child.componentIdx,
                             variableName: "componentType",
                             variablesOptional: true,
                         };
@@ -1100,7 +1100,7 @@ export default class Answer extends InlineComponent {
                         // considerAsResponses
                         globalDependencies["child" + ind] = {
                             dependencyType: "stateVariable",
-                            componentName: child.componentName,
+                            componentIdx: child.componentIdx,
                             variableName: "childrenAsResponses",
                         };
                     }
@@ -1521,7 +1521,7 @@ export default class Answer extends InlineComponent {
                         if (inputCredit >= 0) {
                             creditAchieved = inputCredit;
                             inputUsed =
-                                dependencyValues.inputChildren[0].componentName;
+                                dependencyValues.inputChildren[0].componentIdx;
                         }
                     }
                 } else {
@@ -1543,7 +1543,7 @@ export default class Answer extends InlineComponent {
                                 child.stateValues.fractionSatisfiedIfSubmit > 0
                             ) {
                                 if (awardsUsed[0] === null) {
-                                    awardsUsed[0] = child.componentName;
+                                    awardsUsed[0] = child.componentIdx;
                                     awardCredits[0] = creditFromChild;
                                     minimumFromAwardCredits = Math.min(
                                         ...awardCredits,
@@ -1560,7 +1560,7 @@ export default class Answer extends InlineComponent {
                                             awardsUsed.splice(
                                                 ind,
                                                 0,
-                                                child.componentName,
+                                                child.componentIdx,
                                             );
                                             awardsUsed = awardsUsed.slice(0, n);
                                             awardCredits.splice(
@@ -1703,7 +1703,7 @@ export default class Answer extends InlineComponent {
                     includeOnlyEssentialValues: true,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 // Use stringify from json-stringify-deterministic
                 // so that the string will be the same
                 // even if the object was built in a different order
@@ -1713,7 +1713,7 @@ export default class Answer extends InlineComponent {
 
                 let selfDependencies =
                     dependencyValues.currentCreditAchievedDependencies.find(
-                        (x) => x.componentName === componentName,
+                        (x) => x.componentIdx === componentIdx,
                     );
 
                 if (selfDependencies) {
@@ -1801,7 +1801,7 @@ export default class Answer extends InlineComponent {
             definition: function ({
                 dependencyValues,
                 justUpdatedForNewComponent,
-                componentName,
+                componentIdx,
             }) {
                 if (
                     dependencyValues.disableAfterCorrect &&
@@ -1827,7 +1827,7 @@ export default class Answer extends InlineComponent {
                     };
                 }
             },
-            inverseDefinition({ desiredStateVariableValues, componentName }) {
+            inverseDefinition({ desiredStateVariableValues, componentIdx }) {
                 return {
                     success: true,
                     instructions: [
@@ -2071,12 +2071,12 @@ export default class Answer extends InlineComponent {
                     variableNames: ["componentNumberByAnswerName"],
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 return {
                     setValue: {
                         inComponentNumber:
                             dependencyValues.documentAncestor.stateValues
-                                .componentNumberByAnswerName[componentName],
+                                .componentNumberByAnswerName[componentIdx],
                     },
                 };
             },
@@ -2111,13 +2111,13 @@ export default class Answer extends InlineComponent {
         let instructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "creditAchieved",
                 value: creditAchieved,
             },
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "responseHasBeenSubmitted",
                 value: true,
             },
@@ -2133,13 +2133,13 @@ export default class Answer extends InlineComponent {
             let inputChild = inputChildrenWithValues[0];
 
             if (
-                inputUsed === inputChild.componentName &&
+                inputUsed === inputChild.componentIdx &&
                 "valueToRecordOnSubmit" in inputChild.stateValues &&
                 "valueRecordedAtSubmit" in inputChild.stateValues
             ) {
                 instructions.push({
                     updateType: "updateValue",
-                    componentName: inputChild.componentName,
+                    componentIdx: inputChild.componentIdx,
                     stateVariable: "valueRecordedAtSubmit",
                     value: inputChild.stateValues.valueToRecordOnSubmit,
                 });
@@ -2152,14 +2152,14 @@ export default class Answer extends InlineComponent {
 
         instructions.push({
             updateType: "updateValue",
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             stateVariable: "submittedResponses",
             value: currentResponses,
         });
 
         instructions.push({
             updateType: "updateValue",
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             stateVariable: "submittedResponsesComponentType",
             value: this.state.currentResponses.shadowingInstructions
                 .createComponentOfType,
@@ -2167,42 +2167,42 @@ export default class Answer extends InlineComponent {
 
         instructions.push({
             updateType: "updateValue",
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             stateVariable: "justSubmitted",
             value: true,
         });
 
         instructions.push({
             updateType: "updateValue",
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             stateVariable: "creditAchievedDependenciesAtSubmit",
             value: await this.stateValues.creditAchievedDependencies,
         });
 
         instructions.push({
             updateType: "updateValue",
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             stateVariable: "numSubmissions",
             value: (await this.stateValues.numSubmissions) + 1,
         });
 
         for (let child of await this.stateValues.awardChildren) {
-            let awarded = awardsUsed.includes(child.componentName);
+            let awarded = awardsUsed.includes(child.componentIdx);
             instructions.push({
                 updateType: "updateValue",
-                componentName: child.componentName,
+                componentIdx: child.componentIdx,
                 stateVariable: "awarded",
                 value: awarded,
             });
             instructions.push({
                 updateType: "updateValue",
-                componentName: child.componentName,
+                componentIdx: child.componentIdx,
                 stateVariable: "creditAchieved",
                 value: child.stateValues.creditAchievedIfSubmit,
             });
             instructions.push({
                 updateType: "updateValue",
-                componentName: child.componentName,
+                componentIdx: child.componentIdx,
                 stateVariable: "fractionSatisfied",
                 value: child.stateValues.fractionSatisfiedIfSubmit,
             });
@@ -2224,7 +2224,7 @@ export default class Answer extends InlineComponent {
         instructions.push({
             updateType: "recordItemSubmission",
             componentNumber: await this.stateValues.inComponentNumber,
-            submittedComponent: this.componentName,
+            submittedComponent: this.componentIdx,
             response: currentResponses,
             responseText,
             creditAchieved,
@@ -2241,7 +2241,7 @@ export default class Answer extends InlineComponent {
             event: {
                 verb: "submitted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                     answerNumber: this.answerNumber,
                 },
@@ -2257,7 +2257,7 @@ export default class Answer extends InlineComponent {
         });
 
         return await this.coreFunctions.triggerChainedActions({
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             actionId,
             sourceInformation,
             skipRendererUpdate,

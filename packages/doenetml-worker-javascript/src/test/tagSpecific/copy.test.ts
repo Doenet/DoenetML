@@ -2609,24 +2609,21 @@ describe("Copy tag tests", async () => {
 
         expect(
             stateVariables["/section1"].activeChildren.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             ),
         ).eqls(["/p2"]);
         expect(
             stateVariables["/s1a"].activeChildren.map((x) => x.componentType),
         ).eqls(["p"]);
         expect(
-            stateVariables["/s1b"].activeChildren.map((x) => x.componentName),
+            stateVariables["/s1b"].activeChildren.map((x) => x.componentIdx),
         ).eqls(["/s1b/p2"]);
 
-        let c2p = stateVariables["/_document1"].activeChildren[5].componentName;
-        let c4p = stateVariables["/_document1"].activeChildren[9].componentName;
-        let c6p =
-            stateVariables["/_document1"].activeChildren[13].componentName;
-        let c7s =
-            stateVariables["/_document1"].activeChildren[15].componentName;
-        let c9s =
-            stateVariables["/_document1"].activeChildren[19].componentName;
+        let c2p = stateVariables["/_document1"].activeChildren[5].componentIdx;
+        let c4p = stateVariables["/_document1"].activeChildren[9].componentIdx;
+        let c6p = stateVariables["/_document1"].activeChildren[13].componentIdx;
+        let c7s = stateVariables["/_document1"].activeChildren[15].componentIdx;
+        let c9s = stateVariables["/_document1"].activeChildren[19].componentIdx;
 
         expect(stateVariables[c2p].stateValues.text).eq("values: 1 2 3");
         expect(stateVariables[c4p].stateValues.text).eq("values: 1 2 3");
@@ -2642,8 +2639,8 @@ describe("Copy tag tests", async () => {
 
         // c2p's children should have gotten unique names (so begin with two underscores)
         let c2pChildNames = stateVariables[c2p].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
         expect(c2pChildNames[0].slice(0, 3)).eq("/__");
         expect(c2pChildNames[1].slice(0, 3)).eq("/__");
         expect(c2pChildNames[2].slice(0, 3)).eq("/__");
@@ -2653,8 +2650,8 @@ describe("Copy tag tests", async () => {
 
         // c4p's children should have gotten unique names (so begin with two underscores)
         let c4pChildNames = stateVariables[c4p].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
         expect(c4pChildNames[0].slice(0, 3)).eq("/__");
         expect(c4pChildNames[1].slice(0, 3)).eq("/__");
         expect(c4pChildNames[2].slice(0, 3)).eq("/__");
@@ -2664,8 +2661,8 @@ describe("Copy tag tests", async () => {
 
         // c6p's children should have gotten unique names (so begin with two underscores)
         let c6pChildNames = stateVariables[c6p].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
         expect(c6pChildNames[0].slice(0, 3)).eq("/__");
         expect(c6pChildNames[1].slice(0, 3)).eq("/__");
         expect(c6pChildNames[2].slice(0, 3)).eq("/__");
@@ -2675,11 +2672,11 @@ describe("Copy tag tests", async () => {
 
         // c7s's grandchildren should have gotten unique names (so begin with two underscores)
         let c7sChildName = stateVariables[c7s].activeChildren.filter(
-            (x) => x.componentName,
-        )[0].componentName;
+            (x) => x.componentIdx,
+        )[0].componentIdx;
         let c7sGrandChildNames = stateVariables[c7sChildName].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
 
         expect(c7sGrandChildNames[0].slice(0, 3)).eq("/__");
         expect(c7sGrandChildNames[1].slice(0, 3)).eq("/__");
@@ -2690,11 +2687,11 @@ describe("Copy tag tests", async () => {
 
         // s1a's grandchildren should have gotten unique names (so begin with two underscores)
         let s1aChildName = stateVariables["/s1a"].activeChildren.filter(
-            (x) => x.componentName,
-        )[0].componentName;
+            (x) => x.componentIdx,
+        )[0].componentIdx;
         let s1aGrandChildNames = stateVariables[s1aChildName].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
 
         expect(s1aGrandChildNames[0].slice(0, 3)).eq("/__");
         expect(s1aGrandChildNames[1].slice(0, 3)).eq("/__");
@@ -2705,11 +2702,11 @@ describe("Copy tag tests", async () => {
 
         // c9s's grandchildren should have gotten unique names (so begin with two underscores)
         let c9sChildName = stateVariables[c9s].activeChildren.filter(
-            (x) => x.componentName,
-        )[0].componentName;
+            (x) => x.componentIdx,
+        )[0].componentIdx;
         let c9sGrandChildNames = stateVariables[c9sChildName].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
 
         expect(c9sGrandChildNames[0].slice(0, 3)).eq("/__");
         expect(c9sGrandChildNames[1].slice(0, 3)).eq("/__");
@@ -2720,11 +2717,11 @@ describe("Copy tag tests", async () => {
 
         // s1b's grandchildren should have retained their original names
         let s1bChildName = stateVariables["/s1b"].activeChildren.filter(
-            (x) => x.componentName,
-        )[0].componentName;
+            (x) => x.componentIdx,
+        )[0].componentIdx;
         let s1bGrandChildNames = stateVariables[s1bChildName].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
 
         expect(s1bGrandChildNames[0]).eq(`/s1b/p2${name_prefix}/n1`);
         expect(s1bGrandChildNames[1]).eq(`/s1b/p2${name_prefix}/n2`);
@@ -2959,12 +2956,12 @@ describe("Copy tag tests", async () => {
 
             expect(
                 stateVariables[`${name_prefix}/section1`].activeChildren.map(
-                    (x) => x.componentName,
+                    (x) => x.componentIdx,
                 ),
             ).eqls([`${name_prefix}/p2`]);
             expect(
                 stateVariables[`${name_prefix}/s1b`].activeChildren.map(
-                    (x) => x.componentName,
+                    (x) => x.componentIdx,
                 ),
             ).eqls([`${name_prefix}/s1b/p2`]);
         }
@@ -3557,12 +3554,12 @@ describe("Copy tag tests", async () => {
         let P2 = [3, 4];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let g5PName = stateVariables["/g5"].activeChildren[0].componentName;
-        let g7PName = stateVariables["/g7"].activeChildren[0].componentName;
-        let g13PName = stateVariables["/g13"].activeChildren[0].componentName;
-        let g15PName = stateVariables["/g15"].activeChildren[0].componentName;
-        let g21PName = stateVariables["/g21"].activeChildren[0].componentName;
-        let g23PName = stateVariables["/g23"].activeChildren[0].componentName;
+        let g5PName = stateVariables["/g5"].activeChildren[0].componentIdx;
+        let g7PName = stateVariables["/g7"].activeChildren[0].componentIdx;
+        let g13PName = stateVariables["/g13"].activeChildren[0].componentIdx;
+        let g15PName = stateVariables["/g15"].activeChildren[0].componentIdx;
+        let g21PName = stateVariables["/g21"].activeChildren[0].componentIdx;
+        let g23PName = stateVariables["/g23"].activeChildren[0].componentIdx;
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -4074,12 +4071,12 @@ describe("Copy tag tests", async () => {
         let P2 = [3, 4];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let g5PName = stateVariables["/g5"].activeChildren[0].componentName;
-        let g7PName = stateVariables["/g7"].activeChildren[0].componentName;
-        let g13PName = stateVariables["/g13"].activeChildren[0].componentName;
-        let g15PName = stateVariables["/g15"].activeChildren[0].componentName;
-        let g21PName = stateVariables["/g21"].activeChildren[0].componentName;
-        let g23PName = stateVariables["/g23"].activeChildren[0].componentName;
+        let g5PName = stateVariables["/g5"].activeChildren[0].componentIdx;
+        let g7PName = stateVariables["/g7"].activeChildren[0].componentIdx;
+        let g13PName = stateVariables["/g13"].activeChildren[0].componentIdx;
+        let g15PName = stateVariables["/g15"].activeChildren[0].componentIdx;
+        let g21PName = stateVariables["/g21"].activeChildren[0].componentIdx;
+        let g23PName = stateVariables["/g23"].activeChildren[0].componentIdx;
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -4547,23 +4544,23 @@ describe("Copy tag tests", async () => {
 
         let mathinputoutsideName =
             stateVariables["/answer1"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
 
         let mathinputp1Name =
             stateVariables["/answer2"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
 
         let mathinputp2Name =
             stateVariables["/p2/answer1"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
 
         let mathinputp3Name =
             stateVariables["/p3/answer2"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
 
         let mathinputp4Name =
             stateVariables["/p4/answer1"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
 
         expect(stateVariables["/ca"].stateValues.value).eq(0);
         expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
@@ -5159,13 +5156,13 @@ describe("Copy tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g"].activeChildren.length).eq(1);
-        expect(stateVariables["/g"].activeChildren[0].componentName).eq("/P");
+        expect(stateVariables["/g"].activeChildren[0].componentIdx).eq("/P");
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls([
             0, 0,
         ]);
 
         expect(stateVariables["/g2"].activeChildren.length).eq(1);
-        expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+        expect(stateVariables["/g2"].activeChildren[0].componentIdx).eq(
             "/g2/P",
         );
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -5266,15 +5263,13 @@ describe("Copy tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g1"].activeChildren.length).eq(1);
-        expect(stateVariables["/g1"].activeChildren[0].componentName).eq("/P1");
+        expect(stateVariables["/g1"].activeChildren[0].componentIdx).eq("/P1");
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
             1, 2,
         ]);
         expect(stateVariables["/g1a"].activeChildren.length).eq(2);
-        expect(stateVariables["/g1a"].activeChildren[1].componentName).eq(
-            "/v1",
-        );
-        let P1aName = stateVariables["/g1a"].activeChildren[0].componentName;
+        expect(stateVariables["/g1a"].activeChildren[1].componentIdx).eq("/v1");
+        let P1aName = stateVariables["/g1a"].activeChildren[0].componentIdx;
         expect(stateVariables[P1aName].stateValues.xs.map((x) => x.tree)).eqls([
             1, 2,
         ]);
@@ -5293,15 +5288,15 @@ describe("Copy tag tests", async () => {
         ]);
 
         expect(stateVariables["/g2"].activeChildren.length).eq(1);
-        expect(stateVariables["/g2"].activeChildren[0].componentName).eq("/P2");
+        expect(stateVariables["/g2"].activeChildren[0].componentIdx).eq("/P2");
         expect(stateVariables["/P2"].stateValues.xs.map((x) => x.tree)).eqls([
             1, 2,
         ]);
         expect(stateVariables["/g2a"].activeChildren.length).eq(2);
-        expect(stateVariables["/g2a"].activeChildren[0].componentName).eq(
+        expect(stateVariables["/g2a"].activeChildren[0].componentIdx).eq(
             "/g2a/P2",
         );
-        expect(stateVariables["/g2a"].activeChildren[1].componentName).eq(
+        expect(stateVariables["/g2a"].activeChildren[1].componentIdx).eq(
             "/g2a/v2",
         );
         expect(
@@ -5329,17 +5324,17 @@ describe("Copy tag tests", async () => {
         ]);
 
         expect(stateVariables["/g3"].activeChildren.length).eq(1);
-        expect(stateVariables["/g3"].activeChildren[0].componentName).eq(
+        expect(stateVariables["/g3"].activeChildren[0].componentIdx).eq(
             "/g3/P3",
         );
         expect(stateVariables["/g3/P3"].stateValues.xs.map((x) => x.tree)).eqls(
             [1, 2],
         );
         expect(stateVariables["/g3a"].activeChildren.length).eq(2);
-        expect(stateVariables["/g3a"].activeChildren[0].componentName).eq(
+        expect(stateVariables["/g3a"].activeChildren[0].componentIdx).eq(
             "/g3a/P3",
         );
-        expect(stateVariables["/g3a"].activeChildren[1].componentName).eq(
+        expect(stateVariables["/g3a"].activeChildren[1].componentIdx).eq(
             "/g3a/v3",
         );
         expect(
@@ -5367,19 +5362,17 @@ describe("Copy tag tests", async () => {
         ]);
 
         expect(stateVariables["/g4"].activeChildren.length).eq(1);
-        expect(stateVariables["/g4"].activeChildren[0].componentName).eq(
+        expect(stateVariables["/g4"].activeChildren[0].componentIdx).eq(
             "/g4/P4",
         );
         expect(stateVariables["/g4/P4"].stateValues.xs.map((x) => x.tree)).eqls(
             [1, 2],
         );
         expect(stateVariables["/g4a"].activeChildren.length).eq(2);
-        expect(stateVariables["/g4a"].activeChildren[0].componentName).eq(
+        expect(stateVariables["/g4a"].activeChildren[0].componentIdx).eq(
             "/g4a/P4",
         );
-        expect(stateVariables["/g4a"].activeChildren[1].componentName).eq(
-            "/v4",
-        );
+        expect(stateVariables["/g4a"].activeChildren[1].componentIdx).eq("/v4");
         expect(
             stateVariables["/g4a/P4"].stateValues.xs.map((x) => x.tree),
         ).eqls([1, 2]);
@@ -5729,7 +5722,7 @@ describe("Copy tag tests", async () => {
         expect(stateVariables["/g4/P"].stateValues.xs.map((x) => x.tree)).eqls([
             1, 2,
         ]);
-        let g4vName = stateVariables["/g4"].activeChildren[1].componentName;
+        let g4vName = stateVariables["/g4"].activeChildren[1].componentIdx;
         expect(g4vName.substring(0, 3) === "/__");
         expect(
             stateVariables[g4vName].stateValues.displacement.map((x) => x.tree),
@@ -5760,7 +5753,7 @@ describe("Copy tag tests", async () => {
             stateVariables["/grp2/g4/P"].stateValues.xs.map((x) => x.tree),
         ).eqls([1, 2]);
         let grp2g4vName =
-            stateVariables["/grp2/g4"].activeChildren[1].componentName;
+            stateVariables["/grp2/g4"].activeChildren[1].componentIdx;
         expect(grp2g4vName.substring(0, 3) === "/__");
         expect(
             stateVariables[grp2g4vName].stateValues.displacement.map(
@@ -6312,17 +6305,17 @@ describe("Copy tag tests", async () => {
                 true,
             );
             expect(stateVariables["/g1"].activeChildren.length).eq(1);
-            expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
+            expect(stateVariables["/g1"].activeChildren[0].componentIdx).eq(
                 "/g1/P",
             );
             expect(
                 stateVariables["/g1/P"].stateValues.xs.map((x) => x.tree),
             ).eqls(P);
             expect(stateVariables["/g2"].activeChildren.length).eq(2);
-            expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+            expect(stateVariables["/g2"].activeChildren[0].componentIdx).eq(
                 "/g2/P",
             );
-            expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
+            expect(stateVariables["/g2"].activeChildren[1].componentIdx).eq(
                 "/g2/Q",
             );
             expect(
@@ -7755,17 +7748,17 @@ describe("Copy tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let macrom1Name =
-            stateVariables["/pmacro1"].activeChildren[0].componentName;
+            stateVariables["/pmacro1"].activeChildren[0].componentIdx;
         let macrom2Name =
-            stateVariables["/pmacro2"].activeChildren[0].componentName;
+            stateVariables["/pmacro2"].activeChildren[0].componentIdx;
         let copym1Name =
-            stateVariables["/pcopy1"].activeChildren[0].componentName;
+            stateVariables["/pcopy1"].activeChildren[0].componentIdx;
         let copym2Name =
-            stateVariables["/pcopy2"].activeChildren[0].componentName;
+            stateVariables["/pcopy2"].activeChildren[0].componentIdx;
         let copym3Name =
-            stateVariables["/pcopy3"].activeChildren[0].componentName;
+            stateVariables["/pcopy3"].activeChildren[0].componentIdx;
         let copymi4Name =
-            stateVariables["/pcopy4"].activeChildren[0].componentName;
+            stateVariables["/pcopy4"].activeChildren[0].componentIdx;
 
         expect(stateVariables[macrom1Name].componentType).eq("math");
         expect(stateVariables[macrom2Name].componentType).eq("math");
@@ -7976,20 +7969,20 @@ describe("Copy tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let [macromi1Name, macromi2Name] = stateVariables[
             "/pmacro"
-        ].activeChildren.map((x) => x.componentName);
+        ].activeChildren.map((x) => x.componentIdx);
         let [copymi1Name, copymi2Name] = stateVariables[
             "/pcopy"
-        ].activeChildren.map((x) => x.componentName);
+        ].activeChildren.map((x) => x.componentIdx);
         let [macromi1Name2, macromi2Name2] = stateVariables[
             "/pmacro2"
         ].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
         let [copymi1Name2, copymi2Name2] = stateVariables[
             "/pcopy2"
         ].activeChildren
-            .filter((x) => x.componentName)
-            .map((x) => x.componentName);
+            .filter((x) => x.componentIdx)
+            .map((x) => x.componentIdx);
 
         expect(stateVariables[macromi1Name].componentType).eq("mathInput");
         expect(stateVariables[macromi2Name].componentType).eq("mathInput");
@@ -8032,22 +8025,22 @@ describe("Copy tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let [macromi1Name, macromi2Name] = stateVariables[
             "/pmacro"
-        ].activeChildren.map((x) => x.componentName);
+        ].activeChildren.map((x) => x.componentIdx);
         let [copymi1Name, copymi2Name] = stateVariables[
             "/pcopy"
-        ].activeChildren.map((x) => x.componentName);
+        ].activeChildren.map((x) => x.componentIdx);
         let [macroIndmi1Name, macroIndmi2Name] = stateVariables[
             "/pmacroInd"
-        ].activeChildren.map((x) => x.componentName);
+        ].activeChildren.map((x) => x.componentIdx);
         let [copyIndmi1Name, copyIndmi2Name] = stateVariables[
             "/pmacroInd"
-        ].activeChildren.map((x) => x.componentName);
+        ].activeChildren.map((x) => x.componentIdx);
         let [macroSubnamem1Name, macroSubnamem2Name] = stateVariables[
             "/pmacroSubname"
-        ].activeChildren.map((x) => x.componentName);
+        ].activeChildren.map((x) => x.componentIdx);
         let [copySubnamem1Name, copySubnamem2Name] = stateVariables[
             "/pcopySubname"
-        ].activeChildren.map((x) => x.componentName);
+        ].activeChildren.map((x) => x.componentIdx);
 
         expect(stateVariables[macromi1Name].componentType).eq("mathInput");
         expect(stateVariables[macromi2Name].componentType).eq("mathInput");
@@ -8095,9 +8088,9 @@ describe("Copy tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let mi3Name = stateVariables["/p2"].activeChildren[0].componentName;
-        let m2Name = stateVariables["/p2"].activeChildren[2].componentName;
-        let m3Name = stateVariables["/p2"].activeChildren[4].componentName;
+        let mi3Name = stateVariables["/p2"].activeChildren[0].componentIdx;
+        let m2Name = stateVariables["/p2"].activeChildren[2].componentIdx;
+        let m3Name = stateVariables["/p2"].activeChildren[4].componentIdx;
 
         expect(stateVariables[m2Name].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables[m3Name].stateValues.value.tree).eq("\uff3f");
@@ -8284,7 +8277,7 @@ describe("Copy tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         const tiName =
-            stateVariables["/ans"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
 
         expect(stateVariables["/num"].stateValues.value).eqls(NaN);
 

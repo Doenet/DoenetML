@@ -131,9 +131,7 @@ export function gatherDescendants({
                     })
                         .filter((x) => typeof x === "object")
                         .map((x) =>
-                            x.componentName
-                                ? x.componentName
-                                : x.placeholderInd,
+                            x.componentIdx ? x.componentIdx : x.placeholderInd,
                         ),
                 ];
             }
@@ -143,7 +141,7 @@ export function gatherDescendants({
             childrenToCheck = childrenToCheck.filter(
                 (x) =>
                     !(
-                        namesToIgnore.includes(x.componentName) ||
+                        namesToIgnore.includes(x.componentIdx) ||
                         namesToIgnore.includes(x.placeholderInd)
                     ),
             );
@@ -156,8 +154,8 @@ export function gatherDescendants({
         let matchedChild = matchChildToTypes(child);
         if (matchedChild) {
             descendants.push({
-                componentName: child.componentName
-                    ? child.componentName
+                componentIdx: child.componentIdx
+                    ? child.componentIdx
                     : child.placeholderInd,
                 componentType: child.componentType,
             });
@@ -239,15 +237,15 @@ export function ancestorsIncludingComposites(comp, components) {
         return [];
     }
 
-    let comps = [comp.ancestors[0].componentName];
+    let comps = [comp.ancestors[0].componentIdx];
 
-    let parent = components[comp.ancestors[0].componentName];
+    let parent = components[comp.ancestors[0].componentIdx];
     if (parent) {
         comps.push(...ancestorsIncludingComposites(parent, components));
     }
 
     if (comp.replacementOf) {
-        comps.push(comp.replacementOf.componentName);
+        comps.push(comp.replacementOf.componentIdx);
         let replacementAs = ancestorsIncludingComposites(
             comp.replacementOf,
             components,

@@ -212,11 +212,11 @@ export default function ErrorWarningResponseTabs({
                                                         color="yellow.400"
                                                         marginBottom="2px"
                                                     />
-                                                    {warningObj.doenetMLrange
+                                                    {warningObj.position
                                                         ?.lineBegin
                                                         ? `Line #${
                                                               warningObj
-                                                                  .doenetMLrange
+                                                                  .position
                                                                   ?.lineBegin
                                                           }`
                                                         : null}{" "}
@@ -253,11 +253,10 @@ export default function ErrorWarningResponseTabs({
                                                         color="red.500"
                                                         marginBottom="2px"
                                                     />
-                                                    {errorObj.doenetMLrange
+                                                    {errorObj.position
                                                         ?.lineBegin
                                                         ? `Line #${
-                                                              errorObj
-                                                                  .doenetMLrange
+                                                              errorObj.position
                                                                   ?.lineBegin
                                                           }`
                                                         : null}{" "}

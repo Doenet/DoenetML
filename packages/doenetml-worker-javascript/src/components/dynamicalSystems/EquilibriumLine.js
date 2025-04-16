@@ -67,7 +67,7 @@ export default class EquilibriumLine extends Line {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "stable",
                         value: !this.stateValues.stable,
                     },
@@ -78,7 +78,7 @@ export default class EquilibriumLine extends Line {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {

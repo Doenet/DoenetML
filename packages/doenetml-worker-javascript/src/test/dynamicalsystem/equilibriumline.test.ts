@@ -96,7 +96,7 @@ describe("Equilibriumline Tag Tests", async () => {
         // switch A via first action
         As = !As;
         await core.requestAction({
-            componentName: "/g/A",
+            componentIdx: "/g/A",
             actionName: "switchLine",
             args: {},
         });
@@ -105,7 +105,7 @@ describe("Equilibriumline Tag Tests", async () => {
         // switch A via second action
         As = !As;
         await core.requestAction({
-            componentName: "/g2/A",
+            componentIdx: "/g2/A",
             actionName: "switchLine",
             args: {},
         });
@@ -113,7 +113,7 @@ describe("Equilibriumline Tag Tests", async () => {
 
         // cannot switch B via action
         await core.requestAction({
-            componentName: "/g/B",
+            componentIdx: "/g/B",
             actionName: "switchLine",
             args: {},
         });
@@ -121,7 +121,7 @@ describe("Equilibriumline Tag Tests", async () => {
 
         // cannot switch C via second action
         await core.requestAction({
-            componentName: "/g2/C",
+            componentIdx: "/g2/C",
             actionName: "switchLine",
             args: {},
         });
@@ -130,7 +130,7 @@ describe("Equilibriumline Tag Tests", async () => {
         // switch D via second action
         Ds = !Ds;
         await core.requestAction({
-            componentName: "/g2/D",
+            componentIdx: "/g2/D",
             actionName: "switchLine",
             args: {},
         });

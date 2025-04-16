@@ -171,7 +171,7 @@ export default class CallAction extends InlineComponent {
             definition({ dependencyValues }) {
                 let targetName = null;
                 if (dependencyValues.targetComponent) {
-                    targetName = dependencyValues.targetComponent.componentName;
+                    targetName = dependencyValues.targetComponent.componentIdx;
                 }
                 return { setValue: { targetName } };
             },
@@ -206,13 +206,13 @@ export default class CallAction extends InlineComponent {
             }
 
             await this.coreFunctions.performAction({
-                componentName: targetName,
+                componentIdx: targetName,
                 actionName,
                 args,
                 event: {
                     verb: "selected",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                 },
@@ -220,7 +220,7 @@ export default class CallAction extends InlineComponent {
             });
 
             await this.coreFunctions.triggerChainedActions({
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -261,7 +261,7 @@ export default class CallAction extends InlineComponent {
             actionId,
             sourceInformation,
             skipRendererUpdate,
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

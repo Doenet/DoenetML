@@ -553,7 +553,7 @@ export function breakIntoVectorComponents(compList) {
 //         if (comp.createdComponent === true) {
 //           // broke up an original string
 //           // need to make original string as to be deleted
-//           toDelete.push(comp.componentName);
+//           toDelete.push(comp.componentIdx);
 //         }
 //       }
 //     }

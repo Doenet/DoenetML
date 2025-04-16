@@ -190,9 +190,9 @@ export default class BezierControls extends InlineComponent {
                 desiredStateVariableValues,
                 dependencyNamesByKey,
                 dependencyValuesByKey,
-                // componentName
+                // componentIdx
             }) {
-                // console.log(`inverse definition of directions for beziercontrols of ${componentName}`)
+                // console.log(`inverse definition of directions for beziercontrols of ${componentIdx}`)
                 // console.log(JSON.parse(JSON.stringify(desiredStateVariableValues)));
                 // console.log(JSON.parse(JSON.stringify(dependencyNamesByKey)));
                 // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)));
@@ -292,9 +292,9 @@ export default class BezierControls extends InlineComponent {
                 desiredStateVariableValues,
                 dependencyNamesByKey,
                 dependencyValuesByKey,
-                // componentName
+                // componentIdx
             }) {
-                // console.log(`inverse definition of hiddenControls for beziercontrols of ${componentName}`)
+                // console.log(`inverse definition of hiddenControls for beziercontrols of ${componentIdx}`)
                 // console.log(JSON.parse(JSON.stringify(desiredStateVariableValues)));
                 // console.log(JSON.parse(JSON.stringify(dependencyNamesByKey)));
                 // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)));
@@ -527,9 +527,9 @@ export default class BezierControls extends InlineComponent {
             arrayDefinitionByKey({
                 dependencyValuesByKey,
                 arrayKeys,
-                componentName,
+                componentIdx,
             }) {
-                // console.log(`definition of controls for beziercontrols of ${componentName}`)
+                // console.log(`definition of controls for beziercontrols of ${componentIdx}`)
                 // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)));
                 // console.log(JSON.parse(JSON.stringify(arrayKeys)))
 

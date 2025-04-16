@@ -38,7 +38,7 @@ export default class CustomAttribute extends CompositeComponent {
                     variableName: "componentNameForAttributes",
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let componentNameForAttributes =
                     dependencyValues.parentVariableContainingName;
                 return { setValue: { componentNameForAttributes } };
@@ -66,7 +66,7 @@ export default class CustomAttribute extends CompositeComponent {
             returnDependencies: ({ stateValues }) => ({
                 componentIdentity: {
                     dependencyType: "componentIdentity",
-                    componentName: stateValues.componentNameForAttributes,
+                    componentIdx: stateValues.componentNameForAttributes,
                 },
             }),
             definition() {
@@ -202,7 +202,7 @@ export default class CustomAttribute extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: [serializedComponent],
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });

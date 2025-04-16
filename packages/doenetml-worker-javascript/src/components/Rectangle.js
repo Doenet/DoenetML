@@ -1429,7 +1429,7 @@ export default class Rectangle extends Polygon {
         }
         updateInstructions.push({
             updateType: "updateValue",
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             stateVariable: "vertices",
             value: vertexComponents,
             sourceDetails,
@@ -1465,7 +1465,7 @@ export default class Rectangle extends Polygon {
                     if (centerX !== undefined) {
                         updateInstructions.push({
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "specifiedCenter",
                             value: { 0: centerX.simplify() },
                         });
@@ -1473,7 +1473,7 @@ export default class Rectangle extends Polygon {
                     if (centerY !== undefined) {
                         updateInstructions.push({
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "specifiedCenter",
                             value: { 1: centerY.simplify() },
                         });
@@ -1494,7 +1494,7 @@ export default class Rectangle extends Polygon {
                     if (width !== undefined) {
                         updateInstructions.push({
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "specifiedWidth",
                             value: width.simplify(),
                         });
@@ -1502,7 +1502,7 @@ export default class Rectangle extends Polygon {
                     if (height !== undefined) {
                         updateInstructions.push({
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "specifiedHeight",
                             value: height.simplify(),
                         });
@@ -1530,7 +1530,7 @@ export default class Rectangle extends Polygon {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -1644,7 +1644,7 @@ export default class Rectangle extends Polygon {
                     let newInstructions = [
                         {
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "vertices",
                             value: newVertexComponents,
                         },

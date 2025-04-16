@@ -1,4 +1,8 @@
-import { NormalizedNode, NormalizedRoot } from "@doenet/doenetml-worker";
+import {
+    NormalizedNode,
+    NormalizedRoot,
+    UntaggedContent,
+} from "@doenet/doenetml-worker";
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     AttributeDefinition,
@@ -38,54 +42,52 @@ export async function normalizedDastToSerializedComponents(
      * Convert Elements to a `componentType` matching their name.
      * Convert Errors to a `componentType` of "_error".
      */
-    function unflattenDastNode(node: NormalizedNode): UnflattenedComponent {
-        if (node.type === "Element") {
-            return {
-                type: "unflattened",
-                componentType: node.name,
-                attributes: Object.fromEntries(
-                    node.attributes.map((attribute) => [
-                        attribute.name,
-                        {
-                            name: attribute.name,
-                            children: attribute.children.map((child) => {
-                                if (typeof child === "string") {
-                                    return child;
-                                } else {
-                                    return unflattenDastNode(
-                                        normalized_root.nodes[child],
-                                    );
-                                }
-                            }),
-                            position: attribute.position,
-                        },
-                    ]),
-                ),
-                position: node.position,
-                extending: node.extending,
-                children: node.children.map((child) => {
-                    if (typeof child === "string") {
-                        return child;
-                    } else {
-                        return unflattenDastNode(normalized_root.nodes[child]);
-                    }
-                }),
-                state: {},
-            };
+    function unflattenDastNode(
+        idxOrString: UntaggedContent,
+    ): UnflattenedComponent | string {
+        if (typeof idxOrString === "string") {
+            return idxOrString;
         } else {
-            // node.type === "Error"
-            return {
-                type: "unflattened",
-                componentType: "_error",
-                attributes: {},
-                position: node.position,
-                state: { message: node.message },
-                children: [],
-            };
+            const node = normalized_root.nodes[idxOrString];
+            if (node.type === "Element") {
+                return {
+                    type: "unflattened",
+                    componentType: node.name,
+                    componentIdx: idxOrString,
+                    attributes: Object.fromEntries(
+                        node.attributes.map((attribute) => [
+                            attribute.name,
+                            {
+                                name: attribute.name,
+                                children:
+                                    attribute.children.map(unflattenDastNode),
+                                position: attribute.position,
+                            },
+                        ]),
+                    ),
+                    position: node.position,
+                    extending: node.extending,
+                    children: node.children.map(unflattenDastNode),
+                    state: {},
+                };
+            } else {
+                // node.type === "Error"
+                return {
+                    type: "unflattened",
+                    componentType: "_error",
+                    componentIdx: idxOrString,
+                    attributes: {},
+                    position: node.position,
+                    state: { message: node.message },
+                    children: [],
+                };
+            }
         }
     }
 
     const documentIdx = normalized_root.children[0];
+
+    let nComponents = normalized_root.nodes.length;
 
     if (
         typeof documentIdx === "string" ||
@@ -95,19 +97,21 @@ export async function normalizedDastToSerializedComponents(
     }
 
     const unflattenedDocument = unflattenDastNode(
-        normalized_root.nodes[documentIdx],
-    );
+        documentIdx,
+    ) as UnflattenedComponent;
 
     if (unflattenedDocument.componentType !== "document") {
         throw Error("Root of dast should be a single document");
     }
 
-    let expandResult = expandUnflattenedToSerializedComponents(
-        [unflattenedDocument],
+    let expandResult = expandUnflattenedToSerializedComponents({
+        serializedComponents: [unflattenedDocument],
         componentInfoObjects,
-    );
+        nComponents,
+    });
 
     let expandedRoot = expandResult.components;
+    nComponents = expandResult.nComponents;
     const errors = expandResult.errors;
     const warnings: WarningRecord[] = [];
 
@@ -121,11 +125,13 @@ export async function normalizedDastToSerializedComponents(
     const sugarResult = applySugar({
         serializedComponents: expandedRoot,
         componentInfoObjects,
+        nComponents,
     });
     errors.push(...sugarResult.errors);
     warnings.push(...sugarResult.warnings);
+    nComponents = sugarResult.nComponents;
 
-    console.log("after sugar", sugarResult.components);
+    console.log("after sugar", sugarResult.components, nComponents);
 
     return {
         document: sugarResult.components[0] as SerializedComponent,
@@ -147,11 +153,21 @@ export async function normalizedDastToSerializedComponents(
  * to an "error" (componentType: "_error"), and record the error
  * in the `errors` record.
  */
-export function expandUnflattenedToSerializedComponents(
-    serializedComponents: (UnflattenedComponent | string)[],
-    componentInfoObjects: ComponentInfoObjects,
+export function expandUnflattenedToSerializedComponents({
+    serializedComponents,
+    componentInfoObjects,
+    nComponents,
     ignoreErrors = false,
-): { components: (SerializedComponent | string)[]; errors: ErrorRecord[] } {
+}: {
+    serializedComponents: (UnflattenedComponent | string)[];
+    componentInfoObjects: ComponentInfoObjects;
+    nComponents: number;
+    ignoreErrors?: boolean;
+}): {
+    components: (SerializedComponent | string)[];
+    errors: ErrorRecord[];
+    nComponents: number;
+} {
     let errors: ErrorRecord[] = [];
 
     const newComponents: (SerializedComponent | string)[] = [];
@@ -177,19 +193,23 @@ export function expandUnflattenedToSerializedComponents(
                 unflattenedAttributes: component.attributes,
                 componentClass,
                 componentInfoObjects,
+                nComponents,
             });
             let attributes: Record<string, SerializedAttribute> =
                 expandResult.attributes;
             errors.push(...expandResult.errors);
+            nComponents = expandResult.nComponents;
 
             const defaultPrimitiveResult = addDefaultPrimitiveAttributes({
                 unflattenedAttributes: component.attributes,
                 currentAttributes: attributes,
                 componentClass,
                 componentInfoObjects,
+                nComponents,
             });
             attributes = defaultPrimitiveResult.attributes;
             errors.push(...defaultPrimitiveResult.errors);
+            nComponents = defaultPrimitiveResult.nComponents;
 
             newComponent = {
                 ...component,
@@ -215,18 +235,20 @@ export function expandUnflattenedToSerializedComponents(
         //recurse on children
         let ignoreErrorsInChildren =
             ignoreErrors || componentClass?.ignoreErrorsFromChildren;
-        let res = expandUnflattenedToSerializedComponents(
-            component.children,
+        let res = expandUnflattenedToSerializedComponents({
+            serializedComponents: component.children,
             componentInfoObjects,
-            ignoreErrorsInChildren,
-        );
+            nComponents,
+            ignoreErrors: ignoreErrorsInChildren,
+        });
         newComponent.children = res.components;
         errors.push(...res.errors);
+        nComponents = res.nComponents;
 
         newComponents.push(newComponent);
     }
 
-    return { errors, components: newComponents };
+    return { errors, components: newComponents, nComponents };
 }
 
 /**
@@ -244,11 +266,17 @@ export function expandAllUnflattenedAttributes({
     unflattenedAttributes,
     componentClass,
     componentInfoObjects,
+    nComponents,
 }: {
     unflattenedAttributes: Record<string, UnflattenedAttribute>;
     componentClass: any;
     componentInfoObjects: ComponentInfoObjects;
-}) {
+    nComponents: number;
+}): {
+    attributes: Record<string, SerializedAttribute>;
+    errors: ErrorRecord[];
+    nComponents: number;
+} {
     let classAttributes: Record<
         string,
         AttributeDefinition<any>
@@ -277,24 +305,28 @@ export function expandAllUnflattenedAttributes({
                 attribute: unflattenedAttributes[attr],
                 allUnflattenedAttributes: unflattenedAttributes,
                 componentInfoObjects,
+                nComponents,
             });
             attributes[attrName] = res.attribute;
             errors.push(...res.errors);
+            nComponents = res.nComponents;
         } else if (componentClass.acceptAnyAttribute) {
             let res = expandAttribute({
                 attribute: unflattenedAttributes[attr],
                 allUnflattenedAttributes: unflattenedAttributes,
                 componentInfoObjects,
+                nComponents,
             });
             attributes[attr] = res.attribute;
             errors.push(...res.errors);
+            nComponents = res.nComponents;
         } else {
             throw Error(
                 `Invalid attribute "${attr}" for a component of type <${componentClass.componentType}>.`,
             );
         }
     }
-    return { attributes, errors };
+    return { attributes, errors, nComponents };
 }
 
 /**
@@ -306,12 +338,18 @@ function addDefaultPrimitiveAttributes({
     currentAttributes,
     componentClass,
     componentInfoObjects,
+    nComponents,
 }: {
     unflattenedAttributes: Record<string, UnflattenedAttribute>;
     currentAttributes: Record<string, SerializedAttribute>;
     componentClass: any;
     componentInfoObjects: ComponentInfoObjects;
-}) {
+    nComponents: number;
+}): {
+    attributes: Record<string, SerializedAttribute>;
+    errors: ErrorRecord[];
+    nComponents: number;
+} {
     const errors: ErrorRecord[] = [];
 
     let classAttributes: Record<
@@ -337,12 +375,14 @@ function addDefaultPrimitiveAttributes({
                     children: [attrObj.defaultPrimitiveValue.toString()],
                 },
                 componentInfoObjects,
+                nComponents,
             });
             newAttributes[attrName] = res.attribute;
             errors.push(...res.errors);
+            nComponents = res.nComponents;
         }
     }
-    return { attributes: newAttributes, errors };
+    return { attributes: newAttributes, errors, nComponents };
 }
 
 /**
@@ -356,12 +396,18 @@ export function expandAttribute({
     attribute,
     allUnflattenedAttributes = {},
     componentInfoObjects,
+    nComponents,
 }: {
     attrDef?: AttributeDefinition<any>;
     attribute: UnflattenedAttribute;
     allUnflattenedAttributes?: Record<string, UnflattenedAttribute>;
     componentInfoObjects: ComponentInfoObjects;
-}): { attribute: SerializedAttribute; errors: ErrorRecord[] } {
+    nComponents: number;
+}): {
+    attribute: SerializedAttribute;
+    errors: ErrorRecord[];
+    nComponents: number;
+} {
     let errors: ErrorRecord[] = [];
 
     if (attrDef?.createComponentOfType) {
@@ -369,7 +415,9 @@ export function expandAttribute({
             attrDef,
             attribute,
             componentInfoObjects,
+            nComponents,
         });
+        nComponents++;
 
         if (attribute.position) {
             unflattenedComponent.position = attribute.position;
@@ -407,11 +455,13 @@ export function expandAttribute({
             unflattenedComponent.attributes = unflattenedComponentAttributes;
         }
 
-        let res = expandUnflattenedToSerializedComponents(
-            [unflattenedComponent],
+        let res = expandUnflattenedToSerializedComponents({
+            serializedComponents: [unflattenedComponent],
             componentInfoObjects,
-        );
+            nComponents,
+        });
         errors.push(...res.errors);
+        nComponents = res.nComponents;
 
         let attr: SerializedAttribute = {
             type: "component",
@@ -421,7 +471,7 @@ export function expandAttribute({
         if (attrDef.ignoreFixed) {
             attr.ignoreFixed = true;
         }
-        return { attribute: attr, errors };
+        return { attribute: attr, errors, nComponents };
     } else if (attrDef?.createPrimitiveOfType) {
         let primitiveValue: PrimitiveAttributeValue =
             createPrimitiveFromAttribute({ attrDef, attribute });
@@ -436,16 +486,20 @@ export function expandAttribute({
                 primitive: primitiveValue,
             },
             errors,
+            nComponents,
         };
     } else {
         // XXX: ignoring attrDef.createTargetComponentNames
         // which might be obsolete with new reference conventions
+        // so creating "unresolved" if get this far
 
-        let res = expandUnflattenedToSerializedComponents(
-            attribute.children,
+        let res = expandUnflattenedToSerializedComponents({
+            serializedComponents: attribute.children,
             componentInfoObjects,
-        );
+            nComponents,
+        });
         errors.push(...res.errors);
+        nComponents = res.nComponents;
         return {
             attribute: {
                 type: "unresolved",
@@ -453,6 +507,7 @@ export function expandAttribute({
                 childrenForFutureComponent: res.components,
             },
             errors,
+            nComponents,
         };
     }
 }
@@ -470,10 +525,12 @@ function createInitialComponentFromAttribute({
     attrDef,
     attribute,
     componentInfoObjects,
+    nComponents,
 }: {
     attrDef: AttributeDefinition<any>;
     attribute: UnflattenedAttribute;
     componentInfoObjects: ComponentInfoObjects;
+    nComponents: number;
 }): UnflattenedComponent {
     if (attrDef.createComponentOfType === undefined) {
         throw Error(
@@ -488,6 +545,7 @@ function createInitialComponentFromAttribute({
             return {
                 type: "unflattened",
                 componentType: attrDef.createComponentOfType,
+                componentIdx: nComponents,
                 attributes: {},
                 children: [],
                 state: { value: attrDef.valueForTrue },
@@ -501,6 +559,7 @@ function createInitialComponentFromAttribute({
             return {
                 type: "unflattened",
                 componentType: attrDef.createComponentOfType,
+                componentIdx: nComponents,
                 attributes: {},
                 children: [],
                 state: { value: true },
@@ -524,6 +583,7 @@ function createInitialComponentFromAttribute({
                 return {
                     type: "unflattened",
                     componentType: attrDef.createComponentOfType,
+                    componentIdx: nComponents,
                     attributes: {},
                     children: [],
                     state: { value: attrDef.valueForTrue },
@@ -535,6 +595,7 @@ function createInitialComponentFromAttribute({
                 return {
                     type: "unflattened",
                     componentType: attrDef.createComponentOfType,
+                    componentIdx: nComponents,
                     attributes: {},
                     children: [],
                     state: { value: attrDef.valueForFalse },
@@ -548,6 +609,7 @@ function createInitialComponentFromAttribute({
             ) {
                 return {
                     type: "unflattened",
+                    componentIdx: nComponents,
                     componentType: attrDef.createComponentOfType,
                     attributes: {},
                     children: [],
@@ -560,6 +622,7 @@ function createInitialComponentFromAttribute({
     return {
         type: "unflattened",
         componentType: attrDef.createComponentOfType,
+        componentIdx: nComponents,
         attributes: {},
         children: attribute.children,
         state: {},

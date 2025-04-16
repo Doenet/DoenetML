@@ -30,7 +30,7 @@ export default class Textinput extends Input {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor !== null) {
                     return {
-                        componentName: answerAncestor.componentName,
+                        componentIdx: answerAncestor.componentIdx,
                         actionName: "submitAnswer",
                     };
                 } else {
@@ -468,13 +468,13 @@ export default class Textinput extends Input {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "immediateValue",
                         value: text,
                     },
                     {
                         updateType: "setComponentNeedingUpdateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                     },
                 ],
                 transient: true,
@@ -497,7 +497,7 @@ export default class Textinput extends Input {
                 let updateInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "value",
                         value: immediateValue,
                     },
@@ -511,7 +511,7 @@ export default class Textinput extends Input {
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "immediateValue",
                         valueOfStateVariable: "value",
                     },
@@ -523,7 +523,7 @@ export default class Textinput extends Input {
                 let event = {
                     verb: "answered",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -535,7 +535,7 @@ export default class Textinput extends Input {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor) {
                     event.context = {
-                        answerAncestor: answerAncestor.componentName,
+                        answerAncestor: answerAncestor.componentIdx,
                     };
                 }
 
@@ -548,7 +548,7 @@ export default class Textinput extends Input {
                 });
 
                 return await this.coreFunctions.triggerChainedActions({
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -574,7 +574,7 @@ export default class Textinput extends Input {
             actionId,
             sourceInformation,
             skipRendererUpdate,
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

@@ -82,7 +82,7 @@ export default class Map extends CompositeComponent {
                     setValue: {
                         numSources: dependencyValues.sourcesChildren.length,
                         sourcesNames: dependencyValues.sourcesChildren.map(
-                            (x) => x.componentName,
+                            (x) => x.componentIdx,
                         ),
                         sourceAliases: dependencyValues.sourcesChildren.map(
                             (x) => x.stateValues.alias,
@@ -151,7 +151,7 @@ export default class Map extends CompositeComponent {
                     componentType: "template",
                     state: { rendered: true },
                     children: childrenOfTemplate,
-                    originalName: templateChild.componentName,
+                    originalName: templateChild.componentIdx,
                     attributes: {},
                 };
                 if (templateChild.stateValues.newNamespace) {
@@ -258,11 +258,11 @@ export default class Map extends CompositeComponent {
                     ignoreReplacementsOfEncounteredComposites: true,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     seed: dependencyValues.variantSeed,
                     meta: {
-                        createdBy: componentName,
+                        createdBy: componentIdx,
                     },
                 };
 
@@ -297,7 +297,7 @@ export default class Map extends CompositeComponent {
         workspace,
         componentInfoObjects,
     }) {
-        // console.log(`create serialized replacements for ${component.componentName}`);
+        // console.log(`create serialized replacements for ${component.componentIdx}`);
 
         let errors = [];
         let warnings = [];
@@ -402,7 +402,7 @@ export default class Map extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
             indOffset: iter,
@@ -493,7 +493,7 @@ export default class Map extends CompositeComponent {
                 let processResult = processAssignNames({
                     assignNames: component.doenetAttributes.assignNames,
                     serializedComponents,
-                    parentName: component.componentName,
+                    parentIdx: component.componentIdx,
                     parentCreatesNewNamespace: newNamespace,
                     componentInfoObjects,
                     indOffset: iterateNumber,
@@ -544,7 +544,7 @@ export default class Map extends CompositeComponent {
         workspace,
         componentInfoObjects,
     }) {
-        // console.log(`calculate replacement changes for ${component.componentName}`)
+        // console.log(`calculate replacement changes for ${component.componentIdx}`)
 
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];

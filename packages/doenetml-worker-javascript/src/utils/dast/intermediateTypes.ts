@@ -12,6 +12,7 @@ import { Position, RefResolution, Source } from "@doenet/doenetml-worker";
 export type UnflattenedComponent = {
     type: "unflattened";
     componentType: string;
+    componentIdx: number;
     children: (UnflattenedComponent | string)[];
     attributes: Record<string, UnflattenedAttribute>;
     position?: Position;
@@ -28,6 +29,7 @@ export function isUnflattenedComponent(
         typedObj !== null &&
         typedObj.type === "unflattened" &&
         typeof typedObj.componentType === "string" &&
+        typeof typedObj.componentIdx === "number" &&
         Array.isArray(typedObj.children) &&
         typedObj.children.every(
             (child) =>

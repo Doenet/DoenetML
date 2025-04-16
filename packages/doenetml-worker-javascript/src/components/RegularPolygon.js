@@ -2041,7 +2041,7 @@ export default class RegularPolygon extends Polygon {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "vertices",
                         value: vertexComponents,
                         sourceDetails,
@@ -2057,7 +2057,7 @@ export default class RegularPolygon extends Polygon {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "vertices",
                         value: vertexComponents,
                         sourceDetails,
@@ -2069,7 +2069,7 @@ export default class RegularPolygon extends Polygon {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -2131,14 +2131,14 @@ export default class RegularPolygon extends Polygon {
                             let newInstructions = [
                                 {
                                     updateType: "updateValue",
-                                    componentName: this.componentName,
+                                    componentIdx: this.componentIdx,
                                     stateVariable:
                                         "unconstrainedCenterComponents",
                                     value: resultingCenter,
                                 },
                                 {
                                     updateType: "updateValue",
-                                    componentName: this.componentName,
+                                    componentIdx: this.componentIdx,
                                     stateVariable:
                                         "unconstrainedDirectionWithRadius",
                                     value: desiredUnconstrainedDirectionWithRadius,
@@ -2167,13 +2167,13 @@ export default class RegularPolygon extends Polygon {
                         let newInstructions = [
                             {
                                 updateType: "updateValue",
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 stateVariable: "unconstrainedCenterComponents",
                                 value: newCenter,
                             },
                             {
                                 updateType: "updateValue",
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 stateVariable:
                                     "unconstrainedDirectionWithRadius",
                                 value: desiredUnconstrainedDirectionWithRadius,
@@ -2244,13 +2244,13 @@ export default class RegularPolygon extends Polygon {
                         let newInstructions = [
                             {
                                 updateType: "updateValue",
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 stateVariable: "unconstrainedCenterComponents",
                                 value: newCenter,
                             },
                             {
                                 updateType: "updateValue",
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 stateVariable:
                                     "unconstrainedDirectionWithRadius",
                                 value: desiredUnconstrainedDirectionWithRadius,
@@ -2277,13 +2277,13 @@ export default class RegularPolygon extends Polygon {
                     let newInstructions = [
                         {
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "unconstrainedCenterComponents",
                             value: newCenter,
                         },
                         {
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "unconstrainedDirectionWithRadius",
                             value: desiredUnconstrainedDirectionWithRadius,
                         },

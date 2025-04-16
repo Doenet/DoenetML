@@ -6,6 +6,7 @@ import { Position, RefResolution, Source } from "@doenet/doenetml-worker";
 export type SerializedComponent = {
     type: "serialized";
     componentType: string;
+    componentIdx: number;
     children: (SerializedComponent | string)[];
     attributes: Record<string, SerializedAttribute>;
     position?: Position;
@@ -24,6 +25,7 @@ export function isSerializedComponent(
         typedObj !== null &&
         typedObj.type === "serialized" &&
         typeof typedObj.componentType === "string" &&
+        typeof typedObj.componentIdx === "number" &&
         Array.isArray(typedObj.children) &&
         typedObj.children.every(
             (child) =>

@@ -5,7 +5,6 @@ import {
     evaluateLogic,
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
-import { getNamespaceFromName } from "@doenet/utils";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -159,46 +158,16 @@ export default class Award extends BaseComponent {
     static preprocessSerializedChildren({
         serializedChildren,
         attributes,
-        componentName,
+        componentIdx,
     }) {
         if (attributes.sourcesAreResponses) {
             let targetNames = attributes.sourcesAreResponses.primitive
                 .split(/\s+/)
                 .filter((s) => s);
-            let nameSpace;
-            if (attributes.newNamespace?.primitive) {
-                nameSpace = componentName + "/";
-            } else {
-                nameSpace = getNamespaceFromName(componentName);
-            }
+
             for (let target of targetNames) {
-                let absoluteTarget;
-                if (target[0] === "/") {
-                    absoluteTarget = target;
-                } else if (target.slice(0, 3) === "../") {
-                    let adjustedNameSpace = getNamespaceFromName(
-                        nameSpace.slice(0, nameSpace.length - 1),
-                    );
-                    let adjustedTarget = target.slice(3);
-                    while (adjustedTarget.slice(0, 3) === "../") {
-                        if (adjustedNameSpace === "/") {
-                            absoluteTarget = null;
-                            break;
-                        }
-                        adjustedNameSpace = getNamespaceFromName(
-                            adjustedNameSpace.slice(
-                                0,
-                                adjustedNameSpace.length - 1,
-                            ),
-                        );
-                        adjustedTarget = adjustedTarget.slice(3);
-                    }
-                    if (absoluteTarget !== null) {
-                        absoluteTarget = adjustedNameSpace + adjustedTarget;
-                    }
-                } else {
-                    absoluteTarget = nameSpace + target;
-                }
+                let absoluteTarget = target;
+
                 addResponsesToDescendantsWithTarget(
                     serializedChildren,
                     target,

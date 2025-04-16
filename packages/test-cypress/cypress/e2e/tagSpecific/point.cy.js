@@ -51,7 +51,7 @@ describe("Point Tag Tests 2", function () {
                 promises.push(
                     win.callAction1({
                         actionName: "movePoint",
-                        componentName: "/P0",
+                        componentIdx: "/P0",
                         args: { x, y, skippable: true },
                     }),
                 );
@@ -85,7 +85,7 @@ describe("Point Tag Tests 2", function () {
                 promises2.push(
                     win.callAction1({
                         actionName: "movePoint",
-                        componentName: "/P0",
+                        componentIdx: "/P0",
                         args: { x, y, skippable: i % 10 !== 5 },
                     }),
                 );

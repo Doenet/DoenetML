@@ -109,6 +109,7 @@ export default class Point extends GraphicalComponent {
         let breakIntoXsOrCoords = function ({
             matchedChildren,
             componentInfoObjects,
+            nComponents,
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
@@ -189,16 +190,21 @@ export default class Point extends GraphicalComponent {
                             xs: {
                                 type: "component",
                                 name: "xs",
+                                componentIdx: nComponents,
                                 component: {
                                     type: "serialized",
                                     componentType: "mathList",
-                                    children: breakResult.pieces.map((x) => ({
-                                        type: "serialized",
-                                        componentType: "math",
-                                        children: x,
-                                        attributes: {},
-                                        state: {},
-                                    })),
+                                    componentIdx: nComponents + 1,
+                                    children: breakResult.pieces.map(
+                                        (x, i) => ({
+                                            type: "serialized",
+                                            componentType: "math",
+                                            componentIdx: nComponents + 2 + i,
+                                            children: x,
+                                            attributes: {},
+                                            state: {},
+                                        }),
+                                    ),
                                     skipSugar: true,
                                     attributes: {},
                                     state: {},
@@ -209,6 +215,8 @@ export default class Point extends GraphicalComponent {
                             ...nonComponentChildrenBegin,
                             ...nonComponentChildrenEnd,
                         ],
+                        nComponents:
+                            nComponents + 2 + breakResult.pieces.length,
                     };
                 }
             }
@@ -220,8 +228,11 @@ export default class Point extends GraphicalComponent {
                     coords: {
                         type: "component",
                         name: "coords",
+                        componentIdx: nComponents,
                         component: {
+                            type: "component",
                             componentType: "coords",
+                            componentIdx: nComponents + 1,
                             children: componentChildren,
                         },
                     },
@@ -230,6 +241,7 @@ export default class Point extends GraphicalComponent {
                     ...nonComponentChildrenBegin,
                     ...nonComponentChildrenEnd,
                 ],
+                nComponents: nComponents + 2,
             };
         };
 
@@ -623,7 +635,7 @@ export default class Point extends GraphicalComponent {
                 dependencyValuesByKey,
                 arrayKeys,
             }) {
-                // console.log(`unconstrained xs definition by key for ${componentName}`)
+                // console.log(`unconstrained xs definition by key for ${componentIdx}`)
                 // console.log(deepClone(globalDependencyValues))
                 // console.log(deepClone(dependencyValuesByKey))
                 // console.log(deepClone(arrayKeys));
@@ -721,7 +733,7 @@ export default class Point extends GraphicalComponent {
                 dependencyNamesByKey,
                 arraySize,
             }) {
-                // console.log(`invertUnconstrainedXs, ${componentName}`);
+                // console.log(`invertUnconstrainedXs, ${componentIdx}`);
                 // console.log(desiredStateVariableValues)
                 // console.log(globalDependencyValues);
                 // console.log(dependencyValuesByKey);
@@ -1298,7 +1310,7 @@ export default class Point extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "xs",
                         value: components,
                     },
@@ -1313,7 +1325,7 @@ export default class Point extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "xs",
                         value: components,
                     },
@@ -1324,7 +1336,7 @@ export default class Point extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -1348,7 +1360,7 @@ export default class Point extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1365,7 +1377,7 @@ export default class Point extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

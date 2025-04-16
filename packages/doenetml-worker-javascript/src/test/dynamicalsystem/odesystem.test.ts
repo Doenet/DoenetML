@@ -62,11 +62,11 @@ $tol.value{assignNames="tol2"}
             let solutionsFromCore = stateVariables["/map1"]
                 .replacements!.map(
                     (child) =>
-                        stateVariables[child.componentName].replacements![0],
+                        stateVariables[child.componentIdx].replacements![0],
                 )
                 .map(
                     (grandChild) =>
-                        stateVariables[grandChild.componentName].stateValues
+                        stateVariables[grandChild.componentIdx].stateValues
                             .value,
                 )
                 .map((v) => v.tree);
@@ -277,8 +277,8 @@ $tol.value{assignNames="tol2"}
             let solutionsFromCore = stateVariables["/map1"].replacements!.map(
                 (x) =>
                     stateVariables[
-                        stateVariables[x.componentName].replacements![0]
-                            .componentName
+                        stateVariables[x.componentIdx].replacements![0]
+                            .componentIdx
                     ].stateValues.value.tree,
             );
 
@@ -552,22 +552,22 @@ $tol.value{assignNames="tol2"}
             let solutionsFromCoreX = stateVariables["/map1"]
                 .replacements!.map(
                     (child) =>
-                        stateVariables[child.componentName].replacements![0],
+                        stateVariables[child.componentIdx].replacements![0],
                 )
                 .map(
                     (grandChild) =>
-                        stateVariables[grandChild.componentName].stateValues
+                        stateVariables[grandChild.componentIdx].stateValues
                             .value,
                 )
                 .map((v) => v.tree);
             let solutionsFromCoreY = stateVariables["/map1"]
                 .replacements!.map(
                     (child) =>
-                        stateVariables[child.componentName].replacements![1],
+                        stateVariables[child.componentIdx].replacements![1],
                 )
                 .map(
                     (grandChild) =>
-                        stateVariables[grandChild.componentName].stateValues
+                        stateVariables[grandChild.componentIdx].stateValues
                             .value,
                 )
                 .map((v) => v.tree);
@@ -731,7 +731,7 @@ $tol.value{assignNames="tol2"}
         ) {
             expect(
                 stateVariables[
-                    stateVariables[origName].replacements![repNum].componentName
+                    stateVariables[origName].replacements![repNum].componentIdx
                 ].stateValues.value.tree,
             ).eqls(desiredValue);
         }
@@ -794,36 +794,36 @@ $tol.value{assignNames="tol2"}
             `Invalid value of a variable: sin(x)`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(47);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(52);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(7);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(47);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(7);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(52);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Variables of <odesystem> must be different than independent variable`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(12);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(12);
 
         expect(errorWarnings.warnings[2].message).contain(
             `Invalid value of a variable: sin(y)`,
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(11);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(23);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(11);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(28);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(11);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(23);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(11);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(28);
 
         expect(errorWarnings.warnings[3].message).contain(
             `Can't define ODE RHS functions with duplicate dependent variable names`,
         );
         expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(15);
-        expect(errorWarnings.warnings[3].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineEnd).eq(18);
-        expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(12);
+        expect(errorWarnings.warnings[3].position.lineBegin).eq(15);
+        expect(errorWarnings.warnings[3].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[3].position.lineEnd).eq(18);
+        expect(errorWarnings.warnings[3].position.charEnd).eq(12);
     });
 });

@@ -617,7 +617,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a",
+                componentIdx: "/a",
                 args: { value: 33.4 },
             });
         });
@@ -669,7 +669,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a2",
+                componentIdx: "/a2",
                 args: { value: 64.5 },
             });
         });
@@ -759,7 +759,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a",
+                componentIdx: "/a",
                 args: { value: 33.4 },
             });
         });
@@ -775,7 +775,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a2",
+                componentIdx: "/a2",
                 args: { value: 4.5 },
             });
         });
@@ -795,7 +795,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a",
+                componentIdx: "/a",
                 args: { value: 33.4 },
             });
         });
@@ -811,7 +811,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a2",
+                componentIdx: "/a2",
                 args: { value: 4.5 },
             });
         });
@@ -3120,28 +3120,28 @@ describe("AnimateFromSequence Tag Tests", function () {
                 'Invalid animation target: cannot find a state variable named "invalid" on a <number>',
             );
             expect(errorWarnings.warnings[0].level).eq(1);
-            expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(5);
-            expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(3);
-            expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
-            expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(63);
+            expect(errorWarnings.warnings[0].position.lineBegin).eq(5);
+            expect(errorWarnings.warnings[0].position.charBegin).eq(3);
+            expect(errorWarnings.warnings[0].position.lineEnd).eq(5);
+            expect(errorWarnings.warnings[0].position.charEnd).eq(63);
 
             expect(errorWarnings.warnings[1].message).contain(
                 'Invalid animation target: cannot find a state variable named "value" on a <p>',
             );
             expect(errorWarnings.warnings[1].level).eq(1);
-            expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(6);
-            expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(3);
-            expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(6);
-            expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(55);
+            expect(errorWarnings.warnings[1].position.lineBegin).eq(6);
+            expect(errorWarnings.warnings[1].position.charBegin).eq(3);
+            expect(errorWarnings.warnings[1].position.lineEnd).eq(6);
+            expect(errorWarnings.warnings[1].position.charEnd).eq(55);
 
             expect(errorWarnings.warnings[2].message).contain(
                 "Invalid animation target: cannot find target",
             );
             expect(errorWarnings.warnings[2].level).eq(1);
-            expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(7);
-            expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(3);
-            expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(7);
-            expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(69);
+            expect(errorWarnings.warnings[2].position.lineBegin).eq(7);
+            expect(errorWarnings.warnings[2].position.charBegin).eq(3);
+            expect(errorWarnings.warnings[2].position.lineEnd).eq(7);
+            expect(errorWarnings.warnings[2].position.charEnd).eq(69);
         });
     });
 

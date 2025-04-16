@@ -35,13 +35,3 @@ export function getUniqueIdentifierFromBase(
 
     return uniqueIdentifier;
 }
-
-export function getNamespaceFromName(componentName: string) {
-    let lastSlash = componentName.lastIndexOf("/");
-    if (lastSlash === -1) {
-        throw Error(
-            `Encountered name ${componentName} that doesn't include a slash`,
-        );
-    }
-    return componentName.slice(0, lastSlash + 1);
-}

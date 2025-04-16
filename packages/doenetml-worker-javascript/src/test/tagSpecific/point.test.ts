@@ -2476,16 +2476,16 @@ $g1{name="g2"}
             core.core!.components!["/P"].attributes.xs.component
                 .activeChildren[0];
         let math1 = x1.definingChildren[0];
-        let math1Name = math1.componentName;
+        let math1Name = math1.componentIdx;
         let math2 = x1.definingChildren[2];
-        let math2Name = math2.componentName;
+        let math2Name = math2.componentIdx;
 
-        expect(x1.definingChildren.map((x) => x.componentName)).eqls([
+        expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             "/seq",
             math2Name,
         ]);
-        expect(x1.activeChildren.map((x) => x.componentName)).eqls([
+        expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             math2Name,
         ]);
@@ -2495,13 +2495,13 @@ $g1{name="g2"}
         await updateMathInputValue({ latex: "2", name: "/n", core });
 
         let math3 = core.core!.components!["/seq"].replacements[0].adapterUsed;
-        let math3Name = math3.componentName;
-        expect(x1.definingChildren.map((x) => x.componentName)).eqls([
+        let math3Name = math3.componentIdx;
+        expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             "/seq",
             math2Name,
         ]);
-        expect(x1.activeChildren.map((x) => x.componentName)).eqls([
+        expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             math3Name,
             math2Name,
@@ -4063,28 +4063,28 @@ $g1{name="g2"}
             "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(32);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(6);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(7);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(6);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(32);
 
         expect(errorWarnings.warnings[1].message).contain(
             "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(7);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(32);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(6);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(7);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(6);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(32);
 
         expect(errorWarnings.warnings[2].message).contain(
             "Cannot constrain to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(14);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(7);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(14);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(36);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(14);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(7);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(14);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(36);
     });
 
     it("copy point with no arguments, specify individual coordinates", async () => {

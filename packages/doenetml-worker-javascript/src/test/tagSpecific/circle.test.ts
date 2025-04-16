@@ -4278,73 +4278,73 @@ $c7.radius
             "Cannot calculate radius of circle with specified center through more than 1 point",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(8);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(8);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(57);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(8);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(8);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(57);
 
         expect(errorWarnings.warnings[1].message).contain(
             "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(42);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(42);
 
         expect(errorWarnings.warnings[2].message).contain(
             "Cannot calculate circle through more than 3 points",
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(54);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(54);
 
         expect(errorWarnings.warnings[3].message).contain(
             "Cannot calculate circle with specified radius, center and through points",
         );
         expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.warnings[3].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(62);
+        expect(errorWarnings.warnings[3].position.lineBegin).eq(4);
+        expect(errorWarnings.warnings[3].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[3].position.lineEnd).eq(4);
+        expect(errorWarnings.warnings[3].position.charEnd).eq(62);
 
         expect(errorWarnings.warnings[4].message).contain(
             "Cannot calculate circle with specified center through more than 1 point",
         );
         expect(errorWarnings.warnings[4].level).eq(1);
-        expect(errorWarnings.warnings[4].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.warnings[4].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[4].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[4].doenetMLrange.charEnd).eq(57);
+        expect(errorWarnings.warnings[4].position.lineBegin).eq(5);
+        expect(errorWarnings.warnings[4].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[4].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[4].position.charEnd).eq(57);
 
         expect(errorWarnings.warnings[5].message).contain(
             "Cannot calculate circle: given that the distance between the two points is 8, the specified radius 1 is too small",
         );
         expect(errorWarnings.warnings[5].level).eq(1);
-        expect(errorWarnings.warnings[5].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.warnings[5].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[5].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.warnings[5].doenetMLrange.charEnd).eq(54);
+        expect(errorWarnings.warnings[5].position.lineBegin).eq(6);
+        expect(errorWarnings.warnings[5].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[5].position.lineEnd).eq(6);
+        expect(errorWarnings.warnings[5].position.charEnd).eq(54);
 
         expect(errorWarnings.warnings[6].message).contain(
             "Cannot create circle through more than two points with a specified radius",
         );
         expect(errorWarnings.warnings[6].level).eq(1);
-        expect(errorWarnings.warnings[6].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.warnings[6].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[6].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.warnings[6].doenetMLrange.charEnd).eq(60);
+        expect(errorWarnings.warnings[6].position.lineBegin).eq(7);
+        expect(errorWarnings.warnings[6].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[6].position.lineEnd).eq(7);
+        expect(errorWarnings.warnings[6].position.charEnd).eq(60);
 
         expect(errorWarnings.warnings[7].message).contain(
             "Cannot create circle through more than one point with specified radius when don't have numerical values",
         );
         expect(errorWarnings.warnings[7].level).eq(1);
-        expect(errorWarnings.warnings[7].doenetMLrange.lineBegin).eq(9);
-        expect(errorWarnings.warnings[7].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.warnings[7].doenetMLrange.lineEnd).eq(9);
-        expect(errorWarnings.warnings[7].doenetMLrange.charEnd).eq(53);
+        expect(errorWarnings.warnings[7].position.lineBegin).eq(9);
+        expect(errorWarnings.warnings[7].position.charBegin).eq(1);
+        expect(errorWarnings.warnings[7].position.lineEnd).eq(9);
+        expect(errorWarnings.warnings[7].position.charEnd).eq(53);
     });
 
     it("handle bad center/through", async () => {

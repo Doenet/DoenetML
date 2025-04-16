@@ -352,16 +352,12 @@ describe("Basic copy assign name tests", async () => {
                 false,
                 true,
             );
-            let point1 = stateVariables["/pts"].replacements![0].componentName;
-            let point2 = stateVariables["/pts"].replacements![1].componentName;
-            let point1a =
-                stateVariables["/ptsb"].replacements![0].componentName;
-            let point2a =
-                stateVariables["/ptsb"].replacements![1].componentName;
-            let point1b =
-                stateVariables["/ptsc"].replacements![0].componentName;
-            let point2b =
-                stateVariables["/ptsc"].replacements![1].componentName;
+            let point1 = stateVariables["/pts"].replacements![0].componentIdx;
+            let point2 = stateVariables["/pts"].replacements![1].componentIdx;
+            let point1a = stateVariables["/ptsb"].replacements![0].componentIdx;
+            let point2a = stateVariables["/ptsb"].replacements![1].componentIdx;
+            let point1b = stateVariables["/ptsc"].replacements![0].componentIdx;
+            let point2b = stateVariables["/ptsc"].replacements![1].componentIdx;
 
             expect(
                 stateVariables[point1].stateValues.xs.map((v) => v.tree),
@@ -485,17 +481,17 @@ describe("Basic copy assign name tests", async () => {
                 true,
             );
             let point1 =
-                stateVariables["/hello/pts"].replacements![0].componentName;
+                stateVariables["/hello/pts"].replacements![0].componentIdx;
             let point2 =
-                stateVariables["/hello/pts"].replacements![1].componentName;
+                stateVariables["/hello/pts"].replacements![1].componentIdx;
             let point1a =
-                stateVariables["/hello/ptsb"].replacements![0].componentName;
+                stateVariables["/hello/ptsb"].replacements![0].componentIdx;
             let point2a =
-                stateVariables["/hello/ptsb"].replacements![1].componentName;
+                stateVariables["/hello/ptsb"].replacements![1].componentIdx;
             let point1b =
-                stateVariables["/hello/ptsc"].replacements![0].componentName;
+                stateVariables["/hello/ptsc"].replacements![0].componentIdx;
             let point2b =
-                stateVariables["/hello/ptsc"].replacements![1].componentName;
+                stateVariables["/hello/ptsc"].replacements![1].componentIdx;
 
             expect(
                 stateVariables[point1].stateValues.xs.map((v) => v.tree),

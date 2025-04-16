@@ -134,7 +134,7 @@ export default class TextList extends CompositeComponent {
 
                 if (dependencyValues.textChildren.length > 0) {
                     childNameByComponent = dependencyValues.textChildren.map(
-                        (x) => x.componentName,
+                        (x) => x.componentIdx,
                     );
                     numComponents = dependencyValues.textChildren.length;
                 } else if (dependencyValues.textsShadow !== null) {
@@ -343,16 +343,16 @@ export default class TextList extends CompositeComponent {
             let replacementSource = components[childName];
 
             if (replacementSource) {
-                componentsCopied.push(replacementSource.componentName);
+                componentsCopied.push(replacementSource.componentIdx);
             }
             replacements.push({
                 componentType: "text",
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 downstreamDependencies: {
-                    [component.componentName]: [
+                    [component.componentIdx]: [
                         {
                             dependencyType: "referenceShadow",
-                            compositeName: component.componentName,
+                            compositeName: component.componentIdx,
                             propVariable: `text${i + 1}`,
                         },
                     ],
@@ -363,7 +363,7 @@ export default class TextList extends CompositeComponent {
         workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
@@ -372,7 +372,7 @@ export default class TextList extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
@@ -411,7 +411,7 @@ export default class TextList extends CompositeComponent {
                 let replacementSource = components[childName];
 
                 if (replacementSource) {
-                    componentsToCopy.push(replacementSource.componentName);
+                    componentsToCopy.push(replacementSource.componentIdx);
                 }
             }
 

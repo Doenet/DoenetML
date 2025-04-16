@@ -22,6 +22,7 @@ export function convertToSerializedErrorComponent(
     const newComponent: SerializedComponent = {
         type: "serialized",
         componentType: "_error",
+        componentIdx: component.componentIdx,
         state: { message },
         children: [],
         attributes: {},

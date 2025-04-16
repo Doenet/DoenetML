@@ -282,17 +282,17 @@ describe("Number tag tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/n1am"].activeChildren[0].componentName
+                stateVariables["/n1am"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(234234823.34235235324);
         expect(
             stateVariables[
-                stateVariables["/n1bm"].activeChildren[0].componentName
+                stateVariables["/n1bm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(234234823.34235235324);
         expect(
             stateVariables[
-                stateVariables["/n1cm"].activeChildren[0].componentName
+                stateVariables["/n1cm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(234234823.34235235324);
         expect(stateVariables["/n2"].stateValues.value).eq(5.4285023408250342);
@@ -301,17 +301,17 @@ describe("Number tag tests", async () => {
         expect(stateVariables["/n2c"].stateValues.value).eq(5.4285023408250342);
         expect(
             stateVariables[
-                stateVariables["/n2am"].activeChildren[0].componentName
+                stateVariables["/n2am"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(5.4285023408250342);
         expect(
             stateVariables[
-                stateVariables["/n2bm"].activeChildren[0].componentName
+                stateVariables["/n2bm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(5.4285023408250342);
         expect(
             stateVariables[
-                stateVariables["/n2cm"].activeChildren[0].componentName
+                stateVariables["/n2cm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(5.4285023408250342);
         expect(stateVariables["/n3"].stateValues.value).eq(
@@ -328,17 +328,17 @@ describe("Number tag tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/n3am"].activeChildren[0].componentName
+                stateVariables["/n3am"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(0.000000000000005023481340324);
         expect(
             stateVariables[
-                stateVariables["/n3bm"].activeChildren[0].componentName
+                stateVariables["/n3bm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(0.000000000000005023481340324);
         expect(
             stateVariables[
-                stateVariables["/n3cm"].activeChildren[0].componentName
+                stateVariables["/n3cm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(0.000000000000005023481340324);
 
@@ -350,12 +350,12 @@ describe("Number tag tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/n1aam"].activeChildren[0].componentName
+                stateVariables["/n1aam"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(234234823.34235235324);
         expect(
             stateVariables[
-                stateVariables["/n1abm"].activeChildren[0].componentName
+                stateVariables["/n1abm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(234234823.34235235324);
         expect(stateVariables["/n2aa"].stateValues.value).eq(
@@ -366,12 +366,12 @@ describe("Number tag tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/n2aam"].activeChildren[0].componentName
+                stateVariables["/n2aam"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(5.4285023408250342);
         expect(
             stateVariables[
-                stateVariables["/n2abm"].activeChildren[0].componentName
+                stateVariables["/n2abm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(5.4285023408250342);
         expect(stateVariables["/n3aa"].stateValues.value).eq(
@@ -382,12 +382,12 @@ describe("Number tag tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/n3aam"].activeChildren[0].componentName
+                stateVariables["/n3aam"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(0.000000000000005023481340324);
         expect(
             stateVariables[
-                stateVariables["/n3abm"].activeChildren[0].componentName
+                stateVariables["/n3abm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(0.000000000000005023481340324);
 
@@ -399,12 +399,12 @@ describe("Number tag tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/n1bam"].activeChildren[0].componentName
+                stateVariables["/n1bam"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(234234823.34235235324);
         expect(
             stateVariables[
-                stateVariables["/n1bbm"].activeChildren[0].componentName
+                stateVariables["/n1bbm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(234234823.34235235324);
         expect(stateVariables["/n2ba"].stateValues.value).eq(
@@ -415,12 +415,12 @@ describe("Number tag tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/n2bam"].activeChildren[0].componentName
+                stateVariables["/n2bam"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(5.4285023408250342);
         expect(
             stateVariables[
-                stateVariables["/n2bbm"].activeChildren[0].componentName
+                stateVariables["/n2bbm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(5.4285023408250342);
         expect(stateVariables["/n3ba"].stateValues.value).eq(
@@ -431,12 +431,12 @@ describe("Number tag tests", async () => {
         );
         expect(
             stateVariables[
-                stateVariables["/n3bam"].activeChildren[0].componentName
+                stateVariables["/n3bam"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(0.000000000000005023481340324);
         expect(
             stateVariables[
-                stateVariables["/n3bbm"].activeChildren[0].componentName
+                stateVariables["/n3bbm"].activeChildren[0].componentIdx
             ].stateValues.value,
         ).eq(0.000000000000005023481340324);
     });

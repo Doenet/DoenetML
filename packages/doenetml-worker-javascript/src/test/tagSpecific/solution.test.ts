@@ -15,7 +15,7 @@ async function revealSolution({
 }) {
     await core.requestAction({
         actionName: "revealSolution",
-        componentName: name,
+        componentIdx: name,
         args: {},
     });
 }
@@ -28,7 +28,7 @@ async function closeSolution({
 }) {
     await core.requestAction({
         actionName: "closeSolution",
-        componentName: name,
+        componentIdx: name,
         args: {},
     });
 }

@@ -729,7 +729,7 @@ describe("UpdateValue tag tests", async () => {
         // Note: we expect the macro to trigger the updateValue with triggerWith="uv"
         // because it doesn't have a name.
         let macroName =
-            stateVariables["/pmacro"].activeChildren[0].componentName;
+            stateVariables["/pmacro"].activeChildren[0].componentIdx;
 
         await updateValue({ name: macroName, core });
 
@@ -905,7 +905,7 @@ describe("UpdateValue tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let PcopyName =
-            stateVariables["/graph1"].activeChildren[0].componentName;
+            stateVariables["/graph1"].activeChildren[0].componentIdx;
 
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
@@ -1652,28 +1652,28 @@ describe("UpdateValue tag tests", async () => {
             'Invalid target for <updateValue>: cannot find a state variable named "invalid" on a <number>',
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(60);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(60);
 
         expect(errorWarnings.warnings[1].message).contain(
             'Invalid target for <updateValue>: cannot find a state variable named "value" on a <p>',
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(52);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(6);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(3);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(6);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(52);
 
         expect(errorWarnings.warnings[2].message).contain(
             "Invalid target for <updateValue>: cannot find target",
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(66);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(7);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(3);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(7);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(66);
     });
 
     it("math in label", async () => {
@@ -1790,7 +1790,7 @@ describe("UpdateValue tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/grp2/p"].stateValues.text).eq("true");
         expect(
-            stateVariables["/sec"].activeChildren.filter((x) => x.componentName)
+            stateVariables["/sec"].activeChildren.filter((x) => x.componentIdx)
                 .length,
         ).eq(3);
 
@@ -1799,7 +1799,7 @@ describe("UpdateValue tag tests", async () => {
 
         expect(stateVariables["/grp2/p"].stateValues.text).eq("false");
         expect(
-            stateVariables["/sec"].activeChildren.filter((x) => x.componentName)
+            stateVariables["/sec"].activeChildren.filter((x) => x.componentIdx)
                 .length,
         ).eq(2);
     });

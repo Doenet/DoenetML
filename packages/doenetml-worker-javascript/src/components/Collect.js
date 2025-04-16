@@ -108,8 +108,8 @@ export default class Collect extends CompositeComponent {
                     return {
                         targetIsInactiveCompositeReplacement: {
                             dependencyType: "stateVariable",
-                            componentName:
-                                stateValues.targetComponent.componentName,
+                            componentIdx:
+                                stateValues.targetComponent.componentIdx,
                             variableName: "isInactiveCompositeReplacement",
                         },
                     };
@@ -149,7 +149,7 @@ export default class Collect extends CompositeComponent {
                 return {
                     setValue: {
                         targetName:
-                            dependencyValues.targetComponent.componentName,
+                            dependencyValues.targetComponent.componentIdx,
                     },
                 };
             },
@@ -276,7 +276,7 @@ export default class Collect extends CompositeComponent {
                 };
             },
             definition: function ({ dependencyValues }) {
-                // console.log(`definition of collectedComponents for ${componentName}`)
+                // console.log(`definition of collectedComponents for ${componentIdx}`)
                 // console.log(dependencyValues)
 
                 let collectedComponents = dependencyValues.descendants;
@@ -366,7 +366,7 @@ export default class Collect extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        // console.log(`create serialized replacements for ${component.componentName}`)
+        // console.log(`create serialized replacements for ${component.componentIdx}`)
         // console.log(await component.stateValues.collectedComponents)
 
         let errors = [];
@@ -424,7 +424,7 @@ export default class Collect extends CompositeComponent {
                 numReplacementsSoFar += collectedReplacements.length;
                 replacements.push(...collectedReplacements);
                 replacementNamesByCollected[collectedNum] =
-                    collectedReplacements.map((x) => x.componentName);
+                    collectedReplacements.map((x) => x.componentIdx);
             } else {
                 numReplacementsByCollected[collectedNum] = 0;
                 replacementNamesByCollected[collectedNum] = [];
@@ -434,7 +434,7 @@ export default class Collect extends CompositeComponent {
 
         workspace.numReplacementsByCollected = numReplacementsByCollected;
         workspace.collectedNames = collectedComponents.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         workspace.replacementNamesByCollected = replacementNamesByCollected;
         return { replacements, errors, warnings };
@@ -459,7 +459,7 @@ export default class Collect extends CompositeComponent {
         let collectedObj = (await component.stateValues.collectedComponents)[
             collectedNum
         ];
-        let collectedName = collectedObj.componentName;
+        let collectedName = collectedObj.componentIdx;
         let collectedComponent = components[collectedName];
 
         let serializedReplacements = [];
@@ -514,7 +514,7 @@ export default class Collect extends CompositeComponent {
 
             serializedReplacements = postProcessCopy({
                 serializedComponents: serializedCopy,
-                componentName: component.componentName,
+                componentIdx: component.componentIdx,
                 uniqueIdentifiersUsed,
                 identifierPrefix: collectedNum + "|",
             });
@@ -540,7 +540,7 @@ export default class Collect extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: serializedReplacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             indOffset: numReplacementsSoFar,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
@@ -567,10 +567,10 @@ export default class Collect extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        // console.log("Calculating replacement changes for " + component.componentName);
-        // console.log((await component.stateValues.collectedComponents).map(x => x.componentName))
+        // console.log("Calculating replacement changes for " + component.componentIdx);
+        // console.log((await component.stateValues.collectedComponents).map(x => x.componentIdx))
         // console.log(deepClone(workspace));
-        // console.log(component.replacements.map(x => x.componentName))
+        // console.log(component.replacements.map(x => x.componentIdx))
 
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -591,7 +591,7 @@ export default class Collect extends CompositeComponent {
                 if (
                     !component.replacements[numReplacementsFoundSoFar] ||
                     component.replacements[numReplacementsFoundSoFar]
-                        .componentName !== repName
+                        .componentIdx !== repName
                 ) {
                     indsDeleted.push(ind);
                 } else {
@@ -690,7 +690,7 @@ export default class Collect extends CompositeComponent {
             // check if collected has changed
             if (
                 prevCollectedName === undefined ||
-                collected.componentName !== prevCollectedName ||
+                collected.componentIdx !== prevCollectedName ||
                 recreateRemaining
             ) {
                 let prevNumReplacements = 0;
@@ -735,7 +735,7 @@ export default class Collect extends CompositeComponent {
 
                 replacementNamesByCollected[collectedNum] =
                     replacementInstruction.serializedReplacements.map(
-                        (x) => x.componentName,
+                        (x) => x.componentIdx,
                     );
 
                 if (!recreateRemaining) {
@@ -876,12 +876,12 @@ export default class Collect extends CompositeComponent {
                 propVariablesCopiedByReplacement;
 
             replacementNamesByCollected[collectedNum] =
-                newSerializedReplacements.map((x) => x.componentName);
+                newSerializedReplacements.map((x) => x.componentIdx);
         }
 
         workspace.numReplacementsByCollected = numReplacementsByCollected;
         workspace.collectedNames = collectedComponents.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         workspace.propVariablesCopiedByCollected =
             propVariablesCopiedByCollected;

@@ -343,9 +343,9 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                 globalDependencyValues,
                 dependencyValuesByKey,
                 arrayKeys,
-                componentName,
+                componentIdx,
             }) {
-                // console.log(`array definition for value of component list with selectable type, ${componentName}`)
+                // console.log(`array definition for value of component list with selectable type, ${componentIdx}`)
                 // console.log(globalDependencyValues)
                 // console.log(dependencyValuesByKey);
                 // console.log(arrayKeys)

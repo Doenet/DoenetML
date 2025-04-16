@@ -563,10 +563,10 @@ describe("Parabola Tag Tests", async () => {
             `Haven't implemented parabola through more than 3 points`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(50);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(50);
     });
 
     it("parabola with prescribed vertex", async () => {
@@ -605,10 +605,10 @@ describe("Parabola Tag Tests", async () => {
             `Haven't implemented parabola with vertex through more than 1 point`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(53);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(53);
     });
 
     it("constrain to parabola", async () => {

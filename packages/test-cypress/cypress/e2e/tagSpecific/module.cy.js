@@ -66,12 +66,12 @@ describe("Module Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/m1/P",
+                componentIdx: "/m1/P",
                 args: { x: 3.2, y: 3.9 },
             });
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/m2/P",
+                componentIdx: "/m2/P",
                 args: { x: 7.2, y: -4.9 },
             });
         });
@@ -202,17 +202,17 @@ describe("Module Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g/extMod/P",
+                componentIdx: "/g/extMod/P",
                 args: { x: 1.2, y: 1.9 },
             });
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g2/extMod/P",
+                componentIdx: "/g2/extMod/P",
                 args: { x: 1.2, y: -4.9 },
             });
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g3/extMod/P",
+                componentIdx: "/g3/extMod/P",
                 args: { x: 7.2, y: 1.9 },
             });
         });
@@ -295,79 +295,79 @@ describe("Module Tag Tests", function () {
             let g2m1Anchor = cesc2(
                 "#" +
                     stateVariables[
-                        stateVariables["/g2"].replacements[3].componentName
-                    ].activeChildren[1].componentName,
+                        stateVariables["/g2"].replacements[3].componentIdx
+                    ].activeChildren[1].componentIdx,
             );
             let g2m3Anchor = cesc2(
                 "#" +
                     stateVariables[
-                        stateVariables["/g2"].replacements[5].componentName
-                    ].activeChildren[3].componentName,
+                        stateVariables["/g2"].replacements[5].componentIdx
+                    ].activeChildren[3].componentIdx,
             );
             let g2extProblem =
                 stateVariables[
                     stateVariables[
                         stateVariables[
-                            stateVariables["/g2"].replacements[7].componentName
-                        ].replacements[0].componentName
-                    ].replacements[3].componentName
+                            stateVariables["/g2"].replacements[7].componentIdx
+                        ].replacements[0].componentIdx
+                    ].replacements[3].componentIdx
                 ];
             let g2extm1Anchor = cesc2(
                 "#" +
-                    stateVariables[g2extProblem.activeChildren[2].componentName]
-                        .activeChildren[1].componentName,
+                    stateVariables[g2extProblem.activeChildren[2].componentIdx]
+                        .activeChildren[1].componentIdx,
             );
             let g2extGraph =
-                stateVariables[g2extProblem.activeChildren[4].componentName];
-            let g2extPName = g2extGraph.activeChildren[0].componentName;
+                stateVariables[g2extProblem.activeChildren[4].componentIdx];
+            let g2extPName = g2extGraph.activeChildren[0].componentIdx;
             let g2extAnswerSubmitAnchor = cesc2(
-                "#" + g2extProblem.activeChildren[6].componentName + "_submit",
+                "#" + g2extProblem.activeChildren[6].componentIdx + "_submit",
             );
             let g2extAnswerCorrectAnchor = cesc2(
-                "#" + g2extProblem.activeChildren[6].componentName + "_correct",
+                "#" + g2extProblem.activeChildren[6].componentIdx + "_correct",
             );
             let g2extAnswerIncorrectAnchor = cesc2(
                 "#" +
-                    g2extProblem.activeChildren[6].componentName +
+                    g2extProblem.activeChildren[6].componentIdx +
                     "_incorrect",
             );
             let g3m1Anchor = cesc2(
                 "#" +
                     stateVariables[
-                        stateVariables["/g3"].replacements[3].componentName
-                    ].activeChildren[1].componentName,
+                        stateVariables["/g3"].replacements[3].componentIdx
+                    ].activeChildren[1].componentIdx,
             );
             let g3m3Anchor = cesc2(
                 "#" +
                     stateVariables[
-                        stateVariables["/g3"].replacements[5].componentName
-                    ].activeChildren[3].componentName,
+                        stateVariables["/g3"].replacements[5].componentIdx
+                    ].activeChildren[3].componentIdx,
             );
             let g3extProblem =
                 stateVariables[
                     stateVariables[
                         stateVariables[
-                            stateVariables["/g3"].replacements[7].componentName
-                        ].replacements[0].componentName
-                    ].replacements[3].componentName
+                            stateVariables["/g3"].replacements[7].componentIdx
+                        ].replacements[0].componentIdx
+                    ].replacements[3].componentIdx
                 ];
             let g3extm1Anchor = cesc2(
                 "#" +
-                    stateVariables[g3extProblem.activeChildren[2].componentName]
-                        .activeChildren[1].componentName,
+                    stateVariables[g3extProblem.activeChildren[2].componentIdx]
+                        .activeChildren[1].componentIdx,
             );
             let g3extGraph =
-                stateVariables[g3extProblem.activeChildren[4].componentName];
-            let g3extPName = g3extGraph.activeChildren[0].componentName;
+                stateVariables[g3extProblem.activeChildren[4].componentIdx];
+            let g3extPName = g3extGraph.activeChildren[0].componentIdx;
             let g3extAnswerSubmitAnchor = cesc2(
-                "#" + g3extProblem.activeChildren[6].componentName + "_submit",
+                "#" + g3extProblem.activeChildren[6].componentIdx + "_submit",
             );
             let g3extAnswerCorrectAnchor = cesc2(
-                "#" + g3extProblem.activeChildren[6].componentName + "_correct",
+                "#" + g3extProblem.activeChildren[6].componentIdx + "_correct",
             );
             let g3extAnswerIncorrectAnchor = cesc2(
                 "#" +
-                    g3extProblem.activeChildren[6].componentName +
+                    g3extProblem.activeChildren[6].componentIdx +
                     "_incorrect",
             );
 
@@ -396,25 +396,25 @@ describe("Module Tag Tests", function () {
                     stateVariables["/extMod/_graph1"].stateValues.aspectRatio,
                 ).eq(1);
                 expect(
-                    stateVariables[g2extGraph.componentName].stateValues.size,
+                    stateVariables[g2extGraph.componentIdx].stateValues.size,
                 ).eq("small");
                 expect(
-                    stateVariables[g2extGraph.componentName].stateValues.width
+                    stateVariables[g2extGraph.componentIdx].stateValues.width
                         .size,
                 ).eq(smallWidth);
                 expect(
-                    stateVariables[g2extGraph.componentName].stateValues
+                    stateVariables[g2extGraph.componentIdx].stateValues
                         .aspectRatio,
                 ).eq(0.8);
                 expect(
-                    stateVariables[g3extGraph.componentName].stateValues.size,
+                    stateVariables[g3extGraph.componentIdx].stateValues.size,
                 ).eq("large");
                 expect(
-                    stateVariables[g3extGraph.componentName].stateValues.width
+                    stateVariables[g3extGraph.componentIdx].stateValues.width
                         .size,
                 ).eq(largeWidth);
                 expect(
-                    stateVariables[g3extGraph.componentName].stateValues
+                    stateVariables[g3extGraph.componentIdx].stateValues
                         .aspectRatio,
                 ).eq(1.2);
             });
@@ -433,11 +433,11 @@ describe("Module Tag Tests", function () {
                     stateVariables["/extMod/prob"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables[g2extProblem.componentName].stateValues
+                    stateVariables[g2extProblem.componentIdx].stateValues
                         .creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables[g3extProblem.componentName].stateValues
+                    stateVariables[g3extProblem.componentIdx].stateValues
                         .creditAchieved,
                 ).eq(0);
             });
@@ -446,17 +446,17 @@ describe("Module Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/extMod/P",
+                    componentIdx: "/extMod/P",
                     args: { x: 1.2, y: 1.9 },
                 });
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: g2extPName,
+                    componentIdx: g2extPName,
                     args: { x: 1.2, y: -4.9 },
                 });
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: g3extPName,
+                    componentIdx: g3extPName,
                     args: { x: 7.2, y: 1.9 },
                 });
             });
@@ -485,11 +485,11 @@ describe("Module Tag Tests", function () {
                     stateVariables["/extMod/prob"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables[g2extProblem.componentName].stateValues
+                    stateVariables[g2extProblem.componentIdx].stateValues
                         .creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables[g3extProblem.componentName].stateValues
+                    stateVariables[g3extProblem.componentIdx].stateValues
                         .creditAchieved,
                 ).eq(1);
             });

@@ -205,14 +205,14 @@ export default class NumberList extends CompositeComponent {
                                         childInd,
                                         component: i,
                                         nComponents,
-                                        childName: child.componentName,
+                                        childName: child.componentIdx,
                                     };
                                 }
                                 numComponents += nComponents;
                             } else {
                                 childInfoByComponent[numComponents] = {
                                     childInd,
-                                    childName: child.componentName,
+                                    childName: child.componentIdx,
                                 };
                                 numComponents += 1;
                             }
@@ -224,7 +224,7 @@ export default class NumberList extends CompositeComponent {
                             dependencyValues.numberMathChildren.map(
                                 (child, i) => ({
                                     childInd: i,
-                                    childName: child.componentName,
+                                    childName: child.componentIdx,
                                 }),
                             );
                     }
@@ -606,22 +606,22 @@ export default class NumberList extends CompositeComponent {
 
                 if (childInfo.nComponents !== undefined) {
                     componentsCopied.push(
-                        replacementSource.componentName +
+                        replacementSource.componentIdx +
                             ":" +
                             childInfo.component,
                     );
                 } else {
-                    componentsCopied.push(replacementSource.componentName);
+                    componentsCopied.push(replacementSource.componentIdx);
                 }
             }
             replacements.push({
                 componentType: "number",
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 downstreamDependencies: {
-                    [component.componentName]: [
+                    [component.componentIdx]: [
                         {
                             dependencyType: "referenceShadow",
-                            compositeName: component.componentName,
+                            compositeName: component.componentIdx,
                             propVariable: `number${i + 1}`,
                         },
                     ],
@@ -632,7 +632,7 @@ export default class NumberList extends CompositeComponent {
         workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
@@ -641,7 +641,7 @@ export default class NumberList extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
@@ -681,12 +681,12 @@ export default class NumberList extends CompositeComponent {
 
                 if (childInfo.nComponents !== undefined) {
                     componentsToCopy.push(
-                        replacementSource.componentName +
+                        replacementSource.componentIdx +
                             ":" +
                             childInfo.component,
                     );
                 } else {
-                    componentsToCopy.push(replacementSource.componentName);
+                    componentsToCopy.push(replacementSource.componentIdx);
                 }
             }
 
