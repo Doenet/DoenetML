@@ -187,13 +187,21 @@ export default class Point extends GraphicalComponent {
                         success: true,
                         newAttributes: {
                             xs: {
+                                type: "component",
+                                name: "xs",
                                 component: {
+                                    type: "serialized",
                                     componentType: "mathList",
                                     children: breakResult.pieces.map((x) => ({
+                                        type: "serialized",
                                         componentType: "math",
                                         children: x,
+                                        attributes: {},
+                                        state: {},
                                     })),
                                     skipSugar: true,
+                                    attributes: {},
+                                    state: {},
                                 },
                             },
                         },
@@ -210,6 +218,8 @@ export default class Point extends GraphicalComponent {
                 success: true,
                 newAttributes: {
                     coords: {
+                        type: "component",
+                        name: "coords",
                         component: {
                             componentType: "coords",
                             children: componentChildren,

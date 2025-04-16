@@ -13158,13 +13158,6 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
     let warnings = [];
 
     if (
-        attributeSpecification.valueTransformations &&
-        value in attributeSpecification.valueTransformations
-    ) {
-        value = attributeSpecification.valueTransformations[value];
-    }
-
-    if (
         attributeSpecification.transformNonFiniteTo !== undefined &&
         !Number.isFinite(value)
     ) {

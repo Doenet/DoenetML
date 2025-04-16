@@ -1,11 +1,9 @@
 import Core from "./Core";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
-import {
-    addDocumentIfItsMissing,
-    expandDoenetMLsToFullSerializedComponents,
-} from "./utils/expandDoenetML";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
+import { NormalizedRoot } from "@doenet/doenetml-worker";
+import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizdDast";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
@@ -73,36 +71,24 @@ export class PublicDoenetMLCore {
         docId,
         requestedVariantIndex,
         attemptNumber,
+        normalizedRoot,
     }: {
         activityId: string;
         docId: string;
         requestedVariantIndex: number;
         attemptNumber: number;
+        normalizedRoot: NormalizedRoot;
     }) {
         let componentInfoObjects = createComponentInfoObjects();
 
-        let expandResult;
-        try {
-            expandResult = await expandDoenetMLsToFullSerializedComponents({
-                doenetMLs: [this.doenetML],
-                componentInfoObjects,
-            });
-        } catch (e) {
-            // throw e;
-            const errMsg =
-                typeof e === "object" &&
-                e &&
-                "message" in e &&
-                typeof e.message === "string"
-                    ? e.message
-                    : "";
-            this.initializeResult = {
-                success: false,
-                errMsg,
-            };
-
-            return { success: false as const, errMsg };
-        }
+        const {
+            document: root,
+            errors,
+            warnings,
+        } = await normalizedDastToSerializedComponents(
+            normalizedRoot,
+            componentInfoObjects,
+        );
 
         this.coreBaseArgs = {
             doenetML: this.doenetML,
@@ -111,12 +97,10 @@ export class PublicDoenetMLCore {
             docId,
             requestedVariantIndex,
             attemptNumber,
-            serializedDocument: addDocumentIfItsMissing(
-                expandResult.fullSerializedComponents[0],
-            )[0],
-            allDoenetMLs: expandResult.allDoenetMLs,
-            preliminaryErrors: expandResult.errors,
-            preliminaryWarnings: expandResult.warnings,
+            serializedDocument: root,
+            allDoenetMLs: [this.doenetML],
+            preliminaryErrors: errors,
+            preliminaryWarnings: warnings,
             componentInfoObjects,
         };
 

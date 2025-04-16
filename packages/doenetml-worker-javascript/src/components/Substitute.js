@@ -51,7 +51,8 @@ export default class Substitute extends CompositeComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
         };
 

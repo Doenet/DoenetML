@@ -316,6 +316,9 @@ export default class BaseComponent {
 
     static createAttributesObject() {
         return {
+            name: {
+                createPrimitiveOfType: "string",
+            },
             hide: {
                 createComponentOfType: "boolean",
                 createStateVariable: "hide",

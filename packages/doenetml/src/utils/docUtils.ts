@@ -33,7 +33,7 @@ export async function initializeCoreWorker({
     attemptNumber: number;
     documentStructureCallback?: Function;
 }) {
-    const dast = normalizeDocumentDast(lezerToDast(doenetML));
+    const dast = normalizeDocumentDast(lezerToDast(doenetML), true);
 
     await coreWorker.setCoreType("javascript");
     await coreWorker.setSource({ source: doenetML, dast });

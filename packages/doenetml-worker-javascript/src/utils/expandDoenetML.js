@@ -1637,8 +1637,8 @@ export function componentFromAttribute({
             newPrimitive = value.rawString;
         }
 
-        if (attrObj.validationFunction) {
-            newPrimitive = attrObj.validationFunction(newPrimitive);
+        if (attrObj.validatePrimitives) {
+            newPrimitive = attrObj.validatePrimitives(newPrimitive);
         }
         return { attribute: { primitive: newPrimitive }, errors, warnings };
     } else if (attrObj?.createTargetComponentNames) {
@@ -1675,7 +1675,7 @@ export function componentFromAttribute({
     }
 }
 
-function findPreSugarIndsAndMarkFromSugar(components) {
+export function findPreSugarIndsAndMarkFromSugar(components) {
     let preSugarIndsFound = [];
     for (let component of components) {
         if (typeof component !== "object") {

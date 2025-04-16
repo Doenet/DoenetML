@@ -84,7 +84,8 @@ export default class Answer extends InlineComponent {
             createStateVariable: "simplifyOnCompare",
             defaultValue: "none",
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
             public: true,
         };
