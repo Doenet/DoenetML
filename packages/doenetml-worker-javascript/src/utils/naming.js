@@ -620,11 +620,11 @@ export function createComponentNames({
                 // convert target to full name
                 doenetAttributes.target = target;
                 try {
-                    doenetAttributes.targetComponentName =
+                    doenetAttributes.targetComponentIdx =
                         convertComponentTarget({
                             relativeName: target,
                             oldAbsoluteName:
-                                doenetAttributes.targetComponentName,
+                                doenetAttributes.targetComponentIdx,
                             namespaceStack,
                             acceptDoubleUnderscore:
                                 doenetAttributes.createdFromSugar ||
@@ -1371,19 +1371,19 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
         }
 
         if (component.doenetAttributes && component.doenetAttributes.target) {
-            let targetComponentName =
-                component.doenetAttributes.targetComponentName;
-            if (targetComponentName !== undefined) {
+            let targetComponentIdx =
+                component.doenetAttributes.targetComponentIdx;
+            if (targetComponentIdx !== undefined) {
                 if (
-                    targetComponentName.substring(0, namespaceLength) !==
+                    targetComponentIdx.substring(0, namespaceLength) !==
                     namespace
                 ) {
-                    component.doenetAttributes.target = targetComponentName;
+                    component.doenetAttributes.target = targetComponentIdx;
                 }
-                if (!attributesByTargetComponentName[targetComponentName]) {
-                    attributesByTargetComponentName[targetComponentName] = [];
+                if (!attributesByTargetComponentName[targetComponentIdx]) {
+                    attributesByTargetComponentName[targetComponentIdx] = [];
                 }
-                attributesByTargetComponentName[targetComponentName].push(
+                attributesByTargetComponentName[targetComponentIdx].push(
                     component.doenetAttributes,
                 );
             }
@@ -1457,9 +1457,9 @@ function renameMatchingTargetNames(
         component.componentIdx !== component.originalName
     ) {
         // we have a component who has been named and there are other components
-        // whose targetComponentName refers to this component
-        // Modify the target and targetComponentName of the other components to refer to the new name
-        // (Must modify targetComponentName as we don't know if this component has been processed yet)
+        // whose targetComponentIdx refers to this component
+        // Modify the target and targetComponentIdx of the other components to refer to the new name
+        // (Must modify targetComponentIdx as we don't know if this component has been processed yet)
         if (attributesByTargetComponentName[component.originalName]) {
             for (let attrObj of attributesByTargetComponentName[
                 component.originalName
@@ -1470,7 +1470,7 @@ function renameMatchingTargetNames(
                 } else {
                     // must be doenetAttributes
                     attrObj.target = component.componentIdx;
-                    attrObj.targetComponentName = component.componentIdx;
+                    attrObj.targetComponentIdx = component.componentIdx;
                 }
             }
         }
@@ -1496,7 +1496,7 @@ function renameMatchingTargetNames(
                             // must be doenetAttributes
                             attrObj.target =
                                 component.componentIdx + "/" + originalEnding;
-                            attrObj.targetComponentName =
+                            attrObj.targetComponentIdx =
                                 component.componentIdx + "/" + originalEnding;
                         }
                     }
@@ -1574,10 +1574,10 @@ export function markToCreateAllUniqueNames(components) {
 export function setTNamesToAbsolute(components) {
     for (let component of components) {
         if (component.doenetAttributes && component.doenetAttributes.target) {
-            let targetComponentName =
-                component.doenetAttributes.targetComponentName;
-            if (targetComponentName !== undefined) {
-                component.doenetAttributes.target = targetComponentName;
+            let targetComponentIdx =
+                component.doenetAttributes.targetComponentIdx;
+            if (targetComponentIdx !== undefined) {
+                component.doenetAttributes.target = targetComponentIdx;
             }
         }
 

@@ -428,7 +428,7 @@ export default class AnimateFromSequence extends BaseComponent {
 
                         dependencies.targets = {
                             dependencyType: "replacement",
-                            compositeName:
+                            compositeIdx:
                                 stateValues.targetComponent.componentIdx,
                             recursive: true,
                             componentIndex: stateValues.componentIndex,

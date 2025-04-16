@@ -84,7 +84,7 @@ export function postProcessCopy({
                         [component.originalName]: [
                             {
                                 dependencyType: "referenceShadow",
-                                compositeName: componentIdx,
+                                compositeIdx: componentIdx,
                             },
                         ],
                     };
@@ -110,31 +110,31 @@ export function postProcessCopy({
         }
 
         if (component.componentType === "copy" && unlinkExternalCopies) {
-            let targetComponentName =
-                component.doenetAttributes.targetComponentName;
-            if (!targetComponentName) {
+            let targetComponentIdx =
+                component.doenetAttributes.targetComponentIdx;
+            if (!targetComponentIdx) {
                 if (!component.attributes.uri) {
                     throw Error(
-                        "we need to create a targetComponentName here, then.",
+                        "we need to create a targetComponentIdx here, then.",
                     );
                 }
             } else {
                 if (activeAliases.includes(component.doenetAttributes.target)) {
                     // TODO: is the this right thing to do?
                     // Not clear if following the same rules for when a match would override an alias
-                    // Setting targetComponentName to a relative name presumably prevents the targetComponentName
+                    // Setting targetComponentIdx to a relative name presumably prevents the targetComponentIdx
                     // from ever matching anything.  Is that what we want?
-                    component.doenetAttributes.targetComponentName =
+                    component.doenetAttributes.targetComponentIdx =
                         component.doenetAttributes.target;
                 } else {
                     // don't create if matches an alias
                     if (
-                        copiesByTargetComponentName[targetComponentName] ===
+                        copiesByTargetComponentName[targetComponentIdx] ===
                         undefined
                     ) {
-                        copiesByTargetComponentName[targetComponentName] = [];
+                        copiesByTargetComponentName[targetComponentIdx] = [];
                     }
-                    copiesByTargetComponentName[targetComponentName].push(
+                    copiesByTargetComponentName[targetComponentIdx].push(
                         component,
                     );
                 }
@@ -210,15 +210,14 @@ export function postProcessCopy({
     }
 
     if (init && unlinkExternalCopies) {
-        for (let targetComponentName in copiesByTargetComponentName) {
-            if (!componentNamesFound.includes(targetComponentName)) {
+        for (let targetComponentIdx in copiesByTargetComponentName) {
+            if (!componentNamesFound.includes(targetComponentIdx)) {
                 let foundMatchViaAssignNames = false;
                 for (let cName of assignNamesFound) {
                     let namespace = cName + "/";
                     let nSpaceLen = namespace.length;
                     if (
-                        targetComponentName.substring(0, nSpaceLen) ===
-                        namespace
+                        targetComponentIdx.substring(0, nSpaceLen) === namespace
                     ) {
                         foundMatchViaAssignNames = true;
                         break;
@@ -226,14 +225,14 @@ export function postProcessCopy({
                 }
                 if (!foundMatchViaAssignNames) {
                     for (let copyComponent of copiesByTargetComponentName[
-                        targetComponentName
+                        targetComponentIdx
                     ]) {
                         if (!copyComponent.attributes) {
                             copyComponent.attributes = {};
                         }
                         copyComponent.attributes.link = { primitive: false };
                         copyComponent.doenetAttributes.target =
-                            copyComponent.doenetAttributes.targetComponentName;
+                            copyComponent.doenetAttributes.targetComponentIdx;
                     }
                 }
             }
@@ -639,7 +638,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                         [replacementSource.componentIdx]: [
                             {
                                 dependencyType: "referenceShadow",
-                                compositeName: component.componentIdx,
+                                compositeIdx: component.componentIdx,
                                 propVariable,
                                 additionalStateVariableShadowing:
                                     stateVarObj.shadowingInstructions
@@ -844,7 +843,7 @@ export function restrictTNamesToNamespace({
                     let namespaceParts = namespace.split("/").slice(1);
                     let targetParts = target.split("/").slice(1);
                     let foundAMatch = false;
-                    let targetComponentName = namespace + target.slice(1);
+                    let targetComponentIdx = namespace + target.slice(1);
 
                     while (
                         namespaceParts.length > 0 &&
@@ -856,7 +855,7 @@ export function restrictTNamesToNamespace({
                     }
 
                     if (foundAMatch) {
-                        targetComponentName = namespace + targetParts.join("/");
+                        targetComponentIdx = namespace + targetParts.join("/");
                     } else {
                         let namespaceParts = namespace.split("/").slice(1);
                         for (let ind = 1; ind < namespaceParts.length; ind++) {
@@ -866,7 +865,7 @@ export function restrictTNamesToNamespace({
                                 target.substring(0, namespacePiece.length) ===
                                 namespacePiece
                             ) {
-                                targetComponentName =
+                                targetComponentIdx =
                                     "/" +
                                     namespaceParts.slice(0, ind).join("/") +
                                     target;
@@ -875,14 +874,14 @@ export function restrictTNamesToNamespace({
                         }
                     }
 
-                    component.doenetAttributes.target = targetComponentName;
-                    component.doenetAttributes.targetComponentName =
-                        targetComponentName;
+                    component.doenetAttributes.target = targetComponentIdx;
+                    component.doenetAttributes.targetComponentIdx =
+                        targetComponentIdx;
                 } else if (invalidateReferencesToBaseNamespace) {
                     let lastSlash = target.lastIndexOf("/");
                     if (target.slice(0, lastSlash + 1) === namespace) {
                         component.doenetAttributes.target = "";
-                        component.doenetAttributes.targetComponentName = "";
+                        component.doenetAttributes.targetComponentIdx = "";
                     }
                 }
             } else if (target.substring(0, 3) === "../") {
@@ -899,23 +898,22 @@ export function restrictTNamesToNamespace({
                             tNamePart = tNamePart.substring(3);
                         }
 
-                        let targetComponentName = namespace + tNamePart;
-                        component.doenetAttributes.target = targetComponentName;
-                        component.doenetAttributes.targetComponentName =
-                            targetComponentName;
+                        let targetComponentIdx = namespace + tNamePart;
+                        component.doenetAttributes.target = targetComponentIdx;
+                        component.doenetAttributes.targetComponentIdx =
+                            targetComponentIdx;
                         break;
                     }
                 }
                 if (invalidateReferencesToBaseNamespace) {
-                    let targetComponentName =
-                        component.doenetAttributes.targetComponentName;
-                    let lastSlash = targetComponentName.lastIndexOf("/");
+                    let targetComponentIdx =
+                        component.doenetAttributes.targetComponentIdx;
+                    let lastSlash = targetComponentIdx.lastIndexOf("/");
                     if (
-                        targetComponentName.slice(0, lastSlash + 1) ===
-                        namespace
+                        targetComponentIdx.slice(0, lastSlash + 1) === namespace
                     ) {
                         component.doenetAttributes.target = "";
-                        component.doenetAttributes.targetComponentName = "";
+                        component.doenetAttributes.targetComponentIdx = "";
                     }
                 }
             }

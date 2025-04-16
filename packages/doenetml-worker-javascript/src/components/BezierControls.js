@@ -89,7 +89,7 @@ export default class BezierControls extends InlineComponent {
                 nParentPoints: {
                     dependencyType: "parentStateVariable",
                     variableName: "numThroughPoints",
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition({ dependencyValues }) {

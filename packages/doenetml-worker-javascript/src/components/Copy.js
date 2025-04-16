@@ -501,7 +501,7 @@ export default class Copy extends CompositeComponent {
                             // for the case where we have a prop and a composite target
                             dependencies.targets = {
                                 dependencyType: "replacement",
-                                compositeName:
+                                compositeIdx:
                                     stateValues.targetComponent.componentIdx,
                                 recursive: true,
                                 componentIndex: stateValues.componentIndex,
@@ -912,7 +912,7 @@ export default class Copy extends CompositeComponent {
                 ) {
                     dependencies.targetReplacements = {
                         dependencyType: "replacement",
-                        compositeName: stateValues.targetComponent.componentIdx,
+                        compositeIdx: stateValues.targetComponent.componentIdx,
                         recursive: true,
                         recurseNonStandardComposites: true,
                     };
@@ -1088,7 +1088,7 @@ export default class Copy extends CompositeComponent {
 
                     dependencies.allReplacementIdentities = {
                         dependencyType: "replacement",
-                        compositeName: stateValues.targetComponent.componentIdx,
+                        compositeIdx: stateValues.targetComponent.componentIdx,
                         recursive: true,
                         variableNames: ["isInactiveCompositeReplacement"],
                     };
@@ -1560,8 +1560,8 @@ export default class Copy extends CompositeComponent {
                 // The extra copy inherit's this copy's target (and will actually use it).
                 let doenetAttributesForExtraCopy = {
                     target: component.doenetAttributes.target,
-                    targetComponentName:
-                        component.doenetAttributes.targetComponentName,
+                    targetComponentIdx:
+                        component.doenetAttributes.targetComponentIdx,
                     sourceIsProp: true,
                     convertedAssignNames: true,
                 };
@@ -3019,7 +3019,7 @@ export async function replacementFromProp({
                                         downstreamDependencies: {
                                             [target.componentIdx]: [
                                                 {
-                                                    compositeName:
+                                                    compositeIdx:
                                                         component.componentIdx,
                                                     dependencyType:
                                                         "referenceShadow",
@@ -3049,7 +3049,7 @@ export async function replacementFromProp({
                                 [replacementSource.componentIdx]: [
                                     {
                                         dependencyType: "referenceShadow",
-                                        compositeName: component.componentIdx,
+                                        compositeIdx: component.componentIdx,
                                         propVariable,
                                         additionalStateVariableShadowing:
                                             stateVariablesShadowingStateVariables,
@@ -3346,7 +3346,7 @@ export async function replacementFromProp({
                                             downstreamDependencies: {
                                                 [target.componentIdx]: [
                                                     {
-                                                        compositeName:
+                                                        compositeIdx:
                                                             component.componentIdx,
                                                         dependencyType:
                                                             "referenceShadow",
@@ -3371,7 +3371,7 @@ export async function replacementFromProp({
                                     [replacementSource.componentIdx]: [
                                         {
                                             dependencyType: "referenceShadow",
-                                            compositeName:
+                                            compositeIdx:
                                                 component.componentIdx,
                                             propVariable,
                                             additionalStateVariableShadowing:
@@ -3628,7 +3628,7 @@ export async function replacementFromProp({
                                             downstreamDependencies: {
                                                 [target.componentIdx]: [
                                                     {
-                                                        compositeName:
+                                                        compositeIdx:
                                                             component.componentIdx,
                                                         dependencyType:
                                                             "referenceShadow",
@@ -3727,7 +3727,7 @@ export async function replacementFromProp({
                         [replacementSource.componentIdx]: [
                             {
                                 dependencyType: "referenceShadow",
-                                compositeName: component.componentIdx,
+                                compositeIdx: component.componentIdx,
                                 propVariable: varName,
                                 ignorePrimaryStateVariable: true,
                             },
@@ -3887,7 +3887,7 @@ export async function replacementFromProp({
                                 downstreamDependencies: {
                                     [target.componentIdx]: [
                                         {
-                                            compositeName:
+                                            compositeIdx:
                                                 component.componentIdx,
                                             dependencyType: "referenceShadow",
                                             propVariable: stateVariableToShadow,
@@ -3916,7 +3916,7 @@ export async function replacementFromProp({
                         [target.componentIdx]: [
                             {
                                 dependencyType: "referenceShadow",
-                                compositeName: component.componentIdx,
+                                compositeIdx: component.componentIdx,
                                 propVariable: varName,
                                 additionalStateVariableShadowing:
                                     stateVarObj.shadowingInstructions

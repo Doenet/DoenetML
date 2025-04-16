@@ -10,7 +10,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
     async function test_values_separately({
         doenetML,
         componentNames,
-        compositeName,
+        compositeIdx,
         valid_values,
         num_samples,
         must_be_distinct = false,
@@ -18,7 +18,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
     }: {
         doenetML: string;
         componentNames: string[];
-        compositeName?: string;
+        compositeIdx?: string;
         valid_values: any[][];
         num_samples: number;
         must_be_distinct?: boolean;
@@ -33,7 +33,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
                 false,
                 true,
             );
-            const s = stateVariables[compositeName ?? ""];
+            const s = stateVariables[compositeIdx ?? ""];
             for (let [ind, name] of componentNames.entries()) {
                 let value = name
                     ? stateVariables[name].stateValues.value
@@ -180,7 +180,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             doenetML,
             valid_values,
             componentNames,
-            compositeName: "/s",
+            compositeIdx: "/s",
             num_samples: 1,
         });
     });

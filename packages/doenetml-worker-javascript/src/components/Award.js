@@ -829,6 +829,7 @@ function addResponsesToDescendantsWithTarget(
                 if (
                     (prop.toLowerCase() === "target" &&
                         propsOrDAttrs[prop] === target) ||
+                    // XXX: this is presumably broken with shift to componentIdx
                     (prop.toLowerCase() === "targetcomponentname" &&
                         propsOrDAttrs[prop] === absoluteTarget)
                 ) {

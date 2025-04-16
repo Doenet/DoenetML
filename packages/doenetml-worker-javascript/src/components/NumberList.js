@@ -129,12 +129,12 @@ export default class NumberList extends CompositeComponent {
                 mathChildren: {
                     dependencyType: "child",
                     childGroups: ["maths"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
                 numberChildren: {
                     dependencyType: "child",
                     childGroups: ["numbers"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition({ dependencyValues }) {
@@ -205,14 +205,14 @@ export default class NumberList extends CompositeComponent {
                                         childInd,
                                         component: i,
                                         nComponents,
-                                        childName: child.componentIdx,
+                                        childIdx: child.componentIdx,
                                     };
                                 }
                                 numComponents += nComponents;
                             } else {
                                 childInfoByComponent[numComponents] = {
                                     childInd,
-                                    childName: child.componentIdx,
+                                    childIdx: child.componentIdx,
                                 };
                                 numComponents += 1;
                             }
@@ -224,7 +224,7 @@ export default class NumberList extends CompositeComponent {
                             dependencyValues.numberMathChildren.map(
                                 (child, i) => ({
                                     childInd: i,
-                                    childName: child.componentIdx,
+                                    childIdx: child.componentIdx,
                                 }),
                             );
                     }
@@ -602,7 +602,7 @@ export default class NumberList extends CompositeComponent {
         for (let i = 0; i < numComponents; i++) {
             let childInfo = childInfoByComponent[i];
             if (childInfo) {
-                let replacementSource = components[childInfo.childName];
+                let replacementSource = components[childInfo.childIdx];
 
                 if (childInfo.nComponents !== undefined) {
                     componentsCopied.push(
@@ -621,7 +621,7 @@ export default class NumberList extends CompositeComponent {
                     [component.componentIdx]: [
                         {
                             dependencyType: "referenceShadow",
-                            compositeName: component.componentIdx,
+                            compositeIdx: component.componentIdx,
                             propVariable: `number${i + 1}`,
                         },
                     ],
@@ -677,7 +677,7 @@ export default class NumberList extends CompositeComponent {
                 await component.stateValues.childInfoByComponent;
 
             for (let childInfo of childInfoByComponent) {
-                let replacementSource = components[childInfo.childName];
+                let replacementSource = components[childInfo.childIdx];
 
                 if (childInfo.nComponents !== undefined) {
                     componentsToCopy.push(

@@ -59,7 +59,7 @@ export class SideBySide extends BlockComponent {
                 blockChildren: {
                     dependencyType: "child",
                     childGroups: ["blocks"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition({ dependencyValues }) {

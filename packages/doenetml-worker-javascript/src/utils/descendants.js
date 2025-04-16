@@ -44,8 +44,8 @@ export function gatherDescendants({
         }
     } else {
         // add children in the order of allChildren ordered
-        for (let childName of ancestor.allChildrenOrdered) {
-            let childObj = ancestor.allChildren[childName];
+        for (let childIdx of ancestor.allChildrenOrdered) {
+            let childObj = ancestor.allChildren[childIdx];
             let child;
             let childIsActive = false;
             let childIsAdapter = false;
@@ -62,14 +62,14 @@ export function gatherDescendants({
                 // look in activeChildren
                 // include the placedholders adapted into the activeChildren
                 for (let aChild of ancestor.activeChildren) {
-                    if (aChild.placeholderInd === childName) {
+                    if (aChild.placeholderInd === childIdx) {
                         child = aChild;
                         childIsActive = true;
                         if (
-                            typeof childName === "string" &&
-                            childName.substring(
-                                childName.length - 5,
-                                childName.length,
+                            typeof childIdx === "string" &&
+                            childIdx.substring(
+                                childIdx.length - 5,
+                                childIdx.length,
                             ) === "adapt"
                         ) {
                             childIsAdapter = true;
@@ -77,7 +77,7 @@ export function gatherDescendants({
                         break;
                     } else if (
                         aChild.adaptedFrom &&
-                        achild.adaptedFrom.placeholderInd === childName
+                        achild.adaptedFrom.placeholderInd === childIdx
                     ) {
                         child = aChild.adaptedFrom;
                         break;

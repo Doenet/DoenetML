@@ -112,8 +112,8 @@ export default class TextList extends InlineComponent {
                 let childNames = dependencyValues.textAndTextListChildren.map(
                     (x) => x.componentIdx,
                 );
-                for (let childName of dependencyValues.childrenToRender) {
-                    let index = childNames.indexOf(childName);
+                for (let childIdx of dependencyValues.childrenToRender) {
+                    let index = childNames.indexOf(childIdx);
                     let child = dependencyValues.textAndTextListChildren[index];
                     if (child.stateValues.texts) {
                         texts.push(...child.stateValues.texts);

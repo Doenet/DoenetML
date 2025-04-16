@@ -165,7 +165,7 @@ export default class MathList extends CompositeComponent {
                 mathChildren: {
                     dependencyType: "child",
                     childGroups: ["maths"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition({ dependencyValues }) {
@@ -236,14 +236,14 @@ export default class MathList extends CompositeComponent {
                                         childInd,
                                         component: i,
                                         nComponents,
-                                        childName: child.componentIdx,
+                                        childIdx: child.componentIdx,
                                     };
                                 }
                                 numComponents += nComponents;
                             } else {
                                 childInfoByComponent[numComponents] = {
                                     childInd,
-                                    childName: child.componentIdx,
+                                    childIdx: child.componentIdx,
                                 };
                                 numComponents += 1;
                             }
@@ -253,7 +253,7 @@ export default class MathList extends CompositeComponent {
                         childInfoByComponent =
                             dependencyValues.mathChildren.map((child, i) => ({
                                 childInd: i,
-                                childName: child.componentIdx,
+                                childIdx: child.componentIdx,
                             }));
                     }
                 } else if (dependencyValues.mathsShadow !== null) {
@@ -595,7 +595,7 @@ export default class MathList extends CompositeComponent {
         for (let i = 0; i < numComponents; i++) {
             let childInfo = childInfoByComponent[i];
             if (childInfo) {
-                let replacementSource = components[childInfo.childName];
+                let replacementSource = components[childInfo.childIdx];
 
                 if (childInfo.nComponents !== undefined) {
                     componentsCopied.push(
@@ -614,7 +614,7 @@ export default class MathList extends CompositeComponent {
                     [component.componentIdx]: [
                         {
                             dependencyType: "referenceShadow",
-                            compositeName: component.componentIdx,
+                            compositeIdx: component.componentIdx,
                             propVariable: `math${i + 1}`,
                         },
                     ],
@@ -670,7 +670,7 @@ export default class MathList extends CompositeComponent {
                 await component.stateValues.childInfoByComponent;
 
             for (let childInfo of childInfoByComponent) {
-                let replacementSource = components[childInfo.childName];
+                let replacementSource = components[childInfo.childIdx];
 
                 if (childInfo.nComponents !== undefined) {
                     componentsToCopy.push(

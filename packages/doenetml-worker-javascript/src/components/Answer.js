@@ -911,7 +911,7 @@ export default class Answer extends InlineComponent {
                     ) {
                         dependencies["child" + ind] = {
                             dependencyType: "descendant",
-                            ancestorName: child.componentIdx,
+                            ancestorIdx: child.componentIdx,
                             componentTypes: ["_base"],
                             variableNames: ["isResponse", "numValues"],
                             variablesOptional: true,
@@ -1057,7 +1057,7 @@ export default class Answer extends InlineComponent {
                     ) {
                         globalDependencies["child" + ind] = {
                             dependencyType: "descendant",
-                            ancestorName: child.componentIdx,
+                            ancestorIdx: child.componentIdx,
                             componentTypes: ["_base"],
                             variableNames: [
                                 "isResponse",

@@ -145,34 +145,34 @@ export default class Sort extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.componentNamesForValues = {
+        stateVariableDefinitions.componentIndicesForValues = {
             returnDependencies: () => ({
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    variableNames: ["componentNamesInList"],
+                    variableNames: ["componentIndicesInList"],
                     variablesOptional: true,
                 },
             }),
             definition({ dependencyValues }) {
-                let componentNamesForValues = [];
+                let componentIndicesForValues = [];
                 for (let child of dependencyValues.children) {
-                    if (child.stateValues.componentNamesInList) {
-                        componentNamesForValues.push(
-                            ...child.stateValues.componentNamesInList,
+                    if (child.stateValues.componentIndicesInList) {
+                        componentIndicesForValues.push(
+                            ...child.stateValues.componentIndicesInList,
                         );
                     } else {
-                        componentNamesForValues.push(child.componentIdx);
+                        componentIndicesForValues.push(child.componentIdx);
                     }
                 }
 
-                return { setValue: { componentNamesForValues } };
+                return { setValue: { componentIndicesForValues } };
             },
         };
 
         stateVariableDefinitions.sortedValues = {
             stateVariablesDeterminingDependencies: [
-                "componentNamesForValues",
+                "componentIndicesForValues",
                 "sortByComponent",
                 "propName",
             ],
@@ -195,7 +195,7 @@ export default class Sort extends CompositeComponent {
                     for (let [
                         ind,
                         cName,
-                    ] of stateValues.componentNamesForValues.entries()) {
+                    ] of stateValues.componentIndicesForValues.entries()) {
                         dependencies[`component${ind}`] = {
                             dependencyType: "stateVariable",
                             componentIdx: cName,
@@ -210,7 +210,7 @@ export default class Sort extends CompositeComponent {
                     for (let [
                         ind,
                         cName,
-                    ] of stateValues.componentNamesForValues.entries()) {
+                    ] of stateValues.componentIndicesForValues.entries()) {
                         dependencies[`component${ind}`] = {
                             dependencyType: "multipleStateVariables",
                             componentIdx: cName,

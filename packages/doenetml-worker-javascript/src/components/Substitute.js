@@ -460,7 +460,7 @@ export default class Substitute extends CompositeComponent {
                 [component.componentIdx]: [
                     {
                         dependencyType: "referenceShadow",
-                        compositeName: component.componentIdx,
+                        compositeIdx: component.componentIdx,
                         propVariable: "value",
                     },
                 ],
@@ -488,7 +488,7 @@ export default class Substitute extends CompositeComponent {
                     downstreamDependencies: {
                         [component.componentIdx]: [
                             {
-                                compositeName: component.componentIdx,
+                                compositeIdx: component.componentIdx,
                                 dependencyType: "referenceShadow",
                                 propVariable: attr,
                             },

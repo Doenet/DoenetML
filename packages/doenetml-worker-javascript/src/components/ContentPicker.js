@@ -100,7 +100,7 @@ export default class ContentPicker extends BlockComponent {
                     ] of stateValues.childrenWithTitle.entries()) {
                         dependencies[`childTopics${ind}`] = {
                             dependencyType: "descendant",
-                            ancestorName: child.componentIdx,
+                            ancestorIdx: child.componentIdx,
                             componentTypes: ["topic"],
                             variableNames: ["value"],
                             includeNonActiveChildren: true,

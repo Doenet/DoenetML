@@ -239,7 +239,7 @@ export default class Collect extends CompositeComponent {
 
                 let descendants = {
                     dependencyType: "descendant",
-                    ancestorName: stateValues.targetName,
+                    ancestorIdx: stateValues.targetName,
                     componentTypes: stateValues.componentTypesToCollect,
                     useReplacementsForComposites: true,
                     includeNonActiveChildren: true,

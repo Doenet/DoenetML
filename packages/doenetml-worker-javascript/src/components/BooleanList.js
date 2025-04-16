@@ -338,8 +338,8 @@ export default class BooleanList extends CompositeComponent {
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
-            let childName = childNameByComponent[i];
-            let replacementSource = components[childName];
+            let childIdx = childNameByComponent[i];
+            let replacementSource = components[childIdx];
 
             if (replacementSource) {
                 componentsCopied.push(replacementSource.componentIdx);
@@ -351,7 +351,7 @@ export default class BooleanList extends CompositeComponent {
                     [component.componentIdx]: [
                         {
                             dependencyType: "referenceShadow",
-                            compositeName: component.componentIdx,
+                            compositeIdx: component.componentIdx,
                             propVariable: `boolean${i + 1}`,
                         },
                     ],
@@ -406,8 +406,8 @@ export default class BooleanList extends CompositeComponent {
             let childNameByComponent =
                 await component.stateValues.childNameByComponent;
 
-            for (let childName of childNameByComponent) {
-                let replacementSource = components[childName];
+            for (let childIdx of childNameByComponent) {
+                let replacementSource = components[childIdx];
 
                 if (replacementSource) {
                     componentsToCopy.push(replacementSource.componentIdx);

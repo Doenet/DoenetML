@@ -197,7 +197,7 @@ export default class Split extends CompositeComponent {
                 [component.componentIdx]: [
                     {
                         dependencyType: "referenceShadow",
-                        compositeName: component.componentIdx,
+                        compositeIdx: component.componentIdx,
                         propVariable: "splitValues",
                     },
                 ],

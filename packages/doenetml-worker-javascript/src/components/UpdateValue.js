@@ -233,7 +233,7 @@ export default class UpdateValue extends InlineComponent {
 
                         dependencies.targets = {
                             dependencyType: "replacement",
-                            compositeName:
+                            compositeIdx:
                                 stateValues.targetComponent.componentIdx,
                             recursive: true,
                             componentIndex: stateValues.componentIndex,

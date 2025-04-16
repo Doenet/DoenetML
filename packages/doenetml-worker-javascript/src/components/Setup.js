@@ -27,19 +27,19 @@ export default class Setup extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.componentNameForAttributes = {
+        stateVariableDefinitions.componentIdxForAttributes = {
             returnDependencies: () => ({
                 sourceCompositeIdentity: {
                     dependencyType: "sourceCompositeIdentity",
                 },
             }),
             definition({ dependencyValues }) {
-                let componentNameForAttributes = null;
+                let componentIdxForAttributes = null;
                 if (dependencyValues.sourceCompositeIdentity) {
-                    componentNameForAttributes =
+                    componentIdxForAttributes =
                         dependencyValues.sourceCompositeIdentity.componentIdx;
                 }
-                return { setValue: { componentNameForAttributes } };
+                return { setValue: { componentIdxForAttributes } };
             },
         };
 

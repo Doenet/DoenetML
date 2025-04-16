@@ -109,8 +109,8 @@ describe("CobwebPolyline Tag Tests", async () => {
             let mdChildren = stateVariables["/md1"].activeChildren;
             expect(mdChildren.length).eqls(latexResults.length);
             for (let i = 0; i < latexResults.length; i++) {
-                let childName = mdChildren[i].componentIdx;
-                expect(stateVariables[childName].stateValues.latex).eqls(
+                let childIdx = mdChildren[i].componentIdx;
+                expect(stateVariables[childIdx].stateValues.latex).eqls(
                     latexResults[i],
                 );
             }

@@ -358,7 +358,7 @@ export default class Document extends BaseComponent {
                     let descendant = stateValues.scoredDescendants[ind];
                     dependencies[`descendantsOf${ind}`] = {
                         dependencyType: "descendant",
-                        ancestorName: descendant.componentIdx,
+                        ancestorIdx: descendant.componentIdx,
                         componentTypes: ["answer"],
                         recurseToMatchedChildren: false,
                     };

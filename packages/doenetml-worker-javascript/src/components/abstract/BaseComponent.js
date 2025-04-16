@@ -184,8 +184,8 @@ export default class BaseComponent {
         }
 
         // recurse to all children
-        for (let childName in this.allChildren) {
-            let child = this.allChildren[childName].component;
+        for (let childIdx in this.allChildren) {
+            let child = this.allChildren[childIdx].component;
             if (typeof child !== "object") {
                 continue;
             } else {
@@ -1135,32 +1135,6 @@ export default class BaseComponent {
         return this.ancestors[0].componentIdx;
     }
 
-    // TODO: if resurrect this, it would just be componentNames
-    // getParentUpstreamComponents(includeInactive = false) {
-    //   const parent = this.parent;
-    //   let upstream = Object.values(this.upstreamDependencies)
-    //   if (includeInactive !== true) {
-    //     upstream = upstream.filter(x => x.inactive !== true);
-    //   }
-    //   upstream = upstream.map(x => x.component);
-    //   if (parent === undefined) {
-    //     return upstream;
-    //   } else {
-    //     return [parent, ...upstream];
-    //   }
-    // }
-
-    getAllChildrenDownstreamComponentNames(includeInactive = false) {
-        const childrenNames = Object.keys(this.allChildren);
-        let downstreamNames = Object.keys(this.downstreamDependencies);
-        if (includeInactive !== true) {
-            downstreamNames = downstreamNames.filter(
-                (x) => this.downstreamDependencies[x].inactive !== true,
-            );
-        }
-        return [...childrenNames, ...downstreamNames];
-    }
-
     get allDescendants() {
         let descendants = [];
         for (let name in this.allChildren) {
@@ -1169,10 +1143,6 @@ export default class BaseComponent {
         }
         return descendants;
     }
-
-    // returnSerializeInstructions() {
-    //   return {};
-    // }
 
     async serialize(parameters = {}) {
         // TODO: this function is converted only for the case with the parameter

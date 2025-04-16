@@ -299,7 +299,7 @@ describe("Evaluate tag tests", async () => {
 
     it("evaluate function when input is replaced", async () => {
         // catch bug where child dependency was not recalculated
-        // when a skipComponentNames = true
+        // when a skipComponentIndices = true
         // and the number of active children did not change
         let core = await createTestCore({
             doenetML: `
