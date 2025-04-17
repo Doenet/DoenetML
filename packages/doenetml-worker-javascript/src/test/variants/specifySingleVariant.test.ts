@@ -353,8 +353,8 @@ describe("Specifying single variant tests", async () => {
             let xorig =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/s1"].replacements![0].componentName
-                    ].replacements![0].componentName
+                        stateVariables["/s1"].replacements![0].componentIdx
+                    ].replacements![0].componentIdx
                 ].stateValues.value.tree;
             expect(xorig).eq(expectedX);
             let x2 = stateVariables["/x2"].stateValues.value.tree;
@@ -362,8 +362,8 @@ describe("Specifying single variant tests", async () => {
             let x3 =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/x3"].replacements![0].componentName
-                    ].replacements![0].componentName
+                        stateVariables["/x3"].replacements![0].componentIdx
+                    ].replacements![0].componentIdx
                 ].stateValues.value.tree;
             expect(x3).eq(expectedX);
 
@@ -491,7 +491,7 @@ describe("Specifying single variant tests", async () => {
             expect(variantInd).not.eq(undefined);
 
             let secondValue =
-                stateVariables[p.activeChildren[1].componentName].stateValues
+                stateVariables[p.activeChildren[1].componentIdx].stateValues
                     .value;
 
             if (variantInd === 0) {
@@ -594,7 +594,7 @@ describe("Specifying single variant tests", async () => {
                     variantInds.push(variantInd);
 
                     let p =
-                        stateVariables[problem.activeChildren[4].componentName];
+                        stateVariables[problem.activeChildren[4].componentIdx];
 
                     if (variantInd === 1) {
                         expect(p.activeChildren[0].trim()).eq("Word:");
@@ -606,9 +606,8 @@ describe("Specifying single variant tests", async () => {
                                 "drab",
                                 "excoriated",
                             ].indexOf(
-                                stateVariables[
-                                    p.activeChildren[1].componentName
-                                ].stateValues.value,
+                                stateVariables[p.activeChildren[1].componentIdx]
+                                    .stateValues.value,
                             ) + 1;
                         expect(problemVariantInd).not.eq(0);
                         if (
@@ -624,7 +623,7 @@ describe("Specifying single variant tests", async () => {
                     } else {
                         expect(p.activeChildren[0].trim()).eq("Number:");
                         let num =
-                            stateVariables[p.activeChildren[1].componentName]
+                            stateVariables[p.activeChildren[1].componentIdx]
                                 .stateValues.value;
                         expect(Number.isInteger(num)).eq(true);
                         expect(num >= 1 && num <= 10).eq(true);
@@ -641,7 +640,7 @@ describe("Specifying single variant tests", async () => {
                     }
 
                     let secondValue =
-                        stateVariables[p.activeChildren[1].componentName]
+                        stateVariables[p.activeChildren[1].componentIdx]
                             .stateValues.value;
                     secondValues.push(secondValue);
                 }
@@ -1029,7 +1028,7 @@ describe("Specifying single variant tests", async () => {
 
             let textinputName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
 
             expect(stateVariables["/fruit"].stateValues.value).eq(fruit);
             expect(

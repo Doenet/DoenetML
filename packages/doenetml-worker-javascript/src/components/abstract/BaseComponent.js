@@ -9,7 +9,7 @@ import {
 
 export default class BaseComponent {
     constructor({
-        componentName,
+        componentIdx,
         ancestors,
         serializedComponent,
         definingChildren,
@@ -28,7 +28,7 @@ export default class BaseComponent {
         this.parentSharedParameters = parentSharedParameters;
         this.sharedParameters = sharedParameters;
 
-        this.componentName = componentName;
+        this.componentIdx = componentIdx;
         this.ancestors = ancestors;
         this.counters = {};
 
@@ -105,7 +105,7 @@ export default class BaseComponent {
         if (this.adaptedFrom) {
             return this.adaptedFrom.componentOrAdaptedName;
         } else {
-            return this.componentName;
+            return this.componentIdx;
         }
     }
 
@@ -184,8 +184,8 @@ export default class BaseComponent {
         }
 
         // recurse to all children
-        for (let childName in this.allChildren) {
-            let child = this.allChildren[childName].component;
+        for (let childIdx in this.allChildren) {
+            let child = this.allChildren[childIdx].component;
             if (typeof child !== "object") {
                 continue;
             } else {
@@ -1125,11 +1125,11 @@ export default class BaseComponent {
         return { stateVariableDescriptions, arrayEntryPrefixes, aliases };
     }
 
-    get parentName() {
+    get parentIdx() {
         if (this.ancestors === undefined || this.ancestors.length === 0) {
             return;
         }
-        return this.ancestors[0].componentName;
+        return this.ancestors[0].componentIdx;
     }
 
     // TODO: if resurrect this, it would just be componentNames
@@ -1177,10 +1177,8 @@ export default class BaseComponent {
 
         // TODO: not serializing attribute children (as don't need them with forLink)
 
-        if (
-            parameters.errorIfEncounterComponent?.includes(this.componentName)
-        ) {
-            throw Error("Encountered " + this.componentName);
+        if (parameters.errorIfEncounterComponent?.includes(this.componentIdx)) {
+            throw Error("Encountered " + this.componentIdx);
         }
 
         let includeDefiningChildren = true;
@@ -1364,7 +1362,7 @@ export default class BaseComponent {
             }
         }
 
-        serializedComponent.originalName = this.componentName;
+        serializedComponent.originalName = this.componentIdx;
         serializedComponent.originalDoenetAttributes = deepClone(
             this.doenetAttributes,
         );
@@ -1395,7 +1393,7 @@ export default class BaseComponent {
 
         let serializedCopy = {
             componentType: serializedComponent.componentType,
-            originalName: serializedComponent.componentName,
+            originalName: serializedComponent.componentIdx,
             originalNameFromSerializedComponent: true,
             children: serializedChildren,
             state: {},
@@ -1488,12 +1486,12 @@ export default class BaseComponent {
         return {
             componentType: adapterComponentType,
             downstreamDependencies: {
-                [this.componentName]: [
+                [this.componentIdx]: [
                     {
                         dependencyType: "adapter",
                         adapterVariable: adapterStateVariable,
                         adapterTargetIdentity: {
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             componentType: this.componentType,
                         },
                         substituteForPrimaryStateVariable,

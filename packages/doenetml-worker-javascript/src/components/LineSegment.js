@@ -1197,7 +1197,7 @@ export default class LineSegment extends GraphicalComponent {
             await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         updateType: "updateValue",
                         stateVariable: "endpoints",
                         value: newComponents,
@@ -1213,7 +1213,7 @@ export default class LineSegment extends GraphicalComponent {
             await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         updateType: "updateValue",
                         stateVariable: "endpoints",
                         value: newComponents,
@@ -1226,7 +1226,7 @@ export default class LineSegment extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -1298,7 +1298,7 @@ export default class LineSegment extends GraphicalComponent {
                 let newInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "endpoints",
                         value: newPointComponents,
                     },
@@ -1331,7 +1331,7 @@ export default class LineSegment extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1348,7 +1348,7 @@ export default class LineSegment extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

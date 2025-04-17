@@ -317,7 +317,7 @@ describe("Code Editor Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let viewerName =
-                stateVariables["/editor"].activeChildren[0].componentName;
+                stateVariables["/editor"].activeChildren[0].componentIdx;
             let contentAnchor = "#" + cesc2(viewerName) + "_content";
 
             cy.get(cesc("#\\/_p1")).should("have.text", "");
@@ -415,7 +415,7 @@ describe("Code Editor Tag Tests", function () {
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Hello!",
@@ -452,7 +452,7 @@ describe("Code Editor Tag Tests", function () {
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Hello!",
@@ -487,7 +487,7 @@ describe("Code Editor Tag Tests", function () {
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Hello!",
@@ -535,14 +535,14 @@ describe("Code Editor Tag Tests", function () {
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Hello!",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName,
+                    stateVariables[viewerName].activeChildren[2].componentIdx,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq("2");
                 expect(stateVariables["/result/_p2"].activeChildren.length).eq(
@@ -550,7 +550,7 @@ describe("Code Editor Tag Tests", function () {
                 );
                 expect(
                     stateVariables["/result/_p2"].activeChildren[0]
-                        .componentName,
+                        .componentIdx,
                 ).eq("/result/_math1");
                 expect(stateVariables["/result/_math1"].stateValues.value).eq(
                     2,
@@ -583,7 +583,7 @@ describe("Code Editor Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let viewerName =
-                stateVariables["/editor"].activeChildren[0].componentName;
+                stateVariables["/editor"].activeChildren[0].componentIdx;
 
             cy.get(cesc("#\\/px")).should(
                 "have.text",
@@ -714,14 +714,14 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(3);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName,
+                    stateVariables["/static"].replacements[0].componentIdx,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName,
+                    stateVariables["/static"].replacements[2].componentIdx,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
                     "The value is y",
@@ -780,14 +780,14 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(3);
                 expect(stateVariables["/result"].replacements.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName,
+                    stateVariables[viewerName].activeChildren[2].componentIdx,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
                     "The value is y",
@@ -797,14 +797,14 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(3);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName,
+                    stateVariables["/static"].replacements[0].componentIdx,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName,
+                    stateVariables["/static"].replacements[2].componentIdx,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
                     "The value is y",
@@ -866,14 +866,14 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(3);
                 expect(stateVariables["/result"].replacements.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Enter value x",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName,
+                    stateVariables[viewerName].activeChildren[2].componentIdx,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
                     "The value is x",
@@ -883,14 +883,14 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(3);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName,
+                    stateVariables["/static"].replacements[0].componentIdx,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName,
+                    stateVariables["/static"].replacements[2].componentIdx,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
                     "The value is y",
@@ -956,14 +956,14 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(3);
                 expect(stateVariables["/result"].replacements.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Enter value x",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName,
+                    stateVariables[viewerName].activeChildren[2].componentIdx,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
                     "The value is x",
@@ -973,21 +973,21 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(5);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName,
+                    stateVariables["/static"].replacements[0].componentIdx,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName,
+                    stateVariables["/static"].replacements[2].componentIdx,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
                     "The value is y",
                 );
                 expect(stateVariables["/static"].replacements[3]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[4].componentName,
+                    stateVariables["/static"].replacements[4].componentIdx,
                 ).eq("/static/_graph1");
 
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");
@@ -1054,21 +1054,21 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(5);
                 expect(stateVariables["/result"].replacements.length).eq(5);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName,
+                    stateVariables[viewerName].activeChildren[2].componentIdx,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
                     "The value is y",
                 );
                 expect(stateVariables[viewerName].activeChildren[3]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[4].componentName,
+                    stateVariables[viewerName].activeChildren[4].componentIdx,
                 ).eq("/result/_graph1");
                 expect(stateVariables["/result/mi"].stateValues.value).eq("y");
                 expect(stateVariables["/result/x"].stateValues.value).eq("y");
@@ -1076,21 +1076,21 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(5);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName,
+                    stateVariables["/static"].replacements[0].componentIdx,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName,
+                    stateVariables["/static"].replacements[2].componentIdx,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
                     "The value is y",
                 );
                 expect(stateVariables["/static"].replacements[3]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[4].componentName,
+                    stateVariables["/static"].replacements[4].componentIdx,
                 ).eq("/static/_graph1");
 
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");
@@ -1103,7 +1103,7 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/result/P",
+                    componentIdx: "/result/P",
                     args: { x: 5, y: 7 },
                 });
             });
@@ -1164,21 +1164,21 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(5);
                 expect(stateVariables["/result"].replacements.length).eq(5);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName,
+                    stateVariables[viewerName].activeChildren[0].componentIdx,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName,
+                    stateVariables[viewerName].activeChildren[2].componentIdx,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
                     "The value is y",
                 );
                 expect(stateVariables[viewerName].activeChildren[3]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[4].componentName,
+                    stateVariables[viewerName].activeChildren[4].componentIdx,
                 ).eq("/result/_graph1");
                 expect(stateVariables["/result/mi"].stateValues.value).eq("y");
                 expect(stateVariables["/result/x"].stateValues.value).eq("y");
@@ -1186,21 +1186,21 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(5);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName,
+                    stateVariables["/static"].replacements[0].componentIdx,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
                     "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName,
+                    stateVariables["/static"].replacements[2].componentIdx,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
                     "The value is y",
                 );
                 expect(stateVariables["/static"].replacements[3]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[4].componentName,
+                    stateVariables["/static"].replacements[4].componentIdx,
                 ).eq("/static/_graph1");
 
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");

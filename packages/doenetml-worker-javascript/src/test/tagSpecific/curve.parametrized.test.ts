@@ -32,7 +32,7 @@ describe("Parameterized curve tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         const cName = nameFromGraphChild
-            ? stateVariables["/g"].activeChildren[0].componentName
+            ? stateVariables["/g"].activeChildren[0].componentIdx
             : name;
 
         expect(stateVariables[cName].stateValues.curveType).eq(

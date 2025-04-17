@@ -48,7 +48,7 @@ describe("Ionic Compounds tests", async () => {
             );
             let mi =
                 stateVariables[`/ans${name}`].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
 
             expect(stateVariables[`/${name}`].stateValues.latex).eq(latex);
             expect(stateVariables[`/${name}`].stateValues.text).eq(text);

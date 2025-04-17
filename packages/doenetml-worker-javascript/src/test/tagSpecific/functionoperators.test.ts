@@ -55,23 +55,23 @@ describe("Function Operator tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         let map1Names: string[] = stateVariables["/map1"].replacements!.map(
             (template) =>
-                stateVariables[template.componentName].replacements![0]
-                    .componentName,
+                stateVariables[template.componentIdx].replacements![0]
+                    .componentIdx,
         );
         let map2Names: string[] = stateVariables["/map2"].replacements!.map(
             (template) =>
-                stateVariables[template.componentName].replacements![0]
-                    .componentName,
+                stateVariables[template.componentIdx].replacements![0]
+                    .componentIdx,
         );
         let map1aNames: string[] = stateVariables["/map1a"].replacements!.map(
             (template) =>
-                stateVariables[template.componentName].replacements![0]
-                    .componentName,
+                stateVariables[template.componentIdx].replacements![0]
+                    .componentIdx,
         );
         let map2aNames: string[] = stateVariables["/map2a"].replacements!.map(
             (template) =>
-                stateVariables[template.componentName].replacements![0]
-                    .componentName,
+                stateVariables[template.componentIdx].replacements![0]
+                    .componentIdx,
         );
 
         let f1d = stateVariables["/f1"].stateValues.numericalfs[0];

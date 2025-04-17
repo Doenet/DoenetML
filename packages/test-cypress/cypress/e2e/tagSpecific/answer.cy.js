@@ -28,7 +28,7 @@ describe("Answer Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
@@ -315,7 +315,7 @@ describe("Answer Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let textinputName =
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let textinputAnchor = cesc2("#" + textinputName + "_input");
             let textinputSubmitAnchor = cesc2("#" + textinputName + "_submit");
             let textinputCorrectAnchor = cesc2(
@@ -1339,7 +1339,7 @@ describe("Answer Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let choiceinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName,
+                    .componentIdx,
             );
             let choiceinputAnchor = "#" + choiceinputName;
             let choiceinputSubmitAnchor = "#" + choiceinputName + "_submit";
@@ -1635,7 +1635,7 @@ describe("Answer Tag Tests", function () {
             let inputNames = [...Array(20).keys()].map(
                 (n) =>
                     stateVariables[`/_answer${n + 1}`].stateValues
-                        .inputChildren[0].componentName,
+                        .inputChildren[0].componentIdx,
             );
 
             cy.log("Submit correct answers");
@@ -2020,7 +2020,7 @@ describe("Answer Tag Tests", function () {
             let inputNames = [...Array(20).keys()].map(
                 (n) =>
                     stateVariables[`/_answer${n + 1}`].stateValues
-                        .inputChildren[0].componentName,
+                        .inputChildren[0].componentIdx,
             );
 
             cy.log("Submit incorrect answers");
@@ -2393,7 +2393,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/A",
+                componentIdx: "/A",
                 args: { x: 3, y: 4 },
             });
         });
@@ -2412,7 +2412,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/A",
+                componentIdx: "/A",
                 args: { x: -5, y: 6 },
             });
         });
@@ -2435,7 +2435,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/A",
+                componentIdx: "/A",
                 args: { x: 1, y: -1 },
             });
         });
@@ -2476,22 +2476,22 @@ describe("Answer Tag Tests", function () {
 
             let mathinput1Name =
                 stateVariables["/ans1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
 
             let mathinput2Name =
                 stateVariables["/ans2"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
 
             let mathinput3Name =
                 stateVariables["/ans3"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
 
             let mathinput4Name =
                 stateVariables["/ans4"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
 
             cy.get(cesc("#\\/ans1_submit"))
@@ -2810,12 +2810,12 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
-                stateVariables["/x"].stateValues.inputChildren[0].componentName;
+                stateVariables["/x"].stateValues.inputChildren[0].componentIdx;
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
 
             let choiceinputName =
                 stateVariables["/correct"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let choiceinputSubmitAnchor = cesc2(
                 "#" + choiceinputName + "_submit",
             );
@@ -2835,12 +2835,12 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
-                stateVariables["/x"].stateValues.inputChildren[0].componentName;
+                stateVariables["/x"].stateValues.inputChildren[0].componentIdx;
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
 
             let choiceinputName =
                 stateVariables["/correct"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let choiceinputSubmitAnchor = cesc2(
                 "#" + choiceinputName + "_submit",
             );
@@ -2959,7 +2959,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 3, y: 1 },
             });
         });
@@ -2977,7 +2977,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 4, y: 2 },
             });
         });
@@ -2995,7 +2995,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 5, y: 3 },
             });
         });
@@ -3013,7 +3013,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 6, y: 4 },
             });
         });
@@ -3031,7 +3031,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 7, y: 5 },
             });
         });
@@ -3049,7 +3049,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 8, y: 6 },
             });
         });
@@ -3067,7 +3067,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 9, y: 7 },
             });
         });
@@ -3085,7 +3085,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 3, y: -5 },
             });
         });
@@ -3114,7 +3114,7 @@ describe("Answer Tag Tests", function () {
         cy.window().then(async (win) => {
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P",
+                componentIdx: "/P",
                 args: { x: 9, y: 8 },
             });
         });

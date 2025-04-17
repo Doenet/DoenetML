@@ -99,7 +99,7 @@ export default class Hint extends BlockComponent {
                     titleChildName =
                         dependencyValues.titleChild[
                             dependencyValues.titleChild.length - 1
-                        ].componentName;
+                        ].componentIdx;
                 }
                 return {
                     setValue: { titleChildName },
@@ -126,7 +126,7 @@ export default class Hint extends BlockComponent {
                 let childIndicesToRender = [];
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
-                    (x) => x.componentName,
+                    (x) => x.componentIdx,
                 );
 
                 for (let [
@@ -135,8 +135,8 @@ export default class Hint extends BlockComponent {
                 ] of dependencyValues.allChildren.entries()) {
                     if (
                         typeof child !== "object" ||
-                        !allTitleChildNames.includes(child.componentName) ||
-                        child.componentName === dependencyValues.titleChildName
+                        !allTitleChildNames.includes(child.componentIdx) ||
+                        child.componentIdx === dependencyValues.titleChildName
                     ) {
                         childIndicesToRender.push(ind);
                     }
@@ -186,7 +186,7 @@ export default class Hint extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "open",
                     value: true,
                 },
@@ -198,7 +198,7 @@ export default class Hint extends BlockComponent {
             event: {
                 verb: "viewed",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
             },
@@ -214,7 +214,7 @@ export default class Hint extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "open",
                     value: false,
                 },
@@ -226,7 +226,7 @@ export default class Hint extends BlockComponent {
             event: {
                 verb: "closed",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
             },
@@ -237,7 +237,7 @@ export default class Hint extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

@@ -236,14 +236,14 @@ describe("Text Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let t1aName = stateVariables["/g2"].activeChildren[0].componentName;
-            let t2aName = stateVariables["/g2"].activeChildren[1].componentName;
-            let t1bName = stateVariables["/g3"].activeChildren[0].componentName;
-            let t2bName = stateVariables["/g3"].activeChildren[1].componentName;
-            let t1cName = stateVariables["/p1"].activeChildren[0].componentName;
-            let t2cName = stateVariables["/p1"].activeChildren[2].componentName;
-            let t1dName = stateVariables["/p2"].activeChildren[0].componentName;
-            let t2dName = stateVariables["/p2"].activeChildren[2].componentName;
+            let t1aName = stateVariables["/g2"].activeChildren[0].componentIdx;
+            let t2aName = stateVariables["/g2"].activeChildren[1].componentIdx;
+            let t1bName = stateVariables["/g3"].activeChildren[0].componentIdx;
+            let t2bName = stateVariables["/g3"].activeChildren[1].componentIdx;
+            let t1cName = stateVariables["/p1"].activeChildren[0].componentIdx;
+            let t2cName = stateVariables["/p1"].activeChildren[2].componentIdx;
+            let t1dName = stateVariables["/p2"].activeChildren[0].componentIdx;
+            let t2dName = stateVariables["/p2"].activeChildren[2].componentIdx;
 
             let t1cAnchor = "#" + cesc2(t1cName);
             let t2cAnchor = "#" + cesc2(t2cName);
@@ -271,12 +271,12 @@ describe("Text Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveText",
-                    componentName: "/t1",
+                    componentIdx: "/t1",
                     args: { x: -2, y: 3 },
                 });
                 win.callAction1({
                     actionName: "moveText",
-                    componentName: "/t2",
+                    componentIdx: "/t2",
                     args: { x: 4, y: -5 },
                 });
             });
@@ -294,12 +294,12 @@ describe("Text Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveText",
-                    componentName: t1aName,
+                    componentIdx: t1aName,
                     args: { x: 7, y: 1 },
                 });
                 win.callAction1({
                     actionName: "moveText",
-                    componentName: t2aName,
+                    componentIdx: t2aName,
                     args: { x: -8, y: 2 },
                 });
             });
@@ -317,12 +317,12 @@ describe("Text Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveText",
-                    componentName: t1bName,
+                    componentIdx: t1bName,
                     args: { x: -6, y: 3 },
                 });
                 win.callAction1({
                     actionName: "moveText",
-                    componentName: t2bName,
+                    componentIdx: t2bName,
                     args: { x: -5, y: -4 },
                 });
             });

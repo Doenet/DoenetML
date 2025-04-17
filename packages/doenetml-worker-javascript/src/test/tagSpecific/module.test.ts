@@ -477,7 +477,7 @@ describe("Module tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let errorChild =
             stateVariables[
-                stateVariables["/_document1"].activeChildren[0].componentName
+                stateVariables["/_document1"].activeChildren[0].componentIdx
             ];
         expect(errorChild.componentType).eq("_error");
         expect(errorChild.stateValues.message).eq(

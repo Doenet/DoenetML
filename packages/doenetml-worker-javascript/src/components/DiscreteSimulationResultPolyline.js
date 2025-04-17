@@ -555,7 +555,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "vertices",
                         value: vertexComponents,
                         sourceDetails,
@@ -571,7 +571,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "vertices",
                         value: vertexComponents,
                         sourceDetails,
@@ -583,7 +583,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -621,7 +621,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -638,7 +638,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

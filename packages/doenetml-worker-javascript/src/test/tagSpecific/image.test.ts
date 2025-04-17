@@ -22,7 +22,7 @@ export async function moveImage({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveImage",
         args: { x, y },
     });

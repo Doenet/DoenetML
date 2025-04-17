@@ -444,14 +444,14 @@ describe("Math Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let m1aName = stateVariables["/g2"].activeChildren[0].componentName;
-            let m2aName = stateVariables["/g2"].activeChildren[1].componentName;
-            let m1bName = stateVariables["/g3"].activeChildren[0].componentName;
-            let m2bName = stateVariables["/g3"].activeChildren[1].componentName;
-            let m1cName = stateVariables["/p1"].activeChildren[0].componentName;
-            let m2cName = stateVariables["/p1"].activeChildren[2].componentName;
-            let m1dName = stateVariables["/p2"].activeChildren[0].componentName;
-            let m2dName = stateVariables["/p2"].activeChildren[2].componentName;
+            let m1aName = stateVariables["/g2"].activeChildren[0].componentIdx;
+            let m2aName = stateVariables["/g2"].activeChildren[1].componentIdx;
+            let m1bName = stateVariables["/g3"].activeChildren[0].componentIdx;
+            let m2bName = stateVariables["/g3"].activeChildren[1].componentIdx;
+            let m1cName = stateVariables["/p1"].activeChildren[0].componentIdx;
+            let m2cName = stateVariables["/p1"].activeChildren[2].componentIdx;
+            let m1dName = stateVariables["/p2"].activeChildren[0].componentIdx;
+            let m2dName = stateVariables["/p2"].activeChildren[2].componentIdx;
 
             let m1cAnchor = "#" + cesc2(m1cName);
             let m2cAnchor = "#" + cesc2(m2cName);
@@ -479,12 +479,12 @@ describe("Math Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveMath",
-                    componentName: "/m1",
+                    componentIdx: "/m1",
                     args: { x: -2, y: 3 },
                 });
                 win.callAction1({
                     actionName: "moveMath",
-                    componentName: "/m2",
+                    componentIdx: "/m2",
                     args: { x: 4, y: -5 },
                 });
             });
@@ -502,12 +502,12 @@ describe("Math Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveMath",
-                    componentName: m1aName,
+                    componentIdx: m1aName,
                     args: { x: 7, y: 1 },
                 });
                 win.callAction1({
                     actionName: "moveMath",
-                    componentName: m2aName,
+                    componentIdx: m2aName,
                     args: { x: -8, y: 2 },
                 });
             });
@@ -525,12 +525,12 @@ describe("Math Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveMath",
-                    componentName: m1bName,
+                    componentIdx: m1bName,
                     args: { x: -6, y: 3 },
                 });
                 win.callAction1({
                     actionName: "moveMath",
-                    componentName: m2bName,
+                    componentIdx: m2bName,
                     args: { x: -5, y: -4 },
                 });
             });

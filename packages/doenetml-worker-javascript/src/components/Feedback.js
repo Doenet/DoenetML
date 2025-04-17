@@ -177,7 +177,7 @@ export default class Feedback extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "hide",
                 value: await this.stateValues.hideWhenUpdated,
             },
@@ -195,7 +195,7 @@ export default class Feedback extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

@@ -16,7 +16,7 @@ export type UpdateRenderersCallback = (arg: {
 }) => void;
 export type ReportScoreAndStateCallback = (data: unknown) => void;
 export type RequestAnimationFrame = (args: {
-    action: { actionName: string; componentName?: string };
+    action: { actionName: string; componentIdx?: string };
     actionArgs: Record<string, any>;
     delay?: number;
     animationId: string;
@@ -27,7 +27,7 @@ export type CopyToClipboard = (args: {
     actionId?: string;
 }) => void;
 export type SendEvent = (data: any) => void;
-export type RequestSolutionView = (componentName: string) => Promise<{
+export type RequestSolutionView = (componentIdx: string) => Promise<{
     allowView: boolean;
 }>;
 
@@ -219,11 +219,11 @@ export class PublicDoenetMLCore {
     }
 
     /**
-     * Add the action `actionName` of `componentName` to the queue to be executed.
+     * Add the action `actionName` of `componentIdx` to the queue to be executed.
      */
     async requestAction(actionArgs: {
         actionName: string;
-        componentName: string | undefined;
+        componentIdx: string | undefined;
         args: Record<string, any>;
     }) {
         if (!this.core) {
@@ -271,7 +271,7 @@ export class PublicDoenetMLCore {
         const componentsObj: Record<
             string,
             {
-                componentName: string;
+                componentIdx: string;
                 componentType: string;
                 stateValues: Record<string, any>;
                 activeChildren: any[];
@@ -289,16 +289,16 @@ export class PublicDoenetMLCore {
             console.log(components);
         }
 
-        for (let componentName in components) {
-            let component = components[componentName];
-            componentsObj[componentName] = {
-                componentName,
+        for (let componentIdx in components) {
+            let component = components[componentIdx];
+            componentsObj[componentIdx] = {
+                componentIdx,
                 componentType: component.componentType,
                 stateValues: {},
                 activeChildren: [],
                 sharedParameters: null,
             };
-            let compObj = componentsObj[componentName];
+            let compObj = componentsObj[componentIdx];
             for (let vName in component.state) {
                 if (
                     [
@@ -320,18 +320,18 @@ export class PublicDoenetMLCore {
                     : removeFunctionsMathExpressionClass(value);
             }
             compObj.activeChildren = component.activeChildren.map((x: any) =>
-                x.componentName
+                x.componentIdx
                     ? {
-                          componentName: x.componentName,
+                          componentIdx: x.componentIdx,
                           componentType: x.componentType,
                       }
                     : x,
             );
             if (component.replacements) {
                 compObj.replacements = component.replacements.map((x: any) =>
-                    x.componentName
+                    x.componentIdx
                         ? {
-                              componentName: x.componentName,
+                              componentIdx: x.componentIdx,
                               componentType: x.componentType,
                           }
                         : x,
@@ -342,7 +342,7 @@ export class PublicDoenetMLCore {
                 }
             }
             if (component.replacementOf) {
-                compObj.replacementOf = component.replacementOf.componentName;
+                compObj.replacementOf = component.replacementOf.componentIdx;
             }
             compObj.sharedParameters = dontRemoveFunctionsMath
                 ? component.sharedParameters
@@ -372,9 +372,9 @@ export class PublicDoenetMLCore {
 
     // TODO: restore functionality that opens collapsible sections
     // when navigating to them or to items inside them
-    navigatingToComponent(componentName: string, hash: string) {
+    navigatingToComponent(componentIdx: string, hash: string) {
         // This function no longer works
-        this.core?.handleNavigatingToComponent({ componentName, hash });
+        this.core?.handleNavigatingToComponent({ componentIdx, hash });
     }
 
     /**
@@ -382,7 +382,7 @@ export class PublicDoenetMLCore {
      */
     async submitAllAnswers() {
         return await this.core?.requestAction({
-            componentName: this.core.documentName,
+            componentIdx: this.core.documentName,
             actionName: "submitAllAnswers",
             args: {},
         });

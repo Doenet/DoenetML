@@ -64,7 +64,7 @@ describe("Feedback tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputName =
-            stateVariables["/ans"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
 
         let hidden1 = true;
         let hidden2 = true;
@@ -822,7 +822,7 @@ describe("Feedback tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let tiName =
-            stateVariables["/ans"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
 
         await check_items();
 
@@ -1634,7 +1634,7 @@ describe("Feedback tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputName =
-            stateVariables["/ans"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
 
         expect(stateVariables["/pSub"].stateValues.hidden).eq(true);
 

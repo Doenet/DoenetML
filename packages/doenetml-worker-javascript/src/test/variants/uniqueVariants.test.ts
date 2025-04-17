@@ -892,8 +892,8 @@ describe("Unique variant tests", async () => {
             let component =
                 stateVariables[
                     stateVariables["/p"].activeChildren.filter(
-                        (x) => x.componentName,
-                    )[0].componentName
+                        (x) => x.componentIdx,
+                    )[0].componentIdx
                 ];
             let newValue = component.stateValues.value;
             if (category === categories[0]) {
@@ -957,8 +957,8 @@ describe("Unique variant tests", async () => {
             let component =
                 stateVariables[
                     stateVariables["/p"].activeChildren.filter(
-                        (x) => x.componentName,
-                    )[0].componentName
+                        (x) => x.componentIdx,
+                    )[0].componentIdx
                 ];
             let newValue = component.stateValues.value;
             if (newValue.tree !== undefined) {
@@ -1062,7 +1062,7 @@ describe("Unique variant tests", async () => {
 
             let textinputName =
                 stateVariables[`/problem/ans`].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let category = stateVariables["/problem"].stateValues.title;
             expect(categories.includes(category)).eq(true);
 
@@ -1070,9 +1070,9 @@ describe("Unique variant tests", async () => {
                 stateVariables[
                     stateVariables[
                         stateVariables["/problem"].activeChildren.filter(
-                            (x) => x.componentName,
-                        )[1].componentName
-                    ].activeChildren[1].componentName
+                            (x) => x.componentIdx,
+                        )[1].componentIdx
+                    ].activeChildren[1].componentIdx
                 ];
             let newValue = component.stateValues.value;
             if (category === categories[0]) {
@@ -1180,9 +1180,9 @@ describe("Unique variant tests", async () => {
                 stateVariables[
                     stateVariables[
                         stateVariables["/problem"].activeChildren.filter(
-                            (x) => x.componentName,
-                        )[1].componentName
-                    ].activeChildren[1].componentName
+                            (x) => x.componentIdx,
+                        )[1].componentIdx
+                    ].activeChildren[1].componentIdx
                 ];
             let newValue = component.stateValues.value;
             let combinedValue = [category, newValue].join(",");
@@ -1231,17 +1231,17 @@ describe("Unique variant tests", async () => {
             );
             expect(
                 stateVariables[
-                    stateVariables["/p1"].activeChildren[1].componentName
+                    stateVariables["/p1"].activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("a");
             expect(
                 stateVariables[
-                    stateVariables["/p2"].activeChildren[1].componentName
+                    stateVariables["/p2"].activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("b");
             expect(
                 stateVariables[
-                    stateVariables["/p3"].activeChildren[1].componentName
+                    stateVariables["/p3"].activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("c");
             expect(
@@ -1285,7 +1285,7 @@ describe("Unique variant tests", async () => {
             if (insiderAnswer) {
                 ciName =
                     stateVariables["/ans"].stateValues.inputChildren[0]
-                        .componentName;
+                        .componentIdx;
             }
 
             let choiceOrder = stateVariables[ciName].stateValues.choiceOrder;
@@ -1336,7 +1336,7 @@ describe("Unique variant tests", async () => {
         if (insiderAnswer) {
             ciName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
         }
         let choiceOrder = stateVariables[ciName].stateValues.choiceOrder;
         let selectedOrder = choiceOrder.join(",");
@@ -1570,10 +1570,10 @@ describe("Unique variant tests", async () => {
 
             let mathInputName =
                 stateVariables["/ans1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathInput2Name =
                 stateVariables["/ans2"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
 
             const m = stateVariables["/m"].stateValues.value;
             msFound.push(m);
@@ -1785,7 +1785,7 @@ describe("Unique variant tests", async () => {
 
             let mathInputName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
 
             const m = stateVariables["/m"].stateValues.value;
             sampledValues.push(m);

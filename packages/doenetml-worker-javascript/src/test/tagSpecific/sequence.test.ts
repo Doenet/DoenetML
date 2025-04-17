@@ -21,7 +21,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(10);
         for (let i = 0; i < 10; i++) {
@@ -38,7 +38,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(10);
         for (let i = 0; i < 10; i++) {
@@ -55,7 +55,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(3);
         for (let i = 0; i < 3; i++) {
@@ -72,7 +72,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(10);
         for (let i = 0; i < 10; i++) {
@@ -89,7 +89,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
@@ -106,7 +106,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
@@ -123,7 +123,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
@@ -140,7 +140,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
@@ -157,7 +157,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
@@ -174,7 +174,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(10);
         for (let i = 0; i < 10; i++) {
@@ -191,7 +191,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(3);
         for (let i = 0; i < 3; i++) {
@@ -208,7 +208,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
         for (let i = 0; i < 7; i++) {
@@ -225,7 +225,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
@@ -244,7 +244,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
@@ -263,7 +263,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(4);
         for (let i = 0; i < 4; i++) {
@@ -280,7 +280,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(6);
         for (let i = 0; i < 6; i++) {
@@ -297,7 +297,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(4);
         for (let i = 0; i < 4; i++) {
@@ -316,7 +316,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(4);
         for (let i = 0; i < 4; i++) {
@@ -337,7 +337,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(4);
         for (let i = 0; i < 4; i++) {
@@ -356,7 +356,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(6);
         for (let i = 0; i < 6; i++) {
@@ -373,7 +373,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
@@ -390,7 +390,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
@@ -407,7 +407,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         expect(children[0].stateValues.value).eq("c");
@@ -426,7 +426,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         expect(children[0].stateValues.value).eq("Y");
@@ -445,7 +445,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(4);
         expect(children[0].stateValues.value).eq("az");
@@ -463,7 +463,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(6);
         expect(children[0].stateValues.value).eq("b");
@@ -483,7 +483,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(10);
         expect(children[0].stateValues.value).eq("a");
@@ -507,7 +507,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(4);
         expect(children[0].stateValues.value.tree).eqls(["*", 3, "x"]);
@@ -534,7 +534,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         let ind = 0;
@@ -555,7 +555,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
         ind = 0;
@@ -576,7 +576,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -597,7 +597,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -618,7 +618,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
         ind = 0;
@@ -639,7 +639,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -663,7 +663,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
@@ -683,7 +683,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         let ind = 0;
@@ -701,7 +701,7 @@ describe("Sequence tag tests", async () => {
         await updateTextInputValue({ text: "i", name: "/e", core });
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
         ind = 0;
@@ -720,7 +720,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -739,7 +739,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -758,7 +758,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
         ind = 0;
@@ -777,7 +777,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -802,7 +802,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         let ind = 0;
@@ -823,7 +823,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
         ind = 0;
@@ -844,7 +844,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -865,7 +865,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -886,7 +886,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
         ind = 0;
@@ -907,7 +907,7 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         ind = 0;
@@ -935,7 +935,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
@@ -956,7 +956,7 @@ describe("Sequence tag tests", async () => {
         // But, don't round internally
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(11);
 
@@ -985,7 +985,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(9);
 
@@ -1006,7 +1006,7 @@ describe("Sequence tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/seq"].stateValues.validSequence).eq(false);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(0);
 
@@ -1014,10 +1014,10 @@ describe("Sequence tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(1);
-        expect(stateVariables[children[0].componentName].stateValues.value).eq(
+        expect(stateVariables[children[0].componentIdx].stateValues.value).eq(
             2,
         );
         expect(stateVariables["/seq"].stateValues.validSequence).eq(true);
@@ -1447,7 +1447,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
@@ -1468,7 +1468,7 @@ describe("Sequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentName],
+            (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(nums.length);
         for (let [ind, child] of children.entries()) {

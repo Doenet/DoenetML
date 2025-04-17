@@ -6,16 +6,16 @@ export function extractComponentNamesAndIndices(
 
     for (let serializedComponent of serializedComponents) {
         if (typeof serializedComponent === "object") {
-            let componentName = serializedComponent.componentName;
+            let componentIdx = serializedComponent.componentIdx;
             for (let originalName in nameSubstitutions) {
-                componentName = componentName.replace(
+                componentIdx = componentIdx.replace(
                     originalName,
                     nameSubstitutions[originalName],
                 );
             }
             if (serializedComponent.doenetAttributes?.fromCopyTarget) {
-                let lastSlash = componentName.lastIndexOf("/");
-                let originalName = componentName.slice(lastSlash + 1);
+                let lastSlash = componentIdx.lastIndexOf("/");
+                let originalName = componentIdx.slice(lastSlash + 1);
                 let newName =
                     serializedComponent.doenetAttributes
                         .assignNamesForCompositeReplacement;
@@ -23,11 +23,11 @@ export function extractComponentNamesAndIndices(
                     newName =
                         serializedComponent.doenetAttributes.assignNames[0];
                 }
-                componentName = componentName.replace(originalName, newName);
+                componentIdx = componentIdx.replace(originalName, newName);
                 nameSubstitutions[originalName] = newName;
             }
             let componentObj = {
-                componentName,
+                componentIdx,
             };
             if (serializedComponent.doenetMLrange) {
                 if (
@@ -89,7 +89,7 @@ export function extractRangeIndexPieces({
                 rangePieces.push({
                     begin: lastInd,
                     end: stopInd,
-                    componentName: enclosingComponentName,
+                    componentIdx: enclosingComponentName,
                 });
             }
             foundComponentAfterStopInd = true;
@@ -100,7 +100,7 @@ export function extractRangeIndexPieces({
             rangePieces.push({
                 begin: lastInd,
                 end: componentObj.indBegin - 1,
-                componentName: enclosingComponentName,
+                componentIdx: enclosingComponentName,
             });
         }
 
@@ -108,7 +108,7 @@ export function extractRangeIndexPieces({
             componentArray: componentArray.slice(componentInd + 1),
             lastInd: componentObj.indBegin,
             stopInd: componentObj.indEnd,
-            enclosingComponentName: componentObj.componentName,
+            enclosingComponentName: componentObj.componentIdx,
         });
 
         componentInd += extractResult.componentsConsumed + 1;
@@ -125,7 +125,7 @@ export function extractRangeIndexPieces({
         rangePieces.push({
             begin: lastInd,
             end: stopInd,
-            componentName: enclosingComponentName,
+            componentIdx: enclosingComponentName,
         });
     }
 

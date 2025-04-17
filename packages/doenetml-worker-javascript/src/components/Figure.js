@@ -109,7 +109,7 @@ export default class Figure extends BlockComponent {
                 let captionChildName = null;
                 if (dependencyValues.captionChild.length > 0) {
                     captionChildName =
-                        dependencyValues.captionChild[0].componentName;
+                        dependencyValues.captionChild[0].componentIdx;
                 }
                 return {
                     setValue: { captionChildName },
@@ -147,7 +147,7 @@ export default class Figure extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

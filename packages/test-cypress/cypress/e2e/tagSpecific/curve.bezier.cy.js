@@ -91,7 +91,7 @@ describe("Curve Tag Bezier Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             await win.callAction1({
                 actionName: "moveControlVector",
-                componentName: "/_curve1",
+                componentIdx: "/_curve1",
                 args: {
                     controlVectorInd: 3,
                     controlVector: [7, -6],
@@ -99,7 +99,7 @@ describe("Curve Tag Bezier Tests", function () {
             });
             await win.callAction1({
                 actionName: "moveControlVector",
-                componentName: "/_curve1",
+                componentIdx: "/_curve1",
                 args: {
                     controlVectorInd: 2,
                     controlVector: [-6, -5],
@@ -223,7 +223,7 @@ describe("Curve Tag Bezier Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             await win.callAction1({
                 actionName: "moveControlVector",
-                componentName: "/_curve1",
+                componentIdx: "/_curve1",
                 args: {
                     controlVectorInd: 3,
                     controlVector: [7, 0.2],
@@ -231,7 +231,7 @@ describe("Curve Tag Bezier Tests", function () {
             });
             await win.callAction1({
                 actionName: "moveControlVector",
-                componentName: "/_curve1",
+                componentIdx: "/_curve1",
                 args: {
                     controlVectorInd: 2,
                     controlVector: [0.1, -6],
@@ -346,7 +346,7 @@ describe("Curve Tag Bezier Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             await win.callAction1({
                 actionName: "moveControlVector",
-                componentName: "/_curve1",
+                componentIdx: "/_curve1",
                 args: {
                     controlVectorInd: 3,
                     controlVector: [7, 0.125],
@@ -354,7 +354,7 @@ describe("Curve Tag Bezier Tests", function () {
             });
             await win.callAction1({
                 actionName: "moveControlVector",
-                componentName: "/_curve1",
+                componentIdx: "/_curve1",
                 args: {
                     controlVectorInd: 2,
                     controlVector: [0.125, -6],
@@ -409,7 +409,7 @@ describe("Curve Tag Bezier Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             await win.callAction1({
                 actionName: "moveControlVector",
-                componentName: "/_curve1",
+                componentIdx: "/_curve1",
                 args: {
                     controlVectorInd: 3,
                     controlVector: [-7, 0.125],
@@ -417,7 +417,7 @@ describe("Curve Tag Bezier Tests", function () {
             });
             await win.callAction1({
                 actionName: "moveControlVector",
-                componentName: "/_curve1",
+                componentIdx: "/_curve1",
                 args: {
                     controlVectorInd: 2,
                     controlVector: [0.125, 6],

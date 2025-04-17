@@ -261,7 +261,7 @@ export default class Extract extends CompositeComponent {
         flags,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        // console.log(`calculating replacements for ${component.componentName}`);
+        // console.log(`calculating replacements for ${component.componentIdx}`);
 
         let errors = [];
         let warnings = [];
@@ -316,7 +316,7 @@ export default class Extract extends CompositeComponent {
         workspace.numNonStringReplacementsBySource = [
             ...numReplacementsBySource,
         ];
-        workspace.sourceNames = sourceComponents.map((x) => x.componentName);
+        workspace.sourceNames = sourceComponents.map((x) => x.componentIdx);
 
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
             component,
@@ -332,7 +332,7 @@ export default class Extract extends CompositeComponent {
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
 
-        // console.log(`serialized replacements for ${component.componentName}`)
+        // console.log(`serialized replacements for ${component.componentIdx}`)
         // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)))
 
         return {
@@ -352,7 +352,7 @@ export default class Extract extends CompositeComponent {
         compositeAttributesObj,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        // console.log(`create replacement for source ${sourceNum}, ${numReplacementsSoFar} of ${component.componentName}`)
+        // console.log(`create replacement for source ${sourceNum}, ${numReplacementsSoFar} of ${component.componentIdx}`)
 
         let errors = [];
         let warnings = [];
@@ -388,7 +388,7 @@ export default class Extract extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames,
             serializedComponents: serializedReplacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             indOffset: numReplacementsSoFar,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
@@ -414,7 +414,7 @@ export default class Extract extends CompositeComponent {
         flags,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        // console.log(`calculating replacement changes for ${component.componentName}`);
+        // console.log(`calculating replacement changes for ${component.componentIdx}`);
         // console.log(workspace.numReplacementsBySource);
         // console.log(component.replacements);
 
@@ -492,7 +492,7 @@ export default class Extract extends CompositeComponent {
             // check if source has changed
             let needToRecreate =
                 prevSourceName === undefined ||
-                source.componentName !== prevSourceName ||
+                source.componentIdx !== prevSourceName ||
                 recreateRemaining;
 
             if (!needToRecreate) {
@@ -677,7 +677,7 @@ export default class Extract extends CompositeComponent {
         workspace.numNonStringReplacementsBySource = [
             ...numReplacementsBySource,
         ];
-        workspace.sourceNames = sourceComponents.map((x) => x.componentName);
+        workspace.sourceNames = sourceComponents.map((x) => x.componentIdx);
         workspace.propVariablesCopiedBySource = propVariablesCopiedBySource;
 
         let verificationResult = await verifyReplacementsMatchSpecifiedType({

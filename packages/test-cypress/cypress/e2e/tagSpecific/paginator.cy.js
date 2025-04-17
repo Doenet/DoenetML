@@ -68,7 +68,7 @@ describe("Paginator Tag Tests", function () {
 
             let mathinput1Name =
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
             let mathinput1DisplayAnchor =
                 cesc2("#" + mathinput1Name) + " .mq-editable-field";
@@ -77,7 +77,7 @@ describe("Paginator Tag Tests", function () {
 
             let mathinput4Name =
                 stateVariables["/_answer4"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4DisplayAnchor =
                 cesc2("#" + mathinput4Name) + " .mq-editable-field";
@@ -227,7 +227,7 @@ describe("Paginator Tag Tests", function () {
 
                 let mathinput2Name =
                     stateVariables["/_answer2"].stateValues.inputChildren[0]
-                        .componentName;
+                        .componentIdx;
                 let mathinput2Anchor =
                     cesc2("#" + mathinput2Name) + " textarea";
                 let mathinput2DisplayAnchor =
@@ -239,7 +239,7 @@ describe("Paginator Tag Tests", function () {
 
                 let mathinput3Name =
                     stateVariables["/_answer3"].stateValues.inputChildren[0]
-                        .componentName;
+                        .componentIdx;
                 let mathinput3Anchor =
                     cesc2("#" + mathinput3Name) + " textarea";
                 let mathinput3DisplayAnchor =
@@ -400,7 +400,7 @@ describe("Paginator Tag Tests", function () {
 
             let mathinput4Name =
                 stateVariables["/_answer4"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4DisplayAnchor =
                 cesc2("#" + mathinput4Name) + " .mq-editable-field";
@@ -455,7 +455,7 @@ describe("Paginator Tag Tests", function () {
 
                 let mathinput2Name =
                     stateVariables["/_answer2"].stateValues.inputChildren[0]
-                        .componentName;
+                        .componentIdx;
                 let mathinput2Anchor =
                     cesc2("#" + mathinput2Name) + " textarea";
                 let mathinput2DisplayAnchor =
@@ -468,7 +468,7 @@ describe("Paginator Tag Tests", function () {
 
                 let mathinput3Name =
                     stateVariables["/_answer3"].stateValues.inputChildren[0]
-                        .componentName;
+                        .componentIdx;
                 let mathinput3Anchor =
                     cesc2("#" + mathinput3Name) + " textarea";
                 let mathinput3DisplayAnchor =
@@ -583,7 +583,7 @@ describe("Paginator Tag Tests", function () {
 
                     let mathinput1Name =
                         stateVariables["/_answer1"].stateValues.inputChildren[0]
-                            .componentName;
+                            .componentIdx;
                     let mathinput1Anchor =
                         cesc2("#" + mathinput1Name) + " textarea";
                     let mathinput1DisplayAnchor =
@@ -773,7 +773,7 @@ describe("Paginator Tag Tests", function () {
 
             let mathinput2Name =
                 stateVariables["/_answer2"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2DisplayAnchor =
                 cesc2("#" + mathinput2Name) + " .mq-editable-field";
@@ -783,7 +783,7 @@ describe("Paginator Tag Tests", function () {
 
             let mathinput3Name =
                 stateVariables["/_answer3"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
             let mathinput3DisplayAnchor =
                 cesc2("#" + mathinput3Name) + " .mq-editable-field";
@@ -792,7 +792,7 @@ describe("Paginator Tag Tests", function () {
 
             let mathinput4Name =
                 stateVariables["/_answer4"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4DisplayAnchor =
                 cesc2("#" + mathinput4Name) + " .mq-editable-field";
@@ -888,7 +888,7 @@ describe("Paginator Tag Tests", function () {
 
                 let mathinput1Name =
                     stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentName;
+                        .componentIdx;
                 let mathinput1Anchor =
                     cesc2("#" + mathinput1Name) + " textarea";
                 let mathinput1DisplayAnchor =
@@ -963,7 +963,7 @@ describe("Paginator Tag Tests", function () {
 
             let textinput1Name =
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let textinput1Anchor = cesc2("#" + textinput1Name) + "_input";
             let textinput1DisplayAnchor =
                 cesc2("#" + textinput1Name) + " .mq-editable-field";
@@ -991,7 +991,7 @@ describe("Paginator Tag Tests", function () {
 
                 let textinput2Name =
                     stateVariables["/_answer2"].stateValues.inputChildren[0]
-                        .componentName;
+                        .componentIdx;
                 let textinput2Anchor = cesc2("#" + textinput2Name) + "_input";
                 let textinput2DisplayAnchor =
                     cesc2("#" + textinput2Name) + " .mq-editable-field";
@@ -1015,7 +1015,7 @@ describe("Paginator Tag Tests", function () {
 
                     let textinput3Name =
                         stateVariables["/_answer3"].stateValues.inputChildren[0]
-                            .componentName;
+                            .componentIdx;
                     let textinput3Anchor =
                         cesc2("#" + textinput3Name) + "_input";
                     let textinput3DisplayAnchor =
@@ -1230,7 +1230,7 @@ describe("Paginator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinput2Name =
                 stateVariables["/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
 
             let mathinput2Anchor = cesc2(`#${mathinput2Name}`) + " textarea";
             let mathinput2Correct = cesc2(`#${mathinput2Name}_correct`);
@@ -1482,7 +1482,7 @@ describe("Paginator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinput2Name =
                 stateVariables["/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
 
             let mathinput2Anchor = cesc2(`#${mathinput2Name}`) + " textarea";
             let mathinput2Correct = cesc2(`#${mathinput2Name}_correct`);
@@ -1828,7 +1828,7 @@ describe("Paginator Tag Tests", function () {
                                 let mathinput1Name =
                                     stateVariables[`${thisProbName}/ans1`]
                                         .stateValues.inputChildren[0]
-                                        .componentName;
+                                        .componentIdx;
                                 let mathinput1Anchor =
                                     cesc2("#" + mathinput1Name) + " textarea";
                                 let answer1Correct = cesc2(
@@ -1838,7 +1838,7 @@ describe("Paginator Tag Tests", function () {
                                 let mathinput2Name =
                                     stateVariables[`${thisProbName}/ans2`]
                                         .stateValues.inputChildren[0]
-                                        .componentName;
+                                        .componentIdx;
                                 let mathinput2Anchor =
                                     cesc2("#" + mathinput2Name) + " textarea";
                                 let answer2Correct = cesc2(
@@ -1848,7 +1848,7 @@ describe("Paginator Tag Tests", function () {
                                 let textinput3Name =
                                     stateVariables[`${thisProbName}/ans3`]
                                         .stateValues.inputChildren[0]
-                                        .componentName;
+                                        .componentIdx;
                                 let textinput3Anchor =
                                     cesc2("#" + textinput3Name) + "_input";
                                 let answer3Correct = cesc2(
@@ -1858,7 +1858,7 @@ describe("Paginator Tag Tests", function () {
                                 let mathinput4Name =
                                     stateVariables[`${thisProbName}/ans4`]
                                         .stateValues.inputChildren[0]
-                                        .componentName;
+                                        .componentIdx;
                                 let mathinput4Anchor =
                                     cesc2("#" + mathinput4Name) + " textarea";
                                 let answer4Correct = cesc2(
@@ -1868,7 +1868,7 @@ describe("Paginator Tag Tests", function () {
                                 let textinput5Name =
                                     stateVariables[`${thisProbName}/ans5`]
                                         .stateValues.inputChildren[0]
-                                        .componentName;
+                                        .componentIdx;
                                 let textinput5Anchor =
                                     cesc2("#" + textinput5Name) + "_input";
                                 let answer5Correct = cesc2(
@@ -2052,35 +2052,35 @@ describe("Paginator Tag Tests", function () {
 
                             let mathinput1Name =
                                 stateVariables[`${thisProbName}/ans1`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer1Correct = cesc2(
                                 "#" + mathinput1Name + "_correct",
                             );
 
                             let mathinput2Name =
                                 stateVariables[`${thisProbName}/ans2`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer2Correct = cesc2(
                                 "#" + mathinput2Name + "_correct",
                             );
 
                             let textinput3Name =
                                 stateVariables[`${thisProbName}/ans3`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer3Correct = cesc2(
                                 "#" + textinput3Name + "_correct",
                             );
 
                             let mathinput4Name =
                                 stateVariables[`${thisProbName}/ans4`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer4Correct = cesc2(
                                 "#" + mathinput4Name + "_correct",
                             );
 
                             let textinput5Name =
                                 stateVariables[`${thisProbName}/ans5`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer5Correct = cesc2(
                                 "#" + textinput5Name + "_correct",
                             );
@@ -2229,35 +2229,35 @@ describe("Paginator Tag Tests", function () {
 
                             let mathinput1Name =
                                 stateVariables[`${thisProbName}/ans1`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer1Correct = cesc2(
                                 "#" + mathinput1Name + "_correct",
                             );
 
                             let mathinput2Name =
                                 stateVariables[`${thisProbName}/ans2`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer2Correct = cesc2(
                                 "#" + mathinput2Name + "_correct",
                             );
 
                             let textinput3Name =
                                 stateVariables[`${thisProbName}/ans3`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer3Correct = cesc2(
                                 "#" + textinput3Name + "_correct",
                             );
 
                             let mathinput4Name =
                                 stateVariables[`${thisProbName}/ans4`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer4Correct = cesc2(
                                 "#" + mathinput4Name + "_correct",
                             );
 
                             let textinput5Name =
                                 stateVariables[`${thisProbName}/ans5`]
-                                    .stateValues.inputChildren[0].componentName;
+                                    .stateValues.inputChildren[0].componentIdx;
                             let answer5Correct = cesc2(
                                 "#" + textinput5Name + "_correct",
                             );
@@ -2395,7 +2395,7 @@ describe("Paginator Tag Tests", function () {
 
             let mathinput1Name =
                 stateVariables[`/problem1/_answer${n}`].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
             let mathinput1DisplayAnchor =
                 cesc2("#" + mathinput1Name) + " .mq-editable-field";
@@ -2404,7 +2404,7 @@ describe("Paginator Tag Tests", function () {
 
             let mathinput2Name =
                 stateVariables[`/problem1/a${n}`].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2DisplayAnchor =
                 cesc2("#" + mathinput2Name) + " .mq-editable-field";
@@ -2472,7 +2472,7 @@ describe("Paginator Tag Tests", function () {
 
                 let mathinput3Name =
                     stateVariables[`/problem2/_answer1`].stateValues
-                        .inputChildren[0].componentName;
+                        .inputChildren[0].componentIdx;
                 let mathinput3Anchor =
                     cesc2("#" + mathinput3Name) + " textarea";
                 let mathinput3DisplayAnchor =
@@ -2481,7 +2481,7 @@ describe("Paginator Tag Tests", function () {
 
                 let mathinput4Name =
                     stateVariables[`/problem2/_answer3`].stateValues
-                        .inputChildren[0].componentName;
+                        .inputChildren[0].componentIdx;
                 let mathinput4Anchor =
                     cesc2("#" + mathinput4Name) + " textarea";
                 let mathinput4DisplayAnchor =

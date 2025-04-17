@@ -219,10 +219,10 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                     variableName: "selectedValues",
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     values: dependencyValues.selectedValues,
-                    meta: { createdBy: componentName },
+                    meta: { createdBy: componentIdx },
                 };
 
                 return { setValue: { generatedVariantInfo } };
@@ -282,7 +282,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });

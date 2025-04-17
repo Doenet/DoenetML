@@ -70,7 +70,7 @@ describe("Evaluate tag tests", async () => {
             0,
         ]);
         let result_symbolic2_name =
-            stateVariables["/result_symbolic2"].activeChildren[0].componentName;
+            stateVariables["/result_symbolic2"].activeChildren[0].componentIdx;
         expect(
             stateVariables[result_symbolic2_name].stateValues.value.tree,
         ).eqls(["apply", "sin", 0]);
@@ -79,7 +79,7 @@ describe("Evaluate tag tests", async () => {
         );
         expect(stateVariables["/result_numeric"].stateValues.value.tree).eq(0);
         let result_numeric2_name =
-            stateVariables["/result_numeric2"].activeChildren[0].componentName;
+            stateVariables["/result_numeric2"].activeChildren[0].componentIdx;
         expect(stateVariables[result_numeric2_name].stateValues.value.tree).eq(
             0,
         );
@@ -1407,7 +1407,7 @@ describe("Evaluate tag tests", async () => {
             ["+", 0, 0],
         ]);
         let result_symbolic2_name =
-            stateVariables["/result_symbolic2"].activeChildren[0].componentName;
+            stateVariables["/result_symbolic2"].activeChildren[0].componentIdx;
         expect(
             stateVariables[result_symbolic2_name].stateValues.value.tree,
         ).eqls(["apply", "sin", ["+", 0, 0]]);
@@ -1416,7 +1416,7 @@ describe("Evaluate tag tests", async () => {
         );
         expect(stateVariables["/result_numeric"].stateValues.value.tree).eq(0);
         let result_numeric2_name =
-            stateVariables["/result_numeric2"].activeChildren[0].componentName;
+            stateVariables["/result_numeric2"].activeChildren[0].componentIdx;
         expect(stateVariables[result_numeric2_name].stateValues.value.tree).eq(
             0,
         );
@@ -1575,7 +1575,7 @@ describe("Evaluate tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls(0);
         let result2Name =
-            stateVariables["/result2"].activeChildren[0].componentName;
+            stateVariables["/result2"].activeChildren[0].componentIdx;
         expect(stateVariables[result2Name].stateValues.value.tree).eqls(0);
         expect(stateVariables["/result3"].stateValues.value.tree).eqls(0);
 
@@ -1764,7 +1764,7 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result1b"].activeChildren[0].componentName
+                stateVariables["/result1b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(stateVariables["/result2a"].stateValues.value.tree).eqls([
@@ -1774,7 +1774,7 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result2b"].activeChildren[0].componentName
+                stateVariables["/result2b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(stateVariables["/result3a"].stateValues.value.tree).eqls([
@@ -1784,7 +1784,7 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result3b"].activeChildren[0].componentName
+                stateVariables["/result3b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(stateVariables["/result4a"].stateValues.value.tree).eqls([
@@ -1794,12 +1794,12 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result4b"].activeChildren[0].componentName
+                stateVariables["/result4b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(
             stateVariables[
-                stateVariables["/result4c"].activeChildren[0].componentName
+                stateVariables["/result4c"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(stateVariables["/result5a"].stateValues.value.tree).eqls([
@@ -1809,12 +1809,12 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result5b"].activeChildren[0].componentName
+                stateVariables["/result5b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(
             stateVariables[
-                stateVariables["/result5c"].activeChildren[0].componentName
+                stateVariables["/result5c"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(stateVariables["/result5d"].stateValues.value.tree).eqls([
@@ -1829,12 +1829,12 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result6b"].activeChildren[0].componentName
+                stateVariables["/result6b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(
             stateVariables[
-                stateVariables["/result6c"].activeChildren[0].componentName
+                stateVariables["/result6c"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(stateVariables["/result7a"].stateValues.value.tree).eqls([
@@ -1844,12 +1844,12 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result7b"].activeChildren[0].componentName
+                stateVariables["/result7b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(
             stateVariables[
-                stateVariables["/result7c"].activeChildren[0].componentName
+                stateVariables["/result7c"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 4, 27]);
         expect(stateVariables["/result7d"].stateValues.value.tree).eqls([
@@ -1891,7 +1891,7 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result1b"].activeChildren[0].componentName
+                stateVariables["/result1b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 9, 125]);
         expect(stateVariables["/result2a"].stateValues.value.tree).eqls([
@@ -1901,7 +1901,7 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result2b"].activeChildren[0].componentName
+                stateVariables["/result2b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 9, 125]);
         expect(stateVariables["/result3a"].stateValues.value.tree).eqls([
@@ -1911,7 +1911,7 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result3b"].activeChildren[0].componentName
+                stateVariables["/result3b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 9, 125]);
         expect(stateVariables["/result4a"].stateValues.value.tree).eqls([
@@ -1921,12 +1921,12 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result4b"].activeChildren[0].componentName
+                stateVariables["/result4b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 9, 125]);
         expect(
             stateVariables[
-                stateVariables["/result4c"].activeChildren[0].componentName
+                stateVariables["/result4c"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 9, 125]);
         expect(stateVariables["/result5a"].stateValues.value.tree).eqls([
@@ -1936,12 +1936,12 @@ describe("Evaluate tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                stateVariables["/result5b"].activeChildren[0].componentName
+                stateVariables["/result5b"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 9, 125]);
         expect(
             stateVariables[
-                stateVariables["/result5c"].activeChildren[0].componentName
+                stateVariables["/result5c"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["/", 9, 125]);
         expect(stateVariables["/result5d"].stateValues.value.tree).eqls([
@@ -2001,7 +2001,7 @@ describe("Evaluate tag tests", async () => {
             ["apply", "cos", 0],
         ]);
         let result_symbolic2_name =
-            stateVariables["/result_symbolic2"].activeChildren[0].componentName;
+            stateVariables["/result_symbolic2"].activeChildren[0].componentIdx;
         expect(
             stateVariables[result_symbolic2_name].stateValues.value.tree,
         ).eqls(["vector", ["apply", "sin", 0], ["apply", "cos", 0]]);
@@ -2014,7 +2014,7 @@ describe("Evaluate tag tests", async () => {
             1,
         ]);
         let result_numeric2_name =
-            stateVariables["/result_numeric2"].activeChildren[0].componentName;
+            stateVariables["/result_numeric2"].activeChildren[0].componentIdx;
         expect(
             stateVariables[result_numeric2_name].stateValues.value.tree,
         ).eqls(["vector", 0, 1]);
@@ -2255,7 +2255,7 @@ describe("Evaluate tag tests", async () => {
             0,
         ]);
         let result2Name =
-            stateVariables["/result2"].activeChildren[0].componentName;
+            stateVariables["/result2"].activeChildren[0].componentIdx;
         expect(stateVariables[result2Name].stateValues.value.tree).eqls([
             "vector",
             0,

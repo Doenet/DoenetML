@@ -223,7 +223,7 @@ export class M extends InlineComponent {
             actionId,
             sourceInformation,
             skipRendererUpdate,
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });
@@ -238,7 +238,7 @@ export class M extends InlineComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -255,7 +255,7 @@ export class M extends InlineComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

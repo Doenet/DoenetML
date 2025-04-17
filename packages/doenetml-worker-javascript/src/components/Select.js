@@ -577,10 +577,10 @@ export default class Select extends CompositeComponent {
                     ignoreReplacementsOfEncounteredComposites: true,
                 },
             }),
-            definition({ dependencyValues, componentName, previousValues }) {
+            definition({ dependencyValues, componentIdx, previousValues }) {
                 let generatedVariantInfo = {
                     indices: dependencyValues.selectedIndices,
-                    meta: { createdBy: componentName },
+                    meta: { createdBy: componentIdx },
                 };
 
                 let subvariants = (generatedVariantInfo.subvariants = []);
@@ -643,7 +643,7 @@ export default class Select extends CompositeComponent {
         components,
         componentInfoObjects,
     }) {
-        // console.log(`create serialized replacements for ${component.componentName}`);
+        // console.log(`create serialized replacements for ${component.componentIdx}`);
 
         let errors = [];
         let warnings = [];
@@ -671,7 +671,7 @@ export default class Select extends CompositeComponent {
 
         for (let selectedIndex of await component.stateValues.selectedIndices) {
             let selectedChildName =
-                optionChildren[selectedIndex - 1].componentName;
+                optionChildren[selectedIndex - 1].componentIdx;
 
             let selectedChild = components[selectedChildName];
 
@@ -747,7 +747,7 @@ export default class Select extends CompositeComponent {
             let processResult = processAssignNames({
                 assignNames,
                 serializedComponents: [rep],
-                parentName: component.componentName,
+                parentIdx: component.componentIdx,
                 parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
                 indOffset: ind,

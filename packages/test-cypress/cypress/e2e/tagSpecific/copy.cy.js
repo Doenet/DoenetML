@@ -108,7 +108,7 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
@@ -219,7 +219,7 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
@@ -354,12 +354,12 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
 
             let mathinput2Name =
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
 
             expect(stateVariables["/problem2"].stateValues.title).eq(
@@ -503,12 +503,12 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
 
             let mathinput2Name =
                 stateVariables["/problem2/_answer2"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
 
             expect(stateVariables["/problem2"].stateValues.title).eq(
@@ -649,7 +649,7 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
 
             expect(stateVariables["/_answer1"]).eq(undefined);
@@ -755,7 +755,7 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem12/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
@@ -843,7 +843,7 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem34/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
@@ -955,7 +955,7 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem12/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
@@ -1043,7 +1043,7 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName =
                 stateVariables["/problem34/problem2/_answer1"].stateValues
-                    .inputChildren[0].componentName;
+                    .inputChildren[0].componentIdx;
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
@@ -1278,13 +1278,13 @@ describe("Copy Tag Tests", function () {
                 cesc2(
                     "#" +
                         stateVariables["/g/p/_answer1"].stateValues
-                            .inputChildren[0].componentName,
+                            .inputChildren[0].componentIdx,
                 ) + " textarea";
             let mathinput2Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/g2/p/_answer1"].stateValues
-                            .inputChildren[0].componentName,
+                            .inputChildren[0].componentIdx,
                 ) + " textarea";
 
             cy.get(cesc2("#/g/ca")).should("have.text", "0");
@@ -1329,13 +1329,13 @@ describe("Copy Tag Tests", function () {
                 cesc2(
                     "#" +
                         stateVariables["/g/p/_answer1"].stateValues
-                            .inputChildren[0].componentName,
+                            .inputChildren[0].componentIdx,
                 ) + " textarea";
             let mathinput2Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/g2/p/_answer1"].stateValues
-                            .inputChildren[0].componentName,
+                            .inputChildren[0].componentIdx,
                 ) + " textarea";
 
             cy.get(cesc2("#/g/ca")).should("have.text", "0");
@@ -1380,13 +1380,13 @@ describe("Copy Tag Tests", function () {
                 cesc2(
                     "#" +
                         stateVariables["/g/p/_answer1"].stateValues
-                            .inputChildren[0].componentName,
+                            .inputChildren[0].componentIdx,
                 ) + " textarea";
             let mathinput2Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/g2/p/_answer1"].stateValues
-                            .inputChildren[0].componentName,
+                            .inputChildren[0].componentIdx,
                 ) + " textarea";
 
             cy.get(cesc2("#/g/ca")).should("have.text", "0");

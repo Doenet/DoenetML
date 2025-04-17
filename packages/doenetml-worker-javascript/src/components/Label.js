@@ -223,7 +223,7 @@ export default class Label extends InlineComponent {
                     variableName: "hasLatex",
                 },
             }),
-            definition: function ({ dependencyValues, componentName }) {
+            definition: function ({ dependencyValues, componentIdx }) {
                 if (
                     dependencyValues.inlineChildren.length === 0 &&
                     dependencyValues.valueShadow !== null
@@ -508,7 +508,7 @@ export default class Label extends InlineComponent {
             actionId,
             sourceInformation,
             skipRendererUpdate,
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });
@@ -523,7 +523,7 @@ export default class Label extends InlineComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -540,7 +540,7 @@ export default class Label extends InlineComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

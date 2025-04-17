@@ -55,7 +55,7 @@ export default class MathOperatorOneInput extends MathComponent {
             inverseDefinition: function ({
                 desiredStateVariableValues,
                 dependencyValues,
-                componentName,
+                componentIdx,
             }) {
                 if (dependencyValues.inverseMathOperator) {
                     let newValue = dependencyValues.inverseMathOperator(

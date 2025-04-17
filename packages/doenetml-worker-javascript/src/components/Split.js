@@ -194,10 +194,10 @@ export default class Split extends CompositeComponent {
             componentType: "textList",
             state: { textsShadow: await component.stateValues.splitValues },
             downstreamDependencies: {
-                [component.componentName]: [
+                [component.componentIdx]: [
                     {
                         dependencyType: "referenceShadow",
-                        compositeName: component.componentName,
+                        compositeIdx: component.componentIdx,
                         propVariable: "splitValues",
                     },
                 ],
@@ -207,7 +207,7 @@ export default class Split extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: [serializedReplacement],
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });

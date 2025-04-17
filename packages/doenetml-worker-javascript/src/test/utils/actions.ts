@@ -8,7 +8,7 @@ export async function submitAnswer({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "submitAnswer",
         args: {},
     });
@@ -22,7 +22,7 @@ export async function callAction({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "callAction",
         args: {},
     });
@@ -36,7 +36,7 @@ export async function updateValue({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateValue",
         args: {},
     });
@@ -50,7 +50,7 @@ export async function triggerActions({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "triggerActions",
         args: {},
     });
@@ -66,12 +66,12 @@ export async function updateTextInputValue({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateImmediateValue",
         args: { text },
     });
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateValue",
         args: {},
     });
@@ -87,7 +87,7 @@ export async function updateTextInputImmediateValue({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateImmediateValue",
         args: { text },
     });
@@ -101,7 +101,7 @@ export async function updateTextInputValueToImmediateValue({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateValue",
         args: {},
     });
@@ -117,12 +117,12 @@ export async function updateMathInputValue({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateRawValue",
         args: { rawRendererValue: latex },
     });
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateValue",
         args: {},
     });
@@ -138,7 +138,7 @@ export async function updateMathInputImmediateValue({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateRawValue",
         args: { rawRendererValue: latex },
     });
@@ -152,7 +152,7 @@ export async function updateMathInputValueToImmediateValue({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateValue",
         args: {},
     });
@@ -168,7 +168,7 @@ export async function updateBooleanInputValue({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateBoolean",
         args: { boolean },
     });
@@ -198,11 +198,11 @@ export async function updateMatrixInputValue({
     let childInd = colInd + numColumns * rowInd;
 
     let matrixInputCellName =
-        matrixInput.activeChildren[childInd]?.componentName;
+        matrixInput.activeChildren[childInd]?.componentIdx;
 
     if (matrixInputCellName) {
         await core.requestAction({
-            componentName: matrixInputCellName,
+            componentIdx: matrixInputCellName,
             actionName: "updateRawValue",
             args: { rawRendererValue: latex },
         });
@@ -210,7 +210,7 @@ export async function updateMatrixInputValue({
         stateVariables = await core.returnAllStateVariables(false, true);
 
         await core.requestAction({
-            componentName: matrixInputCellName,
+            componentIdx: matrixInputCellName,
             actionName: "updateValue",
             args: {},
         });
@@ -243,11 +243,11 @@ export async function updateMatrixInputImmediateValue({
     let childInd = colInd + numColumns * rowInd;
 
     let matrixInputCellName =
-        matrixInput.activeChildren[childInd]?.componentName;
+        matrixInput.activeChildren[childInd]?.componentIdx;
 
     if (matrixInputCellName) {
         await core.requestAction({
-            componentName: matrixInputCellName,
+            componentIdx: matrixInputCellName,
             actionName: "updateRawValue",
             args: { rawRendererValue: latex },
         });
@@ -276,11 +276,11 @@ export async function updateMatrixInputValueToImmediateValue({
     let childInd = colInd + numColumns * rowInd;
 
     let matrixInputCellName =
-        matrixInput.activeChildren[childInd]?.componentName;
+        matrixInput.activeChildren[childInd]?.componentIdx;
 
     if (matrixInputCellName) {
         await core.requestAction({
-            componentName: matrixInputCellName,
+            componentIdx: matrixInputCellName,
             actionName: "updateValue",
             args: {},
         });
@@ -297,7 +297,7 @@ export async function updateMatrixInputNumRows({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateNumRows",
         args: { numRows },
     });
@@ -313,7 +313,7 @@ export async function updateMatrixInputNumColumns({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateNumColumns",
         args: { numColumns },
     });
@@ -327,7 +327,7 @@ export async function focusPoint({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "pointFocused",
         args: { name },
     });
@@ -341,7 +341,7 @@ export async function clickPoint({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "pointClicked",
         args: { name },
     });
@@ -361,7 +361,7 @@ export async function movePoint({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "movePoint",
         args: { x, y, z },
     });
@@ -379,7 +379,7 @@ export async function moveVector({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveVector",
         args: { headcoords, tailcoords },
     });
@@ -397,7 +397,7 @@ export async function moveRay({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveRay",
         args: { endpointcoords, throughcoords },
     });
@@ -415,7 +415,7 @@ export async function moveLine({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveLine",
         args: { point1coords, point2coords },
     });
@@ -433,7 +433,7 @@ export async function moveLineSegment({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveLineSegment",
         args: { point1coords, point2coords },
     });
@@ -449,7 +449,7 @@ export async function movePolyline({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "movePolyline",
         args: { pointCoords },
     });
@@ -465,7 +465,7 @@ export async function movePolygon({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "movePolygon",
         args: { pointCoords },
     });
@@ -483,7 +483,7 @@ export async function moveCircle({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveCircle",
         args: { center: [cx, cy] },
     });
@@ -501,7 +501,7 @@ export async function moveControlVector({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveControlVector",
         args: { controlVectorInds, controlVector },
     });
@@ -519,7 +519,7 @@ export async function moveThroughPoint({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveThroughPoint",
         args: { throughPointInd, throughPoint },
     });
@@ -537,7 +537,7 @@ export async function moveButton({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveButton",
         args: { x, y },
     });
@@ -555,7 +555,7 @@ export async function moveInput({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveInput",
         args: { x, y },
     });
@@ -573,7 +573,7 @@ export async function moveText({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveText",
         args: { x, y },
     });
@@ -591,7 +591,7 @@ export async function moveMath({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveMath",
         args: { x, y },
     });
@@ -609,7 +609,7 @@ export async function moveNumber({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveNumber",
         args: { x, y },
     });
@@ -627,7 +627,7 @@ export async function moveLabel({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "moveLabel",
         args: { x, y },
     });
@@ -643,7 +643,7 @@ export async function updateSelectedIndices({
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "updateSelectedIndices",
         args: { selectedIndices },
     });

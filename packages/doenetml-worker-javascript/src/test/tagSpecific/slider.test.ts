@@ -18,7 +18,7 @@ async function changeValue({
 }) {
     await core.requestAction({
         actionName: "changeValue",
-        componentName: name,
+        componentIdx: name,
         args: { value },
     });
 }

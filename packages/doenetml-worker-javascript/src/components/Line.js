@@ -199,7 +199,7 @@ export default class Line extends GraphicalComponent {
                 }
             },
             definition: function ({ dependencyValues, changes }) {
-                // console.log(`definition of numDimensions of ${componentName}`)
+                // console.log(`definition of numDimensions of ${componentIdx}`)
                 // console.log(dependencyValues)
                 // console.log(changes)
 
@@ -453,7 +453,7 @@ export default class Line extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // console.log(`definition of equation child for ${componentName}`)
+                // console.log(`definition of equation child for ${componentIdx}`)
                 // console.log(dependencyValues);
 
                 if (dependencyValues.equation !== null) {
@@ -812,7 +812,7 @@ export default class Line extends GraphicalComponent {
                 arrayKeys,
                 arraySize,
             }) {
-                // console.log(`array definition of points for ${componentName}`)
+                // console.log(`array definition of points for ${componentIdx}`)
                 // console.log(globalDependencyValues)
                 // console.log(dependencyValuesByKey)
                 // console.log(arrayKeys)
@@ -1408,7 +1408,7 @@ export default class Line extends GraphicalComponent {
                 return dependencies;
             },
             definition: function ({ dependencyValues }) {
-                // console.log(`definition of equation for ${componentName}`)
+                // console.log(`definition of equation for ${componentIdx}`)
                 // console.log(dependencyValues);
 
                 let variables = dependencyValues.variables;
@@ -1744,7 +1744,7 @@ export default class Line extends GraphicalComponent {
                 dependencyValuesByKey,
                 arrayKeys,
             }) {
-                // console.log(`array definition by key of numericalPoints of ${componentName}`)
+                // console.log(`array definition by key of numericalPoints of ${componentIdx}`)
 
                 // console.log(globalDependencyValues)
                 // console.log(dependencyValuesByKey)
@@ -2158,7 +2158,7 @@ export default class Line extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "points",
                         value: desiredPoints,
                     },
@@ -2173,7 +2173,7 @@ export default class Line extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "points",
                         value: desiredPoints,
                     },
@@ -2184,7 +2184,7 @@ export default class Line extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentId: this.componentName,
+                        componentId: this.componentIdx,
                     },
                     result: {
                         point1: point1coords,
@@ -2258,7 +2258,7 @@ export default class Line extends GraphicalComponent {
                 let newInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "points",
                         value: newPointComponents,
                     },
@@ -2294,7 +2294,7 @@ export default class Line extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -2311,7 +2311,7 @@ export default class Line extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

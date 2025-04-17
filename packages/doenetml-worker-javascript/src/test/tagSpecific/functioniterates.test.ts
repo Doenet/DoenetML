@@ -162,7 +162,7 @@ describe("FunctionIterates tag tests", async () => {
             let x = me.math.matrix([[u1], [u2]]);
 
             let iterNames = stateVariables["/iterates"].replacements!.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
 
             for (let i = 0; i < n; i++) {
@@ -270,7 +270,7 @@ describe("FunctionIterates tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(2);
@@ -293,7 +293,7 @@ describe("FunctionIterates tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(0);
@@ -317,7 +317,7 @@ describe("FunctionIterates tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(3);
@@ -340,7 +340,7 @@ describe("FunctionIterates tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(3);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
@@ -371,7 +371,7 @@ describe("FunctionIterates tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(2);
@@ -394,7 +394,7 @@ describe("FunctionIterates tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(2);
@@ -423,7 +423,7 @@ describe("FunctionIterates tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(0);
@@ -446,7 +446,7 @@ describe("FunctionIterates tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(3);
@@ -469,7 +469,7 @@ describe("FunctionIterates tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         expect(stateVariables["/fis"].stateValues.numDimensions).eq(3);

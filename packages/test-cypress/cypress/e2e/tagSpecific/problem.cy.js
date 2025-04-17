@@ -59,7 +59,7 @@ describe("Problem Tag Tests", function () {
 
             let twoxInputName =
                 stateVariables["/twox"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
@@ -80,7 +80,7 @@ describe("Problem Tag Tests", function () {
 
             let helloInputName =
                 stateVariables["/hello"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
                 "#" + helloInputName + "_submit",
@@ -283,7 +283,7 @@ describe("Problem Tag Tests", function () {
 
             let twoxInputName =
                 stateVariables["/twox"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
@@ -304,7 +304,7 @@ describe("Problem Tag Tests", function () {
 
             let helloInputName =
                 stateVariables["/hello"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
                 "#" + helloInputName + "_submit",
@@ -507,7 +507,7 @@ describe("Problem Tag Tests", function () {
 
             let twoxInputName =
                 stateVariables["/twox"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
@@ -528,7 +528,7 @@ describe("Problem Tag Tests", function () {
 
             let helloInputName =
                 stateVariables["/hello"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
                 "#" + helloInputName + "_submit",
@@ -734,7 +734,7 @@ describe("Problem Tag Tests", function () {
 
             let twoxInputName =
                 stateVariables["/twox"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
@@ -755,7 +755,7 @@ describe("Problem Tag Tests", function () {
 
             let helloInputName =
                 stateVariables["/hello"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
                 "#" + helloInputName + "_submit",
@@ -983,7 +983,7 @@ describe("Problem Tag Tests", function () {
 
             let twoxInputName =
                 stateVariables["/twox"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
@@ -1004,7 +1004,7 @@ describe("Problem Tag Tests", function () {
 
             let helloInputName =
                 stateVariables["/hello"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
                 "#" + helloInputName + "_submit",
@@ -1208,22 +1208,22 @@ describe("Problem Tag Tests", function () {
 
             let mathinput1Name =
                 stateVariables["/ans1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
 
             let mathinput2Name =
                 stateVariables["/ans2"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
 
             let mathinput3Name =
                 stateVariables["/ans3"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
 
             let mathinput4Name =
                 stateVariables["/ans4"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
 
             cy.get(cesc("#\\/prob1_submit"))
@@ -1351,7 +1351,7 @@ describe("Problem Tag Tests", function () {
 
             let mathinput1Name =
                 stateVariables["/ans1"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
 
             cy.get(cesc("#\\/doc_submit"))

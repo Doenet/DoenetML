@@ -814,7 +814,7 @@ export default class Ray extends GraphicalComponent {
                 dependencyValuesByKey,
                 arrayKeys,
             }) {
-                // console.log('array definition of vector direction', componentName)
+                // console.log('array definition of vector direction', componentIdx)
                 // console.log(globalDependencyValues, dependencyValuesByKey, arrayKeys)
 
                 let direction = {};
@@ -1695,7 +1695,7 @@ export default class Ray extends GraphicalComponent {
 
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "direction",
                     value: direction.map((x) => me.fromAst(x)),
                 });
@@ -1703,7 +1703,7 @@ export default class Ray extends GraphicalComponent {
                 // set endpoint directly
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "endpoint",
                     value: endpointcoords.map((x) => me.fromAst(x)),
                 });
@@ -1721,7 +1721,7 @@ export default class Ray extends GraphicalComponent {
                     );
                     updateInstructions.push({
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "direction",
                         value: direction.map((x) => me.fromAst(x)),
                     });
@@ -1734,7 +1734,7 @@ export default class Ray extends GraphicalComponent {
             if (await this.stateValues.basedOnThrough) {
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "through",
                     value: throughcoords.map((x) => me.fromAst(x)),
                 });
@@ -1750,7 +1750,7 @@ export default class Ray extends GraphicalComponent {
                 );
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "direction",
                     value: direction.map((x) => me.fromAst(x)),
                 });
@@ -1771,7 +1771,7 @@ export default class Ray extends GraphicalComponent {
                     );
                     updateInstructions.push({
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "direction",
                         value: direction.map((x) => me.fromAst(x)),
                     });
@@ -1799,7 +1799,7 @@ export default class Ray extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -1867,13 +1867,13 @@ export default class Ray extends GraphicalComponent {
                 let newInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "endpoint",
                         value: newNumericalPoints[0].map((x) => me.fromAst(x)),
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "through",
                         value: newNumericalPoints[1].map((x) => me.fromAst(x)),
                     },
@@ -1907,7 +1907,7 @@ export default class Ray extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1924,7 +1924,7 @@ export default class Ray extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

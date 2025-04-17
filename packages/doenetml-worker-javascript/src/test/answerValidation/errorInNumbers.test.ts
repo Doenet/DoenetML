@@ -17,7 +17,7 @@ async function run_single_response_tests({
     const core = await createTestCore({ doenetML });
     const stateVariables = await core.returnAllStateVariables(false, true);
     const mathInputName =
-        stateVariables["/ans"].stateValues.inputChildren[0].componentName;
+        stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
 
     for (let response in responseCredits) {
         await submit_check({

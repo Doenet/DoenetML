@@ -511,7 +511,7 @@ describe("MatchesPattern tag tests", async () => {
                     if (match1.componentType === "copy") {
                         match1 =
                             stateVariables[
-                                match1.replacements![0].componentName
+                                match1.replacements![0].componentIdx
                             ];
                     }
                     expect(cleanLatex(match1.stateValues.latex)).eq(res[0]);
@@ -519,7 +519,7 @@ describe("MatchesPattern tag tests", async () => {
                     if (match2.componentType === "copy") {
                         match2 =
                             stateVariables[
-                                match2.replacements![0].componentName
+                                match2.replacements![0].componentIdx
                             ];
                     }
                     expect(cleanLatex(match2.stateValues.latex)).eq(res[1]);
@@ -527,7 +527,7 @@ describe("MatchesPattern tag tests", async () => {
                     if (match3.componentType === "copy") {
                         match3 =
                             stateVariables[
-                                match3.replacements![0].componentName
+                                match3.replacements![0].componentIdx
                             ];
                     }
                     expect(cleanLatex(match3.stateValues.latex)).eq(res[2]);

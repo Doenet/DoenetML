@@ -57,7 +57,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             );
             samples.push(
                 ...stateVariables[name].replacements!.map(
-                    (x) => stateVariables[x.componentName].stateValues.value,
+                    (x) => stateVariables[x.componentIdx].stateValues.value,
                 ),
             );
 
@@ -665,10 +665,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         expect(sample1replacements.length).eq(20);
         expect(sample2replacements.length).eq(10);
         let sample1numbers = sample1replacements.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let sample2numbers = sample2replacements.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         for (let num of sample1numbers) {
@@ -707,12 +707,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         expect(
             sample1replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             ),
         ).eqls(sample1numbers);
         expect(
             sample2replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             ),
         ).eqls(sample2numbers);
     });
@@ -740,10 +740,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         expect(sample1replacements.length).eq(50);
         expect(sample2replacements.length).eq(180);
         let sample1numbers = sample1replacements.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let sample2numbers = sample2replacements.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         for (let num of sample1numbers) {
@@ -774,7 +774,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersb = stateVariables["/sample1"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let sample2numbersb = stateVariables["/sample2"]
             .replacements!.slice(
@@ -782,7 +782,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
                 stateVariables["/sample2"].replacements!.length -
                     (stateVariables["/sample2"].replacementsToWithhold ?? 0),
             )
-            .map((x) => stateVariables[x.componentName].stateValues.value);
+            .map((x) => stateVariables[x.componentIdx].stateValues.value);
         expect(sample1numbersb.length).eq(70);
         expect(sample2numbersb.length).eq(160);
 
@@ -821,7 +821,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersc = stateVariables["/sample1"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let sample2numbersc = stateVariables["/sample2"]
             .replacements!.slice(
@@ -829,7 +829,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
                 stateVariables["/sample2"].replacements!.length -
                     (stateVariables["/sample2"].replacementsToWithhold ?? 0),
             )
-            .map((x) => stateVariables[x.componentName].stateValues.value);
+            .map((x) => stateVariables[x.componentIdx].stateValues.value);
         expect(sample1numbersc.length).eq(70);
         expect(sample2numbersc.length).eq(160);
 
@@ -867,42 +867,42 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             expect(
                 stateVariables["/p1"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p2"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p3"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p4"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p5"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p6"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
         }
@@ -1100,7 +1100,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             expect(s.replacements!.length).eq(6);
             for (let ind = 0; ind < 6; ind++) {
                 let num =
-                    stateVariables[s.replacements![ind].componentName]
+                    stateVariables[s.replacements![ind].componentIdx]
                         .stateValues.value;
                 results[ind] = num;
                 expect(num).gte(3);
@@ -1157,7 +1157,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             expect(s.replacements!.length).eq(6);
             for (let ind = 0; ind < 6; ind++) {
                 let num =
-                    stateVariables[s.replacements![ind].componentName]
+                    stateVariables[s.replacements![ind].componentIdx]
                         .stateValues.value;
                 results[ind] = num;
                 expect(num).gte(3);
@@ -1214,19 +1214,19 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let n5 = stateVariables["/n5"].stateValues.value;
 
         let nums1 = stateVariables["/nums1"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums2 = stateVariables["/nums2"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums3 = stateVariables["/nums3"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums4 = stateVariables["/nums4"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums5 = stateVariables["/nums5"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(nums1.length).eq(n1);
@@ -1410,7 +1410,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             }
             let samples = sampleComponent.replacements
                 .slice(0, nReplacements)
-                .map((x) => stateVariables[x.componentName].stateValues.value);
+                .map((x) => stateVariables[x.componentIdx].stateValues.value);
             expect(samples.length).eq(numSamples);
 
             expect(stateVariables["/numSamples"].stateValues.value.tree).eq(
@@ -1788,7 +1788,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables["/p1"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(samples.length).eq(100);
@@ -1806,7 +1806,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples2 = stateVariables["/p1"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(samples2).eqls(samples);
@@ -1819,7 +1819,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         samples2 = stateVariables["/p1"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(samples2.length).eq(100);

@@ -428,8 +428,8 @@ export default class AnimateFromSequence extends BaseComponent {
 
                         dependencies.targets = {
                             dependencyType: "replacement",
-                            compositeName:
-                                stateValues.targetComponent.componentName,
+                            compositeIdx:
+                                stateValues.targetComponent.componentIdx,
                             recursive: true,
                             componentIndex: stateValues.componentIndex,
                             targetSubnames: stateValues.targetSubnames,
@@ -515,7 +515,7 @@ export default class AnimateFromSequence extends BaseComponent {
                             }
                             thisTarget = {
                                 dependencyType: "stateVariable",
-                                componentName: target.componentName,
+                                componentIdx: target.componentIdx,
                                 variableName: stateValues.propName,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
@@ -527,7 +527,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         } else {
                             thisTarget = {
                                 dependencyType: "stateVariable",
-                                componentName: target.componentName,
+                                componentIdx: target.componentIdx,
                                 variableName: "value",
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
@@ -630,7 +630,7 @@ export default class AnimateFromSequence extends BaseComponent {
                             newDirection = "decrease";
                             updateInstructions.push({
                                 updateType: "updateValue",
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 stateVariable: "currentAnimationDirection",
                                 value: newDirection,
                             });
@@ -649,7 +649,7 @@ export default class AnimateFromSequence extends BaseComponent {
                             newDirection = "increase";
                             updateInstructions.push({
                                 updateType: "updateValue",
-                                componentName: this.componentName,
+                                componentIdx: this.componentIdx,
                                 stateVariable: "currentAnimationDirection",
                                 value: newDirection,
                             });
@@ -660,7 +660,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 if (startIndex !== selectedIndex) {
                     updateInstructions.push({
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "selectedIndex",
                         value: startIndex,
                     });
@@ -682,7 +682,7 @@ export default class AnimateFromSequence extends BaseComponent {
                     event: {
                         verb: "played",
                         object: {
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             componentType: this.componentType,
                         },
                         context: {
@@ -694,7 +694,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 });
 
                 await this.coreFunctions.triggerChainedActions({
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -704,7 +704,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 await this.coreFunctions.requestAnimationFrame({
                     action: {
                         actionName: "advanceAnimation",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                     },
                     delay: await this.stateValues.animationInterval,
                     animationId: this.animationId,
@@ -717,7 +717,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 await this.coreFunctions.cancelAnimationFrame(this.animationId);
                 this.canceledAnimationId = this.animationId;
                 await this.coreFunctions.triggerChainedActions({
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -726,7 +726,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 this.coreFunctions.requestRecordEvent({
                     verb: "paused",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     context: {
@@ -868,7 +868,7 @@ export default class AnimateFromSequence extends BaseComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "selectedIndex",
                 value: newSelectedIndex,
             },
@@ -888,7 +888,7 @@ export default class AnimateFromSequence extends BaseComponent {
         if (!continueAnimation) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "animationOn",
                 value: false,
             });
@@ -896,7 +896,7 @@ export default class AnimateFromSequence extends BaseComponent {
         if (newDirection) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "currentAnimationDirection",
                 value: newDirection,
             });
@@ -914,7 +914,7 @@ export default class AnimateFromSequence extends BaseComponent {
             await this.coreFunctions.requestAnimationFrame({
                 action: {
                     actionName: "advanceAnimation",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                 },
                 delay: await this.stateValues.animationInterval,
                 animationId: this.animationId,
@@ -932,7 +932,7 @@ export default class AnimateFromSequence extends BaseComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "animationOn",
                     value: true,
                 },
@@ -952,7 +952,7 @@ export default class AnimateFromSequence extends BaseComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "animationOn",
                     value: false,
                 },
@@ -972,7 +972,7 @@ export default class AnimateFromSequence extends BaseComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "animationOn",
                     value: !(await this.stateValues.animationOn),
                 },
@@ -999,7 +999,7 @@ export default class AnimateFromSequence extends BaseComponent {
 
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: target.componentName,
+                componentIdx: target.componentIdx,
                 stateVariable,
                 value,
             });

@@ -412,13 +412,13 @@ export default class CodeEditor extends BlockComponent {
             let updateInstructions = [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "immediateValue",
                     value: text,
                 },
                 {
                     updateType: "setComponentNeedingUpdateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                 },
             ];
 
@@ -444,7 +444,7 @@ export default class CodeEditor extends BlockComponent {
                 let updateInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "value",
                         value: immediateValue,
                     },
@@ -458,7 +458,7 @@ export default class CodeEditor extends BlockComponent {
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "immediateValue",
                         valueOfStateVariable: "value",
                     },
@@ -470,7 +470,7 @@ export default class CodeEditor extends BlockComponent {
                 let event = {
                     verb: "answered",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -482,7 +482,7 @@ export default class CodeEditor extends BlockComponent {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor) {
                     event.context = {
-                        answerAncestor: answerAncestor.componentName,
+                        answerAncestor: answerAncestor.componentIdx,
                     };
                 }
 
@@ -494,7 +494,7 @@ export default class CodeEditor extends BlockComponent {
                     event,
                 });
                 await this.coreFunctions.triggerChainedActions({
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -507,7 +507,7 @@ export default class CodeEditor extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

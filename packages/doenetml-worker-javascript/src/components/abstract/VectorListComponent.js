@@ -223,9 +223,9 @@ export default class VectorListComponent extends BaseComponent {
             inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
                 dependencyNamesByKey,
-                // componentName
+                // componentIdx
             }) {
-                // console.log(`array inverse definition of vectors of vectorlist of ${componentName}`)
+                // console.log(`array inverse definition of vectors of vectorlist of ${componentIdx}`)
                 // console.log(desiredStateVariableValues)
                 // console.log(arrayKeys);
 

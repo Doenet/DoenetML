@@ -67,7 +67,7 @@ export default class EquilibriumPoint extends Point {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "stable",
                         value: !this.stateValues.stable,
                     },
@@ -78,7 +78,7 @@ export default class EquilibriumPoint extends Point {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {

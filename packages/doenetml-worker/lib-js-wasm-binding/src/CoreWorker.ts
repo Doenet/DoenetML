@@ -269,12 +269,12 @@ export class CoreWorker {
     }
 
     /**
-     * Dispatch the action `actionName` of `componentName` to the Javascript core,
+     * Dispatch the action `actionName` of `componentIdx` to the Javascript core,
      * which will execute that action and return the result.
      */
     async dispatchActionJavascript(actionArgs: {
         actionName: string;
-        componentName: string | undefined;
+        componentIdx: string | undefined;
         args: Record<string, any>;
     }) {
         const isProcessingPromise = this.isProcessingPromise;

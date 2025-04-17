@@ -14,7 +14,7 @@ export default class ConstrainToAngles extends ConstraintComponent {
             for (let child of activeChildrenMatched) {
                 anglesChildren.push({
                     createdComponent: true,
-                    componentName: child.componentName,
+                    componentIdx: child.componentIdx,
                 });
             }
             return {
@@ -98,7 +98,7 @@ export default class ConstrainToAngles extends ConstraintComponent {
         }
 
         let trackChanges = this.currentTracker.trackChanges;
-        let childrenChanged = trackChanges.childrenChanged(this.componentName);
+        let childrenChanged = trackChanges.childrenChanged(this.componentIdx);
 
         if (childrenChanged) {
             let anglesInd = this.childLogic.returnMatches("AtMostOneAngles");

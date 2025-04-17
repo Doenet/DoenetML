@@ -617,7 +617,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a",
+                componentIdx: "/a",
                 args: { value: 33.4 },
             });
         });
@@ -669,7 +669,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a2",
+                componentIdx: "/a2",
                 args: { value: 64.5 },
             });
         });
@@ -759,7 +759,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a",
+                componentIdx: "/a",
                 args: { value: 33.4 },
             });
         });
@@ -775,7 +775,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a2",
+                componentIdx: "/a2",
                 args: { value: 4.5 },
             });
         });
@@ -795,7 +795,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a",
+                componentIdx: "/a",
                 args: { value: 33.4 },
             });
         });
@@ -811,7 +811,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "changeValue",
-                componentName: "/a2",
+                componentIdx: "/a2",
                 args: { value: 4.5 },
             });
         });

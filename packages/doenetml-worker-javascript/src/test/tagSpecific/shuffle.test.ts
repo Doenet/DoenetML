@@ -241,7 +241,7 @@ describe("Shuffle tag tests", async () => {
 
         if (replacements_all_of_type) {
             let replacementTypes = stateVariables["/pList"].activeChildren.map(
-                (child) => stateVariables[child.componentName].componentType,
+                (child) => stateVariables[child.componentIdx].componentType,
             );
 
             expect(replacementTypes).eqls(

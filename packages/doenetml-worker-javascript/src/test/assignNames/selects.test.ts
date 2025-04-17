@@ -54,9 +54,8 @@ describe("selects assign name tests", async () => {
             let optionReplacement =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/select1"].replacements![j]
-                            .componentName
-                    ].replacements![1].componentName
+                        stateVariables["/select1"].replacements![j].componentIdx
+                    ].replacements![1].componentIdx
                 ];
 
             expect(comp.componentType).eq(cType);

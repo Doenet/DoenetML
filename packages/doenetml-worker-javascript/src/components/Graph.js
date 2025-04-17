@@ -442,14 +442,14 @@ export default class Graph extends BlockComponent {
 
                 let graphicalChildNames =
                     dependencyValues.graphicalOrGraphChildren.map(
-                        (x) => x.componentName,
+                        (x) => x.componentIdx,
                     );
 
                 for (let [
                     ind,
                     child,
                 ] of dependencyValues.allChildren.entries()) {
-                    if (graphicalChildNames.includes(child.componentName)) {
+                    if (graphicalChildNames.includes(child.componentIdx)) {
                         childIndicesToRender.push(ind);
                     }
                 }
@@ -1380,7 +1380,7 @@ export default class Graph extends BlockComponent {
                     return {
                         setValue: {
                             gridAttrCompName:
-                                dependencyValues.gridAttr.componentName,
+                                dependencyValues.gridAttr.componentIdx,
                         },
                     };
                 } else {
@@ -1396,7 +1396,7 @@ export default class Graph extends BlockComponent {
                     return {
                         gridAttrCompChildren: {
                             dependencyType: "child",
-                            parentName: stateValues.gridAttrCompName,
+                            parentIdx: stateValues.gridAttrCompName,
                             childGroups: ["textLike"],
                             variableNames: ["value"],
                         },
@@ -1448,7 +1448,7 @@ export default class Graph extends BlockComponent {
                     ] of stateValues.gridAttrCompChildren.entries()) {
                         dependencies["childAdapter" + ind] = {
                             dependencyType: "adapterSourceStateVariable",
-                            componentName: child.componentName,
+                            componentIdx: child.componentIdx,
                             variableName: "value",
                         };
                     }
@@ -1625,7 +1625,7 @@ export default class Graph extends BlockComponent {
         if (xmin !== undefined) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "xmin",
                 value: xmin,
             });
@@ -1633,7 +1633,7 @@ export default class Graph extends BlockComponent {
         if (xmax !== undefined) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "xmax",
                 value: xmax,
             });
@@ -1641,7 +1641,7 @@ export default class Graph extends BlockComponent {
         if (ymin !== undefined) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "ymin",
                 value: ymin,
             });
@@ -1649,7 +1649,7 @@ export default class Graph extends BlockComponent {
         if (ymax !== undefined) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "ymax",
                 value: ymax,
             });
@@ -1663,7 +1663,7 @@ export default class Graph extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -1685,7 +1685,7 @@ export default class Graph extends BlockComponent {
         if (serializedComponents && serializedComponents.length > 0) {
             let processResult = processAssignNames({
                 serializedComponents,
-                parentName: this.componentName,
+                parentIdx: this.componentIdx,
                 parentCreatesNewNamespace:
                     this.attributes.newNamespace?.primitive,
                 componentInfoObjects: this.componentInfoObjects,
@@ -1698,13 +1698,13 @@ export default class Graph extends BlockComponent {
                         updateType: "addComponents",
                         serializedComponents:
                             processResult.serializedComponents,
-                        parentName: this.componentName,
+                        parentIdx: this.componentIdx,
                         assignNamesOffset:
                             await this.stateValues.numChildrenAdded,
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "numChildrenAdded",
                         value:
                             (await this.stateValues.numChildrenAdded) +
@@ -1733,7 +1733,7 @@ export default class Graph extends BlockComponent {
             let numChildren = this.definingChildren.length;
             let componentNamesToDelete = this.definingChildren
                 .slice(numChildren - numberToDelete, numChildren)
-                .map((x) => x.componentName);
+                .map((x) => x.componentIdx);
 
             return await this.coreFunctions.performUpdate({
                 updateInstructions: [
@@ -1743,7 +1743,7 @@ export default class Graph extends BlockComponent {
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "numChildrenAdded",
                         value:
                             (await this.stateValues.numChildrenAdded) -
@@ -1761,7 +1761,7 @@ export default class Graph extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

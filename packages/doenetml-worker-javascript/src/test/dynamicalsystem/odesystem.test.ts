@@ -62,11 +62,11 @@ $tol.value{assignNames="tol2"}
             let solutionsFromCore = stateVariables["/map1"]
                 .replacements!.map(
                     (child) =>
-                        stateVariables[child.componentName].replacements![0],
+                        stateVariables[child.componentIdx].replacements![0],
                 )
                 .map(
                     (grandChild) =>
-                        stateVariables[grandChild.componentName].stateValues
+                        stateVariables[grandChild.componentIdx].stateValues
                             .value,
                 )
                 .map((v) => v.tree);
@@ -277,8 +277,8 @@ $tol.value{assignNames="tol2"}
             let solutionsFromCore = stateVariables["/map1"].replacements!.map(
                 (x) =>
                     stateVariables[
-                        stateVariables[x.componentName].replacements![0]
-                            .componentName
+                        stateVariables[x.componentIdx].replacements![0]
+                            .componentIdx
                     ].stateValues.value.tree,
             );
 
@@ -552,22 +552,22 @@ $tol.value{assignNames="tol2"}
             let solutionsFromCoreX = stateVariables["/map1"]
                 .replacements!.map(
                     (child) =>
-                        stateVariables[child.componentName].replacements![0],
+                        stateVariables[child.componentIdx].replacements![0],
                 )
                 .map(
                     (grandChild) =>
-                        stateVariables[grandChild.componentName].stateValues
+                        stateVariables[grandChild.componentIdx].stateValues
                             .value,
                 )
                 .map((v) => v.tree);
             let solutionsFromCoreY = stateVariables["/map1"]
                 .replacements!.map(
                     (child) =>
-                        stateVariables[child.componentName].replacements![1],
+                        stateVariables[child.componentIdx].replacements![1],
                 )
                 .map(
                     (grandChild) =>
-                        stateVariables[grandChild.componentName].stateValues
+                        stateVariables[grandChild.componentIdx].stateValues
                             .value,
                 )
                 .map((v) => v.tree);
@@ -731,7 +731,7 @@ $tol.value{assignNames="tol2"}
         ) {
             expect(
                 stateVariables[
-                    stateVariables[origName].replacements![repNum].componentName
+                    stateVariables[origName].replacements![repNum].componentIdx
                 ].stateValues.value.tree,
             ).eqls(desiredValue);
         }

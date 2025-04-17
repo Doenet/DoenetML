@@ -10,7 +10,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
     async function test_values_separately({
         doenetML,
         componentNames,
-        compositeName,
+        compositeIdx,
         valid_values,
         num_samples,
         must_be_distinct = false,
@@ -18,7 +18,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
     }: {
         doenetML: string;
         componentNames: string[];
-        compositeName?: string;
+        compositeIdx?: string;
         valid_values: any[][];
         num_samples: number;
         must_be_distinct?: boolean;
@@ -33,11 +33,11 @@ describe("SamplePrimeNumbers tag tests", async () => {
                 false,
                 true,
             );
-            const s = stateVariables[compositeName ?? ""];
+            const s = stateVariables[compositeIdx ?? ""];
             for (let [ind, name] of componentNames.entries()) {
                 let value = name
                     ? stateVariables[name].stateValues.value
-                    : stateVariables[s.replacements![ind].componentName]
+                    : stateVariables[s.replacements![ind].componentIdx]
                           .stateValues.value;
                 expect(
                     is_math
@@ -139,7 +139,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables["/s"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         expect(samples.length).eq(50);
 
@@ -180,7 +180,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             doenetML,
             valid_values,
             componentNames,
-            compositeName: "/s",
+            compositeIdx: "/s",
             num_samples: 1,
         });
     });
@@ -209,10 +209,10 @@ describe("SamplePrimeNumbers tag tests", async () => {
         expect(sample1replacements.length).eq(50);
         expect(sample2replacements.length).eq(180);
         let sample1numbers = sample1replacements.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let sample2numbers = sample2replacements.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         for (let num of sample1numbers) {
@@ -238,7 +238,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersb = stateVariables["/sample1"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let sample2numbersb = stateVariables["/sample2"]
             .replacements!.slice(
@@ -246,7 +246,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
                 stateVariables["/sample2"].replacements!.length -
                     (stateVariables["/sample2"].replacementsToWithhold ?? 0),
             )
-            .map((x) => stateVariables[x.componentName].stateValues.value);
+            .map((x) => stateVariables[x.componentIdx].stateValues.value);
         expect(sample1numbersb.length).eq(70);
         expect(sample2numbersb.length).eq(160);
 
@@ -281,7 +281,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersc = stateVariables["/sample1"].replacements!.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let sample2numbersc = stateVariables["/sample2"]
             .replacements!.slice(
@@ -289,7 +289,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
                 stateVariables["/sample2"].replacements!.length -
                     (stateVariables["/sample2"].replacementsToWithhold ?? 0),
             )
-            .map((x) => stateVariables[x.componentName].stateValues.value);
+            .map((x) => stateVariables[x.componentIdx].stateValues.value);
         expect(sample1numbersc.length).eq(70);
         expect(sample2numbersc.length).eq(160);
 
@@ -339,42 +339,42 @@ describe("SamplePrimeNumbers tag tests", async () => {
             expect(
                 stateVariables["/p1"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p2"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p3"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p4"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p5"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p6"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
         }
@@ -488,7 +488,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables["/p1"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(samples.length).eq(100);
@@ -510,7 +510,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples2 = stateVariables["/p1"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(samples2).eqls(samples);
@@ -523,7 +523,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         samples2 = stateVariables["/p1"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(samples2.length).eq(100);

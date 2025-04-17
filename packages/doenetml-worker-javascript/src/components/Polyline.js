@@ -1998,7 +1998,7 @@ export default class Polyline extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "vertices",
                         value: vertexComponents,
                         sourceDetails,
@@ -2014,7 +2014,7 @@ export default class Polyline extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "vertices",
                         value: vertexComponents,
                         sourceDetails,
@@ -2026,7 +2026,7 @@ export default class Polyline extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -2135,7 +2135,7 @@ export default class Polyline extends GraphicalComponent {
                     let newInstructions = [
                         {
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "unconstrainedVertices",
                             value: newVertexComponents,
                         },
@@ -2187,7 +2187,7 @@ export default class Polyline extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -2204,7 +2204,7 @@ export default class Polyline extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

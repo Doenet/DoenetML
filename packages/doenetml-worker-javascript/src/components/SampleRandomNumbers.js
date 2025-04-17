@@ -603,11 +603,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     value: sharedParameters.variantSeed,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     seed: dependencyValues.variantSeed,
                     meta: {
-                        createdBy: componentName,
+                        createdBy: componentIdx,
                     },
                 };
 
@@ -665,7 +665,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             indOffset: startNum,
             componentInfoObjects,
@@ -813,7 +813,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "sampledValues",
                     value: sampledValues,
                 },

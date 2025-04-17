@@ -28,7 +28,7 @@ export default class BooleanInput extends Input {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor !== null) {
                     return {
-                        componentName: answerAncestor.componentName,
+                        componentIdx: answerAncestor.componentIdx,
                         actionName: "submitAnswer",
                     };
                 } else {
@@ -268,7 +268,7 @@ export default class BooleanInput extends Input {
             let updateInstructions = [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "value",
                     value: boolean,
                 },
@@ -277,7 +277,7 @@ export default class BooleanInput extends Input {
             let event = {
                 verb: "selected",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -289,7 +289,7 @@ export default class BooleanInput extends Input {
             let answerAncestor = await this.stateValues.answerAncestor;
             if (answerAncestor) {
                 event.context = {
-                    answerAncestor: answerAncestor.componentName,
+                    answerAncestor: answerAncestor.componentIdx,
                 };
             }
 
@@ -302,7 +302,7 @@ export default class BooleanInput extends Input {
             });
 
             return await this.coreFunctions.triggerChainedActions({
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -327,7 +327,7 @@ export default class BooleanInput extends Input {
             actionId,
             sourceInformation,
             skipRendererUpdate,
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

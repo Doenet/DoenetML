@@ -38,7 +38,7 @@ describe("DoenetML text tests", async () => {
         expect(stateVariables["/theP"].stateValues.doenetML).eqls(thePDoenetML);
 
         let preChild =
-            stateVariables["/theDoenetML"].activeChildren[0].componentName;
+            stateVariables["/theDoenetML"].activeChildren[0].componentIdx;
         expect(stateVariables[preChild].stateValues.value).eqls(thePDoenetML);
     });
 

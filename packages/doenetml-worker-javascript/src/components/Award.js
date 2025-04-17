@@ -158,7 +158,7 @@ export default class Award extends BaseComponent {
     static preprocessSerializedChildren({
         serializedChildren,
         attributes,
-        componentName,
+        componentIdx,
     }) {
         if (attributes.sourcesAreResponses) {
             let targetNames = attributes.sourcesAreResponses.primitive
@@ -166,9 +166,9 @@ export default class Award extends BaseComponent {
                 .filter((s) => s);
             let nameSpace;
             if (attributes.newNamespace?.primitive) {
-                nameSpace = componentName + "/";
+                nameSpace = componentIdx + "/";
             } else {
-                nameSpace = getNamespaceFromName(componentName);
+                nameSpace = getNamespaceFromName(componentIdx);
             }
             for (let target of targetNames) {
                 let absoluteTarget;

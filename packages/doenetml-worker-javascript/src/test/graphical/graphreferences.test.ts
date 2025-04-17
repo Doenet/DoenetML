@@ -52,73 +52,73 @@ describe("Graph Reference Test", async () => {
         let pointsA = [
             "/pointA",
             "/pointC",
-            graphB.activeChildren[0].componentName,
-            graphB.activeChildren[4].componentName,
-            graphC.activeChildren[0].componentName,
-            graphC.activeChildren[4].componentName,
-            graphD.activeChildren[0].componentName,
-            graphD.activeChildren[4].componentName,
-            graphE.activeChildren[0].componentName,
-            graphE.activeChildren[4].componentName,
-            graphF.activeChildren[0].componentName,
-            graphF.activeChildren[4].componentName,
+            graphB.activeChildren[0].componentIdx,
+            graphB.activeChildren[4].componentIdx,
+            graphC.activeChildren[0].componentIdx,
+            graphC.activeChildren[4].componentIdx,
+            graphD.activeChildren[0].componentIdx,
+            graphD.activeChildren[4].componentIdx,
+            graphE.activeChildren[0].componentIdx,
+            graphE.activeChildren[4].componentIdx,
+            graphF.activeChildren[0].componentIdx,
+            graphF.activeChildren[4].componentIdx,
         ];
 
         let pointsB = [
             "/pointB",
-            graphB.activeChildren[1].componentName,
-            graphC.activeChildren[1].componentName,
-            graphD.activeChildren[1].componentName,
-            graphE.activeChildren[1].componentName,
-            graphF.activeChildren[1].componentName,
+            graphB.activeChildren[1].componentIdx,
+            graphC.activeChildren[1].componentIdx,
+            graphD.activeChildren[1].componentIdx,
+            graphE.activeChildren[1].componentIdx,
+            graphF.activeChildren[1].componentIdx,
         ];
 
         let pointsD = [
             "/pointD",
-            graphB.activeChildren[5].componentName,
-            graphC.activeChildren[5].componentName,
-            graphD.activeChildren[5].componentName,
-            graphE.activeChildren[5].componentName,
-            graphF.activeChildren[5].componentName,
+            graphB.activeChildren[5].componentIdx,
+            graphC.activeChildren[5].componentIdx,
+            graphD.activeChildren[5].componentIdx,
+            graphE.activeChildren[5].componentIdx,
+            graphF.activeChildren[5].componentIdx,
         ];
 
         let pointsE = [
-            stateVariables["/pointE"].replacements![0].componentName,
-            graphB.activeChildren[8].componentName,
-            graphC.activeChildren[8].componentName,
-            graphD.activeChildren[8].componentName,
-            graphE.activeChildren[8].componentName,
-            graphF.activeChildren[8].componentName,
+            stateVariables["/pointE"].replacements![0].componentIdx,
+            graphB.activeChildren[8].componentIdx,
+            graphC.activeChildren[8].componentIdx,
+            graphD.activeChildren[8].componentIdx,
+            graphE.activeChildren[8].componentIdx,
+            graphF.activeChildren[8].componentIdx,
         ];
 
         let linesA = [
             "/lineA",
             "/lineC",
-            graphB.activeChildren[2].componentName,
-            graphB.activeChildren[6].componentName,
-            graphC.activeChildren[2].componentName,
-            graphC.activeChildren[6].componentName,
-            graphD.activeChildren[2].componentName,
-            graphD.activeChildren[6].componentName,
-            graphE.activeChildren[2].componentName,
-            graphE.activeChildren[6].componentName,
-            graphF.activeChildren[2].componentName,
-            graphF.activeChildren[6].componentName,
+            graphB.activeChildren[2].componentIdx,
+            graphB.activeChildren[6].componentIdx,
+            graphC.activeChildren[2].componentIdx,
+            graphC.activeChildren[6].componentIdx,
+            graphD.activeChildren[2].componentIdx,
+            graphD.activeChildren[6].componentIdx,
+            graphE.activeChildren[2].componentIdx,
+            graphE.activeChildren[6].componentIdx,
+            graphF.activeChildren[2].componentIdx,
+            graphF.activeChildren[6].componentIdx,
         ];
 
         let linesB = [
             "/lineB",
             "/lineD",
-            graphB.activeChildren[3].componentName,
-            graphB.activeChildren[7].componentName,
-            graphC.activeChildren[3].componentName,
-            graphC.activeChildren[7].componentName,
-            graphD.activeChildren[3].componentName,
-            graphD.activeChildren[7].componentName,
-            graphE.activeChildren[3].componentName,
-            graphE.activeChildren[7].componentName,
-            graphF.activeChildren[3].componentName,
-            graphF.activeChildren[7].componentName,
+            graphB.activeChildren[3].componentIdx,
+            graphB.activeChildren[7].componentIdx,
+            graphC.activeChildren[3].componentIdx,
+            graphC.activeChildren[7].componentIdx,
+            graphD.activeChildren[3].componentIdx,
+            graphD.activeChildren[7].componentIdx,
+            graphE.activeChildren[3].componentIdx,
+            graphE.activeChildren[7].componentIdx,
+            graphF.activeChildren[3].componentIdx,
+            graphF.activeChildren[7].componentIdx,
         ];
 
         async function check_items({
@@ -683,176 +683,176 @@ describe("Graph Reference Test", async () => {
         let graph1A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[0].componentName
-                ].activeChildren[0].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[0].componentIdx
+                ].activeChildren[0].componentIdx
             ];
         let graph2A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[0].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[0].componentIdx
+                ].activeChildren[1].componentIdx
             ];
         let graph3A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[0].componentName
-                ].activeChildren[2].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[0].componentIdx
+                ].activeChildren[2].componentIdx
             ];
         let graph4A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[0].componentName
-                ].activeChildren[3].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[0].componentIdx
+                ].activeChildren[3].componentIdx
             ];
         let graph5A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[1].componentName
-                ].activeChildren[0].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[1].componentIdx
+                ].activeChildren[0].componentIdx
             ];
         let graph6A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[1].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[1].componentIdx
+                ].activeChildren[1].componentIdx
             ];
         let graph7A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[1].componentName
-                ].activeChildren[2].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[1].componentIdx
+                ].activeChildren[2].componentIdx
             ];
         let graph8A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[1].componentName
-                ].activeChildren[3].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[1].componentIdx
+                ].activeChildren[3].componentIdx
             ];
         let graph9A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[2].componentName
-                ].activeChildren[0].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[2].componentIdx
+                ].activeChildren[0].componentIdx
             ];
         let graph10A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[2].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[2].componentIdx
+                ].activeChildren[1].componentIdx
             ];
         let graph11A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[2].componentName
-                ].activeChildren[2].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[2].componentIdx
+                ].activeChildren[2].componentIdx
             ];
         let graph12A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[2].componentName
-                ].activeChildren[3].componentName
+                    stateVariables["/sbsgroup2"].activeChildren[2].componentIdx
+                ].activeChildren[3].componentIdx
             ];
 
         let vectors = [
-            graph1.activeChildren[0].componentName,
-            graph2.activeChildren[3].componentName,
-            graph4.activeChildren[3].componentName,
-            graph5.activeChildren[0].componentName,
-            graph6.activeChildren[3].componentName,
-            graph8.activeChildren[3].componentName,
-            graph9.activeChildren[0].componentName,
-            graph10.activeChildren[3].componentName,
-            graph12.activeChildren[3].componentName,
-            graph1A.activeChildren[0].componentName,
-            graph2A.activeChildren[3].componentName,
-            graph4A.activeChildren[3].componentName,
-            graph5A.activeChildren[0].componentName,
-            graph6A.activeChildren[3].componentName,
-            graph8A.activeChildren[3].componentName,
-            graph9A.activeChildren[0].componentName,
-            graph10A.activeChildren[3].componentName,
-            graph12A.activeChildren[3].componentName,
+            graph1.activeChildren[0].componentIdx,
+            graph2.activeChildren[3].componentIdx,
+            graph4.activeChildren[3].componentIdx,
+            graph5.activeChildren[0].componentIdx,
+            graph6.activeChildren[3].componentIdx,
+            graph8.activeChildren[3].componentIdx,
+            graph9.activeChildren[0].componentIdx,
+            graph10.activeChildren[3].componentIdx,
+            graph12.activeChildren[3].componentIdx,
+            graph1A.activeChildren[0].componentIdx,
+            graph2A.activeChildren[3].componentIdx,
+            graph4A.activeChildren[3].componentIdx,
+            graph5A.activeChildren[0].componentIdx,
+            graph6A.activeChildren[3].componentIdx,
+            graph8A.activeChildren[3].componentIdx,
+            graph9A.activeChildren[0].componentIdx,
+            graph10A.activeChildren[3].componentIdx,
+            graph12A.activeChildren[3].componentIdx,
         ];
 
         let displacementsA = [
-            graph2.activeChildren[2].componentName,
-            graph3.activeChildren[3].componentName,
-            graph6.activeChildren[2].componentName,
-            graph7.activeChildren[3].componentName,
-            graph10.activeChildren[2].componentName,
-            graph11.activeChildren[3].componentName,
-            graph2A.activeChildren[2].componentName,
-            graph3A.activeChildren[3].componentName,
-            graph6A.activeChildren[2].componentName,
-            graph7A.activeChildren[3].componentName,
-            graph10A.activeChildren[2].componentName,
-            graph11A.activeChildren[3].componentName,
+            graph2.activeChildren[2].componentIdx,
+            graph3.activeChildren[3].componentIdx,
+            graph6.activeChildren[2].componentIdx,
+            graph7.activeChildren[3].componentIdx,
+            graph10.activeChildren[2].componentIdx,
+            graph11.activeChildren[3].componentIdx,
+            graph2A.activeChildren[2].componentIdx,
+            graph3A.activeChildren[3].componentIdx,
+            graph6A.activeChildren[2].componentIdx,
+            graph7A.activeChildren[3].componentIdx,
+            graph10A.activeChildren[2].componentIdx,
+            graph11A.activeChildren[3].componentIdx,
         ];
 
         let displacementsB = [
-            graph3.activeChildren[2].componentName,
-            graph7.activeChildren[2].componentName,
-            graph11.activeChildren[2].componentName,
-            graph3A.activeChildren[2].componentName,
-            graph7A.activeChildren[2].componentName,
-            graph11A.activeChildren[2].componentName,
+            graph3.activeChildren[2].componentIdx,
+            graph7.activeChildren[2].componentIdx,
+            graph11.activeChildren[2].componentIdx,
+            graph3A.activeChildren[2].componentIdx,
+            graph7A.activeChildren[2].componentIdx,
+            graph11A.activeChildren[2].componentIdx,
         ];
 
         let displacementsC = [
-            graph4.activeChildren[2].componentName,
-            graph8.activeChildren[2].componentName,
-            graph12.activeChildren[2].componentName,
-            graph4A.activeChildren[2].componentName,
-            graph8A.activeChildren[2].componentName,
-            graph12A.activeChildren[2].componentName,
+            graph4.activeChildren[2].componentIdx,
+            graph8.activeChildren[2].componentIdx,
+            graph12.activeChildren[2].componentIdx,
+            graph4A.activeChildren[2].componentIdx,
+            graph8A.activeChildren[2].componentIdx,
+            graph12A.activeChildren[2].componentIdx,
         ];
 
         let tails = [
-            graph2.activeChildren[0].componentName,
-            graph4.activeChildren[0].componentName,
-            graph6.activeChildren[0].componentName,
-            graph8.activeChildren[0].componentName,
-            graph10.activeChildren[0].componentName,
-            graph12.activeChildren[0].componentName,
-            graph2A.activeChildren[0].componentName,
-            graph4A.activeChildren[0].componentName,
-            graph6A.activeChildren[0].componentName,
-            graph8A.activeChildren[0].componentName,
-            graph10A.activeChildren[0].componentName,
-            graph12A.activeChildren[0].componentName,
+            graph2.activeChildren[0].componentIdx,
+            graph4.activeChildren[0].componentIdx,
+            graph6.activeChildren[0].componentIdx,
+            graph8.activeChildren[0].componentIdx,
+            graph10.activeChildren[0].componentIdx,
+            graph12.activeChildren[0].componentIdx,
+            graph2A.activeChildren[0].componentIdx,
+            graph4A.activeChildren[0].componentIdx,
+            graph6A.activeChildren[0].componentIdx,
+            graph8A.activeChildren[0].componentIdx,
+            graph10A.activeChildren[0].componentIdx,
+            graph12A.activeChildren[0].componentIdx,
         ];
 
         let heads = [
-            graph2.activeChildren[1].componentName,
-            graph4.activeChildren[1].componentName,
-            graph6.activeChildren[1].componentName,
-            graph8.activeChildren[1].componentName,
-            graph10.activeChildren[1].componentName,
-            graph12.activeChildren[1].componentName,
-            graph2A.activeChildren[1].componentName,
-            graph4A.activeChildren[1].componentName,
-            graph6A.activeChildren[1].componentName,
-            graph8A.activeChildren[1].componentName,
-            graph10A.activeChildren[1].componentName,
-            graph12A.activeChildren[1].componentName,
+            graph2.activeChildren[1].componentIdx,
+            graph4.activeChildren[1].componentIdx,
+            graph6.activeChildren[1].componentIdx,
+            graph8.activeChildren[1].componentIdx,
+            graph10.activeChildren[1].componentIdx,
+            graph12.activeChildren[1].componentIdx,
+            graph2A.activeChildren[1].componentIdx,
+            graph4A.activeChildren[1].componentIdx,
+            graph6A.activeChildren[1].componentIdx,
+            graph8A.activeChildren[1].componentIdx,
+            graph10A.activeChildren[1].componentIdx,
+            graph12A.activeChildren[1].componentIdx,
         ];
 
         let displacementTails = [
-            graph3.activeChildren[0].componentName,
-            graph7.activeChildren[0].componentName,
-            graph11.activeChildren[0].componentName,
-            graph3A.activeChildren[0].componentName,
-            graph7A.activeChildren[0].componentName,
-            graph11A.activeChildren[0].componentName,
+            graph3.activeChildren[0].componentIdx,
+            graph7.activeChildren[0].componentIdx,
+            graph11.activeChildren[0].componentIdx,
+            graph3A.activeChildren[0].componentIdx,
+            graph7A.activeChildren[0].componentIdx,
+            graph11A.activeChildren[0].componentIdx,
         ];
 
         let displacementHeads = [
-            graph3.activeChildren[1].componentName,
-            graph7.activeChildren[1].componentName,
-            graph11.activeChildren[1].componentName,
-            graph3A.activeChildren[1].componentName,
-            graph7A.activeChildren[1].componentName,
-            graph11A.activeChildren[1].componentName,
+            graph3.activeChildren[1].componentIdx,
+            graph7.activeChildren[1].componentIdx,
+            graph11.activeChildren[1].componentIdx,
+            graph3A.activeChildren[1].componentIdx,
+            graph7A.activeChildren[1].componentIdx,
+            graph11A.activeChildren[1].componentIdx,
         ];
 
         async function check_items({

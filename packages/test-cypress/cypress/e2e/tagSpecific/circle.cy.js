@@ -54,7 +54,7 @@ describe("Circle Tag Tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "moveCircle",
-                componentName: "/circ",
+                componentIdx: "/circ",
                 args: { center: [-7, 2] },
             });
 

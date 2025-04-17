@@ -36,12 +36,12 @@ export function getUniqueIdentifierFromBase(
     return uniqueIdentifier;
 }
 
-export function getNamespaceFromName(componentName: string) {
-    let lastSlash = componentName.lastIndexOf("/");
+export function getNamespaceFromName(componentIdx: string) {
+    let lastSlash = componentIdx.lastIndexOf("/");
     if (lastSlash === -1) {
         throw Error(
-            `Encountered name ${componentName} that doesn't include a slash`,
+            `Encountered name ${componentIdx} that doesn't include a slash`,
         );
     }
-    return componentName.slice(0, lastSlash + 1);
+    return componentIdx.slice(0, lastSlash + 1);
 }

@@ -40,7 +40,7 @@ export class MatrixInput extends Input {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor !== null) {
                     return {
-                        componentName: answerAncestor.componentName,
+                        componentIdx: answerAncestor.componentIdx,
                         actionName: "submitAnswer",
                     };
                 } else {
@@ -2842,7 +2842,7 @@ export class MatrixInput extends Input {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "numRows",
                         value: numRows,
                     },
@@ -2865,7 +2865,7 @@ export class MatrixInput extends Input {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "numColumns",
                         value: numColumns,
                     },
@@ -3620,7 +3620,7 @@ export default class MatrixComponentInput extends BaseComponent {
                 },
             }),
             definition({ dependencyValues, essentialValues }) {
-                // console.log(`definition of raw value for ${componentName}`)
+                // console.log(`definition of raw value for ${componentIdx}`)
                 // console.log(dependencyValues, essentialValues)
 
                 // use deepCompare of trees rather than equalsViaSyntax
@@ -3664,7 +3664,7 @@ export default class MatrixComponentInput extends BaseComponent {
                 stateValues,
                 essentialValues,
             }) {
-                // console.log(`inverse definition of rawRenderer value for ${componentName}`, desiredStateVariableValues, essentialValues)
+                // console.log(`inverse definition of rawRenderer value for ${componentIdx}`, desiredStateVariableValues, essentialValues)
 
                 const calculateMathExpressionFromLatex = async (text) => {
                     let expression;
@@ -3787,13 +3787,13 @@ export default class MatrixComponentInput extends BaseComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "rawRendererValue",
                         value: rawRendererValue,
                     },
                     {
                         updateType: "setComponentNeedingUpdateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                     },
                 ],
                 actionId,
@@ -3820,7 +3820,7 @@ export default class MatrixComponentInput extends BaseComponent {
                 let updateInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "value",
                         value: immediateValue,
                     },
@@ -3832,7 +3832,7 @@ export default class MatrixComponentInput extends BaseComponent {
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "immediateValue",
                         valueOfStateVariable: "value",
                     },
@@ -3844,7 +3844,7 @@ export default class MatrixComponentInput extends BaseComponent {
                 if (immediateValue.tree !== "\uff3f") {
                     updateInstructions.push({
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "rawRendererValue",
                         valueOfStateVariable: "valueForDisplay",
                     });
@@ -3853,7 +3853,7 @@ export default class MatrixComponentInput extends BaseComponent {
                 let event = {
                     verb: "answered",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -3865,7 +3865,7 @@ export default class MatrixComponentInput extends BaseComponent {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor) {
                     event.context = {
-                        answerAncestor: answerAncestor.componentName,
+                        answerAncestor: answerAncestor.componentIdx,
                     };
                 }
 
@@ -3878,7 +3878,7 @@ export default class MatrixComponentInput extends BaseComponent {
                 });
 
                 return await this.coreFunctions.triggerChainedActions({
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -3891,7 +3891,7 @@ export default class MatrixComponentInput extends BaseComponent {
                     updateInstructions: [
                         {
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "rawRendererValue",
                             valueOfStateVariable: "rawRendererValue",
                         },

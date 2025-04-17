@@ -220,7 +220,7 @@ export default function MathInput(props) {
 
     updateValidationState();
 
-    // const inputKey = this.componentName + '_input';
+    // const inputKey = this.componentIdx + '_input';
 
     let checkWorkStyle = {
         cursor: "pointer",

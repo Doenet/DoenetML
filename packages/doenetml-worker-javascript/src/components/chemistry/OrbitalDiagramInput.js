@@ -269,7 +269,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "rows",
                 value: newRows,
             },
@@ -280,7 +280,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         if (selectedRowIndex0 !== -1) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "selectedRowIndex",
                 value: 0,
             });
@@ -291,7 +291,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         if (selectedBoxIndex0 !== -1) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "selectedBoxIndex",
                 value: 0,
             });
@@ -305,7 +305,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -336,19 +336,19 @@ export default class OrbitalDiagramInput extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "rows",
                     value: newRows,
                 },
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "selectedRowIndex",
                     value: 0,
                 },
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "selectedBoxIndex",
                     value: 0,
                 },
@@ -359,7 +359,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -391,7 +391,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "rows",
                 value: newRows,
             },
@@ -404,7 +404,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             let newIndex = 0;
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "selectedBoxIndex",
                 value: newIndex,
             });
@@ -418,7 +418,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -452,7 +452,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "rows",
                 value: newRows,
             },
@@ -462,7 +462,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         if (selectedBoxIndex0 !== -1) {
             updateInstructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "selectedBoxIndex",
                 value: 0,
             });
@@ -476,7 +476,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -515,7 +515,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "rows",
                 value: newRows,
             },
@@ -529,7 +529,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -568,7 +568,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "rows",
                 value: newRows,
             },
@@ -582,7 +582,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -622,7 +622,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "rows",
                 value: newRows,
             },
@@ -636,7 +636,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -666,7 +666,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "rows",
                 value: newRows,
             },
@@ -680,7 +680,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -700,7 +700,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "selectedRowIndex",
                     value: index,
                 },
@@ -711,7 +711,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -731,7 +731,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "selectedBoxIndex",
                     value: index,
                 },
@@ -742,7 +742,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
             event: {
                 verb: "interacted",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -756,7 +756,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

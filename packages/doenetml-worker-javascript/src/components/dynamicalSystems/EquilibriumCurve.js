@@ -69,7 +69,7 @@ export default class EquilibriumCurve extends Curve {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "stable",
                         value: !this.stateValues.stable,
                     },
@@ -80,7 +80,7 @@ export default class EquilibriumCurve extends Curve {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
