@@ -685,7 +685,7 @@ export default class Select extends CompositeComponent {
                     selectedChild.doenetAttributes,
                 ),
                 children: serializedGrandchildren,
-                originalName: selectedChildName,
+                originalIdx: selectedChildName,
             };
 
             replacements.push(serializedChild);

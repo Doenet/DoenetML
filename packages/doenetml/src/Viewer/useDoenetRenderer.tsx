@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { atomFamily, useRecoilValue, useSetRecoilState } from "recoil";
 // import { serializedComponentsReviver } from '@doenet/utils';
 import { renderersLoadComponent } from "./DocViewer";
-import { cesc } from "@doenet/utils";
 
 export const rendererState = atomFamily<
     {
@@ -126,7 +125,7 @@ export default function useDoenetRenderer(
 
     return {
         name: effectiveName,
-        id: prefixForIds + cesc(effectiveName),
+        id: prefixForIds + effectiveName,
         SVs: stateValues,
         docId: props.docId,
         activityId: props.activityId,

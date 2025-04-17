@@ -147,7 +147,7 @@ export default class Map extends CompositeComponent {
                     componentType: "template",
                     state: { rendered: true },
                     children: childrenOfTemplate,
-                    originalName: templateChild.componentIdx,
+                    originalIdx: templateChild.componentIdx,
                     attributes: {},
                 };
                 if (templateChild.stateValues.asList) {

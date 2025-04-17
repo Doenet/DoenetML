@@ -307,7 +307,7 @@ export function removeBlankStringChildren(
         }
 
         // TODO: do we also need to remove blank string components
-        // from childrenForComponent of an attribute that is not yet a component?
+        // from childrenForFutureComponent of an attribute that is not yet a component?
         for (let attrName in component.attributes) {
             let comp = component.attributes[attrName].component;
             if (comp?.children) {
@@ -1538,7 +1538,7 @@ export function componentFromAttribute({
                 state: { value: valueTrimLower === "true" },
             };
         } else {
-            let children = value.childrenForComponent;
+            let children = value.childrenForFutureComponent;
             if (children) {
                 children = JSON.parse(JSON.stringify(children));
             } else {
@@ -1661,9 +1661,9 @@ export function componentFromAttribute({
             warnings,
         };
     } else {
-        if (!value.childrenForComponent) {
+        if (!value.childrenForFutureComponent) {
             if (value.rawString !== undefined) {
-                value.childrenForComponent = [value.rawString];
+                value.childrenForFutureComponent = [value.rawString];
             }
         }
         return { attribute: value, errors, warnings };
@@ -1732,9 +1732,9 @@ export function applyMacros(
                     );
                     errors.push(...res.errors);
                     warnings.push(...res.warnings);
-                } else if (attribute.childrenForComponent) {
+                } else if (attribute.childrenForFutureComponent) {
                     let res = applyMacros(
-                        attribute.childrenForComponent,
+                        attribute.childrenForFutureComponent,
                         componentInfoObjects,
                         startDoenetMLIndForAttr,
                     );
@@ -2746,8 +2746,10 @@ function decodeXMLEntities(serializedComponents) {
                             );
                         }
                     } else {
-                        if (attribute.childrenForComponent) {
-                            decodeXMLEntities(attribute.childrenForComponent);
+                        if (attribute.childrenForFutureComponent) {
+                            decodeXMLEntities(
+                                attribute.childrenForFutureComponent,
+                            );
                         }
                         if (attribute.rawString) {
                             attribute.rawString = replaceEntities(

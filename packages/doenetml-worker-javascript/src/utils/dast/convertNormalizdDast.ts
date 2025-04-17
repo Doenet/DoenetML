@@ -19,6 +19,7 @@ import {
 import { convertToSerializedErrorComponent } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
+import { convertRefsToCopies } from "./convertToCopy";
 
 /**
  * Transform the normalized dast into the serialized components used
@@ -131,10 +132,20 @@ export async function normalizedDastToSerializedComponents(
     warnings.push(...sugarResult.warnings);
     nComponents = sugarResult.nComponents;
 
-    console.log("after sugar", sugarResult.components, nComponents);
+    const convertToCopyResult = convertRefsToCopies({
+        serializedComponents: sugarResult.components,
+        nComponents,
+    });
+    nComponents = convertToCopyResult.nComponents;
+
+    console.log(
+        "after create copies",
+        convertToCopyResult.components,
+        nComponents,
+    );
 
     return {
-        document: sugarResult.components[0] as SerializedComponent,
+        document: convertToCopyResult.components[0] as SerializedComponent,
         errors,
         warnings,
     };
@@ -216,6 +227,7 @@ export function expandUnflattenedToSerializedComponents({
                 type: "serialized",
                 children: [],
                 attributes,
+                doenetAttributes: {},
             };
         } catch (e) {
             const convertResult = convertToSerializedErrorComponent(

@@ -1306,7 +1306,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = blockerCode.split("|");
+                            ] =
+                                typeof blockerCode === "string"
+                                    ? blockerCode.split("|")
+                                    : [blockerCode];
                             this.deleteFromResolveBlockedBy({
                                 blockerComponentIdx,
                                 blockerType,
@@ -1327,7 +1330,10 @@ export class DependencyHandler {
                                     blockerComponentIdx,
                                     blockerStateVariable,
                                     blockerDependency,
-                                ] = code.split("|");
+                                ] =
+                                    typeof code === "string"
+                                        ? code.split("|")
+                                        : [code];
                                 this.deleteFromResolveBlockedBy({
                                     blockerComponentIdx,
                                     blockerType,
@@ -1352,7 +1358,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
                             this.deleteFromResolveBlockedBy({
                                 blockerComponentIdx,
                                 blockerType: type,
@@ -1558,7 +1567,11 @@ export class DependencyHandler {
                                 componentIdxBlocked,
                                 stateVariableBlocked,
                                 dependencyBlocked,
-                            ] = codeBlocked.split("|");
+                            ] =
+                                typeof codeBlocked === "string"
+                                    ? codeBlocked.split("|")
+                                    : [codeBlocked];
+
                             this.deleteFromNeededToResolve({
                                 componentIdxBlocked,
                                 typeBlocked,
@@ -1577,7 +1590,10 @@ export class DependencyHandler {
                                     componentIdxBlocked,
                                     stateVariableBlocked,
                                     dependencyBlocked,
-                                ] = code.split("|");
+                                ] =
+                                    typeof code === "string"
+                                        ? code.split("|")
+                                        : [code];
                                 this.deleteFromNeededToResolve({
                                     componentIdxBlocked,
                                     typeBlocked,
@@ -1604,7 +1620,10 @@ export class DependencyHandler {
                                 componentIdxBlocked,
                                 stateVariableBlocked,
                                 dependencyBlocked,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
                             this.deleteFromNeededToResolve({
                                 componentIdxBlocked,
                                 typeBlocked: type,
@@ -1934,7 +1953,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
 
                             if (
                                 this.checkIfHaveNeededToResolve({
@@ -2071,7 +2093,8 @@ export class DependencyHandler {
                 });
 
                 if (recurseUpstream) {
-                    let [cName, vName, depName] = code.split("|");
+                    let [cName, vName, depName] =
+                        typeof code === "string" ? code.split("|") : [code];
 
                     await this.resolveIfReady({
                         componentIdx: cName,
@@ -2122,7 +2145,10 @@ export class DependencyHandler {
                             blockerComponentIdx,
                             blockerStateVariable,
                             blockerDependency,
-                        ] = blockerCode.split("|");
+                        ] =
+                            typeof blockerCode === "string"
+                                ? blockerCode.split("|")
+                                : [blockerCode];
 
                         await this.resolveIfReady({
                             componentIdx: blockerComponentIdx,
@@ -2233,7 +2259,10 @@ export class DependencyHandler {
                     blockerComponentIdx,
                     blockerStateVariable,
                     blockerDependency,
-                ] = blockerCode.split("|");
+                ] =
+                    typeof blockerCode === "string"
+                        ? blockerCode.split("|")
+                        : [blockerCode];
 
                 let result = await this.resolveItem({
                     componentIdx: blockerComponentIdx,
@@ -2296,7 +2325,7 @@ export class DependencyHandler {
                         blockerComponentIdx,
                         blockerStateVariable,
                         blockerDependency,
-                    ] = code.split("|");
+                    ] = typeof code === "string" ? code.split("|") : [code];
 
                     let result = await this.resolveItem({
                         componentIdx: blockerComponentIdx,
@@ -2346,7 +2375,7 @@ export class DependencyHandler {
                             blockerComponentIdx,
                             blockerStateVariable,
                             blockerDependency,
-                        ] = code.split("|");
+                        ] = typeof code === "string" ? code.split("|") : [code];
 
                         let result = await this.resolveItem({
                             componentIdx: blockerComponentIdx,
@@ -2475,7 +2504,10 @@ export class DependencyHandler {
                         blockerComponentIdx,
                         blockerStateVariable,
                         blockerDependency,
-                    ] = blockerCode.split("|");
+                    ] =
+                        typeof blockerCode === "string"
+                            ? blockerCode.split("|")
+                            : [blockerCode];
 
                     this.checkForCircularResolveBlocker({
                         componentIdx: blockerComponentIdx,
@@ -2614,7 +2646,10 @@ export class DependencyHandler {
                         componentIdxBlocked,
                         stateVariableBlocked,
                         dependencyBlocked,
-                    ] = codeBlocked.split("|");
+                    ] =
+                        typeof codeBlocked === "string"
+                            ? codeBlocked.split("|")
+                            : [codeBlocked];
 
                     this.resetCircularResolveBlockerCheckPassed({
                         componentIdx: componentIdxBlocked,

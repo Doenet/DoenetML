@@ -130,15 +130,15 @@ export default class Copy extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.target = {
+        stateVariableDefinitions.extendIdx = {
             returnDependencies: () => ({
-                target: {
+                extendIdx: {
                     dependencyType: "doenetAttribute",
-                    attributeName: "target",
+                    attributeName: "extendIdx",
                 },
             }),
             definition: ({ dependencyValues }) => ({
-                setValue: { target: dependencyValues.target },
+                setValue: { extendIdx: dependencyValues.extendIdx },
             }),
         };
 
@@ -150,7 +150,7 @@ export default class Copy extends CompositeComponent {
                     shadowVariable: true,
                 },
             ],
-            stateVariablesDeterminingDependencies: ["target"],
+            stateVariablesDeterminingDependencies: ["extendIdx"],
             determineDependenciesImmediately: true,
             hasEssential: true,
             shadowVariable: true,
@@ -160,7 +160,7 @@ export default class Copy extends CompositeComponent {
                     return {};
                 }
 
-                let theMapping = sourceNameMappings[stateValues.target];
+                let theMapping = sourceNameMappings[stateValues.extendIdx];
                 if (!theMapping) {
                     return {};
                 }
@@ -216,7 +216,7 @@ export default class Copy extends CompositeComponent {
         };
 
         stateVariableDefinitions.sourceIndex = {
-            stateVariablesDeterminingDependencies: ["target"],
+            stateVariablesDeterminingDependencies: ["extendIdx"],
             determineDependenciesImmediately: true,
             hasEssential: true,
             shadowVariable: true,
@@ -226,7 +226,7 @@ export default class Copy extends CompositeComponent {
                     return {};
                 }
 
-                let theMapping = sourceIndexMappings[stateValues.target];
+                let theMapping = sourceIndexMappings[stateValues.extendIdx];
                 if (theMapping === undefined) {
                     return {};
                 }
@@ -250,11 +250,12 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.targetComponent = {
+        stateVariableDefinitions.extendedComponent = {
             shadowVariable: true,
             stateVariablesDeterminingDependencies: [
                 "targetSources",
                 "sourceIndex",
+                "extendIdx",
             ],
             determineDependenciesImmediately: true,
             returnDependencies({ stateValues }) {
@@ -278,40 +279,41 @@ export default class Copy extends CompositeComponent {
                 }
 
                 return {
-                    targetComponent: {
-                        dependencyType: "targetComponent",
+                    extendedComponent: {
+                        dependencyType: "componentIdentity",
+                        componentIdx: stateValues.extendIdx,
                     },
                 };
             },
             definition: function ({ dependencyValues }) {
-                let targetComponent = null;
+                let extendedComponent = null;
                 if (dependencyValues.targetSourcesChildren) {
-                    targetComponent =
+                    extendedComponent =
                         dependencyValues.targetSourcesChildren[
                             dependencyValues.sourcesChildNumber
                         ];
-                    if (!targetComponent) {
-                        targetComponent = null;
+                    if (!extendedComponent) {
+                        extendedComponent = null;
                     }
-                } else if (dependencyValues.targetComponent) {
-                    targetComponent = dependencyValues.targetComponent;
+                } else if (dependencyValues.extendedComponent) {
+                    extendedComponent = dependencyValues.extendedComponent;
                 }
 
                 return {
-                    setValue: { targetComponent },
+                    setValue: { extendedComponent },
                 };
             },
         };
 
         stateVariableDefinitions.targetInactive = {
-            stateVariablesDeterminingDependencies: ["targetComponent"],
+            stateVariablesDeterminingDependencies: ["extendedComponent"],
             returnDependencies({ stateValues }) {
-                if (stateValues.targetComponent) {
+                if (stateValues.extendedComponent) {
                     return {
                         targetIsInactiveCompositeReplacement: {
                             dependencyType: "stateVariable",
                             componentIdx:
-                                stateValues.targetComponent.componentIdx,
+                                stateValues.extendedComponent.componentIdx,
                             variableName: "isInactiveCompositeReplacement",
                         },
                     };
@@ -431,7 +433,7 @@ export default class Copy extends CompositeComponent {
 
         stateVariableDefinitions.replacementSourceIdentities = {
             stateVariablesDeterminingDependencies: [
-                "targetComponent",
+                "extendedComponent",
                 "componentIndex",
                 "propName",
                 "targetSubnames",
@@ -449,14 +451,15 @@ export default class Copy extends CompositeComponent {
                 let addLevelToAssignNames = false;
                 let useReplacements = false;
 
-                if (stateValues.targetComponent !== null) {
+                if (stateValues.extendedComponent !== null) {
                     if (
-                        stateValues.targetComponent.componentType === "copy" ||
-                        stateValues.targetComponent.componentType ===
+                        stateValues.extendedComponent.componentType ===
+                            "copy" ||
+                        stateValues.extendedComponent.componentType ===
                             "extract" ||
                         (componentInfoObjects.isCompositeComponent({
                             componentType:
-                                stateValues.targetComponent.componentType,
+                                stateValues.extendedComponent.componentType,
                             includeNonStandard: true,
                         }) &&
                             (stateValues.componentIndex !== null ||
@@ -491,7 +494,7 @@ export default class Copy extends CompositeComponent {
                             dependencies.targets = {
                                 dependencyType: "replacement",
                                 compositeIdx:
-                                    stateValues.targetComponent.componentIdx,
+                                    stateValues.extendedComponent.componentIdx,
                                 recursive: true,
                                 componentIndex: stateValues.componentIndex,
                                 targetSubnames: stateValues.targetSubnames,
@@ -510,7 +513,7 @@ export default class Copy extends CompositeComponent {
                         // if we don't have a composite, componentIndex can only match if it is 1
                         dependencies.targets = {
                             dependencyType: "stateVariable",
-                            variableName: "targetComponent",
+                            variableName: "extendedComponent",
                         };
                     }
                 }
@@ -881,21 +884,25 @@ export default class Copy extends CompositeComponent {
         };
 
         stateVariableDefinitions.unlinkedTargetsExpanded = {
-            stateVariablesDeterminingDependencies: ["targetComponent", "link"],
+            stateVariablesDeterminingDependencies: [
+                "extendedComponent",
+                "link",
+            ],
             returnDependencies({ stateValues, componentInfoObjects }) {
                 let dependencies = {};
                 if (
                     !stateValues.link &&
-                    stateValues.targetComponent &&
+                    stateValues.extendedComponent &&
                     componentInfoObjects.isInheritedComponentType({
                         inheritedComponentType:
-                            stateValues.targetComponent.componentType,
+                            stateValues.extendedComponent.componentType,
                         baseComponentType: "_composite",
                     })
                 ) {
                     dependencies.targetReplacements = {
                         dependencyType: "replacement",
-                        compositeIdx: stateValues.targetComponent.componentIdx,
+                        compositeIdx:
+                            stateValues.extendedComponent.componentIdx,
                         recursive: true,
                         recurseNonStandardComposites: true,
                     };
@@ -909,16 +916,16 @@ export default class Copy extends CompositeComponent {
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             stateVariablesDeterminingDependencies: [
-                "targetComponent",
+                "extendedComponent",
                 "propName",
                 "obtainPropFromComposite",
                 "link",
             ],
             returnDependencies({ stateValues, componentInfoObjects }) {
                 let dependencies = {
-                    targetComponent: {
+                    extendedComponent: {
                         dependencyType: "stateVariable",
-                        variableName: "targetComponent",
+                        variableName: "extendedComponent",
                     },
                     needsReplacementsUpdatedWhenStale: {
                         dependencyType: "stateVariable",
@@ -946,10 +953,10 @@ export default class Copy extends CompositeComponent {
                     },
                 };
                 if (
-                    stateValues.targetComponent &&
+                    stateValues.extendedComponent &&
                     componentInfoObjects.isCompositeComponent({
                         componentType:
-                            stateValues.targetComponent.componentType,
+                            stateValues.extendedComponent.componentType,
                         includeNonStandard: false,
                     }) &&
                     !(
@@ -959,7 +966,8 @@ export default class Copy extends CompositeComponent {
                 ) {
                     dependencies.targetReadyToExpandWhenResolved = {
                         dependencyType: "stateVariable",
-                        componentIdx: stateValues.targetComponent.componentIdx,
+                        componentIdx:
+                            stateValues.extendedComponent.componentIdx,
                         variableName: "readyToExpandWhenResolved",
                     };
                 }
@@ -982,7 +990,7 @@ export default class Copy extends CompositeComponent {
 
         stateVariableDefinitions.needsReplacementsUpdatedWhenStale = {
             stateVariablesDeterminingDependencies: [
-                "targetComponent",
+                "extendedComponent",
                 "replacementSourceIdentities",
                 "effectivePropNameBySource",
                 "propName",
@@ -1000,9 +1008,9 @@ export default class Copy extends CompositeComponent {
                 }
 
                 let dependencies = {
-                    targetComponent: {
+                    extendedComponent: {
                         dependencyType: "stateVariable",
-                        variableName: "targetComponent",
+                        variableName: "extendedComponent",
                     },
                     targetInactive: {
                         dependencyType: "stateVariable",
@@ -1053,10 +1061,10 @@ export default class Copy extends CompositeComponent {
                 }
 
                 if (
-                    stateValues.targetComponent !== null &&
+                    stateValues.extendedComponent !== null &&
                     componentInfoObjects.isCompositeComponent({
                         componentType:
-                            stateValues.targetComponent.componentType,
+                            stateValues.extendedComponent.componentType,
                         includeNonStandard: false,
                     }) &&
                     !(
@@ -1071,7 +1079,8 @@ export default class Copy extends CompositeComponent {
 
                     dependencies.allReplacementIdentities = {
                         dependencyType: "replacement",
-                        compositeIdx: stateValues.targetComponent.componentIdx,
+                        compositeIdx:
+                            stateValues.extendedComponent.componentIdx,
                         recursive: true,
                         variableNames: ["isInactiveCompositeReplacement"],
                     };
@@ -1137,7 +1146,7 @@ export default class Copy extends CompositeComponent {
     }) {
         // console.log(`create serialized replacements of ${component.componentIdx}`)
 
-        // console.log(await component.stateValues.targetComponent);
+        // console.log(await component.stateValues.extendedComponent);
         // console.log(await component.stateValues.effectivePropNameBySource);
         // console.log(await component.stateValues.replacementSources)
 
@@ -1176,7 +1185,7 @@ export default class Copy extends CompositeComponent {
                 if (replacements[0].componentIdx) {
                     namespace = replacements[0].componentIdx + "/";
                 } else {
-                    namespace = replacements[0].originalName + "/";
+                    namespace = replacements[0].originalIdx + "/";
                 }
 
                 if (component.doenetAttributes.keptNewNamespaceOfLastChild) {
@@ -1217,8 +1226,10 @@ export default class Copy extends CompositeComponent {
                         let attribute = attributesFromComposite[attrName];
                         if (attribute.component) {
                             setTNamesToAbsolute([attribute.component]);
-                        } else if (attribute.childrenForComponent) {
-                            setTNamesToAbsolute(attribute.childrenForComponent);
+                        } else if (attribute.childrenForFutureComponent) {
+                            setTNamesToAbsolute(
+                                attribute.childrenForFutureComponent,
+                            );
                         }
                     }
 
@@ -1242,8 +1253,10 @@ export default class Copy extends CompositeComponent {
                     let attribute = attributesFromComposite[attrName];
                     if (attribute.component) {
                         setTNamesToAbsolute([attribute.component]);
-                    } else if (attribute.childrenForComponent) {
-                        setTNamesToAbsolute(attribute.childrenForComponent);
+                    } else if (attribute.childrenForFutureComponent) {
+                        setTNamesToAbsolute(
+                            attribute.childrenForFutureComponent,
+                        );
                     }
                 }
 
@@ -1361,7 +1374,7 @@ export default class Copy extends CompositeComponent {
         let replacementSourceIdentities =
             await component.stateValues.replacementSourceIdentities;
         if (
-            !(await component.stateValues.targetComponent) ||
+            !(await component.stateValues.extendedComponent) ||
             !replacementSourceIdentities
         ) {
             // no valid target, so no replacements
@@ -1496,14 +1509,14 @@ export default class Copy extends CompositeComponent {
         }
 
         if (!component.doenetAttributes.sourceIsProp) {
-            let targetComponent =
+            let extendedComponent =
                 components[
-                    (await component.stateValues.targetComponent).componentIdx
+                    (await component.stateValues.extendedComponent).componentIdx
                 ];
             let componentIndex = await component.stateValues.componentIndex;
             let targetSubnames = await component.stateValues.targetSubnames;
             if (
-                targetComponent.doenetAttributes.sourceIsProp &&
+                extendedComponent.doenetAttributes.sourceIsProp &&
                 !componentIndex &&
                 !targetSubnames
             ) {
@@ -1512,7 +1525,7 @@ export default class Copy extends CompositeComponent {
                 // when processing serialized state,
                 // we (incorrectly) converted the name to be assignNames so that it applies to the replacement
                 // rather than the copy itself, and then we gave this copy a randomly generated name.
-                // Now that we have identified the targetComponent and see that it has sourceIsProp,
+                // Now that we have identified the extendedComponent and see that it has sourceIsProp,
                 // we implement a workaround of creating an extra copy component
                 // that will act like this copy would have if we didn't convert the name and assignNames.
                 // We add the sourceIsProp doenetAttribute to that copy both to prevent this
@@ -1991,7 +2004,7 @@ export default class Copy extends CompositeComponent {
         let replacementSourceIdentities =
             await component.stateValues.replacementSourceIdentities;
         if (
-            !(await component.stateValues.targetComponent) ||
+            !(await component.stateValues.extendedComponent) ||
             !replacementSourceIdentities
         ) {
             if (await component.stateValues.targetSources) {
@@ -2126,14 +2139,14 @@ export default class Copy extends CompositeComponent {
         }
 
         if (!component.doenetAttributes.sourceIsProp) {
-            let targetComponent =
+            let extendedComponent =
                 components[
-                    (await component.stateValues.targetComponent).componentIdx
+                    (await component.stateValues.extendedComponent).componentIdx
                 ];
             let componentIndex = await component.stateValues.componentIndex;
             let targetSubnames = await component.stateValues.targetSubnames;
             if (
-                targetComponent.doenetAttributes.sourceIsProp &&
+                extendedComponent.doenetAttributes.sourceIsProp &&
                 !componentIndex &&
                 !targetSubnames
             ) {

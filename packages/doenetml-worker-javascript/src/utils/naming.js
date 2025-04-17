@@ -398,10 +398,10 @@ export function createComponentNames({
         }
         if (!prescribedName) {
             if (useOriginalNames) {
-                if (serializedComponent.originalName) {
+                if (serializedComponent.originalIdx) {
                     let lastInd =
-                        serializedComponent.originalName.lastIndexOf("/");
-                    prescribedName = serializedComponent.originalName.substring(
+                        serializedComponent.originalIdx.lastIndexOf("/");
+                    prescribedName = serializedComponent.originalIdx.substring(
                         lastInd + 1,
                     );
                     // } else if (serializedComponent.componentIdx) {
@@ -553,7 +553,7 @@ export function createComponentNames({
 
         if (
             serializedComponent.doenetAttributes.createUniqueAssignNames &&
-            serializedComponent.originalName
+            serializedComponent.originalIdx
         ) {
             let originalAssignNames =
                 serializedComponent.doenetAttributes.assignNames;
@@ -571,14 +571,14 @@ export function createComponentNames({
                 for (let l = 0; l <= level; l++) {
                     namespace += namespaceStack[l].namespace + "/";
                 }
-                let lastInd = serializedComponent.originalName.lastIndexOf("/");
-                oldNamespace = serializedComponent.originalName.slice(
+                let lastInd = serializedComponent.originalIdx.lastIndexOf("/");
+                oldNamespace = serializedComponent.originalIdx.slice(
                     0,
                     lastInd + 1,
                 );
             } else {
                 namespace = componentIdx + "/";
-                oldNamespace = serializedComponent.originalName + "/";
+                oldNamespace = serializedComponent.originalIdx + "/";
             }
 
             let newAssignNames =
@@ -895,12 +895,13 @@ export function createComponentNames({
                     });
                     errors.push(...res.errors);
                     warnings.push(...res.warnings);
-                } else if (attribute.childrenForComponent) {
+                } else if (attribute.childrenForFutureComponent) {
                     // TODO: what to do about parentIdx/parentDoenetAttributes
                     // since parent of these isn't created
                     // Note: the main (only?) to recurse here is to rename targets
                     let res = createComponentNames({
-                        serializedComponents: attribute.childrenForComponent,
+                        serializedComponents:
+                            attribute.childrenForFutureComponent,
                         namespaceStack,
                         componentInfoObjects,
                         parentDoenetAttributes: doenetAttributes,
@@ -961,7 +962,7 @@ function createNewAssignNamesAndrenameMatchingTargetNames({
 
             let infoForRenaming = {
                 componentIdx: namespace + newName,
-                originalName: oldNamespace + originalName,
+                originalIdx: oldNamespace + originalName,
             };
 
             renameMatchingTargetNames(
@@ -1069,12 +1070,12 @@ export function processAssignNames({
     let numComponents = serializedComponents.length;
 
     // Step 1
-    // normalize form so all names are originalNames and not componentNames,
+    // normalize form so all indices are originalIdx and not componentIdx,
     // independent of whether the components originated from a copy
-    // (which would have given originalNames but not componentNames)
-    // or directly from a serialized state that was already given names
-    // (which would have componentNames but not originalNames)
-    moveComponentNamesToOriginalNames(serializedComponents);
+    // (which would have given originalIdx but not componentIdx)
+    // or directly from a serialized state
+    // (which would have componentIdx but not originalIdx)
+    moveComponentIdxToOriginalIdx(serializedComponents);
 
     // Step 2
     // The namespace of a component is the part before the last slash.
@@ -1087,9 +1088,9 @@ export function processAssignNames({
     for (let ind = 0; ind < numComponents; ind++) {
         let component = serializedComponents[ind];
 
-        if (component.originalName) {
-            let lastSlash = component.originalName.lastIndexOf("/");
-            let originalNamespace = component.originalName.substring(
+        if (component.originalIdx) {
+            let lastSlash = component.originalIdx.lastIndexOf("/");
+            let originalNamespace = component.originalIdx.substring(
                 0,
                 lastSlash,
             );
@@ -1160,11 +1161,6 @@ export function processAssignNames({
             }
         }
 
-        // add a new namespace to component if instructed
-        if (assignNewNamespaces) {
-            component.attributes.newNamespace = { primitive: true };
-        }
-
         // If the name is actually an array rather than a name,
         // then it indicates we should use it for assignNames instead,
         // assuming the component actually assigns names to replacement
@@ -1232,7 +1228,7 @@ export function processAssignNames({
             // A name was not specified from assignNames.
             // If assignNamesForCompositeReplacement was specified and have a composite,
             // then use assignNamesForCompositeReplacement for the composite's name.
-            // Else if originalNamesAreConsistent, we'll try to use the component's originalName.
+            // Else if originalNamesAreConsistent, we'll try to use the component's originalIdx.
             // Otherwise, we'll create a unique (unreachable) name
             if (
                 componentInfoObjects.isCompositeComponent({
@@ -1244,11 +1240,11 @@ export function processAssignNames({
                 name = assignNamesForCompositeReplacement;
             } else if (
                 originalNamesAreConsistent &&
-                component.originalName &&
+                component.originalIdx &&
                 !component.doenetAttributes?.createUniqueName
             ) {
-                let lastSlash = component.originalName.lastIndexOf("/");
-                name = component.originalName.slice(lastSlash + 1);
+                let lastSlash = component.originalIdx.lastIndexOf("/");
+                name = component.originalIdx.slice(lastSlash + 1);
             } else {
                 let longNameId =
                     parentIdx + "|assignName|" + indForNames.toString();
@@ -1314,8 +1310,10 @@ export function processAssignNames({
             let attribute = component.attributes[attrName];
             if (attribute.component) {
                 markToCreateAllUniqueNames([attribute.component]);
-            } else if (attribute.childrenForComponent) {
-                markToCreateAllUniqueNames(attribute.childrenForComponent);
+            } else if (attribute.childrenForFutureComponent) {
+                markToCreateAllUniqueNames(
+                    attribute.childrenForFutureComponent,
+                );
             }
         }
 
@@ -1423,11 +1421,11 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                             attributesByTargetComponentName,
                         },
                     );
-                } else if (attribute.childrenForComponent) {
+                } else if (attribute.childrenForFutureComponent) {
                     setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames(
                         {
                             namespace,
-                            components: attribute.childrenForComponent,
+                            components: attribute.childrenForFutureComponent,
                             attributesByTargetComponentName,
                         },
                     );
@@ -1443,17 +1441,17 @@ function renameMatchingTargetNames(
     renameMatchingNamespaces = false,
 ) {
     if (
-        component.originalName &&
+        component.originalIdx &&
         attributesByTargetComponentName &&
-        component.componentIdx !== component.originalName
+        component.componentIdx !== component.originalIdx
     ) {
         // we have a component who has been named and there are other components
         // whose targetComponentIdx refers to this component
         // Modify the target and targetComponentIdx of the other components to refer to the new name
         // (Must modify targetComponentIdx as we don't know if this component has been processed yet)
-        if (attributesByTargetComponentName[component.originalName]) {
+        if (attributesByTargetComponentName[component.originalIdx]) {
             for (let attrObj of attributesByTargetComponentName[
-                component.originalName
+                component.originalIdx
             ]) {
                 if (attrObj.relativeName) {
                     attrObj.relativeName = component.componentIdx;
@@ -1466,7 +1464,7 @@ function renameMatchingTargetNames(
             }
         }
         if (renameMatchingNamespaces) {
-            let originalNamespace = component.originalName + "/";
+            let originalNamespace = component.originalIdx + "/";
             let nSpaceLen = originalNamespace.length;
             for (let originalTargetComponentName in attributesByTargetComponentName) {
                 if (
@@ -1497,23 +1495,23 @@ function renameMatchingTargetNames(
     }
 }
 
-function moveComponentNamesToOriginalNames(components) {
+function moveComponentIdxToOriginalIdx(components) {
     for (let component of components) {
         if (component.componentIdx) {
-            component.originalName = component.componentIdx;
+            component.originalIdx = component.componentIdx;
             delete component.componentIdx;
         }
         if (component.children) {
-            moveComponentNamesToOriginalNames(component.children);
+            moveComponentIdxToOriginalIdx(component.children);
         }
         if (component.attributes) {
             for (let attrName in component.attributes) {
                 let attribute = component.attributes[attrName];
                 if (attribute.component) {
-                    moveComponentNamesToOriginalNames([attribute.component]);
-                } else if (attribute.childrenForComponent) {
-                    moveComponentNamesToOriginalNames(
-                        attribute.childrenForComponent,
+                    moveComponentIdxToOriginalIdx([attribute.component]);
+                } else if (attribute.childrenForFutureComponent) {
+                    moveComponentIdxToOriginalIdx(
+                        attribute.childrenForFutureComponent,
                     );
                 }
             }
@@ -1554,8 +1552,10 @@ export function markToCreateAllUniqueNames(components) {
                 let attribute = component.attributes[attrName];
                 if (attribute.component) {
                     markToCreateAllUniqueNames([attribute.component]);
-                } else if (attribute.childrenForComponent) {
-                    markToCreateAllUniqueNames(attribute.childrenForComponent);
+                } else if (attribute.childrenForFutureComponent) {
+                    markToCreateAllUniqueNames(
+                        attribute.childrenForFutureComponent,
+                    );
                 }
             }
         }
@@ -1580,8 +1580,8 @@ export function setTNamesToAbsolute(components) {
                 let attribute = component.attributes[attrName];
                 if (attribute.component) {
                     setTNamesToAbsolute([attribute.component]);
-                } else if (attribute.childrenForComponent) {
-                    setTNamesToAbsolute(attribute.childrenForComponent);
+                } else if (attribute.childrenForFutureComponent) {
+                    setTNamesToAbsolute(attribute.childrenForFutureComponent);
                 }
             }
         }

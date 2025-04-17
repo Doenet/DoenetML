@@ -201,13 +201,6 @@ export default class Core {
 
         let serializedComponents = [deepClone(this.serializedDocument)];
 
-        let res = createComponentNames({
-            serializedComponents,
-            componentInfoObjects: this.componentInfoObjects,
-        });
-        this.errorWarnings.errors.push(...res.errors);
-        this.errorWarnings.warnings.push(...res.warnings);
-
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
 
@@ -1240,13 +1233,11 @@ export default class Core {
         serializedComponents,
         ancestors,
         shadow = false,
-        createNameContext = "",
     }) {
         let createResult = await this.createIsolatedComponentsSub({
             serializedComponents,
             ancestors,
             shadow,
-            createNameContext,
         });
 
         return {
@@ -1259,7 +1250,6 @@ export default class Core {
         serializedComponents,
         ancestors,
         shadow = false,
-        createNameContext = "",
         componentsReplacementOf,
     }) {
         let newComponents = [];
@@ -1324,10 +1314,12 @@ export default class Core {
 
             let componentIdx = serializedComponent.componentIdx;
             if (componentIdx === undefined) {
-                throw Error(
-                    "Found a serialized component without a componentIdx",
-                    serializedComponent,
-                );
+                // throw Error(
+                //     "Found a serialized component without a componentIdx",
+                //     serializedComponent,
+                // );
+
+                componentIdx = this._components.length;
             }
 
             let createResult = await this.createChildrenThenComponent({
@@ -3281,7 +3273,7 @@ export default class Core {
         shadowedComponentName,
     }) {
         for (let serializedComponent of serializedComponents) {
-            if (serializedComponent.originalName === shadowedComponentName) {
+            if (serializedComponent.originalIdx === shadowedComponentName) {
                 return serializedComponent;
             }
             if (serializedComponent.children) {

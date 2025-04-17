@@ -1329,7 +1329,7 @@ export default class BaseComponent {
             }
         }
 
-        serializedComponent.originalName = this.componentIdx;
+        serializedComponent.originalIdx = this.componentIdx;
         serializedComponent.originalDoenetAttributes = deepClone(
             this.doenetAttributes,
         );
@@ -1338,6 +1338,7 @@ export default class BaseComponent {
             serializedComponent.attributes,
         );
 
+        delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
         delete serializedComponent.doenetAttributes.assignNames;
         delete serializedComponent.doenetAttributes
@@ -1360,7 +1361,7 @@ export default class BaseComponent {
 
         let serializedCopy = {
             componentType: serializedComponent.componentType,
-            originalName: serializedComponent.componentIdx,
+            originalIdx: serializedComponent.componentIdx,
             originalNameFromSerializedComponent: true,
             children: serializedChildren,
             state: {},

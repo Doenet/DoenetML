@@ -33,9 +33,9 @@ export function postProcessCopy({
         }
 
         let uniqueIdentifierBase;
-        if (component.originalName) {
+        if (component.originalIdx) {
             if (unlinkExternalCopies) {
-                componentNamesFound.push(component.originalName);
+                componentNamesFound.push(component.originalIdx);
                 if (
                     component.originalDoenetAttributes &&
                     component.originalDoenetAttributes.assignNames
@@ -60,16 +60,16 @@ export function postProcessCopy({
                 }
             }
 
-            // preserializedNamesFound[component.originalName] = component;
+            // preserializedNamesFound[component.originalIdx] = component;
             uniqueIdentifierBase =
-                identifierPrefix + component.originalName + "|shadow";
+                identifierPrefix + component.originalIdx + "|shadow";
 
             if (!component.originalNameFromSerializedComponent) {
                 // if originalNameFromSerializedComponent, then was copied from a serialized component
                 // so copy cannot shadow anything
                 if (addShadowDependencies) {
                     let downDep = {
-                        [component.originalName]: [
+                        [component.originalIdx]: [
                             {
                                 dependencyType: "referenceShadow",
                                 compositeIdx: componentIdx,
@@ -78,18 +78,18 @@ export function postProcessCopy({
                     };
                     if (init) {
                         downDep[
-                            component.originalName
+                            component.originalIdx
                         ][0].firstLevelReplacement = true;
                     }
                     if (markAsPrimaryShadow) {
-                        downDep[component.originalName][0].isPrimaryShadow =
+                        downDep[component.originalIdx][0].isPrimaryShadow =
                             true;
                     }
 
                     // create downstream dependency
                     component.downstreamDependencies = downDep;
                 } else {
-                    component.unlinkedCopySource = component.originalName;
+                    component.unlinkedCopySource = component.originalIdx;
                 }
             }
         } else {
@@ -707,14 +707,14 @@ export function renameAutonameBasedOnNewCounts(
                 if (serializedComponent.componentIdx) {
                     let lastSlash =
                         serializedComponent.componentIdx.lastIndexOf("/");
-                    let originalName =
+                    let originalIdx =
                         serializedComponent.componentIdx.substring(
                             lastSlash + 1,
                         );
                     let nameStartFromComponentType =
                         "_" + componentType.toLowerCase();
                     if (
-                        originalName.substring(
+                        originalIdx.substring(
                             0,
                             nameStartFromComponentType.length,
                         ) === nameStartFromComponentType
@@ -880,9 +880,9 @@ export function restrictTNamesToNamespace({
                         parentNamespace,
                         invalidateReferencesToBaseNamespace,
                     });
-                } else if (attribute.childrenForComponent) {
+                } else if (attribute.childrenForFutureComponent) {
                     restrictTNamesToNamespace({
-                        components: attribute.childrenForComponent,
+                        components: attribute.childrenForFutureComponent,
                         namespace,
                         parentNamespace,
                         invalidateReferencesToBaseNamespace,

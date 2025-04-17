@@ -31,7 +31,7 @@ export function removeBlankStringChildren(
             );
 
             // TODO: do we also need to remove blank string components
-            // from childrenForComponent of an attribute that is not yet a component?
+            // from childrenForFutureComponent of an attribute that is not yet a component?
             newComponent.attributes = { ...newComponent.attributes };
             for (let attrName in newComponent.attributes) {
                 const attribute = { ...newComponent.attributes[attrName] };
