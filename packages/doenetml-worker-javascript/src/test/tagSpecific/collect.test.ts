@@ -2367,19 +2367,19 @@ describe("Collect tag tests", async () => {
             "Cannot collect components of type <abc> as it is an invalid component type",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(47);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(4);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(4);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(47);
 
         expect(errorWarnings.warnings[1].message).contain(
             "No source found for collect",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(32);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(32);
     });
 
     it("allChildrenOrdered consistent with dynamic collect and adapters", async () => {

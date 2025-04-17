@@ -50,17 +50,17 @@ export default class ErrorComponent extends BlockComponent {
                 createComponentOfType: "text",
             },
             returnDependencies: () => ({
-                doenetMLrange: {
-                    dependencyType: "doenetMLrange",
+                position: {
+                    dependencyType: "position",
                 },
             }),
             definition({ dependencyValues }) {
                 let rangeMessage = "";
 
-                let doenetMLrange = dependencyValues.doenetMLrange;
-                if (doenetMLrange.lineBegin !== undefined) {
+                let position = dependencyValues.position;
+                if (position.lineBegin !== undefined) {
                     rangeMessage =
-                        "Found on " + printDoenetMLrange(doenetMLrange) + ".";
+                        "Found on " + printDoenetMLrange(position) + ".";
                 }
 
                 return { setValue: { rangeMessage } };

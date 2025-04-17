@@ -120,8 +120,8 @@ export default class Spreadsheet extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.cellNameToRowCol = {
-            additionalStateVariablesDefined: ["cellNamesByRowCol"],
+        stateVariableDefinitions.cellIdxToRowCol = {
+            additionalStateVariablesDefined: ["cellIndicesByRowCol"],
             returnDependencies: () => ({
                 cellRelatedChildren: {
                     dependencyType: "child",
@@ -144,8 +144,8 @@ export default class Spreadsheet extends BlockComponent {
 
                 return {
                     setValue: {
-                        cellNameToRowCol: result.cellNameToRowCol,
-                        cellNamesByRowCol: result.cellNamesByRowCol,
+                        cellIdxToRowCol: result.cellIdxToRowCol,
+                        cellIndicesByRowCol: result.cellIndicesByRowCol,
                     },
                 };
             },
@@ -161,9 +161,9 @@ export default class Spreadsheet extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "minNumRows",
                 },
-                cellNamesByRowCol: {
+                cellIndicesByRowCol: {
                     dependencyType: "stateVariable",
-                    variableName: "cellNamesByRowCol",
+                    variableName: "cellIndicesByRowCol",
                 },
                 // rowChildren: {
                 //   dependencyType: "child",
@@ -182,7 +182,7 @@ export default class Spreadsheet extends BlockComponent {
                 }
                 numRows = Math.max(
                     numRows,
-                    dependencyValues.cellNamesByRowCol.length,
+                    dependencyValues.cellIndicesByRowCol.length,
                 );
                 if (dependencyValues.dataFrameChild.length > 0) {
                     numRows = Math.max(
@@ -205,9 +205,9 @@ export default class Spreadsheet extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "minNumColumns",
                 },
-                cellNamesByRowCol: {
+                cellIndicesByRowCol: {
                     dependencyType: "stateVariable",
-                    variableName: "cellNamesByRowCol",
+                    variableName: "cellIndicesByRowCol",
                 },
                 // rowChildren: {
                 //   dependencyType: "child",
@@ -224,7 +224,7 @@ export default class Spreadsheet extends BlockComponent {
                 if (!Number.isFinite(numColumns)) {
                     numColumns = 4;
                 }
-                for (let row of dependencyValues.cellNamesByRowCol) {
+                for (let row of dependencyValues.cellIndicesByRowCol) {
                     if (row) {
                         numColumns = Math.max(numColumns, row.length);
                     }
@@ -318,7 +318,7 @@ export default class Spreadsheet extends BlockComponent {
             defaultValueByArrayKey: () => "",
             hasEssential: true,
             shadowVariable: true,
-            stateVariablesDeterminingDependencies: ["cellNamesByRowCol"],
+            stateVariablesDeterminingDependencies: ["cellIndicesByRowCol"],
             // stateVariablesDeterminingDependencies: ["numRows", "numColumns"],
             returnArraySizeDependencies: () => ({
                 numRows: {
@@ -595,7 +595,7 @@ export default class Spreadsheet extends BlockComponent {
             },
             returnArrayDependenciesByKey({ stateValues, arrayKeys }) {
                 let dependenciesByKey = {};
-                let cnbrc = stateValues.cellNamesByRowCol;
+                let cnbrc = stateValues.cellIndicesByRowCol;
 
                 for (let arrayKey of arrayKeys) {
                     let [rowInd, colInd] = arrayKey.split(",");
@@ -736,7 +736,7 @@ export default class Spreadsheet extends BlockComponent {
                 "evaluatedColumns",
             ],
             numDimensions: 2,
-            stateVariablesDeterminingDependencies: ["cellNamesByRowCol"],
+            stateVariablesDeterminingDependencies: ["cellIndicesByRowCol"],
             returnArraySizeDependencies: () => ({
                 numRows: {
                     dependencyType: "stateVariable",
@@ -1486,8 +1486,8 @@ function determineCellMapping({
     cellRelatedChildren,
     rowOffset = 0,
     colOffset = 0,
-    cellNameToRowCol = {},
-    cellNamesByRowCol = [],
+    cellIdxToRowCol = {},
+    cellIndicesByRowCol = [],
     componentInfoObjects,
 }) {
     var nextCellRowIndex = rowOffset; //CellBlock and Cells
@@ -1528,8 +1528,8 @@ function determineCellMapping({
                 cell,
                 rowIndex,
                 colIndex,
-                cellNameToRowCol,
-                cellNamesByRowCol,
+                cellIdxToRowCol,
+                cellIndicesByRowCol,
             });
 
             maxRowIndex = Math.max(rowIndex, maxRowIndex);
@@ -1563,8 +1563,8 @@ function determineCellMapping({
                     cell,
                     rowIndex,
                     colIndex,
-                    cellNameToRowCol,
-                    cellNamesByRowCol,
+                    cellIdxToRowCol,
+                    cellIndicesByRowCol,
                 });
                 nextColIndex = colIndex + 1;
                 maxRowIndex = Math.max(rowIndex, maxRowIndex);
@@ -1600,8 +1600,8 @@ function determineCellMapping({
                     cell,
                     rowIndex,
                     colIndex,
-                    cellNameToRowCol,
-                    cellNamesByRowCol,
+                    cellIdxToRowCol,
+                    cellIndicesByRowCol,
                 });
                 nextRowIndex = rowIndex + 1;
                 maxRowIndex = Math.max(rowIndex, maxRowIndex);
@@ -1642,8 +1642,8 @@ function determineCellMapping({
                     cellBlock.stateValues.prescribedCellsRowsColumnsBlocks,
                 rowOffset: rowIndex,
                 colOffset: colIndex,
-                cellNameToRowCol,
-                cellNamesByRowCol,
+                cellIdxToRowCol,
+                cellIndicesByRowCol,
                 componentInfoObjects,
             });
             maxRowIndex = Math.max(results.maxRowIndex, maxRowIndex);
@@ -1653,28 +1653,28 @@ function determineCellMapping({
             nextCellColIndexIfBothUndefined = results.maxColIndex + 1;
         }
     }
-    return { maxRowIndex, maxColIndex, cellNameToRowCol, cellNamesByRowCol };
+    return { maxRowIndex, maxColIndex, cellIdxToRowCol, cellIndicesByRowCol };
 }
 
 function addCellToMapping({
     cell,
     rowIndex,
     colIndex,
-    cellNameToRowCol,
-    cellNamesByRowCol,
+    cellIdxToRowCol,
+    cellIndicesByRowCol,
 }) {
-    cellNameToRowCol[cell.componentIdx] = [rowIndex, colIndex];
-    if (cellNamesByRowCol[rowIndex] === undefined) {
-        cellNamesByRowCol[rowIndex] = [];
+    cellIdxToRowCol[cell.componentIdx] = [rowIndex, colIndex];
+    if (cellIndicesByRowCol[rowIndex] === undefined) {
+        cellIndicesByRowCol[rowIndex] = [];
     }
-    if (cellNamesByRowCol[rowIndex][colIndex] !== undefined) {
+    if (cellIndicesByRowCol[rowIndex][colIndex] !== undefined) {
         console.warn(
             `Cell is overwriting previous cell at rowNum=${
                 rowIndex + 1
             }, colNum=${colIndex + 1}`,
         );
-        let previousComponentName = cellNamesByRowCol[rowIndex][colIndex];
-        cellNameToRowCol[previousComponentName] = null;
+        let previousComponentIdx = cellIndicesByRowCol[rowIndex][colIndex];
+        cellIdxToRowCol[previousComponentIdx] = null;
     }
-    cellNamesByRowCol[rowIndex][colIndex] = cell.componentIdx;
+    cellIndicesByRowCol[rowIndex][colIndex] = cell.componentIdx;
 }

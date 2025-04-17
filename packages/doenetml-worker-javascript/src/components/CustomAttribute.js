@@ -31,17 +31,17 @@ export default class CustomAttribute extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.componentNameForAttributes = {
+        stateVariableDefinitions.componentIdxForAttributes = {
             returnDependencies: () => ({
                 parentVariableContainingName: {
                     dependencyType: "parentStateVariable",
-                    variableName: "componentNameForAttributes",
+                    variableName: "componentIdxForAttributes",
                 },
             }),
             definition({ dependencyValues, componentIdx }) {
-                let componentNameForAttributes =
+                let componentIdxForAttributes =
                     dependencyValues.parentVariableContainingName;
-                return { setValue: { componentNameForAttributes } };
+                return { setValue: { componentIdxForAttributes } };
             },
         };
 
@@ -61,12 +61,12 @@ export default class CustomAttribute extends CompositeComponent {
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             stateVariablesDeterminingDependencies: [
-                "componentNameForAttributes",
+                "componentIdxForAttributes",
             ],
             returnDependencies: ({ stateValues }) => ({
                 componentIdentity: {
                     dependencyType: "componentIdentity",
-                    componentIdx: stateValues.componentNameForAttributes,
+                    componentIdx: stateValues.componentIdxForAttributes,
                 },
             }),
             definition() {
@@ -113,7 +113,7 @@ export default class CustomAttribute extends CompositeComponent {
         }
 
         let componentForAttribute =
-            components[await component.stateValues.componentNameForAttributes];
+            components[await component.stateValues.componentIdxForAttributes];
         let attributeLowerCaseMapping = {};
 
         if (!componentForAttribute) {

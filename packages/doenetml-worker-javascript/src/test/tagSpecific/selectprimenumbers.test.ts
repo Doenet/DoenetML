@@ -352,10 +352,10 @@ describe("selectPrimeNumbers tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain("Excluded over 70%");
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(130);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[0].position.charBegin).eq(5);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[0].position.charEnd).eq(130);
     });
 
     it("select 10 prime numbers from the first 10, without replacement, exclude positions of each number", async () => {

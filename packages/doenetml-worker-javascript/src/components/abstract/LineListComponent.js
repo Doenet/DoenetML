@@ -61,7 +61,7 @@ export default class LineListComponent extends BaseComponent {
                 lineChildren: {
                     dependencyType: "child",
                     childGroups: ["lines"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition: function ({ dependencyValues }) {

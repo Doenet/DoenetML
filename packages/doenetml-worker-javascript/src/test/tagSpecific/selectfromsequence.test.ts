@@ -376,10 +376,10 @@ describe("SelectFromSequence tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain("Excluded over 70%");
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(8);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(122);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[0].position.charBegin).eq(8);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[0].position.charEnd).eq(122);
     });
 
     it("select 10 numbers from 1 to 10, without replacement, exclude positions of each number", async () => {
@@ -1400,10 +1400,10 @@ describe("SelectFromSequence tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Cannot select 3 values from a sequence of length 1",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(17);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(65);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[0].position.charBegin).eq(17);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[0].position.charEnd).eq(65);
     });
 
     it("check bugfix for non-constant exclude and unique variants", async () => {

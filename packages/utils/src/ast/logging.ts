@@ -13,21 +13,21 @@ export type DoenetMLRange = {
     attrEnd?: number;
 };
 
-export function printDoenetMLrange(doenetMLrange: DoenetMLRange) {
-    if (doenetMLrange.lineBegin === undefined) {
+export function printDoenetMLrange(position: DoenetMLRange) {
+    if (position.lineBegin === undefined) {
         return "";
-    } else if (doenetMLrange.lineBegin === doenetMLrange.lineEnd) {
-        return `line ${doenetMLrange.lineBegin}`;
+    } else if (position.lineBegin === position.lineEnd) {
+        return `line ${position.lineBegin}`;
     } else {
-        return `lines ${doenetMLrange.lineBegin}–${doenetMLrange.lineEnd}`;
+        return `lines ${position.lineBegin}–${position.lineEnd}`;
     }
 }
 
 export function getLineCharRange(
-    doenetMLrange: DoenetMLRange,
+    position: DoenetMLRange,
     allNewlines: number[],
 ) {
-    let { begin, end } = getBeginEndFromDoenetMLRange(doenetMLrange);
+    let { begin, end } = getBeginEndFromDoenetMLRange(position);
 
     if (begin === undefined || end === undefined) {
         return {};
@@ -45,21 +45,21 @@ export function getLineCharRange(
     return { lineBegin, charBegin, lineEnd, charEnd };
 }
 
-function getBeginEndFromDoenetMLRange(doenetMLrange: DoenetMLRange) {
+function getBeginEndFromDoenetMLRange(position: DoenetMLRange) {
     let begin, end;
-    if (doenetMLrange) {
-        if (doenetMLrange.begin !== undefined) {
-            begin = doenetMLrange.begin;
-            end = doenetMLrange.end;
-        } else if (doenetMLrange.selfCloseBegin !== undefined) {
-            begin = doenetMLrange.selfCloseBegin;
-            end = doenetMLrange.selfCloseEnd;
-        } else if (doenetMLrange.openBegin !== undefined) {
-            begin = doenetMLrange.openBegin;
-            end = doenetMLrange.closeEnd;
+    if (position) {
+        if (position.begin !== undefined) {
+            begin = position.begin;
+            end = position.end;
+        } else if (position.selfCloseBegin !== undefined) {
+            begin = position.selfCloseBegin;
+            end = position.selfCloseEnd;
+        } else if (position.openBegin !== undefined) {
+            begin = position.openBegin;
+            end = position.closeEnd;
         }
-        doenetMLrange.begin = begin;
-        doenetMLrange.end = end;
+        position.begin = begin;
+        position.end = end;
     }
 
     return { begin, end };
@@ -94,22 +94,22 @@ function findLineCharInfo(pos: number, allNewlines: number[]) {
 // Assign doenetMLRange to components or to error/warnings objects
 export function assignDoenetMLRange(
     components: any[],
-    doenetMLrange: DoenetMLRange,
+    position: DoenetMLRange,
     init = true,
 ) {
     for (let comp of components) {
         if (typeof comp === "object") {
-            if (!comp.doenetMLrange || init) {
-                comp.doenetMLrange = doenetMLrange;
+            if (!comp.position || init) {
+                comp.position = position;
             }
             if (comp.children) {
-                assignDoenetMLRange(comp.children, doenetMLrange, false);
+                assignDoenetMLRange(comp.children, position, false);
             }
             if (comp.attributes) {
                 for (let attrName in comp.attributes) {
                     let attrComp = comp.attributes[attrName].component;
                     if (attrComp) {
-                        assignDoenetMLRange([attrComp], doenetMLrange, false);
+                        assignDoenetMLRange([attrComp], position, false);
                     }
                 }
             }
@@ -118,13 +118,13 @@ export function assignDoenetMLRange(
 }
 
 // convert attrBegin/attrEnd if exist to begin/end
-export function convertDoenetMLAttrRange(doenetMLrange: DoenetMLRange) {
-    if (doenetMLrange?.attrBegin) {
+export function convertDoenetMLAttrRange(position: DoenetMLRange) {
+    if (position?.attrBegin) {
         return {
-            begin: doenetMLrange.attrBegin,
-            end: doenetMLrange.attrEnd,
+            begin: position.attrBegin,
+            end: position.attrEnd,
         };
     } else {
-        return doenetMLrange;
+        return position;
     }
 }

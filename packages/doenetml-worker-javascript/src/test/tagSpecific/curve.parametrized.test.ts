@@ -31,27 +31,27 @@ describe("Parameterized curve tag tests", async () => {
     }) {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        const cName = nameFromGraphChild
+        const cIdx = nameFromGraphChild
             ? stateVariables["/g"].activeChildren[0].componentIdx
             : name;
 
-        expect(stateVariables[cName].stateValues.curveType).eq(
+        expect(stateVariables[cIdx].stateValues.curveType).eq(
             "parameterization",
         );
 
-        expect(stateVariables[cName].stateValues.variableForChild.tree).eq(
+        expect(stateVariables[cIdx].stateValues.variableForChild.tree).eq(
             variable,
         );
-        expect(stateVariables[cName].stateValues.parMin).eq(parMin);
-        expect(stateVariables[cName].stateValues.parMax).eq(parMax);
+        expect(stateVariables[cIdx].stateValues.parMin).eq(parMin);
+        expect(stateVariables[cIdx].stateValues.parMax).eq(parMax);
         if (hasLabel) {
-            expect(stateVariables[cName].stateValues.label).eq(
+            expect(stateVariables[cIdx].stateValues.label).eq(
                 "\\(\\left( 5 t^{3}, 3 t^{5} \\right)\\)",
             );
         }
 
-        let c_fun1 = stateVariables[cName].stateValues.fs[0];
-        let c_fun2 = stateVariables[cName].stateValues.fs[1];
+        let c_fun1 = stateVariables[cIdx].stateValues.fs[0];
+        let c_fun2 = stateVariables[cIdx].stateValues.fs[1];
 
         let nSteps = 40;
         let dx = (parMax - parMin) / (nSteps - 1);

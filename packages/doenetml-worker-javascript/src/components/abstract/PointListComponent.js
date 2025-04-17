@@ -48,7 +48,7 @@ export default class PointListComponent extends BaseComponent {
                 pointChildren: {
                     dependencyType: "child",
                     childGroups: ["points"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition: function ({ dependencyValues }) {

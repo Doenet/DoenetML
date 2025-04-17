@@ -307,7 +307,7 @@ export function DoenetEditor({
         if (result.version !== undefined) {
             foundAutoVersion = true;
             detectedVersion = result.version;
-            detectedDoenetMLrange = result.doenetMLrange;
+            detectedDoenetMLrange = result.position;
         }
     }
 
@@ -386,9 +386,7 @@ export function DoenetEditor({
                 getLineCharRange(detectedDoenetMLrange!, allNewlines),
             );
 
-            setInitialErrors([
-                { doenetMLrange: detectedDoenetMLrange!, message },
-            ]);
+            setInitialErrors([{ position: detectedDoenetMLrange!, message }]);
             return null;
         }
 

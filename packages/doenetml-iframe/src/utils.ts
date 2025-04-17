@@ -159,7 +159,7 @@ export function detectVersionFromDoenetML(doenetML: string) {
                 ) {
                     return {
                         version: xmlns.slice(34),
-                        doenetMLrange: firstNonBlankComponent.doenetMLrange,
+                        position: firstNonBlankComponent.position,
                     };
                 } else {
                     return {};

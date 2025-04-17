@@ -859,10 +859,10 @@ describe("Function tag tests", async () => {
             `Function contains two points with locations too close together. Can't define function`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(53);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(53);
     });
 
     it("function with non-numerical points and slope", async () => {
@@ -891,46 +891,46 @@ describe("Function tag tests", async () => {
             `Ignoring non-numerical maximum of function`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(118);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(118);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Ignoring non-numerical minimum of function`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(118);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(118);
 
         expect(errorWarnings.warnings[2].message).contain(
             `Ignoring non-numerical extremum of function`,
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(118);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(118);
 
         expect(errorWarnings.warnings[3].message).contain(
             `Ignoring non-numerical slope of function`,
         );
         expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[3].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(118);
+        expect(errorWarnings.warnings[3].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[3].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[3].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[3].position.charEnd).eq(118);
 
         expect(errorWarnings.warnings[4].message).contain(
             `Ignoring non-numerical point of function`,
         );
         expect(errorWarnings.warnings[4].level).eq(1);
-        expect(errorWarnings.warnings[4].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[4].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[4].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[4].doenetMLrange.charEnd).eq(118);
+        expect(errorWarnings.warnings[4].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[4].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[4].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[4].position.charEnd).eq(118);
     });
 
     it("function with empty maximum", async () => {
@@ -958,10 +958,10 @@ describe("Function tag tests", async () => {
             `Ignoring empty maximum of function`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(54);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(7);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(54);
     });
 
     it("copy function and overwrite through points and slopes", async () => {
@@ -1628,19 +1628,19 @@ describe("Function tag tests", async () => {
             `Invalid value of a variable: cos(x)`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(25);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(30);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(25);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(30);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid value of a variable: sin(x)`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(26);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(31);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(26);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(31);
     });
 
     it("point constrained to function in different variable", async () => {
@@ -4444,64 +4444,64 @@ describe("Function tag tests", async () => {
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(47);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(47);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid format for domain for function`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(53);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(4);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(4);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(53);
 
         expect(errorWarnings.warnings[2].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(46);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(5);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(46);
 
         expect(errorWarnings.warnings[3].message).contain(
             `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
         );
         expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(14);
-        expect(errorWarnings.warnings[3].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineEnd).eq(14);
-        expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(67);
+        expect(errorWarnings.warnings[3].position.lineBegin).eq(14);
+        expect(errorWarnings.warnings[3].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[3].position.lineEnd).eq(14);
+        expect(errorWarnings.warnings[3].position.charEnd).eq(67);
 
         expect(errorWarnings.warnings[4].message).contain(
             `Invalid format for domain for function`,
         );
         expect(errorWarnings.warnings[4].level).eq(1);
-        expect(errorWarnings.warnings[4].doenetMLrange.lineBegin).eq(16);
-        expect(errorWarnings.warnings[4].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[4].doenetMLrange.lineEnd).eq(16);
-        expect(errorWarnings.warnings[4].doenetMLrange.charEnd).eq(75);
+        expect(errorWarnings.warnings[4].position.lineBegin).eq(16);
+        expect(errorWarnings.warnings[4].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[4].position.lineEnd).eq(16);
+        expect(errorWarnings.warnings[4].position.charEnd).eq(75);
 
         expect(errorWarnings.warnings[5].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
         );
         expect(errorWarnings.warnings[5].level).eq(1);
-        expect(errorWarnings.warnings[5].doenetMLrange.lineBegin).eq(17);
-        expect(errorWarnings.warnings[5].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[5].doenetMLrange.lineEnd).eq(17);
-        expect(errorWarnings.warnings[5].doenetMLrange.charEnd).eq(62);
+        expect(errorWarnings.warnings[5].position.lineBegin).eq(17);
+        expect(errorWarnings.warnings[5].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[5].position.lineEnd).eq(17);
+        expect(errorWarnings.warnings[5].position.charEnd).eq(62);
 
         expect(errorWarnings.warnings[6].message).contain(
             `Invalid format for attribute domain of <function>`,
         );
         expect(errorWarnings.warnings[6].level).eq(1);
-        expect(errorWarnings.warnings[6].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[6].doenetMLrange.charBegin).eq(33);
-        expect(errorWarnings.warnings[6].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[6].doenetMLrange.charEnd).eq(33);
+        expect(errorWarnings.warnings[6].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[6].position.charBegin).eq(33);
+        expect(errorWarnings.warnings[6].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[6].position.charEnd).eq(33);
     });
 
     it("copy function and overwrite numInputs", async () => {

@@ -7,15 +7,15 @@ export function extractComponentNamesAndIndices(
     for (let serializedComponent of serializedComponents) {
         if (typeof serializedComponent === "object") {
             let componentIdx = serializedComponent.componentIdx;
-            for (let originalName in nameSubstitutions) {
+            for (let originalIdx in nameSubstitutions) {
                 componentIdx = componentIdx.replace(
-                    originalName,
-                    nameSubstitutions[originalName],
+                    originalIdx,
+                    nameSubstitutions[originalIdx],
                 );
             }
             if (serializedComponent.doenetAttributes?.fromCopyTarget) {
                 let lastSlash = componentIdx.lastIndexOf("/");
-                let originalName = componentIdx.slice(lastSlash + 1);
+                let originalIdx = componentIdx.slice(lastSlash + 1);
                 let newName =
                     serializedComponent.doenetAttributes
                         .assignNamesForCompositeReplacement;
@@ -23,28 +23,24 @@ export function extractComponentNamesAndIndices(
                     newName =
                         serializedComponent.doenetAttributes.assignNames[0];
                 }
-                componentIdx = componentIdx.replace(originalName, newName);
-                nameSubstitutions[originalName] = newName;
+                componentIdx = componentIdx.replace(originalIdx, newName);
+                nameSubstitutions[originalIdx] = newName;
             }
             let componentObj = {
                 componentIdx,
             };
-            if (serializedComponent.doenetMLrange) {
-                if (
-                    serializedComponent.doenetMLrange.selfCloseBegin !==
-                    undefined
-                ) {
+            if (serializedComponent.position) {
+                if (serializedComponent.position.selfCloseBegin !== undefined) {
                     componentObj.indBegin =
-                        serializedComponent.doenetMLrange.selfCloseBegin;
+                        serializedComponent.position.selfCloseBegin;
                     componentObj.indEnd =
-                        serializedComponent.doenetMLrange.selfCloseEnd;
+                        serializedComponent.position.selfCloseEnd;
                 } else if (
-                    serializedComponent.doenetMLrange.openBegin !== undefined
+                    serializedComponent.position.openBegin !== undefined
                 ) {
                     componentObj.indBegin =
-                        serializedComponent.doenetMLrange.openBegin;
-                    componentObj.indEnd =
-                        serializedComponent.doenetMLrange.closeEnd;
+                        serializedComponent.position.openBegin;
+                    componentObj.indEnd = serializedComponent.position.closeEnd;
                 }
             }
 

@@ -197,12 +197,11 @@ export async function updateMatrixInputValue({
     let numColumns = matrixInput.stateValues.numColumns;
     let childInd = colInd + numColumns * rowInd;
 
-    let matrixInputCellName =
-        matrixInput.activeChildren[childInd]?.componentIdx;
+    let matrixInputCellIdx = matrixInput.activeChildren[childInd]?.componentIdx;
 
-    if (matrixInputCellName) {
+    if (matrixInputCellIdx) {
         await core.requestAction({
-            componentIdx: matrixInputCellName,
+            componentIdx: matrixInputCellIdx,
             actionName: "updateRawValue",
             args: { rawRendererValue: latex },
         });
@@ -210,7 +209,7 @@ export async function updateMatrixInputValue({
         stateVariables = await core.returnAllStateVariables(false, true);
 
         await core.requestAction({
-            componentIdx: matrixInputCellName,
+            componentIdx: matrixInputCellIdx,
             actionName: "updateValue",
             args: {},
         });
@@ -242,12 +241,11 @@ export async function updateMatrixInputImmediateValue({
     let numColumns = matrixInput.stateValues.numColumns;
     let childInd = colInd + numColumns * rowInd;
 
-    let matrixInputCellName =
-        matrixInput.activeChildren[childInd]?.componentIdx;
+    let matrixInputCellIdx = matrixInput.activeChildren[childInd]?.componentIdx;
 
-    if (matrixInputCellName) {
+    if (matrixInputCellIdx) {
         await core.requestAction({
-            componentIdx: matrixInputCellName,
+            componentIdx: matrixInputCellIdx,
             actionName: "updateRawValue",
             args: { rawRendererValue: latex },
         });
@@ -275,12 +273,11 @@ export async function updateMatrixInputValueToImmediateValue({
     let numColumns = matrixInput.stateValues.numColumns;
     let childInd = colInd + numColumns * rowInd;
 
-    let matrixInputCellName =
-        matrixInput.activeChildren[childInd]?.componentIdx;
+    let matrixInputCellIdx = matrixInput.activeChildren[childInd]?.componentIdx;
 
-    if (matrixInputCellName) {
+    if (matrixInputCellIdx) {
         await core.requestAction({
-            componentIdx: matrixInputCellName,
+            componentIdx: matrixInputCellIdx,
             actionName: "updateValue",
             args: {},
         });

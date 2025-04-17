@@ -1557,10 +1557,10 @@ describe("Select tag tests", async () => {
             "Invalid type for select: nothing",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(13);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(4);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(13);
     });
 
     it("select weighted", async () => {
@@ -3033,10 +3033,10 @@ describe("Select tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Some variants are specified for select but no options are specified for possible variant name: banana",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(24);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(13);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[0].position.charBegin).eq(24);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(7);
+        expect(errorWarnings.errors[0].position.charEnd).eq(13);
     });
 
     it("display error when repeat name in selectForVariants more times than numToSelect, inside p", async () => {
@@ -3059,10 +3059,10 @@ describe("Select tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Invalid variant name for select.  Variant name apple appears in 2 options but number to select is 1",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(18);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(13);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[0].position.charBegin).eq(18);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(7);
+        expect(errorWarnings.errors[0].position.charEnd).eq(13);
     });
 
     it("display error when repeat name in selectForVariants more times than numToSelect, inside document", async () => {
@@ -3086,10 +3086,10 @@ describe("Select tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Variant name donut that is specified for select is not a possible variant name",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(15);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(8);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(13);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[0].position.charBegin).eq(15);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(8);
+        expect(errorWarnings.errors[0].position.charEnd).eq(13);
     });
 
     it("display error when numToSelect is larger than number of options, inside graph", async () => {
@@ -3112,10 +3112,10 @@ describe("Select tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Cannot select 3 components from only 2",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(12);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(13);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[0].position.charBegin).eq(12);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(7);
+        expect(errorWarnings.errors[0].position.charEnd).eq(13);
     });
 
     it("numToSelect from selectFromSequence", async () => {

@@ -15,7 +15,7 @@ export type Element = {
     children: Node[];
     attributeRanges?: AttrRange;
     state?: { message: string };
-    doenetMLrange?: {
+    position?: {
         begin?: number;
         end?: number;
         openBegin?: number;
@@ -33,7 +33,7 @@ export type Element = {
 type DummyElement = {
     componentType: string;
     state: { text: string };
-    doenetMLrange: { begin: number; end: number };
+    position: { begin: number; end: number };
 };
 
 export type Node = Element | DummyElement | string;
@@ -78,7 +78,7 @@ export function parseAndCompile(inText: string) {
                 message = `Invalid component type: <${tagName}>.`;
                 errors.push({
                     message,
-                    doenetMLrange: { begin: tagOpenBegin, end: cursor.to },
+                    position: { begin: tagOpenBegin, end: cursor.to },
                 });
                 adjustedTagName = "_error";
             }
@@ -109,7 +109,7 @@ export function parseAndCompile(inText: string) {
 
                     errors.push({
                         message,
-                        doenetMLrange: { begin: tagOpenBegin, end: errorEnd },
+                        position: { begin: tagOpenBegin, end: errorEnd },
                     });
                     adjustedTagName = "_error";
                     adjustedRange = { begin: tagOpenBegin, end: errorEnd };
@@ -128,7 +128,7 @@ export function parseAndCompile(inText: string) {
                         message = `Duplicate attribute ${attrName}.`;
                         errors.push({
                             message,
-                            doenetMLrange: {
+                            position: {
                                 begin: beginAttributeInd,
                                 end: cursor.to,
                             },
@@ -155,7 +155,7 @@ export function parseAndCompile(inText: string) {
                         message = `Duplicate attribute ${attrName}.`;
                         errors.push({
                             message,
-                            doenetMLrange: {
+                            position: {
                                 begin: beginAttributeInd,
                                 end: cursor.to,
                             },
@@ -224,14 +224,14 @@ export function parseAndCompile(inText: string) {
                     break;
                 } else if (cursor.name === "Comment") {
                     // return a comment that will be ignored,
-                    // but need it to calculate doenetMLrange
+                    // but need it to calculate position
                     // from any strings that follow it (needed in particular for macros)
                     element.children.push({
                         componentType: "_comment",
                         state: {
                             text: inText.substring(cursor.from, cursor.to),
                         },
-                        doenetMLrange: {
+                        position: {
                             begin: cursor.from,
                             end: cursor.to,
                         },
@@ -245,16 +245,16 @@ export function parseAndCompile(inText: string) {
                     )}.`;
                     errors.push({
                         message,
-                        doenetMLrange: {
+                        position: {
                             begin: cursor.from + 1,
                             end: cursor.to,
                         },
                     });
 
                     if (adjustedRange) {
-                        element.doenetMLrange = { ...adjustedRange };
+                        element.position = { ...adjustedRange };
                     } else {
-                        element.doenetMLrange = {
+                        element.position = {
                             openBegin: tagOpenBegin,
                             openEnd: tagOpenEnd,
                             closeBegin: cursor.from + 1,
@@ -272,13 +272,13 @@ export function parseAndCompile(inText: string) {
                     let message = `Invalid DoenetML.  Missing closing tag.  Expected </${tagName}>.`;
                     errors.push({
                         message,
-                        doenetMLrange: { begin: cursor.from, end: cursor.to },
+                        position: { begin: cursor.from, end: cursor.to },
                     });
 
                     if (adjustedRange) {
-                        element.doenetMLrange = { ...adjustedRange };
+                        element.position = { ...adjustedRange };
                     } else {
-                        element.doenetMLrange = {
+                        element.position = {
                             begin: tagOpenBegin,
                             end: cursor.to,
                         };
@@ -299,16 +299,16 @@ export function parseAndCompile(inText: string) {
                         let message = `Invalid DoenetML.  Missing closing tag.  Expected </${tagName}>.`;
                         errors.push({
                             message,
-                            doenetMLrange: {
+                            position: {
                                 begin: cursor.from,
                                 end: cursor.to,
                             },
                         });
 
                         if (adjustedRange) {
-                            element.doenetMLrange = { ...adjustedRange };
+                            element.position = { ...adjustedRange };
                         } else {
-                            element.doenetMLrange = {
+                            element.position = {
                                 begin: tagOpenBegin,
                                 end: cursor.to,
                             };
@@ -326,9 +326,9 @@ export function parseAndCompile(inText: string) {
             element.children = mergeConsecutiveStrings(element.children);
 
             if (adjustedRange) {
-                element.doenetMLrange = adjustedRange;
+                element.position = adjustedRange;
             } else {
-                element.doenetMLrange = {
+                element.position = {
                     openBegin: tagOpenBegin,
                     openEnd: tagOpenEnd,
                     closeBegin: cursor.from + 1,
@@ -352,7 +352,7 @@ export function parseAndCompile(inText: string) {
                 message = `Invalid component type: <${tagName}>.`;
                 errors.push({
                     message,
-                    doenetMLrange: { begin: tagBegin, end: cursor.to },
+                    position: { begin: tagBegin, end: cursor.to },
                 });
                 adjustedTagName = "_error";
             }
@@ -376,7 +376,7 @@ export function parseAndCompile(inText: string) {
 
                     errors.push({
                         message,
-                        doenetMLrange: { begin: tagBegin - 1, end: errorEnd },
+                        position: { begin: tagBegin - 1, end: errorEnd },
                     });
                     adjustedTagName = "_error";
 
@@ -393,7 +393,7 @@ export function parseAndCompile(inText: string) {
                         message = `Duplicate attribute ${attrName}.`;
                         errors.push({
                             message,
-                            doenetMLrange: {
+                            position: {
                                 begin: beginAttributeInd,
                                 end: cursor.to,
                             },
@@ -408,7 +408,7 @@ export function parseAndCompile(inText: string) {
                         message = `Duplicate attribute ${attrName}.`;
                         errors.push({
                             message,
-                            doenetMLrange: {
+                            position: {
                                 begin: beginAttributeInd,
                                 end: cursor.to,
                             },
@@ -435,7 +435,7 @@ export function parseAndCompile(inText: string) {
 
             let selfCloseEnd = cursor.to;
 
-            let doenetMLrange = {
+            let position = {
                 selfCloseBegin: tagBegin,
                 selfCloseEnd,
             };
@@ -448,7 +448,7 @@ export function parseAndCompile(inText: string) {
                 componentType: adjustedTagName,
                 props: {},
                 children: [],
-                doenetMLrange,
+                position,
             };
             if (adjustedTagName === "_error") {
                 element.state = { message: message || "" };
@@ -475,12 +475,12 @@ export function parseAndCompile(inText: string) {
             return compileElement(tc.node.cursor());
         } else if (tc.node.name === "Comment") {
             // return a comment that will be ignored,
-            // but need it to calculate doenetMLrange
+            // but need it to calculate position
             // from any strings that follow it (needed in particular for macros)
             return {
                 componentType: "_comment",
                 state: { text: inText.substring(tc.from, tc.to) },
-                doenetMLrange: {
+                position: {
                     begin: tc.from,
                     end: tc.to,
                 },
@@ -502,14 +502,14 @@ export function parseAndCompile(inText: string) {
             )}`;
             errors.push({
                 message,
-                doenetMLrange: { begin: tc.node.from + 1, end: tc.node.to },
+                position: { begin: tc.node.from + 1, end: tc.node.to },
             });
             return {
                 componentType: "_error",
                 props: {},
                 children: [],
                 state: { message },
-                doenetMLrange: { begin: tc.node.from + 1, end: tc.node.to },
+                position: { begin: tc.node.from + 1, end: tc.node.to },
             };
         }
     }

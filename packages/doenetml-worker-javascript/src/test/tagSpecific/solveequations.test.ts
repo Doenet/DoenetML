@@ -300,9 +300,9 @@ describe("SolveEquations tag tests", async () => {
             `Cannot solve equation`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(56);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(56);
     });
 });

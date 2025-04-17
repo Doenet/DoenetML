@@ -105,7 +105,7 @@ export default class Map extends CompositeComponent {
                 sourcesChildren: {
                     dependencyType: "child",
                     childGroups: ["sources"],
-                    variableNames: ["numChildren", "childComponentNames"],
+                    variableNames: ["numChildren", "childComponentIndices"],
                 },
             }),
             definition: function ({ dependencyValues }) {
@@ -117,7 +117,7 @@ export default class Map extends CompositeComponent {
                 let minNIterates = Math.min(...numIterates);
 
                 let sourcesChildNames = dependencyValues.sourcesChildren.map(
-                    (x) => [...x.stateValues.childComponentNames],
+                    (x) => [...x.stateValues.childComponentIndices],
                 );
 
                 return {
@@ -151,7 +151,7 @@ export default class Map extends CompositeComponent {
                     componentType: "template",
                     state: { rendered: true },
                     children: childrenOfTemplate,
-                    originalName: templateChild.componentIdx,
+                    originalIdx: templateChild.componentIdx,
                     attributes: {},
                 };
                 if (templateChild.stateValues.newNamespace) {

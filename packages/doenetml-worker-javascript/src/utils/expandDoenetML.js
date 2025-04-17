@@ -73,7 +73,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
 
         // remove comments after applying macros,
         // aswe need the comments in place while processing macros
-        // to correctly calculate their doenetMLrange
+        // to correctly calculate their position
         serializedComponents = removeComments(serializedComponents);
 
         decodeXMLEntities(serializedComponents);
@@ -131,7 +131,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
                 warnings.push({
                     message: `Unable to retrieve content with cid = ${cidList[ind]}`,
                     level: 1,
-                    doenetMLrange: cidComponents[cid]?.[0]?.doenetMLrange,
+                    position: cidComponents[cid]?.[0]?.position,
                 });
                 newDoenetMLs[ind] = "";
             }
@@ -188,7 +188,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
                         warnings.push({
                             message:
                                 "ignoring copyFromURI as it was not a single component",
-                            doenetMLrange: originalCopyWithUri.doenetMLrange,
+                            position: originalCopyWithUri.position,
                             level: 1,
                         });
                     } else {
@@ -246,8 +246,8 @@ export async function expandDoenetMLsToFullSerializedComponents({
 
 function addDoenetMLIdToRange(serializedComponents, doenetMLId) {
     for (let component of serializedComponents) {
-        if (component.doenetMLrange) {
-            component.doenetMLrange.doenetMLId = doenetMLId;
+        if (component.position) {
+            component.position.doenetMLId = doenetMLId;
         }
         if (component.children) {
             addDoenetMLIdToRange(component.children, doenetMLId);
@@ -312,7 +312,7 @@ export function removeBlankStringChildren(
         }
 
         // TODO: do we also need to remove blank string components
-        // from childrenForComponent of an attribute that is not yet a component?
+        // from childrenForFutureComponent of an attribute that is not yet a component?
         for (let attrName in component.attributes) {
             let comp = component.attributes[attrName].component;
             if (comp?.children) {
@@ -557,7 +557,7 @@ function substituteAttributeDeprecations(serializedComponents) {
                             message: `Attribute ${prop} of component type ${cType} is deprecated. Use ${newProp} instead. ${returnDeprecationMessage(
                                 removeInVersion,
                             )}`,
-                            doenetMLrange: component.doenetMLrange,
+                            position: component.position,
                             level: 1,
                         });
 
@@ -580,7 +580,7 @@ function substituteAttributeDeprecations(serializedComponents) {
                             message: `Attribute ${prop} is deprecated. Use ${newProp} instead. ${returnDeprecationMessage(
                                 removeInVersion,
                             )}`,
-                            doenetMLrange: component.doenetMLrange,
+                            position: component.position,
                             level: 1,
                         });
 
@@ -599,7 +599,7 @@ function substituteAttributeDeprecations(serializedComponents) {
                             message: `Attribute ${prop} of component type ${cType} is deprecated. It is ignored. ${returnDeprecationMessage(
                                 removeInVersion,
                             )}`,
-                            doenetMLrange: component.doenetMLrange,
+                            position: component.position,
                             level: 1,
                         });
 
@@ -618,7 +618,7 @@ function substituteAttributeDeprecations(serializedComponents) {
                             message: `Attribute ${prop} is deprecated. It is ignored. ${returnDeprecationMessage(
                                 removeInVersion,
                             )}`,
-                            doenetMLrange: component.doenetMLrange,
+                            position: component.position,
                             level: 1,
                         });
 
@@ -776,7 +776,7 @@ function substitutePropertyDeprecations(serializedComponents) {
                     message: `Property ${propName} is deprecated. Use ${newProp} instead. ${returnDeprecationMessage(
                         removeInVersion,
                     )}`,
-                    doenetMLrange: component.doenetMLrange,
+                    position: component.position,
                     level: 1,
                 });
 
@@ -917,7 +917,7 @@ function correctComponentTypeCapitalization(
             if (!ignoreErrors) {
                 errors.push({
                     message,
-                    doenetMLrange: component.doenetMLrange,
+                    position: component.position,
                 });
             }
         }
@@ -1063,7 +1063,7 @@ function copyTargetOrFromURIAttributeCreatesCopyComponent(
                 convertToErrorComponent(component, e.message);
                 errors.push({
                     message: e.message,
-                    doenetMLrange: component.doenetMLrange,
+                    position: component.position,
                 });
             }
         }
@@ -1192,7 +1192,7 @@ function breakUpTargetIntoPropsAndIndices(
                         // as an error for it will be created, below
                         warnings.push(
                             ...componentResult.warnings.map((w) => {
-                                w.doenetMLrange = component.doenetMLrange;
+                                w.position = component.position;
                                 return w;
                             }),
                         );
@@ -1321,7 +1321,7 @@ function breakUpTargetIntoPropsAndIndices(
                             convertToErrorComponent(component, message);
                             errors.push({
                                 message,
-                                doenetMLrange: component.doenetMLrange,
+                                position: component.position,
                             });
                         }
                     } else {
@@ -1346,7 +1346,7 @@ function breakUpTargetIntoPropsAndIndices(
             convertToErrorComponent(component, e.message);
             errors.push({
                 message: e.message,
-                doenetMLrange: component.doenetMLrange,
+                position: component.position,
             });
         }
 
@@ -1471,7 +1471,7 @@ function createAttributesFromProps(
             if (!ignoreErrors) {
                 errors.push({
                     message: e.message,
-                    doenetMLrange: component.doenetMLrange,
+                    position: component.position,
                 });
             }
         }
@@ -1543,7 +1543,7 @@ export function componentFromAttribute({
                 state: { value: valueTrimLower === "true" },
             };
         } else {
-            let children = value.childrenForComponent;
+            let children = value.childrenForFutureComponent;
             if (children) {
                 children = JSON.parse(JSON.stringify(children));
             } else {
@@ -1558,7 +1558,7 @@ export function componentFromAttribute({
         }
 
         if (attributeRange) {
-            newComponent.doenetMLrange = attributeRange;
+            newComponent.position = attributeRange;
         }
 
         if (
@@ -1666,9 +1666,9 @@ export function componentFromAttribute({
             warnings,
         };
     } else {
-        if (!value.childrenForComponent) {
+        if (!value.childrenForFutureComponent) {
             if (value.rawString !== undefined) {
-                value.childrenForComponent = [value.rawString];
+                value.childrenForFutureComponent = [value.rawString];
             }
         }
         return { attribute: value, errors, warnings };
@@ -1709,11 +1709,10 @@ export function applyMacros(
     for (let component of serializedComponents) {
         if (component.children) {
             let startDoenetMLIndForChildren;
-            if (component.doenetMLrange) {
-                startDoenetMLIndForChildren = component.doenetMLrange.openEnd;
+            if (component.position) {
+                startDoenetMLIndForChildren = component.position.openEnd;
                 if (startDoenetMLIndForChildren === undefined) {
-                    startDoenetMLIndForChildren =
-                        component.doenetMLrange.begin - 1;
+                    startDoenetMLIndForChildren = component.position.begin - 1;
                 }
             }
             let res = applyMacros(
@@ -1738,9 +1737,9 @@ export function applyMacros(
                     );
                     errors.push(...res.errors);
                     warnings.push(...res.warnings);
-                } else if (attribute.childrenForComponent) {
+                } else if (attribute.childrenForFutureComponent) {
                     let res = applyMacros(
-                        attribute.childrenForComponent,
+                        attribute.childrenForFutureComponent,
                         componentInfoObjects,
                         startDoenetMLIndForAttr,
                     );
@@ -1794,9 +1793,9 @@ function substituteMacros(
                 let matchLength = result.matchLength;
                 let nDollarSigns = result.nDollarSigns;
 
-                let doenetMLrange;
+                let position;
                 if (Number.isFinite(doenetMLcharInd)) {
-                    doenetMLrange = {
+                    position = {
                         begin: doenetMLcharInd + 1 + firstIndMatched,
                         end: doenetMLcharInd + firstIndMatched + matchLength,
                     };
@@ -1816,7 +1815,7 @@ function substituteMacros(
                 // as an error for it will be created, below
                 warnings.push(
                     ...componentResult.warnings.map((w) => {
-                        w.doenetMLrange = doenetMLrange;
+                        w.position = position;
                         return w;
                     }),
                 );
@@ -1825,7 +1824,7 @@ function substituteMacros(
                 if (componentResult.success) {
                     newComponent = componentResult.newComponent;
                     if (Number.isFinite(doenetMLcharInd)) {
-                        newComponent.doenetMLrange = doenetMLrange;
+                        newComponent.position = position;
                     }
                 } else {
                     let strWithError = str.slice(
@@ -1836,12 +1835,12 @@ function substituteMacros(
                     let message = `${componentResult.errors[0].message} Found: ${strWithError}.`;
                     errors.push({
                         message,
-                        doenetMLrange,
+                        position,
                     });
                     newComponent = {
                         componentType: "_error",
                         state: { message },
-                        doenetMLrange,
+                        position,
                     };
                 }
 
@@ -1926,7 +1925,7 @@ function substituteMacros(
                         if (componentsFromMacro.length > 1) {
                             lastInd -= componentsFromMacro[1].length;
                         }
-                        componentsFromMacro[0].doenetMLrange = {
+                        componentsFromMacro[0].position = {
                             begin: doenetMLcharInd + 1 + firstIndMatched,
                             end: doenetMLcharInd + lastInd,
                         };
@@ -1999,14 +1998,14 @@ function substituteMacros(
                 doenetMLcharInd -= nextDoenetMLcharIndAdjustment;
             }
         } else {
-            let doenetMLrange = component.doenetMLrange;
-            if (doenetMLrange) {
-                if (doenetMLrange.selfCloseBegin !== undefined) {
-                    doenetMLcharInd = doenetMLrange.selfCloseEnd;
-                } else if (doenetMLrange.openBegin !== undefined) {
-                    doenetMLcharInd = doenetMLrange.closeEnd;
-                } else if (doenetMLrange.begin !== undefined) {
-                    doenetMLcharInd = doenetMLrange.end;
+            let position = component.position;
+            if (position) {
+                if (position.selfCloseBegin !== undefined) {
+                    doenetMLcharInd = position.selfCloseEnd;
+                } else if (position.openBegin !== undefined) {
+                    doenetMLcharInd = position.closeEnd;
+                } else if (position.begin !== undefined) {
+                    doenetMLcharInd = position.end;
                 } else {
                     doenetMLcharInd = NaN;
                 }
@@ -2752,8 +2751,10 @@ function decodeXMLEntities(serializedComponents) {
                             );
                         }
                     } else {
-                        if (attribute.childrenForComponent) {
-                            decodeXMLEntities(attribute.childrenForComponent);
+                        if (attribute.childrenForFutureComponent) {
+                            decodeXMLEntities(
+                                attribute.childrenForFutureComponent,
+                            );
                         }
                         if (attribute.rawString) {
                             attribute.rawString = replaceEntities(
@@ -2864,7 +2865,7 @@ export function applySugar({
                         if (sugarResults.warnings) {
                             warnings.push(
                                 ...sugarResults.warnings.map((w) => {
-                                    w.doenetMLrange = component.doenetMLrange;
+                                    w.position = component.position;
                                     return w;
                                 }),
                             );
@@ -2995,7 +2996,7 @@ export function applySugar({
             convertToErrorComponent(component, e.message);
             errors.push({
                 message: e.message,
-                doenetMLrange: component.doenetMLrange,
+                position: component.position,
             });
         }
     }

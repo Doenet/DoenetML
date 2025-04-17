@@ -206,7 +206,7 @@ describe("Spreadsheet tag tests", async () => {
             ],
         };
 
-        let cellNames = {
+        let cellIndices = {
             1: ["/c1", "/c1a"],
             2: ["/c2", "/c2a"],
             3: ["/c3", "/c3a"],
@@ -224,10 +224,10 @@ describe("Spreadsheet tag tests", async () => {
                 false,
                 true,
             );
-            for (let cellNum in cellNames) {
-                for (let ind in cellNames[cellNum]) {
+            for (let cellNum in cellIndices) {
+                for (let ind in cellIndices[cellNum]) {
                     expect(
-                        stateVariables[cellNames[cellNum][ind]].stateValues
+                        stateVariables[cellIndices[cellNum][ind]].stateValues
                             .text,
                     ).eq(cellValues[cellNum]);
                 }
@@ -357,7 +357,7 @@ describe("Spreadsheet tag tests", async () => {
             ],
         };
 
-        let cellNames = {
+        let cellIndices = {
             1: ["/c1", "/c1a"],
             2: ["/c2", "/c2a"],
             3: ["/c3", "/c3a"],
@@ -375,10 +375,10 @@ describe("Spreadsheet tag tests", async () => {
                 false,
                 true,
             );
-            for (let cellNum in cellNames) {
-                for (let ind in cellNames[cellNum]) {
+            for (let cellNum in cellIndices) {
+                for (let ind in cellIndices[cellNum]) {
                     expect(
-                        stateVariables[cellNames[cellNum][ind]].stateValues
+                        stateVariables[cellIndices[cellNum][ind]].stateValues
                             .text,
                     ).eq(cellValues[cellNum]);
                 }

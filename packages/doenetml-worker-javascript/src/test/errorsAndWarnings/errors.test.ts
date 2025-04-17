@@ -37,10 +37,10 @@ describe("Error Tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Mismatched closing tag",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(21);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(29);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[0].position.charBegin).eq(21);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(4);
+        expect(errorWarnings.errors[0].position.charEnd).eq(29);
     });
 
     it("Mismatched tags in section, later tags outside survive", async () => {
@@ -79,10 +79,10 @@ describe("Error Tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Mismatched closing tag",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(23);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(31);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[0].position.charBegin).eq(23);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(4);
+        expect(errorWarnings.errors[0].position.charEnd).eq(31);
     });
 
     it("More parsing errors", async () => {
@@ -120,62 +120,62 @@ describe("Error Tests", async () => {
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain("Missing closing tag");
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(4);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(5);
+        expect(errorWarnings.errors[0].position.charBegin).eq(4);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(5);
+        expect(errorWarnings.errors[0].position.charEnd).eq(4);
 
         expect(errorWarnings.errors[1].message).contain("Found </");
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(6);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(7);
+        expect(errorWarnings.errors[1].position.charBegin).eq(1);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(7);
+        expect(errorWarnings.errors[1].position.charEnd).eq(6);
 
         expect(errorWarnings.errors[2].message).contain(
             "Error in opening <p> tag",
         );
-        expect(errorWarnings.errors[2].doenetMLrange.lineBegin).eq(9);
-        expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(9);
-        expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(10);
+        expect(errorWarnings.errors[2].position.lineBegin).eq(9);
+        expect(errorWarnings.errors[2].position.charBegin).eq(1);
+        expect(errorWarnings.errors[2].position.lineEnd).eq(9);
+        expect(errorWarnings.errors[2].position.charEnd).eq(10);
 
         expect(errorWarnings.errors[3].message).contain(
             "Duplicate attribute radius",
         );
-        expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(15);
-        expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(22);
-        expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(15);
-        expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(31);
+        expect(errorWarnings.errors[3].position.lineBegin).eq(15);
+        expect(errorWarnings.errors[3].position.charBegin).eq(22);
+        expect(errorWarnings.errors[3].position.lineEnd).eq(15);
+        expect(errorWarnings.errors[3].position.charEnd).eq(31);
 
         expect(errorWarnings.errors[4].message).contain(
             "Duplicate attribute hide",
         );
-        expect(errorWarnings.errors[4].doenetMLrange.lineBegin).eq(16);
-        expect(errorWarnings.errors[4].doenetMLrange.charBegin).eq(19);
-        expect(errorWarnings.errors[4].doenetMLrange.lineEnd).eq(16);
-        expect(errorWarnings.errors[4].doenetMLrange.charEnd).eq(22);
+        expect(errorWarnings.errors[4].position.lineBegin).eq(16);
+        expect(errorWarnings.errors[4].position.charBegin).eq(19);
+        expect(errorWarnings.errors[4].position.lineEnd).eq(16);
+        expect(errorWarnings.errors[4].position.charEnd).eq(22);
 
         expect(errorWarnings.errors[5].message).contain(
             "Duplicate attribute q",
         );
-        expect(errorWarnings.errors[5].doenetMLrange.lineBegin).eq(17);
-        expect(errorWarnings.errors[5].doenetMLrange.charBegin).eq(16);
-        expect(errorWarnings.errors[5].doenetMLrange.lineEnd).eq(17);
-        expect(errorWarnings.errors[5].doenetMLrange.charEnd).eq(20);
+        expect(errorWarnings.errors[5].position.lineBegin).eq(17);
+        expect(errorWarnings.errors[5].position.charBegin).eq(16);
+        expect(errorWarnings.errors[5].position.lineEnd).eq(17);
+        expect(errorWarnings.errors[5].position.charEnd).eq(20);
 
         expect(errorWarnings.errors[6].message).contain(
             "Duplicate attribute bad",
         );
-        expect(errorWarnings.errors[6].doenetMLrange.lineBegin).eq(18);
-        expect(errorWarnings.errors[6].doenetMLrange.charBegin).eq(15);
-        expect(errorWarnings.errors[6].doenetMLrange.lineEnd).eq(18);
-        expect(errorWarnings.errors[6].doenetMLrange.charEnd).eq(17);
+        expect(errorWarnings.errors[6].position.lineBegin).eq(18);
+        expect(errorWarnings.errors[6].position.charBegin).eq(15);
+        expect(errorWarnings.errors[6].position.lineEnd).eq(18);
+        expect(errorWarnings.errors[6].position.charEnd).eq(17);
 
         expect(errorWarnings.errors[7].message).contain("Missing closing tag");
-        expect(errorWarnings.errors[7].doenetMLrange.lineBegin).eq(19);
-        expect(errorWarnings.errors[7].doenetMLrange.charBegin).eq(2);
-        expect(errorWarnings.errors[7].doenetMLrange.lineEnd).eq(19);
-        expect(errorWarnings.errors[7].doenetMLrange.charEnd).eq(2);
+        expect(errorWarnings.errors[7].position.lineBegin).eq(19);
+        expect(errorWarnings.errors[7].position.charBegin).eq(2);
+        expect(errorWarnings.errors[7].position.lineEnd).eq(19);
+        expect(errorWarnings.errors[7].position.charEnd).eq(2);
     });
 
     it("Parsing errors, correctly find end of self-closing tag", async () => {
@@ -206,58 +206,58 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Invalid component type: <abc>",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(7);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[0].position.charBegin).eq(1);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[0].position.charEnd).eq(7);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid component type: <bcd>",
         );
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(11);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[1].position.charBegin).eq(3);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[1].position.charEnd).eq(11);
 
         expect(errorWarnings.errors[2].message).contain(
             "Invalid component type: <cde>",
         );
-        expect(errorWarnings.errors[2].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(2);
+        expect(errorWarnings.errors[2].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[2].position.charBegin).eq(1);
+        expect(errorWarnings.errors[2].position.lineEnd).eq(5);
+        expect(errorWarnings.errors[2].position.charEnd).eq(2);
 
         expect(errorWarnings.errors[3].message).contain(
             "Invalid component type: <def>",
         );
-        expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(8);
-        expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(2);
+        expect(errorWarnings.errors[3].position.lineBegin).eq(6);
+        expect(errorWarnings.errors[3].position.charBegin).eq(5);
+        expect(errorWarnings.errors[3].position.lineEnd).eq(8);
+        expect(errorWarnings.errors[3].position.charEnd).eq(2);
 
         expect(errorWarnings.errors[4].message).contain(
             "Invalid component type: <efg>",
         );
-        expect(errorWarnings.errors[4].doenetMLrange.lineBegin).eq(9);
-        expect(errorWarnings.errors[4].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[4].doenetMLrange.lineEnd).eq(10);
-        expect(errorWarnings.errors[4].doenetMLrange.charEnd).eq(3);
+        expect(errorWarnings.errors[4].position.lineBegin).eq(9);
+        expect(errorWarnings.errors[4].position.charBegin).eq(1);
+        expect(errorWarnings.errors[4].position.lineEnd).eq(10);
+        expect(errorWarnings.errors[4].position.charEnd).eq(3);
 
         expect(errorWarnings.errors[5].message).contain(
             "Invalid component type: <fgh>",
         );
-        expect(errorWarnings.errors[5].doenetMLrange.lineBegin).eq(11);
-        expect(errorWarnings.errors[5].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[5].doenetMLrange.lineEnd).eq(12);
-        expect(errorWarnings.errors[5].doenetMLrange.charEnd).eq(4);
+        expect(errorWarnings.errors[5].position.lineBegin).eq(11);
+        expect(errorWarnings.errors[5].position.charBegin).eq(1);
+        expect(errorWarnings.errors[5].position.lineEnd).eq(12);
+        expect(errorWarnings.errors[5].position.charEnd).eq(4);
 
         expect(errorWarnings.errors[6].message).contain(
             "Invalid component type: <ghi>",
         );
-        expect(errorWarnings.errors[6].doenetMLrange.lineBegin).eq(13);
-        expect(errorWarnings.errors[6].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[6].doenetMLrange.lineEnd).eq(14);
-        expect(errorWarnings.errors[6].doenetMLrange.charEnd).eq(6);
+        expect(errorWarnings.errors[6].position.lineBegin).eq(13);
+        expect(errorWarnings.errors[6].position.charBegin).eq(1);
+        expect(errorWarnings.errors[6].position.lineEnd).eq(14);
+        expect(errorWarnings.errors[6].position.charEnd).eq(6);
     });
 
     it("Naming errors", async () => {
@@ -282,35 +282,35 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Invalid component name: _p",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(15);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[0].position.charBegin).eq(1);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[0].position.charEnd).eq(15);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid component name: p@",
         );
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(19);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[1].position.charBegin).eq(5);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[1].position.charEnd).eq(19);
 
         expect(errorWarnings.errors[2].message).contain(
             "Duplicate component name: p",
         );
-        expect(errorWarnings.errors[2].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(5);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(19);
+        expect(errorWarnings.errors[2].position.lineBegin).eq(5);
+        expect(errorWarnings.errors[2].position.charBegin).eq(1);
+        expect(errorWarnings.errors[2].position.lineEnd).eq(7);
+        expect(errorWarnings.errors[2].position.charEnd).eq(5);
+        expect(errorWarnings.errors[1].position.charEnd).eq(19);
 
         expect(errorWarnings.errors[3].message).contain(
             "Cannot have a blank name",
         );
-        expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(8);
-        expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(8);
-        expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(22);
+        expect(errorWarnings.errors[3].position.lineBegin).eq(8);
+        expect(errorWarnings.errors[3].position.charBegin).eq(1);
+        expect(errorWarnings.errors[3].position.lineEnd).eq(8);
+        expect(errorWarnings.errors[3].position.charEnd).eq(22);
     });
 
     it("Abstract component give invalid component type", async () => {
@@ -329,18 +329,18 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Invalid component type: <_base>",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(6);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[0].position.charBegin).eq(1);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[0].position.charEnd).eq(6);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid component type: <_inline>",
         );
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(8);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[1].position.charBegin).eq(1);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[1].position.charEnd).eq(8);
     });
 
     it("Prevent auto-named child and attribute clashes on duplicate name", async () => {
@@ -359,10 +359,10 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Duplicate component name: f",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(49);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[0].position.charBegin).eq(5);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[0].position.charEnd).eq(49);
     });
 
     it("assignNames errors", async () => {
@@ -387,50 +387,50 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Invalid assignNames: (_a _b)",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(31);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[0].position.charBegin).eq(1);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[0].position.charEnd).eq(31);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid assignNames: a/ b%",
         );
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(32);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(70);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[1].position.charBegin).eq(32);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[1].position.charEnd).eq(70);
 
         expect(errorWarnings.errors[2].message).contain(
             "Invalid format for assignNames: a) b",
         );
-        expect(errorWarnings.errors[2].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(38);
+        expect(errorWarnings.errors[2].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[2].position.charBegin).eq(1);
+        expect(errorWarnings.errors[2].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[2].position.charEnd).eq(38);
 
         expect(errorWarnings.errors[3].message).contain(
             "A name is duplicated in assignNames: a b (c a)",
         );
-        expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(42);
-        expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(74);
+        expect(errorWarnings.errors[3].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[3].position.charBegin).eq(42);
+        expect(errorWarnings.errors[3].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[3].position.charEnd).eq(74);
 
         expect(errorWarnings.errors[4].message).contain(
             "Cannot define assignNames twice for a component",
         );
-        expect(errorWarnings.errors[4].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.errors[4].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[4].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.errors[4].doenetMLrange.charEnd).eq(55);
+        expect(errorWarnings.errors[4].position.lineBegin).eq(5);
+        expect(errorWarnings.errors[4].position.charBegin).eq(1);
+        expect(errorWarnings.errors[4].position.lineEnd).eq(5);
+        expect(errorWarnings.errors[4].position.charEnd).eq(55);
 
         expect(errorWarnings.errors[5].message).contain(
             "Cannot assign names for component type p",
         );
-        expect(errorWarnings.errors[5].doenetMLrange.lineBegin).eq(9);
-        expect(errorWarnings.errors[5].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[5].doenetMLrange.lineEnd).eq(9);
-        expect(errorWarnings.errors[5].doenetMLrange.charEnd).eq(21);
+        expect(errorWarnings.errors[5].position.lineBegin).eq(9);
+        expect(errorWarnings.errors[5].position.charBegin).eq(1);
+        expect(errorWarnings.errors[5].position.lineEnd).eq(9);
+        expect(errorWarnings.errors[5].position.charEnd).eq(21);
     });
 
     it("Invalid attribute errors", async () => {
@@ -450,10 +450,10 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             `Invalid attribute "bad" for a component of type <p>`,
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(33);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[0].position.charBegin).eq(5);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[0].position.charEnd).eq(33);
     });
 
     it("Invalid source errors", async () => {
@@ -476,19 +476,19 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Must specify value for source",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(22);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[0].position.charBegin).eq(5);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(4);
+        expect(errorWarnings.errors[0].position.charEnd).eq(22);
 
         // TODO: what should this error actually say?
         expect(errorWarnings.errors[1].message).contain(
             "Invalid reference target: __s",
         );
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(28);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(5);
+        expect(errorWarnings.errors[1].position.charBegin).eq(5);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(5);
+        expect(errorWarnings.errors[1].position.charEnd).eq(28);
     });
 
     it("Circular dependency with copy source", async () => {
@@ -530,35 +530,35 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Circular dependency involving these components: <math> (line 2)",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(34);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
+        expect(errorWarnings.errors[0].position.charBegin).eq(1);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
+        expect(errorWarnings.errors[0].position.charEnd).eq(34);
 
         // temporary messages until can better detect circular dependency with copysource
         expect(errorWarnings.errors[1].message).contain(
             "Circular dependency involving these components: <math> (line 4)",
         );
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(34);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(4);
+        expect(errorWarnings.errors[1].position.charBegin).eq(1);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(4);
+        expect(errorWarnings.errors[1].position.charEnd).eq(34);
 
         expect(errorWarnings.errors[2].message).contain(
             "Circular dependency involving these components: <math> (line 7)",
         );
-        expect(errorWarnings.errors[2].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(34);
+        expect(errorWarnings.errors[2].position.lineBegin).eq(7);
+        expect(errorWarnings.errors[2].position.charBegin).eq(1);
+        expect(errorWarnings.errors[2].position.lineEnd).eq(7);
+        expect(errorWarnings.errors[2].position.charEnd).eq(34);
 
         expect(errorWarnings.errors[3].message).contain(
             "Circular dependency involving these components: <math> (line 11)",
         );
-        expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(11);
-        expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(11);
-        expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(34);
+        expect(errorWarnings.errors[3].position.lineBegin).eq(11);
+        expect(errorWarnings.errors[3].position.charBegin).eq(1);
+        expect(errorWarnings.errors[3].position.lineEnd).eq(11);
+        expect(errorWarnings.errors[3].position.charEnd).eq(34);
     });
 
     it("Circular dependency with macro children", async () => {
@@ -638,19 +638,19 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.errors[0].message).contain(
             `Found: $B{a="b" a="c"}`,
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(17);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(6);
+        expect(errorWarnings.errors[0].position.charBegin).eq(3);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(6);
+        expect(errorWarnings.errors[0].position.charEnd).eq(17);
 
         expect(errorWarnings.errors[1].message).contain(
             "Duplicate attribute b",
         );
         expect(errorWarnings.errors[1].message).contain("Found: $$f{b b}");
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(12);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(7);
+        expect(errorWarnings.errors[1].position.charBegin).eq(5);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(7);
+        expect(errorWarnings.errors[1].position.charEnd).eq(12);
 
         expect(errorWarnings.errors[2].message).contain(
             "Duplicate attribute d",
@@ -658,10 +658,10 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.errors[2].message).contain(
             `Found: $C{d="b"\n  d}`,
         );
-        expect(errorWarnings.errors[2].doenetMLrange.lineBegin).eq(8);
-        expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(7);
-        expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(9);
-        expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(4);
+        expect(errorWarnings.errors[2].position.lineBegin).eq(8);
+        expect(errorWarnings.errors[2].position.charBegin).eq(7);
+        expect(errorWarnings.errors[2].position.lineEnd).eq(9);
+        expect(errorWarnings.errors[2].position.charEnd).eq(4);
 
         expect(errorWarnings.errors[3].message).contain(
             "cannot repeat assignNames",
@@ -669,10 +669,10 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.errors[3].message).contain(
             `Found: $A{assignNames="a" assignnames="b"}`,
         );
-        expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(35);
+        expect(errorWarnings.errors[3].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[3].position.charBegin).eq(1);
+        expect(errorWarnings.errors[3].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[3].position.charEnd).eq(35);
 
         expect(errorWarnings.errors[4].message).contain(
             "Duplicate attribute c",
@@ -680,19 +680,19 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.errors[4].message).contain(
             `Found: $D{a="$b{c c}"}`,
         );
-        expect(errorWarnings.errors[4].doenetMLrange.lineBegin).eq(11);
-        expect(errorWarnings.errors[4].doenetMLrange.charBegin).eq(6);
-        expect(errorWarnings.errors[4].doenetMLrange.lineEnd).eq(11);
-        expect(errorWarnings.errors[4].doenetMLrange.charEnd).eq(20);
+        expect(errorWarnings.errors[4].position.lineBegin).eq(11);
+        expect(errorWarnings.errors[4].position.charBegin).eq(6);
+        expect(errorWarnings.errors[4].position.lineEnd).eq(11);
+        expect(errorWarnings.errors[4].position.charEnd).eq(20);
 
         expect(errorWarnings.errors[5].message).contain(
             "macro cannot directly add attributes prop, propIndex, or componentIndex",
         );
         expect(errorWarnings.errors[5].message).contain(`Found: $$g{prop="a"}`);
-        expect(errorWarnings.errors[5].doenetMLrange.lineBegin).eq(12);
-        expect(errorWarnings.errors[5].doenetMLrange.charBegin).eq(4);
-        expect(errorWarnings.errors[5].doenetMLrange.lineEnd).eq(12);
-        expect(errorWarnings.errors[5].doenetMLrange.charEnd).eq(16);
+        expect(errorWarnings.errors[5].position.lineBegin).eq(12);
+        expect(errorWarnings.errors[5].position.charBegin).eq(4);
+        expect(errorWarnings.errors[5].position.lineEnd).eq(12);
+        expect(errorWarnings.errors[5].position.charEnd).eq(16);
 
         expect(errorWarnings.errors[6].message).contain(
             "Duplicate attribute e",
@@ -700,10 +700,10 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.errors[6].message).contain(
             `Found: $E{a="$b{c='$d{e e}'}"}`,
         );
-        expect(errorWarnings.errors[6].doenetMLrange.lineBegin).eq(13);
-        expect(errorWarnings.errors[6].doenetMLrange.charBegin).eq(2);
-        expect(errorWarnings.errors[6].doenetMLrange.lineEnd).eq(13);
-        expect(errorWarnings.errors[6].doenetMLrange.charEnd).eq(24);
+        expect(errorWarnings.errors[6].position.lineBegin).eq(13);
+        expect(errorWarnings.errors[6].position.charBegin).eq(2);
+        expect(errorWarnings.errors[6].position.lineEnd).eq(13);
+        expect(errorWarnings.errors[6].position.charEnd).eq(24);
     });
 
     it("Get line/char numbers with no linebreaks", async () => {
@@ -715,18 +715,18 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain("Missing closing tag");
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(1);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(1);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(5);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(1);
+        expect(errorWarnings.errors[0].position.charBegin).eq(5);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(1);
+        expect(errorWarnings.errors[0].position.charEnd).eq(5);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid component type: <bad>",
         );
-        expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(1);
-        expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(1);
-        expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(1);
-        expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(5);
+        expect(errorWarnings.errors[1].position.lineBegin).eq(1);
+        expect(errorWarnings.errors[1].position.charBegin).eq(1);
+        expect(errorWarnings.errors[1].position.lineEnd).eq(1);
+        expect(errorWarnings.errors[1].position.charEnd).eq(5);
     });
 
     it("Copy section with an error", async () => {
@@ -746,10 +746,10 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain("Missing closing tag");
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(6);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(6);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(3);
+        expect(errorWarnings.errors[0].position.charBegin).eq(6);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(3);
+        expect(errorWarnings.errors[0].position.charEnd).eq(6);
     });
 
     it("Error when copying a composite", async () => {
@@ -785,10 +785,10 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.errors[0].message).contain(
             "Duplicate component name: f",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(11);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(55);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(7);
+        expect(errorWarnings.errors[0].position.charBegin).eq(11);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(7);
+        expect(errorWarnings.errors[0].position.charEnd).eq(55);
     });
 
     it("Error when copying a composite, copy again", async () => {
@@ -841,9 +841,9 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.errors[0].message).contain(
             "Duplicate component name: f",
         );
-        expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(9);
-        expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(11);
-        expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(9);
-        expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(55);
+        expect(errorWarnings.errors[0].position.lineBegin).eq(9);
+        expect(errorWarnings.errors[0].position.charBegin).eq(11);
+        expect(errorWarnings.errors[0].position.lineEnd).eq(9);
+        expect(errorWarnings.errors[0].position.charEnd).eq(55);
     });
 });
