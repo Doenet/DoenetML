@@ -269,13 +269,12 @@ export function returnStyleDefinitionStateVariables() {
             };
 
             for (let setupChild of stateValues.setupChildren) {
-                dependencies[`styleDefinitionsOf${setupChild.componentName}`] =
-                    {
-                        dependencyType: "child",
-                        parentName: setupChild.componentName,
-                        childGroups: ["styleDefinitions"],
-                        variableNames: ["value"],
-                    };
+                dependencies[`styleDefinitionsOf${setupChild.componentIdx}`] = {
+                    dependencyType: "child",
+                    parentIdx: setupChild.componentIdx,
+                    childGroups: ["styleDefinitions"],
+                    variableNames: ["value"],
+                };
             }
 
             return dependencies;
@@ -307,7 +306,7 @@ export function returnStyleDefinitionStateVariables() {
             for (let child of dependencyValues.setupChildren) {
                 styleDefinitionChildren.push(
                     ...dependencyValues[
-                        `styleDefinitionsOf${child.componentName}`
+                        `styleDefinitionsOf${child.componentIdx}`
                     ],
                 );
             }

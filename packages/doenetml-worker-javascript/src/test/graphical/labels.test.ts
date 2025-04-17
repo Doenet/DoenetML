@@ -35,30 +35,30 @@ describe("Label tests", async () => {
         expect(stateVariables["/g7Qlabel"].stateValues.value).eq("Q");
         expect(stateVariables["/g7Slabel"].stateValues.value).eq("S");
 
-        let P2Name = stateVariables["/g2"].activeChildren[0].componentName;
-        let Q2Name = stateVariables["/g2"].activeChildren[1].componentName;
-        let R2Name = stateVariables["/g2"].activeChildren[2].componentName;
-        let S2Name = stateVariables["/g2"].activeChildren[3].componentName;
-        let P3Name = stateVariables["/g3"].activeChildren[0].componentName;
-        let Q3Name = stateVariables["/g3"].activeChildren[1].componentName;
-        let R3Name = stateVariables["/g3"].activeChildren[2].componentName;
-        let S3Name = stateVariables["/g3"].activeChildren[3].componentName;
-        let P4Name = stateVariables["/g4"].activeChildren[0].componentName;
-        let Q4Name = stateVariables["/g4"].activeChildren[1].componentName;
-        let R4Name = stateVariables["/g4"].activeChildren[2].componentName;
-        let S4Name = stateVariables["/g4"].activeChildren[3].componentName;
-        let P5Name = stateVariables["/g5"].activeChildren[0].componentName;
-        let Q5Name = stateVariables["/g5"].activeChildren[1].componentName;
-        let R5Name = stateVariables["/g5"].activeChildren[2].componentName;
-        let S5Name = stateVariables["/g5"].activeChildren[3].componentName;
-        let P6Name = stateVariables["/g6"].activeChildren[0].componentName;
-        let Q6Name = stateVariables["/g6"].activeChildren[1].componentName;
-        let R6Name = stateVariables["/g6"].activeChildren[2].componentName;
-        let S6Name = stateVariables["/g6"].activeChildren[3].componentName;
-        let P7Name = stateVariables["/g7"].activeChildren[0].componentName;
-        let Q7Name = stateVariables["/g7"].activeChildren[1].componentName;
-        let R7Name = stateVariables["/g7"].activeChildren[2].componentName;
-        let S7Name = stateVariables["/g7"].activeChildren[3].componentName;
+        let P2Name = stateVariables["/g2"].activeChildren[0].componentIdx;
+        let Q2Name = stateVariables["/g2"].activeChildren[1].componentIdx;
+        let R2Name = stateVariables["/g2"].activeChildren[2].componentIdx;
+        let S2Name = stateVariables["/g2"].activeChildren[3].componentIdx;
+        let P3Name = stateVariables["/g3"].activeChildren[0].componentIdx;
+        let Q3Name = stateVariables["/g3"].activeChildren[1].componentIdx;
+        let R3Name = stateVariables["/g3"].activeChildren[2].componentIdx;
+        let S3Name = stateVariables["/g3"].activeChildren[3].componentIdx;
+        let P4Name = stateVariables["/g4"].activeChildren[0].componentIdx;
+        let Q4Name = stateVariables["/g4"].activeChildren[1].componentIdx;
+        let R4Name = stateVariables["/g4"].activeChildren[2].componentIdx;
+        let S4Name = stateVariables["/g4"].activeChildren[3].componentIdx;
+        let P5Name = stateVariables["/g5"].activeChildren[0].componentIdx;
+        let Q5Name = stateVariables["/g5"].activeChildren[1].componentIdx;
+        let R5Name = stateVariables["/g5"].activeChildren[2].componentIdx;
+        let S5Name = stateVariables["/g5"].activeChildren[3].componentIdx;
+        let P6Name = stateVariables["/g6"].activeChildren[0].componentIdx;
+        let Q6Name = stateVariables["/g6"].activeChildren[1].componentIdx;
+        let R6Name = stateVariables["/g6"].activeChildren[2].componentIdx;
+        let S6Name = stateVariables["/g6"].activeChildren[3].componentIdx;
+        let P7Name = stateVariables["/g7"].activeChildren[0].componentIdx;
+        let Q7Name = stateVariables["/g7"].activeChildren[1].componentIdx;
+        let R7Name = stateVariables["/g7"].activeChildren[2].componentIdx;
+        let S7Name = stateVariables["/g7"].activeChildren[3].componentIdx;
 
         expect(stateVariables["/P"].stateValues.label).eq("P");
         expect(stateVariables["/P"].stateValues.labelForGraph).eq("P");
@@ -298,40 +298,40 @@ describe("Label tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let g1ChildNames = stateVariables["/g1"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g2ChildNames = stateVariables["/g2"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g3ChildNames = stateVariables["/g3"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g4ChildNames = stateVariables["/g4"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g5ChildNames = stateVariables["/g5"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g6ChildNames = stateVariables["/g6"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g7ChildNames = stateVariables["/g7"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g8ChildNames = stateVariables["/g8"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g9ChildNames = stateVariables["/g9"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g10ChildNames = stateVariables["/g10"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g11ChildNames = stateVariables["/g11"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         let g12ChildNames = stateVariables["/g12"].activeChildren.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         let g1ChildLabels = Array(5).fill("");
@@ -502,10 +502,8 @@ describe("Label tests", async () => {
                 false,
                 true,
             );
-            const p6Name =
-                stateVariables["/g6"].activeChildren[0].componentName;
-            const p7Name =
-                stateVariables["/g7"].activeChildren[0].componentName;
+            const p6Name = stateVariables["/g6"].activeChildren[0].componentIdx;
+            const p7Name = stateVariables["/g7"].activeChildren[0].componentIdx;
 
             expect(stateVariables["/lA"].stateValues.value).eq(lA);
             expect(stateVariables["/lB"].stateValues.value).eq(lA);
@@ -605,10 +603,8 @@ describe("Label tests", async () => {
                 false,
                 true,
             );
-            const p4Name =
-                stateVariables["/g4"].activeChildren[0].componentName;
-            const p5Name =
-                stateVariables["/g5"].activeChildren[0].componentName;
+            const p4Name = stateVariables["/g4"].activeChildren[0].componentIdx;
+            const p5Name = stateVariables["/g5"].activeChildren[0].componentIdx;
 
             expect(stateVariables["/lA"].stateValues.value).eq(lA);
             expect(stateVariables["/lB"].stateValues.value).eq(lB);

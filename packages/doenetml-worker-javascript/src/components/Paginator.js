@@ -168,7 +168,7 @@ export class Paginator extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "currentPage",
                 value: pageNumber,
                 sourceDetails: { fromSetPage: true },
@@ -184,7 +184,7 @@ export class Paginator extends BlockComponent {
             event: {
                 verb: "selected",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -199,7 +199,7 @@ export class Paginator extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },
@@ -221,7 +221,7 @@ export class PaginatorControls extends BlockComponent {
                     await this.stateValues.paginatorComponentName;
                 if (paginatorComponentName) {
                     return {
-                        componentName: paginatorComponentName,
+                        componentIdx: paginatorComponentName,
                         actionName: "setPage",
                     };
                 } else {
@@ -298,7 +298,7 @@ export class PaginatorControls extends BlockComponent {
                     return {
                         paginatorPage: {
                             dependencyType: "stateVariable",
-                            componentName: stateValues.paginatorComponentName,
+                            componentIdx: stateValues.paginatorComponentName,
                             variableName: "currentPage",
                         },
                     };
@@ -327,7 +327,7 @@ export class PaginatorControls extends BlockComponent {
                     return {
                         paginatorNPages: {
                             dependencyType: "stateVariable",
-                            componentName: stateValues.paginatorComponentName,
+                            componentIdx: stateValues.paginatorComponentName,
                             variableName: "numPages",
                         },
                     };

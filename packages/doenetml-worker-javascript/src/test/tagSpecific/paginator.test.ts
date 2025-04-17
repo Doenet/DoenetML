@@ -56,16 +56,16 @@ describe("Paginator tag tests", async () => {
 
         let mathinput1Name =
             stateVariables["/answer1"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
         let mathinput2Name =
             stateVariables["/answer2"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
         let mathinput3Name =
             stateVariables["/answer3"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
         let mathinput4Name =
             stateVariables["/answer4"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
 
         expect(stateVariables["/pgn"].stateValues.numPages).eq(3);
         expect(stateVariables["/pgn"].stateValues.currentPage).eq(1);
@@ -93,7 +93,7 @@ describe("Paginator tag tests", async () => {
 
         // move to page 2
         await core.requestAction({
-            componentName: "/pgn",
+            componentIdx: "/pgn",
             actionName: "setPage",
             args: { number: 2 },
         });
@@ -118,7 +118,7 @@ describe("Paginator tag tests", async () => {
 
         // back to page 1
         await core.requestAction({
-            componentName: "/pgn",
+            componentIdx: "/pgn",
             actionName: "setPage",
             args: { number: 1 },
         });
@@ -148,7 +148,7 @@ describe("Paginator tag tests", async () => {
 
         // on to third page
         await core.requestAction({
-            componentName: "/pgn",
+            componentIdx: "/pgn",
             actionName: "setPage",
             args: { number: 3 },
         });
@@ -224,7 +224,7 @@ describe("Paginator tag tests", async () => {
         expect(stateVariables["/ti2"].stateValues.disabled).eq(true);
 
         await core.requestAction({
-            componentName: "/pgn",
+            componentIdx: "/pgn",
             actionName: "setPage",
             args: { number: 2 },
         });

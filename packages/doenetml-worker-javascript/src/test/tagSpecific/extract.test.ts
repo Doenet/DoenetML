@@ -216,12 +216,12 @@ describe("Extract tag tests", async () => {
             ).eqls(componentTypes);
             expect(
                 stateVariables["/p1"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value,
+                    (x) => stateVariables[x.componentIdx].stateValues.value,
                 ),
             ).eqls(vals);
             expect(
                 stateVariables["/p2"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value,
+                    (x) => stateVariables[x.componentIdx].stateValues.value,
                 ),
             ).eqls(vals);
         }
@@ -285,13 +285,13 @@ describe("Extract tag tests", async () => {
             expect(
                 stateVariables["/p1"].activeChildren.map(
                     (x) =>
-                        stateVariables[x.componentName].stateValues.value.tree,
+                        stateVariables[x.componentIdx].stateValues.value.tree,
                 ),
             ).eqls(vals);
             expect(
                 stateVariables["/p2"].activeChildren.map(
                     (x) =>
-                        stateVariables[x.componentName].stateValues.value.tree,
+                        stateVariables[x.componentIdx].stateValues.value.tree,
                 ),
             ).eqls(vals);
         }

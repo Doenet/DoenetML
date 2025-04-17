@@ -382,7 +382,7 @@ export default class Video extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "played",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
                 duration: duration,
             },
@@ -395,7 +395,7 @@ export default class Video extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "state",
                     value: "playing",
                 },
@@ -419,7 +419,7 @@ export default class Video extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "watched",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
                 duration: duration,
             },
@@ -472,7 +472,7 @@ export default class Video extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "segmentsWatched",
                     value: segmentsWatched,
                 },
@@ -484,7 +484,7 @@ export default class Video extends BlockComponent {
         });
 
         return await this.coreFunctions.triggerChainedActions({
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             actionId,
             sourceInformation,
             skipRendererUpdate,
@@ -501,7 +501,7 @@ export default class Video extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "paused",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
                 duration: duration,
             },
@@ -513,7 +513,7 @@ export default class Video extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "state",
                     value: "stopped",
                 },
@@ -529,7 +529,7 @@ export default class Video extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "skipped",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
                 duration: duration,
             },
@@ -549,7 +549,7 @@ export default class Video extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "completed",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
                 duration: duration,
             },
@@ -558,7 +558,7 @@ export default class Video extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "state",
                     value: "stopped",
                 },
@@ -574,7 +574,7 @@ export default class Video extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },
@@ -591,13 +591,13 @@ export default class Video extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "state",
                     value: "stopped",
                 },
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "duration",
                     value: duration,
                 },
@@ -619,7 +619,7 @@ export default class Video extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "state",
                     value: "playing",
                 },
@@ -640,7 +640,7 @@ export default class Video extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "state",
                     value: "stopped",
                 },
@@ -662,7 +662,7 @@ export default class Video extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "time",
                     value: time,
                 },

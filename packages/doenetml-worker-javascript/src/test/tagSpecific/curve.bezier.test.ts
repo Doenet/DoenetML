@@ -27,7 +27,7 @@ async function changeVectorControlDirection({
     direction: Direction;
 }) {
     await core.requestAction({
-        componentName: name,
+        componentIdx: name,
         actionName: "changeVectorControlDirection",
         args: { throughPointInd, direction },
     });

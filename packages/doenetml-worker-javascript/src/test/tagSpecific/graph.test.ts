@@ -27,8 +27,8 @@ describe("Graph tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let curve1Name = stateVariables["/g"].activeChildren[0].componentName;
-        let curve2Name = stateVariables["/g"].activeChildren[1].componentName;
+        let curve1Name = stateVariables["/g"].activeChildren[0].componentIdx;
+        let curve2Name = stateVariables["/g"].activeChildren[1].componentIdx;
 
         let f1 = stateVariables[curve1Name].stateValues.fs[0];
         let f2 = stateVariables[curve2Name].stateValues.fs[0];
@@ -633,7 +633,7 @@ describe("Graph tag tests", async () => {
         expect(stateVariables["/graph1"].stateValues.xlabel).eq("\\(\uff3f\\)");
 
         let mathinputName =
-            stateVariables["/x"].stateValues.inputChildren[0].componentName;
+            stateVariables["/x"].stateValues.inputChildren[0].componentIdx;
 
         await updateMathInputValue({
             latex: "x",

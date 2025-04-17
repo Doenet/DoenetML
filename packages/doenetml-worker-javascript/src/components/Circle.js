@@ -2949,7 +2949,7 @@ export default class Circle extends Curve {
         if (numThroughPoints <= 1 || numericalPrescribedCenter.length > 0) {
             instructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "numericalCenter",
                 value: center,
             });
@@ -2983,7 +2983,7 @@ export default class Circle extends Curve {
 
             instructions.push({
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "numericalThroughPoints",
                 value: numericalThroughPoints,
             });
@@ -3008,7 +3008,7 @@ export default class Circle extends Curve {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -3054,7 +3054,7 @@ export default class Circle extends Curve {
                 let newInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "numericalThroughPoints",
                         value: newNumericalThroughPoints,
                     },
@@ -3078,7 +3078,7 @@ export default class Circle extends Curve {
                 let newInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "numericalCenter",
                         value: newCenter,
                     },
@@ -3171,7 +3171,7 @@ export default class Circle extends Curve {
                     let newInstructions = [
                         {
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "numericalThroughPoints",
                             value: newNumericalThroughPoints,
                         },
@@ -3205,7 +3205,7 @@ export default class Circle extends Curve {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -3222,7 +3222,7 @@ export default class Circle extends Curve {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

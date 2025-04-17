@@ -159,7 +159,7 @@ export function EditorViewer({
                 const data = event.data.data;
                 if (data.verb === "submitted") {
                     const object = JSON.parse(data.object);
-                    const answerId = object.componentName;
+                    const answerId = object.componentIdx;
 
                     if (answerId) {
                         const result = JSON.parse(

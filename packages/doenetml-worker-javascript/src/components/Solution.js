@@ -269,7 +269,7 @@ export class Solution extends BlockComponent {
         // is not received, the solution will stay closed.
         if (displayMode === "buttonRequirePermission") {
             const requestResult = await this.coreFunctions.requestSolutionView(
-                this.componentName,
+                this.componentIdx,
             );
             allowView = requestResult.allowView;
         }
@@ -277,7 +277,7 @@ export class Solution extends BlockComponent {
         let updateInstructions = [
             {
                 updateType: "updateValue",
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 stateVariable: "open",
                 value: allowView,
             },
@@ -289,7 +289,7 @@ export class Solution extends BlockComponent {
             event = {
                 verb: "viewed",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
             };
@@ -307,7 +307,7 @@ export class Solution extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "rendered",
                     value: allowView,
                 },
@@ -328,7 +328,7 @@ export class Solution extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "open",
                     value: false,
                 },
@@ -340,7 +340,7 @@ export class Solution extends BlockComponent {
             event: {
                 verb: "closed",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
             },
@@ -351,7 +351,7 @@ export class Solution extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

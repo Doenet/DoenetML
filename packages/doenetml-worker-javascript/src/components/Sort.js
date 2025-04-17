@@ -162,7 +162,7 @@ export default class Sort extends CompositeComponent {
                             ...child.stateValues.componentNamesInList,
                         );
                     } else {
-                        componentNamesForValues.push(child.componentName);
+                        componentNamesForValues.push(child.componentIdx);
                     }
                 }
 
@@ -198,7 +198,7 @@ export default class Sort extends CompositeComponent {
                     ] of stateValues.componentNamesForValues.entries()) {
                         dependencies[`component${ind}`] = {
                             dependencyType: "stateVariable",
-                            componentName: cName,
+                            componentIdx: cName,
                             variableName: stateValues.propName,
                             variablesOptional: true,
                             caseInsensitiveVariableMatch: true,
@@ -213,7 +213,7 @@ export default class Sort extends CompositeComponent {
                     ] of stateValues.componentNamesForValues.entries()) {
                         dependencies[`component${ind}`] = {
                             dependencyType: "multipleStateVariables",
-                            componentName: cName,
+                            componentIdx: cName,
                             variableNames: [
                                 "value",
                                 `x${stateValues.sortByComponent}`,
@@ -236,7 +236,7 @@ export default class Sort extends CompositeComponent {
                     if (dependencyValues.propName) {
                         let value = Object.values(component.stateValues)[0];
                         allValues.push({
-                            componentName: component.componentName,
+                            componentIdx: component.componentIdx,
                             numericalValue: Number(value),
                             textValue: String(value),
                         });
@@ -250,7 +250,7 @@ export default class Sort extends CompositeComponent {
                         })
                     ) {
                         allValues.push({
-                            componentName: component.componentName,
+                            componentIdx: component.componentIdx,
                             numericalValue: component.stateValues.value,
                             textValue: String(component.stateValues.value),
                         });
@@ -263,7 +263,7 @@ export default class Sort extends CompositeComponent {
                         let numericalValue = NaN;
                         let textValue = component.stateValues.value;
                         allValues.push({
-                            componentName: component.componentName,
+                            componentIdx: component.componentIdx,
                             numericalValue,
                             textValue,
                         });
@@ -280,7 +280,7 @@ export default class Sort extends CompositeComponent {
                             allAreNumeric = false;
                         }
                         allValues.push({
-                            componentName: component.componentName,
+                            componentIdx: component.componentIdx,
                             numericalValue,
                             textValue: component.stateValues.value.toString(),
                         });
@@ -304,7 +304,7 @@ export default class Sort extends CompositeComponent {
                             textValue = compValue.toString();
                         }
                         allValues.push({
-                            componentName: component.componentName,
+                            componentIdx: component.componentIdx,
                             numericalValue,
                             textValue,
                         });
@@ -339,7 +339,7 @@ export default class Sort extends CompositeComponent {
                             textValue = compValue.toString();
                         }
                         allValues.push({
-                            componentName: component.componentName,
+                            componentIdx: component.componentIdx,
                             numericalValue,
                             textValue,
                         });
@@ -401,15 +401,15 @@ export default class Sort extends CompositeComponent {
             let replacementSource;
 
             if (valueObj.listInd === undefined) {
-                replacementSource = components[valueObj.componentName];
+                replacementSource = components[valueObj.componentIdx];
             } else {
-                let listComponent = components[valueObj.componentName];
+                let listComponent = components[valueObj.componentIdx];
                 replacementSource =
                     listComponent.activeChildren[valueObj.listInd];
             }
 
             if (replacementSource) {
-                componentsCopied.push(replacementSource.componentName);
+                componentsCopied.push(replacementSource.componentIdx);
 
                 replacements.push(
                     await replacementSource.serialize({
@@ -422,7 +422,7 @@ export default class Sort extends CompositeComponent {
         workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
@@ -431,7 +431,7 @@ export default class Sort extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: await component.stateValues.newNamespace,
             componentInfoObjects,
         });
@@ -463,15 +463,15 @@ export default class Sort extends CompositeComponent {
             let replacementSource;
 
             if (valueObj.listInd === undefined) {
-                replacementSource = components[valueObj.componentName];
+                replacementSource = components[valueObj.componentIdx];
             } else {
-                let listComponent = components[valueObj.componentName];
+                let listComponent = components[valueObj.componentIdx];
                 replacementSource =
                     listComponent.activeChildren[valueObj.listInd];
             }
 
             if (replacementSource) {
-                componentsToCopy.push(replacementSource.componentName);
+                componentsToCopy.push(replacementSource.componentIdx);
             }
         }
 

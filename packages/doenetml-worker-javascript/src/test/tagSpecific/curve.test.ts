@@ -328,12 +328,12 @@ describe("Curve tag tests", async () => {
 
         // activate bezier controls and move tangents
         await core.requestAction({
-            componentName: "/c",
+            componentIdx: "/c",
             actionName: "changeVectorControlDirection",
             args: { throughPointInd: 0, direction: "symmetric" },
         });
         await core.requestAction({
-            componentName: "/c",
+            componentIdx: "/c",
             actionName: "changeVectorControlDirection",
             args: { throughPointInd: 3, direction: "symmetric" },
         });

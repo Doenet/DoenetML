@@ -93,7 +93,7 @@ export default class Sequence extends CompositeComponent {
         workspace,
         componentInfoObjects,
     }) {
-        // console.log(`create serialized replacements for ${component.componentName}`)
+        // console.log(`create serialized replacements for ${component.componentIdx}`)
 
         let errors = [];
         let warnings = [];
@@ -178,13 +178,13 @@ export default class Sequence extends CompositeComponent {
             replacements.push(serializedComponent);
         }
 
-        // console.log(`replacements for ${component.componentName}`)
+        // console.log(`replacements for ${component.componentIdx}`)
         // console.log(replacements)
 
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
@@ -203,7 +203,7 @@ export default class Sequence extends CompositeComponent {
         workspace,
         componentInfoObjects,
     }) {
-        // console.log(`calculate replacement changes for ${component.componentName}`);
+        // console.log(`calculate replacement changes for ${component.componentIdx}`);
 
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -427,7 +427,7 @@ export default class Sequence extends CompositeComponent {
                 let processResult = processAssignNames({
                     assignNames: component.doenetAttributes.assignNames,
                     serializedComponents: newSerializedReplacements,
-                    parentName: component.componentName,
+                    parentIdx: component.componentIdx,
                     parentCreatesNewNamespace: newNamespace,
                     componentInfoObjects,
                     indOffset: prevlength,

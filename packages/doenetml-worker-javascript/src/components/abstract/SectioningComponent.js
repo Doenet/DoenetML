@@ -318,7 +318,7 @@ export class SectioningComponent extends BlockComponent {
                     titleChildName =
                         dependencyValues.titleChild[
                             dependencyValues.titleChild.length - 1
-                        ].componentName;
+                        ].componentIdx;
                 }
                 return {
                     setValue: { titleChildName },
@@ -354,7 +354,7 @@ export class SectioningComponent extends BlockComponent {
                 let childIndicesToRender = [];
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
-                    (x) => x.componentName,
+                    (x) => x.componentIdx,
                 );
 
                 for (let [
@@ -364,7 +364,7 @@ export class SectioningComponent extends BlockComponent {
                     if (dependencyValues.asList) {
                         // if asList, then only include titleChild and sections
                         if (
-                            child.componentName ===
+                            child.componentIdx ===
                                 dependencyValues.titleChildName ||
                             componentInfoObjects.isInheritedComponentType({
                                 inheritedComponentType: child.componentType,
@@ -375,8 +375,8 @@ export class SectioningComponent extends BlockComponent {
                         }
                     } else if (
                         typeof child !== "object" ||
-                        !allTitleChildNames.includes(child.componentName) ||
-                        child.componentName === dependencyValues.titleChildName
+                        !allTitleChildNames.includes(child.componentIdx) ||
+                        child.componentIdx === dependencyValues.titleChildName
                     ) {
                         childIndicesToRender.push(ind);
                     }
@@ -673,7 +673,7 @@ export class SectioningComponent extends BlockComponent {
                     ] of stateValues.scoredDescendants.entries()) {
                         dependencies["creditAchieved" + ind] = {
                             dependencyType: "stateVariable",
-                            componentName: descendant.componentName,
+                            componentIdx: descendant.componentIdx,
                             variableName: "creditAchieved",
                         };
                     }
@@ -740,7 +740,7 @@ export class SectioningComponent extends BlockComponent {
                     ] of stateValues.scoredDescendants.entries()) {
                         dependencies["creditAchievedIfSubmit" + ind] = {
                             dependencyType: "stateVariable",
-                            componentName: descendant.componentName,
+                            componentIdx: descendant.componentIdx,
                             variableName: "creditAchievedIfSubmit",
                         };
                     }
@@ -809,7 +809,7 @@ export class SectioningComponent extends BlockComponent {
                     ignoreReplacementsOfEncounteredComposites: true,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {};
 
                 if (dependencyValues.variantName) {
@@ -820,7 +820,7 @@ export class SectioningComponent extends BlockComponent {
                 }
 
                 generatedVariantInfo.meta = {
-                    createdBy: componentName,
+                    createdBy: componentIdx,
                 };
 
                 let subvariants = (generatedVariantInfo.subvariants = []);
@@ -936,7 +936,7 @@ export class SectioningComponent extends BlockComponent {
                     variableNames: ["suppressAnswerSubmitButtons"],
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let warnings = [];
 
                 let createSubmitAllButton = false;
@@ -1000,7 +1000,7 @@ export class SectioningComponent extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "submitted",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: {
@@ -1014,7 +1014,7 @@ export class SectioningComponent extends BlockComponent {
         ] of await this.stateValues.answerDescendants.entries()) {
             if (!(await answer.stateValues.justSubmitted)) {
                 await this.coreFunctions.performAction({
-                    componentName: answer.componentName,
+                    componentIdx: answer.componentIdx,
                     actionName: "submitAnswer",
                     args: {
                         actionId,
@@ -1036,7 +1036,7 @@ export class SectioningComponent extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "open",
                     value: true,
                 },
@@ -1047,7 +1047,7 @@ export class SectioningComponent extends BlockComponent {
             event: {
                 verb: "viewed",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
             },
@@ -1057,7 +1057,7 @@ export class SectioningComponent extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "rendered",
                     value: true,
                 },
@@ -1078,7 +1078,7 @@ export class SectioningComponent extends BlockComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "open",
                     value: false,
                 },
@@ -1090,7 +1090,7 @@ export class SectioningComponent extends BlockComponent {
             event: {
                 verb: "closed",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
             },
@@ -1101,7 +1101,7 @@ export class SectioningComponent extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

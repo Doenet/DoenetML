@@ -24,7 +24,7 @@ export default class Choiceinput extends Input {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor !== null) {
                     return {
-                        componentName: answerAncestor.componentName,
+                        componentIdx: answerAncestor.componentIdx,
                         actionName: "submitAnswer",
                     };
                 } else {
@@ -314,10 +314,10 @@ export default class Choiceinput extends Input {
                     ignoreReplacementsOfEncounteredComposites: true,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     seed: dependencyValues.variantSeed,
-                    meta: { createdBy: componentName },
+                    meta: { createdBy: componentIdx },
                 };
 
                 if (dependencyValues.shuffleOrder) {
@@ -1426,7 +1426,7 @@ export default class Choiceinput extends Input {
         //     } else {
         //       return {
         //         setValue: {
-        //           childrenToRender: dependencyValues.choiceChildrenOrdered.map(x => x.componentName)
+        //           childrenToRender: dependencyValues.choiceChildrenOrdered.map(x => x.componentIdx)
         //         }
         //       }
         //     }
@@ -1452,7 +1452,7 @@ export default class Choiceinput extends Input {
             let updateInstructions = [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "allSelectedIndices",
                     value: effectiveSelectedIndices,
                 },
@@ -1462,7 +1462,7 @@ export default class Choiceinput extends Input {
             let event = {
                 verb: "selected",
                 object: {
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     componentType: this.componentType,
                 },
                 result: {
@@ -1476,7 +1476,7 @@ export default class Choiceinput extends Input {
             let answerAncestor = await this.stateValues.answerAncestor;
             if (answerAncestor) {
                 event.context = {
-                    answerAncestor: answerAncestor.componentName,
+                    answerAncestor: answerAncestor.componentIdx,
                 };
             }
 
@@ -1489,7 +1489,7 @@ export default class Choiceinput extends Input {
             });
 
             return await this.coreFunctions.triggerChainedActions({
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

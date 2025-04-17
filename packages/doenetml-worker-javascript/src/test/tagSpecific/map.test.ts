@@ -29,11 +29,11 @@ describe("Map tag tests", async () => {
 
         let replacements = stateVariables["/map1"].replacements!;
         let mathr1Name =
-            stateVariables[replacements[0].componentName].replacements![0]
-                .componentName;
+            stateVariables[replacements[0].componentIdx].replacements![0]
+                .componentIdx;
         let mathr2Name =
-            stateVariables[replacements[1].componentName].replacements![0]
-                .componentName;
+            stateVariables[replacements[1].componentIdx].replacements![0]
+                .componentIdx;
 
         expect(stateVariables["/p"].stateValues.text).eq(
             "sin(2 x) + 1, sin(2 y) + 2",
@@ -65,11 +65,11 @@ describe("Map tag tests", async () => {
 
         let replacements = stateVariables["/map1"].replacements!;
         let textr1Name =
-            stateVariables[replacements[0].componentName].replacements![0]
-                .componentName;
+            stateVariables[replacements[0].componentIdx].replacements![0]
+                .componentIdx;
         let textr2Name =
-            stateVariables[replacements[1].componentName].replacements![0]
-                .componentName;
+            stateVariables[replacements[1].componentIdx].replacements![0]
+                .componentIdx;
 
         expect(stateVariables["/p"].stateValues.text).eq(
             "You are a squirrel! You are a bat! ",
@@ -97,8 +97,7 @@ describe("Map tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let replacements = stateVariables["/map1"].replacements!;
         let mathrNames = replacements.map(
-            (x) =>
-                stateVariables[x.componentName].replacements![0].componentName,
+            (x) => stateVariables[x.componentIdx].replacements![0].componentIdx,
         );
 
         expect(stateVariables["/p"].stateValues.text).eq("1, 4, 9, 16, 25");
@@ -301,8 +300,8 @@ describe("Map tag tests", async () => {
         function checkMap(mapName: string) {
             let graphNames = stateVariables[mapName].replacements!.map(
                 (x) =>
-                    stateVariables[x.componentName].replacements![0]
-                        .componentName,
+                    stateVariables[x.componentIdx].replacements![0]
+                        .componentIdx,
             );
 
             for (let [graphInd, graphName] of graphNames.entries()) {
@@ -311,7 +310,7 @@ describe("Map tag tests", async () => {
 
                 let allPointNames = stateVariables[
                     graphName
-                ].activeChildren.map((x) => x.componentName);
+                ].activeChildren.map((x) => x.componentIdx);
 
                 expect(allPointNames.length).eq(8);
 
@@ -456,8 +455,7 @@ describe("Map tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let graphNames = stateVariables["/map1"].replacements!.map(
-            (x) =>
-                stateVariables[x.componentName].replacements![0].componentName,
+            (x) => stateVariables[x.componentIdx].replacements![0].componentIdx,
         );
 
         for (let [graphInd, graphName] of graphNames.entries()) {
@@ -467,7 +465,7 @@ describe("Map tag tests", async () => {
             ).eq(4);
 
             let pointNames = stateVariables[graphName].activeChildren.map(
-                (x) => x.componentName,
+                (x) => x.componentIdx,
             );
 
             for (let [ind, val] of pointsByGraph[graphInd].entries()) {
@@ -663,8 +661,7 @@ describe("Map tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let replacementNames = stateVariables["/hi/map1"].replacements!.map(
-            (x) =>
-                stateVariables[x.componentName].replacements![0].componentName,
+            (x) => stateVariables[x.componentIdx].replacements![0].componentIdx,
         );
 
         expect(
@@ -1219,7 +1216,7 @@ describe("Map tag tests", async () => {
                 let n = from + i * step;
                 let child =
                     stateVariables[
-                        stateVariables["/math1"].activeChildren[i].componentName
+                        stateVariables["/math1"].activeChildren[i].componentIdx
                     ];
                 // Note: coords is a type of math
                 expect(child.componentType).eq("coords");
@@ -1809,11 +1806,11 @@ describe("Map tag tests", async () => {
         // Note: filter out strings by only including replacements
         // with a component type
         let n1a = stateVariables[
-            stateVariables["/map1"].replacements![0].componentName
-        ].replacements!.filter((s) => s.componentType)[1].componentName;
+            stateVariables["/map1"].replacements![0].componentIdx
+        ].replacements!.filter((s) => s.componentType)[1].componentIdx;
         let n2a = stateVariables[
-            stateVariables["/map1"].replacements![1].componentName
-        ].replacements!.filter((s) => s.componentType)[1].componentName;
+            stateVariables["/map1"].replacements![1].componentIdx
+        ].replacements!.filter((s) => s.componentType)[1].componentIdx;
 
         expect(stateVariables["/n1"].stateValues.value).eq(1);
         expect(stateVariables[n1a].stateValues.value).eq(10);

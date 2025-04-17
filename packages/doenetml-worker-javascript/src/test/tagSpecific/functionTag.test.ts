@@ -3615,32 +3615,32 @@ describe("Function tag tests", async () => {
 
         expect(
             stateVariables[
-                stateVariables["/fOfu"].activeChildren[0].componentName
+                stateVariables["/fOfu"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "s", ["^", "u", 3]]);
         expect(
             stateVariables[
-                stateVariables["/f2Ofu"].activeChildren[0].componentName
+                stateVariables["/f2Ofu"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "s", ["^", "u", 3]]);
         expect(
             stateVariables[
-                stateVariables["/f3Ofu"].activeChildren[0].componentName
+                stateVariables["/f3Ofu"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "u", ["^", "t", 3]]);
         expect(
             stateVariables[
-                stateVariables["/f4Ofu"].activeChildren[0].componentName
+                stateVariables["/f4Ofu"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "s", ["^", "u", 3]]);
         expect(
             stateVariables[
-                stateVariables["/f5Ofu"].activeChildren[0].componentName
+                stateVariables["/f5Ofu"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "s", ["^", "u", 3]]);
         expect(
             stateVariables[
-                stateVariables["/f6Ofu"].activeChildren[0].componentName
+                stateVariables["/f6Ofu"].activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "u", ["^", "t", 3]]);
     });
@@ -3709,7 +3709,7 @@ describe("Function tag tests", async () => {
         for (let name of Of0names) {
             expect(
                 stateVariables[
-                    stateVariables[name].activeChildren[0].componentName
+                    stateVariables[name].activeChildren[0].componentIdx
                 ].stateValues.value.tree,
             ).eqls(2);
         }
@@ -3726,7 +3726,7 @@ describe("Function tag tests", async () => {
         for (let name of Of1names) {
             expect(
                 stateVariables[
-                    stateVariables[name].activeChildren[0].componentName
+                    stateVariables[name].activeChildren[0].componentIdx
                 ].stateValues.value.tree,
             ).eqls(3);
         }
@@ -3743,7 +3743,7 @@ describe("Function tag tests", async () => {
         for (let name of Of2names) {
             expect(
                 stateVariables[
-                    stateVariables[name].activeChildren[0].componentName
+                    stateVariables[name].activeChildren[0].componentIdx
                 ].stateValues.value.tree,
             ).eqls(6);
         }

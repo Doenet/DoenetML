@@ -113,7 +113,7 @@ export default class DataFrame extends BaseComponent {
                     variableName: "columnTypesPrelim",
                 },
             }),
-            definition: function ({ dependencyValues, componentName }) {
+            definition: function ({ dependencyValues, componentIdx }) {
                 let columnTypes = [],
                     columnNames = [];
 
@@ -139,7 +139,7 @@ export default class DataFrame extends BaseComponent {
 
                 if (foundInconsistentRow) {
                     let warning = {
-                        message: `Data has invalid shape.  Rows has inconsistent lengths. Found in componentName :${componentName}`,
+                        message: `Data has invalid shape.  Rows has inconsistent lengths. Found in componentIdx :${componentIdx}`,
                         level: 1,
                     };
                     return {
@@ -182,7 +182,7 @@ export default class DataFrame extends BaseComponent {
                     dataFrame.columnNames
                 ) {
                     let warning = {
-                        message: `Data has duplicate column names.  Found in componentName :${componentName}`,
+                        message: `Data has duplicate column names.  Found in componentIdx :${componentIdx}`,
                         level: 1,
                     };
                     return {
@@ -199,7 +199,7 @@ export default class DataFrame extends BaseComponent {
 
                 if (dataFrame.columnNames.includes("")) {
                     let warning = {
-                        message: `Data is missing a column name.  Found in componentName :${componentName}`,
+                        message: `Data is missing a column name.  Found in componentIdx :${componentIdx}`,
                         level: 1,
                     };
                     return {

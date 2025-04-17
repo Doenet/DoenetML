@@ -207,7 +207,7 @@ export default class Copy extends CompositeComponent {
                 return {
                     targetSourcesComponent: {
                         dependencyType: "componentIdentity",
-                        componentName: stateValues.targetSourcesName,
+                        componentIdx: stateValues.targetSourcesName,
                     },
                 };
             },
@@ -271,8 +271,8 @@ export default class Copy extends CompositeComponent {
                     return {
                         targetSourcesChildren: {
                             dependencyType: "stateVariable",
-                            componentName:
-                                stateValues.targetSources.componentName,
+                            componentIdx:
+                                stateValues.targetSources.componentIdx,
                             variableName: "childIdentities",
                         },
                         sourcesChildNumber: {
@@ -315,8 +315,8 @@ export default class Copy extends CompositeComponent {
                     return {
                         targetIsInactiveCompositeReplacement: {
                             dependencyType: "stateVariable",
-                            componentName:
-                                stateValues.targetComponent.componentName,
+                            componentIdx:
+                                stateValues.targetComponent.componentIdx,
                             variableName: "isInactiveCompositeReplacement",
                         },
                     };
@@ -457,7 +457,7 @@ export default class Copy extends CompositeComponent {
                 if (stateValues.targetComponent !== null) {
                     dependencies.targetComponentNewNamespace = {
                         dependencyType: "attributePrimitive",
-                        parentName: stateValues.targetComponent.componentName,
+                        parentIdx: stateValues.targetComponent.componentIdx,
                         attributeName: "newNamespace",
                     };
 
@@ -501,8 +501,8 @@ export default class Copy extends CompositeComponent {
                             // for the case where we have a prop and a composite target
                             dependencies.targets = {
                                 dependencyType: "replacement",
-                                compositeName:
-                                    stateValues.targetComponent.componentName,
+                                compositeIdx:
+                                    stateValues.targetComponent.componentIdx,
                                 recursive: true,
                                 componentIndex: stateValues.componentIndex,
                                 targetSubnames: stateValues.targetSubnames,
@@ -598,7 +598,7 @@ export default class Copy extends CompositeComponent {
                         let source = stateValues.replacementSourceIdentities[0];
                         dependencies[`newNamespaceSource`] = {
                             dependencyType: "attributePrimitive",
-                            parentName: source.componentName,
+                            parentIdx: source.componentIdx,
                             attributeName: "newNamespace",
                         };
                     }
@@ -746,7 +746,7 @@ export default class Copy extends CompositeComponent {
                             }
                             thisTarget = {
                                 dependencyType: "stateVariable",
-                                componentName: source.componentName,
+                                componentIdx: source.componentIdx,
                                 variableName: thisPropName,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
@@ -758,7 +758,7 @@ export default class Copy extends CompositeComponent {
                         } else {
                             thisTarget = {
                                 dependencyType: "componentIdentity",
-                                componentName: source.componentName,
+                                componentIdx: source.componentIdx,
                             };
                         }
 
@@ -912,8 +912,7 @@ export default class Copy extends CompositeComponent {
                 ) {
                     dependencies.targetReplacements = {
                         dependencyType: "replacement",
-                        compositeName:
-                            stateValues.targetComponent.componentName,
+                        compositeIdx: stateValues.targetComponent.componentIdx,
                         recursive: true,
                         recurseNonStandardComposites: true,
                     };
@@ -977,8 +976,7 @@ export default class Copy extends CompositeComponent {
                 ) {
                     dependencies.targetReadyToExpandWhenResolved = {
                         dependencyType: "stateVariable",
-                        componentName:
-                            stateValues.targetComponent.componentName,
+                        componentIdx: stateValues.targetComponent.componentIdx,
                         variableName: "readyToExpandWhenResolved",
                     };
                 }
@@ -1054,7 +1052,7 @@ export default class Copy extends CompositeComponent {
 
                             dependencies["sourceArraySize" + ind] = {
                                 dependencyType: "stateVariableArraySize",
-                                componentName: source.componentName,
+                                componentIdx: source.componentIdx,
                                 variableName: propName,
                                 variablesOptional: true,
                                 caseInsensitiveVariableMatch: true,
@@ -1062,7 +1060,7 @@ export default class Copy extends CompositeComponent {
 
                             dependencies["sourceComponentType" + ind] = {
                                 dependencyType: "stateVariableComponentType",
-                                componentName: source.componentName,
+                                componentIdx: source.componentIdx,
                                 variableName: propName,
                                 variablesOptional: true,
                                 caseInsensitiveVariableMatch: true,
@@ -1090,8 +1088,7 @@ export default class Copy extends CompositeComponent {
 
                     dependencies.allReplacementIdentities = {
                         dependencyType: "replacement",
-                        compositeName:
-                            stateValues.targetComponent.componentName,
+                        compositeIdx: stateValues.targetComponent.componentIdx,
                         recursive: true,
                         variableNames: ["isInactiveCompositeReplacement"],
                     };
@@ -1155,7 +1152,7 @@ export default class Copy extends CompositeComponent {
         resolveItem,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        // console.log(`create serialized replacements of ${component.componentName}`)
+        // console.log(`create serialized replacements of ${component.componentIdx}`)
 
         // console.log(await component.stateValues.targetComponent);
         // console.log(await component.stateValues.effectivePropNameBySource);
@@ -1191,8 +1188,8 @@ export default class Copy extends CompositeComponent {
 
             if (replacements[0].children) {
                 let namespace;
-                if (replacements[0].componentName) {
-                    namespace = replacements[0].componentName + "/";
+                if (replacements[0].componentIdx) {
+                    namespace = replacements[0].componentIdx + "/";
                 } else {
                     namespace = replacements[0].originalName + "/";
                 }
@@ -1281,7 +1278,7 @@ export default class Copy extends CompositeComponent {
                     component.doenetAttributes
                         .assignNamesForCompositeReplacement,
                 serializedComponents: replacements,
-                parentName: component.componentName,
+                parentIdx: component.componentIdx,
                 parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
             });
@@ -1355,7 +1352,7 @@ export default class Copy extends CompositeComponent {
                     component.doenetAttributes
                         .assignNamesForCompositeReplacement,
                 serializedComponents: replacements,
-                parentName: component.componentName,
+                parentIdx: component.componentIdx,
                 parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
             });
@@ -1450,7 +1447,7 @@ export default class Copy extends CompositeComponent {
                         component.doenetAttributes
                             .assignNamesForCompositeReplacement,
                     serializedComponents: replacements,
-                    parentName: component.componentName,
+                    parentIdx: component.componentIdx,
                     componentInfoObjects,
                     originalNamesAreConsistent: true,
                 });
@@ -1491,7 +1488,7 @@ export default class Copy extends CompositeComponent {
         // and resolve recalculateDownstreamComponents of its target dependencies
         // so any array entry prop is created
         let resolveResult = await resolveItem({
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             type: "determineDependencies",
             stateVariable: "replacementSources",
             dependency: "__determine_dependencies",
@@ -1500,7 +1497,7 @@ export default class Copy extends CompositeComponent {
 
         if (!resolveResult.success) {
             throw Error(
-                `Couldn't resolve determineDependencies of replacementSources of ${component.componentName}`,
+                `Couldn't resolve determineDependencies of replacementSources of ${component.componentIdx}`,
             );
         }
 
@@ -1511,7 +1508,7 @@ export default class Copy extends CompositeComponent {
 
             if (thisPropName) {
                 resolveResult = await resolveItem({
-                    componentName: component.componentName,
+                    componentIdx: component.componentIdx,
                     type: "recalculateDownstreamComponents",
                     stateVariable: "replacementSources",
                     dependency: "target" + ind,
@@ -1520,7 +1517,7 @@ export default class Copy extends CompositeComponent {
 
                 if (!resolveResult.success) {
                     throw Error(
-                        `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentName}`,
+                        `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentIdx}`,
                     );
                 }
             }
@@ -1529,7 +1526,7 @@ export default class Copy extends CompositeComponent {
         if (!component.doenetAttributes.sourceIsProp) {
             let targetComponent =
                 components[
-                    (await component.stateValues.targetComponent).componentName
+                    (await component.stateValues.targetComponent).componentIdx
                 ];
             let componentIndex = await component.stateValues.componentIndex;
             let targetSubnames = await component.stateValues.targetSubnames;
@@ -1587,7 +1584,7 @@ export default class Copy extends CompositeComponent {
                         component.doenetAttributes
                             .assignNamesForCompositeReplacement,
                     serializedComponents: substituteSerializedReplacements,
-                    parentName: component.componentName,
+                    parentIdx: component.componentIdx,
                     componentInfoObjects,
                 });
 
@@ -1663,7 +1660,7 @@ export default class Copy extends CompositeComponent {
         workspace.numNonStringReplacementsBySource =
             numNonStringReplacementsBySource;
         workspace.sourceNames = replacementSourceIdentities.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
 
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
@@ -1680,7 +1677,7 @@ export default class Copy extends CompositeComponent {
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
 
-        // console.log(`serialized replacements for ${component.componentName}`);
+        // console.log(`serialized replacements for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)));
 
         return {
@@ -1728,7 +1725,7 @@ export default class Copy extends CompositeComponent {
             }
         }
         let replacementSourceComponent =
-            components[replacementSource.componentName];
+            components[replacementSource.componentIdx];
 
         // if not linking or removing empty array entries,
         // then replacementSources is resolved,
@@ -1772,7 +1769,7 @@ export default class Copy extends CompositeComponent {
                     component.doenetAttributes
                         .assignNamesForCompositeReplacement,
                 serializedComponents: results.serializedReplacements,
-                parentName: component.componentName,
+                parentIdx: component.componentIdx,
                 parentCreatesNewNamespace: newNamespace,
                 indOffset: numNonStringReplacementsSoFar,
                 componentInfoObjects,
@@ -1835,7 +1832,7 @@ export default class Copy extends CompositeComponent {
                     primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                     copyPrimaryEssential,
                     copyEssentialState,
-                    errorIfEncounterComponent: [component.componentName],
+                    errorIfEncounterComponent: [component.componentIdx],
                 }),
             ];
         } catch (e) {
@@ -1862,12 +1859,12 @@ export default class Copy extends CompositeComponent {
             delete serializedReplacements[0].state.fixed;
         }
 
-        // console.log(`serializedReplacements for ${component.componentName}`);
+        // console.log(`serializedReplacements for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(serializedReplacements)));
 
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             uniqueIdentifiersUsed,
             addShadowDependencies: link,
             unlinkExternalCopies: !link,
@@ -1917,15 +1914,15 @@ export default class Copy extends CompositeComponent {
             serializedReplacements[0].doenetAttributes.haveNewNamespaceOnlyFromShadow = true;
         }
 
-        let parentName = component.componentName;
+        let parentIdx = component.componentIdx;
 
         if (component.doenetAttributes.parentNameForAssignNames) {
-            parentName = component.doenetAttributes.parentNameForAssignNames;
+            parentIdx = component.doenetAttributes.parentNameForAssignNames;
         }
 
         let compositesParentNameForAssignNames;
         if (await component.stateValues.addLevelToAssignNames) {
-            compositesParentNameForAssignNames = parentName;
+            compositesParentNameForAssignNames = parentIdx;
         }
 
         let processResult = processAssignNames({
@@ -1935,7 +1932,7 @@ export default class Copy extends CompositeComponent {
             assignNamesForCompositeReplacement:
                 component.doenetAttributes.assignNamesForCompositeReplacement,
             serializedComponents: serializedReplacements,
-            parentName,
+            parentIdx,
             parentCreatesNewNamespace: newNamespace,
             indOffset: numNonStringReplacementsSoFar,
             componentInfoObjects,
@@ -1964,7 +1961,7 @@ export default class Copy extends CompositeComponent {
             warnings.push(...res.warnings);
         }
 
-        // console.log(`ending serializedReplacements for ${component.componentName}`);
+        // console.log(`ending serializedReplacements for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(serializedReplacements)));
 
         return { serializedReplacements, errors, warnings };
@@ -2011,7 +2008,7 @@ export default class Copy extends CompositeComponent {
 
         let processResult = processAssignNames({
             serializedComponents: newChildren,
-            parentName: replacements[0].componentName,
+            parentIdx: replacements[0].componentIdx,
             parentCreatesNewNamespace: assignNewNamespaces,
             componentInfoObjects,
             originalNamesAreConsistent: true,
@@ -2052,7 +2049,7 @@ export default class Copy extends CompositeComponent {
         publicCaseInsensitiveAliasSubstitutions,
     }) {
         // console.log(
-        //   "Calculating replacement changes for " + component.componentName,
+        //   "Calculating replacement changes for " + component.componentIdx,
         // );
 
         // TODO: don't yet have a way to return errors and warnings!
@@ -2178,7 +2175,7 @@ export default class Copy extends CompositeComponent {
         // and resolve recalculateDownstreamComponents of its target dependencies
         // so any array entry prop is created
         let resolveResult = await resolveItem({
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             type: "determineDependencies",
             stateVariable: "replacementSources",
             dependency: "__determine_dependencies",
@@ -2187,7 +2184,7 @@ export default class Copy extends CompositeComponent {
 
         if (!resolveResult.success) {
             throw Error(
-                `Couldn't resolve determineDependencies of replacementSources of ${component.componentName}`,
+                `Couldn't resolve determineDependencies of replacementSources of ${component.componentIdx}`,
             );
         }
 
@@ -2199,7 +2196,7 @@ export default class Copy extends CompositeComponent {
 
             if (thisPropName) {
                 resolveResult = await resolveItem({
-                    componentName: component.componentName,
+                    componentIdx: component.componentIdx,
                     type: "recalculateDownstreamComponents",
                     stateVariable: "replacementSources",
                     dependency: "target" + ind,
@@ -2208,7 +2205,7 @@ export default class Copy extends CompositeComponent {
 
                 if (!resolveResult.success) {
                     throw Error(
-                        `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentName}`,
+                        `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentIdx}`,
                     );
                 }
             }
@@ -2217,7 +2214,7 @@ export default class Copy extends CompositeComponent {
         if (!component.doenetAttributes.sourceIsProp) {
             let targetComponent =
                 components[
-                    (await component.stateValues.targetComponent).componentName
+                    (await component.stateValues.targetComponent).componentIdx
                 ];
             let componentIndex = await component.stateValues.componentIndex;
             let targetSubnames = await component.stateValues.targetSubnames;
@@ -2335,7 +2332,7 @@ export default class Copy extends CompositeComponent {
             // check if replacementSource has changed
             let needToRecreate =
                 prevSourceName === undefined ||
-                replacementSource.componentName !== prevSourceName ||
+                replacementSource.componentIdx !== prevSourceName ||
                 recreateRemaining;
 
             if (!needToRecreate) {
@@ -2352,8 +2349,8 @@ export default class Copy extends CompositeComponent {
                         break;
                     } else if (
                         !effectivePropNameBySource[sourceNum] &&
-                        currentReplacement.shadows?.componentName !==
-                            replacementSourceIdentities[sourceNum].componentName
+                        currentReplacement.shadows?.componentIdx !==
+                            replacementSourceIdentities[sourceNum].componentIdx
                     ) {
                         needToRecreate = true;
                         break;
@@ -2616,7 +2613,7 @@ export default class Copy extends CompositeComponent {
         workspace.numNonStringReplacementsBySource =
             numNonStringReplacementsBySource;
         workspace.sourceNames = replacementSourceIdentities.map(
-            (x) => x.componentName,
+            (x) => x.componentIdx,
         );
         workspace.propVariablesCopiedBySource = propVariablesCopiedBySource;
 
@@ -2734,7 +2731,7 @@ export async function replacementFromProp({
     numComponentsForSource,
     publicCaseInsensitiveAliasSubstitutions,
 }) {
-    // console.log(`replacement from prop for ${component.componentName}`)
+    // console.log(`replacement from prop for ${component.componentIdx}`)
     // console.log(replacementSource)
 
     let errors = [];
@@ -2750,7 +2747,7 @@ export async function replacementFromProp({
 
     let replacementInd = -1; //numReplacementsSoFar - 1;
 
-    let target = components[replacementSource.componentName];
+    let target = components[replacementSource.componentIdx];
 
     let varName = publicCaseInsensitiveAliasSubstitutions({
         stateVariables: [propName],
@@ -2922,7 +2919,7 @@ export async function replacementFromProp({
                     propVariablesCopied.push(propVariable);
 
                     let uniqueIdentifierBase =
-                        replacementSource.componentName +
+                        replacementSource.componentIdx +
                         "|shadow|" +
                         propVariable;
                     let uniqueIdentifier = getUniqueIdentifierFromBase(
@@ -3020,10 +3017,10 @@ export async function replacementFromProp({
                                     let shadowComponent = {
                                         componentType: attributeComponentType,
                                         downstreamDependencies: {
-                                            [target.componentName]: [
+                                            [target.componentIdx]: [
                                                 {
-                                                    compositeName:
-                                                        component.componentName,
+                                                    compositeIdx:
+                                                        component.componentIdx,
                                                     dependencyType:
                                                         "referenceShadow",
                                                     propVariable:
@@ -3049,10 +3046,10 @@ export async function replacementFromProp({
                             componentType: createComponentOfType,
                             attributes: attributesForReplacement,
                             downstreamDependencies: {
-                                [replacementSource.componentName]: [
+                                [replacementSource.componentIdx]: [
                                     {
                                         dependencyType: "referenceShadow",
-                                        compositeName: component.componentName,
+                                        compositeIdx: component.componentIdx,
                                         propVariable,
                                         additionalStateVariableShadowing:
                                             stateVariablesShadowingStateVariables,
@@ -3235,7 +3232,7 @@ export async function replacementFromProp({
                         let propVariablesCopiedForThisPiece = [propVariable];
 
                         let uniqueIdentifierBase =
-                            replacementSource.componentName +
+                            replacementSource.componentIdx +
                             "|shadow|" +
                             propVariable;
                         let uniqueIdentifier = getUniqueIdentifierFromBase(
@@ -3347,10 +3344,10 @@ export async function replacementFromProp({
                                             componentType:
                                                 attributeComponentType,
                                             downstreamDependencies: {
-                                                [target.componentName]: [
+                                                [target.componentIdx]: [
                                                     {
-                                                        compositeName:
-                                                            component.componentName,
+                                                        compositeIdx:
+                                                            component.componentIdx,
                                                         dependencyType:
                                                             "referenceShadow",
                                                         propVariable:
@@ -3371,11 +3368,11 @@ export async function replacementFromProp({
                                 componentType: createComponentOfType,
                                 attributes: attributesForReplacement,
                                 downstreamDependencies: {
-                                    [replacementSource.componentName]: [
+                                    [replacementSource.componentIdx]: [
                                         {
                                             dependencyType: "referenceShadow",
-                                            compositeName:
-                                                component.componentName,
+                                            compositeIdx:
+                                                component.componentIdx,
                                             propVariable,
                                             additionalStateVariableShadowing:
                                                 stateVariablesShadowingStateVariables,
@@ -3629,10 +3626,10 @@ export async function replacementFromProp({
                                             componentType:
                                                 attributeComponentType,
                                             downstreamDependencies: {
-                                                [target.componentName]: [
+                                                [target.componentIdx]: [
                                                     {
-                                                        compositeName:
-                                                            component.componentName,
+                                                        compositeIdx:
+                                                            component.componentIdx,
                                                         dependencyType:
                                                             "referenceShadow",
                                                         propVariable:
@@ -3727,10 +3724,10 @@ export async function replacementFromProp({
 
                 if (link) {
                     replacement.downstreamDependencies = {
-                        [replacementSource.componentName]: [
+                        [replacementSource.componentIdx]: [
                             {
                                 dependencyType: "referenceShadow",
-                                compositeName: component.componentName,
+                                compositeIdx: component.componentIdx,
                                 propVariable: varName,
                                 ignorePrimaryStateVariable: true,
                             },
@@ -3810,7 +3807,7 @@ export async function replacementFromProp({
                 }
             } else if (newReplacements > numReplacementsForSource) {
                 throw Error(
-                    `Something went wrong when creating replacements for ${component.componentName} as we ended up with too many replacements`,
+                    `Something went wrong when creating replacements for ${component.componentIdx} as we ended up with too many replacements`,
                 );
             }
         }
@@ -3839,7 +3836,7 @@ export async function replacementFromProp({
 
         propVariablesCopied.push(varName);
 
-        let uniqueIdentifierBase = target.componentName + "|shadow|" + varName;
+        let uniqueIdentifierBase = target.componentIdx + "|shadow|" + varName;
         let uniqueIdentifier = getUniqueIdentifierFromBase(
             uniqueIdentifierBase,
             uniqueIdentifiersUsed,
@@ -3888,10 +3885,10 @@ export async function replacementFromProp({
                             let shadowComponent = {
                                 componentType: attributeComponentType,
                                 downstreamDependencies: {
-                                    [target.componentName]: [
+                                    [target.componentIdx]: [
                                         {
-                                            compositeName:
-                                                component.componentName,
+                                            compositeIdx:
+                                                component.componentIdx,
                                             dependencyType: "referenceShadow",
                                             propVariable: stateVariableToShadow,
                                         },
@@ -3916,10 +3913,10 @@ export async function replacementFromProp({
                         stateVarObj.shadowingInstructions.createComponentOfType,
                     attributes: attributesForReplacement,
                     downstreamDependencies: {
-                        [target.componentName]: [
+                        [target.componentIdx]: [
                             {
                                 dependencyType: "referenceShadow",
-                                compositeName: component.componentName,
+                                compositeIdx: component.componentIdx,
                                 propVariable: varName,
                                 additionalStateVariableShadowing:
                                     stateVarObj.shadowingInstructions
@@ -4048,15 +4045,15 @@ export async function replacementFromProp({
                 repl.doenetAttributes = {};
             }
             repl.doenetAttributes.fromImplicitProp = true;
-            if (repl.downstreamDependencies?.[target.componentName]?.[0]) {
+            if (repl.downstreamDependencies?.[target.componentIdx]?.[0]) {
                 repl.downstreamDependencies[
-                    target.componentName
+                    target.componentIdx
                 ][0].fromImplicitProp = true;
             }
         }
     }
 
-    // console.log(`serializedReplacements for ${component.componentName}`)
+    // console.log(`serializedReplacements for ${component.componentIdx}`)
     // console.log(JSON.parse(JSON.stringify(serializedReplacements)))
     // console.log(serializedReplacements)
 

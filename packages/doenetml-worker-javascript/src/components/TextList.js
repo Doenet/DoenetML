@@ -134,7 +134,7 @@ export default class TextList extends CompositeComponent {
 
                 if (dependencyValues.textChildren.length > 0) {
                     childNameByComponent = dependencyValues.textChildren.map(
-                        (x) => x.componentName,
+                        (x) => x.componentIdx,
                     );
                     numComponents = dependencyValues.textChildren.length;
                 } else if (dependencyValues.textsShadow !== null) {
@@ -339,20 +339,20 @@ export default class TextList extends CompositeComponent {
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
-            let childName = childNameByComponent[i];
-            let replacementSource = components[childName];
+            let childIdx = childNameByComponent[i];
+            let replacementSource = components[childIdx];
 
             if (replacementSource) {
-                componentsCopied.push(replacementSource.componentName);
+                componentsCopied.push(replacementSource.componentIdx);
             }
             replacements.push({
                 componentType: "text",
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 downstreamDependencies: {
-                    [component.componentName]: [
+                    [component.componentIdx]: [
                         {
                             dependencyType: "referenceShadow",
-                            compositeName: component.componentName,
+                            compositeIdx: component.componentIdx,
                             propVariable: `text${i + 1}`,
                         },
                     ],
@@ -363,7 +363,7 @@ export default class TextList extends CompositeComponent {
         workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
-            componentName: component.componentName,
+            componentIdx: component.componentIdx,
             uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
@@ -372,7 +372,7 @@ export default class TextList extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
@@ -407,11 +407,11 @@ export default class TextList extends CompositeComponent {
             let childNameByComponent =
                 await component.stateValues.childNameByComponent;
 
-            for (let childName of childNameByComponent) {
-                let replacementSource = components[childName];
+            for (let childIdx of childNameByComponent) {
+                let replacementSource = components[childIdx];
 
                 if (replacementSource) {
-                    componentsToCopy.push(replacementSource.componentName);
+                    componentsToCopy.push(replacementSource.componentIdx);
                 }
             }
 

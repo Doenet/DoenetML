@@ -44,12 +44,12 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/_point1",
+                componentIdx: "/_point1",
                 args: { x: 5.9, y: 3.5 },
             });
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/_point1",
+                componentIdx: "/_point1",
                 args: { x: 5.9, y: 3.4 },
             });
         });
@@ -127,7 +127,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/_point1",
+                componentIdx: "/_point1",
                 args: { x: -8.8, y: 1.3 },
             });
             let stateVariables = await win.returnAllStateVariables1();
@@ -208,12 +208,12 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/_point1",
+                componentIdx: "/_point1",
                 args: { x: -9.4, y: -5.1 },
             });
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/_point1",
+                componentIdx: "/_point1",
                 args: { x: -9.5, y: -5.1 },
             });
             let stateVariables = await win.returnAllStateVariables1();

@@ -238,11 +238,11 @@ export default class ConditionalContent extends CompositeComponent {
                     ignoreReplacementsOfEncounteredComposites: true,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     seed: dependencyValues.variantSeed,
                     meta: {
-                        createdBy: componentName,
+                        createdBy: componentIdx,
                     },
                 };
 
@@ -288,7 +288,7 @@ export default class ConditionalContent extends CompositeComponent {
         workspace.previousBaseConditionSatisfied =
             await component.stateValues.baseConditionSatisfied;
 
-        // console.log(`replacements for ${component.componentName}`)
+        // console.log(`replacements for ${component.componentIdx}`)
         // console.log(JSON.parse(JSON.stringify(replacements)));
         // console.log(replacements);
 
@@ -318,18 +318,18 @@ export default class ConditionalContent extends CompositeComponent {
                     newNameForSelectedChild;
                 if (selectedIndex < (await component.stateValues.numCases)) {
                     selectedChildName =
-                        caseChildren[selectedIndex].componentName;
+                        caseChildren[selectedIndex].componentIdx;
                     newNameForSelectedChild = createUniqueName(
                         "case",
-                        `${component.componentName}|replacement|${selectedIndex}`,
+                        `${component.componentIdx}|replacement|${selectedIndex}`,
                     );
                     childComponentType = "case";
                 } else {
                     selectedChildName = (await component.stateValues.elseChild)
-                        .componentName;
+                        .componentIdx;
                     newNameForSelectedChild = createUniqueName(
                         "else",
-                        `${component.componentName}|replacement|${selectedIndex}`,
+                        `${component.componentIdx}|replacement|${selectedIndex}`,
                     );
                     childComponentType = "else";
                 }
@@ -383,7 +383,7 @@ export default class ConditionalContent extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
             originalNamesAreConsistent: true,
@@ -404,7 +404,7 @@ export default class ConditionalContent extends CompositeComponent {
         workspace,
         componentInfoObjects,
     }) {
-        // console.log(`calculate replacement changes for selectByCondition ${component.componentName}`)
+        // console.log(`calculate replacement changes for selectByCondition ${component.componentIdx}`)
         // console.log(workspace.previousSelectedIndex);
         // console.log(component.stateValues.selectedIndex);
 

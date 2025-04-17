@@ -148,11 +148,11 @@ export default class Group extends CompositeComponent {
                     ignoreReplacementsOfEncounteredComposites: true,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     seed: dependencyValues.variantSeed,
                     meta: {
-                        createdBy: componentName,
+                        createdBy: componentIdx,
                     },
                 };
 
@@ -291,7 +291,7 @@ export default class Group extends CompositeComponent {
             let processResult = processAssignNames({
                 assignNames: component.doenetAttributes.assignNames,
                 serializedComponents: replacements,
-                parentName: component.componentName,
+                parentIdx: component.componentIdx,
                 parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
                 originalNamesAreConsistent: true,
@@ -314,7 +314,7 @@ export default class Group extends CompositeComponent {
             errors.push(...verificationResult.errors);
             warnings.push(...verificationResult.warnings);
 
-            // console.log(`serialized replacements for ${component.componentName}`)
+            // console.log(`serialized replacements for ${component.componentIdx}`)
             // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)))
 
             return {

@@ -1546,8 +1546,8 @@ describe("MathInput tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let entryName1 = stateVariables["/mi1"].activeChildren[0].componentName;
-        let entryName2 = stateVariables["/mi2"].activeChildren[0].componentName;
+        let entryName1 = stateVariables["/mi1"].activeChildren[0].componentIdx;
+        let entryName2 = stateVariables["/mi2"].activeChildren[0].componentIdx;
 
         expect(stateVariables["/mi1"].stateValues.text).eq("[ [ 5 E + 1 ] ]");
         expect(stateVariables["/m1"].stateValues.text).eq("[ [ 5 E + 1 ] ]");
@@ -1613,9 +1613,9 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let entry11OriginalName =
-            stateVariables["/original"].activeChildren[0].componentName;
+            stateVariables["/original"].activeChildren[0].componentIdx;
         let entry11ResultName =
-            stateVariables["/result"].activeChildren[0].componentName;
+            stateVariables["/result"].activeChildren[0].componentIdx;
 
         expect(stateVariables["/mcw"].stateValues.minWidth).eq(50);
         expect(stateVariables[entry11OriginalName].stateValues.minWidth).eq(0);
@@ -1640,17 +1640,17 @@ describe("MathInput tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let entry12OriginalName =
-            stateVariables["/original"].activeChildren[1].componentName;
+            stateVariables["/original"].activeChildren[1].componentIdx;
         let entry21OriginalName =
-            stateVariables["/original"].activeChildren[2].componentName;
+            stateVariables["/original"].activeChildren[2].componentIdx;
         let entry22OriginalName =
-            stateVariables["/original"].activeChildren[3].componentName;
+            stateVariables["/original"].activeChildren[3].componentIdx;
         let entry12ResultName =
-            stateVariables["/result"].activeChildren[1].componentName;
+            stateVariables["/result"].activeChildren[1].componentIdx;
         let entry21ResultName =
-            stateVariables["/result"].activeChildren[2].componentName;
+            stateVariables["/result"].activeChildren[2].componentIdx;
         let entry22ResultName =
-            stateVariables["/result"].activeChildren[3].componentName;
+            stateVariables["/result"].activeChildren[3].componentIdx;
 
         expect(stateVariables[entry11OriginalName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry12OriginalName].stateValues.minWidth).eq(0);

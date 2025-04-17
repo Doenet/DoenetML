@@ -107,7 +107,7 @@ export default class LineListComponent extends BaseComponent {
                     let lineChild =
                         dependencyValuesByKey[arrayKey].lineChild[0];
                     if (lineChild) {
-                        lineNames[arrayKey] = lineChild.componentName;
+                        lineNames[arrayKey] = lineChild.componentIdx;
                     }
                 }
 

@@ -71,8 +71,8 @@ export default class Ref extends InlineComponent {
                     return {
                         targetIsInactiveCompositeReplacement: {
                             dependencyType: "stateVariable",
-                            componentName:
-                                stateValues.targetComponent.componentName,
+                            componentIdx:
+                                stateValues.targetComponent.componentIdx,
                             variableName: "isInactiveCompositeReplacement",
                         },
                     };
@@ -131,7 +131,7 @@ export default class Ref extends InlineComponent {
                     return {
                         setValue: {
                             targetName:
-                                dependencyValues.targetComponent.componentName,
+                                dependencyValues.targetComponent.componentIdx,
                         },
                     };
                 }
@@ -292,13 +292,13 @@ export default class Ref extends InlineComponent {
                 if (stateValues.targetName) {
                     dependencies.equationTag = {
                         dependencyType: "stateVariable",
-                        componentName: stateValues.targetName,
+                        componentIdx: stateValues.targetName,
                         variableName: "equationTag",
                         variablesOptional: true,
                     };
                     dependencies.title = {
                         dependencyType: "stateVariable",
-                        componentName: stateValues.targetName,
+                        componentIdx: stateValues.targetName,
                         variableName: "title",
                         variablesOptional: true,
                     };
@@ -367,7 +367,7 @@ export default class Ref extends InlineComponent {
             uri,
             targetName,
             actionId,
-            componentName: this.componentName,
+            componentIdx: this.componentIdx,
             effectiveName,
         });
     }

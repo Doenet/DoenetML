@@ -61,7 +61,7 @@ export default React.memo(function Answer(props) {
 
     let inputChildrenToRender = null;
     if (SVs.inputChildren.length > 0) {
-        let inputChildNames = SVs.inputChildren.map((x) => x.componentName);
+        let inputChildNames = SVs.inputChildren.map((x) => x.componentIdx);
         inputChildrenToRender = children.filter(
             //child might be null or a string
             (child) =>
@@ -69,7 +69,7 @@ export default React.memo(function Answer(props) {
                 typeof child !== "string" &&
                 inputChildNames.includes(
                     // @ts-ignore
-                    child.props.componentInstructions.componentName,
+                    child.props.componentInstructions.componentIdx,
                 ),
         );
     }

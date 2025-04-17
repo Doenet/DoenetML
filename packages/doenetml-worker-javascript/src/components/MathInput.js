@@ -37,7 +37,7 @@ export default class MathInput extends Input {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor !== null) {
                     return {
-                        componentName: answerAncestor.componentName,
+                        componentIdx: answerAncestor.componentIdx,
                         actionName: "submitAnswer",
                     };
                 } else {
@@ -595,7 +595,7 @@ export default class MathInput extends Input {
                 justUpdatedForNewComponent,
                 usedDefault,
             }) {
-                // console.log(`definition of raw value for ${componentName}`)
+                // console.log(`definition of raw value for ${componentIdx}`)
                 // console.log(JSON.parse(JSON.stringify(dependencyValues)), JSON.parse(JSON.stringify(essentialValues)), JSON.parse(JSON.stringify(usedDefault)))
 
                 // use deepCompare of trees rather than equalsViaSyntax
@@ -660,9 +660,9 @@ export default class MathInput extends Input {
                 stateValues,
                 essentialValues,
                 dependencyValues,
-                componentName,
+                componentIdx,
             }) {
-                // console.log(`inverse definition of rawRenderer value for ${componentName}`, desiredStateVariableValues, JSON.parse(JSON.stringify(essentialValues)))
+                // console.log(`inverse definition of rawRenderer value for ${componentIdx}`, desiredStateVariableValues, JSON.parse(JSON.stringify(essentialValues)))
 
                 let instructions = [];
 
@@ -818,13 +818,13 @@ export default class MathInput extends Input {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "rawRendererValue",
                         value: rawRendererValue,
                     },
                     {
                         updateType: "setComponentNeedingUpdateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                     },
                 ],
                 transient: true,
@@ -852,13 +852,13 @@ export default class MathInput extends Input {
                 let updateInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "dontUpdateRawValueInDefinition",
                         value: true,
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "value",
                         value: immediateValue,
                     },
@@ -870,13 +870,13 @@ export default class MathInput extends Input {
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "dontUpdateRawValueInDefinition",
                         value: false,
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "immediateValue",
                         valueOfStateVariable: "value",
                     },
@@ -887,7 +887,7 @@ export default class MathInput extends Input {
 
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "rawRendererValue",
                     valueOfStateVariable: "valueForDisplay",
                 });
@@ -895,7 +895,7 @@ export default class MathInput extends Input {
                 let event = {
                     verb: "answered",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -907,7 +907,7 @@ export default class MathInput extends Input {
                 let answerAncestor = await this.stateValues.answerAncestor;
                 if (answerAncestor) {
                     event.context = {
-                        answerAncestor: answerAncestor.componentName,
+                        answerAncestor: answerAncestor.componentIdx,
                     };
                 }
 
@@ -925,7 +925,7 @@ export default class MathInput extends Input {
                 });
 
                 return await this.coreFunctions.triggerChainedActions({
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,

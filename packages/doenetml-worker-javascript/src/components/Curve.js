@@ -3866,7 +3866,7 @@ export default class Curve extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "controlVectors",
                         value: desiredVector,
                         sourceDetails: {
@@ -3884,7 +3884,7 @@ export default class Curve extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "controlVectors",
                         value: desiredVector,
                         sourceDetails: {
@@ -3898,7 +3898,7 @@ export default class Curve extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentId: this.componentName,
+                        componentId: this.componentIdx,
                     },
                     result: {
                         ["controlVector" + controlVectorInds.join("_")]:
@@ -3927,7 +3927,7 @@ export default class Curve extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "throughPoints",
                         value: desiredPoint,
                         sourceDetails: { throughPointMoved: throughPointInd },
@@ -3943,7 +3943,7 @@ export default class Curve extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "throughPoints",
                         value: desiredPoint,
                         sourceDetails: { throughPointMoved: throughPointInd },
@@ -3955,7 +3955,7 @@ export default class Curve extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentId: this.componentName,
+                        componentId: this.componentIdx,
                     },
                     result: {
                         ["throughPoint" + throughPointInd]: throughPoint,
@@ -3976,7 +3976,7 @@ export default class Curve extends GraphicalComponent {
             updateInstructions: [
                 {
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "vectorControlDirections",
                     value: { [throughPointInd]: direction },
                 },
@@ -3998,7 +3998,7 @@ export default class Curve extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -4015,7 +4015,7 @@ export default class Curve extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

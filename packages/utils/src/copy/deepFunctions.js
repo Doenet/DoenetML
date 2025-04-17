@@ -81,7 +81,7 @@ export function deepCompare(a, b, BaseComponent) {
             x instanceof BaseComponent &&
             y instanceof BaseComponent
         ) {
-            return x.componentName === y.componentName;
+            return x.componentIdx === y.componentIdx;
         }
 
         // if math-expressions, equal if exact same syntax tree

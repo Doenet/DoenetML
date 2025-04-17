@@ -80,7 +80,7 @@ export default class AngleListComponent extends BaseComponent {
         }
 
         let trackChanges = this.currentTracker.trackChanges;
-        let childrenChanged = trackChanges.childrenChanged(this.componentName);
+        let childrenChanged = trackChanges.childrenChanged(this.componentIdx);
 
         if (childrenChanged) {
             delete this.unresolvedState.angles;
@@ -98,13 +98,13 @@ export default class AngleListComponent extends BaseComponent {
     initializeRenderer() {
         if (this.renderer === undefined) {
             this.renderer = new this.availableRenderers.container({
-                key: this.componentName,
+                key: this.componentIdx,
             });
         }
     }
 
     updateChildrenWhoRender() {
-        this.childrenWhoRender = this.state.angles.map((x) => x.componentName);
+        this.childrenWhoRender = this.state.angles.map((x) => x.componentIdx);
     }
 
     // allowDownstreamUpdates() {
@@ -118,7 +118,7 @@ export default class AngleListComponent extends BaseComponent {
     // calculateDownstreamChanges({ stateVariablesToUpdate, stateVariableChangesToSave,
     //   dependenciesToUpdate, dryRun }) {
 
-    //   let angleNames = this.state.angles.map(x => x.componentName);
+    //   let angleNames = this.state.angles.map(x => x.componentIdx);
 
     //   let newAngle = stateVariablesToUpdate.angles;
 

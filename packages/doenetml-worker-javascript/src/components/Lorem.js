@@ -122,11 +122,11 @@ export default class Lorem extends CompositeComponent {
                     value: sharedParameters.variantSeed,
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     seed: dependencyValues.variantSeed,
                     meta: {
-                        createdBy: componentName,
+                        createdBy: componentIdx,
                     },
                 };
 
@@ -220,7 +220,7 @@ export default class Lorem extends CompositeComponent {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });

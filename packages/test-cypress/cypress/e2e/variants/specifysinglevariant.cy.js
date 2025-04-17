@@ -73,8 +73,8 @@ describe("Specifying single variant document tests", function () {
                 expect(variantInd).not.eq(undefined);
 
                 let secondValue =
-                    stateVariables[p.activeChildren[1].componentName]
-                        .stateValues.value;
+                    stateVariables[p.activeChildren[1].componentIdx].stateValues
+                        .value;
 
                 if (variantInd === 0) {
                     let i = [
@@ -145,7 +145,7 @@ describe("Specifying single variant document tests", function () {
                     expect(variantInd2).eq(variantInd);
 
                     let secondValue2 =
-                        stateVariables[p.activeChildren[1].componentName]
+                        stateVariables[p.activeChildren[1].componentIdx]
                             .stateValues.value;
                     expect(secondValue2).eq(secondValue);
 
@@ -515,16 +515,16 @@ describe("Specifying single variant document tests", function () {
 
             let mathinput1Name =
                 stateVariables[`/g/ans`].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput2Name =
                 stateVariables[`/g2/ans`].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput3Name =
                 stateVariables[`/g3/ans`].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
             let mathinput4Name =
                 stateVariables[`/ans`].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
 
             let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
             let answer1Correct = cesc2("#" + mathinput1Name + "_correct");

@@ -2476,16 +2476,16 @@ $g1{name="g2"}
             core.core!.components!["/P"].attributes.xs.component
                 .activeChildren[0];
         let math1 = x1.definingChildren[0];
-        let math1Name = math1.componentName;
+        let math1Name = math1.componentIdx;
         let math2 = x1.definingChildren[2];
-        let math2Name = math2.componentName;
+        let math2Name = math2.componentIdx;
 
-        expect(x1.definingChildren.map((x) => x.componentName)).eqls([
+        expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             "/seq",
             math2Name,
         ]);
-        expect(x1.activeChildren.map((x) => x.componentName)).eqls([
+        expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             math2Name,
         ]);
@@ -2495,13 +2495,13 @@ $g1{name="g2"}
         await updateMathInputValue({ latex: "2", name: "/n", core });
 
         let math3 = core.core!.components!["/seq"].replacements[0].adapterUsed;
-        let math3Name = math3.componentName;
-        expect(x1.definingChildren.map((x) => x.componentName)).eqls([
+        let math3Name = math3.componentIdx;
+        expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             "/seq",
             math2Name,
         ]);
-        expect(x1.activeChildren.map((x) => x.componentName)).eqls([
+        expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             math3Name,
             math2Name,

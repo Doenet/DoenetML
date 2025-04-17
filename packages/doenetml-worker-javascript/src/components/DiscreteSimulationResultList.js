@@ -320,7 +320,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "cells",
                         value: cellChanges,
                     },
@@ -331,7 +331,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: cellChanges,
@@ -344,7 +344,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

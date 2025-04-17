@@ -36,7 +36,7 @@ export default class Endpoint extends Point {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "open",
                         value: !(await this.stateValues.open),
                     },
@@ -47,7 +47,7 @@ export default class Endpoint extends Point {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {

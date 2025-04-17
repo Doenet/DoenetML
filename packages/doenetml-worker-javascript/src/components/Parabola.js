@@ -580,8 +580,8 @@ export default class Parabola extends Curve {
                     variableName: "aShadow",
                 },
             }),
-            definition: function ({ dependencyValues, componentName }) {
-                // console.log(`definition of a, b, c, realValued of parabola ${componentName}`)
+            definition: function ({ dependencyValues, componentIdx }) {
+                // console.log(`definition of a, b, c, realValued of parabola ${componentIdx}`)
                 // console.log(dependencyValues)
 
                 if (!dependencyValues.pointsAreNumerical) {
@@ -1576,7 +1576,7 @@ export default class Parabola extends Curve {
                     variableName: "c",
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let skip = !(
                     Number.isFinite(dependencyValues.a) &&
                     Number.isFinite(dependencyValues.b) &&

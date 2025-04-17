@@ -1240,7 +1240,7 @@ export default class Vector extends GraphicalComponent {
                 dependencyValuesByKey,
                 arrayKeys,
             }) {
-                // console.log('array definition of vector displacement', componentName)
+                // console.log('array definition of vector displacement', componentIdx)
                 // console.log(globalDependencyValues, dependencyValuesByKey, arrayKeys)
 
                 let displacement = {};
@@ -2448,7 +2448,7 @@ export default class Vector extends GraphicalComponent {
 
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "displacement",
                     value: displacement.map((x) => me.fromAst(x)),
                     sourceDetails,
@@ -2457,7 +2457,7 @@ export default class Vector extends GraphicalComponent {
                 // set tail directly
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "tail",
                     value: tailcoords.map((x) => me.fromAst(x)),
                     sourceDetails,
@@ -2476,7 +2476,7 @@ export default class Vector extends GraphicalComponent {
                     );
                     updateInstructions.push({
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "displacement",
                         value: displacement.map((x) => me.fromAst(x)),
                         sourceDetails,
@@ -2490,7 +2490,7 @@ export default class Vector extends GraphicalComponent {
             if (await this.stateValues.basedOnHead) {
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "head",
                     value: headcoords.map((x) => me.fromAst(x)),
                     sourceDetails,
@@ -2505,7 +2505,7 @@ export default class Vector extends GraphicalComponent {
                 let displacement = tailcoords.map((x, i) => headcoords[i] - x);
                 updateInstructions.push({
                     updateType: "updateValue",
-                    componentName: this.componentName,
+                    componentIdx: this.componentIdx,
                     stateVariable: "displacement",
                     value: displacement.map((x) => me.fromAst(x)),
                     sourceDetails,
@@ -2527,7 +2527,7 @@ export default class Vector extends GraphicalComponent {
                     );
                     updateInstructions.push({
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "displacement",
                         value: displacement.map((x) => me.fromAst(x)),
                         sourceDetails,
@@ -2556,7 +2556,7 @@ export default class Vector extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -2619,13 +2619,13 @@ export default class Vector extends GraphicalComponent {
                 let newInstructions = [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "tail",
                         value: newNumericalPoints[0].map((x) => me.fromAst(x)),
                     },
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "head",
                         value: newNumericalPoints[1].map((x) => me.fromAst(x)),
                     },
@@ -2659,7 +2659,7 @@ export default class Vector extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -2676,7 +2676,7 @@ export default class Vector extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

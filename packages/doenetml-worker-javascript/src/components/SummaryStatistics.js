@@ -151,7 +151,7 @@ export default class SummaryStatistics extends BlockComponent {
                 return {
                     dataFrame: {
                         dependencyType: "stateVariable",
-                        componentName: stateValues.sourceName,
+                        componentIdx: stateValues.sourceName,
                         variableName: "dataFrame",
                         variableOptional: true,
                     },
@@ -651,7 +651,7 @@ export default class SummaryStatistics extends BlockComponent {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
             object: {
-                componentName: this.componentName,
+                componentIdx: this.componentIdx,
                 componentType: this.componentType,
             },
             result: { isVisible },

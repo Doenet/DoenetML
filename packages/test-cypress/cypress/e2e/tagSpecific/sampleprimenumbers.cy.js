@@ -35,9 +35,9 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
+                stateVariables["/p1"].activeChildren[0].componentIdx
             ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             );
 
             expect(samples.length).eq(100);
@@ -69,9 +69,9 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let samples2 = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
+                stateVariables["/p1"].activeChildren[0].componentIdx
             ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             );
 
             expect(samples2.length).eq(100);
@@ -124,9 +124,9 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
+                stateVariables["/p1"].activeChildren[0].componentIdx
             ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             );
 
             expect(samples.length).eq(100);
@@ -168,9 +168,9 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let samples2 = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
+                stateVariables["/p1"].activeChildren[0].componentIdx
             ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             );
 
             expect(samples2).eqls(samples);

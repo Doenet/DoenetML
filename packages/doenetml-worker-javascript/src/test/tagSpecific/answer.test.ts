@@ -51,7 +51,7 @@ async function test_math_answer({
     let stateVariables = await core.returnAllStateVariables(false, true);
     mathInputName =
         mathInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentName;
+        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
 
     if (!mathInputName) {
         throw Error("Don't have mathInput name");
@@ -197,7 +197,7 @@ async function test_text_answer({
     let stateVariables = await core.returnAllStateVariables(false, true);
     textInputName =
         textInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentName;
+        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
 
     if (!textInputName) {
         throw Error("Don't have textInput name");
@@ -292,7 +292,7 @@ async function test_boolean_answer({
     let stateVariables = await core.returnAllStateVariables(false, true);
     booleanInputName =
         booleanInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentName;
+        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
 
     if (!booleanInputName) {
         throw Error("Don't have booleanInput name");
@@ -403,7 +403,7 @@ async function test_choice_answer({
     let stateVariables = await core.returnAllStateVariables(false, true);
     choiceInputName =
         choiceInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentName;
+        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
 
     if (!choiceInputName) {
         throw Error("Don't have choiceInput name");
@@ -593,7 +593,7 @@ async function test_matrix_answer({
     let stateVariables = await core.returnAllStateVariables(false, true);
     matrixInputName =
         matrixInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentName;
+        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
 
     if (!matrixInputName) {
         throw Error("Don't have matrixInput name");
@@ -783,7 +783,7 @@ async function test_action_answer({
         // do action for answer
 
         await core.requestAction({
-            componentName: response.actionComponentName,
+            componentIdx: response.actionComponentName,
             actionName: response.actionName,
             args: response.actionArgs,
         });
@@ -869,7 +869,7 @@ async function test_answer_multiple_inputs({
         let name =
             input.name ||
             stateVariables[answerName].stateValues.inputChildren[i]
-                .componentName;
+                .componentIdx;
 
         if (!name) {
             throw Error(`Don't have name for input ${i}.`);
@@ -1271,7 +1271,7 @@ describe("Answer tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let textInputName =
             stateVariables["/answer1"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
 
         await updateTextInputValue({
             text: " hello there ",
@@ -1390,7 +1390,7 @@ describe("Answer tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputName =
             stateVariables["/answer1"].stateValues.inputChildren[0]
-                .componentName;
+                .componentIdx;
 
         await updateMathInputValue({
             latex: "x",
@@ -1450,7 +1450,7 @@ describe("Answer tag tests", async () => {
             );
             let mathInputName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
 
             // have to submit the correct answer twice before it is marked correct
             await updateMathInputValue({
@@ -3239,7 +3239,7 @@ Enter any letter:
 
             let textInputName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentName;
+                    .componentIdx;
 
             for (let ind2 = 1; ind2 <= 4; ind2++) {
                 await updateTextInputValue({
@@ -4001,7 +4001,7 @@ Enter any letter:
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/cond"].replacements).eqls([
-            { componentName: "/just", componentType: "p" },
+            { componentIdx: "/just", componentType: "p" },
         ]);
         expect(stateVariables["/cond"].replacementsToWithhold).eq(0);
 
@@ -4024,7 +4024,7 @@ Enter any letter:
 
         expect(stateVariables["/cond"].replacementsToWithhold).eq(0);
         expect(stateVariables["/cond"].replacements).eqls([
-            { componentName: "/just", componentType: "p" },
+            { componentIdx: "/just", componentType: "p" },
         ]);
         expect(stateVariables["/just"].stateValues.text).eq(
             "The answer was just submitted.",
@@ -4227,10 +4227,10 @@ Enter any letter:
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathInput1Name =
-            stateVariables["/ans1"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans1"].stateValues.inputChildren[0].componentIdx;
 
         let mathInput2Name =
-            stateVariables["/ans2"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans2"].stateValues.inputChildren[0].componentIdx;
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
@@ -4377,10 +4377,10 @@ Enter any letter:
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathInput1Name =
-            stateVariables["/ans1"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans1"].stateValues.inputChildren[0].componentIdx;
 
         let mathInput2Name =
-            stateVariables["/ans2"].stateValues.inputChildren[0].componentName;
+            stateVariables["/ans2"].stateValues.inputChildren[0].componentIdx;
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
@@ -4656,7 +4656,7 @@ Enter any letter:
         let components = core.core!.components || {};
 
         let mathInputName =
-            components["/ans"].stateValues.inputChildren[0].componentName;
+            components["/ans"].stateValues.inputChildren[0].componentIdx;
 
         expect(components["/ans"].stateValues.justSubmitted).eq(false);
         expect(components["/ans"].stateValues.creditAchieved).eq(0);

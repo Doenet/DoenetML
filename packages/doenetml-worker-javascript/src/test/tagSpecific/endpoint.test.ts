@@ -95,7 +95,7 @@ describe("Endpoint tag tests", async () => {
         // switch A via first action
         await core.requestAction({
             actionName: "switchPoint",
-            componentName: "/g/A",
+            componentIdx: "/g/A",
             args: {},
         });
         AOpen = false;
@@ -104,7 +104,7 @@ describe("Endpoint tag tests", async () => {
         // switch A via second action
         await core.requestAction({
             actionName: "switchPoint",
-            componentName: "/g2/A",
+            componentIdx: "/g2/A",
             args: {},
         });
         AOpen = true;
@@ -113,7 +113,7 @@ describe("Endpoint tag tests", async () => {
         // cannot switch B via action
         await core.requestAction({
             actionName: "switchPoint",
-            componentName: "/g/B",
+            componentIdx: "/g/B",
             args: {},
         });
         await check_items(AOpen, BOpen, COpen, DOpen);
@@ -121,7 +121,7 @@ describe("Endpoint tag tests", async () => {
         // cannot switch C via second action
         await core.requestAction({
             actionName: "switchPoint",
-            componentName: "/g2/C",
+            componentIdx: "/g2/C",
             args: {},
         });
         await check_items(AOpen, BOpen, COpen, DOpen);
@@ -129,7 +129,7 @@ describe("Endpoint tag tests", async () => {
         // switch D via second action
         await core.requestAction({
             actionName: "switchPoint",
-            componentName: "/g2/D",
+            componentIdx: "/g2/D",
             args: {},
         });
         DOpen = false;

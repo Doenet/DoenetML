@@ -42,8 +42,8 @@ describe("Select tag tests", async () => {
                 let value = name
                     ? stateVariables[name].stateValues.value
                     : stateVariables[
-                          stateVariables[s.replacements![ind].componentName]
-                              .replacements![0].componentName
+                          stateVariables[s.replacements![ind].componentIdx]
+                              .replacements![0].componentIdx
                       ].stateValues.value;
                 expect(
                     is_math
@@ -356,54 +356,52 @@ describe("Select tag tests", async () => {
         expect(
             stateVariables[
                 stateVariables[
-                    stateVariables["/noresample1"].replacements![0]
-                        .componentName
-                ].replacements![0].componentName
+                    stateVariables["/noresample1"].replacements![0].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
                 stateVariables[
-                    stateVariables["/noresample2"].replacements![0]
-                        .componentName
-                ].replacements![0].componentName
+                    stateVariables["/noresample2"].replacements![0].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num2);
         expect(
             stateVariables[
                 stateVariables[
                     stateVariables["/noreresample1"].replacements![0]
-                        .componentName
-                ].replacements![0].componentName
+                        .componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
                 stateVariables[
                     stateVariables["/noreresample2"].replacements![0]
-                        .componentName
-                ].replacements![0].componentName
+                        .componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num2);
 
         expect(
             stateVariables[
-                stateVariables["/noresamplep"].activeChildren[1].componentName
+                stateVariables["/noresamplep"].activeChildren[1].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables["/noresamplep"].activeChildren[3].componentName
+                stateVariables["/noresamplep"].activeChildren[3].componentIdx
             ].stateValues.value,
         ).eq(num2);
         expect(
             stateVariables[
-                stateVariables["/noreresamplep"].activeChildren[1].componentName
+                stateVariables["/noreresamplep"].activeChildren[1].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables["/noreresamplep"].activeChildren[3].componentName
+                stateVariables["/noreresamplep"].activeChildren[3].componentIdx
             ].stateValues.value,
         ).eq(num2);
     });
@@ -433,9 +431,9 @@ describe("Select tag tests", async () => {
             (x) =>
                 stateVariables[
                     stateVariables[
-                        stateVariables[x.componentName].replacements![0]
-                            .componentName
-                    ].replacements![0].componentName
+                        stateVariables[x.componentIdx].replacements![0]
+                            .componentIdx
+                    ].replacements![0].componentIdx
                 ].stateValues.value.tree,
         );
 
@@ -458,9 +456,9 @@ describe("Select tag tests", async () => {
                 (x) =>
                     stateVariables[
                         stateVariables[
-                            stateVariables[x.componentName].replacements![0]
-                                .componentName
-                        ].replacements![0].componentName
+                            stateVariables[x.componentIdx].replacements![0]
+                                .componentIdx
+                        ].replacements![0].componentIdx
                     ].stateValues.value.tree,
             ),
         ).eqls(sampleMaths);
@@ -495,9 +493,9 @@ describe("Select tag tests", async () => {
             (x) =>
                 stateVariables[
                     stateVariables[
-                        stateVariables[x.componentName].replacements![0]
-                            .componentName
-                    ].replacements![0].componentName
+                        stateVariables[x.componentIdx].replacements![0]
+                            .componentIdx
+                    ].replacements![0].componentIdx
                 ].stateValues.value.tree,
         );
 
@@ -534,42 +532,42 @@ describe("Select tag tests", async () => {
             expect(
                 stateVariables["/p1"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p2"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p3"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p4"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p5"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
                 stateVariables["/p6"].activeChildren.map(
                     (child) =>
-                        stateVariables[child.componentName].stateValues.value,
+                        stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
         }
@@ -762,47 +760,47 @@ describe("Select tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let q2 =
-            stateVariables[stateVariables["/q2"].replacements![0].componentName]
+            stateVariables[stateVariables["/q2"].replacements![0].componentIdx]
                 .activeChildren;
         let q2string = q2[0];
         let q2math = me.fromAst(
-            stateVariables[q2[1].componentName].stateValues.value,
+            stateVariables[q2[1].componentIdx].stateValues.value,
         );
         expect(q2math.equals(option[q2string])).eq(true);
 
         let r2 =
-            stateVariables[stateVariables["/r2"].replacements![0].componentName]
+            stateVariables[stateVariables["/r2"].replacements![0].componentIdx]
                 .activeChildren;
         let r2string = r2[0];
         let r2math = me.fromAst(
-            stateVariables[r2[1].componentName].stateValues.value,
+            stateVariables[r2[1].componentIdx].stateValues.value,
         );
         expect(r2math.equals(option[r2string])).eq(true);
 
         let s2 =
-            stateVariables[stateVariables["/s2"].replacements![0].componentName]
+            stateVariables[stateVariables["/s2"].replacements![0].componentIdx]
                 .activeChildren;
         let s2string = s2[0];
         let s2math = me.fromAst(
-            stateVariables[s2[1].componentName].stateValues.value,
+            stateVariables[s2[1].componentIdx].stateValues.value,
         );
         expect(s2math.equals(option[s2string])).eq(true);
 
         let t2 =
-            stateVariables[stateVariables["/t2"].replacements![0].componentName]
+            stateVariables[stateVariables["/t2"].replacements![0].componentIdx]
                 .activeChildren;
         let t2string = t2[0];
         let t2math = me.fromAst(
-            stateVariables[t2[1].componentName].stateValues.value,
+            stateVariables[t2[1].componentIdx].stateValues.value,
         );
         expect(t2math.equals(option[t2string])).eq(true);
 
         let u2 =
-            stateVariables[stateVariables["/u2"].replacements![0].componentName]
+            stateVariables[stateVariables["/u2"].replacements![0].componentIdx]
                 .activeChildren;
         let u2string = u2[0];
         let u2math = me.fromAst(
-            stateVariables[u2[1].componentName].stateValues.value,
+            stateVariables[u2[1].componentIdx].stateValues.value,
         );
         expect(u2math.equals(option[u2string])).eq(true);
     });
@@ -843,47 +841,47 @@ describe("Select tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let q2 =
-            stateVariables[stateVariables["/q2"].replacements![0].componentName]
+            stateVariables[stateVariables["/q2"].replacements![0].componentIdx]
                 .activeChildren;
         let q2string = q2[0];
         let q2math = me.fromAst(
-            stateVariables[q2[1].componentName].stateValues.value,
+            stateVariables[q2[1].componentIdx].stateValues.value,
         );
         expect(q2math.equals(option[q2string])).eq(true);
 
         let r2 =
-            stateVariables[stateVariables["/r2"].replacements![0].componentName]
+            stateVariables[stateVariables["/r2"].replacements![0].componentIdx]
                 .activeChildren;
         let r2string = r2[0];
         let r2math = me.fromAst(
-            stateVariables[r2[1].componentName].stateValues.value,
+            stateVariables[r2[1].componentIdx].stateValues.value,
         );
         expect(r2math.equals(option[r2string])).eq(true);
 
         let s2 =
-            stateVariables[stateVariables["/s2"].replacements![0].componentName]
+            stateVariables[stateVariables["/s2"].replacements![0].componentIdx]
                 .activeChildren;
         let s2string = s2[0];
         let s2math = me.fromAst(
-            stateVariables[s2[1].componentName].stateValues.value,
+            stateVariables[s2[1].componentIdx].stateValues.value,
         );
         expect(s2math.equals(option[s2string])).eq(true);
 
         let t2 =
-            stateVariables[stateVariables["/t2"].replacements![0].componentName]
+            stateVariables[stateVariables["/t2"].replacements![0].componentIdx]
                 .activeChildren;
         let t2string = t2[0];
         let t2math = me.fromAst(
-            stateVariables[t2[1].componentName].stateValues.value,
+            stateVariables[t2[1].componentIdx].stateValues.value,
         );
         expect(t2math.equals(option[t2string])).eq(true);
 
         let u2 =
-            stateVariables[stateVariables["/u2"].replacements![0].componentName]
+            stateVariables[stateVariables["/u2"].replacements![0].componentIdx]
                 .activeChildren;
         let u2string = u2[0];
         let u2math = me.fromAst(
-            stateVariables[u2[1].componentName].stateValues.value,
+            stateVariables[u2[1].componentIdx].stateValues.value,
         );
         expect(u2math.equals(option[u2string])).eq(true);
     });
@@ -932,82 +930,82 @@ describe("Select tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let q2 =
-            stateVariables[stateVariables["/q2"].replacements![0].componentName]
+            stateVariables[stateVariables["/q2"].replacements![0].componentIdx]
                 .activeChildren;
         let q2string = q2[0];
-        let q2math = stateVariables[q2[1].componentName].stateValues.value;
+        let q2math = stateVariables[q2[1].componentIdx].stateValues.value;
         expect(q2math.equals(option[q2string])).eq(true);
         let qx = stateVariables["/qx"].stateValues.value.tree;
         expect(qx).eq(xoption[q2string]);
         let repeatqmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[0].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[0].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatqmath.equals(option[q2string])).eq(true);
 
         let r2 =
-            stateVariables[stateVariables["/r2"].replacements![0].componentName]
+            stateVariables[stateVariables["/r2"].replacements![0].componentIdx]
                 .activeChildren;
         let r2string = r2[0];
-        let r2math = stateVariables[r2[1].componentName].stateValues.value;
+        let r2math = stateVariables[r2[1].componentIdx].stateValues.value;
         expect(r2math.equals(option[r2string])).eq(true);
         let rx = stateVariables["/rx"].stateValues.value.tree;
         expect(rx).eq(xoption[r2string]);
         let repeatrmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[1].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[1].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatrmath.equals(option[r2string])).eq(true);
 
         let s2 =
-            stateVariables[stateVariables["/s2"].replacements![0].componentName]
+            stateVariables[stateVariables["/s2"].replacements![0].componentIdx]
                 .activeChildren;
         let s2string = s2[0];
-        let s2math = stateVariables[s2[1].componentName].stateValues.value;
+        let s2math = stateVariables[s2[1].componentIdx].stateValues.value;
         expect(s2math.equals(option[s2string])).eq(true);
         let sx = stateVariables["/sx"].stateValues.value.tree;
         expect(sx).eq(xoption[s2string]);
         let repeatsmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[2].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[2].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatsmath.equals(option[s2string])).eq(true);
 
         let t2 =
-            stateVariables[stateVariables["/t2"].replacements![0].componentName]
+            stateVariables[stateVariables["/t2"].replacements![0].componentIdx]
                 .activeChildren;
         let t2string = t2[0];
-        let t2math = stateVariables[t2[1].componentName].stateValues.value;
+        let t2math = stateVariables[t2[1].componentIdx].stateValues.value;
         expect(t2math.equals(option[t2string])).eq(true);
         let tx = stateVariables["/tx"].stateValues.value.tree;
         expect(tx).eq(xoption[t2string]);
         let repeattmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[3].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[3].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeattmath.equals(option[t2string])).eq(true);
 
         let u2 =
-            stateVariables[stateVariables["/u2"].replacements![0].componentName]
+            stateVariables[stateVariables["/u2"].replacements![0].componentIdx]
                 .activeChildren;
         let u2string = u2[0];
-        let u2math = stateVariables[u2[1].componentName].stateValues.value;
+        let u2math = stateVariables[u2[1].componentIdx].stateValues.value;
         expect(u2math.equals(option[u2string])).eq(true);
         let ux = stateVariables["/ux"].stateValues.value.tree;
         expect(ux).eq(xoption[u2string]);
         let repeatumath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[4].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[4].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatumath.equals(option[u2string])).eq(true);
     });
@@ -1049,72 +1047,72 @@ describe("Select tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let q2 =
-            stateVariables[stateVariables["/q2"].replacements![0].componentName]
+            stateVariables[stateVariables["/q2"].replacements![0].componentIdx]
                 .activeChildren;
         let q2string = q2[0];
-        let q2math = stateVariables[q2[1].componentName].stateValues.value;
+        let q2math = stateVariables[q2[1].componentIdx].stateValues.value;
         expect(q2math.equals(option[q2string])).eq(true);
         let repeatqmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[0].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[0].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatqmath.equals(option[q2string])).eq(true);
 
         let r2 =
-            stateVariables[stateVariables["/r2"].replacements![0].componentName]
+            stateVariables[stateVariables["/r2"].replacements![0].componentIdx]
                 .activeChildren;
         let r2string = r2[0];
-        let r2math = stateVariables[r2[1].componentName].stateValues.value;
+        let r2math = stateVariables[r2[1].componentIdx].stateValues.value;
         expect(r2math.equals(option[r2string])).eq(true);
         let repeatrmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[1].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[1].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatrmath.equals(option[r2string])).eq(true);
 
         let s2 =
-            stateVariables[stateVariables["/s2"].replacements![0].componentName]
+            stateVariables[stateVariables["/s2"].replacements![0].componentIdx]
                 .activeChildren;
         let s2string = s2[0];
-        let s2math = stateVariables[s2[1].componentName].stateValues.value;
+        let s2math = stateVariables[s2[1].componentIdx].stateValues.value;
         expect(s2math.equals(option[s2string])).eq(true);
         let repeatsmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[2].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[2].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatsmath.equals(option[s2string])).eq(true);
 
         let t2 =
-            stateVariables[stateVariables["/t2"].replacements![0].componentName]
+            stateVariables[stateVariables["/t2"].replacements![0].componentIdx]
                 .activeChildren;
         let t2string = t2[0];
-        let t2math = stateVariables[t2[1].componentName].stateValues.value;
+        let t2math = stateVariables[t2[1].componentIdx].stateValues.value;
         expect(t2math.equals(option[t2string])).eq(true);
         let repeattmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[3].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[3].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeattmath.equals(option[t2string])).eq(true);
 
         let u2 =
-            stateVariables[stateVariables["/u2"].replacements![0].componentName]
+            stateVariables[stateVariables["/u2"].replacements![0].componentIdx]
                 .activeChildren;
         let u2string = u2[0];
-        let u2math = stateVariables[u2[1].componentName].stateValues.value;
+        let u2math = stateVariables[u2[1].componentIdx].stateValues.value;
         expect(u2math.equals(option[u2string])).eq(true);
         let repeatumath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[4].componentName
-                ].activeChildren[1].componentName
+                    stateVariables["/repeat"].activeChildren[4].componentIdx
+                ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatumath.equals(option[u2string])).eq(true);
     });
@@ -1153,8 +1151,8 @@ describe("Select tag tests", async () => {
         let xorig =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s1"].replacements![0].componentName
-                ].replacements![0].componentName
+                    stateVariables["/s1"].replacements![0].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(xorig).eq(expectedx);
 
@@ -1164,8 +1162,8 @@ describe("Select tag tests", async () => {
         let x3 =
             stateVariables[
                 stateVariables[
-                    stateVariables["/x3"].replacements![0].componentName
-                ].replacements![0].componentName
+                    stateVariables["/x3"].replacements![0].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(x3).eq(expectedx);
     });
@@ -1223,22 +1221,22 @@ describe("Select tag tests", async () => {
         let xorig =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s1"].replacements![0].componentName
-                ].replacements![0].componentName
+                    stateVariables["/s1"].replacements![0].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(xorig).eq(x);
         let yorig =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s1"].replacements![1].componentName
-                ].replacements![0].componentName
+                    stateVariables["/s1"].replacements![1].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(yorig).eq(y);
         let zorig =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s1"].replacements![2].componentName
-                ].replacements![0].componentName
+                    stateVariables["/s1"].replacements![2].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(zorig).eq(z);
 
@@ -1252,22 +1250,22 @@ describe("Select tag tests", async () => {
         let x3 =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s2"].replacements![0].componentName
-                ].replacements![0].componentName
+                    stateVariables["/s2"].replacements![0].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(x3).eq(x);
         let y3 =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s2"].replacements![1].componentName
-                ].replacements![0].componentName
+                    stateVariables["/s2"].replacements![1].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(y3).eq(y);
         let z3 =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s2"].replacements![2].componentName
-                ].replacements![0].componentName
+                    stateVariables["/s2"].replacements![2].componentIdx
+                ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(z3).eq(z);
     });
@@ -1597,10 +1595,10 @@ describe("Select tag tests", async () => {
                         stateVariables[
                             stateVariables[
                                 stateVariables["/_map1"].replacements![ind]
-                                    .componentName
-                            ].replacements![1].componentName
-                        ].replacements![0].componentName
-                    ].replacements![0].componentName
+                                    .componentIdx
+                            ].replacements![1].componentIdx
+                        ].replacements![0].componentIdx
+                    ].replacements![0].componentIdx
                 ];
             let x = theText.stateValues.value;
             if (x === "z") {
@@ -1639,8 +1637,8 @@ describe("Select tag tests", async () => {
         for (let ind = 0; ind < 200; ind++) {
             let x =
                 stateVariables[
-                    stateVariables[selectReplacements[ind].componentName]
-                        .replacements![0].componentName
+                    stateVariables[selectReplacements[ind].componentIdx]
+                        .replacements![0].componentIdx
                 ].stateValues.value;
             if (x === "x") {
                 numX++;
@@ -1687,14 +1685,13 @@ describe("Select tag tests", async () => {
             let theSelect =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/_map1"].replacements![ind]
-                            .componentName
-                    ].replacements![1].componentName
+                        stateVariables["/_map1"].replacements![ind].componentIdx
+                    ].replacements![1].componentIdx
                 ];
             let theText1 =
                 stateVariables[
-                    stateVariables[theSelect.replacements![0].componentName]
-                        .replacements![0].componentName
+                    stateVariables[theSelect.replacements![0].componentIdx]
+                        .replacements![0].componentIdx
                 ];
             let x = theText1.stateValues.value;
 
@@ -1709,8 +1706,8 @@ describe("Select tag tests", async () => {
             }
             let theText2 =
                 stateVariables[
-                    stateVariables[theSelect.replacements![1].componentName]
-                        .replacements![0].componentName
+                    stateVariables[theSelect.replacements![1].componentIdx]
+                        .replacements![0].componentIdx
                 ];
             let y = theText2.stateValues.value;
             if (y === "z") {
@@ -1765,47 +1762,47 @@ describe("Select tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let qs = stateVariables["/q"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let rs = stateVariables["/r"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let ss = stateVariables["/s"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let ts = stateVariables["/t"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let us = stateVariables["/u"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let vs = stateVariables["/v"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let ws = stateVariables["/w"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         let q2s = stateVariables["/q2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let r2s = stateVariables["/r2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let s2s = stateVariables["/s2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let t2s = stateVariables["/t2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let u2s = stateVariables["/u2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let v2s = stateVariables["/v2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let w2s = stateVariables["/w2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         const getTree = (x) => x.tree ?? x;
@@ -1911,47 +1908,47 @@ describe("Select tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let qs = stateVariables["/q"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let rs = stateVariables["/r"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let ss = stateVariables["/s"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let ts = stateVariables["/t"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let us = stateVariables["/u"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let vs = stateVariables["/v"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let ws = stateVariables["/w"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         let q2s = stateVariables["/q2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let r2s = stateVariables["/r2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let s2s = stateVariables["/s2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let t2s = stateVariables["/t2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let u2s = stateVariables["/u2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let v2s = stateVariables["/v2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let w2s = stateVariables["/w2"].activeChildren.map(
-            (x) => stateVariables[x.componentName].stateValues.value,
+            (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         const getTree = (x) => x.tree ?? x;
@@ -1965,59 +1962,59 @@ describe("Select tag tests", async () => {
         expect(w2s.map(getTree)).eqls(ws.map(getTree));
 
         let q3s = stateVariables["/q3"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let r3s = stateVariables["/r3"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let s3s = stateVariables["/s3"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let t3s = stateVariables["/t3"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let u3s = stateVariables["/u3"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let v3s = stateVariables["/v3"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let w3s = stateVariables["/w3"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
 
@@ -2108,84 +2105,84 @@ describe("Select tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let qs = stateVariables["/q"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let rs = stateVariables["/r"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let ss = stateVariables["/s"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let ts = stateVariables["/t"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let us = stateVariables["/u"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
 
         let q2s = stateVariables["/q2"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let r2s = stateVariables["/r2"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let s2s = stateVariables["/s2"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let t2s = stateVariables["/t2"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
         let u2s = stateVariables["/u2"]
-            .replacements!.map((x) => stateVariables[x.componentName])
+            .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
-                    ? stateVariables[x.replacements[0].componentName]
-                          .stateValues.value
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
                     : x.stateValues.value,
             );
 
@@ -2269,9 +2266,8 @@ describe("Select tag tests", async () => {
             "/q/s/r",
         ].map((x) =>
             stateVariables[x].replacements
-                ? stateVariables[
-                      stateVariables[x].replacements[0].componentName
-                  ].stateValues.value
+                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
+                      .stateValues.value
                 : stateVariables[x].stateValues.value,
         );
         let rs = [
@@ -2283,9 +2279,8 @@ describe("Select tag tests", async () => {
             "/r/s/r",
         ].map((x) =>
             stateVariables[x].replacements
-                ? stateVariables[
-                      stateVariables[x].replacements[0].componentName
-                  ].stateValues.value
+                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
+                      .stateValues.value
                 : stateVariables[x].stateValues.value,
         );
         let ss = [
@@ -2297,9 +2292,8 @@ describe("Select tag tests", async () => {
             "/s/s/r",
         ].map((x) =>
             stateVariables[x].replacements
-                ? stateVariables[
-                      stateVariables[x].replacements[0].componentName
-                  ].stateValues.value
+                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
+                      .stateValues.value
                 : stateVariables[x].stateValues.value,
         );
 
@@ -2378,9 +2372,8 @@ describe("Select tag tests", async () => {
             "/a/q/s/r",
         ].map((x) =>
             stateVariables[x].replacements
-                ? stateVariables[
-                      stateVariables[x].replacements[0].componentName
-                  ].stateValues.value
+                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
+                      .stateValues.value
                 : stateVariables[x].stateValues.value,
         );
         let rs = [
@@ -2392,9 +2385,8 @@ describe("Select tag tests", async () => {
             "/a/r/s/r",
         ].map((x) =>
             stateVariables[x].replacements
-                ? stateVariables[
-                      stateVariables[x].replacements[0].componentName
-                  ].stateValues.value
+                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
+                      .stateValues.value
                 : stateVariables[x].stateValues.value,
         );
         let ss = [
@@ -2406,9 +2398,8 @@ describe("Select tag tests", async () => {
             "/a/s/s/r",
         ].map((x) =>
             stateVariables[x].replacements
-                ? stateVariables[
-                      stateVariables[x].replacements[0].componentName
-                  ].stateValues.value
+                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
+                      .stateValues.value
                 : stateVariables[x].stateValues.value,
         );
 
@@ -2496,12 +2487,12 @@ describe("Select tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let chosenChildren = stateVariables[
-            stateVariables["/_select1"].replacements![0].componentName
+            stateVariables["/_select1"].replacements![0].componentIdx
         ]
             .replacements!.filter((x) => typeof x !== "string")
-            .map((x) => stateVariables[x.componentName])
+            .map((x) => stateVariables[x.componentIdx])
             .map((v, i) =>
-                i < 2 ? v : stateVariables[v.replacements![0].componentName],
+                i < 2 ? v : stateVariables[v.replacements![0].componentIdx],
             );
         let option =
             options[
@@ -2593,17 +2584,17 @@ describe("Select tag tests", async () => {
 
         let theList1 = stateVariables["/list1"].activeChildren.map((x) =>
             me
-                .fromAst(stateVariables[x.componentName].stateValues.value)
+                .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
         );
         let theList2 = stateVariables["/list2"].activeChildren.map((x) =>
             me
-                .fromAst(stateVariables[x.componentName].stateValues.value)
+                .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
         );
         let theList3 = stateVariables["/list3"].activeChildren.map((x) =>
             me
-                .fromAst(stateVariables[x.componentName].stateValues.value)
+                .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
         );
 
@@ -2676,17 +2667,17 @@ describe("Select tag tests", async () => {
 
         let theList1 = stateVariables["/list1"].activeChildren.map((x) =>
             me
-                .fromAst(stateVariables[x.componentName].stateValues.value)
+                .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
         );
         let theList2 = stateVariables["/list2"].activeChildren.map((x) =>
             me
-                .fromAst(stateVariables[x.componentName].stateValues.value)
+                .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
         );
         let theList3 = stateVariables["/list3"].activeChildren.map((x) =>
             me
-                .fromAst(stateVariables[x.componentName].stateValues.value)
+                .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
         );
 
@@ -3010,12 +3001,12 @@ describe("Select tag tests", async () => {
 
         let replacements =
             stateVariables[
-                stateVariables["/select1"].replacements![0].componentName
+                stateVariables["/select1"].replacements![0].componentIdx
             ].replacements!;
 
-        let p1 = replacements[1].componentName;
-        let p2 = replacements[3].componentName;
-        let p3 = replacements[5].componentName;
+        let p1 = replacements[1].componentIdx;
+        let p2 = replacements[3].componentIdx;
+        let p3 = replacements[5].componentIdx;
 
         expect(stateVariables[p1].stateValues.text).eq(`q,r = ab`);
         expect(stateVariables[p2].stateValues.text).eq(`q2 = a`);
@@ -3162,36 +3153,31 @@ describe("Select tag tests", async () => {
         let vars1 = stateVariables["/vars1"].replacements!.map(
             (x) =>
                 stateVariables[
-                    stateVariables[x.componentName].replacements![0]
-                        .componentName
+                    stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
         let vars2 = stateVariables["/vars2"].replacements!.map(
             (x) =>
                 stateVariables[
-                    stateVariables[x.componentName].replacements![0]
-                        .componentName
+                    stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
         let vars3 = stateVariables["/vars3"].replacements!.map(
             (x) =>
                 stateVariables[
-                    stateVariables[x.componentName].replacements![0]
-                        .componentName
+                    stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
         let vars4 = stateVariables["/vars4"].replacements!.map(
             (x) =>
                 stateVariables[
-                    stateVariables[x.componentName].replacements![0]
-                        .componentName
+                    stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
         let vars5 = stateVariables["/vars5"].replacements!.map(
             (x) =>
                 stateVariables[
-                    stateVariables[x.componentName].replacements![0]
-                        .componentName
+                    stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
 
@@ -3267,15 +3253,14 @@ describe("Select tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let pNames1 = stateVariables["/_select1"].replacements!.map(
-            (x) =>
-                stateVariables[x.componentName].replacements![0].componentName,
+            (x) => stateVariables[x.componentIdx].replacements![0].componentIdx,
         );
         for (let pn of pNames1) {
             expect(stateVariables[pn].stateValues.text).eq("What is this?");
         }
 
         let pNames2 = ["/A", "/B", "/C"].map(
-            (x) => stateVariables[x].replacements![0].componentName,
+            (x) => stateVariables[x].replacements![0].componentIdx,
         );
         for (let pn of pNames2) {
             expect(stateVariables[pn].stateValues.text).eq("What is this?");

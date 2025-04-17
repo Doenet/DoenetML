@@ -37,7 +37,7 @@ export default class Setup extends CompositeComponent {
                 let componentNameForAttributes = null;
                 if (dependencyValues.sourceCompositeIdentity) {
                     componentNameForAttributes =
-                        dependencyValues.sourceCompositeIdentity.componentName;
+                        dependencyValues.sourceCompositeIdentity.componentIdx;
                 }
                 return { setValue: { componentNameForAttributes } };
             },

@@ -31,9 +31,9 @@ export default function useDoenetRenderer(
     initializeChildrenOnConstruction = true,
 ) {
     let actions = props.componentInstructions.actions;
-    let componentName = props.componentInstructions.componentName;
+    let componentIdx = props.componentInstructions.componentIdx;
     let effectiveName = props.componentInstructions.effectiveName;
-    let rendererName = props.coreId + componentName;
+    let rendererName = props.coreId + componentIdx;
     let [renderersToLoad, setRenderersToLoad] = useState({});
 
     let {
@@ -77,7 +77,7 @@ export default function useDoenetRenderer(
         }
 
         let propsForChild = {
-            key: props.coreId + childInstructions.componentName,
+            key: props.coreId + childInstructions.componentIdx,
             componentInstructions: childInstructions,
             rendererClasses: props.rendererClasses,
             coreId: props.coreId,
@@ -113,9 +113,9 @@ export default function useDoenetRenderer(
 
     let rendererType = props.componentInstructions.rendererType;
     const callAction = (argObj: Record<string, any>) => {
-        if (!argObj.componentName) {
+        if (!argObj.componentIdx) {
             argObj = { ...argObj };
-            argObj.componentName = componentName;
+            argObj.componentIdx = componentIdx;
         }
         if (!argObj.rendererType) {
             argObj = { ...argObj };

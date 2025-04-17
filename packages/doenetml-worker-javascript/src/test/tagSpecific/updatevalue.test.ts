@@ -729,7 +729,7 @@ describe("UpdateValue tag tests", async () => {
         // Note: we expect the macro to trigger the updateValue with triggerWith="uv"
         // because it doesn't have a name.
         let macroName =
-            stateVariables["/pmacro"].activeChildren[0].componentName;
+            stateVariables["/pmacro"].activeChildren[0].componentIdx;
 
         await updateValue({ name: macroName, core });
 
@@ -905,7 +905,7 @@ describe("UpdateValue tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let PcopyName =
-            stateVariables["/graph1"].activeChildren[0].componentName;
+            stateVariables["/graph1"].activeChildren[0].componentIdx;
 
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
@@ -1790,7 +1790,7 @@ describe("UpdateValue tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/grp2/p"].stateValues.text).eq("true");
         expect(
-            stateVariables["/sec"].activeChildren.filter((x) => x.componentName)
+            stateVariables["/sec"].activeChildren.filter((x) => x.componentIdx)
                 .length,
         ).eq(3);
 
@@ -1799,7 +1799,7 @@ describe("UpdateValue tag tests", async () => {
 
         expect(stateVariables["/grp2/p"].stateValues.text).eq("false");
         expect(
-            stateVariables["/sec"].activeChildren.filter((x) => x.componentName)
+            stateVariables["/sec"].activeChildren.filter((x) => x.componentIdx)
                 .length,
         ).eq(2);
     });

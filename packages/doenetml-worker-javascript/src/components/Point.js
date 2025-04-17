@@ -613,7 +613,7 @@ export default class Point extends GraphicalComponent {
                 dependencyValuesByKey,
                 arrayKeys,
             }) {
-                // console.log(`unconstrained xs definition by key for ${componentName}`)
+                // console.log(`unconstrained xs definition by key for ${componentIdx}`)
                 // console.log(deepClone(globalDependencyValues))
                 // console.log(deepClone(dependencyValuesByKey))
                 // console.log(deepClone(arrayKeys));
@@ -711,7 +711,7 @@ export default class Point extends GraphicalComponent {
                 dependencyNamesByKey,
                 arraySize,
             }) {
-                // console.log(`invertUnconstrainedXs, ${componentName}`);
+                // console.log(`invertUnconstrainedXs, ${componentIdx}`);
                 // console.log(desiredStateVariableValues)
                 // console.log(globalDependencyValues);
                 // console.log(dependencyValuesByKey);
@@ -1288,7 +1288,7 @@ export default class Point extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "xs",
                         value: components,
                     },
@@ -1303,7 +1303,7 @@ export default class Point extends GraphicalComponent {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         stateVariable: "xs",
                         value: components,
                     },
@@ -1314,7 +1314,7 @@ export default class Point extends GraphicalComponent {
                 event: {
                     verb: "interacted",
                     object: {
-                        componentName: this.componentName,
+                        componentIdx: this.componentIdx,
                         componentType: this.componentType,
                     },
                     result: {
@@ -1338,7 +1338,7 @@ export default class Point extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1355,7 +1355,7 @@ export default class Point extends GraphicalComponent {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentName: name, // use name rather than this.componentName to get original name if adapted
+                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

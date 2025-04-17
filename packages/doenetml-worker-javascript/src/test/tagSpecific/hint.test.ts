@@ -28,7 +28,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/hint2"].stateValues.open).eq(false);
 
         await core.requestAction({
-            componentName: "/hint1",
+            componentIdx: "/hint1",
             actionName: "revealHint",
             args: {},
         });
@@ -37,7 +37,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/hint2"].stateValues.open).eq(false);
 
         await core.requestAction({
-            componentName: "/hint2",
+            componentIdx: "/hint2",
             actionName: "revealHint",
             args: {},
         });
@@ -46,7 +46,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/hint2"].stateValues.open).eq(true);
 
         await core.requestAction({
-            componentName: "/hint1",
+            componentIdx: "/hint1",
             actionName: "closeHint",
             args: {},
         });
@@ -55,7 +55,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/hint2"].stateValues.open).eq(true);
 
         await core.requestAction({
-            componentName: "/hint2",
+            componentIdx: "/hint2",
             actionName: "closeHint",
             args: {},
         });
@@ -92,7 +92,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/revised"].stateValues.open).eq(false);
 
         await core.requestAction({
-            componentName: "/hint1",
+            componentIdx: "/hint1",
             actionName: "revealHint",
             args: {},
         });
@@ -101,7 +101,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/revised"].stateValues.open).eq(false);
 
         await core.requestAction({
-            componentName: "/revised",
+            componentIdx: "/revised",
             actionName: "revealHint",
             args: {},
         });
@@ -110,7 +110,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/revised"].stateValues.open).eq(true);
 
         await core.requestAction({
-            componentName: "/hint1",
+            componentIdx: "/hint1",
             actionName: "closeHint",
             args: {},
         });
@@ -119,7 +119,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/revised"].stateValues.open).eq(true);
 
         await core.requestAction({
-            componentName: "/revised",
+            componentIdx: "/revised",
             actionName: "closeHint",
             args: {},
         });
@@ -148,7 +148,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/ti"].stateValues.disabled).eq(true);
 
         await core.requestAction({
-            componentName: "/hint1",
+            componentIdx: "/hint1",
             actionName: "revealHint",
             args: {},
         });
@@ -156,7 +156,7 @@ describe("Hint tag tests", async () => {
         expect(stateVariables["/hint1"].stateValues.open).eq(true);
 
         await core.requestAction({
-            componentName: "/hint1",
+            componentIdx: "/hint1",
             actionName: "closeHint",
             args: {},
         });

@@ -64,7 +64,7 @@ describe("lorem tag tests", async () => {
         ].replacements!.entries()) {
             expect(
                 stateVariables[`/paragraphs/${names[ind]}`].stateValues.text,
-            ).eq(stateVariables[repl.componentName].activeChildren[0]);
+            ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
         }
 
         for (let [ind, repl] of stateVariables[
@@ -76,7 +76,7 @@ describe("lorem tag tests", async () => {
 
             expect(
                 stateVariables[`/sentences/${names[ind / 2]}`].stateValues.text,
-            ).eq(stateVariables[repl.componentName].activeChildren[0]);
+            ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
         }
 
         for (let [ind, repl] of stateVariables[
@@ -88,7 +88,7 @@ describe("lorem tag tests", async () => {
 
             expect(
                 stateVariables[`/words/${names[ind / 2]}`].stateValues.text,
-            ).eq(stateVariables[repl.componentName].activeChildren[0]);
+            ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
         }
 
         nParagraphs = 6;
@@ -127,7 +127,7 @@ describe("lorem tag tests", async () => {
         ].replacements!.entries()) {
             expect(
                 stateVariables[`/paragraphs/${names[ind]}`].stateValues.text,
-            ).eq(stateVariables[repl.componentName].activeChildren[0]);
+            ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
         }
 
         for (let [ind, repl] of stateVariables[
@@ -139,7 +139,7 @@ describe("lorem tag tests", async () => {
 
             expect(
                 stateVariables[`/sentences/${names[ind / 2]}`].stateValues.text,
-            ).eq(stateVariables[repl.componentName].activeChildren[0]);
+            ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
         }
 
         for (let [ind, repl] of stateVariables[
@@ -151,7 +151,7 @@ describe("lorem tag tests", async () => {
 
             expect(
                 stateVariables[`/words/${names[ind / 2]}`].stateValues.text,
-            ).eq(stateVariables[repl.componentName].activeChildren[0]);
+            ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
         }
     });
 
@@ -172,7 +172,7 @@ describe("lorem tag tests", async () => {
 
         const paragraph1 =
             stateVariables[
-                stateVariables["/lPars"].replacements![0].componentName
+                stateVariables["/lPars"].replacements![0].componentIdx
             ].activeChildren[0];
 
         expect(stateVariables["/a"].stateValues.text).eq(paragraph1);
@@ -192,7 +192,7 @@ describe("lorem tag tests", async () => {
 
         expect(
             stateVariables[
-                stateVariables["/lPars"].replacements![0].componentName
+                stateVariables["/lPars"].replacements![0].componentIdx
             ].activeChildren[0],
         ).eq(paragraph1);
 
@@ -214,7 +214,7 @@ describe("lorem tag tests", async () => {
 
         const paragraph2 =
             stateVariables[
-                stateVariables["/lPars"].replacements![0].componentName
+                stateVariables["/lPars"].replacements![0].componentIdx
             ].activeChildren[0];
         expect(paragraph2).not.eq(paragraph1);
 
@@ -236,7 +236,7 @@ describe("lorem tag tests", async () => {
 
         expect(
             stateVariables[
-                stateVariables["/lPars"].replacements![0].componentName
+                stateVariables["/lPars"].replacements![0].componentIdx
             ].activeChildren[0],
         ).eq(paragraph2);
 

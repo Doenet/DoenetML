@@ -9,7 +9,7 @@ import { processAssignNames } from "./naming";
 
 export function postProcessCopy({
     serializedComponents,
-    componentName,
+    componentIdx,
     addShadowDependencies = true,
     markAsPrimaryShadow = false,
     uniqueIdentifiersUsed = [],
@@ -84,7 +84,7 @@ export function postProcessCopy({
                         [component.originalName]: [
                             {
                                 dependencyType: "referenceShadow",
-                                compositeName: componentName,
+                                compositeIdx: componentIdx,
                             },
                         ],
                     };
@@ -158,7 +158,7 @@ export function postProcessCopy({
 
         postProcessCopy({
             serializedComponents: component.children,
-            componentName,
+            componentIdx,
             addShadowDependencies,
             markAsPrimaryShadow,
             uniqueIdentifiersUsed,
@@ -176,7 +176,7 @@ export function postProcessCopy({
             if (attribute.component) {
                 attribute.component = postProcessCopy({
                     serializedComponents: [attribute.component],
-                    componentName,
+                    componentIdx,
                     addShadowDependencies,
                     markAsPrimaryShadow,
                     uniqueIdentifiersUsed,
@@ -194,7 +194,7 @@ export function postProcessCopy({
         if (component.replacements) {
             postProcessCopy({
                 serializedComponents: component.replacements,
-                componentName,
+                componentIdx,
                 addShadowDependencies,
                 markAsPrimaryShadow,
                 uniqueIdentifiersUsed,
@@ -472,7 +472,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         replacementTypes.length !== requiredLength ||
         !replacementTypes.every((x) => x === requiredComponentType)
     ) {
-        // console.warn(`Replacements from ${component.componentType} ${component.componentName} do not match the specified createComponentOfType and numComponents`);
+        // console.warn(`Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType and numComponents`);
 
         // if only replacement is a group
         // then give the group the createComponentOfType and numComponentsSpecified
@@ -592,7 +592,7 @@ export async function verifyReplacementsMatchSpecifiedType({
 
                 let replacementSource = replacementSources[0];
 
-                let target = components[replacementSource.componentName];
+                let target = components[replacementSource.componentIdx];
 
                 let propVariable = publicCaseInsensitiveAliasSubstitutions({
                     stateVariables: [propName],
@@ -636,10 +636,10 @@ export async function verifyReplacementsMatchSpecifiedType({
 
                 if (stateVarObj) {
                     replacements[0].downstreamDependencies = {
-                        [replacementSource.componentName]: [
+                        [replacementSource.componentIdx]: [
                             {
                                 dependencyType: "referenceShadow",
-                                compositeName: component.componentName,
+                                compositeIdx: component.componentIdx,
                                 propVariable,
                                 additionalStateVariableShadowing:
                                     stateVarObj.shadowingInstructions
@@ -660,7 +660,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         let processResult = processAssignNames({
             assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
@@ -776,11 +776,11 @@ export function renameAutonameBasedOnNewCounts(
 
                 // check if name was created from counting components
 
-                if (serializedComponent.componentName) {
+                if (serializedComponent.componentIdx) {
                     let lastSlash =
-                        serializedComponent.componentName.lastIndexOf("/");
+                        serializedComponent.componentIdx.lastIndexOf("/");
                     let originalName =
-                        serializedComponent.componentName.substring(
+                        serializedComponent.componentIdx.substring(
                             lastSlash + 1,
                         );
                     let nameStartFromComponentType =
@@ -792,8 +792,8 @@ export function renameAutonameBasedOnNewCounts(
                         ) === nameStartFromComponentType
                     ) {
                         // recreate using new count
-                        serializedComponent.componentName =
-                            serializedComponent.componentName.substring(
+                        serializedComponent.componentIdx =
+                            serializedComponent.componentIdx.substring(
                                 0,
                                 lastSlash + 1,
                             ) +
@@ -926,14 +926,14 @@ export function restrictTNamesToNamespace({
             if (parentIsCopy && component.componentType === "externalContent") {
                 // if have a external content inside a copy,
                 // then restrict children to the namespace of the externalContent
-                adjustedNamespace = component.componentName + "/";
+                adjustedNamespace = component.componentIdx + "/";
             }
             let namespaceForChildren = parentNamespace;
             if (
                 component.attributes &&
                 component.attributes.newNamespace?.primitive
             ) {
-                namespaceForChildren = component.componentName;
+                namespaceForChildren = component.componentIdx;
             }
             restrictTNamesToNamespace({
                 components: component.children,

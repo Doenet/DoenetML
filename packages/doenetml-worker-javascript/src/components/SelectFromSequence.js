@@ -202,10 +202,10 @@ export default class SelectFromSequence extends Sequence {
                     variableName: "selectedIndices",
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let generatedVariantInfo = {
                     indices: dependencyValues.selectedIndices,
-                    meta: { createdBy: componentName },
+                    meta: { createdBy: componentIdx },
                 };
 
                 return { setValue: { generatedVariantInfo } };
@@ -298,7 +298,7 @@ export default class SelectFromSequence extends Sequence {
         let processResult = processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
-            parentName: component.componentName,
+            parentIdx: component.componentIdx,
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });

@@ -673,7 +673,7 @@ export default class Slider extends BaseComponent {
                     updateInstructions: [
                         {
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "value",
                             value,
                         },
@@ -688,7 +688,7 @@ export default class Slider extends BaseComponent {
                     updateInstructions: [
                         {
                             updateType: "updateValue",
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             stateVariable: "value",
                             value,
                         },
@@ -699,7 +699,7 @@ export default class Slider extends BaseComponent {
                     event: {
                         verb: "selected",
                         object: {
-                            componentName: this.componentName,
+                            componentIdx: this.componentIdx,
                             componentType: this.componentType,
                         },
                         result: {

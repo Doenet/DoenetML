@@ -447,7 +447,7 @@ export default class Function extends InlineComponent {
                     },
                 },
             }),
-            arrayDefinitionByKey({ globalDependencyValues, componentName }) {
+            arrayDefinitionByKey({ globalDependencyValues, componentIdx }) {
                 if (globalDependencyValues.domainAttr !== null) {
                     let numInputs = globalDependencyValues.numInputs;
                     let specifiedDomain =
@@ -871,7 +871,7 @@ export default class Function extends InlineComponent {
                     return {
                         setValue: {
                             mathChildName:
-                                dependencyValues.mathChild[0].componentName,
+                                dependencyValues.mathChild[0].componentIdx,
                         },
                     };
                 } else {
@@ -887,7 +887,7 @@ export default class Function extends InlineComponent {
                     return {
                         mathChildCreatedBySugar: {
                             dependencyType: "doenetAttribute",
-                            componentName: stateValues.mathChildName,
+                            componentIdx: stateValues.mathChildName,
                             attributeName: "createdFromSugar",
                         },
                     };
@@ -922,12 +922,12 @@ export default class Function extends InlineComponent {
                         if (stateValues.mathChildCreatedBySugar) {
                             dependencies.mathChildExpressionWithCodes = {
                                 dependencyType: "stateVariable",
-                                componentName: stateValues.mathChildName,
+                                componentIdx: stateValues.mathChildName,
                                 variableName: "expressionWithCodes",
                             };
                             dependencies.mathChildMathChildren = {
                                 dependencyType: "child",
-                                parentName: stateValues.mathChildName,
+                                parentIdx: stateValues.mathChildName,
                                 childGroups: ["maths"],
                                 variableNames: [
                                     "value",
@@ -938,7 +938,7 @@ export default class Function extends InlineComponent {
                             };
                             dependencies.mathChildCodePre = {
                                 dependencyType: "stateVariable",
-                                componentName: stateValues.mathChildName,
+                                componentIdx: stateValues.mathChildName,
                                 variableName: "codePre",
                             };
                         } else {
@@ -1422,12 +1422,12 @@ export default class Function extends InlineComponent {
                         if (stateValues.mathChildCreatedBySugar) {
                             globalDependencies.mathChildExpressionWithCodes = {
                                 dependencyType: "stateVariable",
-                                componentName: stateValues.mathChildName,
+                                componentIdx: stateValues.mathChildName,
                                 variableName: "expressionWithCodes",
                             };
                             globalDependencies.mathChildMathChildren = {
                                 dependencyType: "child",
-                                parentName: stateValues.mathChildName,
+                                parentIdx: stateValues.mathChildName,
                                 childGroups: ["maths"],
                                 variableNames: [
                                     "value",
@@ -1438,7 +1438,7 @@ export default class Function extends InlineComponent {
                             };
                             globalDependencies.mathChildCodePre = {
                                 dependencyType: "stateVariable",
-                                componentName: stateValues.mathChildName,
+                                componentIdx: stateValues.mathChildName,
                                 variableName: "codePre",
                             };
                         } else {
@@ -1855,12 +1855,12 @@ export default class Function extends InlineComponent {
                         if (stateValues.mathChildCreatedBySugar) {
                             globalDependencies.mathChildExpressionWithCodes = {
                                 dependencyType: "stateVariable",
-                                componentName: stateValues.mathChildName,
+                                componentIdx: stateValues.mathChildName,
                                 variableName: "expressionWithCodes",
                             };
                             globalDependencies.mathChildMathChildren = {
                                 dependencyType: "child",
-                                parentName: stateValues.mathChildName,
+                                parentIdx: stateValues.mathChildName,
                                 childGroups: ["maths"],
                                 variableNames: [
                                     "value",
@@ -1871,7 +1871,7 @@ export default class Function extends InlineComponent {
                             };
                             globalDependencies.mathChildCodePre = {
                                 dependencyType: "stateVariable",
-                                componentName: stateValues.mathChildName,
+                                componentIdx: stateValues.mathChildName,
                                 variableName: "codePre",
                             };
                         } else {
@@ -2283,12 +2283,12 @@ export default class Function extends InlineComponent {
                         if (stateValues.mathChildCreatedBySugar) {
                             globalDependencies.mathChildExpressionWithCodes = {
                                 dependencyType: "stateVariable",
-                                componentName: stateValues.mathChildName,
+                                componentIdx: stateValues.mathChildName,
                                 variableName: "expressionWithCodes",
                             };
                             globalDependencies.mathChildMathChildren = {
                                 dependencyType: "child",
-                                parentName: stateValues.mathChildName,
+                                parentIdx: stateValues.mathChildName,
                                 childGroups: ["maths"],
                                 variableNames: [
                                     "value",
@@ -2299,7 +2299,7 @@ export default class Function extends InlineComponent {
                             };
                             globalDependencies.mathChildCodePre = {
                                 dependencyType: "stateVariable",
-                                componentName: stateValues.mathChildName,
+                                componentIdx: stateValues.mathChildName,
                                 variableName: "codePre",
                             };
                         } else {

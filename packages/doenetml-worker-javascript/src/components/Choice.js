@@ -132,7 +132,7 @@ export default class Choice extends InlineComponent {
                     variableNames: ["selected"],
                 },
             }),
-            definition({ dependencyValues, componentName }) {
+            definition({ dependencyValues, componentIdx }) {
                 let selected;
                 if (dependencyValues.childIndicesSelected) {
                     selected = dependencyValues.childIndicesSelected.includes(
