@@ -243,3 +243,17 @@ export type AttributeDefinition<T> = {
      */
     trim?: boolean;
 };
+
+export interface DoenetMLComponentClass<T> {
+    componentType: string;
+    componentIdx: number;
+    createAttributesObject: () => Record<string, AttributeDefinition<T>>;
+    [k: string]: any;
+}
+
+export type DoenetMLComponent<T> = {
+    componentType: string;
+    componentIdx: number;
+
+    [k: string]: any;
+};

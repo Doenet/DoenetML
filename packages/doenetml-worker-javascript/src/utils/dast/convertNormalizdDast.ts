@@ -6,6 +6,7 @@ import {
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     AttributeDefinition,
+    DoenetMLComponentClass,
     ErrorRecord,
     PrimitiveAttributeValue,
     SerializedAttribute,
@@ -189,7 +190,7 @@ export function expandUnflattenedToSerializedComponents({
             continue;
         }
 
-        let componentClass =
+        let componentClass: DoenetMLComponentClass<any> =
             componentInfoObjects.allComponentClasses[component.componentType];
         let newComponent: SerializedComponent;
 
@@ -281,7 +282,7 @@ export function expandAllUnflattenedAttributes({
     nComponents,
 }: {
     unflattenedAttributes: Record<string, UnflattenedAttribute>;
-    componentClass: any;
+    componentClass: DoenetMLComponentClass<any>;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
 }): {
@@ -289,10 +290,7 @@ export function expandAllUnflattenedAttributes({
     errors: ErrorRecord[];
     nComponents: number;
 } {
-    let classAttributes: Record<
-        string,
-        AttributeDefinition<any>
-    > = componentClass.createAttributesObject();
+    let classAttributes = componentClass.createAttributesObject();
 
     const errors: ErrorRecord[] = [];
 
@@ -354,7 +352,7 @@ function addDefaultPrimitiveAttributes({
 }: {
     unflattenedAttributes: Record<string, UnflattenedAttribute>;
     currentAttributes: Record<string, SerializedAttribute>;
-    componentClass: any;
+    componentClass: DoenetMLComponentClass<any>;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
 }): {
@@ -364,10 +362,7 @@ function addDefaultPrimitiveAttributes({
 } {
     const errors: ErrorRecord[] = [];
 
-    let classAttributes: Record<
-        string,
-        AttributeDefinition<any>
-    > = componentClass.createAttributesObject();
+    let classAttributes = componentClass.createAttributesObject();
 
     const newAttributes = { ...currentAttributes };
 
