@@ -18,7 +18,11 @@ export const version: string = DOENETML_VERSION;
 export type DoenetMLFlags = {
     showCorrectness: boolean;
     readOnly: boolean;
-    solutionDisplayMode: string;
+    solutionDisplayMode:
+        | "button"
+        | "buttonRequirePermission"
+        | "displayed"
+        | "none";
     showFeedback: boolean;
     showHints: boolean;
     allowLoadState: boolean;

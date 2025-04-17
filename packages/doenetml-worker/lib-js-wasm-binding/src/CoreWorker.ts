@@ -20,6 +20,7 @@ import {
     PublicDoenetMLCore as PublicDoenetMLCoreJavascript,
     ReportScoreAndStateCallback,
     RequestAnimationFrame,
+    RequestSolutionView,
     SendEvent,
     UpdateRenderersCallback,
 } from "@doenet/doenetml-worker-javascript";
@@ -212,6 +213,7 @@ export class CoreWorker {
         cancelAnimationFrame: CancelAnimationFrame,
         copyToClipboard: CopyToClipboard,
         sendEvent: SendEvent,
+        requestSolutionView: RequestSolutionView,
     ) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -234,6 +236,7 @@ export class CoreWorker {
                 cancelAnimationFrame,
                 copyToClipboard,
                 sendEvent,
+                requestSolutionView,
             );
         } catch (err) {
             console.error(err);
@@ -352,6 +355,9 @@ export class CoreWorker {
         } else {
             resolve();
         }
+
+        // Terminate the worker itself
+        close();
     }
 
     async returnAllStateVariables(consoleLogComponents = false) {

@@ -250,28 +250,6 @@ export default class Document extends BaseComponent {
             definition: () => ({ setValue: { level: 0 } }),
         };
 
-        stateVariableDefinitions.viewedSolution = {
-            defaultValue: false,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    viewedSolution: true,
-                },
-            }),
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "viewedSolution",
-                            value: desiredStateVariableValues.viewedSolution,
-                        },
-                    ],
-                };
-            },
-        };
-
         stateVariableDefinitions.scoredDescendants = {
             returnDependencies: () => ({
                 scoredDescendants: {

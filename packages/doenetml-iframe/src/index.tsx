@@ -148,8 +148,11 @@ export function DoenetViewer({
                 return;
             }
 
-            // forward response from SPLICE getState to iframe
-            if (event.data.subject === "SPLICE.getState.response") {
+            // forward response from SPLICE getState or requestSolutionView to iframe
+            if (
+                event.data.subject === "SPLICE.getState.response" ||
+                event.data.subject === "SPLICE.requestSolutionView.response"
+            ) {
                 ref.current?.contentWindow?.postMessage(event.data);
                 return;
             }

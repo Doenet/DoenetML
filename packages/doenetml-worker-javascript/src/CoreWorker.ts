@@ -27,6 +27,9 @@ export type CopyToClipboard = (args: {
     actionId?: string;
 }) => void;
 export type SendEvent = (data: any) => void;
+export type RequestSolutionView = (componentName: string) => Promise<{
+    allowView: boolean;
+}>;
 
 /**
  * A wrapper around `Core` that contains the arguments for constructing
@@ -167,6 +170,7 @@ export class PublicDoenetMLCore {
         cancelAnimationFrame: CancelAnimationFrame,
         copyToClipboard: CopyToClipboard,
         sendEvent: SendEvent,
+        requestSolutionView: RequestSolutionView,
     ) {
         let coreArgs = {
             ...this.coreBaseArgs!,
@@ -177,6 +181,7 @@ export class PublicDoenetMLCore {
             cancelAnimationFrame,
             copyToClipboard,
             sendEvent,
+            requestSolutionView,
         };
 
         if (this.initializeResult?.success) {
@@ -350,15 +355,13 @@ export class PublicDoenetMLCore {
     }
     /**
      * Submit any answers that are waiting to auto-submitted and save all state
-     * so that the worker can be terminate without losing data.
-     * Then close the worker.
+     * so that the worker can be terminated without losing data.
      */
     async terminate() {
         if (this.core) {
             await this.core.terminate();
             this.core = null;
         }
-        close();
     }
 
     // Turn on or off recording of the visibility of document components,

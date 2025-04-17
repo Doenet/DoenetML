@@ -262,11 +262,25 @@ export function DocViewer({
         promiseResolve?: (value: any) => void;
     } | null>(null);
 
-    const saveStatePromises = useRef<
+    // Promises representing outstanding requests to get the state of the document.
+    // Keyed by the messageId of the SPLICE message requesting the state.
+    const getStatePromises = useRef<
         Record<
             string,
             {
                 resolve: (value: Record<string, any>) => void;
+                reject: (value: unknown) => void;
+            }
+        >
+    >({});
+
+    // Promises representing outstanding requests to view the solution.
+    // Keyed by the messageId of the SPLICE message requesting the solution view.
+    const requestSolutionViewPromises = useRef<
+        Record<
+            string,
+            {
+                resolve: (value: { allowView: boolean }) => void;
                 reject: (value: unknown) => void;
             }
         >
@@ -313,17 +327,27 @@ export function DocViewer({
                 return;
             }
             if (e.data.subject === "SPLICE.getState.response") {
-                let promiseInfo = saveStatePromises.current[e.data.messageId];
+                let promiseInfo = getStatePromises.current[e.data.messageId];
                 if (!promiseInfo) {
                     return;
                 }
-                delete saveStatePromises.current[e.data.messageId];
+                delete getStatePromises.current[e.data.messageId];
 
                 if (e.data.success) {
                     promiseInfo.resolve(e.data);
                 } else {
                     promiseInfo.reject(e.data);
                 }
+            } else if (
+                e.data.subject === "SPLICE.requestSolutionView.response"
+            ) {
+                let promiseInfo =
+                    requestSolutionViewPromises.current[e.data.messageId];
+                if (!promiseInfo) {
+                    return;
+                }
+
+                promiseInfo.resolve({ allowView: e.data.allowView === true });
             }
         };
 
@@ -996,13 +1020,13 @@ export function DocViewer({
         userId?: string;
     }) {
         let messageId = nanoid();
-        let savePromiseResolve: (value: Record<string, any>) => void,
-            savePromiseReject: (value: unknown) => void;
+        let getStatePromiseResolve: (value: Record<string, any>) => void,
+            getStatePromiseReject: (value: unknown) => void;
 
-        let savePromise = new Promise<Record<string, any>>(
+        let getStatePromise = new Promise<Record<string, any>>(
             (resolve, reject) => {
-                savePromiseResolve = resolve;
-                savePromiseReject = reject;
+                getStatePromiseResolve = resolve;
+                getStatePromiseReject = reject;
                 window.postMessage({
                     subject: "SPLICE.getState",
                     messageId,
@@ -1015,22 +1039,22 @@ export function DocViewer({
             },
         );
 
-        saveStatePromises.current[messageId] = {
-            resolve: savePromiseResolve!,
-            reject: savePromiseReject!,
+        getStatePromises.current[messageId] = {
+            resolve: getStatePromiseResolve!,
+            reject: getStatePromiseReject!,
         };
 
         const MESSAGE_TIMEOUT = 15000;
 
         setTimeout(() => {
-            if (!saveStatePromises.current[messageId]) {
+            if (!getStatePromises.current[messageId]) {
                 return;
             }
-            delete saveStatePromises.current[messageId];
-            savePromiseReject({ message: "Time out loading doc state" });
+            delete getStatePromises.current[messageId];
+            getStatePromiseReject({ message: "Time out loading doc state" });
         }, MESSAGE_TIMEOUT);
 
-        return savePromise;
+        return getStatePromise;
     }
 
     function processLoadedDocState(data: Record<string, any>) {
@@ -1119,6 +1143,7 @@ export function DocViewer({
             Comlink.proxy(cancelAnimationFrame),
             Comlink.proxy(copyToClipboard),
             Comlink.proxy(sendEvent),
+            Comlink.proxy(requestSolutionView),
         );
 
         if (dastResult.success) {
@@ -1236,6 +1261,48 @@ export function DocViewer({
             activityId,
             docId,
         });
+    }
+
+    /**
+     * Request permission to view the solution of `componentName`
+     * using SPLICE messaging.
+     *
+     * Sends a "SPLICE.requestSolutionView". The returned promise will
+     * resolve when a matching "SPLICE.requestSolutionView.response"
+     * is received.
+     *
+     * Return a promise that will resolve to an object with key:
+     * allowView: whether or not the solution can be viewed
+     */
+    function requestSolutionView(componentName: string) {
+        let messageId = nanoid();
+        let requestSolutionPromiseResolve: (value: {
+                allowView: boolean;
+            }) => void,
+            requestSolutionPromiseReject: (value: unknown) => void;
+
+        const requestSolutionViewPromise = new Promise<{ allowView: boolean }>(
+            (resolve, reject) => {
+                requestSolutionPromiseResolve = resolve;
+                requestSolutionPromiseReject = reject;
+                window.postMessage({
+                    subject: "SPLICE.requestSolutionView",
+                    messageId,
+                    activityId,
+                    docId,
+                    attemptNumber,
+                    userId,
+                    componentName,
+                });
+            },
+        );
+
+        requestSolutionViewPromises.current[messageId] = {
+            resolve: requestSolutionPromiseResolve!,
+            reject: requestSolutionPromiseReject!,
+        };
+
+        return requestSolutionViewPromise;
     }
 
     async function copyToClipboard({
