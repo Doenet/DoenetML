@@ -7754,10 +7754,10 @@ describe("Math operator tests", async () => {
             `Must specify a operandNumber when extracting a math operand`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(23);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(85);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(23);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(85);
     });
 
     it("math operators that take multiple inputs ignore composites with no replacements", async () => {

@@ -765,9 +765,9 @@ describe("Extract tag tests", async () => {
             "Invalid extract.  Must have a prop",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(31);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(63);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(31);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(63);
     });
 });

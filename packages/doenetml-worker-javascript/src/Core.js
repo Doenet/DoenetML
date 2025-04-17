@@ -113,8 +113,8 @@ export default class Core {
                   serializedComponentsReviver,
               )
             : {};
-        for (let cName in stateVariableChanges) {
-            let componentSVChanges = stateVariableChanges[cName];
+        for (let cIdx in stateVariableChanges) {
+            let componentSVChanges = stateVariableChanges[cIdx];
             for (let varName in componentSVChanges) {
                 if (varName in deprecatedPropertySubstitutions) {
                     componentSVChanges[
@@ -225,7 +225,7 @@ export default class Core {
         this.componentIndexArray =
             extractComponentNamesAndIndices(serializedComponents);
 
-        this.documentName = serializedComponents[0].componentIdx;
+        this.documentIdx = serializedComponents[0].componentIdx;
 
         if (!serializedComponents[0].state) {
             serializedComponents[0].state = {};
@@ -412,7 +412,7 @@ export default class Core {
                 this.errorWarnings.warnings.push({
                     message: this.unmatchedChildren[componentIdx].message,
                     level: 1,
-                    doenetMLrange: parent.doenetMLrange,
+                    position: parent.position,
                 });
                 this.newErrorWarning = true;
             }
@@ -479,14 +479,14 @@ export default class Core {
             ...this.errorWarnings.errors,
             ...this.errorWarnings.warnings,
         ]) {
-            let doenetMLrange = errorWarning.doenetMLrange;
+            let position = errorWarning.position;
             if (
-                doenetMLrange?.doenetMLId === 0 &&
-                doenetMLrange.lineBegin === undefined
+                position?.doenetMLId === 0 &&
+                position.lineBegin === undefined
             ) {
                 Object.assign(
-                    doenetMLrange,
-                    getLineCharRange(doenetMLrange, this.doenetMLNewlines),
+                    position,
+                    getLineCharRange(position, this.doenetMLNewlines),
                 );
             }
         }
@@ -1252,7 +1252,7 @@ export default class Core {
             return [];
         }
 
-        let componentNames = [component.componentIdx];
+        let componentIndices = [component.componentIdx];
         if (component.constructor.renderChildren) {
             if (!component.matchedCompositeChildren) {
                 await this.deriveChildResultsFromDefiningChildren({
@@ -1261,12 +1261,12 @@ export default class Core {
                 });
             }
             for (let child of component.activeChildren) {
-                componentNames.push(
+                componentIndices.push(
                     ...(await this.componentAndRenderedDescendants(child)),
                 );
             }
         }
-        return componentNames;
+        return componentIndices;
     }
 
     async createIsolatedComponents({
@@ -1348,12 +1348,12 @@ export default class Core {
                 // However, it could get called from Javascript if developers
                 // create a serialized component that doesn't exist.
                 let message = `Invalid component type: <${serializedComponent.componentType}>.`;
-                let doenetMLrange = serializedComponent.doenetMLrange;
+                let position = serializedComponent.position;
 
                 this.newErrorWarning = true;
                 this.errorWarnings.errors.push({
                     message,
-                    doenetMLrange,
+                    position,
                 });
                 convertToErrorComponent(serializedComponent, message);
 
@@ -1441,7 +1441,7 @@ export default class Core {
         // and we want the mesage to be based on a name that will appear in the DoenetML document.
         if (componentIdx in this._components) {
             let lastSlash = componentIdx.lastIndexOf("/");
-            let originalName = componentIdx.slice(lastSlash + 1);
+            let originalIdx = componentIdx.slice(lastSlash + 1);
 
             let parentIdx = ancestors[0].componentIdx;
             let longNameId = parentIdx + "|";
@@ -1463,7 +1463,7 @@ export default class Core {
             // if already was an error, don't change anything other than the componentIdx for the error
             // as we don't want to add another error and the original error message was correct.
             if (componentClass.componentType !== "_error") {
-                let doenetMLrange = serializedComponent.doenetMLrange;
+                let position = serializedComponent.position;
                 if (serializedComponent.downstreamDependencies) {
                     for (let name in serializedComponent.downstreamDependencies) {
                         let depArray =
@@ -1472,13 +1472,13 @@ export default class Core {
                             if (dep.dependencyType === "referenceShadow") {
                                 let fromComposite =
                                     this.components[dep.compositeIdx];
-                                doenetMLrange = fromComposite.doenetMLrange;
+                                position = fromComposite.position;
                             }
                         }
                     }
                 }
 
-                let message = `Duplicate component name: ${originalName}.`;
+                let message = `Duplicate component name: ${originalIdx}.`;
                 convertToErrorComponent(serializedComponent, message);
                 componentClass =
                     this.componentInfoObjects.allComponentClasses[
@@ -1487,7 +1487,7 @@ export default class Core {
                 this.newErrorWarning = true;
                 this.errorWarnings.errors.push({
                     message,
-                    doenetMLrange,
+                    position,
                 });
 
                 // delete children, as they could have automatically generated names
@@ -1717,17 +1717,17 @@ export default class Core {
         let prescribedDependencies = {};
 
         if (serializedComponent.downstreamDependencies) {
-            for (let name in serializedComponent.downstreamDependencies) {
-                if (name === componentIdx) {
+            for (let idx in serializedComponent.downstreamDependencies) {
+                if (idx === componentIdx) {
                     throw Error(
                         this.dependencies.getCircularDependencyMessage([
                             serializedComponent,
                         ]),
                     );
                 }
-                if (this.components[name]) {
-                    prescribedDependencies[name] =
-                        serializedComponent.downstreamDependencies[name];
+                if (this.components[idx]) {
+                    prescribedDependencies[idx] =
+                        serializedComponent.downstreamDependencies[idx];
                 } else {
                     throw Error(
                         this.dependencies.getCircularDependencyMessage([
@@ -1780,12 +1780,12 @@ export default class Core {
             newComponent.adaptedFrom.adapterUsed = newComponent;
         }
 
-        for (let name in prescribedDependencies) {
-            let depArray = prescribedDependencies[name];
+        for (let idx in prescribedDependencies) {
+            let depArray = prescribedDependencies[idx];
             for (let dep of depArray) {
                 if (dep.dependencyType === "referenceShadow") {
                     let shadowInfo = {
-                        componentIdx: name,
+                        componentIdx: idx,
                     };
                     Object.assign(shadowInfo, dep);
                     delete shadowInfo.dependencyType;
@@ -1796,7 +1796,7 @@ export default class Core {
                         newComponent.firstLevelReplacement = true;
                     }
 
-                    let shadowedComponent = this._components[name];
+                    let shadowedComponent = this._components[idx];
                     if (!shadowedComponent.shadowedBy) {
                         shadowedComponent.shadowedBy = [];
                     }
@@ -1809,7 +1809,7 @@ export default class Core {
                     }
                     mediatingShadowComposite.mediatesShadows.push({
                         shadowing: newComponent.componentIdx,
-                        shadowed: name,
+                        shadowed: idx,
                         propVariable: dep.propVariable,
                     });
 
@@ -1819,10 +1819,10 @@ export default class Core {
 
                         if (
                             this.dependencies.updateTriggers
-                                .primaryShadowDependencies[name]
+                                .primaryShadowDependencies[idx]
                         ) {
                             for (let dep of this.dependencies.updateTriggers
-                                .primaryShadowDependencies[name]) {
+                                .primaryShadowDependencies[idx]) {
                                 await dep.recalculateDownstreamComponents();
                             }
                         }
@@ -2420,7 +2420,7 @@ export default class Core {
                 newSerializedChild.adaptedFrom = originalChild.componentIdx;
                 assignDoenetMLRange(
                     [newSerializedChild],
-                    originalChild.doenetMLrange,
+                    originalChild.position,
                 );
                 let newChildrenResult = await this.createIsolatedComponentsSub({
                     serializedComponents: [newSerializedChild],
@@ -2561,15 +2561,14 @@ export default class Core {
                 this.publicCaseInsensitiveAliasSubstitutions.bind(this),
         });
 
-        let doenetMLrange =
-            this.components[component.componentIdx].doenetMLrange;
+        let position = this.components[component.componentIdx].position;
         let overwriteDoenetMLRange = component.componentType === "copy";
 
         this.gatherErrorsAndAssignDoenetMLRange({
             components: result.replacements,
             errors: result.errors,
             warnings: result.warnings,
-            doenetMLrange,
+            position,
             overwriteDoenetMLRange,
         });
 
@@ -2623,12 +2622,12 @@ export default class Core {
         components,
         errors,
         warnings,
-        doenetMLrange,
+        position,
         overwriteDoenetMLRange = false,
     }) {
-        assignDoenetMLRange(components, doenetMLrange, overwriteDoenetMLRange);
-        assignDoenetMLRange(errors, doenetMLrange);
-        assignDoenetMLRange(warnings, doenetMLrange);
+        assignDoenetMLRange(components, position, overwriteDoenetMLRange);
+        assignDoenetMLRange(errors, position);
+        assignDoenetMLRange(warnings, position);
 
         if (errors.length > 0) {
             this.errorWarnings.errors.push(...errors);
@@ -2814,13 +2813,12 @@ export default class Core {
                     {
                         componentType: "_error",
                         state: { message },
-                        doenetMLrange:
-                            compositeMediatingTheShadow.doenetMLrange,
+                        position: compositeMediatingTheShadow.position,
                     },
                 ];
                 this.errorWarnings.errors.push({
                     message,
-                    doenetMLrange: compositeMediatingTheShadow.doenetMLrange,
+                    position: compositeMediatingTheShadow.position,
                 });
 
                 break;
@@ -2828,8 +2826,8 @@ export default class Core {
 
             // recurse to check if one the shadowed components mediates
             // the shadow of compositeMediatingTheShadow
-            shadowedByShadowed = shadowedByShadowed.reduce((acc, cName) => {
-                let comp = this.components[cName];
+            shadowedByShadowed = shadowedByShadowed.reduce((acc, cIdx) => {
+                let comp = this.components[cIdx];
                 if (comp.mediatesShadows) {
                     return [
                         ...acc,
@@ -2852,7 +2850,7 @@ export default class Core {
             let target =
                 this._components[
                     compositeMediatingTheShadow.doenetAttributes
-                        .targetComponentName
+                        .targetComponentIdx
                 ];
 
             let assignNames = component.doenetAttributes.assignNames;
@@ -2899,12 +2897,12 @@ export default class Core {
                 compositesParentNameForAssignNames,
             });
 
-            let doenetMLrange = compositeMediatingTheShadow.doenetMLrange;
+            let position = compositeMediatingTheShadow.position;
             this.gatherErrorsAndAssignDoenetMLRange({
                 components: processResult.serializedComponents,
                 errors: processResult.errors,
                 warnings: processResult.warnings,
-                doenetMLrange,
+                position,
             });
 
             serializedReplacements = processResult.serializedComponents;
@@ -2941,12 +2939,12 @@ export default class Core {
                     compositesParentNameForAssignNames,
                 });
 
-                let doenetMLrange = compositeMediatingTheShadow.doenetMLrange;
+                let position = compositeMediatingTheShadow.position;
                 this.gatherErrorsAndAssignDoenetMLRange({
                     components: processResult.serializedComponents,
                     errors: processResult.errors,
                     warnings: processResult.warnings,
-                    doenetMLrange,
+                    position,
                 });
 
                 serializedReplacements.push(
@@ -2968,12 +2966,12 @@ export default class Core {
                 shadowingComposite: true,
             });
 
-            let doenetMLrange = compositeMediatingTheShadow.doenetMLrange;
+            let position = compositeMediatingTheShadow.position;
             this.gatherErrorsAndAssignDoenetMLRange({
                 components: processResult.serializedComponents,
                 errors: processResult.errors,
                 warnings: processResult.warnings,
-                doenetMLrange,
+                position,
             });
 
             serializedReplacements = processResult.serializedComponents;
@@ -3470,16 +3468,14 @@ export default class Core {
         // if updates to replacements were postponed
         // add them back to the queue
         if (!(await composite.stateValues.isInactiveCompositeReplacement)) {
-            let cName = composite.componentIdx;
+            let cIdx = composite.componentIdx;
             if (
-                this.updateInfo.inactiveCompositesToUpdateReplacements.has(
-                    cName,
-                )
+                this.updateInfo.inactiveCompositesToUpdateReplacements.has(cIdx)
             ) {
                 this.updateInfo.inactiveCompositesToUpdateReplacements.delete(
-                    cName,
+                    cIdx,
                 );
-                this.updateInfo.compositesToUpdateReplacements.add(cName);
+                this.updateInfo.compositesToUpdateReplacements.add(cIdx);
             }
         }
     }
@@ -3530,7 +3526,7 @@ export default class Core {
         shadowedComponentName,
     }) {
         for (let serializedComponent of serializedComponents) {
-            if (serializedComponent.originalName === shadowedComponentName) {
+            if (serializedComponent.originalIdx === shadowedComponentName) {
                 return serializedComponent;
             }
             if (serializedComponent.children) {
@@ -3555,18 +3551,18 @@ export default class Core {
         let redefineDependencies;
 
         if (prescribedDependencies) {
-            for (let name in prescribedDependencies) {
-                let depArray = prescribedDependencies[name];
+            for (let idx in prescribedDependencies) {
+                let depArray = prescribedDependencies[idx];
                 for (let dep of depArray) {
                     if (dep.dependencyType === "referenceShadow") {
-                        if (name === componentIdx) {
+                        if (idx === componentIdx) {
                             throw Error(
                                 `Circular dependency involving ${componentIdx}.`,
                             );
                         }
                         redefineDependencies = {
                             linkSource: "referenceShadow",
-                            targetName: name,
+                            targetName: idx,
                             compositeIdx: dep.compositeIdx,
                             propVariable: dep.propVariable,
                             fromImplicitProp: dep.fromImplicitProp,
@@ -5627,7 +5623,7 @@ export default class Core {
                         message:
                             "Cannot set array value.  Number of dimensions is too large.",
                         level: 2,
-                        doenetMLrange: component.doenetMLrange,
+                        position: component.position,
                     });
                     core.newErrorWarning = true;
                     return { nFailures: 1 };
@@ -5649,7 +5645,7 @@ export default class Core {
                         core.errorWarnings.warnings.push({
                             message: "ignore setting array value out of bounds",
                             level: 2,
-                            doenetMLrange: component.doenetMLrange,
+                            position: component.position,
                         });
                         core.newErrorWarning = true;
                         return { nFailures: 1 };
@@ -5676,7 +5672,7 @@ export default class Core {
                                 message:
                                     "ignoring array values with insufficient dimensions",
                                 level: 2,
-                                doenetMLrange: component.doenetMLrange,
+                                position: component.position,
                             });
                             core.newErrorWarning = true;
                             return { nFailures: 1 };
@@ -5689,7 +5685,7 @@ export default class Core {
                             core.errorWarnings.warnings.push({
                                 message: "ignoring array values of out bounds",
                                 level: 2,
-                                doenetMLrange: component.doenetMLrange,
+                                position: component.position,
                             });
                             core.newErrorWarning = true;
                             nFailuresSub += desiredValue.length - currentSize;
@@ -5869,7 +5865,7 @@ export default class Core {
                     core.errorWarnings.warnings.push({
                         message: `Ignoring setting array values out of bounds: ${arrayKey} of ${stateVariable}`,
                         level: 2,
-                        doenetMLrange: component.doenetMLrange,
+                        position: component.position,
                     });
                     core.newErrorWarning = true;
                     return { nFailures: 1 };
@@ -6757,7 +6753,7 @@ export default class Core {
                 this.errorWarnings.warnings.push({
                     message: `Cannot get propIndex from ${varName} of ${component.componentIdx} as it is not an array or array entry state variable`,
                     level: 1,
-                    doenetMLrange: component.doenetMLrange,
+                    position: component.position,
                 });
                 this.newErrorWarning = true;
                 newName = varName;
@@ -6768,7 +6764,7 @@ export default class Core {
                 this.errorWarnings.warnings.push({
                     message: `Cannot get propIndex from ${varName} of ${component.componentIdx}`,
                     level: 1,
-                    doenetMLrange: component.doenetMLrange,
+                    position: component.position,
                 });
                 this.newErrorWarning = true;
                 newVarNames.push(varName);
@@ -7638,7 +7634,7 @@ export default class Core {
 
         if (result.sendWarnings && result.sendWarnings.length > 0) {
             for (let warning of result.sendWarnings) {
-                warning.doenetMLrange = component.doenetMLrange;
+                warning.position = component.position;
                 this.errorWarnings.warnings.push(warning);
             }
 
@@ -8642,12 +8638,12 @@ export default class Core {
                     await upDep.markStale();
                 }
 
-                if (upDep.downstreamComponentNames) {
+                if (upDep.downstreamComponentIndices) {
                     // this particular upstream dependency has multiple downstream components
                     // must find which one of those components correspond to current component
 
                     let componentInd =
-                        upDep.downstreamComponentNames.indexOf(componentIdx);
+                        upDep.downstreamComponentIndices.indexOf(componentIdx);
                     if (componentInd === -1) {
                         // presumably component was deleted
                         continue;
@@ -9096,12 +9092,12 @@ export default class Core {
                     originalNamesAreConsistent,
                 });
 
-                let doenetMLrange = composite.doenetMLrange;
+                let position = composite.position;
                 this.gatherErrorsAndAssignDoenetMLRange({
                     components: processResult.serializedComponents,
                     errors: processResult.errors,
                     warnings: processResult.warnings,
-                    doenetMLrange,
+                    position,
                 });
 
                 shadowingSerializeChildren = processResult.serializedComponents;
@@ -9605,7 +9601,7 @@ export default class Core {
                 let firstIndex = change.firstReplacementInd;
 
                 if (numberToDelete > 0 && change.changeTopLevelReplacements) {
-                    // delete replacements before creating new replacements so that can reuse componentNames
+                    // delete replacements before creating new replacements so that can reuse componentIndices
                     await this.deleteReplacementsFromShadowsThenComposite({
                         change,
                         composite: component,
@@ -9630,8 +9626,8 @@ export default class Core {
                         );
                     }
 
-                    let doenetMLrange =
-                        this.components[component.componentIdx].doenetMLrange;
+                    let position =
+                        this.components[component.componentIdx].position;
                     let overwriteDoenetMLRange =
                         component.componentType === "copy";
 
@@ -9639,7 +9635,7 @@ export default class Core {
                         components: serializedReplacements,
                         errors: [],
                         warnings: [],
-                        doenetMLrange,
+                        position,
                         overwriteDoenetMLRange,
                     });
 
@@ -9769,9 +9765,9 @@ export default class Core {
 
                         let componentsAffected =
                             await this.componentAndRenderedDescendants(parent);
-                        componentsAffected.forEach((cName) =>
+                        componentsAffected.forEach((cIdx) =>
                             this.updateInfo.componentsToUpdateRenderers.add(
-                                cName,
+                                cIdx,
                             ),
                         );
                     } else {
@@ -9801,9 +9797,9 @@ export default class Core {
 
                         let componentsAffected =
                             await this.componentAndRenderedDescendants(parent);
-                        componentsAffected.forEach((cName) =>
+                        componentsAffected.forEach((cIdx) =>
                             this.updateInfo.componentsToUpdateRenderers.add(
-                                cName,
+                                cIdx,
                             ),
                         );
 
@@ -9892,14 +9888,14 @@ export default class Core {
         this.newErrorWarning = true;
         this.errorWarnings.errors.push({
             message,
-            doenetMLrange: composite.doenetMLrange,
+            position: composite.position,
         });
         let errorReplacements = [
             {
                 componentType: "_error",
                 state: { message },
                 doenetAttributes: { createUniqueName: true },
-                doenetMLrange: composite.doenetMLrange,
+                position: composite.position,
             },
         ];
 
@@ -10034,8 +10030,8 @@ export default class Core {
                 parentsOfDeleted.add(parent.componentIdx);
                 let componentsAffected =
                     await this.componentAndRenderedDescendants(parent);
-                componentsAffected.forEach((cName) =>
-                    this.updateInfo.componentsToUpdateRenderers.add(cName),
+                componentsAffected.forEach((cIdx) =>
+                    this.updateInfo.componentsToUpdateRenderers.add(cIdx),
                 );
             }
             let deletedNamesByParent = {};
@@ -10061,8 +10057,8 @@ export default class Core {
             let parent = this._components[composite.parentIdx];
             let componentsAffected =
                 await this.componentAndRenderedDescendants(parent);
-            componentsAffected.forEach((cName) =>
-                this.updateInfo.componentsToUpdateRenderers.add(cName),
+            componentsAffected.forEach((cIdx) =>
+                this.updateInfo.componentsToUpdateRenderers.add(cIdx),
             );
         } else {
             // if not change top level replacements
@@ -10083,8 +10079,8 @@ export default class Core {
                 parentsOfDeleted.add(parent.componentIdx);
                 let componentsAffected =
                     await this.componentAndRenderedDescendants(parent);
-                componentsAffected.forEach((cName) =>
-                    this.updateInfo.componentsToUpdateRenderers.add(cName),
+                componentsAffected.forEach((cIdx) =>
+                    this.updateInfo.componentsToUpdateRenderers.add(cIdx),
                 );
             }
             let deletedNamesByParent = {};
@@ -10119,8 +10115,8 @@ export default class Core {
         });
         let componentsAffected =
             await this.componentAndRenderedDescendants(parent);
-        componentsAffected.forEach((cName) =>
-            this.updateInfo.componentsToUpdateRenderers.add(cName),
+        componentsAffected.forEach((cIdx) =>
+            this.updateInfo.componentsToUpdateRenderers.add(cIdx),
         );
 
         if (component.shadowedBy) {
@@ -10320,13 +10316,12 @@ export default class Core {
                         compositesParentNameForAssignNames,
                     });
 
-                    let doenetMLrange =
-                        compositeMediatingTheShadow.doenetMLrange;
+                    let position = compositeMediatingTheShadow.position;
                     this.gatherErrorsAndAssignDoenetMLRange({
                         components: processResult.serializedComponents,
                         errors: processResult.errors,
                         warnings: processResult.warnings,
-                        doenetMLrange,
+                        position,
                     });
 
                     newSerializedReplacements =
@@ -10346,13 +10341,12 @@ export default class Core {
                         originalNamesAreConsistent,
                     });
 
-                    let doenetMLrange =
-                        compositeMediatingTheShadow.doenetMLrange;
+                    let position = compositeMediatingTheShadow.position;
                     this.gatherErrorsAndAssignDoenetMLRange({
                         components: processResult.serializedComponents,
                         errors: processResult.errors,
                         warnings: processResult.warnings,
-                        doenetMLrange,
+                        position,
                     });
 
                     newSerializedReplacements =
@@ -10712,7 +10706,7 @@ export default class Core {
                 updateInstructions: [
                     {
                         updateType: "updateValue",
-                        componentIdx: this.documentName,
+                        componentIdx: this.documentIdx,
                         stateVariable: "theme",
                         value: args.theme,
                     },
@@ -10771,7 +10765,7 @@ export default class Core {
             this.errorWarnings.warnings.push({
                 message: `Cannot run action ${actionName} on component ${componentIdx}`,
                 level: 1,
-                doenetMLrange: component.doenetMLrange,
+                position: component.position,
             });
             this.newErrorWarning = true;
         }
@@ -10786,11 +10780,11 @@ export default class Core {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        for (let cName in this.updateInfo.componentsToUpdateActionChaining) {
+        for (let cIdx in this.updateInfo.componentsToUpdateActionChaining) {
             await this.checkForActionChaining({
-                component: this.components[cName],
+                component: this.components[cIdx],
                 stateVariables:
-                    this.updateInfo.componentsToUpdateActionChaining[cName],
+                    this.updateInfo.componentsToUpdateActionChaining[cIdx],
             });
         }
 
@@ -10798,11 +10792,11 @@ export default class Core {
 
         let actionsToChain = [];
 
-        let cName = componentIdx;
+        let cIdx = componentIdx;
 
         while (true) {
-            let comp = this._components[cName];
-            let id = cName;
+            let comp = this._components[cIdx];
+            let id = cIdx;
 
             if (triggeringAction) {
                 id += "|" + triggeringAction;
@@ -10812,7 +10806,7 @@ export default class Core {
                 actionsToChain.push(...this.actionsChangedToActions[id]);
             }
 
-            if (comp?.shadows && cName.substring(0, 3) === "/__") {
+            if (comp?.shadows && cIdx.substring(0, 3) === "/__") {
                 // We propagate to shadows if the copied component doesn't have a name.
                 // In this way, if we include $P in a graph,
                 // then triggerWhenObjectsClicked="P" and triggerWhenObjectsFocused="P"
@@ -10824,7 +10818,7 @@ export default class Core {
                 // TODO: if <point copySource="P" /> no longer has a name like "_point1",
                 // should triggerWhenObjectsClicked="P" be triggered from that point?
                 // Currently (Oct 2, 2023), it is not triggered.
-                cName = comp.shadows.componentIdx;
+                cIdx = comp.shadows.componentIdx;
             } else {
                 break;
             }
@@ -11023,9 +11017,9 @@ export default class Core {
                     assignNamesOffset: instruction.assignNamesOffset,
                 });
             } else if (instruction.updateType === "deleteComponents") {
-                if (instruction.componentNames.length > 0) {
+                if (instruction.componentIndices.length > 0) {
                     let componentsToDelete = [];
-                    for (let componentIdx of instruction.componentNames) {
+                    for (let componentIdx of instruction.componentIndices) {
                         let component = this._components[componentIdx];
                         if (component) {
                             componentsToDelete.push(component);
@@ -11323,7 +11317,7 @@ export default class Core {
                 this.visibilityInfo.componentsCurrentlyVisible[componentIdx] =
                     new Date();
             }
-            if (componentIdx === this.documentName) {
+            if (componentIdx === this.documentIdx) {
                 if (!this.visibilityInfo.documentHasBeenVisible) {
                     this.visibilityInfo.documentHasBeenVisible = true;
                     this.onDocumentFirstVisible();
@@ -11387,7 +11381,7 @@ export default class Core {
         if (Object.keys(infoToSend).length > 0) {
             let event = {
                 object: {
-                    componentIdx: this.documentName,
+                    componentIdx: this.documentIdx,
                     componentType: "document",
                 },
                 verb: "isVisible",
@@ -11450,21 +11444,21 @@ export default class Core {
 
     async executeUpdateStateVariables(newStateVariableValues) {
         // // merge new variables changed from newStateVariableValues into changedStateVariables
-        // for (let cName in newStateVariableValues) {
-        //   let component = this._components[cName];
+        // for (let cIdx in newStateVariableValues) {
+        //   let component = this._components[cIdx];
         //   if (component) {
-        //     let changedSvs = this.changedStateVariables[cName];
+        //     let changedSvs = this.changedStateVariables[cIdx];
         //     if (!changedSvs) {
-        //       changedSvs = this.changedStateVariables[cName] = {};
+        //       changedSvs = this.changedStateVariables[cIdx] = {};
         //     }
-        //     for (let vName in newStateVariableValues[cName]) {
+        //     for (let vName in newStateVariableValues[cIdx]) {
         //       let sVarObj = component.state[vName];
         //       if (sVarObj) {
         //         if (sVarObj.isArray) {
         //           if (!changedSvs[vName]) {
         //             changedSvs[vName] = new Set();
         //           }
-        //           for (let key in newStateVariableValues[cName][vName]) {
+        //           for (let key in newStateVariableValues[cIdx][vName]) {
         //             if (key === "mergeObject") {
         //               continue;
         //             }
@@ -11532,8 +11526,8 @@ export default class Core {
 
         let componentChanges = []; // TODO: what to do with componentChanges?
         while (compositesToUpdateReplacements.length > 0) {
-            for (let cName of compositesToUpdateReplacements) {
-                let composite = this._components[cName];
+            for (let cIdx of compositesToUpdateReplacements) {
+                let composite = this._components[cIdx];
                 if (
                     composite instanceof
                         this.componentInfoObjects.allComponentClasses
@@ -11550,7 +11544,7 @@ export default class Core {
                                 .isInactiveCompositeReplacement
                         ) {
                             this.updateInfo.inactiveCompositesToUpdateReplacements.add(
-                                cName,
+                                cIdx,
                             );
                         } else {
                             let result = await this.updateCompositeReplacements(
@@ -11585,7 +11579,7 @@ export default class Core {
                             }
                         }
                     } else {
-                        compositesNotReady.add(cName);
+                        compositesNotReady.add(cIdx);
                     }
                 }
             }
@@ -11625,30 +11619,30 @@ export default class Core {
 
         let foundIgnore = false;
 
-        for (let cName in newStateVariableValues) {
-            let comp = this._components[cName];
+        for (let cIdx in newStateVariableValues) {
+            let comp = this._components[cIdx];
 
             if (comp === undefined) {
-                // console.warn(`can't update state variables of component ${cName}, as it doesn't exist.`);
+                // console.warn(`can't update state variables of component ${cIdx}, as it doesn't exist.`);
                 // nFailures += 1;
 
                 let updatesForComp =
                     this.updateInfo.stateVariableUpdatesForMissingComponents[
-                        cName
+                        cIdx
                     ];
                 if (updatesForComp === undefined) {
                     updatesForComp =
                         this.updateInfo.stateVariableUpdatesForMissingComponents[
-                            cName
+                            cIdx
                         ] = {};
                 }
 
-                Object.assign(updatesForComp, newStateVariableValues[cName]);
+                Object.assign(updatesForComp, newStateVariableValues[cIdx]);
 
                 continue;
             }
 
-            let newComponentStateVariables = newStateVariableValues[cName];
+            let newComponentStateVariables = newStateVariableValues[cIdx];
 
             for (let vName in newComponentStateVariables) {
                 let compStateObj = comp.state[vName];
@@ -11685,9 +11679,9 @@ export default class Core {
                     }
 
                     this.errorWarnings.warnings.push({
-                        message: `can't update state variable ${vName} of component ${cName}, as it doesn't exist.`,
+                        message: `can't update state variable ${vName} of component ${cIdx}, as it doesn't exist.`,
                         level: 2,
-                        doenetMLrange: this._components[cName].doenetMLrange,
+                        position: this._components[cIdx].position,
                     });
                     this.newErrorWarning = true;
                     continue;
@@ -11695,9 +11689,9 @@ export default class Core {
 
                 if (!compStateObj.hasEssential) {
                     this.errorWarnings.warnings.push({
-                        message: `can't update state variable ${vName} of component ${cName}, as it does not have an essential state variable.`,
+                        message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
                         level: 2,
-                        doenetMLrange: this._components[cName].doenetMLrange,
+                        position: this._components[cIdx].position,
                     });
                     this.newErrorWarning = true;
                     continue;
@@ -11782,7 +11776,7 @@ export default class Core {
 
                     for (let arrayEntryName of arrayEntryNamesAffected) {
                         await this.recordActualChangeInStateVariable({
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                             varName: arrayEntryName,
                         });
                     }
@@ -11791,10 +11785,9 @@ export default class Core {
 
                     if (!compStateObj.hasEssential) {
                         this.errorWarnings.warnings.push({
-                            message: `can't update state variable ${vName} of component ${cName}, as it does not have an essential state variable.`,
+                            message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
                             level: 2,
-                            doenetMLrange:
-                                this._components[cName].doenetMLrange,
+                            position: this._components[cIdx].position,
                         });
                         this.newErrorWarning = true;
                         continue;
@@ -11812,7 +11805,7 @@ export default class Core {
                 }
 
                 await this.recordActualChangeInStateVariable({
-                    componentIdx: cName,
+                    componentIdx: cIdx,
                     varName: vName,
                 });
             }
@@ -11995,7 +11988,7 @@ export default class Core {
                     this.errorWarnings.warnings.push({
                         message: `Can't invert ${varName2} at the same time as ${stateVariable}, as not an additional state variable defined`,
                         level: 2,
-                        doenetMLrange: component.doenetMLrange,
+                        position: component.position,
                     });
                     this.newErrorWarning = true;
                     continue;
@@ -12011,7 +12004,7 @@ export default class Core {
             this.errorWarnings.warnings.push({
                 message: `Cannot change state variable ${stateVariable} of ${component.componentIdx} as it doesn't have an inverse definition`,
                 level: 2,
-                doenetMLrange: component.doenetMLrange,
+                position: component.position,
             });
             this.newErrorWarning = true;
             return;
@@ -12025,7 +12018,7 @@ export default class Core {
             this.errorWarnings.warnings.push({
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixed is true.`,
                 level: 2,
-                doenetMLrange: component.doenetMLrange,
+                position: component.position,
             });
             this.newErrorWarning = true;
             return;
@@ -12039,7 +12032,7 @@ export default class Core {
             this.errorWarnings.warnings.push({
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation is true.`,
                 level: 2,
-                doenetMLrange: component.doenetMLrange,
+                position: component.position,
             });
             this.newErrorWarning = true;
             return;
@@ -12054,7 +12047,7 @@ export default class Core {
             this.errorWarnings.warnings.push({
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because modifyIndirectly is false.`,
                 level: 2,
-                doenetMLrange: component.doenetMLrange,
+                position: component.position,
             });
             this.newErrorWarning = true;
             return;
@@ -12069,7 +12062,7 @@ export default class Core {
             inverseResult.sendWarnings.length > 0
         ) {
             for (let warning of inverseResult.sendWarnings) {
-                warning.doenetMLrange = component.doenetMLrange;
+                warning.position = component.position;
                 this.errorWarnings.warnings.push(warning);
             }
 
@@ -12102,14 +12095,14 @@ export default class Core {
                     ["stateVariable", "parentStateVariable"].includes(
                         dep.dependencyType,
                     ) &&
-                    dep.downstreamComponentNames.length === 1
+                    dep.downstreamComponentIndices.length === 1
                 ) {
-                    let dComponentName = dep.downstreamComponentNames[0];
+                    let dComponentIdx = dep.downstreamComponentIndices[0];
                     let dVarName =
                         dep.mappedDownstreamVariableNamesByComponent[0][0];
 
                     let depStateVarObj =
-                        this._components[dComponentName].state[dVarName];
+                        this._components[dComponentIdx].state[dVarName];
 
                     if (
                         (depStateVarObj.isArrayEntry ||
@@ -12124,7 +12117,7 @@ export default class Core {
                             arrayInstructionInProgress &&
                             !(
                                 arrayInstructionInProgress.componentIdx ===
-                                    dComponentName &&
+                                    dComponentIdx &&
                                 arrayInstructionInProgress.stateVariable ===
                                     arrayStateVariable &&
                                 arrayInstructionInProgress.shadowedVariable ===
@@ -12153,7 +12146,7 @@ export default class Core {
                             if (!arrayInstructionInProgress) {
                                 arrayInstructionInProgress = {
                                     combinedArray: true,
-                                    componentIdx: dComponentName,
+                                    componentIdx: dComponentIdx,
                                     stateVariable: arrayStateVariable,
                                     shadowedVariable:
                                         newInstruction.shadowedVariable,
@@ -12173,7 +12166,7 @@ export default class Core {
                                     // Unless allowExtraArrayKeysInInverse is set, any extra keys will be
                                     // filtered out, so add them only in this case.
                                     let depArrayStateVarObj =
-                                        this._components[dComponentName].state[
+                                        this._components[dComponentIdx].state[
                                             arrayStateVariable
                                         ];
                                     if (
@@ -12394,7 +12387,7 @@ export default class Core {
                             this.errorWarnings.warnings.push({
                                 message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixed is true.`,
                                 level: 2,
-                                doenetMLrange: baseComponent.doenetMLrange,
+                                position: baseComponent.position,
                             });
                             this.newErrorWarning = true;
                             return;
@@ -12409,7 +12402,7 @@ export default class Core {
                             this.errorWarnings.warnings.push({
                                 message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixLocation is true.`,
                                 level: 2,
-                                doenetMLrange: baseComponent.doenetMLrange,
+                                position: baseComponent.position,
                             });
                             this.newErrorWarning = true;
                             return;
@@ -12526,8 +12519,9 @@ export default class Core {
                                 .slice(0, childInd + 1)
                                 .filter((x) => !x).length - 1;
 
-                        let cName = dep.downstreamComponentNames[downstreamInd];
-                        if (!cName) {
+                        let cIdx =
+                            dep.downstreamComponentIndices[downstreamInd];
+                        if (!cIdx) {
                             throw Error(
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
                             );
@@ -12542,7 +12536,7 @@ export default class Core {
                             );
                         }
                         let inst = {
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                             stateVariable: varName,
                             value: newInstruction.desiredValue,
                             overrideFixed: instruction.overrideFixed,
@@ -12564,7 +12558,7 @@ export default class Core {
                         "targetComponent",
                     ].includes(dep.dependencyType)
                 ) {
-                    let cName = dep.downstreamComponentNames[0];
+                    let cIdx = dep.downstreamComponentIndices[0];
                     let varName =
                         dep.mappedDownstreamVariableNamesByComponent[0][
                             newInstruction.variableIndex
@@ -12575,7 +12569,7 @@ export default class Core {
                         );
                     }
                     let inst = {
-                        componentIdx: cName,
+                        componentIdx: cIdx,
                         stateVariable: varName,
                         value: newInstruction.desiredValue,
                         overrideFixed: instruction.overrideFixed,
@@ -12595,14 +12589,14 @@ export default class Core {
                         "adapterSourceStateVariable",
                         "sourceCompositeStateVariable",
                     ].includes(dep.dependencyType) &&
-                    dep.downstreamComponentNames.length === 1
+                    dep.downstreamComponentIndices.length === 1
                 ) {
-                    let dComponentName = dep.downstreamComponentNames[0];
+                    let dComponentIdx = dep.downstreamComponentIndices[0];
                     let dVarName =
                         dep.mappedDownstreamVariableNamesByComponent[0][0];
 
                     let inst = {
-                        componentIdx: dComponentName,
+                        componentIdx: dComponentIdx,
                         stateVariable: dVarName,
                         value: newInstruction.desiredValue,
                         overrideFixed: instruction.overrideFixed,
@@ -12614,7 +12608,7 @@ export default class Core {
                         // i.e. are in additionalStateVariablesDefined
 
                         let stateVarObj =
-                            this.components[dComponentName].state[dVarName];
+                            this.components[dComponentIdx].state[dVarName];
                         for (let dependencyName2 in newInstruction.additionalDependencyValues) {
                             let dep2 =
                                 this.dependencies.downstreamDependencies[
@@ -12626,15 +12620,14 @@ export default class Core {
                                         "stateVariable",
                                         "parentStateVariable",
                                     ].includes(dep2.dependencyType) &&
-                                    dep2.downstreamComponentNames.length === 1
+                                    dep2.downstreamComponentIndices.length === 1
                                 )
                             ) {
                                 this.errorWarnings.warnings.push({
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,
                                     level: 2,
-                                    doenetMLrange:
-                                        this.components[dComponentName]
-                                            .doenetMLrange,
+                                    position:
+                                        this.components[dComponentIdx].position,
                                 });
                                 this.newErrorWarning = true;
                                 continue;
@@ -12644,8 +12637,8 @@ export default class Core {
                                 dep2
                                     .mappedDownstreamVariableNamesByComponent[0][0];
                             if (
-                                dep2.downstreamComponentNames[0] !==
-                                    dComponentName ||
+                                dep2.downstreamComponentIndices[0] !==
+                                    dComponentIdx ||
                                 !stateVarObj.additionalStateVariablesDefined.includes(
                                     varName2,
                                 )
@@ -12653,9 +12646,8 @@ export default class Core {
                                 this.errorWarnings.warnings.push({
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it doesn't correspond to additional state variable defined of ${dependencyName}'s state variable`,
                                     level: 2,
-                                    doenetMLrange:
-                                        this.components[dComponentName]
-                                            .doenetMLrange,
+                                    position:
+                                        this.components[dComponentIdx].position,
                                 });
                                 this.newErrorWarning = true;
                                 continue;
@@ -12702,8 +12694,8 @@ export default class Core {
                 //   let dep = this.dependencies.downstreamDependencies[component.componentIdx][stateVariable][dependencyName];
 
                 //   if (dep.dependencyType === "child") {
-                //     let cName = dep.downstreamComponentNames[newInstruction.childIndex];
-                //     if (!cName) {
+                //     let cIdx = dep.downstreamComponentIndices[newInstruction.childIndex];
+                //     if (!cIdx) {
                 //       throw Error(`Invalid for deferSettingDependency in inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`)
                 //     }
 
@@ -12712,7 +12704,7 @@ export default class Core {
                 //       throw Error(`Invalid for deferSettingDependency in inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist..`)
                 //     }
 
-                //     let componentToDefer = this._components[cName];
+                //     let componentToDefer = this._components[cIdx];
 
                 //     if (componentToDefer.componentType !== "string") {
                 //       throw Error(`deferStateVariableDependency is implemented just when dependency is a string.`)
@@ -12970,17 +12962,17 @@ export default class Core {
                 ...component.ancestors.map((x) => x.componentIdx),
             ];
             let openedParent = false;
-            for (let cName of componentAndAncestors) {
-                let comp = this._components[cName];
+            for (let cIdx of componentAndAncestors) {
+                let comp = this._components[cIdx];
                 if (comp.actions?.revealSection) {
                     let isOpen = await comp.stateValues.open;
 
                     if (isOpen === false) {
                         await this.performAction({
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                             actionName: "revealSection",
                         });
-                        if (cName !== componentIdx) {
+                        if (cIdx !== componentIdx) {
                             openedParent = true;
                         }
                     }
@@ -13066,32 +13058,32 @@ export default class Core {
             return null;
         }
 
-        let doenetMLrange = component.doenetMLrange;
+        let position = component.position;
 
-        if (!doenetMLrange) {
+        if (!position) {
             return null;
         }
 
         let startInd, endInd;
 
         if (displayOnlyChildren) {
-            if (doenetMLrange.selfCloseBegin !== undefined) {
+            if (position.selfCloseBegin !== undefined) {
                 return "";
             }
-            startInd = doenetMLrange.openEnd + 1;
-            endInd = doenetMLrange.closeBegin - 1;
+            startInd = position.openEnd + 1;
+            endInd = position.closeBegin - 1;
         } else {
             startInd =
-                doenetMLrange.openBegin !== undefined
-                    ? doenetMLrange.openBegin
-                    : doenetMLrange.selfCloseBegin;
+                position.openBegin !== undefined
+                    ? position.openBegin
+                    : position.selfCloseBegin;
             endInd =
-                doenetMLrange.closeEnd !== undefined
-                    ? doenetMLrange.closeEnd
-                    : doenetMLrange.selfCloseEnd;
+                position.closeEnd !== undefined
+                    ? position.closeEnd
+                    : position.selfCloseEnd;
         }
 
-        let doenetMLId = doenetMLrange.doenetMLId || 0;
+        let doenetMLId = position.doenetMLId || 0;
         let componentDoenetML = this.allDoenetMLs[doenetMLId].slice(
             startInd - 1,
             endInd,

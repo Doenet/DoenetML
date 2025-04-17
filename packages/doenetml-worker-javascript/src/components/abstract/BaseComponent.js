@@ -78,8 +78,8 @@ export default class BaseComponent {
             this.variants = serializedComponent.variants;
         }
 
-        if (serializedComponent.doenetMLrange) {
-            this.doenetMLrange = serializedComponent.doenetMLrange;
+        if (serializedComponent.position) {
+            this.position = serializedComponent.position;
         }
 
         if (serializedComponent.answerNumber) {
@@ -1132,7 +1132,7 @@ export default class BaseComponent {
         return this.ancestors[0].componentIdx;
     }
 
-    // TODO: if resurrect this, it would just be componentNames
+    // TODO: if resurrect this, it would just be componentIndices
     // getParentUpstreamComponents(includeInactive = false) {
     //   const parent = this.parent;
     //   let upstream = Object.values(this.upstreamDependencies)
@@ -1348,9 +1348,9 @@ export default class BaseComponent {
             }
         }
 
-        if (this.doenetMLrange) {
-            serializedComponent.doenetMLrange = JSON.parse(
-                JSON.stringify(this.doenetMLrange),
+        if (this.position) {
+            serializedComponent.position = JSON.parse(
+                JSON.stringify(this.position),
             );
         }
 
@@ -1362,7 +1362,7 @@ export default class BaseComponent {
             }
         }
 
-        serializedComponent.originalName = this.componentIdx;
+        serializedComponent.originalIdx = this.componentIdx;
         serializedComponent.originalDoenetAttributes = deepClone(
             this.doenetAttributes,
         );
@@ -1393,7 +1393,7 @@ export default class BaseComponent {
 
         let serializedCopy = {
             componentType: serializedComponent.componentType,
-            originalName: serializedComponent.componentIdx,
+            originalIdx: serializedComponent.componentIdx,
             originalNameFromSerializedComponent: true,
             children: serializedChildren,
             state: {},
@@ -1417,10 +1417,8 @@ export default class BaseComponent {
             delete serializedCopy.doenetAttributes.assignNames;
         }
 
-        if (serializedComponent.doenetMLrange !== undefined) {
-            serializedCopy.doenetMLrange = deepClone(
-                serializedComponent.doenetMLrange,
-            );
+        if (serializedComponent.position !== undefined) {
+            serializedCopy.position = deepClone(serializedComponent.position);
         }
 
         if (serializedComponent.state !== undefined) {

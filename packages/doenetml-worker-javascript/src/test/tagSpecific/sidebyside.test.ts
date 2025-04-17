@@ -2065,19 +2065,19 @@ describe("SideBySide tag tests", async () => {
             `<sideBySide> is not implemented for absolute measurements. Setting widths to relative`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(17);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(17);
 
         expect(errorWarnings.warnings[1].message).contain(
             `<sideBySide> is not implemented for absolute measurements. Setting margins to relative`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(17);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(17);
     });
 
     it("sbsGroup with no arguments, one panel", async () => {
@@ -4948,19 +4948,19 @@ describe("SideBySide tag tests", async () => {
             `<sbsGroup> is not implemented for absolute measurements. Setting widths to relative`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(15);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(7);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(15);
 
         expect(errorWarnings.warnings[1].message).contain(
             `<sbsGroup> is not implemented for absolute measurements. Setting margins to relative`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(15);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(7);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(15);
     });
 
     it("sideBySide with a stack", async () => {

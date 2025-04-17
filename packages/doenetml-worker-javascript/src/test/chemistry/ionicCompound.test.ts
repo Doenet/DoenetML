@@ -119,18 +119,18 @@ describe("Ionic Compounds tests", async () => {
             `Have not implemented ionic compound for anything other than two ions`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(41);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(4);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(4);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(41);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Ionic compound implemented only for one cation and one anion`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(3);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(39);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(3);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(39);
     });
 });

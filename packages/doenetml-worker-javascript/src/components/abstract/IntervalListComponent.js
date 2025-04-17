@@ -59,7 +59,7 @@ export default class IntervalListComponent extends BaseComponent {
                 intervalChildren: {
                     dependencyType: "child",
                     childGroups: ["intervals"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition: function ({ dependencyValues }) {

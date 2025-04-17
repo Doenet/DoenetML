@@ -859,7 +859,7 @@ function addResponsesToDescendantsWithTarget(
                 if (
                     (prop.toLowerCase() === "target" &&
                         propsOrDAttrs[prop] === target) ||
-                    (prop.toLowerCase() === "targetcomponentname" &&
+                    (prop.toLowerCase() === "targetcomponentidx" &&
                         propsOrDAttrs[prop] === absoluteTarget)
                 ) {
                     if (!component.attributes) {

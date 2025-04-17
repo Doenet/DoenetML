@@ -72,34 +72,34 @@ describe("Error Tests", function () {
             expect(errorWarnings.errors[0].message).contain(
                 "Missing closing tag",
             );
-            expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(6);
-            expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(2);
-            expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(6);
-            expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(2);
+            expect(errorWarnings.errors[0].position.lineBegin).eq(6);
+            expect(errorWarnings.errors[0].position.charBegin).eq(2);
+            expect(errorWarnings.errors[0].position.lineEnd).eq(6);
+            expect(errorWarnings.errors[0].position.charEnd).eq(2);
 
             expect(errorWarnings.errors[1].message).contain(
                 "Error in opening <point> tag",
             );
-            expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(10);
-            expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(3);
-            expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(10);
-            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(23);
+            expect(errorWarnings.errors[1].position.lineBegin).eq(10);
+            expect(errorWarnings.errors[1].position.charBegin).eq(3);
+            expect(errorWarnings.errors[1].position.lineEnd).eq(10);
+            expect(errorWarnings.errors[1].position.charEnd).eq(23);
 
             expect(errorWarnings.errors[2].message).contain(
                 "Missing closing tag",
             );
-            expect(errorWarnings.errors[2].doenetMLrange.lineBegin).eq(10);
-            expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(24);
-            expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(10);
-            expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(24);
+            expect(errorWarnings.errors[2].position.lineBegin).eq(10);
+            expect(errorWarnings.errors[2].position.charBegin).eq(24);
+            expect(errorWarnings.errors[2].position.lineEnd).eq(10);
+            expect(errorWarnings.errors[2].position.charEnd).eq(24);
 
             expect(errorWarnings.errors[3].message).contain(
                 "Invalid component type: <a>",
             );
-            expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(5);
-            expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(5);
-            expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(6);
-            expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(2);
+            expect(errorWarnings.errors[3].position.lineBegin).eq(5);
+            expect(errorWarnings.errors[3].position.charBegin).eq(5);
+            expect(errorWarnings.errors[3].position.lineEnd).eq(6);
+            expect(errorWarnings.errors[3].position.charEnd).eq(2);
         });
     });
 });

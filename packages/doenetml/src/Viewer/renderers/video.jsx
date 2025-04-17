@@ -34,12 +34,12 @@ export default React.memo(function Video(props) {
 
     useEffect(() => {
         if (SVs.youtube) {
-            let cName = id;
+            let cIdx = id;
 
             // protect against window.YT being undefined,
             // which could occur if cannot reach youtube
             if (window.YT) {
-                player.current = new window.YT.Player(cName, {
+                player.current = new window.YT.Player(cIdx, {
                     playerVars: {
                         autoplay: 0,
                         controls: 1,

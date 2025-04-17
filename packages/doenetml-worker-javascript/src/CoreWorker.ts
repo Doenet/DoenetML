@@ -382,7 +382,7 @@ export class PublicDoenetMLCore {
      */
     async submitAllAnswers() {
         return await this.core?.requestAction({
-            componentIdx: this.core.documentName,
+            componentIdx: this.core.documentIdx,
             actionName: "submitAllAnswers",
             args: {},
         });

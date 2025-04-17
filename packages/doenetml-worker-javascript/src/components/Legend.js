@@ -89,11 +89,11 @@ export default class Legend extends GraphicalComponent {
                     };
                     for (let [
                         ind,
-                        cName,
+                        cIdx,
                     ] of stateValues.graphicalElementNames.entries()) {
                         dependencies[`graphicalElement${ind}`] = {
                             dependencyType: "multipleStateVariables",
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                             variableNames: [
                                 "selectedStyle",
                                 "styleNumber",
@@ -103,11 +103,11 @@ export default class Legend extends GraphicalComponent {
                         };
                         dependencies[`graphicalElement${ind}AdapterSource`] = {
                             dependencyType: "adapterSource",
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                         };
                         dependencies[`graphicalElement${ind}ShadowSource`] = {
                             dependencyType: "shadowSource",
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                         };
                     }
                 }

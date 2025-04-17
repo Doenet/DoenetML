@@ -117,32 +117,32 @@ export default class Shuffle extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.originalComponentNames = {
+        stateVariableDefinitions.originalComponentIndices = {
             additionalStateVariablesDefined: ["numComponents"],
             returnDependencies: () => ({
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    variableNames: ["componentNamesInList"],
+                    variableNames: ["componentIndicesInList"],
                     variablesOptional: true,
                 },
             }),
             definition({ dependencyValues }) {
-                let originalComponentNames = [];
+                let originalComponentIndices = [];
                 for (let child of dependencyValues.children) {
-                    if (child.stateValues?.componentNamesInList) {
-                        originalComponentNames.push(
-                            ...child.stateValues.componentNamesInList,
+                    if (child.stateValues?.componentIndicesInList) {
+                        originalComponentIndices.push(
+                            ...child.stateValues.componentIndicesInList,
                         );
                     } else {
-                        originalComponentNames.push(child.componentIdx);
+                        originalComponentIndices.push(child.componentIdx);
                     }
                 }
 
                 return {
                     setValue: {
-                        originalComponentNames,
-                        numComponents: originalComponentNames.length,
+                        originalComponentIndices,
+                        numComponents: originalComponentIndices.length,
                     },
                 };
             },
@@ -340,11 +340,12 @@ export default class Shuffle extends CompositeComponent {
 
         let componentsCopied = [];
 
-        let originalComponentNames =
-            await component.stateValues.originalComponentNames;
+        let originalComponentIndices =
+            await component.stateValues.originalComponentIndices;
 
         for (let ind of await component.stateValues.componentOrder) {
-            let replacementSource = components[originalComponentNames[ind - 1]];
+            let replacementSource =
+                components[originalComponentIndices[ind - 1]];
 
             if (replacementSource) {
                 componentsCopied.push(replacementSource.componentIdx);
@@ -397,11 +398,12 @@ export default class Shuffle extends CompositeComponent {
 
         let componentsToCopy = [];
 
-        let originalComponentNames =
-            await component.stateValues.originalComponentNames;
+        let originalComponentIndices =
+            await component.stateValues.originalComponentIndices;
 
         for (let ind of await component.stateValues.componentOrder) {
-            let replacementSource = components[originalComponentNames[ind - 1]];
+            let replacementSource =
+                components[originalComponentIndices[ind - 1]];
 
             if (replacementSource) {
                 componentsToCopy.push(replacementSource.componentIdx);

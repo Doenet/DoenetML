@@ -129,12 +129,12 @@ export default class NumberList extends CompositeComponent {
                 mathChildren: {
                     dependencyType: "child",
                     childGroups: ["maths"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
                 numberChildren: {
                     dependencyType: "child",
                     childGroups: ["numbers"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition({ dependencyValues }) {

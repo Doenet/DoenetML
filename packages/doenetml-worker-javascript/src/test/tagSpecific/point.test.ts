@@ -4063,28 +4063,28 @@ $g1{name="g2"}
             "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(32);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(6);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(7);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(6);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(32);
 
         expect(errorWarnings.warnings[1].message).contain(
             "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(7);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(32);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(6);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(7);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(6);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(32);
 
         expect(errorWarnings.warnings[2].message).contain(
             "Cannot constrain to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(14);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(7);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(14);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(36);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(14);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(7);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(14);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(36);
     });
 
     it("copy point with no arguments, specify individual coordinates", async () => {

@@ -1191,7 +1191,7 @@ export default class Copy extends CompositeComponent {
                 if (replacements[0].componentIdx) {
                     namespace = replacements[0].componentIdx + "/";
                 } else {
-                    namespace = replacements[0].originalName + "/";
+                    namespace = replacements[0].originalIdx + "/";
                 }
 
                 if (component.doenetAttributes.keptNewNamespaceOfLastChild) {
@@ -1233,8 +1233,10 @@ export default class Copy extends CompositeComponent {
                         let attribute = attributesFromComposite[attrName];
                         if (attribute.component) {
                             setTNamesToAbsolute([attribute.component]);
-                        } else if (attribute.childrenForComponent) {
-                            setTNamesToAbsolute(attribute.childrenForComponent);
+                        } else if (attribute.childrenForFutureComponent) {
+                            setTNamesToAbsolute(
+                                attribute.childrenForFutureComponent,
+                            );
                         }
                     }
 
@@ -1259,8 +1261,10 @@ export default class Copy extends CompositeComponent {
                     let attribute = attributesFromComposite[attrName];
                     if (attribute.component) {
                         setTNamesToAbsolute([attribute.component]);
-                    } else if (attribute.childrenForComponent) {
-                        setTNamesToAbsolute(attribute.childrenForComponent);
+                    } else if (attribute.childrenForFutureComponent) {
+                        setTNamesToAbsolute(
+                            attribute.childrenForFutureComponent,
+                        );
                     }
                 }
 
@@ -1560,8 +1564,8 @@ export default class Copy extends CompositeComponent {
                 // The extra copy inherit's this copy's target (and will actually use it).
                 let doenetAttributesForExtraCopy = {
                     target: component.doenetAttributes.target,
-                    targetComponentName:
-                        component.doenetAttributes.targetComponentName,
+                    targetComponentIdx:
+                        component.doenetAttributes.targetComponentIdx,
                     sourceIsProp: true,
                     convertedAssignNames: true,
                 };

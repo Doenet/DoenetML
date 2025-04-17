@@ -48,7 +48,7 @@ export default class VectorListComponent extends BaseComponent {
                 vectorChildren: {
                     dependencyType: "child",
                     childGroups: ["vectors"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition: ({ dependencyValues }) => ({

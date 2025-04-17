@@ -1731,7 +1731,7 @@ export default class Graph extends BlockComponent {
 
         if (numberToDelete > 0) {
             let numChildren = this.definingChildren.length;
-            let componentNamesToDelete = this.definingChildren
+            let componentIndicesToDelete = this.definingChildren
                 .slice(numChildren - numberToDelete, numChildren)
                 .map((x) => x.componentIdx);
 
@@ -1739,7 +1739,7 @@ export default class Graph extends BlockComponent {
                 updateInstructions: [
                     {
                         updateType: "deleteComponents",
-                        componentNames: componentNamesToDelete,
+                        componentIndices: componentIndicesToDelete,
                     },
                     {
                         updateType: "updateValue",

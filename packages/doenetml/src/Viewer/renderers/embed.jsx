@@ -14,14 +14,14 @@ export default React.memo(function Figure(props) {
         if (SVs.encodedGeogebraContent) {
             let doenetSvData = SVs;
 
-            let cName = id;
+            let cIdx = id;
 
             let width = sizeToCSS(SVs.width);
             let height = sizeToCSS(SVs.height);
 
             window.MathJax.Hub.Register.StartupHook("End", function () {
                 let parameters = {
-                    id: cName,
+                    id: cIdx,
                     width,
                     height,
                     showResetIcon: false,
@@ -49,7 +49,7 @@ export default React.memo(function Figure(props) {
                 };
                 let applet = new window.GGBApplet(parameters, true);
                 applet.setHTML5Codebase("/geogebra/HTML5/5.0/web/", "true");
-                applet.inject("container_" + cName, "preferhtml5");
+                applet.inject("container_" + cIdx, "preferhtml5");
             });
         }
     }, []);

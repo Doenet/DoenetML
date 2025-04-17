@@ -139,7 +139,7 @@ export default class ODESystem extends InlineComponent {
                 rhsChildren: {
                     dependencyType: "child",
                     childGroups: ["rightHandSides"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition: function ({ dependencyValues }) {

@@ -141,7 +141,7 @@ export default class Tabular extends BlockComponent {
         //     if (!Number.isFinite(numColumns)) {
         //       numColumns = 4;
         //     }
-        //     for (let row of dependencyValues.cellNamesByRowCol) {
+        //     for (let row of dependencyValues.cellIndicesByRowCol) {
         //       if (row) {
         //         numColumns = Math.max(numColumns, row.length);
         //       }
@@ -343,9 +343,9 @@ export default class Tabular extends BlockComponent {
         //   },
         //   returnArrayDependenciesByKey() {
         //     let globalDependencies = {
-        //       cellNamesByRowCol: {
+        //       cellIndicesByRowCol: {
         //         dependencyType: "stateVariable",
-        //         variableName: "cellNamesByRowCol",
+        //         variableName: "cellIndicesByRowCol",
         //       }
         //     }
         //     return { globalDependencies }
@@ -353,7 +353,7 @@ export default class Tabular extends BlockComponent {
         //   arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
 
         //     let cells = {};
-        //     let cnbrc = globalDependencyValues.cellNamesByRowCol;
+        //     let cnbrc = globalDependencyValues.cellIndicesByRowCol;
 
         //     for (let arrayKey of arrayKeys) {
         //       let [rowInd, colInd] = arrayKey.split(',');

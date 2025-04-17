@@ -5454,37 +5454,37 @@ $vector1.displacement{assignNames="displacement2"}
             "Vector is prescribed by head, tail, and displacement.  Ignoring specified head",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(76);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(76);
 
         expect(errorWarnings.warnings[1].message).contain(
             "numDimensions mismatch in vector",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(4);
-        expect(errorWarnings.warnings[1].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].doenetMLrange.lineEnd).eq(4);
-        expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(57);
+        expect(errorWarnings.warnings[1].position.lineBegin).eq(4);
+        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[1].position.lineEnd).eq(4);
+        expect(errorWarnings.warnings[1].position.charEnd).eq(57);
 
         expect(errorWarnings.warnings[2].message).contain(
             "numDimensions mismatch in vector",
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(5);
-        expect(errorWarnings.warnings[2].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[2].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(65);
+        expect(errorWarnings.warnings[2].position.lineBegin).eq(5);
+        expect(errorWarnings.warnings[2].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[2].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[2].position.charEnd).eq(65);
 
         expect(errorWarnings.warnings[3].message).contain(
             "numDimensions mismatch in vector",
         );
         expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(6);
-        expect(errorWarnings.warnings[3].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[3].doenetMLrange.lineEnd).eq(6);
-        expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(65);
+        expect(errorWarnings.warnings[3].position.lineBegin).eq(6);
+        expect(errorWarnings.warnings[3].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[3].position.lineEnd).eq(6);
+        expect(errorWarnings.warnings[3].position.charEnd).eq(65);
     });
 
     it("handle bad head/tail", async () => {

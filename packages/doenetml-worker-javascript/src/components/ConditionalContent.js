@@ -313,11 +313,11 @@ export default class ConditionalContent extends CompositeComponent {
             let selectedIndex = await component.stateValues.selectedIndex;
 
             if (selectedIndex !== null) {
-                let selectedChildName,
+                let selectedChildComponentIdx,
                     childComponentType,
                     newNameForSelectedChild;
                 if (selectedIndex < (await component.stateValues.numCases)) {
-                    selectedChildName =
+                    selectedChildComponentIdx =
                         caseChildren[selectedIndex].componentIdx;
                     newNameForSelectedChild = createUniqueName(
                         "case",
@@ -325,8 +325,9 @@ export default class ConditionalContent extends CompositeComponent {
                     );
                     childComponentType = "case";
                 } else {
-                    selectedChildName = (await component.stateValues.elseChild)
-                        .componentIdx;
+                    selectedChildComponentIdx = (
+                        await component.stateValues.elseChild
+                    ).componentIdx;
                     newNameForSelectedChild = createUniqueName(
                         "else",
                         `${component.componentIdx}|replacement|${selectedIndex}`,
@@ -334,8 +335,8 @@ export default class ConditionalContent extends CompositeComponent {
                     childComponentType = "else";
                 }
 
-                let lastSlash = selectedChildName.lastIndexOf("/");
-                let originalNamespace = selectedChildName.substring(
+                let lastSlash = selectedChildComponentIdx.lastIndexOf("/");
+                let originalNamespace = selectedChildComponentIdx.substring(
                     0,
                     lastSlash,
                 );
@@ -346,18 +347,18 @@ export default class ConditionalContent extends CompositeComponent {
                 // links between descendant variant components and the components themselves
 
                 let serializedGrandchildren = deepClone(
-                    await components[selectedChildName].state.serializedChildren
-                        .value,
+                    await components[selectedChildComponentIdx].state
+                        .serializedChildren.value,
                 );
                 let serializedChild = {
                     componentType: childComponentType,
                     state: { rendered: true },
                     doenetAttributes: Object.assign(
                         {},
-                        components[selectedChildName].doenetAttributes,
+                        components[selectedChildComponentIdx].doenetAttributes,
                     ),
                     children: serializedGrandchildren,
-                    originalName: newNameForSelectedChild,
+                    originalIdx: newNameForSelectedChild,
                     variants: {
                         desiredVariant: {
                             seed:
@@ -368,7 +369,10 @@ export default class ConditionalContent extends CompositeComponent {
                     },
                 };
 
-                if (components[selectedChildName].attributes.newNamespace) {
+                if (
+                    components[selectedChildComponentIdx].attributes
+                        .newNamespace
+                ) {
                     serializedChild.attributes = {
                         newNamespace: { primitive: true },
                     };

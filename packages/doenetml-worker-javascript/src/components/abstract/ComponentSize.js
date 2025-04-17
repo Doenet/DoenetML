@@ -618,7 +618,7 @@ export class ComponentSizeList extends BaseComponent {
                     componentSizeAndComponentSizeListChildren: {
                         dependencyType: "child",
                         childGroups: ["componentSizes", "componentSizeLists"],
-                        skipComponentNames: true,
+                        skipComponentIndices: true,
                     },
                 };
             },

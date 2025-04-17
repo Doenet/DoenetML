@@ -155,10 +155,10 @@ describe("Map tag tests", async () => {
             "<map> has parallel behavior but different numbers of iterates in sources. Extra iterates will be ignored",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(17);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(10);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(17);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(7);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(10);
     });
 
     it("triple combination map", async () => {
@@ -219,10 +219,10 @@ describe("Map tag tests", async () => {
             `Invalid map behavior: "bad"`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(17);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(10);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(17);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(5);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(10);
     });
 
     it("two nested maps", async () => {
@@ -410,9 +410,9 @@ describe("Map tag tests", async () => {
                         stateVariables[name].stateValues.xs.map((x) => x.tree),
                     ).eqls(pointsByMap[i1][i2][i3]);
 
-                    let cName = cNames.pop();
+                    let cIdx = cNames.pop();
 
-                    expect(stateVariables[cName!].stateValues.value.tree).eqls([
+                    expect(stateVariables[cIdx!].stateValues.value.tree).eqls([
                         "vector",
                         ...pointsByMap[i1][i2][i3],
                     ]);

@@ -201,10 +201,10 @@ describe("Angle tag tests", async () => {
             "Cannot define an angle between 3 lines",
         );
         expect(errorWarnings.warnings[0].level).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(7);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(40);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(7);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(7);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(40);
     });
 
     it("parallel and undefined lines", async () => {

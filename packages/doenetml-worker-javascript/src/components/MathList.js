@@ -165,7 +165,7 @@ export default class MathList extends CompositeComponent {
                 mathChildren: {
                     dependencyType: "child",
                     childGroups: ["maths"],
-                    skipComponentNames: true,
+                    skipComponentIndices: true,
                 },
             }),
             definition({ dependencyValues }) {

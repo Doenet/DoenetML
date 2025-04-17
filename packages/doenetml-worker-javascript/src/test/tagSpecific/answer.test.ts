@@ -1382,10 +1382,10 @@ describe("Answer tag tests", async () => {
             "Invalid type for answer: bad",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(6);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(49);
+        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+        expect(errorWarnings.warnings[0].position.charBegin).eq(6);
+        expect(errorWarnings.warnings[0].position.lineEnd).eq(2);
+        expect(errorWarnings.warnings[0].position.charEnd).eq(49);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputName =
@@ -1439,10 +1439,10 @@ describe("Answer tag tests", async () => {
                 "An award for this answer is based on the answer tag's own submitted response",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
-            expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-            expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-            expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
-            expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(13);
+            expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
+            expect(errorWarnings.warnings[0].position.charBegin).eq(5);
+            expect(errorWarnings.warnings[0].position.lineEnd).eq(5);
+            expect(errorWarnings.warnings[0].position.charEnd).eq(13);
 
             let stateVariables = await core.returnAllStateVariables(
                 false,
