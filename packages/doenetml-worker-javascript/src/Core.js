@@ -8721,12 +8721,12 @@ export default class Core {
                         if (
                             varName in
                             this.rendererVariablesByComponentType[
-                                this.components[upDep.upstreamComponentName]
+                                this.components[upDep.upstreamComponentIdx]
                                     .componentType
                             ]
                         ) {
                             this.updateInfo.componentsToUpdateRenderers.add(
-                                upDep.upstreamComponentName,
+                                upDep.upstreamComponentIdx,
                             );
                             break;
                         }
@@ -8734,7 +8734,7 @@ export default class Core {
 
                     let upVarName = upDep.upstreamVariableNames[0];
                     let upDepComponent =
-                        this._components[upDep.upstreamComponentName];
+                        this._components[upDep.upstreamComponentIdx];
                     // let upVar = upDepComponent.state[upVarName];
 
                     let allStateVariablesAffectedObj = {};
@@ -8837,7 +8837,7 @@ export default class Core {
 
                         if (result.updateReplacements) {
                             this.updateInfo.compositesToUpdateReplacements.add(
-                                upDep.upstreamComponentName,
+                                upDep.upstreamComponentIdx,
                             );
                         }
 
