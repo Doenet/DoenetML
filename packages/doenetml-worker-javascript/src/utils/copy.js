@@ -40,10 +40,10 @@ export function postProcessCopy({
                     component.originalDoenetAttributes &&
                     component.originalDoenetAttributes.assignNames
                 ) {
-                    for (let cName of component.originalDoenetAttributes
+                    for (let cIdx of component.originalDoenetAttributes
                         .assignNames) {
-                        componentNamesFound.push(cName);
-                        assignNamesFound.push(cName);
+                        componentNamesFound.push(cIdx);
+                        assignNamesFound.push(cIdx);
                     }
                 }
                 if (component.attributes) {
@@ -203,8 +203,8 @@ export function postProcessCopy({
         for (let targetComponentIdx in copiesByTargetComponentName) {
             if (!componentNamesFound.includes(targetComponentIdx)) {
                 let foundMatchViaAssignNames = false;
-                for (let cName of assignNamesFound) {
-                    let namespace = cName + "/";
+                for (let cIdx of assignNamesFound) {
+                    let namespace = cIdx + "/";
                     let nSpaceLen = namespace.length;
                     if (
                         targetComponentIdx.substring(0, nSpaceLen) === namespace

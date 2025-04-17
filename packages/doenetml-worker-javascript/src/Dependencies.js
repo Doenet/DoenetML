@@ -608,13 +608,13 @@ export class DependencyHandler {
 
                     for (let [
                         ind,
-                        cname,
+                        cIdx,
                     ] of downstreamComponentIndices.entries()) {
                         let varNames =
                             mappedDownstreamVariableNamesByComponent[ind];
                         for (let vname of varNames) {
                             this.checkForCircularDependency({
-                                componentIdx: cname,
+                                componentIdx: cIdx,
                                 varName: vname,
                                 previouslyVisited,
                             });
@@ -2093,11 +2093,11 @@ export class DependencyHandler {
                 });
 
                 if (recurseUpstream) {
-                    let [cName, vName, depName] =
+                    let [cIdx, vName, depName] =
                         typeof code === "string" ? code.split("|") : [code];
 
                     await this.resolveIfReady({
-                        componentIdx: cName,
+                        componentIdx: cIdx,
                         type,
                         stateVariable: vName,
                         dependency: depName,
@@ -3220,16 +3220,14 @@ class Dependency {
                 let newVarNames = [];
                 for (let [
                     ind,
-                    cName,
+                    cIdx,
                 ] of this.downstreamComponentIndices.entries()) {
                     let varNamesForComponent = [];
                     for (let vName of affectedDownstreamVariableNamesByUpstreamComponent[
                         ind
                     ]) {
                         if (
-                            this.dependencyHandler.components[cName].state[
-                                vName
-                            ]
+                            this.dependencyHandler.components[cIdx].state[vName]
                         ) {
                             varNamesForComponent.push(vName);
                         }
@@ -3252,13 +3250,13 @@ class Dependency {
         // delete from upstream dependencies of downstream components
         for (let [
             cInd,
-            downCompName,
+            downCompIdx,
         ] of this.downstreamComponentIndices.entries()) {
             for (let vName of affectedDownstreamVariableNamesByUpstreamComponent[
                 cInd
             ]) {
                 let downCompUpDeps =
-                    this.dependencyHandler.upstreamDependencies[downCompName][
+                    this.dependencyHandler.upstreamDependencies[downCompIdx][
                         vName
                     ];
                 if (downCompUpDeps) {
@@ -3267,7 +3265,7 @@ class Dependency {
                     if (ind !== -1) {
                         if (downCompUpDeps.length === 1) {
                             delete this.dependencyHandler.upstreamDependencies[
-                                downCompName
+                                downCompIdx
                             ][vName];
                         } else {
                             downCompUpDeps.splice(ind, 1);
@@ -3281,7 +3279,7 @@ class Dependency {
                         typeBlocked: "stateVariable",
                         stateVariableBlocked: upVar,
                         blockerType: "stateVariable",
-                        blockerCode: downCompName + "|" + vName,
+                        blockerCode: downCompIdx + "|" + vName,
                     });
                 }
 
@@ -3529,13 +3527,13 @@ class Dependency {
         // this.downstreamComponentIndices = newDownComponents.downstreamComponentIndices;
         // this.downstreamComponentTypes = newDownComponents.downstreamComponentTypes;
 
-        let newComponentNames = newDownComponents.downstreamComponentIndices;
+        let newComponentIndices = newDownComponents.downstreamComponentIndices;
 
         let foundChange =
-            newComponentNames.length !==
+            newComponentIndices.length !==
                 this.downstreamComponentIndices.length ||
             this.downstreamComponentIndices.some(
-                (v, i) => v != newComponentNames[i],
+                (v, i) => v != newComponentIndices[i],
             );
 
         if (foundChange) {
@@ -3544,10 +3542,10 @@ class Dependency {
             // first remove any components that are no longer present
 
             let nRemoved = 0;
-            for (let [ind, downCompName] of [
+            for (let [ind, downCompIdx] of [
                 ...this.downstreamComponentIndices,
             ].entries()) {
-                if (!newComponentNames.includes(downCompName)) {
+                if (!newComponentIndices.includes(downCompIdx)) {
                     await this.removeDownstreamComponent({
                         indexToRemove: ind - nRemoved,
                     });
@@ -3555,9 +3553,9 @@ class Dependency {
                 }
             }
 
-            for (let [ind, downCompName] of newComponentNames.entries()) {
+            for (let [ind, downCompIdx] of newComponentIndices.entries()) {
                 let oldInd =
-                    this.downstreamComponentIndices.indexOf(downCompName);
+                    this.downstreamComponentIndices.indexOf(downCompIdx);
 
                 if (oldInd !== -1) {
                     if (oldInd !== ind) {
@@ -3565,7 +3563,7 @@ class Dependency {
                     }
                 } else {
                     await this.addDownstreamComponent({
-                        downstreamComponentIdx: downCompName,
+                        downstreamComponentIdx: downCompIdx,
                         downstreamComponentType:
                             newDownComponents.downstreamComponentTypes[ind],
                         index: ind,
@@ -3575,7 +3573,7 @@ class Dependency {
         }
 
         if (this.originalVariablesByComponent) {
-            for (let [ind, downCompName] of [
+            for (let [ind, downCompIdx] of [
                 ...this.downstreamComponentIndices,
             ].entries()) {
                 if (
@@ -3598,7 +3596,7 @@ class Dependency {
                     });
 
                     await this.addDownstreamComponent({
-                        downstreamComponentIdx: downCompName,
+                        downstreamComponentIdx: downCompIdx,
                         downstreamComponentType:
                             newDownComponents.downstreamComponentTypes[ind],
                         index: ind,
@@ -4222,7 +4220,7 @@ class RecursiveDependencyValuesDependency extends Dependency {
                         }
                         for (let [
                             cInd,
-                            cName,
+                            cIdx,
                         ] of dep.downstreamComponentIndices.entries()) {
                             let varNames = [];
                             if (
@@ -4238,7 +4236,7 @@ class RecursiveDependencyValuesDependency extends Dependency {
                             }
                             let result =
                                 await this.getRecursiveDependencyVariables({
-                                    componentIdx: cName,
+                                    componentIdx: cIdx,
                                     variableNames: varNames,
                                     force,
                                     components,
@@ -4292,13 +4290,12 @@ class RecursiveDependencyValuesDependency extends Dependency {
                 }
             }
 
-            for (let cName in this.varsWithUpdatedDeps) {
-                let compAccumulated = accumulatedVarsWithUpdatedDeps[cName];
+            for (let cIdx in this.varsWithUpdatedDeps) {
+                let compAccumulated = accumulatedVarsWithUpdatedDeps[cIdx];
                 if (!compAccumulated) {
-                    compAccumulated = accumulatedVarsWithUpdatedDeps[cName] =
-                        [];
+                    compAccumulated = accumulatedVarsWithUpdatedDeps[cIdx] = [];
                 }
-                for (let vName of this.varsWithUpdatedDeps[cName]) {
+                for (let vName of this.varsWithUpdatedDeps[cIdx]) {
                     if (!compAccumulated.includes(vName)) {
                         compAccumulated.push(vName);
                         foundNewUpdated = true;
@@ -6564,14 +6561,14 @@ class ReplacementDependency extends Dependency {
             this.compositesFound.push(...result.compositesFound);
         }
 
-        for (let cName of this.compositesFound) {
+        for (let cIdx of this.compositesFound) {
             let replacementDependencies =
                 this.dependencyHandler.updateTriggers
-                    .replacementDependenciesByComposite[cName];
+                    .replacementDependenciesByComposite[cIdx];
             if (!replacementDependencies) {
                 replacementDependencies =
                     this.dependencyHandler.updateTriggers.replacementDependenciesByComposite[
-                        cName
+                        cIdx
                     ] = [];
             }
             if (!replacementDependencies.includes(this)) {

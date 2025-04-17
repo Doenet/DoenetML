@@ -194,11 +194,11 @@ export default class Sort extends CompositeComponent {
                 if (stateValues.propName) {
                     for (let [
                         ind,
-                        cName,
+                        cIdx,
                     ] of stateValues.componentIndicesForValues.entries()) {
                         dependencies[`component${ind}`] = {
                             dependencyType: "stateVariable",
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                             variableName: stateValues.propName,
                             variablesOptional: true,
                             caseInsensitiveVariableMatch: true,
@@ -209,11 +209,11 @@ export default class Sort extends CompositeComponent {
                 } else {
                     for (let [
                         ind,
-                        cName,
+                        cIdx,
                     ] of stateValues.componentIndicesForValues.entries()) {
                         dependencies[`component${ind}`] = {
                             dependencyType: "multipleStateVariables",
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                             variableNames: [
                                 "value",
                                 `x${stateValues.sortByComponent}`,

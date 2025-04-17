@@ -43,7 +43,7 @@ describe("Lezer Parsing Tests", () => {
                             children: [],
                             componentType: "doenet",
                             props: {},
-                            doenetMLrange: {
+                            position: {
                                 selfCloseBegin: 10,
                                 selfCloseEnd: 18,
                             },
@@ -68,7 +68,7 @@ describe("Lezer Parsing Tests", () => {
                             componentType: "doenet",
                             props: { attr1: true, attr2: "foo" },
                             children: [],
-                            doenetMLrange: {
+                            position: {
                                 selfCloseBegin: 1,
                                 selfCloseEnd: 27,
                             },
@@ -86,7 +86,7 @@ describe("Lezer Parsing Tests", () => {
                             componentType: "doenet",
                             props: {},
                             children: ["child"],
-                            doenetMLrange: {
+                            position: {
                                 openBegin: 1,
                                 openEnd: 8,
                                 closeBegin: 14,

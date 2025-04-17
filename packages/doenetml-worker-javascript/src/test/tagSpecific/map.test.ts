@@ -410,9 +410,9 @@ describe("Map tag tests", async () => {
                         stateVariables[name].stateValues.xs.map((x) => x.tree),
                     ).eqls(pointsByMap[i1][i2][i3]);
 
-                    let cName = cNames.pop();
+                    let cIdx = cNames.pop();
 
-                    expect(stateVariables[cName!].stateValues.value.tree).eqls([
+                    expect(stateVariables[cIdx!].stateValues.value.tree).eqls([
                         "vector",
                         ...pointsByMap[i1][i2][i3],
                     ]);

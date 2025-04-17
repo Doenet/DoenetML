@@ -669,10 +669,10 @@ export default class Select extends CompositeComponent {
         let optionChildren = await component.stateValues.optionChildren;
 
         for (let selectedIndex of await component.stateValues.selectedIndices) {
-            let selectedChildName =
+            let selectedChildComponentIdx =
                 optionChildren[selectedIndex - 1].componentIdx;
 
-            let selectedChild = components[selectedChildName];
+            let selectedChild = components[selectedChildComponentIdx];
 
             let serializedGrandchildren = deepClone(
                 await selectedChild.stateValues.serializedChildren,
@@ -685,7 +685,7 @@ export default class Select extends CompositeComponent {
                     selectedChild.doenetAttributes,
                 ),
                 children: serializedGrandchildren,
-                originalIdx: selectedChildName,
+                originalIdx: selectedChildComponentIdx,
             };
 
             replacements.push(serializedChild);

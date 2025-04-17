@@ -104,8 +104,8 @@ export default class Core {
                   serializedComponentsReviver,
               )
             : {};
-        for (let cName in stateVariableChanges) {
-            let componentSVChanges = stateVariableChanges[cName];
+        for (let cIdx in stateVariableChanges) {
+            let componentSVChanges = stateVariableChanges[cIdx];
             for (let varName in componentSVChanges) {
                 if (varName in deprecatedPropertySubstitutions) {
                     componentSVChanges[
@@ -2679,8 +2679,8 @@ export default class Core {
 
             // recurse to check if one the shadowed components mediates
             // the shadow of compositeMediatingTheShadow
-            shadowedByShadowed = shadowedByShadowed.reduce((acc, cName) => {
-                let comp = this.components[cName];
+            shadowedByShadowed = shadowedByShadowed.reduce((acc, cIdx) => {
+                let comp = this.components[cIdx];
                 if (comp.mediatesShadows) {
                     return [
                         ...acc,
@@ -3213,16 +3213,14 @@ export default class Core {
         // if updates to replacements were postponed
         // add them back to the queue
         if (!(await composite.stateValues.isInactiveCompositeReplacement)) {
-            let cName = composite.componentIdx;
+            let cIdx = composite.componentIdx;
             if (
-                this.updateInfo.inactiveCompositesToUpdateReplacements.has(
-                    cName,
-                )
+                this.updateInfo.inactiveCompositesToUpdateReplacements.has(cIdx)
             ) {
                 this.updateInfo.inactiveCompositesToUpdateReplacements.delete(
-                    cName,
+                    cIdx,
                 );
-                this.updateInfo.compositesToUpdateReplacements.add(cName);
+                this.updateInfo.compositesToUpdateReplacements.add(cIdx);
             }
         }
     }
@@ -9487,9 +9485,9 @@ export default class Core {
 
                         let componentsAffected =
                             await this.componentAndRenderedDescendants(parent);
-                        componentsAffected.forEach((cName) =>
+                        componentsAffected.forEach((cIdx) =>
                             this.updateInfo.componentsToUpdateRenderers.add(
-                                cName,
+                                cIdx,
                             ),
                         );
                     } else {
@@ -9519,9 +9517,9 @@ export default class Core {
 
                         let componentsAffected =
                             await this.componentAndRenderedDescendants(parent);
-                        componentsAffected.forEach((cName) =>
+                        componentsAffected.forEach((cIdx) =>
                             this.updateInfo.componentsToUpdateRenderers.add(
-                                cName,
+                                cIdx,
                             ),
                         );
 
@@ -9751,8 +9749,8 @@ export default class Core {
                 parentsOfDeleted.add(parent.componentIdx);
                 let componentsAffected =
                     await this.componentAndRenderedDescendants(parent);
-                componentsAffected.forEach((cName) =>
-                    this.updateInfo.componentsToUpdateRenderers.add(cName),
+                componentsAffected.forEach((cIdx) =>
+                    this.updateInfo.componentsToUpdateRenderers.add(cIdx),
                 );
             }
             let deletedNamesByParent = {};
@@ -9778,8 +9776,8 @@ export default class Core {
             let parent = this._components[composite.parentIdx];
             let componentsAffected =
                 await this.componentAndRenderedDescendants(parent);
-            componentsAffected.forEach((cName) =>
-                this.updateInfo.componentsToUpdateRenderers.add(cName),
+            componentsAffected.forEach((cIdx) =>
+                this.updateInfo.componentsToUpdateRenderers.add(cIdx),
             );
         } else {
             // if not change top level replacements
@@ -9800,8 +9798,8 @@ export default class Core {
                 parentsOfDeleted.add(parent.componentIdx);
                 let componentsAffected =
                     await this.componentAndRenderedDescendants(parent);
-                componentsAffected.forEach((cName) =>
-                    this.updateInfo.componentsToUpdateRenderers.add(cName),
+                componentsAffected.forEach((cIdx) =>
+                    this.updateInfo.componentsToUpdateRenderers.add(cIdx),
                 );
             }
             let deletedNamesByParent = {};
@@ -9836,8 +9834,8 @@ export default class Core {
         });
         let componentsAffected =
             await this.componentAndRenderedDescendants(parent);
-        componentsAffected.forEach((cName) =>
-            this.updateInfo.componentsToUpdateRenderers.add(cName),
+        componentsAffected.forEach((cIdx) =>
+            this.updateInfo.componentsToUpdateRenderers.add(cIdx),
         );
 
         if (component.shadowedBy) {
@@ -10426,11 +10424,11 @@ export default class Core {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        for (let cName in this.updateInfo.componentsToUpdateActionChaining) {
+        for (let cIdx in this.updateInfo.componentsToUpdateActionChaining) {
             await this.checkForActionChaining({
-                component: this.components[cName],
+                component: this.components[cIdx],
                 stateVariables:
-                    this.updateInfo.componentsToUpdateActionChaining[cName],
+                    this.updateInfo.componentsToUpdateActionChaining[cIdx],
             });
         }
 
@@ -11226,7 +11224,7 @@ export default class Core {
             let comp = this._components[cIdx];
 
             if (comp === undefined) {
-                // console.warn(`can't update state variables of component ${cName}, as it doesn't exist.`);
+                // console.warn(`can't update state variables of component ${cIdx}, as it doesn't exist.`);
                 // nFailures += 1;
 
                 let updatesForComp =
@@ -12122,9 +12120,9 @@ export default class Core {
                                 .slice(0, childInd + 1)
                                 .filter((x) => !x).length - 1;
 
-                        let cName =
+                        let cIdx =
                             dep.downstreamComponentIndices[downstreamInd];
-                        if (!cName) {
+                        if (!cIdx) {
                             throw Error(
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
                             );
@@ -12139,7 +12137,7 @@ export default class Core {
                             );
                         }
                         let inst = {
-                            componentIdx: cName,
+                            componentIdx: cIdx,
                             stateVariable: varName,
                             value: newInstruction.desiredValue,
                             overrideFixed: instruction.overrideFixed,
@@ -12161,7 +12159,7 @@ export default class Core {
                         "targetComponent",
                     ].includes(dep.dependencyType)
                 ) {
-                    let cName = dep.downstreamComponentIndices[0];
+                    let cIdx = dep.downstreamComponentIndices[0];
                     let varName =
                         dep.mappedDownstreamVariableNamesByComponent[0][
                             newInstruction.variableIndex
@@ -12172,7 +12170,7 @@ export default class Core {
                         );
                     }
                     let inst = {
-                        componentIdx: cName,
+                        componentIdx: cIdx,
                         stateVariable: varName,
                         value: newInstruction.desiredValue,
                         overrideFixed: instruction.overrideFixed,

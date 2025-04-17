@@ -1,12 +1,12 @@
-import { DoenetMLRange } from "../ast/logging";
+import { position } from "../ast/logging";
 
 export type ErrorDescription = {
-    position: DoenetMLRange;
+    position: position;
     message: string;
     displayInActivity?: boolean;
 };
 export type WarningDescription = {
-    position: DoenetMLRange;
+    position: position;
     level: number;
     message: string;
 };
