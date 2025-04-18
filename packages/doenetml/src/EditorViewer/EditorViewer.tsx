@@ -156,7 +156,7 @@ export function EditorViewer({
     useEffect(() => {
         function submittedResponseListener(event: any) {
             if (event.data.subject == "SPLICE.sendEvent") {
-                const data = event.data.data;
+                const data = event.data;
                 if (data.verb === "submitted") {
                     const object = JSON.parse(data.object);
                     const answerId = object.componentIdx;
