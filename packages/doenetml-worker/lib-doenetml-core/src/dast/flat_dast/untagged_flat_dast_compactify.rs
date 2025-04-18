@@ -16,6 +16,22 @@ impl FlatNode {
                             UntaggedContent::Ref(idx) => Some(*idx),
                             _ => None,
                         })
+                    }))
+                    .chain(elm.extending.iter().flat_map(|extending| {
+                        extending
+                            .get_resolution()
+                            .unresolved_path
+                            .iter()
+                            .flat_map(|path| {
+                                path.iter().flat_map(|path_part| {
+                                    path_part.index.iter().flat_map(|index| {
+                                        index.value.iter().flat_map(|node| match node {
+                                            UntaggedContent::Ref(idx) => Some(*idx),
+                                            _ => None,
+                                        })
+                                    })
+                                })
+                            })
                     })),
             ),
             FlatNode::FunctionRef(function_ref) => {
