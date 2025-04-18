@@ -1,11 +1,11 @@
 use crate::dast::{
     DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
-    DastTextRefContent,
+    DastTextRefContent, PathPart,
 };
 
 use super::{
-    FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatNode, FlatRef, FlatRoot, Index,
-    ParentIterator, UntaggedContent,
+    FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatIndex, FlatNode, FlatPathPart,
+    FlatRef, FlatRoot, Index, ParentIterator, UntaggedContent,
 };
 
 impl FlatRoot {
@@ -197,10 +197,54 @@ impl FlatRoot {
         idx
     }
 
+    /// Convert PathParts from dast in FlatPathPars, adding nodes to the flat root
+    fn dast_path_to_flat_path(
+        &mut self,
+        dast_path: &Vec<PathPart>,
+        parent_idx: Index,
+    ) -> Vec<FlatPathPart> {
+        dast_path
+            .iter()
+            .map(|path_part| {
+                let index: Vec<FlatIndex> = path_part
+                    .index
+                    .iter()
+                    .map(|dast_index| {
+                        let value: Vec<UntaggedContent> = dast_index
+                            .value
+                            .iter()
+                            .map(|val| match val {
+                                DastTextRefContent::Text(txt) => {
+                                    DastElementContent::Text(txt.clone())
+                                }
+                                DastTextRefContent::Ref(ref_) => {
+                                    DastElementContent::Ref(ref_.clone())
+                                }
+                                DastTextRefContent::FunctionRef(function_ref) => {
+                                    DastElementContent::FunctionRef(function_ref.clone())
+                                }
+                            })
+                            .map(|val| self.merge_content(&val, Some(parent_idx)))
+                            .collect();
+                        FlatIndex {
+                            value,
+                            position: dast_index.position.clone(),
+                        }
+                    })
+                    .collect();
+                FlatPathPart {
+                    name: path_part.name.clone(),
+                    index,
+                    position: path_part.position.clone(),
+                }
+            })
+            .collect()
+    }
+
     /// Set the node at `idx` to be the specified ref.
     fn set_ref(&mut self, node: &DastRef, idx: Index, parent: Option<Index>) -> usize {
         self.nodes[idx] = FlatNode::Ref(FlatRef {
-            path: node.path.clone(),
+            path: self.dast_path_to_flat_path(&node.path, idx),
             position: node.position.clone(),
             parent,
             idx,
@@ -216,7 +260,7 @@ impl FlatRoot {
         parent: Option<Index>,
     ) -> usize {
         self.nodes[idx] = FlatNode::FunctionRef(FlatFunctionRef {
-            path: node.path.clone(),
+            path: self.dast_path_to_flat_path(&node.path, idx),
             input: None,
             position: node.position.clone(),
             parent,

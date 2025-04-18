@@ -125,7 +125,6 @@ fn leftover_path_parts_are_kept() {
                           {
                             "index": [],
                             "name": "x",
-                            "type": "pathPart"
                           }
                         ]
                       }

@@ -175,7 +175,6 @@ fn compactify_adjusts_extending_refs_and_attributes() {
                     "node_idx": 3,
                     "unresolved_path": [
                       {
-                        "type": "pathPart",
                         "name": "immediateValue",
                         "index": []
                       }
