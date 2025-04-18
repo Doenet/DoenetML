@@ -200,7 +200,7 @@ impl FlatRoot {
     /// Convert PathParts from dast in FlatPathPars, adding nodes to the flat root
     fn dast_path_to_flat_path(
         &mut self,
-        dast_path: &Vec<PathPart>,
+        dast_path: &[PathPart],
         parent_idx: Index,
     ) -> Vec<FlatPathPart> {
         dast_path
