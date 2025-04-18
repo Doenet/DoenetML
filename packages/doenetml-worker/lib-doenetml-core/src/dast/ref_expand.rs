@@ -146,7 +146,8 @@ impl Expander {
         }
     }
 
-    /// Remove all `extend` attributes from the `FlatRoot` and replace them with the index of their referent.
+    /// Remove all `extend` attributes from the `FlatRoot` and replace them
+    /// an extending field that is a ref_resolution with the index of their referent.
     /// This should be called _after_ all refs have been expanded into element form.
     fn consume_extend_attributes(flat_root: &mut FlatRoot) {
         for i in 0..flat_root.nodes.len() {

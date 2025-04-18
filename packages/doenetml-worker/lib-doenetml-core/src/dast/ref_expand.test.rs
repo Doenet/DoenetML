@@ -137,6 +137,93 @@ fn leftover_path_parts_are_kept() {
 }
 
 #[test]
+fn references_expanded_in_leftover_path_parts() {
+    let dast_root = dast_root_no_position(r#"<point name="p" /><number name="n" />$p.x[$n]"#);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    println!("{:#?}", serde_json::to_value(&flat_root).unwrap());
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+            {
+                "type": "FlatRoot",
+                "children": [0],
+                "nodes": [
+                  {
+                    "type": "Element",
+                    "name": "document",
+                    "children": [1, 2, 3],
+                    "attributes": [],
+                    "idx": 0
+                  },
+                  {
+                    "type": "Element",
+                    "name": "point",
+                    "parent": 0,
+                    "children": [],
+                    "attributes": [
+                      {
+                        "name": "name",
+                        "parent": 1,
+                        "children": ["p"]
+                      }
+                    ],
+                    "idx": 1
+                  },
+                  {
+                    "type": "Element",
+                    "name": "number",
+                    "parent": 0,
+                    "children": [],
+                    "attributes": [
+                      {
+                        "name": "name",
+                        "parent": 2,
+                        "children": ["n"]
+                      }
+                    ],
+                    "idx": 2
+                  },
+                  {
+                    "type": "Element",
+                    "name": "point",
+                    "parent": 0,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 3,
+                    "extending": {
+                      "Ref": {
+                        "node_idx": 1,
+                        "unresolved_path": [
+                          {
+                            "index": [{ "value": [4] }],
+                            "name": "x",
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "Element",
+                    "name": "number",
+                    "parent": 3,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 4,
+                    "extending": {
+                      "Ref": {
+                        "node_idx": 2,
+                        "unresolved_path": null
+                      }
+                    }
+                  }
+                ]
+              }
+        )
+    );
+}
+
+#[test]
 fn refs_in_attributes_are_expanded() {
     let dast_root = dast_root_no_position(r#"<point name="p" /><a foo="$p" />"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
