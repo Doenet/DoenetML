@@ -629,16 +629,18 @@ export async function verifyReplacementsMatchSpecifiedType({
             }
         }
 
-        let processResult = processAssignNames({
-            assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
+        if (assignNames) {
+            let processResult = processAssignNames({
+                assignNames,
+                serializedComponents: replacements,
+                parentIdx: component.componentIdx,
+                componentInfoObjects,
+            });
+            errors.push(...processResult.errors);
+            warnings.push(...processResult.warnings);
 
-        replacements = processResult.serializedComponents;
+            replacements = processResult.serializedComponents;
+        }
 
         if (!wrapExistingReplacements) {
             workspace.numReplacementsBySource.push(replacements.length);
