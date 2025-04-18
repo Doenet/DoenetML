@@ -5666,7 +5666,7 @@ class ParentDependency extends Dependency {
             };
         }
 
-        if (!child.parentIdx) {
+        if (child.parentIdx === undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -5866,7 +5866,7 @@ class ParentIdentityDependency extends Dependency {
             };
         }
 
-        if (!child.parentIdx) {
+        if (child.parentIdx === undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -7676,7 +7676,7 @@ class CountAmongSiblingsDependency extends Dependency {
             };
         }
 
-        if (!component.parentIdx) {
+        if (component.parentIdx === undefined) {
             console.warn(
                 `component ${this.componentIdx} does not have a parent for state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}.`,
             );
@@ -8189,6 +8189,44 @@ class DoenetAttributeDependency extends StateVariableDependency {
 }
 
 dependencyTypeArray.push(DoenetAttributeDependency);
+
+// TODO: added this dependency but then didn't use it.
+// Delete if don't end up using it.
+class ExtendingDependency extends StateVariableDependency {
+    static dependencyType = "extending";
+
+    setUpParameters() {
+        if (this.definition.componentIdx) {
+            this.componentIdx = this.definition.componentIdx;
+            this.specifiedComponentName = this.componentIdx;
+        } else {
+            this.componentIdx = this.upstreamComponentIdx;
+        }
+    }
+
+    async getValue() {
+        let value = null;
+        let changes = {};
+
+        if (this.componentIdentitiesChanged) {
+            changes.componentIdentitiesChanged = true;
+            this.componentIdentitiesChanged = false;
+        }
+
+        if (this.downstreamComponentIndices.length === 1) {
+            let depComponent =
+                this.dependencyHandler.components[
+                    this.downstreamComponentIndices[0]
+                ];
+
+            value = depComponent.extending;
+        }
+
+        return { value, changes };
+    }
+}
+
+dependencyTypeArray.push(ExtendingDependency);
 
 class AttributePrimitiveDependency extends StateVariableDependency {
     static dependencyType = "attributePrimitive";

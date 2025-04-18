@@ -1208,7 +1208,7 @@ export default class Core {
     }
 
     async componentAndRenderedDescendants(component) {
-        if (!component?.componentIdx) {
+        if (component?.componentIdx === undefined) {
             return [];
         }
 
@@ -1319,7 +1319,17 @@ export default class Core {
                 //     serializedComponent,
                 // );
 
+                // XXX: is this the right approach for adding new components?
+                // One flaw: if we add components via sugar and we need references between then,
+                // and so we specify componentIdx on some of them, the pre-assigned
+                // component indices will conflict. So if we do that,
+                // then we need to expand `_components` to account for that.
                 componentIdx = this._components.length;
+                this._components[componentIdx] = undefined;
+                console.log(
+                    `componentIdx was undefined so made it ${componentIdx}`,
+                    serializedComponent,
+                );
             }
 
             let createResult = await this.createChildrenThenComponent({
@@ -1361,7 +1371,7 @@ export default class Core {
         let lastErrorMessage = "";
         let lastErrorMessageFromAttribute = "";
 
-        if (componentIdx in this._components) {
+        if (this._components[componentIdx] !== undefined) {
             throw Error("found a duplicate componentIdx", componentIdx);
         }
 
@@ -2889,6 +2899,7 @@ export default class Core {
             });
             component.replacements = replacementResult.components;
         } catch (e) {
+            console.error(e);
             // throw e;
             component.replacements = await this.setErrorReplacements({
                 composite: component,
@@ -8708,7 +8719,7 @@ export default class Core {
     // }
 
     registerComponent(component) {
-        if (component.componentIdx in this._components) {
+        if (this._components[component.componentIdx] !== undefined) {
             throw Error(`Duplicate component name: ${component.componentIdx}`);
         }
         this._components[component.componentIdx] = component;
@@ -9373,6 +9384,7 @@ export default class Core {
 
                         newComponents = createResult.components;
                     } catch (e) {
+                        console.error(e);
                         // throw e;
                         newComponents = await this.setErrorReplacements({
                             composite: component,
@@ -10077,6 +10089,7 @@ export default class Core {
                     });
                     newComponents = createResult.components;
                 } catch (e) {
+                    console.error(e);
                     // throw e;
                     newComponents = await this.setErrorReplacements({
                         composite: shadowingComponent,
@@ -10342,7 +10355,7 @@ export default class Core {
         event,
         caseInsensitiveMatch,
     }) {
-        if (actionName === "setTheme" && !componentIdx) {
+        if (actionName === "setTheme" && componentIdx === undefined) {
             // For now, co-opting the action mechanism to let the viewer set the theme (dark mode) on document.
             // Don't have an actual action on document as don't want the ability for others to call it.
             // Theme doesn't affect the colors displayed, only the words in the styleDescriptions.
@@ -10450,8 +10463,12 @@ export default class Core {
                 actionsToChain.push(...this.actionsChangedToActions[id]);
             }
 
-            // XXX: this is broken with componentIdx rather than componentName
-            if (comp?.shadows && cIdx.substring(0, 3) === "/__") {
+            // XXX: how do we determine when we want to trigger the actions
+            // of the shadowed component now that we cannot use the name?
+            // The equivalent would be to use that it was a Ref and not an Attribute?
+            if (comp?.shadows /* and extends via a Ref? */) {
+                // Old: comment about how it used to work:
+
                 // We propagate to shadows if the copied component doesn't have a name.
                 // In this way, if we include $P in a graph,
                 // then triggerWhenObjectsClicked="P" and triggerWhenObjectsFocused="P"
@@ -12122,7 +12139,7 @@ export default class Core {
 
                         let cIdx =
                             dep.downstreamComponentIndices[downstreamInd];
-                        if (!cIdx) {
+                        if (cIdx === undefined) {
                             throw Error(
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
                             );
@@ -12192,12 +12209,12 @@ export default class Core {
                     ].includes(dep.dependencyType) &&
                     dep.downstreamComponentIndices.length === 1
                 ) {
-                    let dComponentName = dep.downstreamComponentIndices[0];
+                    let dComponentIdx = dep.downstreamComponentIndices[0];
                     let dVarName =
                         dep.mappedDownstreamVariableNamesByComponent[0][0];
 
                     let inst = {
-                        componentIdx: dComponentName,
+                        componentIdx: dComponentIdx,
                         stateVariable: dVarName,
                         value: newInstruction.desiredValue,
                         overrideFixed: instruction.overrideFixed,
@@ -12209,7 +12226,7 @@ export default class Core {
                         // i.e. are in additionalStateVariablesDefined
 
                         let stateVarObj =
-                            this.components[dComponentName].state[dVarName];
+                            this.components[dComponentIdx].state[dVarName];
                         for (let dependencyName2 in newInstruction.additionalDependencyValues) {
                             let dep2 =
                                 this.dependencies.downstreamDependencies[
@@ -12228,8 +12245,7 @@ export default class Core {
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,
                                     level: 2,
                                     position:
-                                        this.components[dComponentName]
-                                            .position,
+                                        this.components[dComponentIdx].position,
                                 });
                                 this.newErrorWarning = true;
                                 continue;
@@ -12240,7 +12256,7 @@ export default class Core {
                                     .mappedDownstreamVariableNamesByComponent[0][0];
                             if (
                                 dep2.downstreamComponentIndices[0] !==
-                                    dComponentName ||
+                                    dComponentIdx ||
                                 !stateVarObj.additionalStateVariablesDefined.includes(
                                     varName2,
                                 )
@@ -12249,8 +12265,7 @@ export default class Core {
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it doesn't correspond to additional state variable defined of ${dependencyName}'s state variable`,
                                     level: 2,
                                     position:
-                                        this.components[dComponentName]
-                                            .position,
+                                        this.components[dComponentIdx].position,
                                 });
                                 this.newErrorWarning = true;
                                 continue;

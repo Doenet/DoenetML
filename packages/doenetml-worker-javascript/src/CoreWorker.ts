@@ -220,6 +220,7 @@ export class PublicDoenetMLCore {
         try {
             return await this.core.requestAction(actionArgs);
         } catch (e) {
+            console.error(e);
             return {
                 success: false,
                 errMsg:
@@ -229,6 +230,7 @@ export class PublicDoenetMLCore {
                     typeof e.message === "string"
                         ? e.message
                         : "",
+                actionId: actionArgs.args?.actionId,
             };
         }
     }
