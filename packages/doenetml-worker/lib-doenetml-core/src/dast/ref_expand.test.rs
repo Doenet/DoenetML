@@ -138,10 +138,9 @@ fn leftover_path_parts_are_kept() {
 
 #[test]
 fn references_expanded_in_leftover_path_parts() {
-    let dast_root = dast_root_no_position(r#"<point name="p" /><number name="n" />$p.x[$n]"#);
+    let dast_root = dast_root_no_position(r#"<point name="p" /><number name="n" />$p.x[$p.y[$n]]"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
-    println!("{:#?}", serde_json::to_value(&flat_root).unwrap());
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
@@ -205,11 +204,30 @@ fn references_expanded_in_leftover_path_parts() {
                   },
                   {
                     "type": "Element",
-                    "name": "number",
+                    "name": "point",
                     "parent": 3,
                     "children": [],
                     "attributes": [],
                     "idx": 4,
+                    "extending": {
+                      "Ref": {
+                        "node_idx": 1,
+                        "unresolved_path": [
+                          {
+                            "index": [{ "value": [5] }],
+                            "name": "y",
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "Element",
+                    "name": "number",
+                    "parent": 4,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 5,
                     "extending": {
                       "Ref": {
                         "node_idx": 2,
