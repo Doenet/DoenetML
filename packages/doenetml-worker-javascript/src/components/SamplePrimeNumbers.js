@@ -233,8 +233,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let replacements = [];
 
         for (let value of (await component.stateValues.sampledValues).slice(
@@ -250,7 +248,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             indOffset: startNum,
             componentInfoObjects,
         });

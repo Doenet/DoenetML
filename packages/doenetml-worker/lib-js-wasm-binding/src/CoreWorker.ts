@@ -173,19 +173,26 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
-        if (!this.source_set || !this.flags_set || !this.javascriptCore) {
+        if (
+            !this.source_set ||
+            !this.flags_set ||
+            !this.javascriptCore ||
+            !this.doenetCore
+        ) {
             throw Error(
                 "Cannot initialize javascript core before setting source and flags",
             );
         }
 
         try {
+            let normalizedRoot = this.doenetCore.return_normalized_dast_root();
             const initializedResult =
                 await this.javascriptCore.initializeWorker({
                     activityId,
                     docId,
                     requestedVariantIndex,
                     attemptNumber,
+                    normalizedRoot,
                 });
             this.javascript_initialized = true;
             return initializedResult;

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-// import { DoenetML } from "@doenet/doenetml";
-import { DoenetML } from "@doenet/doenetml-prototype";
+import { DoenetViewer, DoenetEditor } from "@doenet/doenetml";
+// import { DoenetML } from "@doenet/doenetml-prototype";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 import { Button } from "@doenet/ui-components";
@@ -12,7 +12,7 @@ export default function TestViewer() {
         readOnly: boolean;
         showFeedback: boolean;
         showHints: boolean;
-        paginate: boolean;
+        render: boolean;
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
     } = {
@@ -21,7 +21,7 @@ export default function TestViewer() {
         readOnly: false,
         showFeedback: true,
         showHints: true,
-        paginate: true,
+        render: true,
         showEditor: false,
         viewerLocation: "right",
     };
@@ -36,7 +36,7 @@ export default function TestViewer() {
         readOnly,
         showFeedback,
         showHints,
-        paginate,
+        render,
         showEditor,
         viewerLocation,
     } = testSettings;
@@ -237,7 +237,6 @@ export default function TestViewer() {
         <DoenetEditor
             key={"doenetml" + updateNumber}
             doenetML={doenetMLstring}
-            paginate={paginate}
             addVirtualKeyboard={true}
             height="calc(100vh - 94px)"
             width="100%"
@@ -258,13 +257,10 @@ export default function TestViewer() {
                 allowLoadState: false,
                 allowSaveState: false,
                 allowLocalState: false,
-                allowSaveSubmissions: true,
                 allowSaveEvents: false,
                 autoSubmit: false,
             }}
             activityId=""
-            apiURLs={{ postMessages: true }}
-            paginate={paginate}
             addVirtualKeyboard={true}
         />
     );
@@ -290,7 +286,7 @@ export default function TestViewer() {
                 </h3>
                 {controls}
             </div>
-            <DoenetML
+            <DoenetViewer
                 key={"doenetml" + updateNumber}
                 doenetML={doenetMLstring}
                 flags={{

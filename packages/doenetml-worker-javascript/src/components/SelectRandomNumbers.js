@@ -192,8 +192,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         let errors = [];
         let warnings = [];
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let attributesToConvert = {};
         for (let attr of Object.keys(returnRoundingAttributes())) {
             if (attr in component.attributes) {
@@ -211,7 +209,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     attributes: attributesToConvert,
                     componentType: "number",
                     componentInfoObjects,
-                    compositeCreatesNewNamespace: newNamespace,
                 });
             }
 
@@ -226,7 +223,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

@@ -1,4 +1,3 @@
-import readOnlyProxyHandler from "./ReadOnlyProxyHandler";
 import {
     ancestorsIncludingComposites,
     gatherDescendants,
@@ -609,13 +608,13 @@ export class DependencyHandler {
 
                     for (let [
                         ind,
-                        cname,
+                        cIdx,
                     ] of downstreamComponentIndices.entries()) {
                         let varNames =
                             mappedDownstreamVariableNamesByComponent[ind];
                         for (let vname of varNames) {
                             this.checkForCircularDependency({
-                                componentIdx: cname,
+                                componentIdx: cIdx,
                                 varName: vname,
                                 previouslyVisited,
                             });
@@ -1307,7 +1306,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = blockerCode.split("|");
+                            ] =
+                                typeof blockerCode === "string"
+                                    ? blockerCode.split("|")
+                                    : [blockerCode];
                             this.deleteFromResolveBlockedBy({
                                 blockerComponentIdx,
                                 blockerType,
@@ -1328,7 +1330,10 @@ export class DependencyHandler {
                                     blockerComponentIdx,
                                     blockerStateVariable,
                                     blockerDependency,
-                                ] = code.split("|");
+                                ] =
+                                    typeof code === "string"
+                                        ? code.split("|")
+                                        : [code];
                                 this.deleteFromResolveBlockedBy({
                                     blockerComponentIdx,
                                     blockerType,
@@ -1353,7 +1358,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
                             this.deleteFromResolveBlockedBy({
                                 blockerComponentIdx,
                                 blockerType: type,
@@ -1559,7 +1567,11 @@ export class DependencyHandler {
                                 componentIdxBlocked,
                                 stateVariableBlocked,
                                 dependencyBlocked,
-                            ] = codeBlocked.split("|");
+                            ] =
+                                typeof codeBlocked === "string"
+                                    ? codeBlocked.split("|")
+                                    : [codeBlocked];
+
                             this.deleteFromNeededToResolve({
                                 componentIdxBlocked,
                                 typeBlocked,
@@ -1578,7 +1590,10 @@ export class DependencyHandler {
                                     componentIdxBlocked,
                                     stateVariableBlocked,
                                     dependencyBlocked,
-                                ] = code.split("|");
+                                ] =
+                                    typeof code === "string"
+                                        ? code.split("|")
+                                        : [code];
                                 this.deleteFromNeededToResolve({
                                     componentIdxBlocked,
                                     typeBlocked,
@@ -1605,7 +1620,10 @@ export class DependencyHandler {
                                 componentIdxBlocked,
                                 stateVariableBlocked,
                                 dependencyBlocked,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
                             this.deleteFromNeededToResolve({
                                 componentIdxBlocked,
                                 typeBlocked: type,
@@ -1935,7 +1953,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
 
                             if (
                                 this.checkIfHaveNeededToResolve({
@@ -2072,7 +2093,8 @@ export class DependencyHandler {
                 });
 
                 if (recurseUpstream) {
-                    let [cIdx, vName, depName] = code.split("|");
+                    let [cIdx, vName, depName] =
+                        typeof code === "string" ? code.split("|") : [code];
 
                     await this.resolveIfReady({
                         componentIdx: cIdx,
@@ -2123,7 +2145,10 @@ export class DependencyHandler {
                             blockerComponentIdx,
                             blockerStateVariable,
                             blockerDependency,
-                        ] = blockerCode.split("|");
+                        ] =
+                            typeof blockerCode === "string"
+                                ? blockerCode.split("|")
+                                : [blockerCode];
 
                         await this.resolveIfReady({
                             componentIdx: blockerComponentIdx,
@@ -2234,7 +2259,10 @@ export class DependencyHandler {
                     blockerComponentIdx,
                     blockerStateVariable,
                     blockerDependency,
-                ] = blockerCode.split("|");
+                ] =
+                    typeof blockerCode === "string"
+                        ? blockerCode.split("|")
+                        : [blockerCode];
 
                 let result = await this.resolveItem({
                     componentIdx: blockerComponentIdx,
@@ -2297,7 +2325,7 @@ export class DependencyHandler {
                         blockerComponentIdx,
                         blockerStateVariable,
                         blockerDependency,
-                    ] = code.split("|");
+                    ] = typeof code === "string" ? code.split("|") : [code];
 
                     let result = await this.resolveItem({
                         componentIdx: blockerComponentIdx,
@@ -2347,7 +2375,7 @@ export class DependencyHandler {
                             blockerComponentIdx,
                             blockerStateVariable,
                             blockerDependency,
-                        ] = code.split("|");
+                        ] = typeof code === "string" ? code.split("|") : [code];
 
                         let result = await this.resolveItem({
                             componentIdx: blockerComponentIdx,
@@ -2476,7 +2504,10 @@ export class DependencyHandler {
                         blockerComponentIdx,
                         blockerStateVariable,
                         blockerDependency,
-                    ] = blockerCode.split("|");
+                    ] =
+                        typeof blockerCode === "string"
+                            ? blockerCode.split("|")
+                            : [blockerCode];
 
                     this.checkForCircularResolveBlocker({
                         componentIdx: blockerComponentIdx,
@@ -2495,7 +2526,7 @@ export class DependencyHandler {
         let componentTypesForUniqueNames = [];
         let linesForUniqueNames = [];
 
-        // remove namespaces and internally created component names
+        // remove internally created component names
         // and deduplicate while keeping order (so don't use Set)
         for (let comp of componentsInvolved) {
             let name = comp.componentIdx;
@@ -2615,7 +2646,10 @@ export class DependencyHandler {
                         componentIdxBlocked,
                         stateVariableBlocked,
                         dependencyBlocked,
-                    ] = codeBlocked.split("|");
+                    ] =
+                        typeof codeBlocked === "string"
+                            ? codeBlocked.split("|")
+                            : [codeBlocked];
 
                     this.resetCircularResolveBlockerCheckPassed({
                         componentIdx: componentIdxBlocked,
@@ -3988,7 +4022,8 @@ class RecursiveDependencyValuesDependency extends Dependency {
         let downstreamComponentIndices = [];
         let downstreamComponentTypes = [];
 
-        for (let componentIdx in result.components) {
+        for (const componentIdxStr in result.components) {
+            const componentIdx = Number(componentIdxStr);
             if (this.includeOnlyEssentialValues) {
                 let essentialVarNames = [];
                 let component =
@@ -4256,12 +4291,13 @@ class RecursiveDependencyValuesDependency extends Dependency {
                 }
             }
 
-            for (let cIdx in this.varsWithUpdatedDeps) {
-                let compAccumulated = accumulatedVarsWithUpdatedDeps[cIdx];
+            for (const cIdxStr in this.varsWithUpdatedDeps) {
+                let compAccumulated = accumulatedVarsWithUpdatedDeps[cIdxStr];
                 if (!compAccumulated) {
-                    compAccumulated = accumulatedVarsWithUpdatedDeps[cIdx] = [];
+                    compAccumulated = accumulatedVarsWithUpdatedDeps[cIdxStr] =
+                        [];
                 }
-                for (let vName of this.varsWithUpdatedDeps[cIdx]) {
+                for (let vName of this.varsWithUpdatedDeps[cIdxStr]) {
                     if (!compAccumulated.includes(vName)) {
                         compAccumulated.push(vName);
                         foundNewUpdated = true;
@@ -4779,7 +4815,7 @@ class ChildDependency extends Dependency {
                     // which one can do even with placeholders
                     canProceedWithPlaceholders = true;
                 } else {
-                    // if need to include componentIndices or variables,
+                    // if need to include component indices or variables,
                     // then we can proceed only if we aren't asking for any placeholder children
 
                     canProceedWithPlaceholders = activeChildrenIndices.every(
@@ -5316,7 +5352,8 @@ class DescendantDependency extends Dependency {
                     stateVariableBlocked: varName,
                 });
 
-                for (let parentIdx in result.unexpandedCompositesReadyByParentName) {
+                for (const parentIdxStr in result.unexpandedCompositesReadyByParentName) {
+                    const parentIdx = Number(parentIdxStr);
                     await this.dependencyHandler.addBlocker({
                         blockerComponentIdx: parentIdx,
                         blockerType: "childMatches",
@@ -5328,7 +5365,8 @@ class DescendantDependency extends Dependency {
                     });
                 }
 
-                for (let parentIdx in result.unexpandedCompositesNotReadyByParentName) {
+                for (const parentIdxStr in result.unexpandedCompositesNotReadyByParentName) {
+                    const parentIdx = Number(parentIdxStr);
                     await this.dependencyHandler.addBlocker({
                         blockerComponentIdx: parentIdx,
                         blockerType: "childMatches",
@@ -5404,7 +5442,7 @@ class DescendantDependency extends Dependency {
         let haveUnexpandedCompositeReady = false;
         let haveCompositesNotReady = false;
 
-        // if we don't need componentIndices or variables,
+        // if we don't need component indices or variables,
         // then gathering a placeholder descendant is fine
         let placeholdersOKForMatchedDescendants =
             this.skipComponentIndices &&
@@ -5454,8 +5492,8 @@ class DescendantDependency extends Dependency {
             }
         }
 
-        for (let childIdx in component.allChildren) {
-            let child = component.allChildren[childIdx].component;
+        for (const childIdxStr in component.allChildren) {
+            let child = component.allChildren[childIdxStr].component;
             if (typeof child === "object") {
                 let result = this.gatherUnexpandedComposites(child);
                 if (result.haveUnexpandedCompositeReady) {
@@ -5632,7 +5670,7 @@ class ParentDependency extends Dependency {
             };
         }
 
-        if (!child.parentIdx) {
+        if (child.parentIdx === undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -5832,7 +5870,7 @@ class ParentIdentityDependency extends Dependency {
             };
         }
 
-        if (!child.parentIdx) {
+        if (child.parentIdx === undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -6046,6 +6084,8 @@ class AncestorDependency extends Dependency {
             };
         }
 
+        // XXX: with documentIdx now documentIdx and _components an array,
+        // need to fix this
         if (
             !(
                 this.dependencyHandler.core.documentIdx in
@@ -7046,9 +7086,9 @@ class ShadowSourceDependency extends Dependency {
             };
         }
 
-        let shadowSourceComponentName = component.shadows.componentIdx;
+        let shadowSourceComponentIdx = component.shadows.componentIdx;
         let shadowSource =
-            this.dependencyHandler._components[shadowSourceComponentName];
+            this.dependencyHandler._components[shadowSourceComponentIdx];
 
         if (!shadowSource) {
             return {
@@ -7640,7 +7680,7 @@ class CountAmongSiblingsDependency extends Dependency {
             };
         }
 
-        if (!component.parentIdx) {
+        if (component.parentIdx === undefined) {
             console.warn(
                 `component ${this.componentIdx} does not have a parent for state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}.`,
             );
@@ -7929,6 +7969,7 @@ class CountAmongSiblingsDependency extends Dependency {
 
 dependencyTypeArray.push(CountAmongSiblingsDependency);
 
+// XXX: how does attributeTargetComponentNames work with componentIdx?
 class AttributeTargetComponentNamesDependency extends StateVariableDependency {
     static dependencyType = "attributeTargetComponentNames";
 
@@ -8152,6 +8193,44 @@ class DoenetAttributeDependency extends StateVariableDependency {
 }
 
 dependencyTypeArray.push(DoenetAttributeDependency);
+
+// TODO: added this dependency but then didn't use it.
+// Delete if don't end up using it.
+class ExtendingDependency extends StateVariableDependency {
+    static dependencyType = "extending";
+
+    setUpParameters() {
+        if (this.definition.componentIdx) {
+            this.componentIdx = this.definition.componentIdx;
+            this.specifiedComponentName = this.componentIdx;
+        } else {
+            this.componentIdx = this.upstreamComponentIdx;
+        }
+    }
+
+    async getValue() {
+        let value = null;
+        let changes = {};
+
+        if (this.componentIdentitiesChanged) {
+            changes.componentIdentitiesChanged = true;
+            this.componentIdentitiesChanged = false;
+        }
+
+        if (this.downstreamComponentIndices.length === 1) {
+            let depComponent =
+                this.dependencyHandler.components[
+                    this.downstreamComponentIndices[0]
+                ];
+
+            value = depComponent.extending;
+        }
+
+        return { value, changes };
+    }
+}
+
+dependencyTypeArray.push(ExtendingDependency);
 
 class AttributePrimitiveDependency extends StateVariableDependency {
     static dependencyType = "attributePrimitive";

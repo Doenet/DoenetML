@@ -16,7 +16,7 @@ export function returnWrapNonLabelsSugarFunction({
     customWrappingFunction,
     wrapSingleIfNotWrappingComponentType = false,
 }) {
-    return function ({ matchedChildren, componentInfoObjects }) {
+    return function ({ matchedChildren, componentInfoObjects, nComponents }) {
         if (matchedChildren.length === 0) {
             return { success: false };
         }
@@ -81,8 +81,13 @@ export function returnWrapNonLabelsSugarFunction({
                 newAttributes: {
                     [createAttributeOfType]: {
                         component: {
+                            type: "serialized",
                             componentType: wrappingComponentType,
+                            componentIdx: nComponents++,
                             children: childrenToWrap,
+                            attributes: {},
+                            state: {},
+                            doenetAttributes: {},
                         },
                     },
                 },
@@ -90,6 +95,7 @@ export function returnWrapNonLabelsSugarFunction({
                     ...childrenToNotWrapBegin,
                     ...childrenToNotWrapEnd,
                 ],
+                nComponents,
             };
         } else {
             // apply only if have a single string/composite or multiple children to wrap
@@ -112,8 +118,13 @@ export function returnWrapNonLabelsSugarFunction({
             } else {
                 wrappedChildren = [
                     {
+                        type: "serialized",
                         componentType: wrappingComponentType,
+                        componentIdx: nComponents++,
                         children: childrenToWrap,
+                        attributes: {},
+                        state: {},
+                        doenetAttributes: {},
                     },
                 ];
             }
@@ -125,6 +136,7 @@ export function returnWrapNonLabelsSugarFunction({
                     ...wrappedChildren,
                     ...childrenToNotWrapEnd,
                 ],
+                nComponents,
             };
         }
     };

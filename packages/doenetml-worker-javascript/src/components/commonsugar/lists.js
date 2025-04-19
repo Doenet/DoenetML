@@ -3,7 +3,7 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
     forceComponentType = false,
     includeNonMacros = false,
 }) {
-    return function ({ matchedChildren, componentInfoObjects }) {
+    return function ({ matchedChildren, componentInfoObjects, nComponents }) {
         // Split strings and interleaving children by spaces in the strings that are outside parens.
         // The resulting groups are wrapped by a componentType unless the group is either
         // - a single non-string component (when forceComponentType is false), or
@@ -43,9 +43,12 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
             if (!addedSingleMatch && pieces.length > 0) {
                 // wrap anything else in componentType
                 newChildren.push({
+                    type: "serialized",
                     componentType,
                     children: pieces,
+                    componentIdx: nComponents,
                 });
+                nComponents++;
             }
 
             pieces = [];
@@ -109,6 +112,7 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
         return {
             success: true,
             newChildren,
+            nComponents,
         };
     };
 }

@@ -432,7 +432,6 @@ export default class Sort extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: await component.stateValues.newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

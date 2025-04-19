@@ -109,6 +109,7 @@ export default class Point extends GraphicalComponent {
         let breakIntoXsOrCoords = function ({
             matchedChildren,
             componentInfoObjects,
+            nComponents,
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
@@ -187,13 +188,26 @@ export default class Point extends GraphicalComponent {
                         success: true,
                         newAttributes: {
                             xs: {
+                                type: "component",
+                                name: "xs",
+                                componentIdx: nComponents,
                                 component: {
+                                    type: "serialized",
                                     componentType: "mathList",
-                                    children: breakResult.pieces.map((x) => ({
-                                        componentType: "math",
-                                        children: x,
-                                    })),
+                                    componentIdx: nComponents + 1,
+                                    children: breakResult.pieces.map(
+                                        (x, i) => ({
+                                            type: "serialized",
+                                            componentType: "math",
+                                            componentIdx: nComponents + 2 + i,
+                                            children: x,
+                                            attributes: {},
+                                            state: {},
+                                        }),
+                                    ),
                                     skipSugar: true,
+                                    attributes: {},
+                                    state: {},
                                 },
                             },
                         },
@@ -201,6 +215,8 @@ export default class Point extends GraphicalComponent {
                             ...nonComponentChildrenBegin,
                             ...nonComponentChildrenEnd,
                         ],
+                        nComponents:
+                            nComponents + 2 + breakResult.pieces.length,
                     };
                 }
             }
@@ -210,8 +226,13 @@ export default class Point extends GraphicalComponent {
                 success: true,
                 newAttributes: {
                     coords: {
+                        type: "component",
+                        name: "coords",
+                        componentIdx: nComponents,
                         component: {
+                            type: "component",
                             componentType: "coords",
+                            componentIdx: nComponents + 1,
                             children: componentChildren,
                         },
                     },
@@ -220,6 +241,7 @@ export default class Point extends GraphicalComponent {
                     ...nonComponentChildrenBegin,
                     ...nonComponentChildrenEnd,
                 ],
+                nComponents: nComponents + 2,
             };
         };
 

@@ -184,8 +184,8 @@ export default class BaseComponent {
         }
 
         // recurse to all children
-        for (let childIdx in this.allChildren) {
-            let child = this.allChildren[childIdx].component;
+        for (const childIdxStr in this.allChildren) {
+            let child = this.allChildren[childIdxStr].component;
             if (typeof child !== "object") {
                 continue;
             } else {
@@ -316,6 +316,9 @@ export default class BaseComponent {
 
     static createAttributesObject() {
         return {
+            name: {
+                createPrimitiveOfType: "string",
+            },
             hide: {
                 createComponentOfType: "boolean",
                 createStateVariable: "hide",
@@ -356,12 +359,6 @@ export default class BaseComponent {
             isResponse: {
                 createPrimitiveOfType: "boolean",
                 createStateVariable: "isResponse",
-                defaultValue: false,
-                public: true,
-            },
-            newNamespace: {
-                createPrimitiveOfType: "boolean",
-                createStateVariable: "newNamespace",
                 defaultValue: false,
                 public: true,
             },
@@ -1132,32 +1129,6 @@ export default class BaseComponent {
         return this.ancestors[0].componentIdx;
     }
 
-    // TODO: if resurrect this, it would just be componentIndices
-    // getParentUpstreamComponents(includeInactive = false) {
-    //   const parent = this.parent;
-    //   let upstream = Object.values(this.upstreamDependencies)
-    //   if (includeInactive !== true) {
-    //     upstream = upstream.filter(x => x.inactive !== true);
-    //   }
-    //   upstream = upstream.map(x => x.component);
-    //   if (parent === undefined) {
-    //     return upstream;
-    //   } else {
-    //     return [parent, ...upstream];
-    //   }
-    // }
-
-    getAllChildrenDownstreamComponentNames(includeInactive = false) {
-        const childrenNames = Object.keys(this.allChildren);
-        let downstreamNames = Object.keys(this.downstreamDependencies);
-        if (includeInactive !== true) {
-            downstreamNames = downstreamNames.filter(
-                (x) => this.downstreamDependencies[x].inactive !== true,
-            );
-        }
-        return [...childrenNames, ...downstreamNames];
-    }
-
     get allDescendants() {
         let descendants = [];
         for (let name in this.allChildren) {
@@ -1166,10 +1137,6 @@ export default class BaseComponent {
         }
         return descendants;
     }
-
-    // returnSerializeInstructions() {
-    //   return {};
-    // }
 
     async serialize(parameters = {}) {
         // TODO: this function is converted only for the case with the parameter
@@ -1371,6 +1338,7 @@ export default class BaseComponent {
             serializedComponent.attributes,
         );
 
+        delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
         delete serializedComponent.doenetAttributes.assignNames;
         delete serializedComponent.doenetAttributes

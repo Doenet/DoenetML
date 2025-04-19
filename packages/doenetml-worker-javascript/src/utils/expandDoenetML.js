@@ -3,9 +3,9 @@ import {
     retrieveTextFileForCid,
     deepClone,
     returnDeprecationMessage,
-    convertToErrorComponent,
     createUniqueName,
 } from "@doenet/utils";
+import { convertToErrorComponent } from "./dast/errors";
 
 export async function expandDoenetMLsToFullSerializedComponents({
     doenetMLs,
@@ -202,11 +202,6 @@ export async function expandDoenetMLsToFullSerializedComponents({
                             originalCopyWithUri.doenetAttributes = {};
                         }
 
-                        originalCopyWithUri.doenetAttributes.keptNewNamespaceOfLastChild =
-                            Boolean(comp.attributes.newNamespace?.primitive);
-
-                        comp.attributes.newNamespace = { primitive: true };
-
                         originalCopyWithUri.children = [
                             comp,
                             ...originalCopyWithUri.children,
@@ -218,12 +213,12 @@ export async function expandDoenetMLsToFullSerializedComponents({
                         originalCopyWithUri.doenetAttributes.nameFirstChildIndependently = true;
                     }
                 } else {
+                    // XXX: fix copying external content without using namespaces
                     let extContent = {
                         componentType: "externalContent",
                         children: JSON.parse(
                             JSON.stringify(serializedComponentsForCid),
                         ),
-                        attributes: { newNamespace: { primitive: true } },
                         doenetAttributes: { createUniqueName: true },
                     };
 
@@ -1637,8 +1632,8 @@ export function componentFromAttribute({
             newPrimitive = value.rawString;
         }
 
-        if (attrObj.validationFunction) {
-            newPrimitive = attrObj.validationFunction(newPrimitive);
+        if (attrObj.validatePrimitives) {
+            newPrimitive = attrObj.validatePrimitives(newPrimitive);
         }
         return { attribute: { primitive: newPrimitive }, errors, warnings };
     } else if (attrObj?.createTargetComponentNames) {
@@ -1675,7 +1670,7 @@ export function componentFromAttribute({
     }
 }
 
-function findPreSugarIndsAndMarkFromSugar(components) {
+export function findPreSugarIndsAndMarkFromSugar(components) {
     let preSugarIndsFound = [];
     for (let component of components) {
         if (typeof component !== "object") {
