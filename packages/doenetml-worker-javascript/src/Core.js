@@ -9,9 +9,9 @@ import {
     assignDoenetMLRange,
     findAllNewlines,
     flattenDeep,
-    convertToErrorComponent,
     data_format_version,
 } from "@doenet/utils";
+import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
 import { deprecatedPropertySubstitutions } from "./utils/expandDoenetML";
 import { createComponentNames, processAssignNames } from "./utils/naming";

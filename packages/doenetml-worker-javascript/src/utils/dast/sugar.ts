@@ -17,7 +17,7 @@ import {
     expandAllUnflattenedAttributes,
     expandUnflattenedToSerializedComponents,
 } from "./convertNormalizdDast";
-import { convertToSerializedErrorComponent } from "./errors";
+import { convertToErrorComponent } from "./errors";
 
 /**
  * If a component class has specified sugar instructions,
@@ -331,10 +331,7 @@ export function applySugar({
 
             newComponents.push(newComponent);
         } catch (e) {
-            const convertResult = convertToSerializedErrorComponent(
-                e,
-                component,
-            );
+            const convertResult = convertToErrorComponent(component, e);
             newComponents.push(convertResult.component);
 
             errors.push({

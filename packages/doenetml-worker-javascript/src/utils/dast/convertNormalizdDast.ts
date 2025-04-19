@@ -17,7 +17,7 @@ import {
     UnflattenedAttribute,
     UnflattenedComponent,
 } from "./intermediateTypes";
-import { convertToSerializedErrorComponent } from "./errors";
+import { convertToErrorComponent } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
@@ -231,10 +231,7 @@ export function expandUnflattenedToSerializedComponents({
                 doenetAttributes: {},
             };
         } catch (e) {
-            const convertResult = convertToSerializedErrorComponent(
-                e,
-                component,
-            );
+            const convertResult = convertToErrorComponent(component, e);
             newComponent = convertResult.component;
 
             if (!ignoreErrors) {

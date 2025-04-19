@@ -3,9 +3,9 @@ import {
     retrieveTextFileForCid,
     deepClone,
     returnDeprecationMessage,
-    convertToErrorComponent,
     createUniqueName,
 } from "@doenet/utils";
+import { convertToErrorComponent } from "./dast/errors";
 
 export async function expandDoenetMLsToFullSerializedComponents({
     doenetMLs,

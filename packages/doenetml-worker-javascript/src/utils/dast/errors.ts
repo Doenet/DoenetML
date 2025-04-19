@@ -7,17 +7,19 @@ import { SerializedAttribute, SerializedComponent } from "./types";
  * and also return the error `message` for possible inclusion
  * in error reporting.
  */
-export function convertToSerializedErrorComponent(
-    e: unknown,
+export function convertToErrorComponent(
     component: UnflattenedComponent | SerializedComponent,
+    eOrMessage: unknown,
 ): { component: SerializedComponent; message: string } {
     const message =
-        typeof e === "object" &&
-        e !== null &&
-        "message" in e &&
-        typeof e.message === "string"
-            ? e.message
-            : "An error occurred";
+        typeof eOrMessage === "string"
+            ? eOrMessage
+            : typeof eOrMessage === "object" &&
+                eOrMessage !== null &&
+                "message" in eOrMessage &&
+                typeof eOrMessage.message === "string"
+              ? eOrMessage.message
+              : "An error occurred";
 
     const newComponent: SerializedComponent = {
         type: "serialized",

@@ -1,8 +1,5 @@
-import {
-    convertToErrorComponent,
-    createUniqueName,
-    flattenDeep,
-} from "@doenet/utils";
+import { createUniqueName, flattenDeep } from "@doenet/utils";
+import { convertToErrorComponent } from "./dast/errors";
 
 function breakStringInPiecesBySpacesOrParens(string) {
     if (typeof string !== "string") {
