@@ -123,6 +123,7 @@ fn leftover_path_parts_are_kept() {
                         "node_idx": 1,
                         "unresolved_path": [
                           {
+                            "type": "flatPathPart",
                             "index": [],
                             "name": "x",
                           }
@@ -195,6 +196,7 @@ fn references_expanded_in_leftover_path_parts() {
                         "node_idx": 1,
                         "unresolved_path": [
                           {
+                            "type": "flatPathPart",
                             "index": [{ "value": [4] }],
                             "name": "x",
                           }
@@ -214,6 +216,7 @@ fn references_expanded_in_leftover_path_parts() {
                         "node_idx": 1,
                         "unresolved_path": [
                           {
+                            "type": "flatPathPart",
                             "index": [{ "value": [5] }],
                             "name": "y",
                           }

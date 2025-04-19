@@ -38,9 +38,9 @@ fn can_flatten_dast_root() {
                     "type": "Ref",
                     "parent": 1,
                     "path": [
-                      { "name": "x", "index": [] },
-                      { "name": "y", "index": [] },
-                      { "name": "z", "index": [{"value": [3]}] }
+                      { "type": "flatPathPart", "name": "x", "index": [] },
+                      { "type": "flatPathPart", "name": "y", "index": [] },
+                      { "type": "flatPathPart", "name": "z", "index": [{"value": [3]}] }
                     ],
                     "idx": 2
                   },
@@ -48,14 +48,14 @@ fn can_flatten_dast_root() {
                     "type": "Ref",
                     "parent": 2,
                     "path": [
-                      { "name": "a", "index": [] },
+                      { "type": "flatPathPart", "name": "a", "index": [] },
                     ],
                     "idx": 3
                   },
                   {
                     "type": "FunctionRef",
                     "parent": 0,
-                    "path": [{ "name": "f", "index": [] }],
+                    "path": [{ "type": "flatPathPart", "name": "f", "index": [] }],
                     "input": [[5]],
                     "idx": 4
                   },

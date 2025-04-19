@@ -197,7 +197,7 @@ impl FlatRoot {
         idx
     }
 
-    /// Convert PathParts from dast in FlatPathPars, adding nodes to the flat root
+    /// Convert PathParts from dast to FlatPathParts, adding nodes to the flat root
     fn dast_path_to_flat_path(
         &mut self,
         dast_path: &[PathPart],

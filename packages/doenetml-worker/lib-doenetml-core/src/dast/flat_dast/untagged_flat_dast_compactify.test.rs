@@ -175,6 +175,7 @@ fn compactify_adjusts_extending_refs_and_attributes() {
                     "node_idx": 3,
                     "unresolved_path": [
                       {
+                        "type": "flatPathPart",
                         "name": "immediateValue",
                         "index": []
                       }
@@ -194,8 +195,6 @@ fn compactify_preserves_refs_in_path_parts() {
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     flat_root.compactify();
-
-    println!("{:#?}", serde_json::to_value(&flat_root).unwrap());
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
@@ -251,6 +250,7 @@ fn compactify_preserves_refs_in_path_parts() {
                     "node_idx": 2,
                     "unresolved_path": [
                       {
+                        "type": "flatPathPart",
                         "name": "",
                         "index": [
                           {

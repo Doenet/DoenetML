@@ -137,6 +137,8 @@ impl FlatError {
 /// A part of a ref path
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
+#[serde(tag = "type")]
+#[serde(rename = "flatPathPart")]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatPathPart {
     pub name: String,
