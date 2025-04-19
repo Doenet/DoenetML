@@ -8,10 +8,7 @@ use std::{collections::HashMap, iter, mem};
 
 use crate::dast::flat_dast::{FlatNode, UntaggedContent};
 
-use super::{
-    flat_dast::{FlatRoot, Index},
-    PathPart,
-};
+use super::flat_dast::{FlatPathPart, FlatRoot, Index};
 use serde::Serialize;
 use thiserror::Error;
 use tsify_next::Tsify;
@@ -29,7 +26,7 @@ pub enum ResolutionError {
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct RefResolution {
     pub node_idx: Index,
-    pub unresolved_path: Option<Vec<PathPart>>,
+    pub unresolved_path: Option<Vec<FlatPathPart>>,
 }
 
 /// Status of a pointer referring to children of an element.
@@ -81,7 +78,7 @@ impl Resolver {
     /// If there was a partial match of the indexed item, the unresolved path will list `name` as an empty string.
     /// E.g., matching `y.w[2]` from `<b />` returns the index of `<d />` along with `.w[2]` as the unresolved path
     /// and matching `y[2]` from `<b />` returns the index of `<d />` along with `.[2]` as the unresolved path.
-    pub fn resolve<T: AsRef<[PathPart]>>(
+    pub fn resolve<T: AsRef<[FlatPathPart]>>(
         &self,
         path: T,
         origin: Index,
@@ -96,7 +93,7 @@ impl Resolver {
         // If this entry also has an index, we need to stop searching. This would
         // happen if the reference was something like `$a[2].b`.
         if !first_path_part.index.is_empty() {
-            let remaining_path: Vec<PathPart> = iter::once(PathPart {
+            let remaining_path: Vec<FlatPathPart> = iter::once(FlatPathPart {
                 name: "".into(),
                 index: first_path_part.index.clone(),
                 position: first_path_part.position.clone(),
@@ -124,7 +121,7 @@ impl Resolver {
             } else {
                 // If we cannot find an appropriate child, the remaining path parts might be
                 // prop references. Return them and consider `current_idx` the match.
-                let remaining_path: Vec<PathPart> =
+                let remaining_path: Vec<FlatPathPart> =
                     iter::once(part.clone()).chain(path.cloned()).collect();
                 return Ok(RefResolution {
                     node_idx: current_idx,
@@ -134,7 +131,7 @@ impl Resolver {
             // If there index specified, we immediately stop since component information is needed
             // to resolve all remaining path parts.
             if !part.index.is_empty() {
-                let remaining_path: Vec<PathPart> = iter::once(PathPart {
+                let remaining_path: Vec<FlatPathPart> = iter::once(FlatPathPart {
                     name: "".into(),
                     index: part.index.clone(),
                     position: part.position.clone(),

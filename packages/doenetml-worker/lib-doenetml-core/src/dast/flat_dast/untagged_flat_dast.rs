@@ -6,7 +6,7 @@ use serde::Serialize;
 use tsify_next::{declare, Tsify};
 
 use super::{
-    super::{ref_resolve::RefResolution, PathPart, Position},
+    super::{ref_resolve::RefResolution, Position},
     normalized_flat_dast::{NormalizedNode, NormalizedRoot},
 };
 
@@ -17,6 +17,7 @@ pub type Index = usize;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum UntaggedContent {
     Text(String),
@@ -133,11 +134,36 @@ impl FlatError {
     }
 }
 
+/// A part of a ref path
+#[derive(Debug, Clone, Serialize)]
+#[cfg_attr(test, derive(PartialEq))]
+#[serde(tag = "type")]
+#[serde(rename = "flatPathPart")]
+#[cfg_attr(feature = "web", derive(Tsify))]
+pub struct FlatPathPart {
+    pub name: String,
+    pub index: Vec<FlatIndex>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
+}
+
+/// An index into a ref path
+#[derive(Debug, Clone, Serialize)]
+#[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(feature = "web", derive(Tsify))]
+pub struct FlatIndex {
+    pub value: Vec<UntaggedContent>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct FlatRef {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,
-    pub path: Vec<PathPart>,
+    pub path: Vec<FlatPathPart>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
     pub idx: Index,
@@ -147,7 +173,7 @@ pub struct FlatRef {
 pub struct FlatFunctionRef {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,
-    pub path: Vec<PathPart>,
+    pub path: Vec<FlatPathPart>,
     pub input: Option<Vec<Vec<UntaggedContent>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,

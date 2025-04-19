@@ -6,7 +6,7 @@ use crate::test_utils::*;
 #[test]
 fn can_flatten_dast_root() {
     let dast_root = dast_root_no_position(
-        r#"<document>hi<foo my_attr="777 $x.y.z"/>and$$f(<bar>xxx</bar>)</document>"#,
+        r#"<document>hi<foo my_attr="777 $x.y.z[$a]"/>and$$f(<bar>xxx</bar>)</document>"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
     // It is easier to compare JSON, so we serialize and deserialize for the comparison.
@@ -20,7 +20,7 @@ fn can_flatten_dast_root() {
                   {
                     "type": "Element",
                     "name": "document",
-                    "children": ["hi", 1, "and", 3],
+                    "children": ["hi", 1, "and", 4],
                     "attributes": [],
                     "idx": 0
                   },
@@ -38,26 +38,34 @@ fn can_flatten_dast_root() {
                     "type": "Ref",
                     "parent": 1,
                     "path": [
-                      { "type": "pathPart", "name": "x", "index": [] },
-                      { "type": "pathPart", "name": "y", "index": [] },
-                      { "type": "pathPart", "name": "z", "index": [] }
+                      { "type": "flatPathPart", "name": "x", "index": [] },
+                      { "type": "flatPathPart", "name": "y", "index": [] },
+                      { "type": "flatPathPart", "name": "z", "index": [{"value": [3]}] }
                     ],
                     "idx": 2
                   },
                   {
+                    "type": "Ref",
+                    "parent": 2,
+                    "path": [
+                      { "type": "flatPathPart", "name": "a", "index": [] },
+                    ],
+                    "idx": 3
+                  },
+                  {
                     "type": "FunctionRef",
                     "parent": 0,
-                    "path": [{ "type": "pathPart", "name": "f", "index": [] }],
-                    "input": [[4]],
-                    "idx": 3
+                    "path": [{ "type": "flatPathPart", "name": "f", "index": [] }],
+                    "input": [[5]],
+                    "idx": 4
                   },
                   {
                     "type": "Element",
                     "name": "bar",
-                    "parent": 3,
+                    "parent": 4,
                     "children": ["xxx"],
                     "attributes": [],
-                    "idx": 4
+                    "idx": 5
                   }
                 ]
               }

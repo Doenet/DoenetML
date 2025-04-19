@@ -1,7 +1,8 @@
 //! This file contains utilities for testing DoenetMLCore.
 use doenetml_core::components::types::{Action, ComponentIdx, LocalPropIdx, PropPointer};
+use doenetml_core::dast::flat_dast::FlatPathPart;
 use doenetml_core::dast::ref_resolve::Resolver;
-use doenetml_core::dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot, PathPart};
+use doenetml_core::dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot};
 use doenetml_core::props::cache::PropWithMeta;
 use doenetml_core::props::traits::IntoPropView;
 use doenetml_core::props::{PropValue, PropView};
@@ -235,7 +236,7 @@ impl TestCore {
         let resolver = self.resolver.as_ref().unwrap();
         let resolved = resolver
             .resolve(
-                &[PathPart {
+                &[FlatPathPart {
                     name: name.to_string(),
                     index: vec![],
                     position: None,

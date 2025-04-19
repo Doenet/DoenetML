@@ -1,8 +1,5 @@
 use super::*;
-use crate::{
-    dast::{DastIndex, DastText, DastTextRefContent},
-    test_utils::*,
-};
+use crate::{dast::flat_dast::FlatIndex, test_utils::*};
 use test_helpers::*;
 #[test]
 fn can_resolve_name_among_parents() {
@@ -73,7 +70,7 @@ fn can_resolve_names() {
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
-            unresolved_path: Some(vec![PathPart {
+            unresolved_path: Some(vec![FlatPathPart {
                 name: "w".into(),
                 index: vec![],
                 position: None
@@ -100,12 +97,12 @@ fn resolution_stops_at_path_index() {
 
     // `$y.z`
     let path = vec![
-        PathPart {
+        FlatPathPart {
             name: "y".into(),
             index: vec![],
             position: None,
         },
-        PathPart {
+        FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
@@ -120,23 +117,19 @@ fn resolution_stops_at_path_index() {
         })
     );
 
-    let index = vec![DastIndex {
-        value: vec![DastTextRefContent::Text(DastText {
-            value: "2".into(),
-            position: None,
-            data: None,
-        })],
+    let index = vec![FlatIndex {
+        value: vec![UntaggedContent::Text("2".into())],
         position: None,
     }];
 
     // `$y[2].z`
     let path = vec![
-        PathPart {
+        FlatPathPart {
             name: "y".into(),
             index: index.clone(),
             position: None,
         },
-        PathPart {
+        FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
@@ -148,12 +141,12 @@ fn resolution_stops_at_path_index() {
         Ok(RefResolution {
             node_idx: b_idx,
             unresolved_path: Some(vec![
-                PathPart {
+                FlatPathPart {
                     name: "".into(),
                     index: index.clone(),
                     position: None
                 },
-                PathPart {
+                FlatPathPart {
                     name: "z".into(),
                     index: vec![],
                     position: None
@@ -178,22 +171,18 @@ fn resolution_matches_largest_possible_when_index_present() {
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
-    let index = vec![DastIndex {
-        value: vec![DastTextRefContent::Text(DastText {
-            value: "2".into(),
-            position: None,
-            data: None,
-        })],
+    let index = vec![FlatIndex {
+        value: vec![UntaggedContent::Text("2".into())],
         position: None,
     }];
     // `$y.z[2]`
     let path = vec![
-        PathPart {
+        FlatPathPart {
             name: "y".into(),
             index: vec![],
             position: None,
         },
-        PathPart {
+        FlatPathPart {
             name: "z".into(),
             index: index.clone(),
             position: None,
@@ -205,7 +194,7 @@ fn resolution_matches_largest_possible_when_index_present() {
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
-            unresolved_path: Some(vec![PathPart {
+            unresolved_path: Some(vec![FlatPathPart {
                 name: "".into(),
                 index: index.clone(),
                 position: None
@@ -238,11 +227,11 @@ mod test_helpers {
         })
     }
 
-    pub fn make_path<'a, T: AsRef<[&'a str]>>(path_str: T) -> Vec<PathPart> {
+    pub fn make_path<'a, T: AsRef<[&'a str]>>(path_str: T) -> Vec<FlatPathPart> {
         let path_str = path_str.as_ref();
         path_str
             .iter()
-            .map(|s| PathPart {
+            .map(|s| FlatPathPart {
                 name: s.to_string(),
                 index: Vec::new(),
                 position: None,
