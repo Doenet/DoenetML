@@ -245,9 +245,12 @@ export function applySugar({
                                 errors.push(...expandResult.errors);
                                 nComponents = expandResult.nComponents;
                             } else {
-                                console.log(newChildren);
+                                console.log(
+                                    `Invalid newChildren returned from sugar by ${componentClass.componentType}`,
+                                    newChildren,
+                                );
                                 throw Error(
-                                    "Invalid newChildren returned from sugar",
+                                    `Invalid newChildren returned from sugar by ${componentClass.componentType}`,
                                 );
                             }
                         } else {
@@ -288,9 +291,12 @@ export function applySugar({
                                 errors.push(...expandResult.errors);
                                 nComponents = expandResult.nComponents;
                             } else {
-                                console.log(newAttributes);
+                                console.log(
+                                    `Invalid newAttributes returned from sugar by ${componentClass.componentType}`,
+                                    newAttributes,
+                                );
                                 throw Error(
-                                    "Invalid newAttributes returned from sugar",
+                                    `Invalid newAttributes returned from sugar by ${componentClass.componentType}`,
                                 );
                             }
                         }

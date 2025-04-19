@@ -82,8 +82,6 @@ export function convertRefsToCopies({
                 // a copy with no props
                 newComponent.attributes = outerAttributes;
             } else {
-                console.log({ unresolved_path });
-
                 if (unresolved_path[0].name === "") {
                     // if we start with an index, it is a componentIndex
                     // TODO: use later indices from the index
@@ -140,8 +138,6 @@ export function convertRefsToCopies({
                         };
 
                         if (path_part.index.length > 0) {
-                            console.log("found an index", path_part.index);
-
                             const res = convertRefsToCopies({
                                 serializedComponents: path_part.index[0].value,
                                 nComponents,

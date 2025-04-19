@@ -47,6 +47,9 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
                     componentType,
                     children: pieces,
                     componentIdx: nComponents,
+                    attributes: {},
+                    state: {},
+                    doenetAttributes: {},
                 });
                 nComponents++;
             }
@@ -120,7 +123,7 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
 export function returnBreakStringsMacrosIntoComponentTypeBySpacesOutsideParens({
     componentType,
 }) {
-    return function ({ matchedChildren }) {
+    return function ({ matchedChildren, nComponents }) {
         // break any string by white space that is outside parens and wrap pieces with componentType
 
         let newChildren = [];
@@ -154,8 +157,13 @@ export function returnBreakStringsMacrosIntoComponentTypeBySpacesOutsideParens({
 
                         if (ind > beginInd) {
                             childrenFromString.push({
+                                type: "serialized",
                                 componentType,
+                                componentIdx: nComponents++,
                                 children: [s.substring(beginInd, ind)],
+                                attributes: {},
+                                state: {},
+                                doenetAttributes: {},
                             });
                         }
 
@@ -166,14 +174,24 @@ export function returnBreakStringsMacrosIntoComponentTypeBySpacesOutsideParens({
                 // parens didn't match, so return failure
                 if (Nparens !== 0) {
                     newChildren.push({
+                        type: "serialized",
                         componentType,
+                        componentIdx: nComponents++,
                         children: [child],
+                        attributes: {},
+                        state: {},
+                        doenetAttributes: {},
                     });
                 } else {
                     if (s.length > beginInd) {
                         childrenFromString.push({
+                            type: "serialized",
                             componentType,
+                            componentIdx: nComponents++,
                             children: [s.substring(beginInd, s.length)],
+                            attributes: {},
+                            state: {},
+                            doenetAttributes: {},
                         });
                     }
                     newChildren.push(...childrenFromString);
@@ -184,6 +202,7 @@ export function returnBreakStringsMacrosIntoComponentTypeBySpacesOutsideParens({
         return {
             success: true,
             newChildren: newChildren,
+            nComponents,
         };
     };
 }
