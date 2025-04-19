@@ -1,4 +1,5 @@
-import { Position, RefResolution, Source } from "@doenet/doenetml-worker";
+import { Position, Source } from "@doenet/doenetml-worker";
+export type { Position, Source };
 
 /**
  * A JSON representation of an instance of a DoenetML component
@@ -10,7 +11,7 @@ export type SerializedComponent = {
     children: (SerializedComponent | string)[];
     attributes: Record<string, SerializedAttribute>;
     position?: Position;
-    extending?: Source<RefResolution>;
+    extending?: Source<SerializedRefResolution>;
     state: Record<string, any>;
     skipSugar?: boolean;
     doenetAttributes?: Record<string, any>; // TODO: remove doenetAttributes?
@@ -39,6 +40,22 @@ export function isSerializedComponent(
         typeof typedObj.state === "object" &&
         typedObj.state !== null
     );
+}
+
+export type SerializedRefResolution = {
+    node_idx: number;
+    unresolved_path: SerializedRefResolutionPathPart[] | null;
+};
+
+export interface SerializedRefResolutionPathPart {
+    name: string;
+    index: SerializedPathIndex[];
+    position?: Position;
+}
+
+export interface SerializedPathIndex {
+    value: (SerializedComponent | string)[];
+    position?: Position;
 }
 
 /** The allowable data types for primitive attributes */

@@ -1,5 +1,4 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames } from "../utils/naming";
 import { replacementFromProp } from "./Copy";
 import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
 
@@ -7,8 +6,6 @@ export default class Extract extends CompositeComponent {
     static componentType = "extract";
 
     static excludeFromSchema = true;
-
-    static assignNamesToReplacements = true;
 
     static acceptAnyAttribute = true;
 
@@ -26,9 +23,6 @@ export default class Extract extends CompositeComponent {
         delete attributes.styleNumber;
         delete attributes.isResponse;
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.prop = {
             createPrimitiveOfType: "string",
         };
@@ -321,7 +315,6 @@ export default class Extract extends CompositeComponent {
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
             component,
             replacements,
-            assignNames: component.doenetAttributes.assignNames,
             workspace,
             componentInfoObjects,
             compositeAttributesObj,
@@ -380,20 +373,6 @@ export default class Extract extends CompositeComponent {
         let serializedReplacements = results.serializedReplacements;
         let propVariablesCopiedByReplacement =
             results.propVariablesCopiedByReplacement;
-
-        let assignNames = component.doenetAttributes.assignNames;
-
-        let processResult = processAssignNames({
-            assignNames,
-            serializedComponents: serializedReplacements,
-            parentIdx: component.componentIdx,
-            indOffset: numReplacementsSoFar,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
-        serializedReplacements = processResult.serializedComponents;
 
         return {
             serializedReplacements,
@@ -680,7 +659,6 @@ export default class Extract extends CompositeComponent {
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
             component,
             replacementChanges,
-            assignNames: component.doenetAttributes.assignNames,
             workspace,
             componentInfoObjects,
             compositeAttributesObj,

@@ -16,7 +16,7 @@ export type UnflattenedComponent = {
     children: (UnflattenedComponent | string)[];
     attributes: Record<string, UnflattenedAttribute>;
     position?: Position;
-    extending?: Source<RefResolution>;
+    extending?: Source<UnflattenedRefResolution>;
     state: Record<string, any>;
 };
 
@@ -43,6 +43,22 @@ export function isUnflattenedComponent(
         typeof typedObj.state === "object" &&
         typedObj.state !== null
     );
+}
+
+export type UnflattenedRefResolution = {
+    node_idx: number;
+    unresolved_path: UnflattenedPathPart[] | null;
+};
+
+export interface UnflattenedPathPart {
+    name: string;
+    index: UnflattenedIndex[];
+    position?: Position;
+}
+
+export interface UnflattenedIndex {
+    value: (UnflattenedComponent | string)[];
+    position?: Position;
 }
 
 /**

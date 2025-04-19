@@ -10403,7 +10403,12 @@ export default class Core {
                 if (!args) {
                     args = {};
                 }
-                await action(args);
+                try {
+                    await action(args);
+                } catch (e) {
+                    console.error(e);
+                    throw e;
+                }
                 return { actionId: args.actionId };
             }
         }

@@ -1462,8 +1462,6 @@ export default class Copy extends CompositeComponent {
                     component.doenetAttributes.fromCopyTarget,
             });
 
-            console.log("results from createReplacementForSource", results);
-
             errors.push(...results.errors);
             warnings.push(...results.warnings);
 
@@ -1581,8 +1579,6 @@ export default class Copy extends CompositeComponent {
             });
             errors.push(...results.errors);
             warnings.push(...results.warnings);
-
-            console.log("results from replacementFromProp", results);
 
             let serializedReplacements = results.serializedReplacements;
 

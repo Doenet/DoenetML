@@ -143,6 +143,14 @@ export function applySugar({
                     }
 
                     if (sugarResults.success) {
+                        if (!Number.isInteger(sugarResults.nComponents)) {
+                            console.error(
+                                `Invalid sugar from ${componentClass.componentType}: did not return integer nComponents`,
+                            );
+                            throw Error(
+                                `Invalid sugar from ${componentClass.componentType}: did not return integer nComponents`,
+                            );
+                        }
                         nComponents = sugarResults.nComponents;
                         let newChildren = sugarResults.newChildren;
                         let newAttributes = sugarResults.newAttributes;
@@ -237,6 +245,7 @@ export function applySugar({
                                 errors.push(...expandResult.errors);
                                 nComponents = expandResult.nComponents;
                             } else {
+                                console.log(newChildren);
                                 throw Error(
                                     "Invalid newChildren returned from sugar",
                                 );
@@ -279,7 +288,7 @@ export function applySugar({
                                 errors.push(...expandResult.errors);
                                 nComponents = expandResult.nComponents;
                             } else {
-                                console.log({ newAttributes });
+                                console.log(newAttributes);
                                 throw Error(
                                     "Invalid newAttributes returned from sugar",
                                 );

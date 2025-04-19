@@ -1,6 +1,8 @@
 import {
     NormalizedNode,
     NormalizedRoot,
+    RefResolution,
+    Source,
     UntaggedContent,
 } from "@doenet/doenetml-worker";
 import { ComponentInfoObjects } from "../componentInfoObjects";
@@ -11,11 +13,15 @@ import {
     PrimitiveAttributeValue,
     SerializedAttribute,
     SerializedComponent,
+    SerializedRefResolution,
+    SerializedRefResolutionPathPart,
     WarningRecord,
 } from "./types";
 import {
     UnflattenedAttribute,
     UnflattenedComponent,
+    UnflattenedPathPart,
+    UnflattenedRefResolution,
 } from "./intermediateTypes";
 import { convertToErrorComponent } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
@@ -39,7 +45,7 @@ export async function normalizedDastToSerializedComponents(
 }> {
     /**
      * Unflatten the normalized dast node so that
-     * children of attributes and nodes contain the actual children.
+     * children of attributes and nodes, as well as ref resolutions, contain the actual children.
      *
      * Convert Elements to a `componentType` matching their name.
      * Convert Errors to a `componentType` of "_error".
@@ -68,7 +74,9 @@ export async function normalizedDastToSerializedComponents(
                         ]),
                     ),
                     position: node.position,
-                    extending: node.extending,
+                    extending: node.extending
+                        ? unFlattenExtending(node.extending)
+                        : undefined,
                     children: node.children.map(unflattenDastNode),
                     state: {},
                 };
@@ -85,6 +93,42 @@ export async function normalizedDastToSerializedComponents(
                 };
             }
         }
+    }
+
+    function unFlattenExtending(
+        extending: Source<RefResolution>,
+    ): Source<UnflattenedRefResolution> {
+        const refResolution =
+            "Ref" in extending ? extending.Ref : extending.Attribute;
+
+        let unresolved_path: UnflattenedPathPart[] | null = null;
+
+        if (refResolution.unresolved_path) {
+            unresolved_path = refResolution.unresolved_path.map((path_part) => {
+                let index = path_part.index.map((flat_index) => {
+                    let value = flat_index.value.map(unflattenDastNode);
+                    return {
+                        value,
+                        position: flat_index.position,
+                    };
+                });
+
+                return {
+                    index,
+                    name: path_part.name,
+                    position: path_part.position,
+                };
+            });
+        }
+
+        const unflattenedRefResolution: UnflattenedRefResolution = {
+            node_idx: refResolution.node_idx,
+            unresolved_path,
+        };
+
+        return "Ref" in extending
+            ? { Ref: unflattenedRefResolution }
+            : { Attribute: unflattenedRefResolution };
     }
 
     const documentIdx = normalized_root.children[0];
@@ -223,11 +267,40 @@ export function expandUnflattenedToSerializedComponents({
             errors.push(...defaultPrimitiveResult.errors);
             nComponents = defaultPrimitiveResult.nComponents;
 
+            let extending: Source<SerializedRefResolution> | undefined =
+                undefined;
+
+            if (component.extending) {
+                const unFlattenedRefResolution =
+                    "Ref" in component.extending
+                        ? component.extending.Ref
+                        : component.extending.Attribute;
+
+                const refResolutionResult = expandUnflattenedRefResolution({
+                    unFlattenedRefResolution,
+                    componentClass,
+                    componentInfoObjects,
+                    nComponents,
+                    ignoreErrors,
+                });
+
+                const refResolution: SerializedRefResolution =
+                    refResolutionResult.refResolution;
+                errors.push(...refResolutionResult.errors);
+                nComponents = refResolutionResult.nComponents;
+
+                extending =
+                    "Ref" in component.extending
+                        ? { Ref: refResolution }
+                        : { Attribute: refResolution };
+            }
+
             newComponent = {
                 ...component,
                 type: "serialized",
                 children: [],
                 attributes,
+                extending,
                 doenetAttributes: {},
             };
         } catch (e) {
@@ -259,6 +332,67 @@ export function expandUnflattenedToSerializedComponents({
     }
 
     return { errors, components: newComponents, nComponents };
+}
+
+function expandUnflattenedRefResolution({
+    unFlattenedRefResolution,
+    componentClass,
+    componentInfoObjects,
+    nComponents,
+    ignoreErrors,
+}: {
+    unFlattenedRefResolution: UnflattenedRefResolution;
+    componentClass: any;
+    componentInfoObjects: ComponentInfoObjects;
+    nComponents: number;
+    ignoreErrors: boolean;
+}): {
+    refResolution: SerializedRefResolution;
+    errors: ErrorRecord[];
+    nComponents: number;
+} {
+    let unresolved_path: SerializedRefResolutionPathPart[] | null = null;
+    let errors: ErrorRecord[] = [];
+
+    if (unFlattenedRefResolution.unresolved_path) {
+        unresolved_path = unFlattenedRefResolution.unresolved_path.map(
+            (path_part) => {
+                let index = path_part.index.map((flat_index) => {
+                    let res = expandUnflattenedToSerializedComponents({
+                        serializedComponents: flat_index.value,
+                        componentInfoObjects,
+                        nComponents,
+                        ignoreErrors,
+                    });
+                    let value = res.components;
+                    errors.push(...res.errors);
+                    nComponents = res.nComponents;
+
+                    return {
+                        value,
+                        position: flat_index.position,
+                    };
+                });
+
+                return {
+                    index,
+                    name: path_part.name,
+                    position: path_part.position,
+                };
+            },
+        );
+    }
+
+    const refResolution: SerializedRefResolution = {
+        node_idx: unFlattenedRefResolution.node_idx,
+        unresolved_path,
+    };
+
+    return {
+        refResolution,
+        errors,
+        nComponents,
+    };
 }
 
 /**
