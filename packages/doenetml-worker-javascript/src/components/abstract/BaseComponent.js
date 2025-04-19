@@ -184,8 +184,8 @@ export default class BaseComponent {
         }
 
         // recurse to all children
-        for (let childIdx in this.allChildren) {
-            let child = this.allChildren[childIdx].component;
+        for (const childIdxStr in this.allChildren) {
+            let child = this.allChildren[childIdxStr].component;
             if (typeof child !== "object") {
                 continue;
             } else {

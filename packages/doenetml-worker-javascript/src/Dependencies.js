@@ -4022,7 +4022,8 @@ class RecursiveDependencyValuesDependency extends Dependency {
         let downstreamComponentIndices = [];
         let downstreamComponentTypes = [];
 
-        for (let componentIdx in result.components) {
+        for (const componentIdxStr in result.components) {
+            const componentIdx = Number(componentIdxStr);
             if (this.includeOnlyEssentialValues) {
                 let essentialVarNames = [];
                 let component =
@@ -4290,12 +4291,13 @@ class RecursiveDependencyValuesDependency extends Dependency {
                 }
             }
 
-            for (let cIdx in this.varsWithUpdatedDeps) {
-                let compAccumulated = accumulatedVarsWithUpdatedDeps[cIdx];
+            for (const cIdxStr in this.varsWithUpdatedDeps) {
+                let compAccumulated = accumulatedVarsWithUpdatedDeps[cIdxStr];
                 if (!compAccumulated) {
-                    compAccumulated = accumulatedVarsWithUpdatedDeps[cIdx] = [];
+                    compAccumulated = accumulatedVarsWithUpdatedDeps[cIdxStr] =
+                        [];
                 }
-                for (let vName of this.varsWithUpdatedDeps[cIdx]) {
+                for (let vName of this.varsWithUpdatedDeps[cIdxStr]) {
                     if (!compAccumulated.includes(vName)) {
                         compAccumulated.push(vName);
                         foundNewUpdated = true;
@@ -5350,7 +5352,8 @@ class DescendantDependency extends Dependency {
                     stateVariableBlocked: varName,
                 });
 
-                for (let parentIdx in result.unexpandedCompositesReadyByParentName) {
+                for (const parentIdxStr in result.unexpandedCompositesReadyByParentName) {
+                    const parentIdx = Number(parentIdxStr);
                     await this.dependencyHandler.addBlocker({
                         blockerComponentIdx: parentIdx,
                         blockerType: "childMatches",
@@ -5362,7 +5365,8 @@ class DescendantDependency extends Dependency {
                     });
                 }
 
-                for (let parentIdx in result.unexpandedCompositesNotReadyByParentName) {
+                for (const parentIdxStr in result.unexpandedCompositesNotReadyByParentName) {
+                    const parentIdx = Number(parentIdxStr);
                     await this.dependencyHandler.addBlocker({
                         blockerComponentIdx: parentIdx,
                         blockerType: "childMatches",
@@ -5488,8 +5492,8 @@ class DescendantDependency extends Dependency {
             }
         }
 
-        for (let childIdx in component.allChildren) {
-            let child = component.allChildren[childIdx].component;
+        for (const childIdxStr in component.allChildren) {
+            let child = component.allChildren[childIdxStr].component;
             if (typeof child === "object") {
                 let result = this.gatherUnexpandedComposites(child);
                 if (result.haveUnexpandedCompositeReady) {

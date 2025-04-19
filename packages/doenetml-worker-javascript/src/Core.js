@@ -104,8 +104,8 @@ export default class Core {
                   serializedComponentsReviver,
               )
             : {};
-        for (let cIdx in stateVariableChanges) {
-            let componentSVChanges = stateVariableChanges[cIdx];
+        for (let cIdxStr in stateVariableChanges) {
+            let componentSVChanges = stateVariableChanges[cIdxStr];
             for (let varName in componentSVChanges) {
                 if (varName in deprecatedPropertySubstitutions) {
                     componentSVChanges[
@@ -383,10 +383,10 @@ export default class Core {
 
         // warning if there are any children that are unmatched
         if (Object.keys(this.unmatchedChildren).length > 0) {
-            for (let componentIdx in this.unmatchedChildren) {
-                let parent = this._components[componentIdx];
+            for (const componentIdxStr in this.unmatchedChildren) {
+                let parent = this._components[componentIdxStr];
                 this.errorWarnings.warnings.push({
-                    message: this.unmatchedChildren[componentIdx].message,
+                    message: this.unmatchedChildren[componentIdxStr].message,
                     level: 1,
                     position: parent.position,
                 });
@@ -1053,7 +1053,8 @@ export default class Core {
 
         let triggeredAction = false;
 
-        for (let componentIdx in this.stateVariableChangeTriggers) {
+        for (const componentIdxStr in this.stateVariableChangeTriggers) {
+            const componentIdx = Number(componentIdxStr);
             let component = this._components[componentIdx];
             for (let stateVariable in this.stateVariableChangeTriggers[
                 componentIdx
@@ -1187,8 +1188,8 @@ export default class Core {
             }
         }
 
-        for (let childIdx in component.allChildren) {
-            let child = component.allChildren[childIdx].component;
+        for (let childIdxStr in component.allChildren) {
+            let child = component.allChildren[childIdxStr].component;
             if (typeof child !== "object") {
                 continue;
             }
@@ -1593,7 +1594,8 @@ export default class Core {
         let prescribedDependencies = {};
 
         if (serializedComponent.downstreamDependencies) {
-            for (let idx in serializedComponent.downstreamDependencies) {
+            for (const idxStr in serializedComponent.downstreamDependencies) {
+                const idx = Number(idxStr);
                 if (idx === componentIdx) {
                     throw Error(
                         this.dependencies.getCircularDependencyMessage([
@@ -1656,7 +1658,8 @@ export default class Core {
             newComponent.adaptedFrom.adapterUsed = newComponent;
         }
 
-        for (let idx in prescribedDependencies) {
+        for (const idxStr in prescribedDependencies) {
+            const idx = Number(idxStr);
             let depArray = prescribedDependencies[idx];
             for (let dep of depArray) {
                 if (dep.dependencyType === "referenceShadow") {
@@ -3254,9 +3257,9 @@ export default class Core {
                 component,
                 varName: "isInactiveCompositeReplacement",
             });
-            for (let childIdx in component.allChildren) {
+            for (const childIdxStr in component.allChildren) {
                 await this.changeInactiveComponentAndDescendants(
-                    this._components[childIdx],
+                    this._components[childIdxStr],
                     inactive,
                 );
             }
@@ -3307,7 +3310,8 @@ export default class Core {
         let redefineDependencies;
 
         if (prescribedDependencies) {
-            for (let idx in prescribedDependencies) {
+            for (const idxStr in prescribedDependencies) {
+                const idx = Number(idxStr);
                 let depArray = prescribedDependencies[idx];
                 for (let dep of depArray) {
                     if (dep.dependencyType === "referenceShadow") {
@@ -8727,9 +8731,9 @@ export default class Core {
 
     deregisterComponent(component, recursive = true) {
         if (recursive === true) {
-            for (let childIdx in component.allChildren) {
+            for (let childIdxStr in component.allChildren) {
                 this.deregisterComponent(
-                    component.allChildren[childIdx].component,
+                    component.allChildren[childIdxStr].component,
                 );
             }
         }
@@ -8752,8 +8756,8 @@ export default class Core {
             ...component.ancestors,
         ];
 
-        for (let childIdx in component.allChildren) {
-            let unproxiedChild = this._components[childIdx];
+        for (const childIdxStr in component.allChildren) {
+            let unproxiedChild = this._components[childIdxStr];
             // Note: when add and deleting replacements of shadowed composites,
             // it is possible that we end up processing the defining children of ancestors of the composite
             // while we were delaying processing the defining children of the composite's parent,
@@ -8914,8 +8918,8 @@ export default class Core {
 
         // set ancestors for allChildren of parent
         // since could replace newChildren by adapters or via composites
-        for (let childIdx in parent.allChildren) {
-            let unproxiedChild = this._components[childIdx];
+        for (const childIdxStr in parent.allChildren) {
+            let unproxiedChild = this._components[childIdxStr];
             this.setAncestors(unproxiedChild, ancestorsForChildren);
         }
 
@@ -8977,7 +8981,8 @@ export default class Core {
 
         //Calculate parent set
         const parentsOfPotentiallyDeleted = {};
-        for (let componentIdx in componentsToDelete) {
+        for (const componentIdxStr in componentsToDelete) {
+            const componentIdx = Number(componentIdxStr);
             let component = componentsToDelete[componentIdx];
             let parent = this.components[component.parentIdx];
 
@@ -9006,7 +9011,8 @@ export default class Core {
         // if the deletion is unsuccessful
         let replacementsDeletedFromComposites = [];
 
-        for (let componentIdx in componentsToDelete) {
+        for (const componentIdxStr in componentsToDelete) {
+            const componentIdx = Number(componentIdxStr);
             let component = this._components[componentIdx];
             if (component.replacementOf) {
                 let composite = component.replacementOf;
@@ -9031,10 +9037,10 @@ export default class Core {
             }
         }
 
-        for (let compositeIdx of replacementsDeletedFromComposites) {
-            if (!(compositeIdx in componentsToDelete)) {
+        for (let compositeIdxStr of replacementsDeletedFromComposites) {
+            if (!(compositeIdxStr in componentsToDelete)) {
                 await this.dependencies.addBlockersFromChangedReplacements(
-                    this._components[compositeIdx],
+                    this._components[compositeIdxStr],
                 );
             }
         }
@@ -9042,8 +9048,8 @@ export default class Core {
         // delete component from parent's defining children
         // and record parents
         let allParents = [];
-        for (let parentIdx in parentsOfPotentiallyDeleted) {
-            let parentObj = parentsOfPotentiallyDeleted[parentIdx];
+        for (let parentIdxStr in parentsOfPotentiallyDeleted) {
+            let parentObj = parentsOfPotentiallyDeleted[parentIdxStr];
             let parent = parentObj.parent;
             allParents.push(parent);
 
@@ -9072,7 +9078,8 @@ export default class Core {
             }
         }
 
-        for (let componentIdx in componentsToDelete) {
+        for (const componentIdxStr in componentsToDelete) {
+            const componentIdx = Number(componentIdxStr);
             let component = this._components[componentIdx];
 
             if (component.shadows) {
@@ -9143,7 +9150,8 @@ export default class Core {
             delete this.stateVariableChangeTriggers[component.componentIdx];
         }
 
-        for (let componentIdx in componentsToDelete) {
+        for (const componentIdxStr in componentsToDelete) {
+            const componentIdx = Number(componentIdxStr);
             let component = this._components[componentIdx];
 
             // console.log(`deregistering ${componentIdx}`)
@@ -9429,7 +9437,8 @@ export default class Core {
                     );
                 }
 
-                for (let compositeIdx in newReplacementsByComposite) {
+                for (const compositeIdxStr in newReplacementsByComposite) {
+                    const compositeIdx = Number(compositeIdxStr);
                     let composite = this._components[compositeIdx];
 
                     // if composite was just deleted in previous pass of this loop, skip
@@ -10437,11 +10446,12 @@ export default class Core {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        for (let cIdx in this.updateInfo.componentsToUpdateActionChaining) {
+        for (const cIdxStr in this.updateInfo
+            .componentsToUpdateActionChaining) {
             await this.checkForActionChaining({
-                component: this.components[cIdx],
+                component: this.components[cIdxStr],
                 stateVariables:
-                    this.updateInfo.componentsToUpdateActionChaining[cIdx],
+                    this.updateInfo.componentsToUpdateActionChaining[cIdxStr],
             });
         }
 
@@ -10780,7 +10790,9 @@ export default class Core {
 
         // start with any essential values saved when calculating definitions
         if (Object.keys(this.essentialValuesSavedInDefinition).length > 0) {
-            for (let componentIdx in this.essentialValuesSavedInDefinition) {
+            for (const componentIdxStr in this
+                .essentialValuesSavedInDefinition) {
+                const componentIdx = Number(componentIdxStr);
                 let essentialState =
                     this._components[componentIdx]?.essentialState;
                 if (essentialState) {
@@ -10824,7 +10836,8 @@ export default class Core {
 
         // merge in new state variables set in update
         for (let newValuesProcessed of newStateVariableValuesProcessed) {
-            for (let componentIdx in newValuesProcessed) {
+            for (const componentIdxStr in newValuesProcessed) {
+                const componentIdx = Number(componentIdxStr);
                 if (!this.cumulativeStateVariableChanges[componentIdx]) {
                     this.cumulativeStateVariableChanges[componentIdx] = {};
                 }
@@ -11018,23 +11031,25 @@ export default class Core {
             ...this.visibilityInfo.componentsCurrentlyVisible,
         };
 
-        for (let componentIdx in currentVisible) {
+        for (const componentIdxStr in currentVisible) {
             let timeInSeconds =
                 (this.visibilityInfo.timeLastSent -
-                    Math.max(timeLastSent, currentVisible[componentIdx])) /
+                    Math.max(timeLastSent, currentVisible[componentIdxStr])) /
                 1000;
-            if (infoToSend[componentIdx]) {
-                infoToSend[componentIdx] += timeInSeconds;
+            if (infoToSend[componentIdxStr]) {
+                infoToSend[componentIdxStr] += timeInSeconds;
             } else {
-                infoToSend[componentIdx] = timeInSeconds;
+                infoToSend[componentIdxStr] = timeInSeconds;
             }
         }
 
-        for (let componentIdx in infoToSend) {
-            infoToSend[componentIdx] = Math.round(infoToSend[componentIdx]);
-            if (!infoToSend[componentIdx]) {
+        for (const componentIdxStr in infoToSend) {
+            infoToSend[componentIdxStr] = Math.round(
+                infoToSend[componentIdxStr],
+            );
+            if (!infoToSend[componentIdxStr]) {
                 // delete if rounded down to zero
-                delete infoToSend[componentIdx];
+                delete infoToSend[componentIdxStr];
             }
         }
 
@@ -11237,7 +11252,8 @@ export default class Core {
 
         let foundIgnore = false;
 
-        for (let cIdx in newStateVariableValues) {
+        for (const cIdxStr in newStateVariableValues) {
+            const cIdx = Number(cIdxStr);
             let comp = this._components[cIdx];
 
             if (comp === undefined) {

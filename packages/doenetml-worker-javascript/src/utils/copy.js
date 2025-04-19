@@ -200,14 +200,15 @@ export function postProcessCopy({
     // XXX: this doesn't work anymore with removing namespaces.
     // Determine what this is supposed to accomplish and recreate functionality
     if (init && unlinkExternalCopies) {
-        for (let targetComponentIdx in copiesByTargetComponentName) {
-            if (!componentNamesFound.includes(targetComponentIdx)) {
+        for (let targetComponentIdxStr in copiesByTargetComponentName) {
+            if (!componentNamesFound.includes(targetComponentIdxStr)) {
                 let foundMatchViaAssignNames = false;
                 for (let cIdx of assignNamesFound) {
                     let namespace = cIdx + "/";
                     let nSpaceLen = namespace.length;
                     if (
-                        targetComponentIdx.substring(0, nSpaceLen) === namespace
+                        targetComponentIdxStr.substring(0, nSpaceLen) ===
+                        namespace
                     ) {
                         foundMatchViaAssignNames = true;
                         break;
@@ -215,7 +216,7 @@ export function postProcessCopy({
                 }
                 if (!foundMatchViaAssignNames) {
                     for (let copyComponent of copiesByTargetComponentName[
-                        targetComponentIdx
+                        targetComponentIdxStr
                     ]) {
                         if (!copyComponent.attributes) {
                             copyComponent.attributes = {};

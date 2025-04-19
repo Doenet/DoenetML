@@ -257,7 +257,7 @@ export class PublicDoenetMLCore {
         const componentsObj: Record<
             string,
             {
-                componentIdx: string;
+                componentIdx: number;
                 componentType: string;
                 stateValues: Record<string, any>;
                 activeChildren: any[];
@@ -275,7 +275,8 @@ export class PublicDoenetMLCore {
             console.log(components);
         }
 
-        for (let componentIdx in components) {
+        for (let componentIdxStr in components) {
+            const componentIdx = Number(componentIdxStr);
             let component = components[componentIdx];
             componentsObj[componentIdx] = {
                 componentIdx,
