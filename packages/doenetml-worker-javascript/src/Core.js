@@ -749,7 +749,7 @@ export default class Core {
 
                 let previousChildIdentifiers = [];
                 for (let [ind, child] of previousChildRenderers.entries()) {
-                    if (child.componentIdx) {
+                    if (child.componentIdx != undefined) {
                         previousChildIdentifiers.push(
                             `nameType:${child.componentIdx};${child.componentType}`,
                         );
@@ -771,7 +771,7 @@ export default class Core {
                 ) {
                     // delete old renderers
                     for (let child of previousChildRenderers) {
-                        if (child.componentIdx) {
+                        if (child.componentIdx != undefined) {
                             let deletedNames =
                                 this.deleteFromComponentsToRender({
                                     componentIdx: child.componentIdx,
@@ -1209,7 +1209,7 @@ export default class Core {
     }
 
     async componentAndRenderedDescendants(component) {
-        if (component?.componentIdx === undefined) {
+        if (component?.componentIdx == undefined) {
             return [];
         }
 
@@ -1314,7 +1314,7 @@ export default class Core {
             }
 
             let componentIdx = serializedComponent.componentIdx;
-            if (componentIdx === undefined) {
+            if (componentIdx == undefined) {
                 // throw Error(
                 //     "Found a serialized component without a componentIdx",
                 //     serializedComponent,
@@ -1562,6 +1562,7 @@ export default class Core {
                                 ]),
                             );
                         } else {
+                            console.error(e);
                             throw e;
                         }
                     }
@@ -2264,7 +2265,7 @@ export default class Core {
         let originalChild = parent.activeChildren[childInd];
 
         let newSerializedChild;
-        if (originalChild.componentIdx) {
+        if (originalChild.componentIdx != undefined) {
             newSerializedChild = originalChild.getAdapter(adapterIndUsed);
         } else {
             // child isn't a component, just an object with a componentType
@@ -2286,7 +2287,7 @@ export default class Core {
             adapter === undefined ||
             adapter.componentType !== newSerializedChild.componentType
         ) {
-            if (originalChild.componentIdx) {
+            if (originalChild.componentIdx != undefined) {
                 newSerializedChild.adaptedFrom = originalChild.componentIdx;
                 assignDoenetMLRange(
                     [newSerializedChild],
@@ -2317,7 +2318,7 @@ export default class Core {
 
         // Update allChildren to show that originalChild is no longer active
         // and that adapter is now an active child
-        if (originalChild.componentIdx) {
+        if (originalChild.componentIdx != undefined) {
             // ignore placeholder active children
             delete parent.allChildren[originalChild.componentIdx]
                 .activeChildrenIndex;
@@ -2329,7 +2330,7 @@ export default class Core {
 
         // find index of originalChild in allChildrenOrdered
         // and place adapter immediately afterward
-        if (originalChild.componentIdx) {
+        if (originalChild.componentIdx != undefined) {
             let originalInd = parent.allChildrenOrdered.indexOf(
                 originalChild.componentIdx,
             );
@@ -2422,6 +2423,7 @@ export default class Core {
         let result = await component.constructor.createSerializedReplacements({
             component: this.components[component.componentIdx], // to create proxy
             components: this.components,
+            nComponents: this.components.length,
             workspace: component.replacementsWorkspace,
             componentInfoObjects: this.componentInfoObjects,
             flags: this.flags,
@@ -2441,8 +2443,12 @@ export default class Core {
             overwriteDoenetMLRange,
         });
 
-        // console.log(`expand result for ${component.componentIdx}`);
-        // console.log(JSON.parse(JSON.stringify(result)));
+        console.log(`expand result for ${component.componentIdx}`);
+        console.log(JSON.parse(JSON.stringify(result)));
+
+        if (result.nComponents > this.components.length) {
+            this._components[result.nComponents - 1] = undefined;
+        }
 
         if (component.constructor.stateVariableToEvaluateAfterReplacements) {
             // console.log(`evaluating ${component.constructor.stateVariableToEvaluateAfterReplacements} of ${component.componentIdx}`)
@@ -3108,7 +3114,7 @@ export default class Core {
                 delete allChildrenObj.activeChildrenIndex;
                 for (let ind2 = 0; ind2 < replacements.length; ind2++) {
                     let replacement = replacements[ind2];
-                    if (replacement.componentIdx) {
+                    if (replacement.componentIdx != undefined) {
                         // ignore placeholder, string, and primitive number active children
                         parent.allChildren[replacement.componentIdx] = {
                             activeChildrenIndex: childInd + ind2,
@@ -3142,7 +3148,7 @@ export default class Core {
                         ind2++
                     ) {
                         let child2 = parent.activeChildren[ind2];
-                        if (child2.componentIdx) {
+                        if (child2.componentIdx != undefined) {
                             parent.allChildren[
                                 child2.componentIdx
                             ].activeChildrenIndex += nShift;
@@ -10370,18 +10376,18 @@ export default class Core {
             // Don't have an actual action on document as don't want the ability for others to call it.
             // Theme doesn't affect the colors displayed, only the words in the styleDescriptions.
             try {
-            await this.performUpdate({
-                updateInstructions: [
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.documentIdx,
-                        stateVariable: "theme",
-                        value: args.theme,
-                    },
-                ],
-                actionId: args.actionId,
-                doNotSave: true, // this isn't an interaction, so don't save doc state
-            });
+                await this.performUpdate({
+                    updateInstructions: [
+                        {
+                            updateType: "updateValue",
+                            componentIdx: this.documentIdx,
+                            stateVariable: "theme",
+                            value: args.theme,
+                        },
+                    ],
+                    actionId: args.actionId,
+                    doNotSave: true, // this isn't an interaction, so don't save doc state
+                });
             } catch (e) {
                 console.error(e);
                 throw e;
@@ -10671,7 +10677,7 @@ export default class Core {
         let recordComponentSubmissions = [];
 
         for (let instruction of updateInstructions) {
-            if (instruction.componentIdx) {
+            if (instruction.componentIdx != undefined) {
                 let componentSourceInformation =
                     sourceInformation[instruction.componentIdx];
                 if (!componentSourceInformation) {
@@ -10754,7 +10760,7 @@ export default class Core {
         // so they can revert if the showed the changes before hearing back from core
         if (!canSkipUpdatingRenderer) {
             updateInstructions.forEach((comp) => {
-                if (comp.componentIdx) {
+                if (comp.componentIdx != undefined) {
                     this.updateInfo.componentsToUpdateRenderers.add(
                         comp.componentIdx,
                     );
@@ -12167,7 +12173,7 @@ export default class Core {
 
                         let cIdx =
                             dep.downstreamComponentIndices[downstreamInd];
-                        if (cIdx === undefined) {
+                        if (cIdx == undefined) {
                             throw Error(
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
                             );

@@ -3613,7 +3613,7 @@ class StateVariableDependency extends Dependency {
     static dependencyType = "stateVariable";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -3720,7 +3720,7 @@ class MultipleStateVariablesDependency extends Dependency {
     static dependencyType = "multipleStateVariables";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -3972,7 +3972,7 @@ class RecursiveDependencyValuesDependency extends Dependency {
     static dependencyType = "recursiveDependencyValues";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -4338,7 +4338,7 @@ class ComponentIdentityDependency extends Dependency {
     static dependencyType = "componentIdentity";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -4425,7 +4425,7 @@ class AttributeComponentDependency extends Dependency {
     static dependencyType = "attributeComponent";
 
     setUpParameters() {
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.parentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.parentIdx;
         } else {
@@ -4662,7 +4662,7 @@ class ChildDependency extends Dependency {
     static dependencyType = "child";
 
     setUpParameters() {
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.parentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.parentIdx;
         } else {
@@ -5224,7 +5224,7 @@ class DescendantDependency extends Dependency {
     static dependencyType = "descendant";
 
     setUpParameters() {
-        if (this.definition.ancestorIdx) {
+        if (this.definition.ancestorIdx != undefined) {
             this.ancestorIdx = this.definition.ancestorIdx;
             this.specifiedComponentName = this.ancestorIdx;
         } else {
@@ -5596,7 +5596,7 @@ class ParentDependency extends Dependency {
     static dependencyType = "parentStateVariable";
 
     setUpParameters() {
-        if (this.definition.childIdx) {
+        if (this.definition.childIdx != undefined) {
             this.childIdx = this.definition.childIdx;
             this.specifiedComponentName = this.childIdx;
         } else {
@@ -5670,7 +5670,7 @@ class ParentDependency extends Dependency {
             };
         }
 
-        if (child.parentIdx === undefined) {
+        if (child.parentIdx == undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -5811,7 +5811,7 @@ class ParentIdentityDependency extends Dependency {
     static dependencyType = "parentIdentity";
 
     setUpParameters() {
-        if (this.definition.childIdx) {
+        if (this.definition.childIdx != undefined) {
             this.childIdx = this.definition.childIdx;
             this.specifiedComponentName = this.childIdx;
         } else {
@@ -5870,7 +5870,7 @@ class ParentIdentityDependency extends Dependency {
             };
         }
 
-        if (child.parentIdx === undefined) {
+        if (child.parentIdx == undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -6011,7 +6011,7 @@ class AncestorDependency extends Dependency {
     static dependencyType = "ancestor";
 
     setUpParameters() {
-        if (this.definition.descendantIdx) {
+        if (this.definition.descendantIdx != undefined) {
             this.descendantIdx = this.definition.descendantIdx;
             this.specifiedComponentName = this.descendantIdx;
         } else {
@@ -6335,7 +6335,7 @@ class ReplacementDependency extends Dependency {
     static dependencyType = "replacement";
 
     setUpParameters() {
-        if (this.definition.compositeIdx) {
+        if (this.definition.compositeIdx != undefined) {
             this.compositeIdx = this.definition.compositeIdx;
             this.specifiedComponentName = this.compositeIdx;
         } else {
@@ -6754,7 +6754,7 @@ class SourceCompositeStateVariableDependency extends Dependency {
     static dependencyType = "sourceCompositeStateVariable";
 
     setUpParameters() {
-        if (this.definition.replacementIdx) {
+        if (this.definition.replacementIdx != undefined) {
             this.replacementIdx = this.definition.replacementIdx;
             this.specifiedComponentName = this.replacementIdx;
         } else {
@@ -6893,7 +6893,7 @@ class SourceCompositeIdentityDependency extends Dependency {
     static dependencyType = "sourceCompositeIdentity";
 
     setUpParameters() {
-        if (this.definition.replacementIdx) {
+        if (this.definition.replacementIdx != undefined) {
             this.replacementIdx = this.definition.replacementIdx;
             this.specifiedComponentName = this.replacementIdx;
         } else {
@@ -6991,7 +6991,7 @@ class ShadowSourceDependency extends Dependency {
     static dependencyType = "shadowSource";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7128,7 +7128,7 @@ class UnlinkedCopySourceDependency extends Dependency {
     static dependencyType = "unlinkedCopySource";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7252,7 +7252,7 @@ class PrimaryShadowDependency extends Dependency {
     static dependencyType = "primaryShadow";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7390,7 +7390,7 @@ class AdapterSourceStateVariableDependency extends Dependency {
     static dependencyType = "adapterSourceStateVariable";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7502,7 +7502,7 @@ class AdapterSourceDependency extends Dependency {
     static dependencyType = "adapterSource";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7616,7 +7616,7 @@ class CountAmongSiblingsDependency extends Dependency {
     static dependencyType = "countAmongSiblings";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7680,7 +7680,7 @@ class CountAmongSiblingsDependency extends Dependency {
             };
         }
 
-        if (component.parentIdx === undefined) {
+        if (component.parentIdx == undefined) {
             console.warn(
                 `component ${this.componentIdx} does not have a parent for state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}.`,
             );
@@ -7976,7 +7976,7 @@ class AttributeTargetComponentNamesDependency extends StateVariableDependency {
     setUpParameters() {
         this.attributeName = this.definition.attributeName;
 
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.componentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8158,7 +8158,7 @@ class DoenetAttributeDependency extends StateVariableDependency {
     setUpParameters() {
         this.attributeName = this.definition.attributeName;
 
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8200,7 +8200,7 @@ class ExtendingDependency extends StateVariableDependency {
     static dependencyType = "extending";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8238,7 +8238,7 @@ class AttributePrimitiveDependency extends StateVariableDependency {
     setUpParameters() {
         this.attributeName = this.definition.attributeName;
 
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.componentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8282,7 +8282,7 @@ class SerializedChildrenDependency extends Dependency {
     static dependencyType = "serializedChildren";
 
     setUpParameters() {
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.parentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.parentIdx;
         } else {
@@ -8376,7 +8376,7 @@ class DoenetMLDependency extends Dependency {
     static dependencyType = "doenetML";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8475,7 +8475,7 @@ class DoenetMLRangeDependency extends Dependency {
     static dependencyType = "position";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8585,7 +8585,7 @@ class VariantsDependency extends Dependency {
     static dependencyType = "variants";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8731,7 +8731,7 @@ class DetermineDependenciesDependency extends Dependency {
         // and turned off after dependencies are recalculated
         this.recalculateDependencies = true;
 
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
         } else {
             this.componentIdx = this.upstreamComponentIdx;
