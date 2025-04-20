@@ -7,15 +7,12 @@ import {
     convertAttributesForComponentType,
     postProcessCopy,
 } from "../utils/copy";
-import { processAssignNames } from "../utils/naming";
 
 export default class MathList extends CompositeComponent {
     static componentType = "mathList";
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
-
-    static assignNamesToReplacements = true;
 
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
@@ -628,20 +625,11 @@ export default class MathList extends CompositeComponent {
             markAsPrimaryShadow: true,
         });
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         workspace.componentsCopied = componentsCopied;
         workspace.numComponents = numComponents;
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
         };
