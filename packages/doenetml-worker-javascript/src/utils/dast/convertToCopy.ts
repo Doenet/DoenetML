@@ -1,4 +1,8 @@
-import { SerializedAttribute, SerializedComponent } from "./types";
+import {
+    SerializedAttribute,
+    SerializedComponent,
+    SerializedRefResolution,
+} from "./types";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -56,7 +60,22 @@ export function convertRefsToCopies({
                     ? null
                     : [...refResolution.unresolved_path];
 
-            // If the reference was is an Attribute,
+            if (
+                newComponent.componentType === "evaluate" &&
+                unresolved_path === null
+            ) {
+                const evalResult = convertEvaluate({
+                    evaluateComponent: newComponent,
+                    refResolution,
+                    nComponents,
+                });
+
+                nComponents = evalResult.nComponents;
+                newComponents.push(evalResult.newComponent);
+                continue;
+            }
+
+            // If the reference was is an Attribute or we are extending an evaluate with no extra path
             // then we know the resulting componentType
             const componentTypeDetermined =
                 "Attribute" in newComponent.extending;
@@ -201,4 +220,63 @@ export function convertRefsToCopies({
     }
 
     return { components: newComponents, nComponents };
+}
+
+/**
+ * Convert evaluate component to the serialized component
+ * format needed for the javascript core
+ */
+function convertEvaluate({
+    evaluateComponent,
+    refResolution,
+    nComponents,
+}: {
+    evaluateComponent: SerializedComponent;
+    refResolution: SerializedRefResolution;
+    nComponents: number;
+}) {
+    // The function to evaluate is an attribute
+    evaluateComponent.attributes.function = {
+        type: "component",
+        name: "function",
+        component: {
+            type: "serialized",
+            componentType: "function",
+            componentIdx: nComponents++,
+            attributes: {},
+            state: {},
+            doenetAttributes: {},
+            children: [
+                {
+                    type: "serialized",
+                    componentType: "copy",
+                    componentIdx: nComponents++,
+                    children: [],
+                    attributes: {},
+                    doenetAttributes: { extendIdx: refResolution.node_idx },
+                    state: {},
+                    extending: evaluateComponent.extending,
+                },
+            ],
+        },
+    };
+
+    delete evaluateComponent.extending;
+
+    // The input children become a mathList given to the input attribute
+    const list = { ...(evaluateComponent.children[0] as SerializedComponent) };
+    list.componentType = "mathList";
+    list.children = list.children.map((child) => {
+        const mathChild = child as SerializedComponent;
+        mathChild.componentType = "math";
+        return mathChild;
+    });
+    evaluateComponent.attributes.input = {
+        type: "component",
+        name: "input",
+        component: list,
+    };
+    evaluateComponent.children = [];
+
+    return { newComponent: evaluateComponent, nComponents };
 }
