@@ -28,6 +28,7 @@ export function convertToErrorComponent(
         state: { message },
         children: [],
         attributes: {},
+        doenetAttributes: {},
     };
 
     if (component.attributes.name) {
@@ -42,7 +43,10 @@ export function convertToErrorComponent(
                 nameAttribute = {
                     type: "primitive",
                     name: "name",
-                    primitive: component.attributes.name.children[0],
+                    primitive: {
+                        type: "string",
+                        value: component.attributes.name.children[0],
+                    },
                 };
             }
         }

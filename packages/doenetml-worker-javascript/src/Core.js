@@ -2672,7 +2672,7 @@ export default class Core {
                 foundCircular = true;
                 let message = "Circular dependency detected";
                 if (component.attributes.createComponentOfType?.primitive) {
-                    message += ` involving <${component.attributes.createComponentOfType.primitive}> component`;
+                    message += ` involving <${component.attributes.createComponentOfType.primitive.value}> component`;
                 }
                 message += ".";
                 serializedReplacements = [
@@ -2972,14 +2972,14 @@ export default class Core {
 
                     if (child.attributes.numComponents) {
                         numComponents =
-                            child.attributes.numComponents.primitive;
+                            child.attributes.numComponents.primitive.value;
                     } else {
                         numComponents = 1;
                     }
 
                     let componentType =
                         this.componentInfoObjects.componentTypeLowerCaseMapping[
-                            child.attributes.createComponentOfType.primitive.toLowerCase()
+                            child.attributes.createComponentOfType.primitive.value.toLowerCase()
                         ];
                     replacements = [];
 
@@ -9037,7 +9037,7 @@ export default class Core {
             }
         }
 
-        for (let compositeIdxStr of replacementsDeletedFromComposites) {
+        for (const compositeIdxStr of replacementsDeletedFromComposites) {
             if (!(compositeIdxStr in componentsToDelete)) {
                 await this.dependencies.addBlockersFromChangedReplacements(
                     this._components[compositeIdxStr],
@@ -9047,10 +9047,10 @@ export default class Core {
 
         // delete component from parent's defining children
         // and record parents
-        let allParents = [];
-        for (let parentIdxStr in parentsOfPotentiallyDeleted) {
-            let parentObj = parentsOfPotentiallyDeleted[parentIdxStr];
-            let parent = parentObj.parent;
+        const allParents = [];
+        for (const parentIdxStr in parentsOfPotentiallyDeleted) {
+            const parentObj = parentsOfPotentiallyDeleted[parentIdxStr];
+            const parent = parentObj.parent;
             allParents.push(parent);
 
             // if (parent.activeChildren) {
@@ -9062,7 +9062,7 @@ export default class Core {
                 ind >= 0;
                 ind--
             ) {
-                let child = parent.definingChildren[ind];
+                const child = parent.definingChildren[ind];
                 if (parentObj.childNamesToBeDeleted.has(child.componentIdx)) {
                     parent.definingChildren.splice(ind, 1); // delete from array
                 }
@@ -9080,10 +9080,10 @@ export default class Core {
 
         for (const componentIdxStr in componentsToDelete) {
             const componentIdx = Number(componentIdxStr);
-            let component = this._components[componentIdx];
+            const component = this._components[componentIdx];
 
             if (component.shadows) {
-                let shadowedComponent =
+                const shadowedComponent =
                     this._components[component.shadows.componentIdx];
                 if (shadowedComponent.shadowedBy.length === 1) {
                     delete shadowedComponent.shadowedBy;
@@ -10322,6 +10322,7 @@ export default class Core {
 
                 nextUpdateInfo.resolve(result);
             } catch (e) {
+                console.error(e);
                 nextUpdateInfo.reject(
                     typeof e === "object" &&
                         e &&
@@ -10368,6 +10369,7 @@ export default class Core {
             // For now, co-opting the action mechanism to let the viewer set the theme (dark mode) on document.
             // Don't have an actual action on document as don't want the ability for others to call it.
             // Theme doesn't affect the colors displayed, only the words in the styleDescriptions.
+            try {
             await this.performUpdate({
                 updateInstructions: [
                     {
@@ -10380,6 +10382,11 @@ export default class Core {
                 actionId: args.actionId,
                 doNotSave: true, // this isn't an interaction, so don't save doc state
             });
+            } catch (e) {
+                console.error(e);
+                throw e;
+            }
+
             return { actionId: args.actionId };
         }
 

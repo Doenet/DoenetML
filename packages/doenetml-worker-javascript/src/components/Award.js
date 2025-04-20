@@ -161,7 +161,7 @@ export default class Award extends BaseComponent {
         componentIdx,
     }) {
         if (attributes.sourcesAreResponses) {
-            let targetNames = attributes.sourcesAreResponses.primitive
+            let targetNames = attributes.sourcesAreResponses.primitive.value
                 .split(/\s+/)
                 .filter((s) => s);
 

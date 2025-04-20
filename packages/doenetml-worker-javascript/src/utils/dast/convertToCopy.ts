@@ -67,7 +67,10 @@ export function convertRefsToCopies({
                 outerAttributes.createComponentOfType = {
                     type: "primitive",
                     name: "createComponentOfType",
-                    primitive: newComponent.componentType,
+                    primitive: {
+                        type: "string",
+                        value: newComponent.componentType,
+                    },
                 };
             }
 
@@ -102,6 +105,7 @@ export function convertRefsToCopies({
                             componentIdx: nComponents++,
                             children,
                             attributes: {},
+                            doenetAttributes: {},
                             state: {},
                             position: unresolved_path[0].index[0].position,
                         },
@@ -134,7 +138,10 @@ export function convertRefsToCopies({
                         newComponent.attributes.prop = {
                             type: "primitive",
                             name: "prop",
-                            primitive: path_part.name,
+                            primitive: {
+                                type: "string",
+                                value: path_part.name,
+                            },
                         };
 
                         if (path_part.index.length > 0) {
@@ -153,6 +160,7 @@ export function convertRefsToCopies({
                                     componentType: "numberList",
                                     componentIdx: nComponents++,
                                     attributes: {},
+                                    doenetAttributes: {},
                                     state: {},
                                     position: path_part.position,
                                     children: path_part.index.map((index) => {
@@ -168,6 +176,7 @@ export function convertRefsToCopies({
                                             componentType: "number",
                                             componentIdx: nComponents++,
                                             attributes: {},
+                                            doenetAttributes: {},
                                             children,
                                             state: {},
                                             position: index.position,

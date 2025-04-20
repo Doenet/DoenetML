@@ -316,7 +316,7 @@ export default class SelectFromSequence extends Sequence {
         let numToSelect = 1,
             withReplacement = false;
 
-        let sequenceType = serializedComponent.attributes.type.primitive;
+        let sequenceType = serializedComponent.attributes.type.primitive.value;
 
         let numToSelectComponent =
             serializedComponent.attributes.numToSelect?.component;

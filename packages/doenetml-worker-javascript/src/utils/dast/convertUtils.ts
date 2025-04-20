@@ -85,9 +85,9 @@ export function decodeXMLEntities(
                         attribute.component,
                     ])[0] as SerializedComponent;
                 } else if (attribute.type === "primitive") {
-                    if (typeof attribute.primitive === "string") {
-                        attribute.primitive = replaceEntities(
-                            attribute.primitive,
+                    if (attribute.primitive.type === "string") {
+                        attribute.primitive.value = replaceEntities(
+                            attribute.primitive.value,
                         );
                     }
                 } else {

@@ -359,7 +359,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         componentInfoObjects,
     }) {
         let variantDeterminesSeed =
-            serializedComponent.attributes.variantDeterminesSeed.primitive;
+            serializedComponent.attributes.variantDeterminesSeed.primitive
+                .value;
 
         if (variantDeterminesSeed) {
             return { success: false };

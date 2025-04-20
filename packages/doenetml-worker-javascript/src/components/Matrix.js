@@ -77,19 +77,20 @@ export default class Matrix extends MathComponent {
                     child.componentType = "matrixRow";
                     foundRowsOrColumns = true;
                 } else if (
-                    child.attributes?.createComponentOfType?.primitive ===
+                    child.attributes?.createComponentOfType?.primitive.value ===
                     "column"
                 ) {
                     child.doenetAttributes.createNameFromComponentType =
                         "column";
-                    child.attributes.createComponentOfType.primitive =
+                    child.attributes.createComponentOfType.primitive.value =
                         "matrixColumn";
                     foundRowsOrColumns = true;
                 } else if (
-                    child.attributes?.createComponentOfType?.primitive === "row"
+                    child.attributes?.createComponentOfType?.primitive.value ===
+                    "row"
                 ) {
                     child.doenetAttributes.createNameFromComponentType = "row";
-                    child.attributes.createComponentOfType.primitive =
+                    child.attributes.createComponentOfType.primitive.value =
                         "matrixRow";
                     foundRowsOrColumns = true;
                 }

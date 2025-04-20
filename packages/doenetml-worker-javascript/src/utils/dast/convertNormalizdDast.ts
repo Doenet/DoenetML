@@ -27,6 +27,7 @@ import { convertToErrorComponent } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
+import { breakStringInPiecesBySpacesOrParens } from "../assignNames";
 
 /**
  * Transform the normalized dast into the serialized components used
@@ -791,7 +792,7 @@ function createPrimitiveFromAttribute({
         if (attrDef.valueForTrue !== undefined) {
             return attrDef.valueForTrue;
         } else if (attrDef.createPrimitiveOfType === "boolean") {
-            return true;
+            return { type: "boolean", value: true };
         } else {
             throw Error(`Invalid empty attribute ${attribute.name}`);
         }
@@ -812,18 +813,38 @@ function createPrimitiveFromAttribute({
             ) {
                 return attrDef.valueForFalse;
             } else if (attrDef.createPrimitiveOfType === "boolean") {
-                return valueTrimLower === "true";
+                return { type: "boolean", value: valueTrimLower === "true" };
             } else if (attrDef.createPrimitiveOfType === "number") {
-                return Number(firstChild);
+                return { type: "number", value: Number(firstChild) };
             } else if (attrDef.createPrimitiveOfType === "integer") {
-                return Math.round(Number(firstChild));
-            } else if (attrDef.createPrimitiveOfType === "stringArray") {
-                return firstChild.trim().split(/\s+/);
+                return {
+                    type: "number",
+                    value: Math.round(Number(firstChild)),
+                };
             } else if (attrDef.createPrimitiveOfType === "numberArray") {
-                return firstChild.trim().split(/\s+/).map(Number);
+                return {
+                    type: "numberArray",
+                    value: firstChild.trim().split(/\s+/).map(Number),
+                };
+            } else if (attrDef.createPrimitiveOfType === "stringArray") {
+                return {
+                    type: "stringArray",
+                    value: firstChild.trim().split(/\s+/),
+                };
+            } else if (
+                attrDef.createPrimitiveOfType === "recursiveStringArray"
+            ) {
+                const result = breakStringInPiecesBySpacesOrParens(firstChild);
+                if (!result.success) {
+                    throw Error("Invalid format for assignNames");
+                }
+                return {
+                    type: "recursiveStringArray",
+                    value: result.pieces,
+                };
             } else {
                 // else assume string
-                return firstChild;
+                return { type: "string", value: firstChild };
             }
         }
     }

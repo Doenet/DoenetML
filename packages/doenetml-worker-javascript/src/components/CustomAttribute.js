@@ -97,14 +97,14 @@ export default class CustomAttribute extends CompositeComponent {
 
         let componentType =
             componentInfoObjects.componentTypeLowerCaseMapping[
-                component.attributes.componentType.primitive.toLowerCase()
+                component.attributes.componentType.primitive.value.toLowerCase()
             ];
         let componentClass =
             componentInfoObjects.allComponentClasses[componentType];
 
         if (!componentClass) {
             warnings.push({
-                message: `<customAttribute> contains an invalid component type: <${component.attributes.componentType.primitive}>.`,
+                message: `<customAttribute> contains an invalid component type: <${component.attributes.componentType.primitive.value}>.`,
                 level: 1,
             });
             return { replacements: [], errors, warnings };

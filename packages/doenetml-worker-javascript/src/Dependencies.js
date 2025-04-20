@@ -5532,7 +5532,7 @@ class DescendantDependency extends Dependency {
                 let placeholderType =
                     this.dependencyHandler.componentInfoObjects
                         .componentTypeLowerCaseMapping[
-                        composite.attributes.createComponentOfType.primitive.toLowerCase()
+                        composite.attributes.createComponentOfType.primitive.value.toLowerCase()
                     ];
 
                 let matches = this.componentTypes.some((ct) =>
@@ -8261,7 +8261,7 @@ class AttributePrimitiveDependency extends StateVariableDependency {
             if (parent) {
                 value = parent.attributes[this.attributeName];
                 if (value) {
-                    value = value.primitive;
+                    value = value.primitive.value;
                 } else {
                     value = null;
                 }

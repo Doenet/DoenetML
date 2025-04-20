@@ -14,7 +14,7 @@ export type SerializedComponent = {
     extending?: Source<SerializedRefResolution>;
     state: Record<string, any>;
     skipSugar?: boolean;
-    doenetAttributes?: Record<string, any>; // TODO: remove doenetAttributes?
+    doenetAttributes: Record<string, any>; // TODO: remove doenetAttributes?
 };
 
 export function isSerializedComponent(
@@ -58,24 +58,46 @@ export interface SerializedPathIndex {
     position?: Position;
 }
 
+export type RecursiveStringArray = (string | RecursiveStringArray)[];
+
+function isRecursiveStringArray(obj: unknown): obj is RecursiveStringArray {
+    return (
+        Array.isArray(obj) &&
+        obj.every(
+            (val) => typeof val === "string" || isRecursiveStringArray(val),
+        )
+    );
+}
+
 /** The allowable data types for primitive attributes */
 export type PrimitiveAttributeValue =
-    | string
-    | boolean
-    | number
-    | string[]
-    | number[];
+    | { type: "string"; value: string }
+    | { type: "boolean"; value: boolean }
+    | { type: "number"; value: number }
+    | { type: "numberArray"; value: number[] }
+    | { type: "stringArray"; value: string[] }
+    | { type: "recursiveStringArray"; value: RecursiveStringArray };
 
 export function isPrimitiveAttributeValue(
     obj: unknown,
 ): obj is PrimitiveAttributeValue {
+    const typedObj = obj as PrimitiveAttributeValue;
     return (
-        typeof obj === "string" ||
-        typeof obj === "boolean" ||
-        typeof obj === "number" ||
-        (Array.isArray(obj) &&
-            (obj.every((v) => typeof v === "string") ||
-                obj.every((v) => typeof v === "number")))
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        ((typedObj.type === "string" && typeof typedObj.value === "string") ||
+            (typedObj.type === "boolean" &&
+                typeof typedObj.value === "boolean") ||
+            (typedObj.type === "number" &&
+                typeof typedObj.value === "number") ||
+            (typedObj.type === "numberArray" &&
+                Array.isArray(typedObj.value) &&
+                typedObj.value.every((val) => typeof val === "number")) ||
+            (typedObj.type === "stringArray" &&
+                Array.isArray(typedObj.value) &&
+                typedObj.value.every((val) => typeof val === "string")) ||
+            (typedObj.type === "recursiveStringArray" &&
+                isRecursiveStringArray(typedObj.value)))
     );
 }
 

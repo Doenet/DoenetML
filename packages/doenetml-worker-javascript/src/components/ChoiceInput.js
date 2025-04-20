@@ -1513,7 +1513,7 @@ export default class Choiceinput extends Input {
         serializedComponent,
         componentInfoObjects,
     }) {
-        if (!serializedComponent.attributes?.shuffleOrder?.primitive) {
+        if (!serializedComponent.attributes?.shuffleOrder?.primitive.value) {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
@@ -1531,14 +1531,14 @@ export default class Choiceinput extends Input {
                         inheritedComponentType: child.componentType,
                         baseComponentType: "_composite",
                     }) &&
-                    child.attributes.createComponentOfType?.primitive ===
+                    child.attributes.createComponentOfType?.primitive.value ===
                         "choice"
                 ) {
                     if (
                         child.attributes.numComponents?.primitive !== undefined
                     ) {
                         let newChoices = Number(
-                            child.attributes.numComponents?.primitive,
+                            child.attributes.numComponents?.primitive.value,
                         );
                         if (Number.isInteger(newChoices) && newChoices >= 0) {
                             numChoices += newChoices;
@@ -1601,7 +1601,7 @@ export default class Choiceinput extends Input {
             return { success: false };
         }
 
-        if (!serializedComponent.attributes.shuffleOrder?.primitive) {
+        if (!serializedComponent.attributes.shuffleOrder?.primitive.value) {
             return super.getUniqueVariant({
                 serializedComponent,
                 variantIndex,

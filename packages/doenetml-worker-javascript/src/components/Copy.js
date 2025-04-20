@@ -1311,7 +1311,7 @@ export default class Copy extends CompositeComponent {
 
                 let componentType =
                     componentInfoObjects.componentTypeLowerCaseMapping[
-                        component.attributes.createComponentOfType.primitive.toLowerCase()
+                        component.attributes.createComponentOfType.primitive.value.toLowerCase()
                     ];
 
                 let componentClass =
@@ -1639,7 +1639,7 @@ export default class Copy extends CompositeComponent {
         } catch (e) {
             let message = "Circular dependency detected";
             if (component.attributes.createComponentOfType?.primitive) {
-                message += ` involving <${component.attributes.createComponentOfType.primitive}> component`;
+                message += ` involving <${component.attributes.createComponentOfType.primitive.value}> component`;
             }
             message += ".";
             serializedReplacements = [
@@ -2836,7 +2836,7 @@ export async function replacementFromProp({
                                             primitive: JSON.parse(
                                                 JSON.stringify(
                                                     target.attributes[attrName]
-                                                        .primitive,
+                                                        .primitive.value,
                                                 ),
                                             ),
                                         };
@@ -3163,7 +3163,7 @@ export async function replacementFromProp({
                                                         JSON.stringify(
                                                             target.attributes[
                                                                 attrName
-                                                            ].primitive,
+                                                            ].primitive.value,
                                                         ),
                                                     ),
                                                 };
@@ -3695,7 +3695,7 @@ export async function replacementFromProp({
                                     primitive: JSON.parse(
                                         JSON.stringify(
                                             target.attributes[attrName]
-                                                .primitive,
+                                                .primitive.value,
                                         ),
                                     ),
                                 };

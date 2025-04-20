@@ -49,12 +49,12 @@ export function postProcessCopy({
                 if (component.attributes) {
                     if (component.attributes.alias) {
                         activeAliases.push(
-                            component.attributes.alias.primitive,
+                            component.attributes.alias.primitive.value,
                         );
                     }
                     if (component.attributes.indexAlias) {
                         activeAliases.push(
-                            component.attributes.indexAlias.primitive,
+                            component.attributes.indexAlias.primitive.value,
                         );
                     }
                 }
@@ -423,7 +423,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     }
 
     let requiredComponentType =
-        component.attributes.createComponentOfType?.primitive;
+        component.attributes.createComponentOfType?.primitive.value;
 
     let requiredLength = await component.stateValues.numComponentsSpecified;
 
@@ -861,7 +861,7 @@ export function restrictTNamesToNamespace({
             let namespaceForChildren = parentNamespace;
             if (
                 component.attributes &&
-                component.attributes.newNamespace?.primitive
+                component.attributes.newNamespace?.primitive.value
             ) {
                 namespaceForChildren = component.componentIdx;
             }
