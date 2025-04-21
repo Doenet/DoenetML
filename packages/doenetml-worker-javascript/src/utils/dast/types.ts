@@ -14,6 +14,7 @@ export type SerializedComponent = {
     extending?: Source<SerializedRefResolution>;
     state: Record<string, any>;
     skipSugar?: boolean;
+    preSugarInd?: number;
     doenetAttributes: Record<string, any>; // TODO: remove doenetAttributes?
 };
 

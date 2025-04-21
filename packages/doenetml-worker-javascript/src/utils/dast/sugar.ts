@@ -8,7 +8,6 @@ import {
     SerializedComponent,
     WarningRecord,
 } from "./types";
-import { findPreSugarIndsAndMarkFromSugar } from "../expandDoenetML";
 import {
     isUnflattenedAttribute,
     isUnflattenedComponent,
@@ -99,11 +98,8 @@ export function applySugar({
                         }
                     }
 
-                    let matchedChildren = deepClone(
-                        component.children,
-                        undefined,
-                        undefined,
-                    );
+                    let matchedChildren: (string | SerializedComponent)[] =
+                        deepClone(component.children, undefined, undefined);
 
                     let nNonStrings = 0;
                     for (let child of matchedChildren) {
@@ -114,10 +110,7 @@ export function applySugar({
                     }
 
                     let createdFromMacro = false;
-                    if (
-                        component.doenetAttributes &&
-                        component.doenetAttributes.createdFromMacro
-                    ) {
+                    if (component.doenetAttributes.createdFromMacro) {
                         createdFromMacro = true;
                     }
 
@@ -155,11 +148,10 @@ export function applySugar({
                         let newChildren = sugarResults.newChildren;
                         let newAttributes = sugarResults.newAttributes;
 
-                        let preSugarIndsFoundInChildren = [],
-                            preSugarIndsFoundInAttributes = [];
+                        let preSugarIndsFoundInChildren: number[] = [];
+                        let preSugarIndsFoundInAttributes: number[] = [];
 
                         if (newChildren) {
-                            // TODO: convert findPreSugarIndsAndMarkFromSugar
                             preSugarIndsFoundInChildren =
                                 findPreSugarIndsAndMarkFromSugar(newChildren);
                         }
@@ -325,11 +317,11 @@ export function applySugar({
             warnings.push(...res.warnings);
             nComponents = res.nComponents;
 
-            for (let attrName in newComponent.attributes) {
-                let attribute = newComponent.attributes[attrName];
+            for (const attrName in newComponent.attributes) {
+                const attribute = newComponent.attributes[attrName];
 
                 if (attribute.type === "component") {
-                    let res = applySugar({
+                    const res = applySugar({
                         serializedComponents: [attribute.component],
                         parentAttributes: componentAttributes,
                         componentInfoObjects,
@@ -357,4 +349,36 @@ export function applySugar({
     }
 
     return { errors, warnings, components: newComponents, nComponents };
+}
+
+/**
+ * Aggregate all `preSugarInd`s from `components` and return the result.
+ * Also mark all components as `createdFromSugar`
+ *
+ */
+export function findPreSugarIndsAndMarkFromSugar(
+    components: (SerializedComponent | string)[],
+) {
+    const preSugarIndsFound: number[] = [];
+    for (const component of components) {
+        if (typeof component !== "object") {
+            continue;
+        }
+        if (component.preSugarInd !== undefined) {
+            preSugarIndsFound.push(component.preSugarInd);
+        } else {
+            if (!component.doenetAttributes) {
+                component.doenetAttributes = {};
+            }
+            component.doenetAttributes.createdFromSugar = true;
+            if (component.children) {
+                const inds = findPreSugarIndsAndMarkFromSugar(
+                    component.children,
+                );
+                preSugarIndsFound.push(...inds);
+            }
+        }
+    }
+
+    return preSugarIndsFound;
 }

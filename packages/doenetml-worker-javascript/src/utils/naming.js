@@ -1,77 +1,8 @@
 import { createUniqueName, flattenDeep } from "@doenet/utils";
 import { convertToErrorComponent } from "./dast/errors";
+import { breakStringInPiecesBySpacesOrParens } from "./assignNames";
 
-function breakStringInPiecesBySpacesOrParens(string) {
-    if (typeof string !== "string") {
-        return { success: false };
-    }
-
-    let Nparens = 0;
-    let pieces = [];
-
-    string = string.trim();
-    let beginInd = 0;
-
-    for (let ind = 0; ind < string.length; ind++) {
-        let char = string[ind];
-        if (char === "(") {
-            if (Nparens === 0) {
-                // beginning new parens piece
-                // what have so far is a new piece
-                let newPiece = string.substring(beginInd, ind).trim();
-                if (newPiece.length > 0) {
-                    pieces.push(newPiece);
-                }
-                beginInd = ind;
-            }
-
-            Nparens++;
-        } else if (char === ")") {
-            if (Nparens === 0) {
-                // parens didn't match, so return failure
-                return { success: false };
-            }
-            if (Nparens === 1) {
-                // found end of piece in parens
-                let newPiece = string.substring(beginInd + 1, ind).trim();
-                if (newPiece.length > 0) {
-                    // try to break further
-                    let result = breakStringInPiecesBySpacesOrParens(newPiece);
-                    if (result.success === true) {
-                        pieces.push(result.pieces);
-                    } else {
-                        pieces.push(newPiece);
-                    }
-                }
-                beginInd = ind + 1;
-            }
-            Nparens--;
-        } else if (Nparens === 0 && char.match(/\s/)) {
-            // not in parens and found a space so potentially have a new piece
-            let newPiece = string.substring(beginInd, ind).trim();
-            if (newPiece.length > 0) {
-                pieces.push(newPiece);
-            }
-            beginInd = ind;
-        }
-    }
-
-    // parens didn't match, so return failure
-    if (Nparens !== 0) {
-        return { success: false };
-    }
-
-    let newPiece = string.substring(beginInd, string.length).trim();
-    if (newPiece.length > 0) {
-        pieces.push(newPiece);
-    }
-
-    return {
-        success: true,
-        pieces: pieces,
-    };
-}
-
+// XXX: goal is to delete this function if we can remove its use
 export function createComponentNames({
     serializedComponents,
     namespaceStack = [],
@@ -931,6 +862,7 @@ export function createComponentNames({
     return { errors, warnings };
 }
 
+// XXX: delete
 function createNewAssignNamesAndrenameMatchingTargetNames({
     originalAssignNames,
     longNameIdBase,
@@ -973,6 +905,7 @@ function createNewAssignNamesAndrenameMatchingTargetNames({
     return assignNames;
 }
 
+// XXX: can we delete this?
 function convertComponentTarget({
     relativeName,
     oldAbsoluteName,
@@ -1040,6 +973,7 @@ function convertComponentTarget({
 // - shadowingComposite: If false, there is apparently some case where we have to create unique names
 //   TODO: figure out the circumstances where this special case occurs
 
+// XXX: goal is to delete this and replace it will the minimal `assignNamesToComponents` function
 export function processAssignNames({
     assignNames = [],
     assignNamesForCompositeReplacement,
@@ -1345,6 +1279,7 @@ export function processAssignNames({
     };
 }
 
+// XXX: delete almost all of this (might need to record target name part)
 function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
     namespace,
     components,
@@ -1432,6 +1367,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
     }
 }
 
+// XXX: we'll probably need this feature
 function renameMatchingTargetNames(
     component,
     attributesByTargetComponentName,
@@ -1516,6 +1452,7 @@ function moveComponentIdxToOriginalIdx(components) {
     }
 }
 
+// XXX: delete
 export function markToCreateAllUniqueNames(components) {
     for (let component of components) {
         if (typeof component !== "object") {
@@ -1559,6 +1496,7 @@ export function markToCreateAllUniqueNames(components) {
     }
 }
 
+// XXX: delete
 export function setTNamesToAbsolute(components) {
     for (let component of components) {
         if (component.doenetAttributes && component.doenetAttributes.target) {
