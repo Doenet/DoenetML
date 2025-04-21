@@ -161,6 +161,24 @@ impl Resolver {
     /// Return the referent of `name`.
     fn search_parents(&self, name: &str, origin: Index) -> Result<Index, ResolutionError> {
         let mut current_idx = origin;
+
+        // if passed in a node without a parent, then search from that node itself
+        // TODO: don't duplicate code with case where have parent, below
+        if self.node_parent[current_idx].is_none() {
+            if let Some(resolved) = self.name_map[current_idx].get(name) {
+                match resolved {
+                    Ref::Unique(idx) => {
+                        return Ok(*idx);
+                    }
+                    Ref::Ambiguous(_) => {
+                        return Err(ResolutionError::NonUniqueReferent);
+                    }
+                }
+            }
+
+            return Err(ResolutionError::NoReferent);
+        }
+
         while let Some(parent) = self.node_parent[current_idx] {
             if let Some(resolved) = self.name_map[parent].get(name) {
                 match resolved {

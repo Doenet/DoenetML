@@ -114,6 +114,8 @@ export function applySugar({
                         createdFromMacro = true;
                     }
 
+                    console.log("nComponents1", nComponents);
+
                     let sugarResults = sugarInstruction.replacementFunction({
                         matchedChildren,
                         parentParametersFromSugar,

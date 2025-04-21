@@ -110,8 +110,11 @@ export default class MathList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren }) {
-                return groupIntoMathsSeparatedBySpaces({ matchedChildren });
+            replacementFunction: function ({ matchedChildren, nComponents }) {
+                return groupIntoMathsSeparatedBySpaces({
+                    matchedChildren,
+                    nComponents,
+                });
             },
         });
 
@@ -551,6 +554,7 @@ export default class MathList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -602,8 +606,12 @@ export default class MathList extends CompositeComponent {
                 }
             }
             replacements.push({
+                type: "serialized",
                 componentType: "math",
+                componentIdx: nComponents++,
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                doenetAttributes: {},
+                children: [],
                 downstreamDependencies: {
                     [component.componentIdx]: [
                         {
@@ -632,6 +640,7 @@ export default class MathList extends CompositeComponent {
             replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 

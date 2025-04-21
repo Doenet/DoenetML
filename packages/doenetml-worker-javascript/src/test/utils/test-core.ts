@@ -5,6 +5,7 @@ import path from "path";
 import init, {
     PublicDoenetMLCore as PublicDoenetMLCoreRust,
     DastRoot as DastRootInCore,
+    PathToCheck,
 } from "lib-doenetml-worker";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 
@@ -109,5 +110,24 @@ export async function createTestCore({
         throw Error(dastResult.errMsg);
     }
 
-    return { core, rustCore };
+    function resolveComponentName(name: string, origin = 0) {
+        const path: PathToCheck = {
+            path: [{ type: "flatPathPart", name, index: [] }],
+        };
+        try {
+            const resolution = PublicDoenetMLCoreRust.resolve_path(
+                resolver,
+                path,
+                origin,
+            );
+            return {
+                success: true as const,
+                componentIdx: resolution.node_idx,
+            };
+        } catch (_e) {
+            return { success: false as const };
+        }
+    }
+
+    return { core, rustCore, resolveComponentName };
 }

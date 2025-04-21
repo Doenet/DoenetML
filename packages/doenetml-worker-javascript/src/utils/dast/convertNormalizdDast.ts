@@ -169,6 +169,12 @@ export async function normalizedDastToSerializedComponents(
 
     expandedRoot = decodeXMLEntities(expandedRoot);
 
+    console.log(
+        "before apply sugar",
+        // JSON.parse(JSON.stringify(expandedRoot)),
+        nComponents,
+    );
+
     const sugarResult = applySugar({
         serializedComponents: expandedRoot,
         componentInfoObjects,
@@ -178,11 +184,23 @@ export async function normalizedDastToSerializedComponents(
     warnings.push(...sugarResult.warnings);
     nComponents = sugarResult.nComponents;
 
+    // console.log(
+    //     "before create copies",
+    //     JSON.parse(JSON.stringify(sugarResult.components)),
+    //     nComponents,
+    // );
+
     const convertToCopyResult = convertRefsToCopies({
         serializedComponents: sugarResult.components,
         nComponents,
     });
     nComponents = convertToCopyResult.nComponents;
+
+    // console.log(
+    //     "after create copies",
+    //     convertToCopyResult.components,
+    //     nComponents,
+    // );
 
     return {
         document: convertToCopyResult.components[0] as SerializedComponent,
