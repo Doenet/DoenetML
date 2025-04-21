@@ -9,11 +9,13 @@ use std::{collections::HashMap, iter, mem};
 use crate::dast::flat_dast::{FlatNode, UntaggedContent};
 
 use super::flat_dast::{FlatPathPart, FlatRoot, Index};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tsify_next::Tsify;
 
-#[derive(Clone, Debug, Error, PartialEq)]
+#[derive(Clone, Debug, Serialize, Error, PartialEq)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 pub enum ResolutionError {
     #[error("No node identified by path")]
     NoReferent,
@@ -24,13 +26,14 @@ pub enum ResolutionError {
 #[derive(Clone, Debug, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 pub struct RefResolution {
     pub node_idx: Index,
     pub unresolved_path: Option<Vec<FlatPathPart>>,
 }
 
 /// Status of a pointer referring to children of an element.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 enum Ref {
     Unique(Index),
     Ambiguous(Vec<Index>),
@@ -39,7 +42,9 @@ enum Ref {
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
 /// recreated.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct Resolver {
     /// List of the parent of a node at a given index.
     node_parent: Vec<Option<Index>>,

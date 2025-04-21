@@ -2,7 +2,7 @@
 //! element/ref/etc. nodes are replaced with untagged references to their location in the nodes list.
 //! `UntaggedFlatDast` allows elements to change type without having to find all places where they are referenced.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tsify_next::{declare, Tsify};
 
 use super::{
@@ -15,7 +15,7 @@ pub use super::parent_iterator::ParentIterator;
 #[declare]
 pub type Index = usize;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 #[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -135,11 +135,12 @@ impl FlatError {
 }
 
 /// A part of a ref path
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
 #[serde(tag = "type")]
 #[serde(rename = "flatPathPart")]
 #[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 pub struct FlatPathPart {
     pub name: String,
     pub index: Vec<FlatIndex>,
@@ -149,7 +150,7 @@ pub struct FlatPathPart {
 }
 
 /// An index into a ref path
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatIndex {

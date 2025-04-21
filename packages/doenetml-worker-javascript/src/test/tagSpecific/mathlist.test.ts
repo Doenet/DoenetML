@@ -5,6 +5,11 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import {
+    PublicDoenetMLCore as PublicDoenetMLCoreRust,
+    PathToCheck,
+    DastRoot as DastRootInCore,
+} from "lib-doenetml-worker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -13,32 +18,61 @@ vi.mock("hyperformula");
 describe("MathList tag tests", async () => {
     async function test_mathList({
         core,
+        rustCore,
         name,
         pName,
         text,
         maths,
     }: {
         core: PublicDoenetMLCore;
+        rustCore: PublicDoenetMLCoreRust;
         name?: string;
         pName?: string;
         text?: string;
         maths?: any[];
     }) {
+        if (!core.resolver) {
+            throw Error("No core resolver");
+        }
         const stateVariables = await core.returnAllStateVariables(false, true);
 
+        // console.log(stateVariables);
+
+        console.log({ text, pName, name });
+
         if (text !== undefined && pName !== undefined) {
+            const path: PathToCheck = {
+                path: [{ type: "flatPathPart", name: pName, index: [] }],
+            };
+            const resolveP = PublicDoenetMLCoreRust.resolve_path(
+                core.resolver,
+                path,
+                0,
+            );
+            console.log(`resolve for ${pName}`, resolveP);
             expect(stateVariables[pName].stateValues.text).eq(text);
         }
 
-        if (maths !== undefined && name !== undefined) {
+        if (maths !== undefined && name !== undefined && core.resolver) {
+            const path: PathToCheck = {
+                path: [{ type: "flatPathPart", name, index: [] }],
+            };
+            const resolveP = PublicDoenetMLCoreRust.resolve_path(
+                core.resolver,
+                path,
+                0,
+            );
+
+            console.log(`resolve for ${name}`, resolveP);
+
             expect(
                 stateVariables[name].stateValues.maths.map((x) => x.tree),
             ).eqls(maths);
         }
     }
 
-    it("mathList from string", async () => {
-        let core = await createTestCore({
+    it.only("mathList from string", async () => {
+        let { core, rustCore } = await createTestCore({
             doenetML: `
     <p name="p"><mathList name="ml1">a 1+1 </mathList></p>
     `,
@@ -46,8 +80,9 @@ describe("MathList tag tests", async () => {
 
         await test_mathList({
             core,
-            name: "/ml1",
-            pName: "/p",
+            rustCore,
+            name: "ml1",
+            pName: "p",
             text: "a, 1 + 1",
             maths: ["a", ["+", 1, 1]],
         });

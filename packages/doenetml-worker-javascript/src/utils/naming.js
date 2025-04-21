@@ -1279,7 +1279,7 @@ export function processAssignNames({
     };
 }
 
-// XXX: delete almost all of this (might need to record target name part)
+// XXX: delete almost all of this (might need to rework target name part)
 function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
     namespace,
     components,

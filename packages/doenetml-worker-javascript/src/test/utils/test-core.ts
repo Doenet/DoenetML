@@ -1,4 +1,12 @@
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import fs from "node:fs";
+import path from "path";
+
+import init, {
+    PublicDoenetMLCore as PublicDoenetMLCoreRust,
+    DastRoot as DastRootInCore,
+} from "lib-doenetml-worker";
+import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 
 type DoenetMLFlags = {
     showCorrectness: boolean;
@@ -49,6 +57,22 @@ export async function createTestCore({
         allowView: boolean;
     }>;
 }) {
+    const wasmBuffer = fs.readFileSync(
+        path.resolve(
+            __dirname,
+            "../../../../doenetml-worker/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
+        ),
+    );
+
+    await init(wasmBuffer);
+
+    const rustCore = PublicDoenetMLCoreRust.new();
+
+    const dast = normalizeDocumentDast(lezerToDast(doenetML), true);
+    rustCore.set_source(dast as DastRootInCore, doenetML);
+
+    let { normalizedRoot, resolver } = rustCore.return_normalized_dast_root();
+
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
     const core = new PublicDoenetMLCore();
@@ -61,6 +85,8 @@ export async function createTestCore({
         docId: "1",
         requestedVariantIndex,
         attemptNumber: 1,
+        normalizedRoot,
+        resolver,
     });
 
     const dastResult = await core.createCoreGenerateDast(
@@ -83,5 +109,5 @@ export async function createTestCore({
         throw Error(dastResult.errMsg);
     }
 
-    return core;
+    return { core, rustCore };
 }

@@ -184,12 +184,6 @@ export async function normalizedDastToSerializedComponents(
     });
     nComponents = convertToCopyResult.nComponents;
 
-    console.log(
-        "after create copies",
-        convertToCopyResult.components,
-        nComponents,
-    );
-
     return {
         document: convertToCopyResult.components[0] as SerializedComponent,
         errors,

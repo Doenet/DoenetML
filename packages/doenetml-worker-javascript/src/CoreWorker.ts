@@ -2,7 +2,7 @@ import Core from "./Core";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
-import { NormalizedRoot } from "@doenet/doenetml-worker";
+import { NormalizedRoot, Resolver } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizdDast";
 
 // Type signatures for callbacks
@@ -57,6 +57,7 @@ export class PublicDoenetMLCore {
     initializeResult?: { success: boolean; errMsg?: string };
     doenetML = "";
     flags: Record<string, unknown> = {};
+    resolver?: Resolver;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -72,13 +73,17 @@ export class PublicDoenetMLCore {
         requestedVariantIndex,
         attemptNumber,
         normalizedRoot,
+        resolver,
     }: {
         activityId: string;
         docId: string;
         requestedVariantIndex: number;
         attemptNumber: number;
         normalizedRoot: NormalizedRoot;
+        resolver: Resolver;
     }) {
+        this.resolver = resolver;
+
         let componentInfoObjects = createComponentInfoObjects();
 
         const {

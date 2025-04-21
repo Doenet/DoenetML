@@ -12,6 +12,8 @@ import type {
     DastError,
     FlatDastElement,
     NormalizedRoot,
+    Resolver,
+    PathToCheck,
 } from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
 import {
@@ -146,8 +148,9 @@ export class CoreWorker {
             throw Error("Cannot return normalized root before setting source");
         }
         try {
-            let normalized_root = this.doenetCore.return_normalized_dast_root();
-            return normalized_root;
+            let { normalizedRoot } =
+                this.doenetCore.return_normalized_dast_root();
+            return normalizedRoot;
         } catch (err) {
             console.error(err);
             throw err;
@@ -185,7 +188,8 @@ export class CoreWorker {
         }
 
         try {
-            let normalizedRoot = this.doenetCore.return_normalized_dast_root();
+            let { normalizedRoot, resolver } =
+                this.doenetCore.return_normalized_dast_root();
             const initializedResult =
                 await this.javascriptCore.initializeWorker({
                     activityId,
@@ -193,6 +197,7 @@ export class CoreWorker {
                     requestedVariantIndex,
                     attemptNumber,
                     normalizedRoot,
+                    resolver,
                 });
             this.javascript_initialized = true;
             return initializedResult;
@@ -323,6 +328,32 @@ export class CoreWorker {
             let flat_dast_element_updates =
                 this.doenetCore.dispatch_action(action);
             return flat_dast_element_updates;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            resolve();
+        }
+    }
+
+    async resolvePath(resolver: Resolver, path: PathToCheck, origin: 0) {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.source_set || !this.flags_set || !this.doenetCore) {
+            throw Error("Cannot resolve path before setting source and flags");
+        }
+
+        try {
+            let path_resolution = PublicDoenetMLCore.resolve_path(
+                resolver,
+                path,
+                origin,
+            );
+            return path_resolution;
         } catch (err) {
             console.error(err);
             throw err;
