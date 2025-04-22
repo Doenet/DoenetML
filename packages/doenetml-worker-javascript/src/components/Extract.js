@@ -29,6 +29,12 @@ export default class Extract extends CompositeComponent {
         attributes.createComponentOfType = {
             createPrimitiveOfType: "string",
         };
+        attributes.createComponentIdx = {
+            createPrimitiveOfType: "integer",
+        };
+        attributes.createComponentName = {
+            createPrimitiveOfType: "string",
+        };
         attributes.numComponents = {
             createPrimitiveOfType: "number",
         };
@@ -324,12 +330,37 @@ export default class Extract extends CompositeComponent {
         });
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
+        replacements = verificationResult.replacements;
+
+        if (replacements.length === 1) {
+            if (
+                component.attributes.createComponentName?.primitive.value !=
+                undefined
+            ) {
+                replacements[0].attributes.name = {
+                    type: "primitive",
+                    name: "name",
+                    primitive: {
+                        type: "string",
+                        value: component.attributes.createComponentName
+                            .primitive.value,
+                    },
+                };
+            }
+            if (
+                component.attributes.createComponentIdx?.primitive.value !=
+                undefined
+            ) {
+                replacements[0].componentIdx =
+                    component.attributes.createComponentIdx.primitive.value;
+            }
+        }
 
         // console.log(`serialized replacements for ${component.componentIdx}`)
         // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)))
 
         return {
-            replacements: verificationResult.replacements,
+            replacements,
             errors,
             warnings,
         };

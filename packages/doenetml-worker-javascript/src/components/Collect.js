@@ -1,11 +1,8 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import {
-    convertAttributesForComponentType,
-    postProcessCopy,
-} from "../utils/copy";
+import { postProcessCopy } from "../utils/copy";
 import { replacementFromProp } from "./Copy";
 import { processAssignNames } from "../utils/naming";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
@@ -522,14 +519,13 @@ export default class Collect extends CompositeComponent {
                 if (!repl.attributes) {
                     repl.attributes = {};
                 }
-                let attributesFromComposite = convertAttributesForComponentType(
-                    {
+                let attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
                         attributes: component.attributes,
                         componentType: repl.componentType,
                         componentInfoObjects,
                         compositeAttributesObj,
-                    },
-                );
+                    });
                 Object.assign(repl.attributes, attributesFromComposite);
             }
         }

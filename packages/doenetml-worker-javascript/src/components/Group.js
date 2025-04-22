@@ -1,12 +1,9 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { deepClone } from "@doenet/utils";
-import {
-    convertAttributesForComponentType,
-    verifyReplacementsMatchSpecifiedType,
-} from "../utils/copy";
+import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { processAssignNames } from "../utils/naming";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Group extends CompositeComponent {
     static componentType = "group";
 
@@ -242,7 +239,7 @@ export default class Group extends CompositeComponent {
                     }
 
                     let attributesFromComposite =
-                        convertAttributesForComponentType({
+                        convertUnresolvedAttributesForComponentType({
                             attributes: {
                                 isResponse: component.attributes.isResponse,
                             },

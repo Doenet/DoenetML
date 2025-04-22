@@ -3,10 +3,8 @@ import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { convertValueToMathExpression } from "@doenet/utils";
 import { returnRoundingAttributes } from "../utils/rounding";
-import {
-    convertAttributesForComponentType,
-    postProcessCopy,
-} from "../utils/copy";
+import { postProcessCopy } from "../utils/copy";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class MathList extends CompositeComponent {
     static componentType = "mathList";
@@ -579,11 +577,12 @@ export default class MathList extends CompositeComponent {
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite = convertAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "math",
-                componentInfoObjects,
-            });
+            attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "math",
+                    componentInfoObjects,
+                });
         }
 
         let childInfoByComponent =

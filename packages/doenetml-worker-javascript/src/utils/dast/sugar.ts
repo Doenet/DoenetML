@@ -15,7 +15,7 @@ import {
 import {
     expandAllUnflattenedAttributes,
     expandUnflattenedToSerializedComponents,
-} from "./convertNormalizdDast";
+} from "./convertNormalizedDast";
 import { convertToErrorComponent } from "./errors";
 
 /**
@@ -113,8 +113,6 @@ export function applySugar({
                     if (component.doenetAttributes.createdFromMacro) {
                         createdFromMacro = true;
                     }
-
-                    console.log("nComponents1", nComponents);
 
                     let sugarResults = sugarInstruction.replacementFunction({
                         matchedChildren,

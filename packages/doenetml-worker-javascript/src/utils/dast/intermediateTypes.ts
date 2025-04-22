@@ -15,6 +15,7 @@ export type UnflattenedComponent = {
     componentIdx: number;
     children: (UnflattenedComponent | string)[];
     attributes: Record<string, UnflattenedAttribute>;
+    doenetAttributes?: Record<string, any>;
     position?: Position;
     extending?: Source<UnflattenedRefResolution>;
     state: Record<string, any>;

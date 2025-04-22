@@ -1,3 +1,6 @@
+import { ComponentInfoObjects } from "./componentInfoObjects";
+import { SerializedAttribute, SerializedComponent } from "./dast/types";
+
 export function returnLabelAttributes() {
     return {
         labelIsName: {
@@ -15,13 +18,37 @@ export function returnWrapNonLabelsSugarFunction({
     onlyStringOrMacros = false,
     customWrappingFunction,
     wrapSingleIfNotWrappingComponentType = false,
+}: {
+    wrappingComponentType: string;
+    createAttributeOfType: string;
+    onlyStringOrMacros?: boolean;
+    customWrappingFunction: (
+        arg: (SerializedComponent | string)[],
+    ) => (SerializedComponent | string)[];
+    wrapSingleIfNotWrappingComponentType?: boolean;
 }) {
-    return function ({ matchedChildren, componentInfoObjects, nComponents }) {
+    return function ({
+        matchedChildren,
+        componentInfoObjects,
+        nComponents,
+    }: {
+        matchedChildren: (string | SerializedComponent)[];
+        componentInfoObjects: ComponentInfoObjects;
+        nComponents: number;
+    }):
+        | { success: false }
+        | {
+              success: true;
+              newAttributes?: Record<string, SerializedAttribute>;
+              newChildren?: (string | SerializedComponent)[];
+              nComponents: number;
+          } {
         if (matchedChildren.length === 0) {
-            return { success: false };
+            return { success: false as const };
         }
 
-        let componentIsLabel = (x) =>
+        const componentIsLabel = (x: SerializedComponent | string) =>
+            typeof x !== "string" &&
             componentInfoObjects.componentIsSpecifiedType(x, "label");
 
         if (
@@ -29,27 +56,27 @@ export function returnWrapNonLabelsSugarFunction({
             !matchedChildren.every(
                 (child) =>
                     typeof child === "string" ||
-                    child.doenetAttributes?.createdFromMacro ||
+                    (child.extending && "Ref" in child.extending) ||
                     componentIsLabel(child),
             )
         ) {
-            return { success: false };
+            return { success: false as const };
         }
 
         // wrap first group of non-label children in wrappingComponentType
 
         let childIsLabel = matchedChildren.map(componentIsLabel);
 
-        let childrenToWrap = [],
-            childrenToNotWrapBegin = [],
-            childrenToNotWrapEnd = [];
+        let childrenToWrap: (string | SerializedComponent)[] = [];
+        let childrenToNotWrapBegin: (string | SerializedComponent)[] = [];
+        let childrenToNotWrapEnd: (string | SerializedComponent)[] = [];
 
         if (childIsLabel.filter((x) => x).length === 0) {
             childrenToWrap = matchedChildren;
         } else {
             if (childIsLabel[0]) {
                 // started with label, find first non-label child
-                let firstNonLabelInd = childIsLabel.indexOf(false);
+                const firstNonLabelInd = childIsLabel.indexOf(false);
                 if (firstNonLabelInd !== -1) {
                     childrenToNotWrapBegin = matchedChildren.slice(
                         0,
@@ -62,7 +89,7 @@ export function returnWrapNonLabelsSugarFunction({
 
             // now we don't have label at the beginning
             // find first label ind
-            let firstLabelInd = childIsLabel.indexOf(true);
+            const firstLabelInd = childIsLabel.indexOf(true);
             if (firstLabelInd === -1) {
                 childrenToWrap = matchedChildren;
             } else {
@@ -72,14 +99,16 @@ export function returnWrapNonLabelsSugarFunction({
         }
 
         if (childrenToWrap.length === 0) {
-            return { success: false };
+            return { success: false as const };
         }
 
         if (createAttributeOfType) {
             return {
-                success: true,
+                success: true as const,
                 newAttributes: {
                     [createAttributeOfType]: {
+                        type: "component",
+                        name: createAttributeOfType,
                         component: {
                             type: "serialized",
                             componentType: wrappingComponentType,
@@ -109,10 +138,10 @@ export function returnWrapNonLabelsSugarFunction({
                         ))) ||
                 childrenToWrap.length === 0
             ) {
-                return { success: false };
+                return { success: false as const };
             }
 
-            let wrappedChildren;
+            let wrappedChildren: (string | SerializedComponent)[];
             if (customWrappingFunction) {
                 wrappedChildren = customWrappingFunction(childrenToWrap);
             } else {
@@ -130,7 +159,7 @@ export function returnWrapNonLabelsSugarFunction({
             }
 
             return {
-                success: true,
+                success: true as const,
                 newChildren: [
                     ...childrenToNotWrapBegin,
                     ...wrappedChildren,
@@ -142,8 +171,9 @@ export function returnWrapNonLabelsSugarFunction({
     };
 }
 
+// TODO: lots of work if want to convert state variable definitions to Typescript
 export function returnLabelStateVariableDefinitions() {
-    let stateVariableDefinitions = {};
+    let stateVariableDefinitions: Record<string, any> = {};
 
     stateVariableDefinitions.componentNameAndShadowSourceNames = {
         returnDependencies: () => ({
@@ -156,7 +186,13 @@ export function returnLabelStateVariableDefinitions() {
                 variableNames: ["componentNameAndShadowSourceNames"],
             },
         }),
-        definition({ dependencyValues, componentIdx }) {
+        definition({
+            dependencyValues,
+            componentIdx,
+        }: {
+            dependencyValues: Record<string, any>;
+            componentIdx: number;
+        }) {
             let componentNameAndShadowSourceNames = [componentIdx];
             if (
                 dependencyValues.shadowSource?.stateValues
@@ -231,7 +267,13 @@ export function returnLabelStateVariableDefinitions() {
                 variableNames: ["label", "labelHasLatex"],
             },
         }),
-        definition({ dependencyValues, essentialValues }) {
+        definition({
+            dependencyValues,
+            essentialValues,
+        }: {
+            dependencyValues: Record<string, any>;
+            essentialValues: Record<string, any>;
+        }) {
             let labelChild =
                 dependencyValues.labelChild[
                     dependencyValues.labelChild.length - 1
@@ -350,7 +392,13 @@ export function returnLabelStateVariableDefinitions() {
                 };
             }
         },
-        inverseDefinition({ desiredStateVariableValues, dependencyValues }) {
+        inverseDefinition({
+            desiredStateVariableValues,
+            dependencyValues,
+        }: {
+            desiredStateVariableValues: Record<string, any>;
+            dependencyValues: Record<string, any>;
+        }) {
             if (typeof desiredStateVariableValues.label !== "string") {
                 return { success: false };
             }
@@ -423,7 +471,11 @@ export function returnLabelStateVariableDefinitions() {
                 variableName: "labelHasLatex",
             },
         }),
-        definition({ dependencyValues }) {
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: Record<string, any>;
+        }) {
             let labelForGraph;
             if (dependencyValues.labelHasLatex) {
                 // when not inside parents

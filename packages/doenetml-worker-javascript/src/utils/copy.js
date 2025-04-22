@@ -1,11 +1,6 @@
 import { getUniqueIdentifierFromBase } from "@doenet/utils";
-import {
-    applyMacros,
-    applySugar,
-    componentFromAttribute,
-    removeBlankStringChildren,
-} from "./expandDoenetML";
 import { processAssignNames } from "./naming";
+import { convertUnresolvedAttributesForComponentType } from "./dast/convertNormalizedDast";
 
 export function postProcessCopy({
     serializedComponents,
@@ -233,79 +228,6 @@ export function postProcessCopy({
     return serializedComponents;
 }
 
-export function convertAttributesForComponentType({
-    attributes,
-    componentType,
-    componentInfoObjects,
-    compositeAttributesObj = {},
-    dontSkipAttributes = [],
-}) {
-    let errors = [];
-    let warnings = [];
-
-    let newClass = componentInfoObjects.allComponentClasses[componentType];
-    let newAttributesObj = newClass.createAttributesObject();
-    let attributeLowerCaseMapping = {};
-    for (let propName in newAttributesObj) {
-        attributeLowerCaseMapping[propName.toLowerCase()] = propName;
-    }
-
-    let newAttributes = {};
-
-    for (let attrName in attributes) {
-        if (
-            attrName in compositeAttributesObj &&
-            !compositeAttributesObj[attrName].leaveRaw &&
-            !dontSkipAttributes.includes(attrName)
-        ) {
-            // skip any attributes in the composite itself
-            // unless specifically marked to not be processed for the composite
-            // or argument is passed in to not skip
-            continue;
-        }
-
-        let propName = attributeLowerCaseMapping[attrName.toLowerCase()];
-        let attrObj = newAttributesObj[propName];
-        if (attrObj) {
-            if (propName in newAttributes) {
-                throw Error(`Cannot repeat prop ${propName}`);
-            }
-
-            let res = componentFromAttribute({
-                attrObj,
-                value: JSON.parse(JSON.stringify(attributes[attrName])),
-                componentInfoObjects,
-            });
-            newAttributes[propName] = res.attribute;
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
-
-            if (newAttributes[propName].component?.children) {
-                let serializedComponents = [newAttributes[propName].component];
-
-                applyMacros(serializedComponents, componentInfoObjects);
-
-                removeBlankStringChildren(
-                    serializedComponents,
-                    componentInfoObjects,
-                );
-
-                applySugar({
-                    serializedComponents,
-                    componentInfoObjects,
-                    isAttributeComponent: true,
-                });
-            }
-        } else if (newClass.acceptAnyAttribute) {
-            newAttributes[attrName] = JSON.parse(
-                JSON.stringify(attributes[attrName]),
-            );
-        }
-    }
-
-    return newAttributes;
-}
-
 export async function verifyReplacementsMatchSpecifiedType({
     component,
     replacements,
@@ -517,12 +439,13 @@ export async function verifyReplacementsMatchSpecifiedType({
 
         replacements = [];
         for (let i = 0; i < requiredLength; i++) {
-            let attributesFromComposite = convertAttributesForComponentType({
-                attributes: component.attributes,
-                componentType: requiredComponentType,
-                componentInfoObjects,
-                compositeAttributesObj,
-            });
+            let attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: component.attributes,
+                    componentType: requiredComponentType,
+                    componentInfoObjects,
+                    compositeAttributesObj,
+                });
 
             let uniqueIdentifierBase = requiredComponentType + "|empty" + i;
             let uniqueIdentifier = getUniqueIdentifierFromBase(

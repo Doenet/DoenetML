@@ -8,8 +8,7 @@ import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
 } from "../utils/variants";
-import { convertAttributesForComponentType } from "../utils/copy";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Map extends CompositeComponent {
     static componentType = "map";
 
@@ -371,12 +370,13 @@ export default class Map extends CompositeComponent {
         // pass isResponse to replacements
         // (only isResponse will be copied, as it is only attribute with leaveRaw)
 
-        let attributesFromComposite = convertAttributesForComponentType({
-            attributes: component.attributes,
-            componentType: replacements[0].componentType,
-            componentInfoObjects,
-            compositeAttributesObj,
-        });
+        let attributesFromComposite =
+            convertUnresolvedAttributesForComponentType({
+                attributes: component.attributes,
+                componentType: replacements[0].componentType,
+                componentInfoObjects,
+                compositeAttributesObj,
+            });
         if (!replacements[0].attributes) {
             replacements[0].attributes = {};
         }
@@ -450,12 +450,13 @@ export default class Map extends CompositeComponent {
 
                 let attributesFromComposite = {};
 
-                attributesFromComposite = convertAttributesForComponentType({
-                    attributes: component.attributes,
-                    componentType: serializedComponents[0].componentType,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                });
+                attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
+                        attributes: component.attributes,
+                        componentType: serializedComponents[0].componentType,
+                        componentInfoObjects,
+                        compositeAttributesObj,
+                    });
 
                 if (!serializedComponents[0].attributes) {
                     serializedComponents[0].attributes = {};

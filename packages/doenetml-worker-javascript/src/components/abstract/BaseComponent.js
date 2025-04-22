@@ -1450,7 +1450,11 @@ export default class BaseComponent {
         }
 
         return {
+            type: "serialized",
             componentType: adapterComponentType,
+            attribute: {},
+            children: [],
+            doenetAttributes: [],
             downstreamDependencies: {
                 [this.componentIdx]: [
                     {

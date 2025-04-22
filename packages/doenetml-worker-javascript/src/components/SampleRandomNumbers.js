@@ -1,10 +1,9 @@
-import { convertAttributesForComponentType } from "../utils/copy";
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
 import { processAssignNames } from "../utils/naming";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class SampleRandomNumbers extends CompositeComponent {
     constructor(args) {
         super(args);
@@ -645,11 +644,12 @@ export default class SampleRandomNumbers extends CompositeComponent {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite = convertAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "number",
-                    componentInfoObjects,
-                });
+                attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
+                        attributes: attributesToConvert,
+                        componentType: "number",
+                        componentInfoObjects,
+                    });
             }
 
             replacements.push({

@@ -110,23 +110,22 @@ export async function createTestCore({
         throw Error(dastResult.errMsg);
     }
 
+    /**
+     * Attempts to resolve the component name `name` to a componentIdx,
+     * starting the search algorithm at node `origin`.
+     *
+     * Throws an error if the name is not resolved.
+     */
     function resolveComponentName(name: string, origin = 0) {
         const path: PathToCheck = {
             path: [{ type: "flatPathPart", name, index: [] }],
         };
-        try {
             const resolution = PublicDoenetMLCoreRust.resolve_path(
                 resolver,
                 path,
                 origin,
             );
-            return {
-                success: true as const,
-                componentIdx: resolution.node_idx,
-            };
-        } catch (_e) {
-            return { success: false as const };
-        }
+        return resolution.node_idx;
     }
 
     return { core, rustCore, resolveComponentName };

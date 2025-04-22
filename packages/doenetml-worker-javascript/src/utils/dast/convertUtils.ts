@@ -91,9 +91,7 @@ export function decodeXMLEntities(
                         );
                     }
                 } else {
-                    attribute.childrenForFutureComponent = decodeXMLEntities(
-                        attribute.childrenForFutureComponent,
-                    );
+                    // Skip unresolved attributes; they will be decoded when converted
                 }
                 attributes[attrName] = attribute;
             }

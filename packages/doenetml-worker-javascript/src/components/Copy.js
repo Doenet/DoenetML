@@ -1,6 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import {
-    convertAttributesForComponentType,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
     restrictTNamesToNamespace,
@@ -11,6 +10,7 @@ import {
     deepClone,
     getUniqueIdentifierFromBase,
 } from "@doenet/utils";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class Copy extends CompositeComponent {
     static componentType = "copy";
@@ -48,6 +48,12 @@ export default class Copy extends CompositeComponent {
             public: true,
         };
         attributes.createComponentOfType = {
+            createPrimitiveOfType: "string",
+        };
+        attributes.createComponentIdx = {
+            createPrimitiveOfType: "integer",
+        };
+        attributes.createComponentName = {
             createPrimitiveOfType: "string",
         };
         attributes.numComponents = {
@@ -1168,7 +1174,7 @@ export default class Copy extends CompositeComponent {
                         repl.attributes = {};
                     }
                     let attributesFromComposite =
-                        convertAttributesForComponentType({
+                        convertUnresolvedAttributesForComponentType({
                             attributes: component.attributes,
                             componentType: repl.componentType,
                             componentInfoObjects,
@@ -1193,14 +1199,13 @@ export default class Copy extends CompositeComponent {
                 if (!replacements[0].attributes) {
                     replacements[0].attributes = {};
                 }
-                let attributesFromComposite = convertAttributesForComponentType(
-                    {
+                let attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
                         attributes: component.attributes,
                         componentType: replacements[0].componentType,
                         componentInfoObjects,
                         compositeAttributesObj,
-                    },
-                );
+                    });
 
                 for (let attrName in attributesFromComposite) {
                     let attribute = attributesFromComposite[attrName];
@@ -1259,12 +1264,13 @@ export default class Copy extends CompositeComponent {
         // so we just return a number that is the index
         let sourceIndex = await component.stateValues.sourceIndex;
         if (sourceIndex !== null) {
-            let attributesFromComposite = convertAttributesForComponentType({
-                attributes: component.attributes,
-                componentType: "number",
-                componentInfoObjects,
-                compositeAttributesObj,
-            });
+            let attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: component.attributes,
+                    componentType: "number",
+                    componentInfoObjects,
+                    compositeAttributesObj,
+                });
 
             let replacements = [
                 {
@@ -1317,14 +1323,13 @@ export default class Copy extends CompositeComponent {
                 let componentClass =
                     componentInfoObjects.allComponentClasses[componentType];
 
-                let attributesFromComposite = convertAttributesForComponentType(
-                    {
+                let attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
                         attributes: component.attributes,
                         componentType,
                         componentInfoObjects,
                         compositeAttributesObj,
-                    },
-                );
+                    });
 
                 workspace.uniqueIdentifiersUsedBySource[0] = [];
                 let uniqueIdentifierBase = componentType + "|empty";
@@ -1497,12 +1502,37 @@ export default class Copy extends CompositeComponent {
         });
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
+        replacements = verificationResult.replacements;
+
+        if (replacements.length === 1) {
+            if (
+                component.attributes.createComponentName?.primitive.value !=
+                undefined
+            ) {
+                replacements[0].attributes.name = {
+                    type: "primitive",
+                    name: "name",
+                    primitive: {
+                        type: "string",
+                        value: component.attributes.createComponentName
+                            .primitive.value,
+                    },
+                };
+            }
+            if (
+                component.attributes.createComponentIdx?.primitive.value !=
+                undefined
+            ) {
+                replacements[0].componentIdx =
+                    component.attributes.createComponentIdx.primitive.value;
+            }
+        }
 
         // console.log(`serialized replacements for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)));
 
         return {
-            replacements: verificationResult.replacements,
+            replacements,
             errors,
             warnings,
         };
@@ -1680,13 +1710,14 @@ export default class Copy extends CompositeComponent {
             if (!repl.attributes) {
                 repl.attributes = {};
             }
-            let attributesFromComposite = convertAttributesForComponentType({
-                attributes: component.attributes,
-                componentType: repl.componentType,
-                componentInfoObjects,
-                compositeAttributesObj,
-                dontSkipAttributes: ["asList"],
-            });
+            let attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: component.attributes,
+                    componentType: repl.componentType,
+                    componentInfoObjects,
+                    compositeAttributesObj,
+                    dontSkipAttributes: ["asList"],
+                });
 
             // Since if either displayDigits or displayDecimals is supplied in the composite,
             // it should override both displayDigits and displayDecimals from the source,
@@ -2634,12 +2665,14 @@ export async function replacementFromProp({
                     );
 
                     let attributesFromComposite =
-                        convertAttributesForComponentType({
-                            attributes: component.attributes,
-                            componentType: createComponentOfType,
-                            componentInfoObjects,
-                            compositeAttributesObj,
-                        });
+                        convertAttributesFoconvertUnresolvedAttributesForComponentTyperComponentType(
+                            {
+                                attributes: component.attributes,
+                                componentType: createComponentOfType,
+                                componentInfoObjects,
+                                compositeAttributesObj,
+                            },
+                        );
 
                     let attributeComponentsShadowingStateVariables;
                     if (
@@ -2805,7 +2838,7 @@ export async function replacementFromProp({
                             }
 
                             let attributesFromComponent =
-                                convertAttributesForComponentType({
+                                convertUnresolvedAttributesForComponentType({
                                     attributes: additionalAttributes,
                                     componentType: createComponentOfType,
                                     componentInfoObjects,
@@ -3126,11 +3159,14 @@ export async function replacementFromProp({
                                 }
 
                                 let attributesFromComponent =
-                                    convertAttributesForComponentType({
-                                        attributes: additionalAttributes,
-                                        componentType: createComponentOfType,
-                                        componentInfoObjects,
-                                    });
+                                    convertUnresolvedAttributesForComponentType(
+                                        {
+                                            attributes: additionalAttributes,
+                                            componentType:
+                                                createComponentOfType,
+                                            componentInfoObjects,
+                                        },
+                                    );
 
                                 if (
                                     stateVarObj.shadowingInstructions
@@ -3375,11 +3411,15 @@ export async function replacementFromProp({
                                     Object.keys(additionalAttributes).length > 0
                                 ) {
                                     additionalAttributes =
-                                        convertAttributesForComponentType({
-                                            attributes: additionalAttributes,
-                                            componentType: piece.componentType,
-                                            componentInfoObjects,
-                                        });
+                                        convertUnresolvedAttributesForComponentType(
+                                            {
+                                                attributes:
+                                                    additionalAttributes,
+                                                componentType:
+                                                    piece.componentType,
+                                                componentInfoObjects,
+                                            },
+                                        );
 
                                     Object.assign(
                                         attributesForReplacement,
@@ -3415,14 +3455,13 @@ export async function replacementFromProp({
                     replacement.attributes = {};
                 }
 
-                let attributesFromComposite = convertAttributesForComponentType(
-                    {
+                let attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
                         attributes: component.attributes,
                         componentType: replacement.componentType,
                         componentInfoObjects,
                         compositeAttributesObj,
-                    },
-                );
+                    });
 
                 Object.assign(replacement.attributes, attributesFromComposite);
 
@@ -3551,13 +3590,14 @@ export async function replacementFromProp({
         ) {
             serializedReplacements.push(await stateVarObj.value);
         } else {
-            let attributesFromComposite = convertAttributesForComponentType({
-                attributes: component.attributes,
-                componentType:
-                    stateVarObj.shadowingInstructions.createComponentOfType,
-                componentInfoObjects,
-                compositeAttributesObj,
-            });
+            let attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: component.attributes,
+                    componentType:
+                        stateVarObj.shadowingInstructions.createComponentOfType,
+                    componentInfoObjects,
+                    compositeAttributesObj,
+                });
 
             if (link) {
                 let attributesForReplacement = {};
@@ -3667,7 +3707,7 @@ export async function replacementFromProp({
                     }
 
                     let attributesFromComponent =
-                        convertAttributesForComponentType({
+                        convertUnresolvedAttributesForComponentType({
                             attributes: additionalAttributes,
                             componentType:
                                 stateVarObj.shadowingInstructions

@@ -1,4 +1,5 @@
 import * as ComponentTypes from "../ComponentTypes";
+import { DoenetMLComponentClass } from "./dast/types";
 
 /**
  * `ComponentInfoObjects` is a collection of data structures that describe the components
@@ -6,9 +7,9 @@ import * as ComponentTypes from "../ComponentTypes";
  */
 export type ComponentInfoObjects = {
     /** A record of all the actual component classes, keyed by component type */
-    allComponentClasses: Record<string, any>;
+    allComponentClasses: Record<string, DoenetMLComponentClass<any>>;
     /** A subset of `allComponentClasses`, filtered to just include those components that create variants */
-    componentTypesCreatingVariants: Record<string, any>;
+    componentTypesCreatingVariants: Record<string, DoenetMLComponentClass<any>>;
     /** A mapping from a lower-cased version of `componentType` to the actual `componentType`
      * of each component available in DoenetML */
     componentTypeLowerCaseMapping: Record<string, string>;
@@ -90,26 +91,36 @@ type ArrayEntryPrefixDescription = {
  */
 export function createComponentInfoObjects(): ComponentInfoObjects {
     /** A record of all the actual component classes, keyed by component type */
-    let allComponentClasses: Record<string, any> =
-        ComponentTypes.allComponentClasses();
+    const allComponentClasses: Record<
+        string,
+        DoenetMLComponentClass<any>
+    > = ComponentTypes.allComponentClasses() as Record<
+        string,
+        DoenetMLComponentClass<any>
+    >;
     /** A subset of `allComponentClasses`, filtered to just include those components that create variants */
-    let componentTypesCreatingVariants: Record<string, any> =
-        ComponentTypes.componentTypesCreatingVariants();
+    const componentTypesCreatingVariants: Record<
+        string,
+        DoenetMLComponentClass<any>
+    > = ComponentTypes.componentTypesCreatingVariants() as Record<
+        string,
+        DoenetMLComponentClass<any>
+    >;
 
     /** A mapping from a lower-cased version of `componentType` to the actual `componentType`
      * of each component available in DoenetML */
-    let componentTypeLowerCaseMapping: Record<string, string> = {};
-    for (let componentType in allComponentClasses) {
+    const componentTypeLowerCaseMapping: Record<string, string> = {};
+    for (const componentType in allComponentClasses) {
         componentTypeLowerCaseMapping[componentType.toLowerCase()] =
             componentType;
     }
 
     /** A record of information about the state variables of a component, keyed by component type */
-    let stateVariableInfo: Record<string, StateVariableInfo> = {};
-    for (let componentType in allComponentClasses) {
+    const stateVariableInfo: Record<string, StateVariableInfo> = {};
+    for (const componentType in allComponentClasses) {
         Object.defineProperty(stateVariableInfo, componentType, {
             get: function () {
-                let info =
+                const info =
                     allComponentClasses[
                         componentType
                     ].returnStateVariableInfo();
@@ -122,11 +133,11 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
     }
 
     /** A record of information about the public state variables of a component, keyed by component type */
-    let publicStateVariableInfo: Record<string, any> = {};
-    for (let componentType in allComponentClasses) {
+    const publicStateVariableInfo: Record<string, any> = {};
+    for (const componentType in allComponentClasses) {
         Object.defineProperty(publicStateVariableInfo, componentType, {
             get: function () {
-                let info = allComponentClasses[
+                const info = allComponentClasses[
                     componentType
                 ].returnStateVariableInfo({
                     onlyPublic: true,
@@ -178,12 +189,12 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
         componentType: string;
         includeNonStandard?: boolean;
     }): boolean {
-        let componentClass = allComponentClasses[componentType];
+        const componentClass = allComponentClasses[componentType];
         if (!componentClass) {
             return false;
         }
 
-        let isComposite = isInheritedComponentType({
+        const isComposite = isInheritedComponentType({
             inheritedComponentType: componentType,
             baseComponentType: "_composite",
         });
@@ -195,7 +206,7 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
         );
     }
 
-    let componentTypeIsSpecifiedType = (
+    const componentTypeIsSpecifiedType = (
         cType: string,
         specifiedCType: string,
     ) =>
@@ -207,7 +218,7 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
     /** A generalization of `isInheritedComponentType` that checks if either a component's componentType
      * or its `createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
      */
-    let componentIsSpecifiedType = (
+    const componentIsSpecifiedType = (
         comp: {
             componentType: string;
             attributes?: { createComponentOfType?: { primitive: string } };

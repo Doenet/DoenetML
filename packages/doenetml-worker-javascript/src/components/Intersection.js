@@ -1,8 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { convertAttributesForComponentType } from "../utils/copy";
 import me from "math-expressions";
 import { processAssignNames } from "../utils/naming";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Intersection extends CompositeComponent {
     static componentType = "intersection";
 
@@ -214,13 +213,12 @@ export default class Intersection extends CompositeComponent {
 
         if (Object.keys(attributesToConvert).length > 0) {
             for (let repl of serializedReplacements) {
-                let attributesFromComposite = convertAttributesForComponentType(
-                    {
+                let attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
                         attributes: attributesToConvert,
                         componentType: repl.componentType,
                         componentInfoObjects,
-                    },
-                );
+                    });
 
                 if (!repl.attributes) {
                     repl.attributes = {};

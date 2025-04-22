@@ -1,5 +1,4 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { convertAttributesForComponentType } from "../utils/copy";
 import {
     returnSequenceValues,
     returnSequenceValueForIndex,
@@ -8,6 +7,7 @@ import {
 } from "../utils/sequence";
 import { returnRoundingAttributes } from "../utils/rounding";
 import { assignNamesToComponents } from "../utils/assignNames";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class Sequence extends CompositeComponent {
     static componentType = "sequence";
@@ -163,11 +163,12 @@ export default class Sequence extends CompositeComponent {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite = convertAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType,
-                    componentInfoObjects,
-                });
+                attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
+                        attributes: attributesToConvert,
+                        componentType,
+                        componentInfoObjects,
+                    });
             }
 
             let serializedComponent = {
@@ -412,7 +413,7 @@ export default class Sequence extends CompositeComponent {
 
                     if (Object.keys(attributesToConvert).length > 0) {
                         attributesFromComposite =
-                            convertAttributesForComponentType({
+                            convertUnresolvedAttributesForComponentType({
                                 attributes: attributesToConvert,
                                 componentType,
                                 componentInfoObjects,

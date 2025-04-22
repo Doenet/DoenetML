@@ -3,7 +3,7 @@ import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
 import { NormalizedRoot, Resolver } from "@doenet/doenetml-worker";
-import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizdDast";
+import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
@@ -48,6 +48,7 @@ export class PublicDoenetMLCore {
         requestedVariantIndex: number;
         attemptNumber: number;
         serializedDocument: any;
+        nComponentsInit: number;
         allDoenetMLs: any;
         preliminaryErrors: any;
         preliminaryWarnings: any;
@@ -88,6 +89,7 @@ export class PublicDoenetMLCore {
 
         const {
             document: root,
+            nComponents: nComponentsInit,
             errors,
             warnings,
         } = await normalizedDastToSerializedComponents(
@@ -103,6 +105,7 @@ export class PublicDoenetMLCore {
             requestedVariantIndex,
             attemptNumber,
             serializedDocument: root,
+            nComponentsInit,
             allDoenetMLs: [this.doenetML],
             preliminaryErrors: errors,
             preliminaryWarnings: warnings,
@@ -180,6 +183,7 @@ export class PublicDoenetMLCore {
                 const result = await this.core.generateDast();
                 return { success: true as const, ...result };
             } catch (e) {
+                console.error(e);
                 // throw e;
                 return {
                     success: false as const,
@@ -212,7 +216,7 @@ export class PublicDoenetMLCore {
      */
     async requestAction(actionArgs: {
         actionName: string;
-        componentIdx: string | undefined;
+        componentIdx: number | undefined;
         args: Record<string, any>;
     }) {
         if (!this.core) {
@@ -283,6 +287,9 @@ export class PublicDoenetMLCore {
         for (let componentIdxStr in components) {
             const componentIdx = Number(componentIdxStr);
             let component = components[componentIdx];
+            if (!component) {
+                continue;
+            }
             componentsObj[componentIdx] = {
                 componentIdx,
                 componentType: component.componentType,

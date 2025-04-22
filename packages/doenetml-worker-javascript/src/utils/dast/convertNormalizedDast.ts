@@ -1,5 +1,4 @@
 import {
-    NormalizedNode,
     NormalizedRoot,
     RefResolution,
     Source,
@@ -15,6 +14,7 @@ import {
     SerializedComponent,
     SerializedRefResolution,
     SerializedRefResolutionPathPart,
+    UnresolvedAttribute,
     WarningRecord,
 } from "./types";
 import {
@@ -41,6 +41,7 @@ export async function normalizedDastToSerializedComponents(
     componentInfoObjects: ComponentInfoObjects,
 ): Promise<{
     document: SerializedComponent;
+    nComponents: number;
     errors: ErrorRecord[];
     warnings: WarningRecord[];
 }> {
@@ -151,8 +152,14 @@ export async function normalizedDastToSerializedComponents(
         throw Error("Root of dast should be a single document");
     }
 
-    let expandResult = expandUnflattenedToSerializedComponents({
+    const convertToCopyResult = convertRefsToCopies({
         serializedComponents: [unflattenedDocument],
+        nComponents,
+    });
+    nComponents = convertToCopyResult.nComponents;
+
+    let expandResult = expandUnflattenedToSerializedComponents({
+        serializedComponents: convertToCopyResult.components,
         componentInfoObjects,
         nComponents,
     });
@@ -167,14 +174,6 @@ export async function normalizedDastToSerializedComponents(
         componentInfoObjects,
     );
 
-    expandedRoot = decodeXMLEntities(expandedRoot);
-
-    console.log(
-        "before apply sugar",
-        // JSON.parse(JSON.stringify(expandedRoot)),
-        nComponents,
-    );
-
     const sugarResult = applySugar({
         serializedComponents: expandedRoot,
         componentInfoObjects,
@@ -184,26 +183,9 @@ export async function normalizedDastToSerializedComponents(
     warnings.push(...sugarResult.warnings);
     nComponents = sugarResult.nComponents;
 
-    // console.log(
-    //     "before create copies",
-    //     JSON.parse(JSON.stringify(sugarResult.components)),
-    //     nComponents,
-    // );
-
-    const convertToCopyResult = convertRefsToCopies({
-        serializedComponents: sugarResult.components,
-        nComponents,
-    });
-    nComponents = convertToCopyResult.nComponents;
-
-    // console.log(
-    //     "after create copies",
-    //     convertToCopyResult.components,
-    //     nComponents,
-    // );
-
     return {
-        document: convertToCopyResult.components[0] as SerializedComponent,
+        document: sugarResult.components[0] as SerializedComponent,
+        nComponents,
         errors,
         warnings,
     };
@@ -227,11 +209,13 @@ export function expandUnflattenedToSerializedComponents({
     componentInfoObjects,
     nComponents,
     ignoreErrors = false,
+    init = true,
 }: {
     serializedComponents: (UnflattenedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
     ignoreErrors?: boolean;
+    init?: boolean;
 }): {
     components: (SerializedComponent | string)[];
     errors: ErrorRecord[];
@@ -239,7 +223,7 @@ export function expandUnflattenedToSerializedComponents({
 } {
     let errors: ErrorRecord[] = [];
 
-    const newComponents: (SerializedComponent | string)[] = [];
+    let newComponents: (SerializedComponent | string)[] = [];
 
     for (let component of serializedComponents) {
         if (typeof component === "string") {
@@ -314,7 +298,7 @@ export function expandUnflattenedToSerializedComponents({
                 children: [],
                 attributes,
                 extending,
-                doenetAttributes: {},
+                doenetAttributes: component.doenetAttributes ?? {},
             };
         } catch (e) {
             const convertResult = convertToErrorComponent(component, e);
@@ -336,12 +320,19 @@ export function expandUnflattenedToSerializedComponents({
             componentInfoObjects,
             nComponents,
             ignoreErrors: ignoreErrorsInChildren,
+            init: false,
         });
         newComponent.children = res.components;
         errors.push(...res.errors);
         nComponents = res.nComponents;
 
         newComponents.push(newComponent);
+    }
+
+    if (init) {
+        // decodeXMLEntities recurses to children,
+        // so just apply it during the first pass (not on recursion to children)
+        newComponents = decodeXMLEntities(newComponents);
     }
 
     return { errors, components: newComponents, nComponents };
@@ -511,19 +502,19 @@ function addDefaultPrimitiveAttributes({
     const newAttributes = { ...currentAttributes };
 
     for (let attrName in classAttributes) {
-        let attrObj = classAttributes[attrName];
+        let attrDef = classAttributes[attrName];
 
         if (
-            attrObj.createPrimitiveOfType &&
-            "defaultPrimitiveValue" in attrObj &&
+            attrDef.createPrimitiveOfType &&
+            "defaultPrimitiveValue" in attrDef &&
             !(attrName in currentAttributes)
         ) {
             let res = expandAttribute({
-                attrDef: attrObj,
+                attrDef: attrDef,
                 allUnflattenedAttributes: unflattenedAttributes,
                 attribute: {
                     name: attrName,
-                    children: [attrObj.defaultPrimitiveValue.toString()],
+                    children: [attrDef.defaultPrimitiveValue.toString()],
                 },
                 componentInfoObjects,
                 nComponents,
@@ -550,7 +541,7 @@ export function expandAttribute({
     nComponents,
 }: {
     attrDef?: AttributeDefinition<any>;
-    attribute: UnflattenedAttribute;
+    attribute: UnflattenedAttribute | UnresolvedAttribute;
     allUnflattenedAttributes?: Record<string, UnflattenedAttribute>;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
@@ -617,7 +608,10 @@ export function expandAttribute({
         let attr: SerializedAttribute = {
             type: "component",
             name: attribute.name,
-            component: res.components[0] as SerializedComponent,
+            component: removeBlankStringChildren(
+                res.components,
+                componentInfoObjects,
+            )[0] as SerializedComponent,
         };
         if (attrDef.ignoreFixed) {
             attr.ignoreFixed = true;
@@ -644,18 +638,19 @@ export function expandAttribute({
         // which might be obsolete with new reference conventions
         // so creating "unresolved" if get this far
 
-        let res = expandUnflattenedToSerializedComponents({
-            serializedComponents: attribute.children,
-            componentInfoObjects,
-            nComponents,
-        });
-        errors.push(...res.errors);
-        nComponents = res.nComponents;
+        // let res = expandUnflattenedToSerializedComponents({
+        //     serializedComponents: attribute.children,
+        //     componentInfoObjects,
+        //     nComponents,
+        // });
+        // errors.push(...res.errors);
+        // nComponents = res.nComponents;
         return {
             attribute: {
                 type: "unresolved",
                 name: attribute.name,
-                childrenForFutureComponent: res.components,
+                children: attribute.children,
+                position: attribute.position,
             },
             errors,
             nComponents,
@@ -679,7 +674,7 @@ function createInitialComponentFromAttribute({
     nComponents,
 }: {
     attrDef: AttributeDefinition<any>;
-    attribute: UnflattenedAttribute;
+    attribute: UnflattenedAttribute | UnresolvedAttribute;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
 }): UnflattenedComponent {
@@ -864,4 +859,87 @@ function createPrimitiveFromAttribute({
     throw Error(
         `Invalid reference in a primitive attribute: ${attribute.name}`,
     );
+}
+
+export function convertUnresolvedAttributesForComponentType({
+    attributes,
+    componentType,
+    componentInfoObjects,
+    compositeAttributesObj = {},
+    dontSkipAttributes = [],
+    nComponents,
+}: {
+    attributes: Record<string, SerializedAttribute>;
+    componentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+    compositeAttributesObj?: Record<string, AttributeDefinition<any>>;
+    dontSkipAttributes?: string[];
+    nComponents: number;
+}) {
+    const errors: ErrorRecord[] = [];
+    const warnings: WarningRecord[] = [];
+
+    const newClass = componentInfoObjects.allComponentClasses[componentType];
+    const newAttributesObj = newClass.createAttributesObject();
+
+    const newAttributes: Record<string, SerializedAttribute> = {};
+
+    for (const attrName in attributes) {
+        const attribute = attributes[attrName];
+        const attrDef = newAttributesObj[attrName];
+
+        if (
+            attrName in compositeAttributesObj &&
+            !compositeAttributesObj[attrName].leaveRaw &&
+            !dontSkipAttributes.includes(attrName)
+        ) {
+            // skip any attributes in the composite itself
+            // unless specifically marked to not be processed for the composite
+            // or argument is passed in to not skip
+            continue;
+        }
+
+        if (attrDef) {
+            if (attribute.type === "unresolved") {
+                let res = expandAttribute({
+                    attrDef,
+                    attribute,
+                    componentInfoObjects,
+                    nComponents,
+                });
+                newAttributes[attrName] = res.attribute;
+                errors.push(...res.errors);
+
+                if (newAttributes[attrName].type === "component") {
+                    let serializedComponents = [
+                        newAttributes[attrName].component,
+                    ];
+
+                    removeBlankStringChildren(
+                        serializedComponents,
+                        componentInfoObjects,
+                    );
+
+                    const sugarResult = applySugar({
+                        serializedComponents,
+                        componentInfoObjects,
+                        nComponents,
+                    });
+                    errors.push(...sugarResult.errors);
+                    warnings.push(...sugarResult.warnings);
+                    nComponents = sugarResult.nComponents;
+
+                    newAttributes[attrName].component = sugarResult
+                        .components[0] as SerializedComponent;
+                }
+            } else {
+                // The attribute is already resolved.
+                newAttributes[attrName] = attribute;
+            }
+        } else if (newClass.acceptAnyAttribute) {
+            newAttributes[attrName] = attribute;
+        }
+    }
+
+    return newAttributes;
 }

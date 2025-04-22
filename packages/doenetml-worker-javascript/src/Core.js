@@ -20,10 +20,10 @@ import {
     preprocessMathInverseDefinition,
 } from "./utils/math";
 import {
-    convertAttributesForComponentType,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
 } from "./utils/copy";
+import { convertUnresolvedAttributesForComponentType } from "./utils/dast/convertNormalizedDast";
 import { DependencyHandler } from "./Dependencies";
 import {
     returnDefaultArrayVarNameFromPropIndex,
@@ -38,6 +38,7 @@ export default class Core {
     constructor({
         doenetML,
         serializedDocument,
+        nComponentsInit,
         componentInfoObjects,
         flags,
         allDoenetMLs,
@@ -71,6 +72,7 @@ export default class Core {
         this.doenetML = doenetML;
         this.allDoenetMLs = allDoenetMLs;
         this.serializedDocument = serializedDocument;
+        this.nComponentsInit = nComponentsInit;
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
         this.requestAnimationFrame = requestAnimationFrame;
@@ -216,6 +218,7 @@ export default class Core {
         serializedComponents[0].doenetAttributes.cid = this.cid;
 
         this._components = [];
+        this._components[this.nComponentsInit - 1] = undefined;
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set([]);
 
@@ -1329,7 +1332,7 @@ export default class Core {
                 this._components[componentIdx] = undefined;
                 console.log(
                     `componentIdx was undefined so made it ${componentIdx}`,
-                    serializedComponent,
+                    // serializedComponent,
                 );
             }
 
@@ -2267,7 +2270,11 @@ export default class Core {
         let newSerializedChild;
         if (originalChild.componentIdx != undefined) {
             newSerializedChild = originalChild.getAdapter(adapterIndUsed);
+            newSerializedChild.componentIdx = this._components.length;
+            this._components[this._components.length] = undefined;
         } else {
+            // XXX: how does this work with the new componentIdx approach?
+
             // child isn't a component, just an object with a componentType
             // Create an object that is just the componentType of the adapter
             newSerializedChild = {
@@ -2302,6 +2309,8 @@ export default class Core {
 
                 adapter = newChildrenResult.components[0];
             } else {
+                // XXX: how does this work with the new componentIdx approach?
+
                 // didn't have a component for the original child, just a componentType
                 // Adapter will also just be the componentType returned from childmatches
                 newSerializedChild.adaptedFrom = originalChild;
@@ -2443,8 +2452,8 @@ export default class Core {
             overwriteDoenetMLRange,
         });
 
-        console.log(`expand result for ${component.componentIdx}`);
-        console.log(JSON.parse(JSON.stringify(result)));
+        // console.log(`expand result for ${component.componentIdx}`);
+        // console.log(JSON.parse(JSON.stringify(result)));
 
         if (result.nComponents > this.components.length) {
             this._components[result.nComponents - 1] = undefined;
@@ -2640,12 +2649,13 @@ export default class Core {
             if (!repl.attributes) {
                 repl.attributes = {};
             }
-            let attributesFromComposite = convertAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: repl.componentType,
-                componentInfoObjects: this.componentInfoObjects,
-                compositeAttributesObj,
-            });
+            let attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: repl.componentType,
+                    componentInfoObjects: this.componentInfoObjects,
+                    compositeAttributesObj,
+                });
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
@@ -2746,29 +2756,29 @@ export default class Core {
                 compositesParentNameForAssignNames = parentIdx;
             }
 
-            let processResult = processAssignNames({
-                assignNames,
-                assignNamesForCompositeReplacement:
-                    component.doenetAttributes
-                        .assignNamesForCompositeReplacement,
-                serializedComponents: serializedReplacements,
-                parentIdx,
-                parentNameForUniqueNames: component.componentIdx,
-                componentInfoObjects: this.componentInfoObjects,
-                originalNamesAreConsistent,
-                shadowingComposite: true,
-                compositesParentNameForAssignNames,
-            });
+            // let processResult = processAssignNames({
+            //     assignNames,
+            //     assignNamesForCompositeReplacement:
+            //         component.doenetAttributes
+            //             .assignNamesForCompositeReplacement,
+            //     serializedComponents: serializedReplacements,
+            //     parentIdx,
+            //     parentNameForUniqueNames: component.componentIdx,
+            //     componentInfoObjects: this.componentInfoObjects,
+            //     originalNamesAreConsistent,
+            //     shadowingComposite: true,
+            //     compositesParentNameForAssignNames,
+            // });
 
-            let position = compositeMediatingTheShadow.position;
-            this.gatherErrorsAndAssignDoenetMLRange({
-                components: processResult.serializedComponents,
-                errors: processResult.errors,
-                warnings: processResult.warnings,
-                position,
-            });
+            // let position = compositeMediatingTheShadow.position;
+            // this.gatherErrorsAndAssignDoenetMLRange({
+            //     components: serializedReplacements,
+            //     errors: processResult.errors,
+            //     warnings: processResult.warnings,
+            //     position,
+            // });
 
-            serializedReplacements = processResult.serializedComponents;
+            // serializedReplacements = serializedReplacements;
 
             if (
                 target?.componentIdx === shadowedComposite.componentIdx &&
@@ -2788,51 +2798,49 @@ export default class Core {
                     );
                 }
 
-                let processResult = processAssignNames({
-                    assignNames,
-                    serializedComponents: newReplacements,
-                    parentIdx,
-                    parentNameForUniqueNames: component.componentIdx,
-                    indOffset: serializedReplacements.length,
-                    componentInfoObjects: this.componentInfoObjects,
-                    originalNamesAreConsistent: true,
-                    compositesParentNameForAssignNames,
-                });
+                // let processResult = processAssignNames({
+                //     assignNames,
+                //     serializedComponents: newReplacements,
+                //     parentIdx,
+                //     parentNameForUniqueNames: component.componentIdx,
+                //     indOffset: serializedReplacements.length,
+                //     componentInfoObjects: this.componentInfoObjects,
+                //     originalNamesAreConsistent: true,
+                //     compositesParentNameForAssignNames,
+                // });
 
-                let position = compositeMediatingTheShadow.position;
-                this.gatherErrorsAndAssignDoenetMLRange({
-                    components: processResult.serializedComponents,
-                    errors: processResult.errors,
-                    warnings: processResult.warnings,
-                    position,
-                });
+                // let position = compositeMediatingTheShadow.position;
+                // this.gatherErrorsAndAssignDoenetMLRange({
+                //     components: newReplacements,
+                //     errors: processResult.errors,
+                //     warnings: processResult.warnings,
+                //     position,
+                // });
 
-                serializedReplacements.push(
-                    ...processResult.serializedComponents,
-                );
+                serializedReplacements.push(...newReplacements);
             }
         } else {
             // XXX: can we always keep original names in the new regime?
             let originalNamesAreConsistent = true;
 
-            let processResult = processAssignNames({
-                // assignNames: component.doenetAttributes.assignNames,
-                serializedComponents: serializedReplacements,
-                parentIdx: component.componentIdx,
-                componentInfoObjects: this.componentInfoObjects,
-                originalNamesAreConsistent,
-                shadowingComposite: true,
-            });
+            // let processResult = processAssignNames({
+            //     // assignNames: component.doenetAttributes.assignNames,
+            //     serializedComponents: serializedReplacements,
+            //     parentIdx: component.componentIdx,
+            //     componentInfoObjects: this.componentInfoObjects,
+            //     originalNamesAreConsistent,
+            //     shadowingComposite: true,
+            // });
 
-            let position = compositeMediatingTheShadow.position;
-            this.gatherErrorsAndAssignDoenetMLRange({
-                components: processResult.serializedComponents,
-                errors: processResult.errors,
-                warnings: processResult.warnings,
-                position,
-            });
+            // let position = compositeMediatingTheShadow.position;
+            // this.gatherErrorsAndAssignDoenetMLRange({
+            //     components: serializedReplacements,
+            //     errors: processResult.errors,
+            //     warnings: processResult.warnings,
+            //     position,
+            // });
 
-            serializedReplacements = processResult.serializedComponents;
+            // serializedReplacements = serializedReplacements;
         }
 
         if (!foundCircular) {
@@ -8846,23 +8854,23 @@ export default class Core {
 
                 let originalNamesAreConsistent = true; // XXX: can we do this?
 
-                let processResult = processAssignNames({
-                    indOffset: assignNamesOffset,
-                    serializedComponents: shadowingSerializeChildren,
-                    parentIdx: shadowingParent.componentIdx,
-                    componentInfoObjects: this.componentInfoObjects,
-                    originalNamesAreConsistent,
-                });
+                // let processResult = processAssignNames({
+                //     indOffset: assignNamesOffset,
+                //     serializedComponents: shadowingSerializeChildren,
+                //     parentIdx: shadowingParent.componentIdx,
+                //     componentInfoObjects: this.componentInfoObjects,
+                //     originalNamesAreConsistent,
+                // });
 
-                let position = composite.position;
-                this.gatherErrorsAndAssignDoenetMLRange({
-                    components: processResult.serializedComponents,
-                    errors: processResult.errors,
-                    warnings: processResult.warnings,
-                    position,
-                });
+                // let position = composite.position;
+                // this.gatherErrorsAndAssignDoenetMLRange({
+                //     components: processResult.serializedComponents,
+                //     errors: processResult.errors,
+                //     warnings: processResult.warnings,
+                //     position,
+                // });
 
-                shadowingSerializeChildren = processResult.serializedComponents;
+                // shadowingSerializeChildren = processResult.serializedComponents;
 
                 let unproxiedShadowingParent =
                     this._components[shadowingParent.componentIdx];
@@ -9981,7 +9989,7 @@ export default class Core {
                             repl.attributes = {};
                         }
                         let attributesFromComposite =
-                            convertAttributesForComponentType({
+                            convertUnresolvedAttributesForComponentType({
                                 attributes: {
                                     isResponse:
                                         shadowingComponent.attributes
@@ -10035,51 +10043,51 @@ export default class Core {
                     ) {
                         compositesParentNameForAssignNames = parentIdx;
                     }
-                    let processResult = processAssignNames({
-                        assignNames,
-                        assignNamesForCompositeReplacement:
-                            shadowingComponent.doenetAttributes
-                                .assignNamesForCompositeReplacement,
-                        indOffset: assignNamesOffset,
-                        serializedComponents: newSerializedReplacements,
-                        parentIdx,
-                        componentInfoObjects: this.componentInfoObjects,
-                        originalNamesAreConsistent,
-                        compositesParentNameForAssignNames,
-                    });
+                    // let processResult = processAssignNames({
+                    //     assignNames,
+                    //     assignNamesForCompositeReplacement:
+                    //         shadowingComponent.doenetAttributes
+                    //             .assignNamesForCompositeReplacement,
+                    //     indOffset: assignNamesOffset,
+                    //     serializedComponents: newSerializedReplacements,
+                    //     parentIdx,
+                    //     componentInfoObjects: this.componentInfoObjects,
+                    //     originalNamesAreConsistent,
+                    //     compositesParentNameForAssignNames,
+                    // });
 
-                    let position = compositeMediatingTheShadow.position;
-                    this.gatherErrorsAndAssignDoenetMLRange({
-                        components: processResult.serializedComponents,
-                        errors: processResult.errors,
-                        warnings: processResult.warnings,
-                        position,
-                    });
+                    // let position = compositeMediatingTheShadow.position;
+                    // this.gatherErrorsAndAssignDoenetMLRange({
+                    //     components: processResult.serializedComponents,
+                    //     errors: processResult.errors,
+                    //     warnings: processResult.warnings,
+                    //     position,
+                    // });
 
-                    newSerializedReplacements =
-                        processResult.serializedComponents;
+                    // newSerializedReplacements =
+                    //     processResult.serializedComponents;
                 } else {
                     let originalNamesAreConsistent = true; // XXX: can we do this?
 
-                    let processResult = processAssignNames({
-                        // assignNames: shadowingComponent.doenetAttributes.assignNames,
-                        indOffset: assignNamesOffset,
-                        serializedComponents: newSerializedReplacements,
-                        parentIdx: shadowingComponent.componentIdx,
-                        componentInfoObjects: this.componentInfoObjects,
-                        originalNamesAreConsistent,
-                    });
+                    // let processResult = processAssignNames({
+                    //     // assignNames: shadowingComponent.doenetAttributes.assignNames,
+                    //     indOffset: assignNamesOffset,
+                    //     serializedComponents: newSerializedReplacements,
+                    //     parentIdx: shadowingComponent.componentIdx,
+                    //     componentInfoObjects: this.componentInfoObjects,
+                    //     originalNamesAreConsistent,
+                    // });
 
-                    let position = compositeMediatingTheShadow.position;
-                    this.gatherErrorsAndAssignDoenetMLRange({
-                        components: processResult.serializedComponents,
-                        errors: processResult.errors,
-                        warnings: processResult.warnings,
-                        position,
-                    });
+                    // let position = compositeMediatingTheShadow.position;
+                    // this.gatherErrorsAndAssignDoenetMLRange({
+                    //     components: processResult.serializedComponents,
+                    //     errors: processResult.errors,
+                    //     warnings: processResult.warnings,
+                    //     position,
+                    // });
 
-                    newSerializedReplacements =
-                        processResult.serializedComponents;
+                    // newSerializedReplacements =
+                    //     processResult.serializedComponents;
                 }
 
                 // console.log(`newSerializedReplacements for ${shadowingComponent.componentIdx} who shadows ${shadowingComponent.shadows.componentIdx}`)

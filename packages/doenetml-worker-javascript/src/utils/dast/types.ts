@@ -1,4 +1,8 @@
 import { Position, Source } from "@doenet/doenetml-worker";
+import {
+    isUnflattenedComponent,
+    UnflattenedComponent,
+} from "./intermediateTypes";
 export type { Position, Source };
 
 /**
@@ -148,10 +152,11 @@ function isPrimitiveAttribute(obj: unknown): obj is PrimitiveAttribute {
  * An attribute that has not yet been resolved from determining its parent component type.
  * Typically used to store attributes in composites before they are added to its replacements.
  */
-type UnresolvedAttribute = {
+export type UnresolvedAttribute = {
     type: "unresolved";
     name: string;
-    childrenForFutureComponent: (SerializedComponent | string)[];
+    children: (UnflattenedComponent | string)[];
+    position?: Position;
     ignoreFixed?: boolean;
 };
 
@@ -162,10 +167,10 @@ function isUnresolvedAttribute(obj: unknown): obj is UnresolvedAttribute {
         typedObj !== null &&
         typedObj.type === "unresolved" &&
         typeof typedObj.name === "string" &&
-        Array.isArray(typedObj.childrenForFutureComponent) &&
-        typedObj.childrenForFutureComponent.every(
+        Array.isArray(typedObj.children) &&
+        typedObj.children.every(
             (child) =>
-                typeof child === "string" || isSerializedComponent(child),
+                typeof child === "string" || isUnflattenedComponent(child),
         ) &&
         (typedObj.ignoreFixed === undefined ||
             typeof typedObj.ignoreFixed === "boolean")

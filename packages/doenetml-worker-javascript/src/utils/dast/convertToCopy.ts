@@ -1,4 +1,9 @@
 import {
+    UnflattenedAttribute,
+    UnflattenedComponent,
+    UnflattenedRefResolution,
+} from "./intermediateTypes";
+import {
     SerializedAttribute,
     SerializedComponent,
     SerializedRefResolution,
@@ -8,10 +13,10 @@ export function convertRefsToCopies({
     serializedComponents,
     nComponents,
 }: {
-    serializedComponents: (SerializedComponent | string)[];
+    serializedComponents: (UnflattenedComponent | string)[];
     nComponents: number;
 }) {
-    const newComponents: (SerializedComponent | string)[] = [];
+    const newComponents: (UnflattenedComponent | string)[] = [];
 
     for (const component of serializedComponents) {
         if (typeof component === "string") {
@@ -19,7 +24,7 @@ export function convertRefsToCopies({
             continue;
         }
 
-        let newComponent = component;
+        let newComponent = { ...component };
 
         // first recurse to children and attributes
         // (so we don't recurse to any attributes added, below)
@@ -30,18 +35,15 @@ export function convertRefsToCopies({
         newComponent.children = res.components;
         nComponents = res.nComponents;
 
-        const newAttributes: Record<string, SerializedAttribute> = {};
+        const newAttributes: Record<string, UnflattenedAttribute> = {};
         for (const attrName in newComponent.attributes) {
             const attribute = { ...newComponent.attributes[attrName] };
-            if (attribute.type === "component") {
-                res = convertRefsToCopies({
-                    serializedComponents: attribute.component.children,
-                    nComponents,
-                });
-                attribute.component = { ...attribute.component };
-                attribute.component.children = res.components;
-                nComponents = res.nComponents;
-            }
+            res = convertRefsToCopies({
+                serializedComponents: attribute.children,
+                nComponents,
+            });
+            attribute.children = res.components;
+            nComponents = res.nComponents;
             newAttributes[attrName] = attribute;
         }
 
@@ -75,25 +77,31 @@ export function convertRefsToCopies({
                 continue;
             }
 
-            // If the reference was is an Attribute or we are extending an evaluate with no extra path
-            // then we know the resulting componentType
-            const componentTypeDetermined =
-                "Attribute" in newComponent.extending;
             const outerAttributes = { ...newComponent.attributes };
             newComponent.attributes = {};
 
-            if (componentTypeDetermined) {
+            // If the reference was is an Attribute
+            // then we know the resulting componentType
+            // and we make the name and componentIdx the component be assigned to the eventual replacement
+
+            if ("Attribute" in newComponent.extending) {
                 outerAttributes.createComponentOfType = {
-                    type: "primitive",
                     name: "createComponentOfType",
-                    primitive: {
-                        type: "string",
-                        value: newComponent.componentType,
-                    },
+                    children: [newComponent.componentType],
                 };
+                outerAttributes.createComponentIdx = {
+                    name: "createComponentIdx",
+                    children: [newComponent.componentIdx.toString()],
+                };
+                newComponent.componentIdx = nComponents++;
+
+                outerAttributes.createComponentName = {
+                    name: "createComponentName",
+                    children: outerAttributes.name.children,
+                };
+                delete outerAttributes.name;
             }
 
-            newComponent = { ...newComponent };
             newComponent.componentType = "copy";
             newComponent.doenetAttributes = {
                 ...newComponent.doenetAttributes,
@@ -116,18 +124,9 @@ export function convertRefsToCopies({
                     const children = res.components;
 
                     newComponent.attributes.componentIndex = {
-                        type: "component",
                         name: "componentIndex",
-                        component: {
-                            type: "serialized",
-                            componentType: "integer",
-                            componentIdx: nComponents++,
-                            children,
-                            attributes: {},
-                            doenetAttributes: {},
-                            state: {},
-                            position: unresolved_path[0].index[0].position,
-                        },
+                        children,
+                        position: unresolved_path[0].index[0].position,
                     };
 
                     // remove the first entry from the path
@@ -144,23 +143,18 @@ export function convertRefsToCopies({
                     for (const path_part of unresolved_path) {
                         if (propsAddExtract) {
                             newComponent = {
-                                type: "serialized",
+                                type: "unflattened",
                                 componentType: "extract",
                                 componentIdx: nComponents++,
                                 attributes: {},
-                                doenetAttributes: {},
                                 children: [newComponent],
                                 state: {},
                             };
                         }
 
                         newComponent.attributes.prop = {
-                            type: "primitive",
                             name: "prop",
-                            primitive: {
-                                type: "string",
-                                value: path_part.name,
-                            },
+                            children: [path_part.name],
                         };
 
                         if (path_part.index.length > 0) {
@@ -172,36 +166,28 @@ export function convertRefsToCopies({
                             const children = res.components;
 
                             newComponent.attributes.propIndex = {
-                                type: "component",
                                 name: "propIndex",
-                                component: {
-                                    type: "serialized",
-                                    componentType: "numberList",
-                                    componentIdx: nComponents++,
-                                    attributes: {},
-                                    doenetAttributes: {},
-                                    state: {},
-                                    position: path_part.position,
-                                    children: path_part.index.map((index) => {
-                                        const res = convertRefsToCopies({
-                                            serializedComponents: index.value,
-                                            nComponents,
-                                        });
-                                        nComponents = res.nComponents;
-                                        const children = res.components;
+                                position: path_part.position,
 
-                                        return {
-                                            type: "serialized",
-                                            componentType: "number",
-                                            componentIdx: nComponents++,
-                                            attributes: {},
-                                            doenetAttributes: {},
-                                            children,
-                                            state: {},
-                                            position: index.position,
-                                        };
-                                    }),
-                                },
+                                children: path_part.index.map((index) => {
+                                    const res = convertRefsToCopies({
+                                        serializedComponents: index.value,
+                                        nComponents,
+                                    });
+                                    nComponents = res.nComponents;
+                                    const children = res.components;
+
+                                    return {
+                                        type: "unflattened",
+                                        componentType: "number",
+                                        componentIdx: nComponents++,
+                                        attributes: {},
+                                        doenetAttributes: {},
+                                        children,
+                                        state: {},
+                                        position: index.position,
+                                    };
+                                }),
                             };
                         }
 
@@ -231,50 +217,42 @@ function convertEvaluate({
     refResolution,
     nComponents,
 }: {
-    evaluateComponent: SerializedComponent;
-    refResolution: SerializedRefResolution;
+    evaluateComponent: UnflattenedComponent;
+    refResolution: UnflattenedRefResolution;
     nComponents: number;
 }) {
     // The function to evaluate is an attribute
     evaluateComponent.attributes.function = {
-        type: "component",
         name: "function",
-        component: {
-            type: "serialized",
-            componentType: "function",
-            componentIdx: nComponents++,
-            attributes: {},
-            state: {},
-            doenetAttributes: {},
-            children: [
-                {
-                    type: "serialized",
-                    componentType: "copy",
-                    componentIdx: nComponents++,
-                    children: [],
-                    attributes: {},
-                    doenetAttributes: { extendIdx: refResolution.node_idx },
-                    state: {},
-                    extending: evaluateComponent.extending,
-                },
-            ],
-        },
+        children: [
+            {
+                type: "unflattened",
+                componentType: "copy",
+                componentIdx: nComponents++,
+                children: [],
+                attributes: {},
+                doenetAttributes: { extendIdx: refResolution.node_idx },
+                state: {},
+                extending: evaluateComponent.extending,
+            },
+        ],
     };
 
     delete evaluateComponent.extending;
 
-    // The input children become a mathList given to the input attribute
-    const list = { ...(evaluateComponent.children[0] as SerializedComponent) };
-    list.componentType = "mathList";
-    list.children = list.children.map((child) => {
-        const mathChild = child as SerializedComponent;
+    // The child of the evaluate is a list of the form `<ol><li></li><li></li></ol>""
+    // The grandchildren become children of the input attribute,
+    // after converting to math components.
+    const listChildren = {
+        ...(evaluateComponent.children[0] as UnflattenedComponent),
+    }.children.map((child) => {
+        const mathChild = child as UnflattenedComponent;
         mathChild.componentType = "math";
         return mathChild;
     });
     evaluateComponent.attributes.input = {
-        type: "component",
         name: "input",
-        component: list,
+        children: listChildren,
     };
     evaluateComponent.children = [];
 
