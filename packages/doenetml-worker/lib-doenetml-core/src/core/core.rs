@@ -39,8 +39,8 @@ impl Core {
     /// and expanding all references to elements (or errors).
     pub fn normalized_root_from_dast_root(dast_root: &DastRoot) -> (NormalizedRoot, Resolver) {
         let mut flat_root = FlatRoot::from_dast(dast_root);
-        let resolver = Expander::expand(&mut flat_root);
-        flat_root.compactify();
+        let mut resolver = Expander::expand(&mut flat_root);
+        flat_root.compactify(Some(&mut resolver));
         let normalized_flat_root = flat_root.into_normalized_root();
         (normalized_flat_root, resolver)
     }

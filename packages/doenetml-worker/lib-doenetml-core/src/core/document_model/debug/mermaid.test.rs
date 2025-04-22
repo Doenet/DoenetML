@@ -20,7 +20,7 @@ fn test_normalized_root_to_mermaid() {
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
-    flat_root.compactify();
+    flat_root.compactify(None);
     let normalized_flat_root = flat_root.into_normalized_root();
 
     // Print out the mermaid graph

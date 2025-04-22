@@ -10,7 +10,7 @@ fn can_compactify() {
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     // Add several nodes that aren't connected to the root
     flat_root.merge_content(&dast_root2.children[0], Some(0));
-    flat_root.compactify();
+    flat_root.compactify(None);
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
@@ -53,7 +53,7 @@ fn can_compactify() {
     flat_root.children = vec![UntaggedContent::Ref(2), UntaggedContent::Ref(3)];
     flat_root.nodes[2].set_parent(None);
     flat_root.nodes[3].set_parent(None);
-    flat_root.compactify();
+    flat_root.compactify(None);
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
@@ -99,13 +99,13 @@ fn can_compactify() {
 }
 
 #[test]
-fn compactify_adjusts_extending_refs_and_attributes() {
+fn compactify_adjusts_extending_refs_attributes_and_resolver() {
     let dast_root = dast_root_no_position(
-        r#"<text name="t">hello</text><text extend="$t"> world</text><textInput name="ti" /><text extend="$ti.immediateValue"> world</text>"#,
+        r#"<text name="t">hello</text><text extend="$t"> world</text><textInput name="ti" /><p><text name="tiv" extend="$ti.immediateValue"> world</text></p>"#,
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
-    Expander::expand(&mut flat_root);
-    flat_root.compactify();
+    let mut resolver = Expander::expand(&mut flat_root);
+    flat_root.compactify(Some(&mut resolver));
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
@@ -165,11 +165,25 @@ fn compactify_adjusts_extending_refs_and_attributes() {
               },
               {
                 "type": "Element",
-                "name": "text",
+                "name": "p",
                 "parent": 0,
-                "children": [" world"],
+                "children": [5],
                 "attributes": [],
-                "idx": 4,
+                "idx": 4
+              },
+              {
+                "type": "Element",
+                "name": "text",
+                "parent": 4,
+                "children": [" world"],
+                "attributes": [
+                  {
+                    "name": "name",
+                    "parent": 5,
+                    "children": ["tiv"]
+                  }
+                ],
+                "idx": 5,
                 "extending": {
                   "Attribute": {
                     "node_idx": 3,
@@ -187,6 +201,36 @@ fn compactify_adjusts_extending_refs_and_attributes() {
           }
         )
     );
+
+    assert_json_eq!(
+        serde_json::to_value(&resolver).unwrap(),
+        json!({
+          "node_parent": [
+            null,
+            0,
+            0,
+            0,
+            0,
+            4
+          ],
+          "name_map": [
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {},
+            {},
+            {},
+            {},
+            {
+              "tiv": { "Unique": 5 }
+            },
+            {},
+            {}
+          ]
+        })
+    );
 }
 
 #[test]
@@ -194,7 +238,7 @@ fn compactify_preserves_refs_in_path_parts() {
     let dast_root = dast_root_no_position(r#"<number name="n"/><point name="p"/>$p[$n]"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
-    flat_root.compactify();
+    flat_root.compactify(None);
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),

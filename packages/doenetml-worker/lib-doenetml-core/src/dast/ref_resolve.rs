@@ -250,6 +250,39 @@ impl Resolver {
 
         descendant_names
     }
+
+    /// Compactify the resolver so that it corresponds to the new indices
+    /// of the compactified dast.
+    pub fn compactify(&mut self, node_is_referenced: &[bool], old_to_new_indices: &[usize]) {
+        let new_node_parent: Vec<Option<usize>> = self
+            .node_parent
+            .iter()
+            .enumerate()
+            .filter(|(idx, _parent)| node_is_referenced[*idx])
+            .map(|(_idx, parent)| parent.map(|par_idx| old_to_new_indices[par_idx]))
+            .collect();
+        self.node_parent = new_node_parent;
+
+        let new_name_map: Vec<HashMap<String, Ref>> = self
+            .name_map
+            .iter()
+            .map(|names| {
+                names
+                    .iter()
+                    .map(|(key, ref_)| match ref_ {
+                        Ref::Unique(idx) => (key.clone(), Ref::Unique(old_to_new_indices[*idx])),
+                        Ref::Ambiguous(vec_idx) => (
+                            key.clone(),
+                            Ref::Ambiguous(
+                                vec_idx.iter().map(|idx| old_to_new_indices[*idx]).collect(),
+                            ),
+                        ),
+                    })
+                    .collect()
+            })
+            .collect();
+        self.name_map = new_name_map;
+    }
 }
 
 #[cfg(test)]
