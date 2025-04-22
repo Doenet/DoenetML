@@ -2851,7 +2851,7 @@ describe("Copy tag tests", async () => {
         await test_copy_group_with_numbers(core, "/grp");
     });
 
-    it("copy with newNamespace and name retains original names, even with group, wrapped in nested groups and copied with variable componentIndex", async () => {
+    it("copy with newNamespace and name retains original names, even with group, wrapped in nested groups and copied with variable sourceIndex", async () => {
         let core = await createTestCore({
             doenetML: `
   <mathInput name="n" prefill="1" />
@@ -3192,7 +3192,7 @@ describe("Copy tag tests", async () => {
         await check_items({ x1, y1, x2, y2, comp: 2 });
     }
 
-    it("copy componentIndex, array notation, macros", async () => {
+    it("copy sourceIndex, array notation, macros", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>n: <mathInput name="n" /></p>
@@ -3222,7 +3222,7 @@ describe("Copy tag tests", async () => {
         await test_copy_component_index(core, false);
     });
 
-    it("copy componentIndex, with copySource, array notation", async () => {
+    it("copy sourceIndex, with copySource, array notation", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>n: <mathInput name="n" /></p>
@@ -3262,14 +3262,14 @@ describe("Copy tag tests", async () => {
             x2,
             y2,
             propIndex,
-            componentIndex,
+            sourceIndex,
         }: {
             x1: number;
             y1: number;
             x2: number;
             y2: number;
             propIndex?: number;
-            componentIndex?: number;
+            sourceIndex?: number;
         }) {
             let stateVariables = await core.returnAllStateVariables(
                 false,
@@ -3284,17 +3284,17 @@ describe("Copy tag tests", async () => {
 
             if (
                 (propIndex === 1 || propIndex === 2) &&
-                (componentIndex === 1 || componentIndex === 2)
+                (sourceIndex === 1 || sourceIndex === 2)
             ) {
                 let x: number;
                 if (propIndex === 1) {
-                    if (componentIndex === 1) {
+                    if (sourceIndex === 1) {
                         x = x1;
                     } else {
                         x = x2;
                     }
                 } else {
-                    if (componentIndex === 1) {
+                    if (sourceIndex === 1) {
                         x = y1;
                     } else {
                         x = y2;
@@ -3321,10 +3321,10 @@ describe("Copy tag tests", async () => {
             x2 = 3,
             y2 = 4;
 
-        let componentIndex: undefined | number;
+        let sourceIndex: undefined | number;
         let propIndex: undefined | number;
 
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // set propIndex to 1
         propIndex = 1;
@@ -3334,31 +3334,31 @@ describe("Copy tag tests", async () => {
             core,
         });
 
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // move point 1
         x1 = 9;
         y1 = -5;
         await movePoint({ name: "/A", x: x1, y: y1, core });
 
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
-        // set componentIndex to 2
-        componentIndex = 2;
+        // set sourceIndex to 2
+        sourceIndex = 2;
         await updateMathInputValue({
             latex: "2",
             name: "/m",
             core,
         });
 
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // move point2
         x2 = 0;
         y2 = 8;
         await movePoint({ name: "/B", x: x2, y: y2, core });
 
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // set propIndex to 2
         propIndex = 2;
@@ -3367,16 +3367,16 @@ describe("Copy tag tests", async () => {
             name: "/n",
             core,
         });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
-        // set componentIndex to 1
-        componentIndex = 1;
+        // set sourceIndex to 1
+        sourceIndex = 1;
         await updateMathInputValue({
             latex: "1",
             name: "/m",
             core,
         });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // set propIndex to 3
         propIndex = 3;
@@ -3385,7 +3385,7 @@ describe("Copy tag tests", async () => {
             name: "/n",
             core,
         });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // set propIndex to 1
         propIndex = 1;
@@ -3394,19 +3394,19 @@ describe("Copy tag tests", async () => {
             name: "/n",
             core,
         });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
-        // set componentIndex to 3
-        componentIndex = 3;
+        // set sourceIndex to 3
+        sourceIndex = 3;
         await updateMathInputValue({
             latex: "3",
             name: "/m",
             core,
         });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
-        // set componentIndex to 2
-        componentIndex = 2;
+        // set sourceIndex to 2
+        sourceIndex = 2;
         await updateMathInputValue({
             latex: "2",
             name: "/m",
@@ -3420,10 +3420,10 @@ describe("Copy tag tests", async () => {
             name: "/n",
             core,
         });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
     }
 
-    it("copy propIndex and componentIndex, array notation, macros", async () => {
+    it("copy propIndex and sourceIndex, array notation, macros", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>m: <mathinput name="m" /></p>
@@ -3448,7 +3448,7 @@ describe("Copy tag tests", async () => {
         await test_copy_prop_component_index(core, false);
     });
 
-    it("copy propIndex and componentIndex, with copySource, array notation", async () => {
+    it("copy propIndex and sourceIndex, with copySource, array notation", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>m: <mathinput name="m" /></p>

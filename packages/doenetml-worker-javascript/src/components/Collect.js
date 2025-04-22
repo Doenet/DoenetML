@@ -40,9 +40,9 @@ export default class Collect extends CompositeComponent {
             defaultValue: null,
             public: true,
         };
-        attributes.componentIndex = {
+        attributes.sourceIndex = {
             createComponentOfType: "integer",
-            createStateVariable: "componentIndex",
+            createStateVariable: "sourceIndex",
             defaultValue: null,
             public: true,
         };
@@ -225,7 +225,7 @@ export default class Collect extends CompositeComponent {
                 "componentTypesToCollect",
                 "targetName",
                 "propName",
-                "componentIndex",
+                "sourceIndex",
                 "propIndex",
             ],
             additionalStateVariablesDefined: ["effectivePropNameByComponent"],
@@ -241,7 +241,7 @@ export default class Collect extends CompositeComponent {
                     useReplacementsForComposites: true,
                     includeNonActiveChildren: true,
                     recurseToMatchedChildren: false,
-                    componentIndex: stateValues.componentIndex,
+                    sourceIndex: stateValues.sourceIndex,
                 };
 
                 if (stateValues.propName) {

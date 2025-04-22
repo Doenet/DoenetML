@@ -2516,7 +2516,7 @@ describe("Collect tag tests", async () => {
         await check_items(false);
     });
 
-    it("collect componentIndex", async () => {
+    it("collect sourceIndex", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>n: <mathInput name="n" /></p>
@@ -2527,12 +2527,12 @@ describe("Collect tag tests", async () => {
     </graph>
     
     <graph name="g2">
-      <collect componentTypes="point" source="g1" assignNames="A2 B2" componentIndex="$n" />
+      <collect componentTypes="point" source="g1" assignNames="A2 B2" sourceIndex="$n" />
     </graph>
     
     <copy source="g2" name="g3" newNamespace />
 
-    <aslist name="al"><collect componentTypes="point" prop="x" source="g1" componentIndex="$n" assignNames="Ax Bx" /></aslist>
+    <aslist name="al"><collect componentTypes="point" prop="x" source="g1" sourceIndex="$n" assignNames="Ax Bx" /></aslist>
 
     <copy source="al" name="al2" newNamespace />
 
@@ -2624,7 +2624,7 @@ describe("Collect tag tests", async () => {
         await check_items({ x1, x2, y1, y2, index: 2 });
     });
 
-    it("collect propIndex and componentIndex", async () => {
+    it("collect propIndex and sourceIndex", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>m: <mathInput name="m" /></p>
@@ -2635,7 +2635,7 @@ describe("Collect tag tests", async () => {
       <point name="B">(3,4)</point>
     </graph>
     
-    <p><aslist name="al"><collect componentTypes="point" prop="xs" source="g1" componentIndex="$m" propIndex="$n" assignNames="n1 n2 n3 n4" /></aslist></p>
+    <p><aslist name="al"><collect componentTypes="point" prop="xs" source="g1" sourceIndex="$m" propIndex="$n" assignNames="n1 n2 n3 n4" /></aslist></p>
 
     <p><copy source="al" name="al2" newNamespace /></p>
 
@@ -2647,14 +2647,14 @@ describe("Collect tag tests", async () => {
             x2,
             y1,
             y2,
-            componentIndex,
+            sourceIndex,
             propIndex,
         }: {
             x1: number;
             x2: number;
             y1: number;
             y2: number;
-            componentIndex?: number;
+            sourceIndex?: number;
             propIndex?: number;
         }) {
             const stateVariables = await core.returnAllStateVariables(
@@ -2669,11 +2669,11 @@ describe("Collect tag tests", async () => {
             );
 
             if (
-                (componentIndex === 1 || componentIndex === 2) &&
+                (sourceIndex === 1 || sourceIndex === 2) &&
                 (propIndex === 1 || propIndex === 2)
             ) {
                 const val =
-                    componentIndex === 1
+                    sourceIndex === 1
                         ? propIndex === 1
                             ? x1
                             : y1
@@ -2714,50 +2714,50 @@ describe("Collect tag tests", async () => {
         await movePoint({ name: "/A", x: x1, y: y1, core });
         await check_items({ x1, y1, x2, y2, propIndex });
 
-        // set componentIndex to 2
-        let componentIndex = 2;
+        // set sourceIndex to 2
+        let sourceIndex = 2;
         await updateMathInputValue({ latex: "2", name: "/m", core });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // move point2
         x2 = 0;
         y2 = 8;
         await movePoint({ name: "/B", x: x2, y: y2, core });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // set propIndex to 2
         propIndex = 2;
         await updateMathInputValue({ latex: "2", name: "/n", core });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
-        // set componentIndex to 1
-        componentIndex = 1;
+        // set sourceIndex to 1
+        sourceIndex = 1;
         await updateMathInputValue({ latex: "1", name: "/m", core });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // set propIndex to 3
         propIndex = 3;
         await updateMathInputValue({ latex: "3", name: "/n", core });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // set propIndex to 1
         propIndex = 3;
         await updateMathInputValue({ latex: "3", name: "/n", core });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
-        // set componentIndex to 3
-        componentIndex = 3;
+        // set sourceIndex to 3
+        sourceIndex = 3;
         await updateMathInputValue({ latex: "3", name: "/m", core });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
-        // set componentIndex to 2
-        componentIndex = 2;
+        // set sourceIndex to 2
+        sourceIndex = 2;
         await updateMathInputValue({ latex: "2", name: "/m", core });
-        await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
+        await check_items({ x1, y1, x2, y2, propIndex, sourceIndex });
 
         // clear propIndex
         await updateMathInputValue({ latex: "", name: "/n", core });
-        await check_items({ x1, y1, x2, y2, componentIndex });
+        await check_items({ x1, y1, x2, y2, sourceIndex });
     });
 
     it("collect prop is case insensitive", async () => {

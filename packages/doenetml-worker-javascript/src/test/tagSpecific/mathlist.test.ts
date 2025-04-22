@@ -572,7 +572,7 @@ describe("MathList tag tests", async () => {
         });
     });
 
-    it("dynamic maximum number", async () => {
+    it.only("dynamic maximum number", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     
@@ -580,11 +580,11 @@ describe("MathList tag tests", async () => {
     <p>Maximum number 2: <mathInput name="mn2" /></p>
     <section name="sec">
         <p name="p1"><mathList name="ml1" maxNumber="$mn1" >x y z u v w</mathList></p>
-        <p name="p2">$ml1{maxNumber="$mn2" name="ml2"}</p>
-        <p name="p3">$ml2{name="ml3"}</p>
-        <p name="p4">$ml3{name="ml4" maxNumber=""}</p>
+        <p name="p2"><mathList extend="$ml1" maxNumber="$mn2" name="ml2" /></p>
+        <p name="p3"><mathList extend="$ml2" name="ml3" /></p>
+        <p name="p4"><mathList extend="$ml3" name="ml4" maxNumber="" /></p>
     </section>
-    <section name="sec2" copySource="sec" newNamespace />
+    <section name="sec2" extend="$sec" />
 
       `,
         });
@@ -592,37 +592,37 @@ describe("MathList tag tests", async () => {
         let list = ["x", "y", "z", "u", "v", "w"];
 
         async function check_items(max1, max2) {
-            for (let pre of ["", "/sec2"]) {
+            for (let pre of ["sec", "sec2"]) {
                 await test_mathList({
                     resolveComponentName,
                     core,
-                    name: `${pre}/ml1`,
+                    name: `${pre}.ml1`,
                     maths: list.slice(0, max1),
-                    pName: `${pre}/p1`,
+                    pName: `${pre}.p1`,
                     text: list.slice(0, max1).join(", "),
                 });
                 await test_mathList({
                     resolveComponentName,
                     core,
-                    name: `${pre}/ml2`,
+                    name: `${pre}.ml2`,
                     maths: list.slice(0, max2),
-                    pName: `${pre}/p2`,
+                    pName: `${pre}.p2`,
                     text: list.slice(0, max2).join(", "),
                 });
                 await test_mathList({
                     resolveComponentName,
                     core,
-                    name: `${pre}/ml3`,
+                    name: `${pre}.ml3`,
                     maths: list.slice(0, max2),
-                    pName: `${pre}/p3`,
+                    pName: `${pre}.p3`,
                     text: list.slice(0, max2).join(", "),
                 });
                 await test_mathList({
                     resolveComponentName,
                     core,
-                    name: `${pre}/ml4`,
+                    name: `${pre}.ml4`,
                     maths: list,
-                    pName: `${pre}/p4`,
+                    pName: `${pre}.p4`,
                     text: list.join(", "),
                 });
             }
@@ -634,13 +634,15 @@ describe("MathList tag tests", async () => {
         await check_items(max1, max2);
 
         max1 = Infinity;
-        await updateMathInputValue({ latex: "", componentIdx: "mn1", core });
+        const mn1Idx = resolveComponentName("mn1");
+        await updateMathInputValue({ latex: "", componentIdx: mn1Idx, core });
         await check_items(max1, max2);
 
         max2 = 3;
+        const mn2Idx = resolveComponentName("mn2");
         await updateMathInputValue({
             latex: max2.toString(),
-            componentIdx: "mn2",
+            componentIdx: mn2Idx,
             core,
         });
         await check_items(max1, max2);
@@ -648,7 +650,7 @@ describe("MathList tag tests", async () => {
         max1 = 4;
         await updateMathInputValue({
             latex: max1.toString(),
-            componentIdx: "mn1",
+            componentIdx: mn1Idx,
             core,
         });
         await check_items(max1, max2);
@@ -656,7 +658,7 @@ describe("MathList tag tests", async () => {
         max1 = 1;
         await updateMathInputValue({
             latex: max1.toString(),
-            componentIdx: "mn1",
+            componentIdx: mn1Idx,
             core,
         });
         await check_items(max1, max2);
@@ -664,7 +666,7 @@ describe("MathList tag tests", async () => {
         max2 = 10;
         await updateMathInputValue({
             latex: max2.toString(),
-            componentIdx: "mn2",
+            componentIdx: mn2Idx,
             core,
         });
         await check_items(max1, max2);

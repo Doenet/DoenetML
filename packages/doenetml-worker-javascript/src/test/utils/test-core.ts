@@ -8,6 +8,12 @@ import init, {
     PathToCheck,
 } from "lib-doenetml-worker";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
+import util from "util";
+
+const origLog = console.log;
+console.log = (...args) => {
+    origLog(...args.map((x) => util.inspect(x, false, 10, true)));
+};
 
 type DoenetMLFlags = {
     showCorrectness: boolean;
@@ -118,13 +124,16 @@ export async function createTestCore({
      */
     function resolveComponentName(name: string, origin = 0) {
         const path: PathToCheck = {
-            path: [{ type: "flatPathPart", name, index: [] }],
+            path: name
+                .split(".")
+                .map((nm) => ({ type: "flatPathPart", name: nm, index: [] })),
         };
-            const resolution = PublicDoenetMLCoreRust.resolve_path(
-                resolver,
-                path,
-                origin,
-            );
+
+        const resolution = PublicDoenetMLCoreRust.resolve_path(
+            resolver,
+            path,
+            origin,
+        );
         return resolution.node_idx;
     }
 

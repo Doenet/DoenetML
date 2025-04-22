@@ -686,7 +686,7 @@ $A{assignNames="a" assignnames="b"}
         expect(errorWarnings.errors[4].position.charEnd).eq(20);
 
         expect(errorWarnings.errors[5].message).contain(
-            "macro cannot directly add attributes prop, propIndex, or componentIndex",
+            "macro cannot directly add attributes prop, propIndex, or sourceIndex",
         );
         expect(errorWarnings.errors[5].message).contain(`Found: $$g{prop="a"}`);
         expect(errorWarnings.errors[5].position.lineBegin).eq(12);

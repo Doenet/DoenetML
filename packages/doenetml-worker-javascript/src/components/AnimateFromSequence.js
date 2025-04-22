@@ -36,9 +36,9 @@ export default class AnimateFromSequence extends BaseComponent {
             excludeFromSchema: true,
         };
 
-        attributes.componentIndex = {
+        attributes.sourceIndex = {
             createComponentOfType: "integer",
-            createStateVariable: "componentIndex",
+            createStateVariable: "sourceIndex",
             defaultValue: null,
             public: true,
             excludeFromSchema: true,
@@ -47,21 +47,6 @@ export default class AnimateFromSequence extends BaseComponent {
         attributes.propIndex = {
             createComponentOfType: "numberList",
             createStateVariable: "propIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-
-        attributes.targetSubnames = {
-            createPrimitiveOfType: "stringArray",
-            createStateVariable: "targetSubnames",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-        attributes.targetSubnamesComponentIndex = {
-            createComponentOfType: "numberList",
-            createStateVariable: "targetSubnamesComponentIndex",
             defaultValue: null,
             public: true,
             excludeFromSchema: true,
@@ -394,9 +379,7 @@ export default class AnimateFromSequence extends BaseComponent {
         stateVariableDefinitions.targetIdentities = {
             stateVariablesDeterminingDependencies: [
                 "targetComponent",
-                "componentIndex",
-                "targetSubnames",
-                "targetSubnamesComponentIndex",
+                "sourceIndex",
             ],
             returnDependencies: function ({
                 stateValues,
@@ -416,30 +399,20 @@ export default class AnimateFromSequence extends BaseComponent {
                                 stateValues.targetComponent.componentType,
                             includeNonStandard: true,
                         }) &&
-                            stateValues.componentIndex !== null)
+                            stateValues.sourceIndex !== null)
                     ) {
-                        let targetSubnamesComponentIndex =
-                            stateValues.targetSubnamesComponentIndex;
-                        if (targetSubnamesComponentIndex) {
-                            targetSubnamesComponentIndex = [
-                                ...targetSubnamesComponentIndex,
-                            ];
-                        }
-
                         dependencies.targets = {
                             dependencyType: "replacement",
                             compositeIdx:
                                 stateValues.targetComponent.componentIdx,
                             recursive: true,
-                            componentIndex: stateValues.componentIndex,
-                            targetSubnames: stateValues.targetSubnames,
-                            targetSubnamesComponentIndex,
+                            sourceIndex: stateValues.sourceIndex,
                         };
                     } else if (
-                        stateValues.componentIndex === null ||
-                        stateValues.componentIndex === 1
+                        stateValues.sourceIndex === null ||
+                        stateValues.sourceIndex === 1
                     ) {
-                        // if we don't have a composite, componentIndex can only match if it is 1
+                        // if we don't have a composite, sourceIndex can only match if it is 1
                         dependencies.targets = {
                             dependencyType: "stateVariable",
                             variableName: "targetComponent",

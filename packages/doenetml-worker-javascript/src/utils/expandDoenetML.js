@@ -1108,7 +1108,7 @@ function breakUpTargetIntoPropsAndIndices(
             ) {
                 let targetPropName;
                 let sourceName;
-                let componentIndex;
+                let sourceIndex;
                 let componentAttributes;
                 let propArray;
                 let subNames;
@@ -1152,7 +1152,7 @@ function breakUpTargetIntoPropsAndIndices(
                                 originalSource.length
                         ) {
                             sourceName = sourcePiecesResult.sourceName;
-                            componentIndex = sourcePiecesResult.componentIndex;
+                            sourceIndex = sourcePiecesResult.sourceIndex;
                             componentAttributes =
                                 sourcePiecesResult.componentAttributes;
                             propArray = sourcePiecesResult.propArray;
@@ -1163,7 +1163,7 @@ function breakUpTargetIntoPropsAndIndices(
 
                 if (targetPropName && sourceName) {
                     if (
-                        componentIndex ||
+                        sourceIndex ||
                         componentAttributes ||
                         propArray.length > 0
                     ) {
@@ -1180,16 +1180,16 @@ function breakUpTargetIntoPropsAndIndices(
                                 `Cannot combine the propIndex attribute with an extended source attribute.`,
                             );
                         }
-                        if (component.attributes.componentIndex) {
+                        if (component.attributes.sourceIndex) {
                             throw Error(
-                                `Cannot combine the componentIndex attribute with an extended source attribute.`,
+                                `Cannot combine the sourceIndex attribute with an extended source attribute.`,
                             );
                         }
 
                         let componentResult = createComponentFromExtendedSource(
                             {
                                 sourceName,
-                                componentIndex,
+                                sourceIndex,
                                 subNames,
                                 componentAttributes,
                                 propArray,
@@ -1231,8 +1231,7 @@ function breakUpTargetIntoPropsAndIndices(
                                         ...component.attributes,
                                     };
                                     delete reducedAttributes.createComponentOfType;
-                                    delete reducedAttributes.componentIndex;
-                                    delete reducedAttributes.sourceSubnames;
+                                    delete reducedAttributes.sourceIndex;
                                     if (
                                         Object.keys(reducedAttributes)
                                             .length === 0
@@ -1258,22 +1257,6 @@ function breakUpTargetIntoPropsAndIndices(
                                         component.attributes,
                                         newComponent.attributes,
                                     );
-                                    // rename attributes to refer to target rather than source
-                                    if (component.attributes.sourceSubnames) {
-                                        component.attributes.targetSubnames =
-                                            component.attributes.sourceSubnames;
-                                        delete component.attributes
-                                            .sourceSubnames;
-                                    }
-                                    if (
-                                        component.attributes
-                                            .sourceSubnamesComponentIndex
-                                    ) {
-                                        component.attributes.targetSubnamesComponentIndex =
-                                            component.attributes.sourceSubnamesComponentIndex;
-                                        delete component.attributes
-                                            .sourceSubnamesComponentIndex;
-                                    }
 
                                     if (!component.doenetAttributes) {
                                         component.doenetAttributes = {};
@@ -1338,8 +1321,7 @@ function breakUpTargetIntoPropsAndIndices(
                         if (component.componentType === "copy") {
                             let reducedAttributes = { ...component.attributes };
                             delete reducedAttributes.createComponentOfType;
-                            delete reducedAttributes.componentIndex;
-                            delete reducedAttributes.sourceSubnames;
+                            delete reducedAttributes.sourceIndex;
                             if (Object.keys(reducedAttributes).length === 0) {
                                 if (!component.doenetAttributes) {
                                     component.doenetAttributes = {};
@@ -1792,7 +1774,7 @@ function substituteMacros(
 
                 let componentResult = createComponentFromExtendedSource({
                     sourceName: result.sourceName,
-                    componentIndex: result.componentIndex,
+                    sourceIndex: result.sourceIndex,
                     subNames: result.subNames,
                     componentAttributes: result.componentAttributes,
                     propArray: result.propArray,
@@ -1836,8 +1818,7 @@ function substituteMacros(
                 if (result.propArray.length === 0) {
                     let reducedAttributes = { ...newComponent.attributes };
                     delete reducedAttributes.createComponentOfType;
-                    delete reducedAttributes.componentIndex;
-                    delete reducedAttributes.sourceSubnames;
+                    delete reducedAttributes.sourceIndex;
                     if (Object.keys(reducedAttributes).length === 0) {
                         newComponent.doenetAttributes.noAttributesOrProp = true;
                     }
@@ -2007,7 +1988,7 @@ function substituteMacros(
 
 function createComponentFromExtendedSource({
     sourceName,
-    componentIndex,
+    sourceIndex,
     componentAttributes,
     propArray,
     subNames,
@@ -2023,8 +2004,8 @@ function createComponentFromExtendedSource({
         props: {},
     };
 
-    if (componentIndex) {
-        let childrenForAttribute = [componentIndex];
+    if (sourceIndex) {
+        let childrenForAttribute = [sourceIndex];
         let res = applyMacros(childrenForAttribute, componentInfoObjects);
         errors.push(...res.errors);
         warnings.push(...res.warnings);
@@ -2032,57 +2013,12 @@ function createComponentFromExtendedSource({
             return { success: false, errors, warnings };
         }
 
-        newComponent.attributes.componentIndex = {
+        newComponent.attributes.sourceIndex = {
             component: {
                 componentType: "integer",
                 children: childrenForAttribute,
             },
         };
-    }
-
-    if (subNames?.length > 0) {
-        let sourceSubnames = [];
-        let sourceSubnamesComponentIndex = [];
-
-        for (let subNameObj of subNames) {
-            sourceSubnames.push(subNameObj.subName);
-            if (subNameObj.subNameComponentIndex !== undefined) {
-                if (sourceSubnamesComponentIndex.length < sourceSubnames - 1) {
-                    // TODO: NaN will presumably make it not return anything
-                    // When we enable recursing to composites, we'll need a strategy to skip subname component index
-                    sourceSubnamesComponentIndex.push(
-                        ...Array[
-                            sourceSubnames -
-                                1 -
-                                sourceSubnamesComponentIndex.length
-                        ].fill(NaN),
-                    );
-                }
-                sourceSubnamesComponentIndex.push(
-                    subNameObj.subNameComponentIndex,
-                );
-            }
-        }
-
-        newComponent.attributes.sourceSubnames = {
-            primitive: sourceSubnames,
-        };
-        if (sourceSubnamesComponentIndex.length > 0) {
-            let childrenForAttribute = [sourceSubnamesComponentIndex.join(" ")];
-            let res = applyMacros(childrenForAttribute, componentInfoObjects);
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
-            if (errors.length > 0) {
-                return { success: false, errors, warnings };
-            }
-
-            newComponent.attributes.sourceSubnamesComponentIndex = {
-                component: {
-                    componentType: "numberList",
-                    children: childrenForAttribute,
-                },
-            };
-        }
     }
 
     let propsAddExtract = false;
@@ -2215,11 +2151,11 @@ function createAttributesFromString(componentAttributes, componentInfoObjects) {
     if (
         newAttributes.prop ||
         newAttributes.propIndex ||
-        newAttributes.componentIndex
+        newAttributes.sourceIndex
     ) {
         errors.push({
             message:
-                "Error in macro: macro cannot directly add attributes prop, propIndex, or componentIndex.",
+                "Error in macro: macro cannot directly add attributes prop, propIndex, or sourceIndex.",
         });
         return { success: false, errors, warnings };
     }
@@ -2336,7 +2272,7 @@ function buildSourcePieces(str, extendedWordCharacters) {
     findResult = findWordOrDelimitedGroup(str, extendedWordCharacters);
 
     if (findResult.startDelim === "[") {
-        result.componentIndex = findResult.group;
+        result.sourceIndex = findResult.group;
         matchLength += findResult.matchLength;
         str = str.substring(findResult.matchLength);
         findResult = findWordOrDelimitedGroup(str, extendedWordCharacters);
@@ -2344,7 +2280,7 @@ function buildSourcePieces(str, extendedWordCharacters) {
 
     let subNames = [];
     while (findResult.withSlash) {
-        // check for additional subname piece of /name[componentIndex]
+        // check for additional subname piece of /name[sourceIndex]
 
         let subnameObj = { subName: findResult.word };
         matchLength += findResult.matchLength;

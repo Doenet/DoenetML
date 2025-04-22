@@ -38,9 +38,9 @@ export default class Extract extends CompositeComponent {
         attributes.numComponents = {
             createPrimitiveOfType: "number",
         };
-        attributes.componentIndex = {
+        attributes.sourceIndex = {
             createComponentOfType: "integer",
-            createStateVariable: "componentIndex",
+            createStateVariable: "sourceIndex",
             defaultValue: null,
             public: true,
             excludeFromSchema: true,
@@ -151,18 +151,18 @@ export default class Extract extends CompositeComponent {
         stateVariableDefinitions.sourceComponents = {
             stateVariablesDeterminingDependencies: [
                 "propName",
-                "componentIndex",
+                "sourceIndex",
                 "propIndex",
             ],
             additionalStateVariablesDefined: ["effectivePropNameBySource"],
             returnDependencies: function ({ stateValues }) {
                 let childIndices;
-                let componentIndex;
+                let sourceIndex;
 
-                if (stateValues.componentIndex !== null) {
-                    componentIndex = Number(stateValues.componentIndex);
-                    if (Number.isInteger(componentIndex)) {
-                        childIndices = [componentIndex - 1];
+                if (stateValues.sourceIndex !== null) {
+                    sourceIndex = Number(stateValues.sourceIndex);
+                    if (Number.isInteger(sourceIndex)) {
+                        childIndices = [sourceIndex - 1];
                     } else {
                         childIndices = [];
                     }
@@ -703,7 +703,7 @@ export default class Extract extends CompositeComponent {
         // console.log("replacementChanges");
         // console.log(verificationResult.replacementChanges);
 
-        return verificationResult.replacementChanges;
+        return { replacementChanges: verificationResult.replacementChanges };
     }
 
     static async recreateReplacements({

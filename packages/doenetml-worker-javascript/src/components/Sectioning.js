@@ -4,6 +4,29 @@ import {
     UnnumberedSectioningComponent,
 } from "./abstract/SectioningComponent";
 
+// XXX: just creating a division for now since sections are converted to divisions
+export class Division extends SectioningComponentNumberWithSiblings {
+    static componentType = "division";
+    static rendererType = "section";
+
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+        attributes.includeParentNumber.defaultValue = true;
+
+        attributes.type = {
+            createPrimitiveOfType: "string",
+        };
+
+        return attributes;
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        return stateVariableDefinitions;
+    }
+}
+
 export class Section extends SectioningComponentNumberWithSiblings {
     static componentType = "section";
     static rendererType = "section";

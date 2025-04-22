@@ -59,23 +59,9 @@ export default class Copy extends CompositeComponent {
         attributes.numComponents = {
             createPrimitiveOfType: "number",
         };
-        attributes.componentIndex = {
+        attributes.sourceIndex = {
             createComponentOfType: "integer",
-            createStateVariable: "componentIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-        attributes.sourceSubnames = {
-            createPrimitiveOfType: "stringArray",
-            createStateVariable: "targetSubnames",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-        attributes.sourceSubnamesComponentIndex = {
-            createComponentOfType: "numberList",
-            createStateVariable: "targetSubnamesComponentIndex",
+            createStateVariable: "sourceIndex",
             defaultValue: null,
             public: true,
             excludeFromSchema: true,
@@ -215,37 +201,39 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.sourceIndex = {
+        stateVariableDefinitions.sourceIndexAlias = {
             stateVariablesDeterminingDependencies: ["extendIdx"],
             determineDependenciesImmediately: true,
             hasEssential: true,
             shadowVariable: true,
             returnDependencies: function ({ stateValues, sharedParameters }) {
-                let sourceIndexMappings = sharedParameters.sourceIndexMappings;
-                if (!sourceIndexMappings) {
+                let sourceIndexAliasMappings =
+                    sharedParameters.sourceIndexAliasMappings;
+                if (!sourceIndexAliasMappings) {
                     return {};
                 }
 
-                let theMapping = sourceIndexMappings[stateValues.extendIdx];
+                let theMapping =
+                    sourceIndexAliasMappings[stateValues.extendIdx];
                 if (theMapping === undefined) {
                     return {};
                 }
 
                 return {
-                    sourceIndex: {
+                    sourceIndexAlias: {
                         dependencyType: "value",
                         value: theMapping,
                     },
                 };
             },
             definition: function ({ dependencyValues }) {
-                let sourceIndex = dependencyValues.sourceIndex;
-                if (sourceIndex === undefined) {
-                    sourceIndex = null;
+                let sourceIndexAlias = dependencyValues.sourceIndexAlias;
+                if (sourceIndexAlias === undefined) {
+                    sourceIndexAlias = null;
                 }
                 return {
-                    setValue: { sourceIndex },
-                    setEssentialValue: { sourceIndex },
+                    setValue: { sourceIndexAlias },
+                    setEssentialValue: { sourceIndexAlias },
                 };
             },
         };
@@ -254,12 +242,12 @@ export default class Copy extends CompositeComponent {
             shadowVariable: true,
             stateVariablesDeterminingDependencies: [
                 "targetSources",
-                "sourceIndex",
+                "sourceIndexAlias",
                 "extendIdx",
             ],
             determineDependenciesImmediately: true,
             returnDependencies({ stateValues }) {
-                if (stateValues.sourceIndex !== null) {
+                if (stateValues.sourceIndexAlias !== null) {
                     return {};
                 }
 
@@ -434,10 +422,8 @@ export default class Copy extends CompositeComponent {
         stateVariableDefinitions.replacementSourceIdentities = {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
-                "componentIndex",
+                "sourceIndex",
                 "propName",
-                "targetSubnames",
-                "targetSubnamesComponentIndex",
                 "obtainPropFromComposite",
                 "linkAttrForDetermineDeps",
             ],
@@ -460,7 +446,7 @@ export default class Copy extends CompositeComponent {
                                 stateValues.extendedComponent.componentType,
                             includeNonStandard: true,
                         }) &&
-                            (stateValues.componentIndex !== null ||
+                            (stateValues.sourceIndex !== null ||
                                 (stateValues.propName &&
                                     !stateValues.obtainPropFromComposite)))
                     ) {
@@ -468,7 +454,7 @@ export default class Copy extends CompositeComponent {
                         // then we'll use replacements (if link attribute is not set to false),
                         // which means we cannot obtainPropFromComposite for a copy.
                         // For any other composite, we'll use replacements (if link attribute is not set to false)
-                        // only if we're getting a component index or a prop that is not from the composite.
+                        // only if we're getting a source index or a prop that is not from the composite.
                         // TODO: the behavior of unlinked needs more investigation and documentation,
                         // including why linkAttrForDetermineDeps,
                         // which is used only here, is different from the link state variable
@@ -476,13 +462,6 @@ export default class Copy extends CompositeComponent {
 
                         if (stateValues.linkAttrForDetermineDeps) {
                             useReplacements = true;
-                            let targetSubnamesComponentIndex =
-                                stateValues.targetSubnamesComponentIndex;
-                            if (targetSubnamesComponentIndex) {
-                                targetSubnamesComponentIndex = [
-                                    ...targetSubnamesComponentIndex,
-                                ];
-                            }
 
                             // Note: it is possible that we have more than one target
                             // for the case where we have a prop and a composite target
@@ -491,19 +470,17 @@ export default class Copy extends CompositeComponent {
                                 compositeIdx:
                                     stateValues.extendedComponent.componentIdx,
                                 recursive: true,
-                                componentIndex: stateValues.componentIndex,
-                                targetSubnames: stateValues.targetSubnames,
-                                targetSubnamesComponentIndex,
+                                sourceIndex: stateValues.sourceIndex,
                             };
                         }
                     }
 
                     if (
                         !useReplacements &&
-                        (stateValues.componentIndex === null ||
-                            stateValues.componentIndex === 1)
+                        (stateValues.sourceIndex === null ||
+                            stateValues.sourceIndex === 1)
                     ) {
-                        // if we don't have a composite, componentIndex can only match if it is 1
+                        // if we don't have a composite, sourceIndex can only match if it is 1
                         dependencies.targets = {
                             dependencyType: "stateVariable",
                             variableName: "extendedComponent",
@@ -1059,7 +1036,7 @@ export default class Copy extends CompositeComponent {
                     )
                 ) {
                     // Include identities of all replacements (and inactive target variable)
-                    // without filtering by componentIndex,
+                    // without filtering by sourceIndex,
                     // as components other than the one at that index could change
                     // the identity of the component at the relevant index
 
@@ -1260,10 +1237,10 @@ export default class Copy extends CompositeComponent {
             };
         }
 
-        // if have a sourceIndex, it means we are copying the indexAlias from a source
+        // if have a sourceIndexAlias, it means we are copying the indexAlias from a source
         // so we just return a number that is the index
-        let sourceIndex = await component.stateValues.sourceIndex;
-        if (sourceIndex !== null) {
+        let sourceIndexAlias = await component.stateValues.sourceIndexAlias;
+        if (sourceIndexAlias !== null) {
             let attributesFromComposite =
                 convertUnresolvedAttributesForComponentType({
                     attributes: component.attributes,
@@ -1276,7 +1253,7 @@ export default class Copy extends CompositeComponent {
                 {
                     componentType: "number",
                     attributes: attributesFromComposite,
-                    state: { value: sourceIndex, fixed: true },
+                    state: { value: sourceIndexAlias, fixed: true },
                 },
             ];
 
@@ -1801,16 +1778,16 @@ export default class Copy extends CompositeComponent {
 
         // if copying a cid, no changes
         if (await component.stateValues.serializedComponentsForCid) {
-            return [];
+            return { replacementChanges: [] };
         }
 
         // for indexAlias from a source, the replacements never change
-        if ((await component.stateValues.sourceIndex) !== null) {
-            return [];
+        if ((await component.stateValues.sourceIndexAlias) !== null) {
+            return { replacementChanges: [] };
         }
 
         if ((await component.stateValues.link) === false) {
-            return [];
+            return { replacementChanges: [] };
         }
 
         let compositeAttributesObj = this.createAttributesObject();
@@ -1826,7 +1803,7 @@ export default class Copy extends CompositeComponent {
                 // that will be withheld
                 // Don't change replacements so that maintain replacement
                 // if the template instance is later no longer withheld
-                return [];
+                return { replacementChanges: [] };
             } else {
                 let replacementChanges = [];
 
@@ -1870,10 +1847,12 @@ export default class Copy extends CompositeComponent {
                     // didn't have sources before and still don't have sources.
                     // we're just getting filler components being recreated.
                     // Don't actually make those changes
-                    return [];
+                    return { replacementChanges: [] };
                 }
 
-                return verificationResult.replacementChanges;
+                return {
+                    replacementChanges: verificationResult.replacementChanges,
+                };
             }
         }
 
@@ -1907,7 +1886,7 @@ export default class Copy extends CompositeComponent {
                 replacementChanges = verificationResult.replacementChanges;
             }
 
-            return replacementChanges;
+            return { replacementChanges };
         }
 
         // resolve determine dependencies of replacementSources
@@ -1955,17 +1934,15 @@ export default class Copy extends CompositeComponent {
                 components[
                     (await component.stateValues.extendedComponent).componentIdx
                 ];
-            let componentIndex = await component.stateValues.componentIndex;
-            let targetSubnames = await component.stateValues.targetSubnames;
+            let sourceIndex = await component.stateValues.sourceIndex;
             if (
                 extendedComponent.doenetAttributes.sourceIsProp &&
-                !componentIndex &&
-                !targetSubnames
+                !sourceIndex
             ) {
                 // The case where we added an extra copy as a workaround for sourceIsProp.
                 // Any replacement changes will be handled by that copy,
                 // so we ignored changes here.
-                return [];
+                return { replacementChanges: [] };
             }
         }
 
@@ -2376,13 +2353,13 @@ export default class Copy extends CompositeComponent {
             // didn't have sources before and still don't have sources.
             // we're just getting filler components being recreated.
             // Don't actually make those changes
-            return [];
+            return { replacementChanges: [] };
         }
 
         // console.log("replacementChanges");
         // console.log(verificationResult.replacementChanges);
 
-        return verificationResult.replacementChanges;
+        return { replacementChanges: verificationResult.replacementChanges };
     }
 
     static async recreateReplacements({

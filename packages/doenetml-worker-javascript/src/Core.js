@@ -1375,8 +1375,12 @@ export default class Core {
         let lastErrorMessage = "";
         let lastErrorMessageFromAttribute = "";
 
+        if (!(Number.isInteger(componentIdx) && componentIdx >= 0)) {
+            throw Error(`Found an invalid componentIdx: ${componentIdx}`);
+        }
+
         if (this._components[componentIdx] !== undefined) {
-            throw Error("found a duplicate componentIdx", componentIdx);
+            throw Error(`Found a duplicate componentIdx: ${componentIdx}`);
         }
 
         // first recursively create children and attribute components
@@ -9306,11 +9310,12 @@ export default class Core {
         // resolveItem: a function that the composite can use to resolve any state variables
         // publicCaseInsensitiveAliasSubstitutions: a function that can be used to find a case insensitive match
         //   to a public state variable, substituting aliases if necessary
-        const replacementChanges =
+        const replacementResults =
             await component.constructor.calculateReplacementChanges({
                 component: proxiedComponent,
                 componentChanges,
                 components: this.components,
+                nComponents: this.components.length,
                 workspace: component.replacementsWorkspace,
                 componentInfoObjects: this.componentInfoObjects,
                 flags: this.flags,
@@ -9328,7 +9333,7 @@ export default class Core {
         }
 
         // console.log("replacement changes for " + component.componentIdx);
-        // console.log(replacementChanges);
+        // console.log(replacementResults);
         // console.log(component.replacements.map(x => x.componentIdx));
         // console.log(component.replacements);
         // console.log(component.unresolvedState);
@@ -9336,8 +9341,12 @@ export default class Core {
 
         // let changedReplacementIdentitiesOfComposites = [];
 
+        if (replacementResults.nComponents > this.components.length) {
+            this._components[replacementResults.nComponents - 1] = undefined;
+        }
+
         // iterate through all replacement changes
-        for (let change of replacementChanges) {
+        for (let change of replacementResults.replacementChanges) {
             if (change.changeType === "add") {
                 if (change.replacementsToWithhold !== undefined) {
                     await this.adjustReplacementsToWithhold({

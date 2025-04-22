@@ -3,11 +3,6 @@ import {
     UnflattenedComponent,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
-import {
-    SerializedAttribute,
-    SerializedComponent,
-    SerializedRefResolution,
-} from "./types";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -113,7 +108,7 @@ export function convertRefsToCopies({
                 newComponent.attributes = outerAttributes;
             } else {
                 if (unresolved_path[0].name === "") {
-                    // if we start with an index, it is a componentIndex
+                    // if we start with an index, it is a sourceIndex
                     // TODO: use later indices from the index
 
                     const res = convertRefsToCopies({
@@ -123,8 +118,8 @@ export function convertRefsToCopies({
                     nComponents = res.nComponents;
                     const children = res.components;
 
-                    newComponent.attributes.componentIndex = {
-                        name: "componentIndex",
+                    newComponent.attributes.sourceIndex = {
+                        name: "sourceIndex",
                         children,
                         position: unresolved_path[0].index[0].position,
                     };

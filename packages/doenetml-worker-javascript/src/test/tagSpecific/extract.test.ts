@@ -404,7 +404,7 @@ describe("Extract tag tests", async () => {
         expect(stateVariables["/e2"].stateValues.text).eq("extract 2: ");
     });
 
-    it("extract componentIndex", async () => {
+    it("extract sourceIndex", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>n: <mathInput name="n" /></p>
@@ -414,7 +414,7 @@ describe("Extract tag tests", async () => {
       <point name="B">(3,4)</point>
     </graph>
     
-    <asList name="al"><extract prop="x" componentIndex="$n" assignNames="Ax Bx">
+    <asList name="al"><extract prop="x" sourceIndex="$n" assignNames="Ax Bx">
       <collect name="col" componentTypes="point" target="g1" />
     </extract></asList>
 
@@ -485,7 +485,7 @@ describe("Extract tag tests", async () => {
         await check_items({ x1, x2, y1, y2, Ax: x2 });
     });
 
-    it("copy propIndex and componentIndex", async () => {
+    it("copy propIndex and sourceIndex", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>m: <mathInput name="m" /></p>
@@ -497,7 +497,7 @@ describe("Extract tag tests", async () => {
     </graph>
 
     
-    <p><asList name="al"><extract prop="xs" componentIndex="$m" propIndex="$n" assignNames="n1 n2 n3 n4">
+    <p><asList name="al"><extract prop="xs" sourceIndex="$m" propIndex="$n" assignNames="n1 n2 n3 n4">
       <collect name="col" componentTypes="point" target="g1" assignNames="A1 B1" />
     </extract></asList></p>
 
@@ -562,7 +562,7 @@ describe("Extract tag tests", async () => {
         await movePoint({ name: "/A", x: x1, y: y1, core });
         await check_items({ x1, x2, y1, y2 });
 
-        // set componentIndex to 2
+        // set sourceIndex to 2
         await updateMathInputValue({ latex: "2", name: "/m", core });
         await check_items({ x1, x2, y1, y2, n1: x2 });
 
@@ -576,7 +576,7 @@ describe("Extract tag tests", async () => {
         await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items({ x1, x2, y1, y2, n1: y2 });
 
-        // set componentIndex to 1
+        // set sourceIndex to 1
         await updateMathInputValue({ latex: "1", name: "/m", core });
         await check_items({ x1, x2, y1, y2, n1: y1 });
 
@@ -588,11 +588,11 @@ describe("Extract tag tests", async () => {
         await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items({ x1, x2, y1, y2, n1: x1 });
 
-        // set componentIndex to 3
+        // set sourceIndex to 3
         await updateMathInputValue({ latex: "3", name: "/m", core });
         await check_items({ x1, x2, y1, y2 });
 
-        // set componentIndex to 2
+        // set sourceIndex to 2
         await updateMathInputValue({ latex: "2", name: "/m", core });
         await check_items({ x1, x2, y1, y2, n1: x2 });
 

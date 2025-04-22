@@ -1008,7 +1008,7 @@ async function addSharedParameters(thisRepl, component, newChildnumberArray) {
     ).entries()) {
         if (indexAlias) {
             addToPars.push({
-                parameterName: "sourceIndexMappings",
+                parameterName: "sourceIndexAliasMappings",
                 key: indexAlias,
                 value: newChildnumberArray[ind] + 1,
             });

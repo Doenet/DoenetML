@@ -5262,13 +5262,13 @@ class DescendantDependency extends Dependency {
             this.definition.ignoreReplacementsOfEncounteredComposites;
 
         if (
-            this.definition.componentIndex !== null &&
-            this.definition.componentIndex !== undefined
+            this.definition.sourceIndex !== null &&
+            this.definition.sourceIndex !== undefined
         ) {
-            if (Number.isInteger(this.definition.componentIndex)) {
-                this.componentIndex = this.definition.componentIndex;
+            if (Number.isInteger(this.definition.sourceIndex)) {
+                this.sourceIndex = this.definition.sourceIndex;
             } else {
-                this.componentIndex = NaN;
+                this.sourceIndex = NaN;
             }
         }
     }
@@ -5420,8 +5420,8 @@ class DescendantDependency extends Dependency {
             componentInfoObjects: this.dependencyHandler.componentInfoObjects,
         });
 
-        if (this.componentIndex !== undefined) {
-            let theDescendant = descendants[this.componentIndex - 1];
+        if (this.sourceIndex !== undefined) {
+            let theDescendant = descendants[this.sourceIndex - 1];
             if (theDescendant) {
                 descendants = [theDescendant];
             } else {
@@ -6360,31 +6360,13 @@ class ReplacementDependency extends Dependency {
             this.definition.recurseNonStandardComposites;
 
         if (
-            this.definition.componentIndex !== null &&
-            this.definition.componentIndex !== undefined
+            this.definition.sourceIndex !== null &&
+            this.definition.sourceIndex !== undefined
         ) {
-            if (Number.isInteger(this.definition.componentIndex)) {
-                this.componentIndex = this.definition.componentIndex;
+            if (Number.isInteger(this.definition.sourceIndex)) {
+                this.sourceIndex = this.definition.sourceIndex;
             } else {
-                this.componentIndex = NaN;
-            }
-        }
-
-        if (this.definition.targetSubnames) {
-            this.targetSubnames = this.definition.targetSubnames;
-        }
-
-        // Note: it appears that targetSubnamesComponentIndex is not yet implemented
-        if (this.definition.targetSubnamesComponentIndex) {
-            if (
-                this.definition.targetSubnamesComponentIndex.every(
-                    Number.isInteger,
-                )
-            ) {
-                this.targetSubnamesComponentIndex =
-                    this.definition.targetSubnamesComponentIndex;
-            } else {
-                this.targetSubnamesComponentIndex = [NaN];
+                this.sourceIndex = NaN;
             }
         }
 
@@ -6580,7 +6562,7 @@ class ReplacementDependency extends Dependency {
             }
         }
 
-        if (this.componentIndex !== undefined) {
+        if (this.sourceIndex !== undefined) {
             // Note: strings that are not blank do take up a slot for component index.
             // However, this non-blank strings that do take up a slot
             // will not be returned as a replacement (instead the replacement will be empty).
@@ -6590,7 +6572,7 @@ class ReplacementDependency extends Dependency {
                 (x) => typeof x !== "string" || x.trim() !== "",
             );
             let theReplacement =
-                nonBlankStringReplacements[this.componentIndex - 1];
+                nonBlankStringReplacements[this.sourceIndex - 1];
             if (theReplacement && typeof theReplacement !== "string") {
                 replacements = [theReplacement];
             } else {
@@ -6598,63 +6580,6 @@ class ReplacementDependency extends Dependency {
             }
         }
 
-        if (this.targetSubnames) {
-            let replaceComponentsUsingSubname = function ({
-                components,
-                subNames,
-                subNamesComponentIndex,
-                dep,
-            }) {
-                if (subNames.length === 0) {
-                    return components;
-                }
-                let remainingSubnames = subNames.slice(1);
-
-                let newComponents = [];
-
-                for (let comp of components) {
-                    let newCidx = comp.componentIdx + "/" + subNames[0];
-
-                    let newComp = dep.dependencyHandler._components[newCidx];
-                    if (!newComp) {
-                        let dependenciesMissingComponent =
-                            dep.dependencyHandler.updateTriggers
-                                .dependenciesMissingComponentBySpecifiedName[
-                                newCidx
-                            ];
-                        if (!dependenciesMissingComponent) {
-                            dependenciesMissingComponent =
-                                dep.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
-                                    newCidx
-                                ] = [];
-                        }
-                        if (!dependenciesMissingComponent.includes(dep)) {
-                            dependenciesMissingComponent.push(dep);
-                        }
-                    } else {
-                        // TODO: implement subNamesComponentIndex and additional subNames
-                        // (as well as allowing componentIndex/subNamesComponentIndex to be multi-dimensional).
-                        // These additional levels would involve recursing to the replacements
-                        // of additional composites.
-
-                        // For now, we return newComponet only if we don't have additional subNames
-                        // and we ignore subNamesComponentIndex
-                        if (remainingSubnames.length === 0) {
-                            newComponents.push(newComp);
-                        }
-                    }
-                }
-
-                return newComponents;
-            };
-
-            replacements = replaceComponentsUsingSubname({
-                components: replacements,
-                subNames: this.targetSubnames,
-                subNamesComponentIndex: this.targetSubnamesComponentIndex,
-                dep: this,
-            });
-        }
         let downstreamComponentIndices = [];
         let downstreamComponentTypes = [];
 

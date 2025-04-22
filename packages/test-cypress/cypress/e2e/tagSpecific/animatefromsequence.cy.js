@@ -1119,7 +1119,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.get(cesc2("#/pAnOn")).should("have.text", "Animation on: false");
     });
 
-    it("animate componentIndex", () => {
+    it("animate sourceIndex", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1137,7 +1137,7 @@ describe("AnimateFromSequence Tag Tests", function () {
     
   <p>Index to animate: <mathinput prefill="1" name="ind" /></p>
 
-  <animateFromSequence name="x" animationMode='increase' animationOn='$b' target='col' animationInterval='100' componentIndex="$ind" />
+  <animateFromSequence name="x" animationMode='increase' animationOn='$b' target='col' animationInterval='100' sourceIndex="$ind" />
 
   <booleaninput name="b" />
 
@@ -1455,7 +1455,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         });
     });
 
-    it("animate componentIndex, array notation", () => {
+    it("animate sourceIndex, array notation", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1791,7 +1791,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         });
     });
 
-    it("animate componentIndex of group", () => {
+    it("animate sourceIndex of group", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -2065,7 +2065,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         });
     });
 
-    it("animate componentIndex of group with target subnames", () => {
+    it("animate sourceIndex of group with target subnames", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
