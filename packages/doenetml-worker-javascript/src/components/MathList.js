@@ -698,6 +698,7 @@ export default class MathList extends CompositeComponent {
         let replacements = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {

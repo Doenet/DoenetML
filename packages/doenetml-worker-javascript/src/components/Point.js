@@ -37,6 +37,7 @@ export default class Point extends GraphicalComponent {
     // and use wrapping components to create points from those
     static primaryStateVariableForDefinition = "coordsShadow";
     static stateVariableToBeShadowed = "coords";
+    static variableForSourceIndexAsProp = "xs";
 
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["number", "math", "string"];
@@ -184,39 +185,39 @@ export default class Point extends GraphicalComponent {
                 if (breakResult.success) {
                     // wrap maths around each piece, wrap whole thing in mathList
                     // and use for xs attribute
-                    return {
-                        success: true,
-                        newAttributes: {
-                            xs: {
-                                type: "component",
-                                name: "xs",
-                                componentIdx: nComponents,
-                                component: {
+                    const newAttributes = {
+                        xs: {
+                            type: "component",
+                            name: "xs",
+                            component: {
+                                type: "serialized",
+                                componentType: "mathList",
+                                componentIdx: nComponents++,
+                                children: breakResult.pieces.map((x, i) => ({
                                     type: "serialized",
-                                    componentType: "mathList",
-                                    componentIdx: nComponents + 1,
-                                    children: breakResult.pieces.map(
-                                        (x, i) => ({
-                                            type: "serialized",
-                                            componentType: "math",
-                                            componentIdx: nComponents + 2 + i,
-                                            children: x,
-                                            attributes: {},
-                                            state: {},
-                                        }),
-                                    ),
-                                    skipSugar: true,
+                                    componentType: "math",
+                                    componentIdx: nComponents++,
+                                    children: x,
                                     attributes: {},
+                                    doenetAttributes: {},
                                     state: {},
-                                },
+                                })),
+                                skipSugar: true,
+                                attributes: {},
+                                state: {},
+                                doenetAttributes: {},
                             },
                         },
+                    };
+
+                    return {
+                        success: true,
+                        newAttributes,
                         newChildren: [
                             ...nonComponentChildrenBegin,
                             ...nonComponentChildrenEnd,
                         ],
-                        nComponents:
-                            nComponents + 2 + breakResult.pieces.length,
+                        nComponents,
                     };
                 }
             }
@@ -228,12 +229,14 @@ export default class Point extends GraphicalComponent {
                     coords: {
                         type: "component",
                         name: "coords",
-                        componentIdx: nComponents,
                         component: {
-                            type: "component",
+                            type: "serialized",
                             componentType: "coords",
                             componentIdx: nComponents + 1,
                             children: componentChildren,
+                            state: {},
+                            attributes: {},
+                            doenetAttributes: {},
                         },
                     },
                 },

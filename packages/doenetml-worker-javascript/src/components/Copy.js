@@ -427,6 +427,7 @@ export default class Copy extends CompositeComponent {
                 "obtainPropFromComposite",
                 "linkAttrForDetermineDeps",
             ],
+            additionalStateVariablesDefined: ["sourceIndexAsProp"],
             returnDependencies: function ({
                 stateValues,
                 componentInfoObjects,
@@ -475,16 +476,19 @@ export default class Copy extends CompositeComponent {
                         }
                     }
 
-                    if (
-                        !useReplacements &&
-                        (stateValues.sourceIndex === null ||
-                            stateValues.sourceIndex === 1)
-                    ) {
+                    if (!useReplacements) {
                         // if we don't have a composite, sourceIndex can only match if it is 1
                         dependencies.targets = {
                             dependencyType: "stateVariable",
                             variableName: "extendedComponent",
                         };
+
+                        if (stateValues.sourceIndex !== null) {
+                            dependencies.sourceIndexAsProp = {
+                                dependencyType: "stateVariable",
+                                variableName: "sourceIndex",
+                            };
+                        }
                     }
                 }
 
@@ -504,6 +508,8 @@ export default class Copy extends CompositeComponent {
                 return {
                     setValue: {
                         replacementSourceIdentities,
+                        sourceIndexAsProp:
+                            dependencyValues.sourceIndexAsProp ?? null,
                     },
                 };
             },
@@ -526,6 +532,7 @@ export default class Copy extends CompositeComponent {
             stateVariablesDeterminingDependencies: [
                 "replacementSourceIdentities",
                 "propName",
+                "sourceIndexAsProp",
             ],
             returnDependencies({ stateValues }) {
                 let dependencies = {
@@ -533,9 +540,25 @@ export default class Copy extends CompositeComponent {
                         dependencyType: "stateVariable",
                         variableName: "propName",
                     },
+                    sourceIndexAsProp: {
+                        dependencyType: "stateVariable",
+                        variableName: "sourceIndexAsProp",
+                    },
                 };
 
-                if (!stateValues.propName) {
+                if (
+                    stateValues.propName &&
+                    stateValues.sourceIndexAsProp != undefined
+                ) {
+                    throw Error(
+                        "Have not implemented propName and sourceIndexAsProp together",
+                    );
+                }
+
+                if (
+                    !stateValues.propName &&
+                    !stateValues.sourceIndexAsProp != undefined
+                ) {
                     dependencies.replacementSourceIdentities = {
                         dependencyType: "stateVariable",
                         variableName: "replacementSourceIdentities",
@@ -555,6 +578,7 @@ export default class Copy extends CompositeComponent {
             definition({ dependencyValues, componentInfoObjects }) {
                 if (
                     dependencyValues.propName ||
+                    dependencyValues.sourceIndexAsProp != undefined ||
                     !(dependencyValues.replacementSourceIdentities?.length > 0)
                 ) {
                     return { setValue: { implicitProp: null } };
@@ -645,6 +669,7 @@ export default class Copy extends CompositeComponent {
             stateVariablesDeterminingDependencies: [
                 "replacementSourceIdentities",
                 "propName",
+                "sourceIndexAsProp",
                 "propIndex",
                 "implicitProp",
             ],
@@ -658,6 +683,10 @@ export default class Copy extends CompositeComponent {
                     propIndex: {
                         dependencyType: "stateVariable",
                         variableName: "propIndex",
+                    },
+                    sourceIndexAsProp: {
+                        dependencyType: "stateVariable",
+                        variableName: "sourceIndexAsProp",
                     },
                 };
 
@@ -680,13 +709,19 @@ export default class Copy extends CompositeComponent {
 
                         let thisTarget;
 
-                        if (thisPropName) {
+                        if (
+                            thisPropName ||
+                            stateValues.sourceIndexAsProp != undefined
+                        ) {
                             dependencies["propName" + ind] = {
                                 dependencyType: "value",
                                 value: thisPropName,
                             };
 
                             let propIndex = stateValues.propIndex;
+                            if (stateValues.sourceIndexAsProp != undefined) {
+                                propIndex = [stateValues.sourceIndexAsProp];
+                            }
                             if (propIndex) {
                                 // make propIndex be a shallow copy
                                 // so that can detect if it changed
@@ -700,6 +735,8 @@ export default class Copy extends CompositeComponent {
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
                                 propIndex,
+                                haveSourceIndexAsProp:
+                                    stateValues.sourceIndexAsProp != undefined,
                                 caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
@@ -738,12 +775,17 @@ export default class Copy extends CompositeComponent {
                             }
                             if (
                                 !propName &&
-                                dependencyValues["propName" + ind]
+                                (dependencyValues["propName" + ind] ||
+                                    dependencyValues.sourceIndexAsProp !=
+                                        undefined)
                             ) {
                                 // a propName was specified, but it just wasn't found
                                 propName = "__prop_name_not_found";
                             }
                             effectivePropNameBySource.push(propName);
+                        } else {
+                            // Target not found. Create an invalid effective prop name so that get no replacement
+                            effectivePropNameBySource.push("__no_target_found");
                         }
                     }
                 }
@@ -957,6 +999,7 @@ export default class Copy extends CompositeComponent {
                 "replacementSourceIdentities",
                 "effectivePropNameBySource",
                 "propName",
+                "sourceIndexAsProp",
                 "obtainPropFromComposite",
                 "link",
                 "removeEmptyArrayEntries",
@@ -2642,14 +2685,12 @@ export async function replacementFromProp({
                     );
 
                     let attributesFromComposite =
-                        convertAttributesFoconvertUnresolvedAttributesForComponentTyperComponentType(
-                            {
-                                attributes: component.attributes,
-                                componentType: createComponentOfType,
-                                componentInfoObjects,
-                                compositeAttributesObj,
-                            },
-                        );
+                        convertUnresolvedAttributesForComponentType({
+                            attributes: component.attributes,
+                            componentType: createComponentOfType,
+                            componentInfoObjects,
+                            compositeAttributesObj,
+                        });
 
                     let attributeComponentsShadowingStateVariables;
                     if (

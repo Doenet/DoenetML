@@ -74,8 +74,11 @@ export default class NumberList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren }) {
-                return groupIntoNumbersSeparatedBySpaces({ matchedChildren });
+            replacementFunction: function ({ matchedChildren, nComponents }) {
+                return groupIntoNumbersSeparatedBySpaces({
+                    matchedChildren,
+                    nComponents,
+                });
             },
         });
 
@@ -558,6 +561,7 @@ export default class NumberList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -611,6 +615,7 @@ export default class NumberList extends CompositeComponent {
             }
             replacements.push({
                 componentType: "number",
+                componentIdx: nComponents++,
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 downstreamDependencies: {
                     [component.componentIdx]: [
@@ -649,6 +654,7 @@ export default class NumberList extends CompositeComponent {
             replacements: processResult.serializedComponents,
             errors,
             warnings,
+            nComponents,
         };
     }
 
@@ -657,6 +663,7 @@ export default class NumberList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -690,7 +697,7 @@ export default class NumberList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return [];
+                return { replacementChanges: [] };
             }
         }
 
@@ -700,11 +707,13 @@ export default class NumberList extends CompositeComponent {
             components,
             componentInfoObjects,
             workspace,
+            nComponents,
         });
 
         let replacements = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -716,6 +725,6 @@ export default class NumberList extends CompositeComponent {
             },
         ];
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 }

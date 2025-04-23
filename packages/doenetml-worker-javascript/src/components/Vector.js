@@ -31,6 +31,7 @@ export default class Vector extends GraphicalComponent {
     static canBeInList = true;
 
     static primaryStateVariableForDefinition = "displacementShadow";
+    static variableForSourceIndexAsProp = "displacement";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -100,6 +101,7 @@ export default class Vector extends GraphicalComponent {
         let breakIntoXsOrCoords = function ({
             matchedChildren,
             componentInfoObjects,
+            nComponents,
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
@@ -176,24 +178,38 @@ export default class Vector extends GraphicalComponent {
                 if (breakResult.success) {
                     // wrap maths around each piece, wrap whole thing in mathList
                     // and use for xs attribute
-                    return {
-                        success: true,
-                        newAttributes: {
-                            xs: {
-                                component: {
-                                    componentType: "mathList",
-                                    children: breakResult.pieces.map((x) => ({
-                                        componentType: "math",
-                                        children: x,
-                                    })),
-                                    skipSugar: true,
-                                },
+                    const newAttributes = {
+                        xs: {
+                            type: "component",
+                            name: "xs",
+                            component: {
+                                type: "serialized",
+                                componentType: "mathList",
+                                componentIdx: nComponents++,
+                                children: breakResult.pieces.map((x) => ({
+                                    type: "serialized",
+                                    componentType: "math",
+                                    componentIdx: nComponents++,
+                                    children: x,
+                                    attributes: {},
+                                    doenetAttributes: {},
+                                    state: {},
+                                })),
+                                skipSugar: true,
+                                state: {},
+                                attributes: {},
+                                doenetAttributes: {},
                             },
                         },
+                    };
+                    return {
+                        success: true,
+                        newAttributes,
                         newChildren: [
                             ...nonComponentChildrenBegin,
                             ...nonComponentChildrenEnd,
                         ],
+                        nComponents,
                     };
                 }
             }
@@ -203,9 +219,16 @@ export default class Vector extends GraphicalComponent {
                 success: true,
                 newAttributes: {
                     displacement: {
+                        type: "component",
+                        name: "displacement",
                         component: {
+                            type: "serialized",
                             componentType: "coords",
+                            componentIdx: nComponents + 1,
                             children: componentChildren,
+                            state: {},
+                            attributes: {},
+                            doenetAttributes: {},
                         },
                     },
                 },
@@ -213,6 +236,7 @@ export default class Vector extends GraphicalComponent {
                     ...nonComponentChildrenBegin,
                     ...nonComponentChildrenEnd,
                 ],
+                nComponents: nComponents + 1,
             };
         };
 

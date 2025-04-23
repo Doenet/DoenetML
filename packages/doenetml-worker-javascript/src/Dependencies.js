@@ -3620,7 +3620,10 @@ class StateVariableDependency extends Dependency {
             this.componentIdx = this.upstreamComponentIdx;
         }
 
-        if (this.definition.variableName === undefined) {
+        if (
+            this.definition.variableName == undefined &&
+            !this.definition.haveSourceIndexAsProp
+        ) {
             throw Error(
                 `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: variableName is not defined`,
             );
@@ -3688,6 +3691,27 @@ class StateVariableDependency extends Dependency {
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };
+        }
+
+        if (
+            this.definition.variableName == undefined &&
+            this.definition.haveSourceIndexAsProp
+        ) {
+            const variableForSourceIndexAsProp =
+                component.constructor.variableForSourceIndexAsProp;
+
+            if (!variableForSourceIndexAsProp) {
+                // if refer to source index on a component that doesn't have variableForSourceIndexAsProp,
+                // then return nothing
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+            this.originalDownstreamVariableNames = [
+                variableForSourceIndexAsProp,
+            ];
         }
 
         return {

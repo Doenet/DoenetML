@@ -43,7 +43,9 @@ export function isSerializedComponent(
             isSerializedAttribute(attr),
         ) &&
         typeof typedObj.state === "object" &&
-        typedObj.state !== null
+        typedObj.state !== null &&
+        typeof typedObj.doenetAttributes === "object" &&
+        typedObj.doenetAttributes !== null
     );
 }
 
