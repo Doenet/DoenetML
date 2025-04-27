@@ -59,6 +59,9 @@ export default class Copy extends CompositeComponent {
         attributes.numComponents = {
             createPrimitiveOfType: "number",
         };
+        attributes.copyInChildren = {
+            createPrimitiveOfType: "boolean",
+        };
         attributes.sourceIndex = {
             createComponentOfType: "integer",
             createStateVariable: "sourceIndex",
@@ -1331,9 +1334,9 @@ export default class Copy extends CompositeComponent {
             // no valid target, so no replacements
             let replacements = [];
 
-            if (component.doenetAttributes.fromCopyTarget) {
+            if (component.attributes.copyInChildren?.primitive.value) {
                 // even though don't have valid target,
-                // if have copyTarget, then include children added directly to component
+                // if copyInChildren, then include children added directly to component
 
                 let componentType =
                     componentInfoObjects.componentTypeLowerCaseMapping[
@@ -1482,9 +1485,9 @@ export default class Copy extends CompositeComponent {
                 numComponentsForSource,
                 publicCaseInsensitiveAliasSubstitutions,
 
-                fromCopyTarget:
+                copyInChildren:
                     Number(sourceNum) === 0 &&
-                    component.doenetAttributes.fromCopyTarget,
+                    component.attributes.copyInChildren?.primitive.value,
             });
 
             errors.push(...results.errors);
@@ -1549,7 +1552,7 @@ export default class Copy extends CompositeComponent {
         }
 
         // console.log(`serialized replacements for ${component.componentIdx}`);
-        // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)));
+        // console.log(JSON.parse(JSON.stringify(replacements)));
 
         return {
             replacements,
@@ -1570,7 +1573,7 @@ export default class Copy extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
 
-        fromCopyTarget,
+        copyInChildren,
     }) {
         // console.log(`create replacement for sourceNum ${sourceNum}`);
         // console.log(
@@ -1633,7 +1636,7 @@ export default class Copy extends CompositeComponent {
             let serializedReplacements = results.serializedReplacements;
 
             if (
-                fromCopyTarget &&
+                copyInChildren &&
                 serializedReplacements.length === 1 &&
                 component.serializedChildren.length > 0
             ) {
@@ -1755,7 +1758,7 @@ export default class Copy extends CompositeComponent {
 
         // if have copy target, then add additional children from the composite itself
         if (
-            fromCopyTarget &&
+            copyInChildren &&
             serializedReplacements.length === 1 &&
             component.serializedChildren.length > 0
         ) {
@@ -2234,9 +2237,9 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
                 numComponentsForSource,
                 publicCaseInsensitiveAliasSubstitutions,
-                fromCopyTarget:
+                copyInChildren:
                     Number(sourceNum) === 0 &&
-                    component.doenetAttributes.fromCopyTarget,
+                    component.attributes.copyInChildren?.primitive.value,
             });
             errors.push(...results.errors);
             warnings.push(...results.warnings);
@@ -2432,9 +2435,9 @@ export default class Copy extends CompositeComponent {
             componentInfoObjects,
             numComponentsForSource,
             publicCaseInsensitiveAliasSubstitutions,
-            fromCopyTarget:
+            copyInChildren:
                 Number(sourceNum) === 0 &&
-                component.doenetAttributes.fromCopyTarget,
+                component.attributes.primitive?.copyInChildren.value,
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);

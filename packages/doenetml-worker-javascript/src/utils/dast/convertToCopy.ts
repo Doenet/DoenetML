@@ -1,3 +1,5 @@
+import { NormalizedNode } from "@doenet/doenetml-worker";
+import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     UnflattenedAttribute,
     UnflattenedComponent,
@@ -7,9 +9,13 @@ import {
 export function convertRefsToCopies({
     serializedComponents,
     nComponents,
+    componentInfoObjects,
+    allNodes,
 }: {
     serializedComponents: (UnflattenedComponent | string)[];
     nComponents: number;
+    componentInfoObjects: ComponentInfoObjects;
+    allNodes: NormalizedNode[];
 }) {
     const newComponents: (UnflattenedComponent | string)[] = [];
 
@@ -26,6 +32,8 @@ export function convertRefsToCopies({
         let res = convertRefsToCopies({
             serializedComponents: newComponent.children,
             nComponents,
+            componentInfoObjects,
+            allNodes,
         });
         newComponent.children = res.components;
         nComponents = res.nComponents;
@@ -36,6 +44,8 @@ export function convertRefsToCopies({
             res = convertRefsToCopies({
                 serializedComponents: attribute.children,
                 nComponents,
+                componentInfoObjects,
+                allNodes,
             });
             attribute.children = res.components;
             nComponents = res.nComponents;
@@ -44,158 +54,176 @@ export function convertRefsToCopies({
 
         newComponent.attributes = newAttributes;
 
-        if (newComponent.extending) {
-            // XXX: for now, we won't try to match any unresolved path with later children.
-            // Instead, we are assuming any unresolved path must match props.
+        if (!newComponent.extending) {
+            newComponents.push(newComponent);
+            continue;
+        }
 
-            const refResolution =
-                "Ref" in newComponent.extending
-                    ? newComponent.extending.Ref
-                    : newComponent.extending.Attribute;
-            const unresolved_path =
-                refResolution.unresolved_path === null
-                    ? null
-                    : [...refResolution.unresolved_path];
+        const extending = newComponent.extending;
 
-            if (
-                newComponent.componentType === "evaluate" &&
-                unresolved_path === null
-            ) {
-                const evalResult = convertEvaluate({
-                    evaluateComponent: newComponent,
-                    refResolution,
-                    nComponents,
-                });
+        const refResolution =
+            "Ref" in extending ? extending.Ref : extending.Attribute;
+        const unresolved_path =
+            refResolution.unresolved_path === null
+                ? null
+                : [...refResolution.unresolved_path];
 
-                nComponents = evalResult.nComponents;
-                newComponents.push(evalResult.newComponent);
-                continue;
-            }
+        if (
+            newComponent.componentType === "evaluate" &&
+            unresolved_path === null
+        ) {
+            const evalResult = convertEvaluate({
+                evaluateComponent: newComponent,
+                refResolution,
+                nComponents,
+            });
 
-            const outerAttributes = { ...newComponent.attributes };
-            newComponent.attributes = {};
+            nComponents = evalResult.nComponents;
+            newComponents.push(evalResult.newComponent);
+            continue;
+        }
 
-            // If the reference was is an Attribute
-            // then we know the resulting componentType
-            // and we make the name and componentIdx the component be assigned to the eventual replacement
+        const outerAttributes = { ...newComponent.attributes };
+        newComponent.attributes = {};
 
-            if ("Attribute" in newComponent.extending) {
-                outerAttributes.createComponentOfType = {
-                    name: "createComponentOfType",
-                    children: [newComponent.componentType],
-                };
-                outerAttributes.createComponentIdx = {
-                    name: "createComponentIdx",
-                    children: [newComponent.componentIdx.toString()],
-                };
-                newComponent.componentIdx = nComponents++;
+        // If the reference was is an Attribute
+        // then we know the resulting componentType
+        // and we make the name and componentIdx the component be assigned to the eventual replacement
 
-                outerAttributes.createComponentName = {
-                    name: "createComponentName",
-                    children: outerAttributes.name.children,
-                };
-                delete outerAttributes.name;
-            }
+        if ("Attribute" in extending) {
+            outerAttributes.createComponentOfType = {
+                name: "createComponentOfType",
+                children: [newComponent.componentType],
+            };
+            outerAttributes.createComponentIdx = {
+                name: "createComponentIdx",
+                children: [newComponent.componentIdx.toString()],
+            };
+            newComponent.componentIdx = nComponents++;
 
-            newComponent.componentType = "copy";
-            newComponent.doenetAttributes = {
-                ...newComponent.doenetAttributes,
-                extendIdx: refResolution.node_idx,
+            outerAttributes.createComponentName = {
+                name: "createComponentName",
+                children: outerAttributes.name.children,
+            };
+            delete outerAttributes.name;
+            outerAttributes.copyInChildren = {
+                name: "copyInChildren",
+                children: ["true"],
+            };
+        }
+
+        delete newComponent.extending;
+
+        newComponent.componentType = "copy";
+        newComponent.doenetAttributes = {
+            ...newComponent.doenetAttributes,
+            extendIdx: refResolution.node_idx,
+        };
+
+        if (unresolved_path === null) {
+            // a copy with no props
+            newComponent.attributes = outerAttributes;
+            newComponents.push(newComponent);
+            continue;
+        }
+
+        if (unresolved_path[0].name === "") {
+            // if we start with an index, it is a sourceIndex
+            // TODO: use later indices from the index
+
+            const res = convertRefsToCopies({
+                serializedComponents: unresolved_path[0].index[0].value,
+                nComponents,
+                componentInfoObjects,
+                allNodes,
+            });
+            nComponents = res.nComponents;
+            const children = res.components;
+
+            newComponent.attributes.sourceIndex = {
+                name: "sourceIndex",
+                children,
+                position: unresolved_path[0].index[0].position,
             };
 
-            if (unresolved_path === null) {
-                // a copy with no props
-                newComponent.attributes = outerAttributes;
-            } else {
-                if (unresolved_path[0].name === "") {
-                    // if we start with an index, it is a sourceIndex
-                    // TODO: use later indices from the index
-
-                    const res = convertRefsToCopies({
-                        serializedComponents: unresolved_path[0].index[0].value,
-                        nComponents,
-                    });
-                    nComponents = res.nComponents;
-                    const children = res.components;
-
-                    newComponent.attributes.sourceIndex = {
-                        name: "sourceIndex",
-                        children,
-                        position: unresolved_path[0].index[0].position,
-                    };
-
-                    // remove the first entry from the path
-                    unresolved_path.shift();
-                }
-                if (unresolved_path.length === 0) {
-                    newComponent.attributes = {
-                        ...newComponent.attributes,
-                        ...outerAttributes,
-                    };
-                } else {
-                    let propsAddExtract = false;
-
-                    for (const path_part of unresolved_path) {
-                        if (propsAddExtract) {
-                            newComponent = {
-                                type: "unflattened",
-                                componentType: "extract",
-                                componentIdx: nComponents++,
-                                attributes: {},
-                                children: [newComponent],
-                                state: {},
-                            };
-                        }
-
-                        newComponent.attributes.prop = {
-                            name: "prop",
-                            children: [path_part.name],
-                        };
-
-                        if (path_part.index.length > 0) {
-                            const res = convertRefsToCopies({
-                                serializedComponents: path_part.index[0].value,
-                                nComponents,
-                            });
-                            nComponents = res.nComponents;
-                            const children = res.components;
-
-                            newComponent.attributes.propIndex = {
-                                name: "propIndex",
-                                position: path_part.position,
-
-                                children: path_part.index.map((index) => {
-                                    const res = convertRefsToCopies({
-                                        serializedComponents: index.value,
-                                        nComponents,
-                                    });
-                                    nComponents = res.nComponents;
-                                    const children = res.components;
-
-                                    return {
-                                        type: "unflattened",
-                                        componentType: "number",
-                                        componentIdx: nComponents++,
-                                        attributes: {},
-                                        doenetAttributes: {},
-                                        children,
-                                        state: {},
-                                        position: index.position,
-                                    };
-                                }),
-                            };
-                        }
-
-                        propsAddExtract = true;
-                    }
-
-                    newComponent.attributes = {
-                        ...newComponent.attributes,
-                        ...outerAttributes,
-                    };
-                }
-            }
+            // remove the first entry from the path
+            unresolved_path.shift();
         }
+
+        if (unresolved_path.length === 0) {
+            newComponent.attributes = {
+                ...newComponent.attributes,
+                ...outerAttributes,
+            };
+
+            newComponents.push(newComponent);
+            continue;
+        }
+
+        let propsAddExtract = false;
+
+        for (const path_part of unresolved_path) {
+            if (propsAddExtract) {
+                newComponent = {
+                    type: "unflattened",
+                    componentType: "extract",
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    children: [newComponent],
+                    state: {},
+                };
+            }
+
+            newComponent.attributes.prop = {
+                name: "prop",
+                children: [path_part.name],
+            };
+
+            if (path_part.index.length > 0) {
+                const res = convertRefsToCopies({
+                    serializedComponents: path_part.index[0].value,
+                    nComponents,
+                    componentInfoObjects,
+                    allNodes,
+                });
+                nComponents = res.nComponents;
+                const children = res.components;
+
+                newComponent.attributes.propIndex = {
+                    name: "propIndex",
+                    position: path_part.position,
+
+                    children: path_part.index.map((index) => {
+                        const res = convertRefsToCopies({
+                            serializedComponents: index.value,
+                            nComponents,
+                            componentInfoObjects,
+                            allNodes,
+                        });
+                        nComponents = res.nComponents;
+                        const children = res.components;
+
+                        return {
+                            type: "unflattened",
+                            componentType: "number",
+                            componentIdx: nComponents++,
+                            attributes: {},
+                            doenetAttributes: {},
+                            children,
+                            state: {},
+                            position: index.position,
+                        };
+                    }),
+                };
+            }
+
+            propsAddExtract = true;
+        }
+
+        newComponent.attributes = {
+            ...newComponent.attributes,
+            ...outerAttributes,
+        };
 
         newComponents.push(newComponent);
     }

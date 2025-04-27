@@ -2786,7 +2786,8 @@ export default class Core {
 
             if (
                 target?.componentIdx === shadowedComposite.componentIdx &&
-                compositeMediatingTheShadow.doenetAttributes.fromCopyTarget
+                compositeMediatingTheShadow.attributes.copyInChildren?.primitive
+                    .value
             ) {
                 let newReplacements = deepClone(
                     compositeMediatingTheShadow.serializedChildren,

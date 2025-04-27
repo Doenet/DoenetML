@@ -155,6 +155,8 @@ export async function normalizedDastToSerializedComponents(
     const convertToCopyResult = convertRefsToCopies({
         serializedComponents: [unflattenedDocument],
         nComponents,
+        componentInfoObjects,
+        allNodes: normalized_root.nodes,
     });
     nComponents = convertToCopyResult.nComponents;
 
