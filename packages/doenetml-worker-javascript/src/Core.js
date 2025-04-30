@@ -1085,12 +1085,15 @@ export default class Core {
             let componentInstruction = this.componentsToRender[componentIdx];
             if (componentInstruction) {
                 for (let child of componentInstruction.children) {
-                    let additionalDeleted = this.deleteFromComponentsToRender({
-                        componentIdx: child.componentIdx,
-                        recurseToChildren,
-                        componentsWithChangedChildrenToRenderInProgress,
-                    });
-                    deletedComponentNames.push(...additionalDeleted);
+                    if (child) {
+                        let additionalDeleted =
+                            this.deleteFromComponentsToRender({
+                                componentIdx: child.componentIdx,
+                                recurseToChildren,
+                                componentsWithChangedChildrenToRenderInProgress,
+                            });
+                        deletedComponentNames.push(...additionalDeleted);
+                    }
                 }
             }
         }
