@@ -26,6 +26,7 @@ export class ComponentWithSelectableType extends BaseComponent {
             matchedChildren,
             componentAttributes,
             parentAttributes,
+            nComponents,
         }) {
             let warnings = [];
             let type = componentAttributes.type;
@@ -57,11 +58,17 @@ export class ComponentWithSelectableType extends BaseComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType,
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
                 warnings,
+                nComponents,
             };
         }
 

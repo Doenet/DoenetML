@@ -51,6 +51,7 @@ export default class Matrix extends MathComponent {
         let replaceRowAndColumnChildren = function ({
             matchedChildren,
             componentInfoObjects,
+            nComponents,
         }) {
             if (matchedChildren.length === 0) {
                 return { success: false };
@@ -108,8 +109,13 @@ export default class Matrix extends MathComponent {
                 ) {
                     newChildren = [
                         {
+                            type: "serialized",
                             componentType: "math",
+                            idx: nComponents++,
                             children: matchedChildren,
+                            attributes: {},
+                            doenetAttributes: {},
+                            state: {},
                         },
                     ];
                 }
@@ -118,6 +124,7 @@ export default class Matrix extends MathComponent {
             return {
                 success: true,
                 newChildren,
+                nComponents,
             };
         };
 
