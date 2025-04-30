@@ -742,7 +742,11 @@ export default class Core {
                                     `number${renderedInd}:${child.toString()}`,
                                 );
                                 renderedInd++;
+                            } else {
+                                currentChildIdentifiers.push("");
                             }
+                        } else {
+                            currentChildIdentifiers.push("");
                         }
                     }
                 }
@@ -752,7 +756,9 @@ export default class Core {
 
                 let previousChildIdentifiers = [];
                 for (let [ind, child] of previousChildRenderers.entries()) {
-                    if (child.componentIdx != undefined) {
+                    if (child === null) {
+                        previousChildIdentifiers.push("");
+                    } else if (child.componentIdx != undefined) {
                         previousChildIdentifiers.push(
                             `nameType:${child.componentIdx};${child.componentType}`,
                         );
@@ -774,7 +780,7 @@ export default class Core {
                 ) {
                     // delete old renderers
                     for (let child of previousChildRenderers) {
-                        if (child.componentIdx != undefined) {
+                        if (child?.componentIdx != undefined) {
                             let deletedNames =
                                 this.deleteFromComponentsToRender({
                                     componentIdx: child.componentIdx,
@@ -809,7 +815,11 @@ export default class Core {
                                     childrenToRender.push(child);
                                 } else if (typeof child === "number") {
                                     childrenToRender.push(child.toString());
+                                } else {
+                                    childrenToRender.push(null);
                                 }
+                            } else {
+                                childrenToRender.push(null);
                             }
                         }
                     }
@@ -962,7 +972,11 @@ export default class Core {
                         childrenToRender.push(child);
                     } else if (typeof child === "number") {
                         childrenToRender.push(child.toString());
+                    } else {
+                        childrenToRender.push(null);
                     }
+                } else {
+                    childrenToRender.push(null);
                 }
             }
         }
@@ -1034,12 +1048,15 @@ export default class Core {
             let componentInstruction = this.componentsToRender[componentIdx];
             if (componentInstruction) {
                 for (let child of componentInstruction.children) {
-                    let additionalDeleted = this.deleteFromComponentsToRender({
-                        componentIdx: child.componentIdx,
-                        recurseToChildren,
-                        componentsWithChangedChildrenToRenderInProgress,
-                    });
-                    deletedComponentNames.push(...additionalDeleted);
+                    if (child) {
+                        let additionalDeleted =
+                            this.deleteFromComponentsToRender({
+                                componentIdx: child.componentIdx,
+                                recurseToChildren,
+                                componentsWithChangedChildrenToRenderInProgress,
+                            });
+                        deletedComponentNames.push(...additionalDeleted);
+                    }
                 }
             }
         }

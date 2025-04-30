@@ -68,10 +68,13 @@ export default function useDoenetRenderer(
     }, [renderersToLoad, props.rendererClasses]);
 
     function createChildFromInstructions(
-        childInstructions: Record<string, any> | string,
+        childInstructions: Record<string, any> | string | null,
         loadMoreRenderers: boolean,
     ) {
-        if (typeof childInstructions === "string") {
+        if (
+            typeof childInstructions === "string" ||
+            childInstructions === null
+        ) {
             return childInstructions;
         }
 
