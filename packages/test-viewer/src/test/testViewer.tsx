@@ -4,6 +4,9 @@ import { DoenetML } from "@doenet/doenetml-prototype";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 import { Button } from "@doenet/ui-components";
+import { DoenetEditor, DoenetViewer } from "@doenet/doenetml";
+import "@doenet/virtual-keyboard/style.css";
+import "@doenet/doenetml/style.css";
 
 export default function TestViewer() {
     const defaultTestSettings: {
@@ -29,6 +32,7 @@ export default function TestViewer() {
     const [controlsVisible, setControlsVisible] = useState(false);
     const [testSettings, setTestSettings] = useState(defaultTestSettings);
     const [updateNumber, setUpdateNumber] = useState(0);
+    const [usePrototype, setUsePrototype] = useState(false);
 
     let {
         requestedVariantIndex,
@@ -140,24 +144,6 @@ export default function TestViewer() {
                         {" "}
                         <input
                             type="checkbox"
-                            checked={render}
-                            onChange={() => {
-                                setTestSettings((was) => {
-                                    let newObj = { ...was };
-                                    newObj.render = !was.render;
-                                    return newObj;
-                                });
-                                setUpdateNumber((was) => was + 1);
-                            }}
-                        />
-                        Render
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        {" "}
-                        <input
-                            type="checkbox"
                             checked={showEditor}
                             onChange={() => {
                                 setTestSettings((was) => {
@@ -237,7 +223,6 @@ export default function TestViewer() {
         <DoenetEditor
             key={"doenetml" + updateNumber}
             doenetML={doenetMLstring}
-            paginate={paginate}
             addVirtualKeyboard={true}
             height="calc(100vh - 94px)"
             width="100%"
@@ -258,13 +243,10 @@ export default function TestViewer() {
                 allowLoadState: false,
                 allowSaveState: false,
                 allowLocalState: false,
-                allowSaveSubmissions: true,
                 allowSaveEvents: false,
                 autoSubmit: false,
             }}
             activityId=""
-            apiURLs={{ postMessages: true }}
-            paginate={paginate}
             addVirtualKeyboard={true}
         />
     );
@@ -286,20 +268,34 @@ export default function TestViewer() {
                             value={buttonText + " controls"}
                             style={{ marginLeft: "12px" }}
                         />
+                        <input type="checkbox" checked={usePrototype} />
+                        <label
+                            style={{ marginLeft: "4px", fontSize: "18px" }}
+                            onClick={() => {
+                                setUsePrototype((was) => !was);
+                                setUpdateNumber((was) => was + 1);
+                            }}
+                        >
+                            Use DoenetML Prototype
+                        </label>
                     </div>
                 </h3>
                 {controls}
             </div>
-            <DoenetML
-                key={"doenetml" + updateNumber}
-                doenetML={doenetMLstring}
-                flags={{
-                    showCorrectness,
-                    readOnly,
-                    showFeedback,
-                    showHints,
-                }}
-            />
+            {usePrototype ? (
+                <DoenetML
+                    key={"doenetml" + updateNumber}
+                    doenetML={doenetMLstring}
+                    flags={{
+                        showCorrectness,
+                        readOnly,
+                        showFeedback,
+                        showHints,
+                    }}
+                />
+            ) : (
+                viewer
+            )}
         </div>
     );
 }
