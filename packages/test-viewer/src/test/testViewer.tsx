@@ -268,14 +268,15 @@ export default function TestViewer() {
                             value={buttonText + " controls"}
                             style={{ marginLeft: "12px" }}
                         />
-                        <input type="checkbox" checked={usePrototype} />
-                        <label
-                            style={{ marginLeft: "4px", fontSize: "18px" }}
-                            onClick={() => {
-                                setUsePrototype((was) => !was);
-                                setUpdateNumber((was) => was + 1);
-                            }}
-                        >
+                        <label style={{ marginLeft: "4px", fontSize: "18px" }}>
+                            <input
+                                type="checkbox"
+                                checked={usePrototype}
+                                onChange={() => {
+                                    setUsePrototype((was) => !was);
+                                    setUpdateNumber((was) => was + 1);
+                                }}
+                            />
                             Use DoenetML Prototype
                         </label>
                     </div>
