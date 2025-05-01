@@ -76,7 +76,7 @@ export default React.memo(function Graph(props) {
             showCopyright: false,
             showNavigation: false, // will add navigation buttons later so can style them
             // keepAspectRatio: SVs.identicalAxisScales,
-            zoom: { wheel: !SVs.fixAxes },
+            zoom: { wheel: !SVs.fixAxes, needShift: false },
             pan: { enabled: !SVs.fixAxes, needShift: false },
             grid: haveFixedGrid,
         });
@@ -117,23 +117,6 @@ export default React.memo(function Graph(props) {
             }
         });
 
-        // If an object is below the navigation bar and it is clicked, both
-        // the navigation button and the object drag/action are triggered.
-        // We hack our way around this behaviour by preventDefault-ing on all the button events
-        // after the nav bar is created.
-        const preventDefault = (e) => {
-            e.preventDefault();
-        };
-        newBoard.containerObj
-            .querySelectorAll(".JXG_navigation_button")
-            .forEach((button) => {
-                button.addEventListener("click", preventDefault);
-                button.addEventListener("touchstart", preventDefault);
-                button.addEventListener("mousedown", preventDefault);
-                button.addEventListener("mouseup", preventDefault);
-            });
-
-        window.BOARD = newBoard;
         setBoard(newBoard);
 
         previousDimensions.current = {
@@ -189,21 +172,6 @@ export default React.memo(function Graph(props) {
 
         // on unmount
         return () => {
-            // Remove any event listers we added during teardown
-            if (newBoard.containerObj) {
-                newBoard.containerObj
-                    .querySelectorAll(".JXG_navigation_button")
-                    .forEach((button) => {
-                        button.removeEventListener("click", preventDefault);
-                        button.removeEventListener(
-                            "touchstart",
-                            preventDefault,
-                        );
-                        button.removeEventListener("mousedown", preventDefault);
-                        button.removeEventListener("mouseup", preventDefault);
-                    });
-            }
-
             newBoard.off("boundingbox");
         };
     }, []);
@@ -943,6 +911,9 @@ export default React.memo(function Graph(props) {
             addEvent(button, "mousedown", cancelbubble);
             addEvent(button, "touchend", cancelbubble);
             addEvent(button, "touchstart", cancelbubble);
+            addEvent(button, "pointerup", cancelbubble);
+            addEvent(button, "pointerdown", cancelbubble);
+            addEvent(button, "pointerleave", cancelbubble);
         };
 
         if (board.attr.showzoom) {
