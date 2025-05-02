@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-// import { DoenetML } from "@doenet/doenetml";
-import { DoenetML } from "@doenet/doenetml-prototype";
+import { DoenetML, EditorViewer } from "@doenet/doenetml-prototype";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 import { Button } from "@doenet/ui-components";
@@ -15,7 +14,6 @@ export default function TestViewer() {
         readOnly: boolean;
         showFeedback: boolean;
         showHints: boolean;
-        paginate: boolean;
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
     } = {
@@ -24,7 +22,6 @@ export default function TestViewer() {
         readOnly: false,
         showFeedback: true,
         showHints: true,
-        paginate: true,
         showEditor: false,
         viewerLocation: "right",
     };
@@ -40,7 +37,6 @@ export default function TestViewer() {
         readOnly,
         showFeedback,
         showHints,
-        paginate,
         showEditor,
         viewerLocation,
     } = testSettings;
@@ -55,7 +51,6 @@ export default function TestViewer() {
                     The DoenetML is displayed is loaded from the file:{" "}
                     <code>src/test/testCode.doenet</code>.
                 </p>
-
                 <div>
                     <Button
                         onClick={() => {
@@ -177,49 +172,16 @@ export default function TestViewer() {
                         </select>
                     </label>
                 </div>
-                <div>
-                    <label>
-                        {" "}
-                        <input
-                            type="checkbox"
-                            checked={showEditor}
-                            onChange={() => {
-                                setTestSettings((was) => {
-                                    let newObj = { ...was };
-                                    newObj.showEditor = !was.showEditor;
-                                    return newObj;
-                                });
-                            }}
-                        />
-                        Show Editor
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        Viewer location{" "}
-                        <select
-                            value={viewerLocation}
-                            onChange={(e) => {
-                                setTestSettings((was) => {
-                                    let newObj = { ...was };
-                                    //@ts-ignore
-                                    newObj.viewerLocation = e.target.value;
-                                    return newObj;
-                                });
-                            }}
-                        >
-                            <option value="right">right</option>
-                            <option value="left">left</option>
-                            <option value="top">top</option>
-                            <option value="bottom">bottom</option>
-                        </select>
-                    </label>
-                </div>
             </div>
         );
     }
 
-    const editor = (
+    const editor = usePrototype ? (
+        <EditorViewer
+            key={"doenetml" + updateNumber}
+            doenetML={doenetMLstring}
+        />
+    ) : (
         <DoenetEditor
             key={"doenetml" + updateNumber}
             doenetML={doenetMLstring}
@@ -230,7 +192,18 @@ export default function TestViewer() {
         />
     );
 
-    const viewer = (
+    const viewer = usePrototype ? (
+        <DoenetML
+            key={"doenetml" + updateNumber}
+            doenetML={doenetMLstring}
+            flags={{
+                showCorrectness,
+                readOnly,
+                showFeedback,
+                showHints,
+            }}
+        />
+    ) : (
         <DoenetViewer
             key={"doenetml" + updateNumber}
             doenetML={doenetMLstring}
@@ -283,20 +256,7 @@ export default function TestViewer() {
                 </h3>
                 {controls}
             </div>
-            {usePrototype ? (
-                <DoenetML
-                    key={"doenetml" + updateNumber}
-                    doenetML={doenetMLstring}
-                    flags={{
-                        showCorrectness,
-                        readOnly,
-                        showFeedback,
-                        showHints,
-                    }}
-                />
-            ) : (
-                viewer
-            )}
+            {showEditor ? editor : viewer}
         </div>
     );
 }
