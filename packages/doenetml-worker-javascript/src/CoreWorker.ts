@@ -2,7 +2,7 @@ import Core from "./Core";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
-import { NormalizedRoot, Resolver } from "@doenet/doenetml-worker";
+import { DastRoot, NormalizedRoot, Resolver } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 
 // Type signatures for callbacks
@@ -59,6 +59,12 @@ export class PublicDoenetMLCore {
     doenetML = "";
     flags: Record<string, unknown> = {};
     resolver?: Resolver;
+    addNodesToResolver?: (
+        resolver: Resolver,
+        dastSubtree: DastRoot,
+        subtreeParent: number,
+        indexOffset: number,
+    ) => Resolver;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -75,6 +81,7 @@ export class PublicDoenetMLCore {
         attemptNumber,
         normalizedRoot,
         resolver,
+        addNodesToResolver,
     }: {
         activityId: string;
         docId: string;
@@ -82,8 +89,15 @@ export class PublicDoenetMLCore {
         attemptNumber: number;
         normalizedRoot: NormalizedRoot;
         resolver: Resolver;
+        addNodesToResolver: (
+            resolver: Resolver,
+            dastSubtree: DastRoot,
+            subtreeParent: number,
+            indexOffset: number,
+        ) => Resolver;
     }) {
         this.resolver = resolver;
+        this.addNodesToResolver = addNodesToResolver;
 
         let componentInfoObjects = createComponentInfoObjects();
 
@@ -167,6 +181,8 @@ export class PublicDoenetMLCore {
         let coreArgs = {
             ...this.coreBaseArgs!,
             ...args,
+            resolver: this.resolver,
+            addNodesToResolver: this.addNodesToResolver,
             updateRenderersCallback,
             reportScoreAndStateCallback,
             requestAnimationFrame,

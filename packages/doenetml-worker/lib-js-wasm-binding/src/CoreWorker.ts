@@ -198,6 +198,8 @@ export class CoreWorker {
                     attemptNumber,
                     normalizedRoot,
                     resolver,
+                    addNodesToResolver:
+                        PublicDoenetMLCore.add_nodes_to_resolver,
                 });
             this.javascript_initialized = true;
             return initializedResult;
@@ -360,6 +362,21 @@ export class CoreWorker {
         } finally {
             resolve();
         }
+    }
+
+    addNodesToResolver(
+        resolver: Resolver,
+        dastSubtree: DastRoot,
+        subtreeParent: number,
+        indexOffset: number,
+    ) {
+        let add_nodes_result = PublicDoenetMLCore.add_nodes_to_resolver(
+            resolver,
+            dastSubtree as DastRootInCore,
+            subtreeParent,
+            indexOffset,
+        );
+        return add_nodes_result;
     }
 
     async terminate() {

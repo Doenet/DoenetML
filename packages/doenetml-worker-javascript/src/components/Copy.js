@@ -1446,6 +1446,7 @@ export default class Copy extends CompositeComponent {
         }
 
         let replacements = [];
+        let dastReplacements = [];
 
         let numReplacementsBySource = [];
         let numNonStringReplacementsBySource = [];
@@ -1504,6 +1505,7 @@ export default class Copy extends CompositeComponent {
             numNonStringReplacementsSoFar +=
                 numNonStringReplacementsBySource[sourceNum];
             replacements.push(...sourceReplacements);
+            dastReplacements.push(...results.dastReplacements);
         }
 
         workspace.numReplacementsBySource = numReplacementsBySource;
@@ -1556,6 +1558,7 @@ export default class Copy extends CompositeComponent {
 
         return {
             replacements,
+            dastReplacements,
             errors,
             warnings,
         };
@@ -1677,6 +1680,7 @@ export default class Copy extends CompositeComponent {
         }
 
         let serializedReplacements;
+        let dastReplacements;
         try {
             serializedReplacements = [
                 await replacementSourceComponent.serialize({
@@ -1689,6 +1693,8 @@ export default class Copy extends CompositeComponent {
                     errorIfEncounterComponent: [component.componentIdx],
                 }),
             ];
+
+            dastReplacements = [replacementSourceComponent.serializeToDast()];
         } catch (e) {
             let message = "Circular dependency detected";
             if (component.attributes.createComponentOfType?.primitive) {
@@ -1774,7 +1780,7 @@ export default class Copy extends CompositeComponent {
         // console.log(`ending serializedReplacements for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(serializedReplacements)));
 
-        return { serializedReplacements, errors, warnings };
+        return { serializedReplacements, dastReplacements, errors, warnings };
     }
 
     static addChildrenFromComposite({

@@ -60,6 +60,77 @@ impl Resolver {
         }
     }
 
+    pub fn add_nodes(&mut self, parent_idx: Index, index_offset: Index, flat_subtree: &FlatRoot) {
+        let num_prev_nodes = self.node_parent.len();
+        if index_offset < num_prev_nodes {
+            panic!("Cannot add nodes to resolver if index_offset is less than the number of previous nodes")
+        }
+
+        // placeholder for missing nodes
+        self.node_parent
+            .extend(iter::repeat_n(None, index_offset - num_prev_nodes));
+
+        // Add parents for new nodes except for the first, which must be a placeholder document node.
+        // If the parent index is 0 (i.e., that document node), set the parent to be `parent_idx`,
+        // else add `index_offset-1` to each node
+        self.node_parent
+            .extend(flat_subtree.nodes.iter().skip(1).map(|node| {
+                node.parent().map(|i| {
+                    if i == 0 {
+                        parent_idx
+                    } else {
+                        i + index_offset - 1
+                    }
+                })
+            }));
+
+        // add placeholders for missing nodes as well as new nodes to be added
+        self.name_map.extend(
+            iter::repeat_with(HashMap::new)
+                .take(index_offset - num_prev_nodes + flat_subtree.nodes.len() - 1),
+        );
+
+        let subtree_name_map = Self::build_name_map(flat_subtree);
+
+        // We will add items to the resolver for parent only if the parent does not already have items with that name,
+        // i.e., the resolver will continue to resolve to descendants of parent as before,
+        // and now will fall back to new items if there wasn't already a ref resolution.
+        let parent_map = &mut self.name_map[parent_idx];
+        let new_parent_map = &subtree_name_map[0];
+
+        for (key, ref_) in new_parent_map.iter() {
+            if parent_map.contains_key(key) {
+                // since parent already includes key, we will ignore new items found
+                continue;
+            }
+            parent_map.insert(
+                key.clone(),
+                match ref_ {
+                    Ref::Unique(idx) => Ref::Unique(*idx + index_offset - 1),
+                    Ref::Ambiguous(vec_idx) => {
+                        Ref::Ambiguous(vec_idx.iter().map(|idx| *idx + index_offset - 1).collect())
+                    }
+                },
+            );
+        }
+
+        // add new items to name_map
+        for (idx, names) in subtree_name_map.iter().enumerate().skip(1) {
+            let adjusted_idx = idx + index_offset - 1;
+            for (key, ref_) in names.iter() {
+                self.name_map[adjusted_idx].insert(
+                    key.clone(),
+                    match ref_ {
+                        Ref::Unique(idx) => Ref::Unique(*idx + index_offset - 1),
+                        Ref::Ambiguous(vec_idx) => Ref::Ambiguous(
+                            vec_idx.iter().map(|idx| *idx + index_offset - 1).collect(),
+                        ),
+                    },
+                );
+            }
+        }
+    }
+
     /// Search for a node specified by `path` starting from `origin`. This algorithm searches first
     /// for the nearest parent that has a descendent with `path[0].name` as its name. Then it tries
     /// to match as much of `path[1..]` as possible. A match is returned along with any unmatched
@@ -266,7 +337,9 @@ impl Resolver {
         let new_name_map: Vec<HashMap<String, Ref>> = self
             .name_map
             .iter()
-            .map(|names| {
+            .enumerate()
+            .filter(|(idx, _names)| node_is_referenced[*idx])
+            .map(|(_idx, names)| {
                 names
                     .iter()
                     .map(|(key, ref_)| match ref_ {

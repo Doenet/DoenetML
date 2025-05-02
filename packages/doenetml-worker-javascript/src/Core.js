@@ -55,6 +55,8 @@ export default class Core {
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
         coreId,
+        resolver,
+        addNodesToResolver,
         updateRenderersCallback,
         reportScoreAndStateCallback,
         requestAnimationFrame,
@@ -73,6 +75,10 @@ export default class Core {
         this.allDoenetMLs = allDoenetMLs;
         this.serializedDocument = serializedDocument;
         this.nComponentsInit = nComponentsInit;
+
+        this.resolver = resolver;
+        this.addNodesToResolver = addNodesToResolver;
+
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
         this.requestAnimationFrame = requestAnimationFrame;
@@ -2491,13 +2497,65 @@ export default class Core {
         if (result.replacements) {
             let serializedReplacements = result.replacements;
 
-            // if (component.serializedReplacements) {
+            const dastRoot = {
+                type: "root",
+                children: result.dastReplacements,
+            };
 
-            //   // if component came with serialized replacements, use those instead
-            //   // as they may have particular state variables values saved
-            //   serializedReplacements = component.serializedReplacements;
-            //   delete component.serializedReplacements;
-            // }
+            // XXX: have not yet dealt with case with more than one replacement
+            if (serializedReplacements.length > 1) {
+                console.log(
+                    "************* new references many not work with more than one replacement *****************",
+                );
+            }
+
+            const haveSingleIndexedReplacement =
+                serializedReplacements.length === 1 &&
+                serializedReplacements[0].componentIdx != undefined;
+
+            // If we have a single replacement that already has an index, then use that for the parentIdx.
+            // Otherwise, the composite's index for the parentIdx
+            const parentIdx = haveSingleIndexedReplacement
+                ? serializedReplacements[0].componentIdx
+                : component.componentIdx;
+
+            let addResult = this.addNodesToResolver?.(
+                this.resolver,
+                dastRoot,
+                parentIdx,
+                this._components.length,
+            );
+
+            if (addResult) {
+                this.resolver = addResult.resolver;
+
+                // Create a map from the originalIdx found in `serializedReplacements`
+                // to the `componentIdx` that was calculated for the resolver.
+
+                // XXX: this will break if `originalIdx` is repeated.
+                const originalIdxToComponentIdx = {};
+                const nComponents = this._components.length;
+                for (const [idx, newNode] of addResult.flatSubtree.nodes
+                    .slice(1)
+                    .entries()) {
+                    const originalIdxStr = newNode.attributes?.find(
+                        (x) => x.name === "originalIdx",
+                    )?.children[0];
+                    if (originalIdxStr !== undefined) {
+                        originalIdxToComponentIdx[originalIdxStr] =
+                            nComponents + idx;
+
+                        this._components[
+                            originalIdxToComponentIdx[originalIdxStr]
+                        ] = undefined;
+                    }
+                }
+
+                this.addComponentIndicesToMatchResolver(
+                    serializedReplacements,
+                    originalIdxToComponentIdx,
+                );
+            }
 
             await this.createAndSetReplacements({
                 component,
@@ -2521,6 +2579,35 @@ export default class Core {
         this.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
 
         return { success: true, compositesExpanded: [component.componentIdx] };
+    }
+
+    /**
+     * If any component of serializedComponents has an `originalIdx` that is in `originalIdxToComponentIdx`,
+     * then set `componentIdx` of the component to the value from `originalIdxToComponentIdx`.
+     *
+     * The purpose is to make sure that the components get created with the `componentIdx` that the resolver uses
+     * so that references to these components will get resolved correctly.
+     */
+    addComponentIndicesToMatchResolver(
+        serializedComponents,
+        originalIdxToComponentIdx,
+    ) {
+        for (const component of serializedComponents) {
+            if (typeof component === "object") {
+                const componentIdx =
+                    originalIdxToComponentIdx[component.originalIdx];
+                if (componentIdx !== undefined) {
+                    component.componentIdx = componentIdx;
+                }
+
+                if (component.children) {
+                    this.addComponentIndicesToMatchResolver(
+                        component.children,
+                        originalIdxToComponentIdx,
+                    );
+                }
+            }
+        }
     }
 
     gatherErrorsAndAssignDoenetMLRange({

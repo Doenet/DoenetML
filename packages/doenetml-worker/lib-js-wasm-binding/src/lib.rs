@@ -12,7 +12,7 @@ use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
     core::core::Core,
     dast::{
-        flat_dast::{FlatPathPart, Index, NormalizedRoot},
+        flat_dast::{FlatPathPart, FlatRoot, Index, NormalizedRoot},
         ref_resolve::{RefResolution, ResolutionError, Resolver},
         DastRoot, FlatDastElementUpdate, FlatDastRoot,
     },
@@ -46,6 +46,14 @@ pub struct ActionResponse {
 pub struct RootResolver {
     normalized_root: NormalizedRoot,
     resolver: Resolver,
+}
+
+#[derive(Debug, Serialize, Tsify)]
+#[tsify(into_wasm_abi)]
+#[serde(rename_all = "camelCase")]
+pub struct AddNodesResult {
+    resolver: Resolver,
+    flat_subtree: FlatRoot,
 }
 
 #[derive(Debug, Serialize, Deserialize, Tsify)]
@@ -105,6 +113,26 @@ impl PublicDoenetMLCore {
             normalized_root,
             resolver,
         })
+    }
+
+    pub fn add_nodes_to_resolver(
+        resolver: Resolver,
+        dast_subtree: DastRoot,
+        subtree_parent: Index,
+        index_offset: Index,
+    ) -> AddNodesResult {
+        let mut resolver2 = resolver;
+        let flat_subtree = Core::add_nodes_to_resolver(
+            &dast_subtree,
+            subtree_parent,
+            index_offset,
+            &mut resolver2,
+        );
+
+        AddNodesResult {
+            resolver: resolver2,
+            flat_subtree,
+        }
     }
 
     pub fn resolve_path(

@@ -1347,6 +1347,76 @@ export default class BaseComponent {
         return serializedComponent;
     }
 
+    serializeToDast() {
+        let dastElement = {
+            type: "element",
+            name: this.componentType,
+        };
+
+        let dastChildren = [];
+
+        if (
+            this.constructor.serializeReplacementsForChildren &&
+            this.isExpanded
+        ) {
+            for (let repl of this.replacements) {
+                if (typeof repl !== "object") {
+                    dastChildren.push({ type: "text", value: repl });
+                } else {
+                    dastChildren.push(repl.serializeToDast());
+                }
+            }
+        } else {
+            for (let child of this.definingChildren) {
+                if (typeof child !== "object") {
+                    dastChildren.push({ type: "text", value: child });
+                } else {
+                    dastChildren.push(child.serializeToDast());
+                }
+            }
+
+            if (this.serializedChildren !== undefined) {
+                for (let child of this.serializedChildren) {
+                    dastChildren.push(this.copySerializedComponent(child));
+                }
+            }
+        }
+
+        dastElement.children = dastChildren;
+
+        dastElement.attributes = {
+            originalIdx: {
+                type: "attribute",
+                name: "originalIdx",
+                children: [
+                    {
+                        type: "text",
+                        value: this.componentIdx.toString(),
+                    },
+                ],
+            },
+        };
+
+        if (this.attributes.name) {
+            dastElement.attributes.name = {
+                type: "attribute",
+                name: "name",
+                children: [
+                    {
+                        type: "text",
+                        value: this.attributes.name.primitive.value,
+                    },
+                ],
+            };
+        }
+
+        if (this.position) {
+            dastElement.position = JSON.parse(JSON.stringify(this.position));
+        }
+
+        return dastElement;
+    }
+
     copySerializedComponent(serializedComponent) {
         if (typeof serializedComponent !== "object") {
             return serializedComponent;
@@ -1395,6 +1465,57 @@ export default class BaseComponent {
         }
 
         return serializedCopy;
+    }
+
+    copySerializedComponentToDast(serializedComponent) {
+        if (typeof serializedComponent !== "object") {
+            return { type: "text", value: serializedComponent };
+        }
+
+        let dastChildren = [];
+        if (serializedComponent.children !== undefined) {
+            for (let child of serializedComponent.children) {
+                dastChildren.push(this.copySerializedComponentToDast(child));
+            }
+        }
+
+        let dastCopy = {
+            type: "element",
+            name: serializedComponent.componentType,
+            attributes: {
+                originalIdx: {
+                    type: "attribute",
+                    name: "originalIdx",
+                    children: [
+                        {
+                            type: "text",
+                            value: serializedComponent.componentIdx.toString(),
+                        },
+                    ],
+                },
+            },
+            children: dastChildren,
+        };
+
+        if (serializedComponent.attributes.name) {
+            dastElement.attributes.name = {
+                type: "attribute",
+                name: "name",
+                children: [
+                    {
+                        type: "text",
+                        value: serializedComponent.attributes.name.primitive
+                            .value,
+                    },
+                ],
+            };
+        }
+
+        if (serializedComponent.position !== undefined) {
+            dastCopy.position = deepClone(serializedComponent.position);
+        }
+
+        return dastCopy;
     }
 
     static adapters = [];
