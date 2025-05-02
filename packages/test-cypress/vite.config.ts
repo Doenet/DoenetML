@@ -13,17 +13,21 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    src: normalizePath(path.join(
-                        require.resolve("@doenet/doenetml-worker/index.js"),
-                        "../*",
-                    )),
+                    src: normalizePath(
+                        path.join(
+                            require.resolve("@doenet/doenetml-worker/index.js"),
+                            "../*",
+                        ),
+                    ),
                     dest: "doenetml-worker/",
                 },
                 {
-                    src: normalizePath(path.join(
-                        require.resolve("@doenet/doenetml"),
-                        "../fonts/*",
-                    )),
+                    src: normalizePath(
+                        path.join(
+                            require.resolve("@doenet/doenetml"),
+                            "../fonts/*",
+                        ),
+                    ),
                     dest: "fonts/",
                 },
                 {

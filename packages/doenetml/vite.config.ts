@@ -23,10 +23,12 @@ export default defineConfig({
                 {
                     // Copy everything from the same directory as `index.js`. This will include
                     // `index.js.map`
-                    src: normalizePath(path.join(
-                        require.resolve("@doenet/doenetml-worker/index.js"),
-                        "../*",
-                    )),
+                    src: normalizePath(
+                        path.join(
+                            require.resolve("@doenet/doenetml-worker/index.js"),
+                            "../*",
+                        ),
+                    ),
                     dest: "doenetml-worker/",
                 },
                 {

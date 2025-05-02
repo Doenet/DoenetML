@@ -14,10 +14,12 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    src: normalizePath(path.join(
-                        require.resolve("@doenet/doenetml-worker/index.js"),
-                        "../*",
-                    )),
+                    src: normalizePath(
+                        path.join(
+                            require.resolve("@doenet/doenetml-worker/index.js"),
+                            "../*",
+                        ),
+                    ),
                     dest: "doenetml-worker/",
                 },
             ],
