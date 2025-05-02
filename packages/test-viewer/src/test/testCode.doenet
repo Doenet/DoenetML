@@ -1,12 +1,18 @@
+<graph>
+    <point name="P" x="3" y="1" />
+    <rectangle width="40" height="40" center="(0,0)" filled name="R" />
+</graph>
+<number name="n">1</number>
+<updateValue triggerWhenObjectsClicked="P R" newValue="$n+1" target="n" />
 <p>Use this to <m>a < b</m>test DoenetML</p>
 <p>A second paragraph!</p>
-<graph showNavigation>
+<!-- <graph showNavigation>
   <line through="(-8,8) (9,6)" />
   <line through="(0,4)" slope="1/2" styleNumber="2" />
 
   <line equation="y=2x-8" styleNumber="3" />
   <line equation="x=-6" styleNumber="4" />
-</graph>
+</graph> -->
 <section boxed>
   <p>A lovely section.</p>
   <problem>
