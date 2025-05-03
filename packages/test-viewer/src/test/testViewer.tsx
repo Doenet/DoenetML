@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { DoenetViewer, DoenetEditor } from "@doenet/doenetml";
-// import { DoenetML } from "@doenet/doenetml-prototype";
+import { DoenetML, EditorViewer } from "@doenet/doenetml-prototype";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 import { Button } from "@doenet/ui-components";
+import { DoenetEditor, DoenetViewer } from "@doenet/doenetml";
+import "@doenet/virtual-keyboard/style.css";
+import "@doenet/doenetml/style.css";
 
 export default function TestViewer() {
     const defaultTestSettings: {
@@ -12,7 +14,6 @@ export default function TestViewer() {
         readOnly: boolean;
         showFeedback: boolean;
         showHints: boolean;
-        render: boolean;
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
     } = {
@@ -21,7 +22,6 @@ export default function TestViewer() {
         readOnly: false,
         showFeedback: true,
         showHints: true,
-        render: true,
         showEditor: false,
         viewerLocation: "right",
     };
@@ -29,6 +29,7 @@ export default function TestViewer() {
     const [controlsVisible, setControlsVisible] = useState(false);
     const [testSettings, setTestSettings] = useState(defaultTestSettings);
     const [updateNumber, setUpdateNumber] = useState(0);
+    const [usePrototype, setUsePrototype] = useState(false);
 
     let {
         requestedVariantIndex,
@@ -36,7 +37,6 @@ export default function TestViewer() {
         readOnly,
         showFeedback,
         showHints,
-        render,
         showEditor,
         viewerLocation,
     } = testSettings;
@@ -51,7 +51,6 @@ export default function TestViewer() {
                     The DoenetML is displayed is loaded from the file:{" "}
                     <code>src/test/testCode.doenet</code>.
                 </p>
-
                 <div>
                     <Button
                         onClick={() => {
@@ -140,62 +139,6 @@ export default function TestViewer() {
                         {" "}
                         <input
                             type="checkbox"
-                            checked={render}
-                            onChange={() => {
-                                setTestSettings((was) => {
-                                    let newObj = { ...was };
-                                    newObj.render = !was.render;
-                                    return newObj;
-                                });
-                                setUpdateNumber((was) => was + 1);
-                            }}
-                        />
-                        Render
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        {" "}
-                        <input
-                            type="checkbox"
-                            checked={showEditor}
-                            onChange={() => {
-                                setTestSettings((was) => {
-                                    let newObj = { ...was };
-                                    newObj.showEditor = !was.showEditor;
-                                    return newObj;
-                                });
-                            }}
-                        />
-                        Show Editor
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        Viewer location{" "}
-                        <select
-                            value={viewerLocation}
-                            onChange={(e) => {
-                                setTestSettings((was) => {
-                                    let newObj = { ...was };
-                                    //@ts-ignore
-                                    newObj.viewerLocation = e.target.value;
-                                    return newObj;
-                                });
-                            }}
-                        >
-                            <option value="right">right</option>
-                            <option value="left">left</option>
-                            <option value="top">top</option>
-                            <option value="bottom">bottom</option>
-                        </select>
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        {" "}
-                        <input
-                            type="checkbox"
                             checked={showEditor}
                             onChange={() => {
                                 setTestSettings((was) => {
@@ -233,7 +176,12 @@ export default function TestViewer() {
         );
     }
 
-    const editor = (
+    const editor = usePrototype ? (
+        <EditorViewer
+            key={"doenetml" + updateNumber}
+            doenetML={doenetMLstring}
+        />
+    ) : (
         <DoenetEditor
             key={"doenetml" + updateNumber}
             doenetML={doenetMLstring}
@@ -244,7 +192,18 @@ export default function TestViewer() {
         />
     );
 
-    const viewer = (
+    const viewer = usePrototype ? (
+        <DoenetML
+            key={"doenetml" + updateNumber}
+            doenetML={doenetMLstring}
+            flags={{
+                showCorrectness,
+                readOnly,
+                showFeedback,
+                showHints,
+            }}
+        />
+    ) : (
         <DoenetViewer
             key={"doenetml" + updateNumber}
             doenetML={doenetMLstring}
@@ -282,20 +241,22 @@ export default function TestViewer() {
                             value={buttonText + " controls"}
                             style={{ marginLeft: "12px" }}
                         />
+                        <label style={{ marginLeft: "4px", fontSize: "18px" }}>
+                            <input
+                                type="checkbox"
+                                checked={usePrototype}
+                                onChange={() => {
+                                    setUsePrototype((was) => !was);
+                                    setUpdateNumber((was) => was + 1);
+                                }}
+                            />
+                            Use DoenetML Prototype
+                        </label>
                     </div>
                 </h3>
                 {controls}
             </div>
-            <DoenetViewer
-                key={"doenetml" + updateNumber}
-                doenetML={doenetMLstring}
-                flags={{
-                    showCorrectness,
-                    readOnly,
-                    showFeedback,
-                    showHints,
-                }}
-            />
+            {showEditor ? editor : viewer}
         </div>
     );
 }

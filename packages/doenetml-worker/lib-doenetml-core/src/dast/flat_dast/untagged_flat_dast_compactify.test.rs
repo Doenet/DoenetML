@@ -325,3 +325,111 @@ fn compactify_preserves_refs_in_path_parts() {
         )
     );
 }
+
+#[test]
+fn compactify_shifts_refs_in_path_parts() {
+    let dast_root =
+        dast_root_no_position(r#"<number name="n"/><point name="p"/><point extend="$p" />$p[$n]"#);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    flat_root.compactify();
+
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "FlatRoot",
+            "children": [0],
+            "nodes": [
+              {
+                "type": "Element",
+                "name": "document",
+                "children": [1, 2, 3, 4],
+                "attributes": [],
+                "idx": 0
+              },
+              {
+                "type": "Element",
+                "name": "number",
+                "parent": 0,
+                "children": [],
+                "attributes": [
+                  {
+                    "name": "name",
+                    "parent": 1,
+                    "children": ["n"]
+                  }
+                ],
+                "idx": 1
+              },
+              {
+                "type": "Element",
+                "name": "point",
+                "parent": 0,
+                "children": [],
+                "attributes": [
+                  {
+                    "name": "name",
+                    "parent": 2,
+                    "children": ["p"]
+                  }
+                ],
+                "idx": 2,
+              },
+              {
+                "type": "Element",
+                "name": "point",
+                "parent": 0,
+                "children": [],
+                "attributes": [],
+                "idx": 3,
+                "extending": {
+                  "Attribute": {
+                    "node_idx": 2,
+                    "unresolved_path": null
+                  }
+                }
+              },
+              {
+                "type": "Element",
+                "name": "point",
+                "parent": 0,
+                "children": [],
+                "attributes": [],
+                "idx": 4,
+                "extending": {
+                  "Ref": {
+                    "node_idx": 2,
+                    "unresolved_path": [
+                      {
+                        "type": "flatPathPart",
+                        "name": "",
+                        "index": [
+                          {
+                            "value": [5]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "Element",
+                "name": "number",
+                "parent": 4,
+                "children": [],
+                "attributes": [],
+                "idx": 5,
+                "extending": {
+                  "Ref": {
+                    "node_idx": 1,
+                    "unresolved_path": null
+                  }
+                }
+              }
+            ]
+          }
+        )
+    );
+}

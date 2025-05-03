@@ -83,6 +83,20 @@ impl FlatNode {
                 if let Some(extending) = &mut elm.extending {
                     let new_idx = ref_index_map[extending.idx()];
                     extending.set_idx(new_idx);
+
+                    // extending might also have indices that are references that also need fixing.
+                    let resolution = extending.get_resolution_mut();
+                    resolution.unresolved_path.iter_mut().for_each(|paths| {
+                        paths.iter_mut().for_each(|path_part| {
+                            path_part.index.iter_mut().for_each(|index| {
+                                index.value.iter_mut().for_each(|node| {
+                                    if let UntaggedContent::Ref(idx) = node {
+                                        *idx = ref_index_map[*idx];
+                                    }
+                                })
+                            })
+                        });
+                    });
                 }
             }
             FlatNode::FunctionRef(function_ref) => {
