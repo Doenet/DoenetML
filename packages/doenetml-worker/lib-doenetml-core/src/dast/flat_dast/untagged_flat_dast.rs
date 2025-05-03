@@ -76,6 +76,14 @@ impl Source<RefResolution> {
         }
     }
 
+    /// Unwraps the `RefResolution` from `self` and returns a mutable reference.
+    pub fn get_resolution_mut(&mut self) -> &mut RefResolution {
+        match self {
+            Source::Attribute(a) => a,
+            Source::Ref(m) => m,
+        }
+    }
+
     /// Similar to `get_resolution`, but consumes `self` and returns the `RefResolution`.
     pub fn take_resolution(self) -> RefResolution {
         match self {
