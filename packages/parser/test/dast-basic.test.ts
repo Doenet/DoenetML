@@ -13,6 +13,7 @@ import {
     splitTextAtSpecialChars,
     splitTextNodeAt,
 } from "../src/lezer-to-dast/gobble-function-arguments";
+import { normalizeDocumentDast } from "../src/dast-normalize/normalize-dast";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -469,5 +470,15 @@ describe("DAST", async () => {
             "type": "root",
           }
         `);
+    });
+    it("converts Markdown text to HTML", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        source = `*hi*\n\n# there!`;
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><p><em>hi</em></p><h1>there!</h1></document>",
+        );
     });
 });
