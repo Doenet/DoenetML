@@ -154,32 +154,39 @@ impl Resolver {
     /// If there was a partial match of the indexed item, the unresolved path will list `name` as an empty string.
     /// E.g., matching `y.w[2]` from `<b />` returns the index of `<d />` along with `.w[2]` as the unresolved path
     /// and matching `y[2]` from `<b />` returns the index of `<d />` along with `.[2]` as the unresolved path.
+    ///
+    /// If `skip_parent_search` is `true`, then modify the algorithm to only match children of `origin`.
+    /// The result is equivalent to the full algorithm where the first part of the path matched `origin`,
+    /// and the remaining path is `path`.
     pub fn resolve<T: AsRef<[FlatPathPart]>>(
         &self,
         path: T,
         origin: Index,
+        skip_parent_search: bool,
     ) -> Result<RefResolution, ResolutionError> {
         let path = path.as_ref();
         let mut current_idx = origin;
         let mut path = path.iter();
-        let first_path_part = path.next().ok_or(ResolutionError::NoReferent)?;
 
-        current_idx = self.search_parents(&first_path_part.name, current_idx)?;
-        // If we made it here, the first entry in `path` has a valid referent.
-        // If this entry also has an index, we need to stop searching. This would
-        // happen if the reference was something like `$a[2].b`.
-        if !first_path_part.index.is_empty() {
-            let remaining_path: Vec<FlatPathPart> = iter::once(FlatPathPart {
-                name: "".into(),
-                index: first_path_part.index.clone(),
-                position: first_path_part.position.clone(),
-            })
-            .chain(path.cloned())
-            .collect();
-            return Ok(RefResolution {
-                node_idx: current_idx,
-                unresolved_path: Some(remaining_path),
-            });
+        if !skip_parent_search {
+            let first_path_part = path.next().ok_or(ResolutionError::NoReferent)?;
+            current_idx = self.search_parents(&first_path_part.name, current_idx)?;
+            // If we made it here, the first entry in `path` has a valid referent.
+            // If this entry also has an index, we need to stop searching. This would
+            // happen if the reference was something like `$a[2].b`.
+            if !first_path_part.index.is_empty() {
+                let remaining_path: Vec<FlatPathPart> = iter::once(FlatPathPart {
+                    name: "".into(),
+                    index: first_path_part.index.clone(),
+                    position: first_path_part.position.clone(),
+                })
+                .chain(path.cloned())
+                .collect();
+                return Ok(RefResolution {
+                    node_idx: current_idx,
+                    unresolved_path: Some(remaining_path),
+                });
+            }
         }
 
         while let Some(part) = path.next() {

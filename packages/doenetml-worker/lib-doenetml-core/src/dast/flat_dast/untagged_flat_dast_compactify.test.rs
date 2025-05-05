@@ -222,12 +222,10 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
             {},
             {},
             {},
-            {},
             {
               "tiv": { "Unique": 5 }
             },
             {},
-            {}
           ]
         })
     );
@@ -332,7 +330,7 @@ fn compactify_shifts_refs_in_path_parts() {
         dast_root_no_position(r#"<number name="n"/><point name="p"/><point extend="$p" />$p[$n]"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
-    flat_root.compactify();
+    flat_root.compactify(None);
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),

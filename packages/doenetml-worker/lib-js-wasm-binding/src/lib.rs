@@ -139,8 +139,9 @@ impl PublicDoenetMLCore {
         resolver: Resolver,
         path: PathToCheck,
         origin: Index,
+        skip_parent_search: bool,
     ) -> Result<RefResolution, ResolutionError> {
-        resolver.resolve(&path.path, origin)
+        resolver.resolve(&path.path, origin, skip_parent_search)
     }
 
     pub fn return_dast(&mut self) -> Result<FlatDastRoot, String> {
