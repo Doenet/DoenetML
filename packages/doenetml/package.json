@@ -25,7 +25,6 @@
         "build": "wireit",
         "preview": "vite preview",
         "test": "echo \"No tests \"",
-        "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
         "publish": "npm run build && cd dist && npm publish"
     },
     "wireit": {

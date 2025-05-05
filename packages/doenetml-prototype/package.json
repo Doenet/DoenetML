@@ -27,8 +27,7 @@
         "test:before": "npm run build:test2",
         "build:test1": "wireit",
         "build:test2": "wireit",
-        "test": "npm run build:test1 && vitest",
-        "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
+        "test": "npm run build:test1 && vitest"
     },
     "wireit": {
         "build:test1": {
@@ -85,8 +84,6 @@
     },
     "devDependencies": {
         "@babel/core": "^7.26.10",
-        "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
-        "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
         "@types/react": "^18.3.20",
         "@types/react-dom": "^18.3.6",
         "@vitejs/plugin-react": "^4.3.4",
@@ -95,10 +92,6 @@
         "cypress-parallel": "^0.15.0",
         "cypress-plugin-tab": "^1.0.5",
         "cypress-wait-until": "^3.0.2",
-        "eslint": "^9.24.0",
-        "eslint-plugin-react": "^7.37.5",
-        "eslint-plugin-react-hooks": "^5.2.0",
-        "eslint-plugin-react-refresh": "^0.4.19",
         "prettier": "^3.5.3",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
