@@ -78,7 +78,7 @@
             ]
         },
         "build:rust": {
-            "command": "npx wasm-pack build lib-js-wasm-binding --target web --dev --features 'web-logging web-debug-log'",
+            "command": "npx wasm-pack build lib-js-wasm-binding --target web --dev --features \"web-logging web-debug-log\"",
             "files": [
                 "lib-*/**/*.rs",
                 "lib-js-wasm-binding/**/*.ts",
@@ -92,7 +92,7 @@
             ]
         },
         "build:rust-wasm-test": {
-            "command": "npx wasm-pack build lib-js-wasm-test --target web --dev --features 'web-logging web-debug-log'",
+            "command": "npx wasm-pack build lib-js-wasm-test --target web --dev --features \"web-logging web-debug-log\"",
             "files": [
                 "lib-*/**/*.rs",
                 "lib-js-wasm-test/**/*.ts",

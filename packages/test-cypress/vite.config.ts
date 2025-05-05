@@ -1,5 +1,5 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, normalizePath } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import path from "node:path";
 import { createRequire } from "module";
@@ -13,16 +13,20 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    src: path.join(
-                        require.resolve("@doenet/doenetml-worker/index.js"),
-                        "../*",
+                    src: normalizePath(
+                        path.join(
+                            require.resolve("@doenet/doenetml-worker/index.js"),
+                            "../*",
+                        ),
                     ),
                     dest: "doenetml-worker/",
                 },
                 {
-                    src: path.join(
-                        require.resolve("@doenet/doenetml"),
-                        "../fonts/*",
+                    src: normalizePath(
+                        path.join(
+                            require.resolve("@doenet/doenetml"),
+                            "../fonts/*",
+                        ),
                     ),
                     dest: "fonts/",
                 },

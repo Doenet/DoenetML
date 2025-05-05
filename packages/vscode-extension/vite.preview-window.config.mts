@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, normalizePath } from "vite";
 import react from "@vitejs/plugin-react";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import * as path from "node:path";
@@ -13,9 +13,11 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    src: path.join(
-                        require.resolve("@doenet/doenetml"),
-                        "../fonts/*",
+                    src: normalizePath(
+                        path.join(
+                            require.resolve("@doenet/doenetml"),
+                            "../fonts/*",
+                        ),
                     ),
                     dest: "fonts/",
                 },
