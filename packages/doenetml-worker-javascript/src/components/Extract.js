@@ -1,9 +1,9 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { replacementFromProp } from "./Copy";
+import { replacementFromProp, addChildrenFromComposite } from "./Copy";
 import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
 
 export default class Extract extends CompositeComponent {
-    static componentType = "extract";
+    static componentType = "_extract";
 
     static excludeFromSchema = true;
 
@@ -23,9 +23,6 @@ export default class Extract extends CompositeComponent {
         delete attributes.styleNumber;
         delete attributes.isResponse;
 
-        attributes.prop = {
-            createPrimitiveOfType: "string",
-        };
         attributes.createComponentOfType = {
             createPrimitiveOfType: "string",
         };
@@ -37,20 +34,6 @@ export default class Extract extends CompositeComponent {
         };
         attributes.numComponents = {
             createPrimitiveOfType: "number",
-        };
-        attributes.sourceIndex = {
-            createComponentOfType: "integer",
-            createStateVariable: "sourceIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-        attributes.propIndex = {
-            createComponentOfType: "numberList",
-            createStateVariable: "propIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
         };
 
         attributes.asList = {
@@ -73,8 +56,39 @@ export default class Extract extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        stateVariableDefinitions.link = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { link: true } }),
+        };
+
+        // The unresolved path we will attempt to extract
+        // Set `wrapWithExtract` to `true` if there is the unresolved path array is longer than 1,
+        // as we'll use an extract to attempt to extract the additional unresolved path.
+        stateVariableDefinitions.unresolvedPath = {
+            additionalStateVariablesDefined: ["wrapWithExtract"],
+            returnDependencies: () => ({
+                unresolvedPath: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "unresolvedPath",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        unresolvedPath: dependencyValues.unresolvedPath,
+                        wrapWithExtract:
+                            dependencyValues.unresolvedPath.length > 1,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.numComponentsSpecified = {
             returnDependencies: () => ({
+                wrapWithExtract: {
+                    dependencyType: "stateVariable",
+                    variableName: "wrapWithExtract",
+                },
                 numComponentsAttr: {
                     dependencyType: "attributePrimitive",
                     attributeName: "numComponents",
@@ -87,7 +101,10 @@ export default class Extract extends CompositeComponent {
             definition({ dependencyValues, componentInfoObjects }) {
                 let numComponentsSpecified;
 
-                if (dependencyValues.typeAttr) {
+                if (dependencyValues.wrapWithExtract) {
+                    // if wrap with extract, extract will deal with numComponents
+                    numComponentsSpecified = null;
+                } else if (dependencyValues.typeAttr) {
                     let componentType =
                         componentInfoObjects.componentTypeLowerCaseMapping[
                             dependencyValues.typeAttr.toLowerCase()
@@ -121,91 +138,63 @@ export default class Extract extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.link = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { link: true } }),
-        };
-
-        stateVariableDefinitions.propName = {
-            shadowVariable: true,
+        stateVariableDefinitions.childComponentIdx = {
             returnDependencies: () => ({
-                propName: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "prop",
+                child: {
+                    dependencyType: "child",
+                    childGroups: ["anything"],
                 },
             }),
-            definition: function ({ dependencyValues }) {
-                let warnings = [];
-                let propName = dependencyValues.propName;
-                if (!propName) {
-                    warnings.push({
-                        message: "Invalid extract.  Must have a prop.",
-                        level: 1,
-                    });
-                    propName = "";
-                }
-                return { setValue: { propName }, sendWarnings: warnings };
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        childComponentIdx:
+                            dependencyValues.child[0]?.componentIdx,
+                    },
+                };
             },
         };
 
         stateVariableDefinitions.sourceComponents = {
             stateVariablesDeterminingDependencies: [
-                "propName",
-                "sourceIndex",
-                "propIndex",
+                "unresolvedPath",
+                "childComponentIdx",
             ],
             additionalStateVariablesDefined: ["effectivePropNameBySource"],
             returnDependencies: function ({ stateValues }) {
-                let childIndices;
-                let sourceIndex;
-
-                if (stateValues.sourceIndex !== null) {
-                    sourceIndex = Number(stateValues.sourceIndex);
-                    if (Number.isInteger(sourceIndex)) {
-                        childIndices = [sourceIndex - 1];
-                    } else {
-                        childIndices = [];
-                    }
-                }
-                let propIndex = stateValues.propIndex;
-                if (propIndex) {
-                    // make propIndex be a shallow copy
-                    // so that can detect if it changed
-                    // when update dependencies
-                    propIndex = [...propIndex];
-                }
                 return {
-                    children: {
-                        dependencyType: "child",
-                        childGroups: ["anything"],
-                        variableNames: [stateValues.propName],
+                    child: {
+                        dependencyType: "stateVariableFromUnresolvedPath",
+                        componentIdx: stateValues.childComponentIdx,
+                        unresolvedPath: stateValues.unresolvedPath,
+                        returnAsComponentObject: true,
                         variablesOptional: true,
-                        childIndices,
-                        propIndex,
                         caseInsensitiveVariableMatch: true,
                         publicStateVariablesOnly: true,
                         useMappedVariableNames: true,
                     },
-                    propName: {
-                        dependencyType: "stateVariable",
-                        variableName: "propName",
-                    },
                 };
             },
             definition: function ({ dependencyValues }) {
-                let sourceComponents = dependencyValues.children;
+                let sourceComponents = [];
 
                 let effectivePropNameBySource = [];
 
-                for (let comp of sourceComponents) {
+                if (dependencyValues.child) {
+                    sourceComponents.push(dependencyValues.child);
                     let propName;
-                    if (comp.stateValues) {
-                        propName = Object.keys(comp.stateValues)[0];
+                    if (dependencyValues.child.stateValues) {
+                        propName = Object.keys(
+                            dependencyValues.child.stateValues,
+                        )[0];
                     }
                     if (!propName) {
                         propName = "__prop_name_not_found";
                     }
                     effectivePropNameBySource.push(propName);
+                } else {
+                    // Child not found. Create an invalid effective prop name so that get no replacement
+                    effectivePropNameBySource.push("__no_child_found");
                 }
 
                 return {
@@ -279,6 +268,8 @@ export default class Extract extends CompositeComponent {
 
         let sourceComponents = await component.stateValues.sourceComponents;
 
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
+
         for (
             let sourceNum = 0;
             sourceNum < sourceComponents.length;
@@ -296,6 +287,11 @@ export default class Extract extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj,
                     publicCaseInsensitiveAliasSubstitutions,
+
+                    copyInChildren:
+                        Number(sourceNum) === 0 &&
+                        component.attributes.copyInChildren?.primitive.value &&
+                        !wrapWithExtract,
                 });
                 errors.push(...results.errors);
                 warnings.push(...results.warnings);
@@ -375,6 +371,7 @@ export default class Extract extends CompositeComponent {
         componentInfoObjects,
         compositeAttributesObj,
         publicCaseInsensitiveAliasSubstitutions,
+        copyInChildren,
     }) {
         // console.log(`create replacement for source ${sourceNum}, ${numReplacementsSoFar} of ${component.componentIdx}`)
 
@@ -404,6 +401,18 @@ export default class Extract extends CompositeComponent {
         let serializedReplacements = results.serializedReplacements;
         let propVariablesCopiedByReplacement =
             results.propVariablesCopiedByReplacement;
+
+        if (
+            copyInChildren &&
+            serializedReplacements.length === 1 &&
+            component.serializedChildren.length > 0
+        ) {
+            addChildrenFromComposite({
+                replacements: serializedReplacements,
+                children: component.serializedChildren,
+                componentInfoObjects,
+            });
+        }
 
         return {
             serializedReplacements,
@@ -446,6 +455,8 @@ export default class Extract extends CompositeComponent {
         );
 
         let recreateRemaining = false;
+
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
 
         for (let sourceNum = 0; sourceNum < maxSourceLength; sourceNum++) {
             let source = sourceComponents[sourceNum];
@@ -602,6 +613,11 @@ export default class Extract extends CompositeComponent {
                 componentInfoObjects,
                 compositeAttributesObj,
                 publicCaseInsensitiveAliasSubstitutions,
+
+                copyInChildren:
+                    Number(sourceNum) === 0 &&
+                    component.attributes.copyInChildren?.primitive.value &&
+                    !wrapWithExtract,
             });
             errors.push(...results.errors);
             warnings.push(...results.warnings);
@@ -720,6 +736,8 @@ export default class Extract extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
+
         let results = await this.createReplacementForSource({
             component,
             sourceNum,
@@ -729,6 +747,11 @@ export default class Extract extends CompositeComponent {
             componentInfoObjects,
             compositeAttributesObj,
             publicCaseInsensitiveAliasSubstitutions,
+
+            copyInChildren:
+                Number(sourceNum) === 0 &&
+                component.attributes.copyInChildren?.primitive.value &&
+                !wrapWithExtract,
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);

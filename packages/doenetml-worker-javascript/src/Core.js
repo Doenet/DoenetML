@@ -57,6 +57,7 @@ export default class Core {
         coreId,
         resolver,
         addNodesToResolver,
+        resolvePath,
         updateRenderersCallback,
         reportScoreAndStateCallback,
         requestAnimationFrame,
@@ -78,6 +79,7 @@ export default class Core {
 
         this.resolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
+        this.resolvePath = resolvePath;
 
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
@@ -1603,6 +1605,45 @@ export default class Core {
             }
         }
 
+        // If `serializedComponent` has a `refResolution` with an `unresolved_path`
+        // then create components for all the indices of the unresolved path.
+        let refResolution = null;
+        if (serializedComponent.refResolution) {
+            if (serializedComponent.refResolution.unresolved_path === null) {
+                refResolution = {
+                    nodeIdx: serializedComponent.refResolution.node_idx,
+                    unresolvedPath: null,
+                };
+            } else {
+                let nodeIdx = serializedComponent.refResolution.node_idx;
+                let unresolvedPath = [];
+                for (const pathPart of serializedComponent.refResolution
+                    .unresolved_path) {
+                    const index = [];
+                    for (const indexPiece of pathPart.index) {
+                        let valueResult =
+                            await this.createIsolatedComponentsSub({
+                                serializedComponents: indexPiece.value,
+                                ancestors: ancestorsForChildren,
+                                shadow,
+                                componentsReplacementOf,
+                            });
+                        if (valueResult.lastErrorMessage) {
+                            lastErrorMessage = valueResult.lastErrorMessage;
+                        }
+                        let value = valueResult.components;
+                        index.push({ value, position: indexPiece.position });
+                    }
+                    unresolvedPath.push({
+                        name: pathPart.name,
+                        index,
+                        position: pathPart.position,
+                    });
+                }
+                refResolution = { nodeIdx, unresolvedPath };
+            }
+        }
+
         if (serializedComponent.componentType === "_error") {
             lastErrorMessage = serializedComponent.state.message;
         } else if (
@@ -1674,6 +1715,7 @@ export default class Core {
             numerics: this.numerics,
             sharedParameters,
             parentSharedParameters,
+            refResolution,
         });
 
         this.registerComponent(newComponent);
@@ -2497,64 +2539,71 @@ export default class Core {
         if (result.replacements) {
             let serializedReplacements = result.replacements;
 
-            const dastRoot = {
-                type: "root",
-                children: result.dastReplacements,
-            };
+            // If the result coming from the composite has `dastReplacements` set,
+            // then add those to the resolver.
+            // For now, we have addressed the case where there is one replacement,
+            // which would be the one that will take on the name specified in the DoenetML.
+            // We add all its descendants to the resolver
+            if (result.dastReplacements?.length > 0) {
+                const dastRoot = {
+                    type: "root",
+                    children: result.dastReplacements,
+                };
 
-            // XXX: have not yet dealt with case with more than one replacement
-            if (serializedReplacements.length > 1) {
-                console.log(
-                    "************* new references many not work with more than one replacement *****************",
-                );
-            }
-
-            const haveSingleIndexedReplacement =
-                serializedReplacements.length === 1 &&
-                serializedReplacements[0].componentIdx != undefined;
-
-            // If we have a single replacement that already has an index, then use that for the parentIdx.
-            // Otherwise, the composite's index for the parentIdx
-            const parentIdx = haveSingleIndexedReplacement
-                ? serializedReplacements[0].componentIdx
-                : component.componentIdx;
-
-            let addResult = this.addNodesToResolver?.(
-                this.resolver,
-                dastRoot,
-                parentIdx,
-                this._components.length,
-            );
-
-            if (addResult) {
-                this.resolver = addResult.resolver;
-
-                // Create a map from the originalIdx found in `serializedReplacements`
-                // to the `componentIdx` that was calculated for the resolver.
-
-                // XXX: this will break if `originalIdx` is repeated.
-                const originalIdxToComponentIdx = {};
-                const nComponents = this._components.length;
-                for (const [idx, newNode] of addResult.flatSubtree.nodes
-                    .slice(1)
-                    .entries()) {
-                    const originalIdxStr = newNode.attributes?.find(
-                        (x) => x.name === "originalIdx",
-                    )?.children[0];
-                    if (originalIdxStr !== undefined) {
-                        originalIdxToComponentIdx[originalIdxStr] =
-                            nComponents + idx;
-
-                        this._components[
-                            originalIdxToComponentIdx[originalIdxStr]
-                        ] = undefined;
-                    }
+                // XXX: have not yet dealt with case with more than one replacement
+                if (serializedReplacements.length > 1) {
+                    console.log(
+                        "************* new references many not work with more than one replacement *****************",
+                    );
                 }
 
-                this.addComponentIndicesToMatchResolver(
-                    serializedReplacements,
-                    originalIdxToComponentIdx,
+                const haveSingleIndexedReplacement =
+                    serializedReplacements.length === 1 &&
+                    serializedReplacements[0].componentIdx != undefined;
+
+                // If we have a single replacement that already has an index, then use that for the parentIdx.
+                // Otherwise, use the composite's index for the parentIdx
+                const parentIdx = haveSingleIndexedReplacement
+                    ? serializedReplacements[0].componentIdx
+                    : component.componentIdx;
+
+                let addResult = this.addNodesToResolver?.(
+                    this.resolver,
+                    dastRoot,
+                    parentIdx,
+                    this._components.length,
                 );
+
+                if (addResult) {
+                    this.resolver = addResult.resolver;
+
+                    // Create a map from the originalIdx found in `serializedReplacements`
+                    // to the `componentIdx` that was calculated for the resolver.
+
+                    // XXX: this will break if `originalIdx` is repeated.
+                    const originalIdxToComponentIdx = {};
+                    const nComponents = this._components.length;
+                    for (const [idx, newNode] of addResult.flatSubtree.nodes
+                        .slice(1)
+                        .entries()) {
+                        const originalIdxStr = newNode.attributes?.find(
+                            (x) => x.name === "originalIdx",
+                        )?.children[0];
+                        if (originalIdxStr !== undefined) {
+                            originalIdxToComponentIdx[originalIdxStr] =
+                                nComponents + idx;
+
+                            this._components[
+                                originalIdxToComponentIdx[originalIdxStr]
+                            ] = undefined;
+                        }
+                    }
+
+                    this.addComponentIndicesToMatchResolver(
+                        serializedReplacements,
+                        originalIdxToComponentIdx,
+                    );
+                }
             }
 
             await this.createAndSetReplacements({

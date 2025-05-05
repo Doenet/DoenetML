@@ -37,7 +37,7 @@ export default class Point extends GraphicalComponent {
     // and use wrapping components to create points from those
     static primaryStateVariableForDefinition = "coordsShadow";
     static stateVariableToBeShadowed = "coords";
-    static variableForSourceIndexAsProp = "xs";
+    static variableForIndexAsProp = "xs";
 
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["number", "math", "string"];

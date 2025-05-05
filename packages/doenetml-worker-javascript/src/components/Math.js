@@ -53,7 +53,7 @@ export default class MathComponent extends InlineComponent {
 
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
-    static variableForSourceIndexAsProp = "vector";
+    static variableForIndexAsProp = "vector";
 
     static descendantCompositesMustHaveAReplacement = true;
     static descendantCompositesDefaultReplacementType = "math";

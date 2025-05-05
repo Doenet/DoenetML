@@ -23,6 +23,7 @@ export default class BaseComponent {
         numerics,
         parentSharedParameters,
         sharedParameters,
+        refResolution,
     }) {
         this.numerics = numerics;
         this.parentSharedParameters = parentSharedParameters;
@@ -48,6 +49,10 @@ export default class BaseComponent {
         this.serializedChildren = serializedChildren;
 
         this.attributes = attributes;
+
+        if (refResolution) {
+            this.refResolution = refResolution;
+        }
 
         this.state = {};
         for (let stateVariable in stateVariableDefinitions) {

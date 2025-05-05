@@ -37,10 +37,6 @@ export default class Copy extends CompositeComponent {
         delete attributes.isResponse;
         delete attributes.hide;
 
-        attributes.prop = {
-            createPrimitiveOfType: "string",
-            excludeFromSchema: true,
-        };
         attributes.obtainPropFromComposite = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "obtainPropFromComposite",
@@ -61,20 +57,6 @@ export default class Copy extends CompositeComponent {
         };
         attributes.copyInChildren = {
             createPrimitiveOfType: "boolean",
-        };
-        attributes.sourceIndex = {
-            createComponentOfType: "integer",
-            createStateVariable: "sourceIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-        attributes.propIndex = {
-            createComponentOfType: "numberList",
-            createStateVariable: "propIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
         };
         attributes.uri = {
             createPrimitiveOfType: "string",
@@ -119,15 +101,75 @@ export default class Copy extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.extendIdx = {
+        // The list of component indices that are in any of the indices of the unresolved path in the ref resolution
+        stateVariableDefinitions.refResolutionIndexDependencies = {
             returnDependencies: () => ({
-                extendIdx: {
-                    dependencyType: "doenetAttribute",
-                    attributeName: "extendIdx",
+                refResolutionIndexDependencies: {
+                    dependencyType: "refResolutionIndexDependencies",
                 },
             }),
             definition: ({ dependencyValues }) => ({
-                setValue: { extendIdx: dependencyValues.extendIdx },
+                setValue: {
+                    refResolutionIndexDependencies:
+                        dependencyValues.refResolutionIndexDependencies,
+                },
+            }),
+        };
+
+        // The value of the `value` state variable of the components from `refResolutionIndexDependencies`
+        stateVariableDefinitions.refResolutionIndexDependencyValues = {
+            stateVariablesDeterminingDependencies: [
+                "refResolutionIndexDependencies",
+            ],
+            returnDependencies: ({ stateValues }) => {
+                const dependencies = {};
+
+                for (const cIdx of stateValues.refResolutionIndexDependencies) {
+                    dependencies[cIdx] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: cIdx,
+                        variableName: "value",
+                    };
+                }
+
+                return dependencies;
+            },
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    refResolutionIndexDependencyValues: dependencyValues,
+                },
+            }),
+        };
+
+        // The componentIdx of the component we are extending, along with any remaining unresolved path.
+        // Set `wrapWithExtract` to `true` if there is the unresolved path array is longer than 1,
+        // as we'll use an extract to attempt to extract the additional unresolved path.
+        stateVariableDefinitions.extendIdx = {
+            additionalStateVariablesDefined: [
+                "unresolvedPath",
+                "wrapWithExtract",
+            ],
+            stateVariablesDeterminingDependencies: [
+                "refResolutionIndexDependencyValues",
+            ],
+            returnDependencies: ({ stateValues }) => {
+                return {
+                    refResolution: {
+                        dependencyType: "refResolution",
+                        indexDependencyValues:
+                            stateValues.refResolutionIndexDependencyValues,
+                    },
+                };
+            },
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    extendIdx: dependencyValues.refResolution.extendIdx,
+                    unresolvedPath:
+                        dependencyValues.refResolution.unresolvedPath,
+                    wrapWithExtract:
+                        dependencyValues.refResolution.unresolvedPath?.length >
+                        1,
+                },
             }),
         };
 
@@ -390,19 +432,6 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.propName = {
-            shadowVariable: true,
-            returnDependencies: () => ({
-                propName: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "prop",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                return { setValue: { propName: dependencyValues.propName } };
-            },
-        };
-
         stateVariableDefinitions.linkAttrForDetermineDeps = {
             returnDependencies: () => ({
                 linkAttr: {
@@ -425,12 +454,10 @@ export default class Copy extends CompositeComponent {
         stateVariableDefinitions.replacementSourceIdentities = {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
-                "sourceIndex",
-                "propName",
+                "unresolvedPath",
                 "obtainPropFromComposite",
                 "linkAttrForDetermineDeps",
             ],
-            additionalStateVariablesDefined: ["sourceIndexAsProp"],
             returnDependencies: function ({
                 stateValues,
                 componentInfoObjects,
@@ -450,15 +477,14 @@ export default class Copy extends CompositeComponent {
                                 stateValues.extendedComponent.componentType,
                             includeNonStandard: true,
                         }) &&
-                            (stateValues.sourceIndex !== null ||
-                                (stateValues.propName &&
-                                    !stateValues.obtainPropFromComposite)))
+                            stateValues.unresolvedPath &&
+                            !stateValues.obtainPropFromComposite)
                     ) {
                         // If the target is a copy or extract (no matter what),
                         // then we'll use replacements (if link attribute is not set to false),
                         // which means we cannot obtainPropFromComposite for a copy.
                         // For any other composite, we'll use replacements (if link attribute is not set to false)
-                        // only if we're getting a source index or a prop that is not from the composite.
+                        // only if we're are getting a prop that is not from the composite.
                         // TODO: the behavior of unlinked needs more investigation and documentation,
                         // including why linkAttrForDetermineDeps,
                         // which is used only here, is different from the link state variable
@@ -474,24 +500,15 @@ export default class Copy extends CompositeComponent {
                                 compositeIdx:
                                     stateValues.extendedComponent.componentIdx,
                                 recursive: true,
-                                sourceIndex: stateValues.sourceIndex,
                             };
                         }
                     }
 
                     if (!useReplacements) {
-                        // if we don't have a composite, sourceIndex can only match if it is 1
                         dependencies.targets = {
                             dependencyType: "stateVariable",
                             variableName: "extendedComponent",
                         };
-
-                        if (stateValues.sourceIndex !== null) {
-                            dependencies.sourceIndexAsProp = {
-                                dependencyType: "stateVariable",
-                                variableName: "sourceIndex",
-                            };
-                        }
                     }
                 }
 
@@ -511,8 +528,6 @@ export default class Copy extends CompositeComponent {
                 return {
                     setValue: {
                         replacementSourceIdentities,
-                        sourceIndexAsProp:
-                            dependencyValues.sourceIndexAsProp ?? null,
                     },
                 };
             },
@@ -534,34 +549,17 @@ export default class Copy extends CompositeComponent {
         stateVariableDefinitions.implicitProp = {
             stateVariablesDeterminingDependencies: [
                 "replacementSourceIdentities",
-                "propName",
-                "sourceIndexAsProp",
+                "unresolvedPath",
             ],
             returnDependencies({ stateValues }) {
                 let dependencies = {
-                    propName: {
+                    unresolvedPath: {
                         dependencyType: "stateVariable",
-                        variableName: "propName",
-                    },
-                    sourceIndexAsProp: {
-                        dependencyType: "stateVariable",
-                        variableName: "sourceIndexAsProp",
+                        variableName: "unresolvedPath",
                     },
                 };
 
-                if (
-                    stateValues.propName &&
-                    stateValues.sourceIndexAsProp != undefined
-                ) {
-                    throw Error(
-                        "Have not implemented propName and sourceIndexAsProp together",
-                    );
-                }
-
-                if (
-                    !stateValues.propName &&
-                    !stateValues.sourceIndexAsProp != undefined
-                ) {
+                if (!stateValues.unresolvedPath) {
                     dependencies.replacementSourceIdentities = {
                         dependencyType: "stateVariable",
                         variableName: "replacementSourceIdentities",
@@ -570,7 +568,7 @@ export default class Copy extends CompositeComponent {
                         dependencyType: "attributePrimitive",
                         attributeName: "createComponentOfType",
                     };
-                    dependencies.noAttributesOrProp = {
+                    dependencies.noAttribuattributePrimitivetesOrProp = {
                         dependencyType: "doenetAttribute",
                         attributeName: "noAttributesOrProp",
                     };
@@ -580,8 +578,7 @@ export default class Copy extends CompositeComponent {
             },
             definition({ dependencyValues, componentInfoObjects }) {
                 if (
-                    dependencyValues.propName ||
-                    dependencyValues.sourceIndexAsProp != undefined ||
+                    dependencyValues.unresolvedPath ||
                     !(dependencyValues.replacementSourceIdentities?.length > 0)
                 ) {
                     return { setValue: { implicitProp: null } };
@@ -671,9 +668,7 @@ export default class Copy extends CompositeComponent {
         stateVariableDefinitions.replacementSources = {
             stateVariablesDeterminingDependencies: [
                 "replacementSourceIdentities",
-                "propName",
-                "sourceIndexAsProp",
-                "propIndex",
+                "unresolvedPath",
                 "implicitProp",
             ],
             additionalStateVariablesDefined: ["effectivePropNameBySource"],
@@ -683,63 +678,41 @@ export default class Copy extends CompositeComponent {
                         dependencyType: "stateVariable",
                         variableName: "replacementSourceIdentities",
                     },
-                    propIndex: {
-                        dependencyType: "stateVariable",
-                        variableName: "propIndex",
-                    },
-                    sourceIndexAsProp: {
-                        dependencyType: "stateVariable",
-                        variableName: "sourceIndexAsProp",
-                    },
                 };
-
-                if (!stateValues.propName && stateValues.propIndex !== null) {
-                    throw Error(
-                        `You cannot specify a propIndex without specifying a prop.`,
-                    );
-                }
 
                 if (stateValues.replacementSourceIdentities !== null) {
                     for (let [
                         ind,
                         source,
                     ] of stateValues.replacementSourceIdentities.entries()) {
-                        let thisPropName = stateValues.propName;
+                        let thisUnresolvedPath = stateValues.unresolvedPath;
 
                         if (stateValues.implicitProp) {
-                            thisPropName = stateValues.implicitProp;
+                            thisUnresolvedPath = [
+                                { name: stateValues.implicitProp, index: [] },
+                            ];
                         }
 
                         let thisTarget;
 
-                        if (
-                            thisPropName ||
-                            stateValues.sourceIndexAsProp != undefined
-                        ) {
-                            dependencies["propName" + ind] = {
+                        if (thisUnresolvedPath) {
+                            // at least when we had propIndex, we had to make a shallow copy
+                            // so that can detect if it changed
+                            // when update dependencies. Doing the same for unresolved path just in case.
+                            thisUnresolvedPath = [...thisUnresolvedPath];
+
+                            dependencies["unresolvedPath" + ind] = {
                                 dependencyType: "value",
-                                value: thisPropName,
+                                value: thisUnresolvedPath,
                             };
 
-                            let propIndex = stateValues.propIndex;
-                            if (stateValues.sourceIndexAsProp != undefined) {
-                                propIndex = [stateValues.sourceIndexAsProp];
-                            }
-                            if (propIndex) {
-                                // make propIndex be a shallow copy
-                                // so that can detect if it changed
-                                // when update dependencies
-                                propIndex = [...propIndex];
-                            }
                             thisTarget = {
-                                dependencyType: "stateVariable",
+                                dependencyType:
+                                    "stateVariableFromUnresolvedPath",
                                 componentIdx: source.componentIdx,
-                                variableName: thisPropName,
+                                unresolvedPath: thisUnresolvedPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                propIndex,
-                                haveSourceIndexAsProp:
-                                    stateValues.sourceIndexAsProp != undefined,
                                 caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
@@ -778,9 +751,7 @@ export default class Copy extends CompositeComponent {
                             }
                             if (
                                 !propName &&
-                                (dependencyValues["propName" + ind] ||
-                                    dependencyValues.sourceIndexAsProp !=
-                                        undefined)
+                                dependencyValues["unresolvedPath" + ind]
                             ) {
                                 // a propName was specified, but it just wasn't found
                                 propName = "__prop_name_not_found";
@@ -801,6 +772,10 @@ export default class Copy extends CompositeComponent {
 
         stateVariableDefinitions.numComponentsSpecified = {
             returnDependencies: () => ({
+                wrapWithExtract: {
+                    dependencyType: "stateVariable",
+                    variableName: "wrapWithExtract",
+                },
                 numComponentsAttr: {
                     dependencyType: "attributePrimitive",
                     attributeName: "numComponents",
@@ -813,7 +788,10 @@ export default class Copy extends CompositeComponent {
             definition({ dependencyValues, componentInfoObjects }) {
                 let numComponentsSpecified;
 
-                if (dependencyValues.typeAttr) {
+                if (dependencyValues.wrapWithExtract) {
+                    // if wrap with extract, extract will deal with numComponents
+                    numComponentsSpecified = null;
+                } else if (dependencyValues.typeAttr) {
                     let componentType =
                         componentInfoObjects.componentTypeLowerCaseMapping[
                             dependencyValues.typeAttr.toLowerCase()
@@ -925,7 +903,7 @@ export default class Copy extends CompositeComponent {
         stateVariableDefinitions.readyToExpandWhenResolved = {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
-                "propName",
+                "unresolvedPath",
                 "obtainPropFromComposite",
                 "link",
             ],
@@ -968,7 +946,7 @@ export default class Copy extends CompositeComponent {
                         includeNonStandard: false,
                     }) &&
                     !(
-                        stateValues.propName &&
+                        stateValues.unresolvedPath &&
                         stateValues.obtainPropFromComposite
                     )
                 ) {
@@ -1001,8 +979,7 @@ export default class Copy extends CompositeComponent {
                 "extendedComponent",
                 "replacementSourceIdentities",
                 "effectivePropNameBySource",
-                "propName",
-                "sourceIndexAsProp",
+                "unresolvedPath",
                 "obtainPropFromComposite",
                 "link",
                 "removeEmptyArrayEntries",
@@ -1028,10 +1005,6 @@ export default class Copy extends CompositeComponent {
                     replacementSourceIdentities: {
                         dependencyType: "stateVariable",
                         variableName: "replacementSourceIdentities",
-                    },
-                    propIndex: {
-                        dependencyType: "stateVariable",
-                        variableName: "propIndex",
                     },
                 };
 
@@ -1077,10 +1050,12 @@ export default class Copy extends CompositeComponent {
                         includeNonStandard: false,
                     }) &&
                     !(
-                        stateValues.propName &&
+                        stateValues.unresolvedPath &&
                         stateValues.obtainPropFromComposite
                     )
                 ) {
+                    // XXX: how do we deal with this now?
+
                     // Include identities of all replacements (and inactive target variable)
                     // without filtering by sourceIndex,
                     // as components other than the one at that index could change
@@ -1252,13 +1227,11 @@ export default class Copy extends CompositeComponent {
                 component.doenetAttributes.fromCopyFromURI &&
                 additionalChildren.length > 0
             ) {
-                let res = this.addChildrenFromComposite({
+                addChildrenFromComposite({
                     replacements,
                     children: additionalChildren,
                     componentInfoObjects,
                 });
-                errors.push(...res.errors);
-                warnings.push(...res.warnings);
             }
 
             let verificationResult = await verifyReplacementsMatchSpecifiedType(
@@ -1426,9 +1399,9 @@ export default class Copy extends CompositeComponent {
         let effectivePropNameBySource =
             await component.stateValues.effectivePropNameBySource;
         for (let ind in replacementSourceIdentities) {
-            let thisPropName = effectivePropNameBySource[ind];
+            let thisUnresolvedPath = effectivePropNameBySource[ind];
 
-            if (thisPropName) {
+            if (thisUnresolvedPath) {
                 resolveResult = await resolveItem({
                     componentIdx: component.componentIdx,
                     type: "recalculateDownstreamComponents",
@@ -1453,13 +1426,18 @@ export default class Copy extends CompositeComponent {
         let numReplacementsSoFar = 0;
         let numNonStringReplacementsSoFar = 0;
 
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
+
         for (let sourceNum in replacementSourceIdentities) {
             let uniqueIdentifiersUsed =
                 (workspace.uniqueIdentifiersUsedBySource[sourceNum] = []);
 
             let numComponentsForSource;
 
-            if (component.attributes.createComponentOfType?.primitive) {
+            if (
+                component.attributes.createComponentOfType?.primitive &&
+                !wrapWithExtract
+            ) {
                 let numComponentsTotal =
                     await component.stateValues.numComponentsSpecified;
                 let numSources = replacementSourceIdentities.length;
@@ -1488,7 +1466,8 @@ export default class Copy extends CompositeComponent {
 
                 copyInChildren:
                     Number(sourceNum) === 0 &&
-                    component.attributes.copyInChildren?.primitive.value,
+                    component.attributes.copyInChildren?.primitive.value &&
+                    !wrapWithExtract,
             });
 
             errors.push(...results.errors);
@@ -1505,7 +1484,9 @@ export default class Copy extends CompositeComponent {
             numNonStringReplacementsSoFar +=
                 numNonStringReplacementsBySource[sourceNum];
             replacements.push(...sourceReplacements);
-            dastReplacements.push(...results.dastReplacements);
+            if (results.dastReplacements) {
+                dastReplacements.push(...results.dastReplacements);
+            }
         }
 
         workspace.numReplacementsBySource = numReplacementsBySource;
@@ -1532,7 +1513,8 @@ export default class Copy extends CompositeComponent {
         if (replacements.length === 1) {
             if (
                 component.attributes.createComponentName?.primitive.value !=
-                undefined
+                    undefined &&
+                !wrapWithExtract
             ) {
                 replacements[0].attributes.name = {
                     type: "primitive",
@@ -1546,7 +1528,8 @@ export default class Copy extends CompositeComponent {
             }
             if (
                 component.attributes.createComponentIdx?.primitive.value !=
-                undefined
+                    undefined &&
+                !wrapWithExtract
             ) {
                 replacements[0].componentIdx =
                     component.attributes.createComponentIdx.primitive.value;
@@ -1643,13 +1626,11 @@ export default class Copy extends CompositeComponent {
                 serializedReplacements.length === 1 &&
                 component.serializedChildren.length > 0
             ) {
-                let res = this.addChildrenFromComposite({
+                addChildrenFromComposite({
                     replacements: serializedReplacements,
                     children: component.serializedChildren,
                     componentInfoObjects,
                 });
-                errors.push(...res.errors);
-                warnings.push(...res.warnings);
             }
 
             return {
@@ -1768,46 +1749,17 @@ export default class Copy extends CompositeComponent {
             serializedReplacements.length === 1 &&
             component.serializedChildren.length > 0
         ) {
-            let res = this.addChildrenFromComposite({
+            addChildrenFromComposite({
                 replacements: serializedReplacements,
                 children: component.serializedChildren,
                 componentInfoObjects,
             });
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
         }
 
         // console.log(`ending serializedReplacements for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(serializedReplacements)));
 
         return { serializedReplacements, dastReplacements, errors, warnings };
-    }
-
-    static addChildrenFromComposite({
-        replacements,
-        children,
-        componentInfoObjects,
-    }) {
-        let errors = [];
-        let warnings = [];
-
-        let repl = replacements[0];
-        if (!repl.children) {
-            repl.children = [];
-        }
-        let newChildren = deepClone(children);
-        let componentClass =
-            componentInfoObjects.allComponentClasses[repl.componentType];
-
-        if (!componentClass.includeBlankStringChildren) {
-            newChildren = newChildren.filter(
-                (x) => typeof x !== "string" || x.trim() !== "",
-            );
-        }
-
-        repl.children.push(...newChildren);
-
-        return { errors, warnings };
     }
 
     static async calculateReplacementChanges({
@@ -1962,9 +1914,9 @@ export default class Copy extends CompositeComponent {
             await component.stateValues.effectivePropNameBySource;
 
         for (let ind in replacementSourceIdentities) {
-            let thisPropName = effectivePropNameBySource[ind];
+            let thisUnresolvedPath = effectivePropNameBySource[ind];
 
-            if (thisPropName) {
+            if (thisUnresolvedPath) {
                 resolveResult = await resolveItem({
                     componentIdx: component.componentIdx,
                     type: "recalculateDownstreamComponents",
@@ -2020,12 +1972,17 @@ export default class Copy extends CompositeComponent {
             workspace.numReplacementsBySource.length,
         );
 
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
+
         let recreateRemaining = false;
 
         for (let sourceNum = 0; sourceNum < maxSourceLength; sourceNum++) {
             let numComponentsForSource;
 
-            if (component.attributes.createComponentOfType?.primitive) {
+            if (
+                component.attributes.createComponentOfType?.primitive &&
+                !wrapWithExtract
+            ) {
                 let numComponentsTotal =
                     await component.stateValues.numComponentsSpecified;
                 let numSources = replacementSourceIdentities.length;
@@ -2245,7 +2202,8 @@ export default class Copy extends CompositeComponent {
                 publicCaseInsensitiveAliasSubstitutions,
                 copyInChildren:
                     Number(sourceNum) === 0 &&
-                    component.attributes.copyInChildren?.primitive.value,
+                    component.attributes.copyInChildren?.primitive.value &&
+                    !wrapWithExtract,
             });
             errors.push(...results.errors);
             warnings.push(...results.warnings);
@@ -2427,6 +2385,8 @@ export default class Copy extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
+
         let errors = [];
         let warnings = [];
 
@@ -2443,7 +2403,8 @@ export default class Copy extends CompositeComponent {
             publicCaseInsensitiveAliasSubstitutions,
             copyInChildren:
                 Number(sourceNum) === 0 &&
-                component.attributes.primitive?.copyInChildren.value,
+                component.attributes.primitive?.copyInChildren.value &&
+                !wrapWithExtract,
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);
@@ -3823,6 +3784,46 @@ export async function replacementFromProp({
         }
     }
 
+    if (
+        (await component.stateValues.wrapWithExtract) &&
+        serializedReplacements.length > 0
+    ) {
+        const attributes = {};
+        if (component.attributes.createComponentOfType) {
+            attributes.createComponentOfType =
+                component.attributes.createComponentOfType;
+        }
+        if (component.attributes.createComponentIdx) {
+            attributes.createComponentIdx =
+                component.attributes.createComponentIdx;
+        }
+        if (component.attributes.createComponentName) {
+            attributes.createComponentName =
+                component.attributes.createComponentName;
+        }
+        if (component.attributes.numComponents) {
+            attributes.numComponents = component.attributes.numComponents;
+        }
+        if (component.attributes.copyInChildren) {
+            attributes.copyInChildren = component.attributes.copyInChildren;
+        }
+
+        serializedReplacements = [
+            {
+                type: "serialized",
+                componentType: "_extract",
+                children: serializedReplacements,
+                attributes,
+                doenetAttributes: {
+                    unresolvedPath: (
+                        await component.stateValues.unresolvedPath
+                    ).slice(1),
+                },
+                state: {},
+            },
+        ];
+    }
+
     // console.log(`serializedReplacements for ${component.componentIdx}`)
     // console.log(JSON.parse(JSON.stringify(serializedReplacements)))
     // console.log(serializedReplacements)
@@ -3833,4 +3834,26 @@ export async function replacementFromProp({
         errors,
         warnings,
     };
+}
+
+export function addChildrenFromComposite({
+    replacements,
+    children,
+    componentInfoObjects,
+}) {
+    let repl = replacements[0];
+    if (!repl.children) {
+        repl.children = [];
+    }
+    let newChildren = deepClone(children);
+    let componentClass =
+        componentInfoObjects.allComponentClasses[repl.componentType];
+
+    if (!componentClass.includeBlankStringChildren) {
+        newChildren = newChildren.filter(
+            (x) => typeof x !== "string" || x.trim() !== "",
+        );
+    }
+
+    repl.children.push(...newChildren);
 }

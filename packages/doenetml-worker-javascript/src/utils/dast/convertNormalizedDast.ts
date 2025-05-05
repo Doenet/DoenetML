@@ -266,32 +266,19 @@ export function expandUnflattenedToSerializedComponents({
             errors.push(...defaultPrimitiveResult.errors);
             nComponents = defaultPrimitiveResult.nComponents;
 
-            let extending: Source<SerializedRefResolution> | undefined =
-                undefined;
+            let refResolution: SerializedRefResolution | undefined = undefined;
 
-            if (component.extending) {
-                const unFlattenedRefResolution =
-                    "Ref" in component.extending
-                        ? component.extending.Ref
-                        : component.extending.Attribute;
-
+            if (component.refResolution) {
                 const refResolutionResult = expandUnflattenedRefResolution({
-                    unFlattenedRefResolution,
-                    componentClass,
+                    unFlattenedRefResolution: component.refResolution,
                     componentInfoObjects,
                     nComponents,
                     ignoreErrors,
                 });
 
-                const refResolution: SerializedRefResolution =
-                    refResolutionResult.refResolution;
+                refResolution = refResolutionResult.refResolution;
                 errors.push(...refResolutionResult.errors);
                 nComponents = refResolutionResult.nComponents;
-
-                extending =
-                    "Ref" in component.extending
-                        ? { Ref: refResolution }
-                        : { Attribute: refResolution };
             }
 
             newComponent = {
@@ -299,7 +286,7 @@ export function expandUnflattenedToSerializedComponents({
                 type: "serialized",
                 children: [],
                 attributes,
-                extending,
+                refResolution,
                 doenetAttributes: component.doenetAttributes ?? {},
             };
         } catch (e) {
@@ -342,13 +329,11 @@ export function expandUnflattenedToSerializedComponents({
 
 function expandUnflattenedRefResolution({
     unFlattenedRefResolution,
-    componentClass,
     componentInfoObjects,
     nComponents,
     ignoreErrors,
 }: {
     unFlattenedRefResolution: UnflattenedRefResolution;
-    componentClass: any;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
     ignoreErrors: boolean;
@@ -370,12 +355,18 @@ function expandUnflattenedRefResolution({
                         nComponents,
                         ignoreErrors,
                     });
-                    let value = res.components;
+                    let valueComponents = res.components;
                     errors.push(...res.errors);
                     nComponents = res.nComponents;
 
+                    if (valueComponents.length !== 1) {
+                        throw Error(
+                            "Unresolved index should be a single component",
+                        );
+                    }
+
                     return {
-                        value,
+                        value: valueComponents,
                         position: flat_index.position,
                     };
                 });

@@ -31,7 +31,7 @@ export default class Vector extends GraphicalComponent {
     static canBeInList = true;
 
     static primaryStateVariableForDefinition = "displacementShadow";
-    static variableForSourceIndexAsProp = "displacement";
+    static variableForIndexAsProp = "displacement";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

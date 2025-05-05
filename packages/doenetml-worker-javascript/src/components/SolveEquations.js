@@ -11,7 +11,7 @@ export default class SolveEquations extends InlineComponent {
     static componentType = "solveEquations";
     static rendererType = undefined;
 
-    static variableForSourceIndexAsProp = "solutions";
+    static variableForIndexAsProp = "solutions";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

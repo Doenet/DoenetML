@@ -1,9 +1,9 @@
-import { Position, Source } from "@doenet/doenetml-worker";
+import { Position } from "@doenet/doenetml-worker";
 import {
     isUnflattenedComponent,
     UnflattenedComponent,
 } from "./intermediateTypes";
-export type { Position, Source };
+export type { Position };
 
 /**
  * A JSON representation of an instance of a DoenetML component
@@ -15,7 +15,7 @@ export type SerializedComponent = {
     children: (SerializedComponent | string)[];
     attributes: Record<string, SerializedAttribute>;
     position?: Position;
-    extending?: Source<SerializedRefResolution>;
+    refResolution?: SerializedRefResolution;
     state: Record<string, any>;
     skipSugar?: boolean;
     preSugarInd?: number;

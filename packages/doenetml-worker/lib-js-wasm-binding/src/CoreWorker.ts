@@ -136,6 +136,8 @@ export class CoreWorker {
      * Return the dast of the DoenetML source
      * where all references that have matched a target have been expanded
      * to components that extend those targets
+     *
+     * TODO: this function is not yet being used. Delete if it stays unused (May 5, 2025).
      */
     async returnNormalizedRoot(): Promise<NormalizedRoot> {
         const isProcessingPromise = this.isProcessingPromise;
@@ -200,6 +202,7 @@ export class CoreWorker {
                     resolver,
                     addNodesToResolver:
                         PublicDoenetMLCore.add_nodes_to_resolver,
+                    resolvePath: PublicDoenetMLCore.resolve_path,
                 });
             this.javascript_initialized = true;
             return initializedResult;
@@ -338,7 +341,14 @@ export class CoreWorker {
         }
     }
 
-    async resolvePath(resolver: Resolver, path: PathToCheck, origin: 0) {
+    // TODO: this function didn't end up being used, as we're calling `PublicDoenetMLCore.resolve_path`
+    // directly from the javascript core. Delete if it remains unused. (May 5, 2025)
+    async resolvePath(
+        resolver: Resolver,
+        path: PathToCheck,
+        origin: 0,
+        skip_parent_search: boolean,
+    ) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -354,6 +364,7 @@ export class CoreWorker {
                 resolver,
                 path,
                 origin,
+                skip_parent_search,
             );
             return path_resolution;
         } catch (err) {
