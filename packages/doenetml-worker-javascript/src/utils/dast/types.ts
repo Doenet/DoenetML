@@ -1,4 +1,4 @@
-import { Position } from "@doenet/doenetml-worker";
+import { Position, Source } from "@doenet/doenetml-worker";
 import {
     isUnflattenedComponent,
     UnflattenedComponent,
@@ -15,7 +15,7 @@ export type SerializedComponent = {
     children: (SerializedComponent | string)[];
     attributes: Record<string, SerializedAttribute>;
     position?: Position;
-    refResolution?: SerializedRefResolution;
+    extending?: Source<SerializedRefResolution>;
     state: Record<string, any>;
     skipSugar?: boolean;
     preSugarInd?: number;
@@ -50,8 +50,8 @@ export function isSerializedComponent(
 }
 
 export type SerializedRefResolution = {
-    node_idx: number;
-    unresolved_path: SerializedRefResolutionPathPart[] | null;
+    nodeIdx: number;
+    unresolvedPath: SerializedRefResolutionPathPart[] | null;
 };
 
 export interface SerializedRefResolutionPathPart {

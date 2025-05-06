@@ -14,7 +14,6 @@ import {
 import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
 import { deprecatedPropertySubstitutions } from "./utils/expandDoenetML";
-import { createComponentNames, processAssignNames } from "./utils/naming";
 import {
     removeFunctionsMathExpressionClass,
     preprocessMathInverseDefinition,
@@ -1605,20 +1604,19 @@ export default class Core {
             }
         }
 
-        // If `serializedComponent` has a `refResolution` with an `unresolved_path`
+        // If `serializedComponent` has a `extending` with an `unresolvedPath`
         // then create components for all the indices of the unresolved path.
         let refResolution = null;
-        if (serializedComponent.refResolution) {
-            if (serializedComponent.refResolution.unresolved_path === null) {
-                refResolution = {
-                    nodeIdx: serializedComponent.refResolution.node_idx,
-                    unresolvedPath: null,
-                };
-            } else {
-                let nodeIdx = serializedComponent.refResolution.node_idx;
+        if (serializedComponent.extending) {
+            refResolution =
+                "Ref" in serializedComponent.extending
+                    ? serializedComponent.extending.Ref
+                    : serializedComponent.extending.Attribute;
+
+            if (refResolution.unresolvedPath !== null) {
+                let nodeIdx = refResolution.nodeIdx;
                 let unresolvedPath = [];
-                for (const pathPart of serializedComponent.refResolution
-                    .unresolved_path) {
+                for (const pathPart of refResolution.unresolvedPath) {
                     const index = [];
                     for (const indexPiece of pathPart.index) {
                         let valueResult =
@@ -2510,6 +2508,8 @@ export default class Core {
                 this.publicCaseInsensitiveAliasSubstitutions.bind(this),
         });
 
+        const newNComponents = result.nComponents;
+
         let position = this.components[component.componentIdx].position;
         let overwriteDoenetMLRange = component.componentType === "copy";
 
@@ -2524,10 +2524,6 @@ export default class Core {
         // console.log(`expand result for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(result)));
 
-        if (result.nComponents > this.components.length) {
-            this._components[result.nComponents - 1] = undefined;
-        }
-
         if (component.constructor.stateVariableToEvaluateAfterReplacements) {
             // console.log(`evaluating ${component.constructor.stateVariableToEvaluateAfterReplacements} of ${component.componentIdx}`)
             await component.stateValues[
@@ -2539,72 +2535,11 @@ export default class Core {
         if (result.replacements) {
             let serializedReplacements = result.replacements;
 
-            // If the result coming from the composite has `dastReplacements` set,
-            // then add those to the resolver.
-            // For now, we have addressed the case where there is one replacement,
-            // which would be the one that will take on the name specified in the DoenetML.
-            // We add all its descendants to the resolver
-            if (result.dastReplacements?.length > 0) {
-                const dastRoot = {
-                    type: "root",
-                    children: result.dastReplacements,
-                };
-
-                // XXX: have not yet dealt with case with more than one replacement
-                if (serializedReplacements.length > 1) {
-                    console.log(
-                        "************* new references many not work with more than one replacement *****************",
-                    );
-                }
-
-                const haveSingleIndexedReplacement =
-                    serializedReplacements.length === 1 &&
-                    serializedReplacements[0].componentIdx != undefined;
-
-                // If we have a single replacement that already has an index, then use that for the parentIdx.
-                // Otherwise, use the composite's index for the parentIdx
-                const parentIdx = haveSingleIndexedReplacement
-                    ? serializedReplacements[0].componentIdx
-                    : component.componentIdx;
-
-                let addResult = this.addNodesToResolver?.(
-                    this.resolver,
-                    dastRoot,
-                    parentIdx,
-                    this._components.length,
-                );
-
-                if (addResult) {
-                    this.resolver = addResult.resolver;
-
-                    // Create a map from the originalIdx found in `serializedReplacements`
-                    // to the `componentIdx` that was calculated for the resolver.
-
-                    // XXX: this will break if `originalIdx` is repeated.
-                    const originalIdxToComponentIdx = {};
-                    const nComponents = this._components.length;
-                    for (const [idx, newNode] of addResult.flatSubtree.nodes
-                        .slice(1)
-                        .entries()) {
-                        const originalIdxStr = newNode.attributes?.find(
-                            (x) => x.name === "originalIdx",
-                        )?.children[0];
-                        if (originalIdxStr !== undefined) {
-                            originalIdxToComponentIdx[originalIdxStr] =
-                                nComponents + idx;
-
-                            this._components[
-                                originalIdxToComponentIdx[originalIdxStr]
-                            ] = undefined;
-                        }
-                    }
-
-                    this.addComponentIndicesToMatchResolver(
-                        serializedReplacements,
-                        originalIdxToComponentIdx,
-                    );
-                }
-            }
+            this.addReplacementsToResolver(
+                serializedReplacements,
+                component,
+                newNComponents,
+            );
 
             await this.createAndSetReplacements({
                 component,
@@ -2630,6 +2565,173 @@ export default class Core {
         return { success: true, compositesExpanded: [component.componentIdx] };
     }
 
+    addReplacementsToResolver(
+        serializedReplacements,
+        component,
+        newNComponents,
+    ) {
+        if (serializedReplacements.length === 0) {
+            if (newNComponents > this._components.length) {
+                this._components[newNComponents - 1] = undefined;
+            }
+            return;
+        }
+
+        // For now, we have addressed the case where there is one replacement,
+        // which would be the one that will take on the name specified in the DoenetML.
+        // We add all its descendants to the resolver
+
+        const dastReplacements = this.serializedComponentsToDast(
+            serializedReplacements,
+        );
+
+        const dastRoot = {
+            type: "root",
+            children: dastReplacements,
+        };
+
+        // XXX: have not yet dealt with case with more than one replacement
+        if (serializedReplacements.length > 1) {
+            console.log(
+                "************* not yet implemented adding to resolver with more than one replacement",
+            );
+            if (newNComponents > this._components.length) {
+                this._components[newNComponents - 1] = undefined;
+            }
+            return;
+        }
+
+        let nComponents = this._components.length;
+
+        const haveSingleIndexedReplacement =
+            serializedReplacements.length === 1 &&
+            serializedReplacements[0].componentIdx < nComponents;
+
+        // If we have a single replacement that already has an componentIdx that was assigned before
+        // (i.e., a componentIdx is in this._components),
+        // then use that for the parentIdx.
+        // Otherwise, use the composite's index for the parentIdx
+        const parentIdx = haveSingleIndexedReplacement
+            ? serializedReplacements[0].componentIdx
+            : component.componentIdx;
+
+        let addResult = this.addNodesToResolver?.(
+            this.resolver,
+            dastRoot,
+            parentIdx,
+            nComponents,
+        );
+
+        if (addResult) {
+            this.resolver = addResult.resolver;
+
+            // Create a map from the original `componentIdx` found in `serializedReplacements`,
+            // which is the `componentIdx` attribute of the dast element,
+            // to the `componentIdx` that was calculated for the resolver,
+            // which is the index in the flatSubtree + nComponents
+            const originalIdxToComponentIdx = {};
+            for (const [idx, newNode] of addResult.flatSubtree.nodes
+                .slice(1)
+                .entries()) {
+                const originalComponentIdxStr = newNode.attributes?.find(
+                    (x) => x.name === "componentIdx",
+                )?.children[0];
+                if (Number(originalComponentIdxStr) > nComponents) {
+                    originalIdxToComponentIdx[originalComponentIdxStr] =
+                        nComponents + idx;
+                }
+            }
+
+            const nComponentsOriginal = nComponents;
+
+            nComponents = nComponents + addResult.flatSubtree.nodes.length;
+            if (nComponents > this._components.length) {
+                this._components[nComponents - 1] = undefined;
+            }
+
+            this.modifyComponentIndicesToMatchResolver(
+                serializedReplacements,
+                originalIdxToComponentIdx,
+                nComponentsOriginal,
+            );
+        } else {
+            if (newNComponents > this._components.length) {
+                this._components[newNComponents - 1] = undefined;
+            }
+        }
+    }
+
+    serializedComponentsToDast(serializedComponents) {
+        const dastElements = serializedComponents.map((child) => {
+            if (typeof child !== "object") {
+                return { type: "text", value: child };
+            }
+
+            const dastElement = {
+                type: "element",
+                name: child.componentType,
+                attributes: {},
+            };
+
+            if (child.children) {
+                dastElement.children = this.serializedComponentsToDast(
+                    child.children,
+                );
+            } else {
+                dastElement.children = [];
+            }
+
+            if (child.componentIdx != undefined) {
+                dastElement.attributes = {
+                    componentIdx: {
+                        type: "attribute",
+                        name: "componentIdx",
+                        children: [
+                            {
+                                type: "text",
+                                value: child.componentIdx.toString(),
+                            },
+                        ],
+                    },
+                };
+            }
+
+            if (child.attributes.createComponentName) {
+                dastElement.attributes.name = {
+                    type: "attribute",
+                    name: "name",
+                    children: [
+                        {
+                            type: "text",
+                            value: child.attributes.createComponentName
+                                .primitive.value,
+                        },
+                    ],
+                };
+            } else if (child.attributes.name) {
+                dastElement.attributes.name = {
+                    type: "attribute",
+                    name: "name",
+                    children: [
+                        {
+                            type: "text",
+                            value: child.attributes.name.primitive.value,
+                        },
+                    ],
+                };
+            }
+
+            if (child.position) {
+                dastElement.position = JSON.parse(
+                    JSON.stringify(child.position),
+                );
+            }
+            return dastElement;
+        });
+
+        return dastElements;
+    }
+
     /**
      * If any component of serializedComponents has an `originalIdx` that is in `originalIdxToComponentIdx`,
      * then set `componentIdx` of the component to the value from `originalIdxToComponentIdx`.
@@ -2637,23 +2739,54 @@ export default class Core {
      * The purpose is to make sure that the components get created with the `componentIdx` that the resolver uses
      * so that references to these components will get resolved correctly.
      */
-    addComponentIndicesToMatchResolver(
+    modifyComponentIndicesToMatchResolver(
         serializedComponents,
         originalIdxToComponentIdx,
+        nComponentsOriginal,
     ) {
+        let nComponents = this._components.length;
+
         for (const component of serializedComponents) {
             if (typeof component === "object") {
                 const componentIdx =
-                    originalIdxToComponentIdx[component.originalIdx];
-                if (componentIdx !== undefined) {
-                    component.componentIdx = componentIdx;
+                    originalIdxToComponentIdx[component.componentIdx];
+                if (componentIdx === undefined) {
+                    if (!(component.componentIdx < nComponentsOriginal)) {
+                        this._components[nComponents] = undefined;
+                        component.componentIdx = nComponents++;
+                    }
+                } else {
+                    // `component.componentIdx` is in the resolver as `componentIdx`
+                    if (component.attributes.createComponentIdx) {
+                        // if the `createComponentIdx` attribute is defined,
+                        // we want the created component to be the one with the `componentIdx` from the resolver.
+                        component.attributes.createComponentIdx.primitive.value =
+                            componentIdx;
+
+                        // Give the component itself a new index
+                        this._components[nComponents] = undefined;
+                        component.componentIdx = nComponents++;
+                    } else {
+                        component.componentIdx = componentIdx;
+                    }
                 }
 
                 if (component.children) {
-                    this.addComponentIndicesToMatchResolver(
+                    this.modifyComponentIndicesToMatchResolver(
                         component.children,
                         originalIdxToComponentIdx,
+                        nComponentsOriginal,
                     );
+                }
+                for (const attrName in component.attributes) {
+                    const attribute = component.attributes[attrName];
+                    if (attribute.component) {
+                        this.modifyComponentIndicesToMatchResolver(
+                            [attribute.component],
+                            originalIdxToComponentIdx,
+                            nComponentsOriginal,
+                        );
+                    }
                 }
             }
         }
@@ -2726,21 +2859,70 @@ export default class Core {
         let sourceAttributesToIgnore =
             await component.stateValues.sourceAttributesToIgnore;
 
+        let nComponents = this._components.length;
+
         for (let repl of shadowedComposite.replacements) {
             if (typeof repl === "object") {
-                serializedReplacements.push(
-                    await repl.serialize({
-                        primitiveSourceAttributesToIgnore:
-                            sourceAttributesToIgnore,
-                    }),
-                );
+                const res = await repl.serialize(nComponents, {
+                    primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
+                });
+                nComponents = res.nComponents;
+                serializedReplacements.push(res.serializedComponent);
             } else {
                 serializedReplacements.push(repl);
             }
         }
 
-        // console.log(`serialized replacements of ${shadowedComposite.componentIdx}`)
-        // console.log(JSON.parse(JSON.stringify(serializedReplacements)))
+        if (nComponents > this.components.length) {
+            this._components[nComponents - 1] = undefined;
+        }
+
+        if (serializedReplacements.length === 1) {
+            const wrapWithExtract =
+                "wrapWithExtract" in component.stateValues
+                    ? await component.stateValues.wrapWithExtract
+                    : false;
+
+            if (
+                component.attributes.createComponentIdx?.primitive.value !=
+                undefined
+            ) {
+                if (wrapWithExtract) {
+                    serializedReplacements[0].attributes.createComponentIdx =
+                        component.attributes.createComponentIdx;
+                } else {
+                    serializedReplacements[0].componentIdx =
+                        component.attributes.createComponentIdx.primitive.value;
+                }
+            }
+
+            if (
+                component.attributes.createComponentName?.primitive.value !=
+                undefined
+            ) {
+                if (wrapWithExtract) {
+                    serializedReplacements[0].attributes.createComponentName =
+                        component.attributes.createComponentName;
+                } else {
+                    serializedReplacements[0].attributes.name = {
+                        type: "primitive",
+                        name: "name",
+                        primitive: {
+                            type: "string",
+                            value: component.attributes.createComponentName
+                                .primitive.value,
+                        },
+                    };
+                }
+            }
+        }
+
+        // console.log(
+        //     `serialized replacements of ${shadowedComposite.componentIdx}`,
+        // );
+        // console.log(JSON.parse(JSON.stringify(serializedReplacements)));
+
+        this.addReplacementsToResolver(serializedReplacements, component);
 
         // Have three composites involved:
         // 1. the shadowing composite (component, the one we're trying to expand)
@@ -2806,13 +2988,21 @@ export default class Core {
             if (!repl.attributes) {
                 repl.attributes = {};
             }
-            let attributesFromComposite =
-                convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: repl.componentType,
-                    componentInfoObjects: this.componentInfoObjects,
-                    compositeAttributesObj,
-                });
+            let nComponents = this._components.length;
+            const res = convertUnresolvedAttributesForComponentType({
+                attributes: attributesToConvert,
+                componentType: repl.componentType,
+                componentInfoObjects: this.componentInfoObjects,
+                compositeAttributesObj,
+                nComponents,
+            });
+
+            const attributesFromComposite = res.attributes;
+            nComponents = res.nComponents;
+            if (nComponents > this.components.length) {
+                this._components[nComponents - 1] = undefined;
+            }
+
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
@@ -2880,128 +3070,36 @@ export default class Core {
             }, []);
         }
 
-        if (component.constructor.assignNamesToReplacements) {
-            let originalNamesAreConsistent = true; // XXX: can we do this?
+        // XXX: what is the replacement for targetComponentIdx?
+        let target =
+            this._components[
+                compositeMediatingTheShadow.doenetAttributes.targetComponentIdx
+            ];
 
-            let target =
-                this._components[
-                    compositeMediatingTheShadow.doenetAttributes
-                        .targetComponentIdx
+        if (
+            target?.componentIdx === shadowedComposite.componentIdx &&
+            compositeMediatingTheShadow.attributes.copyInChildren?.primitive
+                .value
+        ) {
+            let newReplacements = deepClone(
+                compositeMediatingTheShadow.serializedChildren,
+            );
+            let componentClass =
+                this.componentInfoObjects.allComponentClasses[
+                    component.componentType
                 ];
 
-            let assignNames = component.doenetAttributes.assignNames;
-            if (
-                assignNames &&
-                (await component.stateValues.addLevelToAssignNames)
-            ) {
-                assignNames = assignNames.map((x) => [x]);
-            }
-
-            let parentIdx = component.componentIdx;
-            if (component.doenetAttributes.parentNameForAssignNames) {
-                parentIdx = component.doenetAttributes.parentNameForAssignNames;
-            }
-
-            // If we added a level to assignNames, that means that this composite won't be assigning names
-            // but that we are delegating that to the next composite.
-            // But, we want to use the current parent name for assigning name
-            // We set compositesParentNameForAssignNames to the current parent name.
-            // Since we've added a level to assignNames, each name will be an array
-            // and processAssignNames will set parentNameForAssignNames to be compositesParentNameForAssignNames
-            let compositesParentNameForAssignNames;
-            if (await component.stateValues.addLevelToAssignNames) {
-                compositesParentNameForAssignNames = parentIdx;
-            }
-
-            // let processResult = processAssignNames({
-            //     assignNames,
-            //     assignNamesForCompositeReplacement:
-            //         component.doenetAttributes
-            //             .assignNamesForCompositeReplacement,
-            //     serializedComponents: serializedReplacements,
-            //     parentIdx,
-            //     parentNameForUniqueNames: component.componentIdx,
-            //     componentInfoObjects: this.componentInfoObjects,
-            //     originalNamesAreConsistent,
-            //     shadowingComposite: true,
-            //     compositesParentNameForAssignNames,
-            // });
-
-            // let position = compositeMediatingTheShadow.position;
-            // this.gatherErrorsAndAssignDoenetMLRange({
-            //     components: serializedReplacements,
-            //     errors: processResult.errors,
-            //     warnings: processResult.warnings,
-            //     position,
-            // });
-
-            // serializedReplacements = serializedReplacements;
-
-            if (
-                target?.componentIdx === shadowedComposite.componentIdx &&
-                compositeMediatingTheShadow.attributes.copyInChildren?.primitive
-                    .value
-            ) {
-                let newReplacements = deepClone(
-                    compositeMediatingTheShadow.serializedChildren,
+            if (!componentClass.includeBlankStringChildren) {
+                newReplacements = newReplacements.filter(
+                    (x) => typeof x !== "string" || x.trim() !== "",
                 );
-                let componentClass =
-                    this.componentInfoObjects.allComponentClasses[
-                        component.componentType
-                    ];
-
-                if (!componentClass.includeBlankStringChildren) {
-                    newReplacements = newReplacements.filter(
-                        (x) => typeof x !== "string" || x.trim() !== "",
-                    );
-                }
-
-                // let processResult = processAssignNames({
-                //     assignNames,
-                //     serializedComponents: newReplacements,
-                //     parentIdx,
-                //     parentNameForUniqueNames: component.componentIdx,
-                //     indOffset: serializedReplacements.length,
-                //     componentInfoObjects: this.componentInfoObjects,
-                //     originalNamesAreConsistent: true,
-                //     compositesParentNameForAssignNames,
-                // });
-
-                // let position = compositeMediatingTheShadow.position;
-                // this.gatherErrorsAndAssignDoenetMLRange({
-                //     components: newReplacements,
-                //     errors: processResult.errors,
-                //     warnings: processResult.warnings,
-                //     position,
-                // });
-
-                serializedReplacements.push(...newReplacements);
             }
-        } else {
-            // XXX: can we always keep original names in the new regime?
-            let originalNamesAreConsistent = true;
 
-            // let processResult = processAssignNames({
-            //     // assignNames: component.doenetAttributes.assignNames,
-            //     serializedComponents: serializedReplacements,
-            //     parentIdx: component.componentIdx,
-            //     componentInfoObjects: this.componentInfoObjects,
-            //     originalNamesAreConsistent,
-            //     shadowingComposite: true,
-            // });
-
-            // let position = compositeMediatingTheShadow.position;
-            // this.gatherErrorsAndAssignDoenetMLRange({
-            //     components: serializedReplacements,
-            //     errors: processResult.errors,
-            //     warnings: processResult.warnings,
-            //     position,
-            // });
-
-            // serializedReplacements = serializedReplacements;
+            serializedReplacements.push(...newReplacements);
         }
 
         if (!foundCircular) {
+            let nComponents = this._components.length;
             let verificationResult = await verifyReplacementsMatchSpecifiedType(
                 {
                     component,
@@ -3011,6 +3109,7 @@ export default class Core {
                     compositeAttributesObj:
                         component.constructor.createAttributesObject(),
                     components: this._components,
+                    nComponents,
                     publicCaseInsensitiveAliasSubstitutions:
                         this.publicCaseInsensitiveAliasSubstitutions.bind(this),
                 },
@@ -3025,6 +3124,10 @@ export default class Core {
                     ...verificationResult.warnings,
                 );
                 this.newErrorWarning = true;
+            }
+            nComponents = verificationResult.nComponents;
+            if (nComponents > this.components.length) {
+                this._components[nComponents - 1] = undefined;
             }
 
             serializedReplacements = verificationResult.replacements;
@@ -8993,42 +9096,31 @@ export default class Core {
                     await composite.stateValues.sourceAttributesToIgnore;
 
                 let shadowingSerializeChildren = [];
+                let nComponents = this._components.length;
+
                 for (let child of newChildren) {
                     if (typeof child === "object") {
+                        const res = await child.serialize(nComponents, {
+                            primitiveSourceAttributesToIgnore:
+                                sourceAttributesToIgnore,
+                        });
+                        nComponents = res.nComponents;
                         shadowingSerializeChildren.push(
-                            await child.serialize({
-                                primitiveSourceAttributesToIgnore:
-                                    sourceAttributesToIgnore,
-                            }),
+                            res.serializedComponent,
                         );
                     } else {
                         shadowingSerializeChildren.push(child);
                     }
                 }
+
+                if (nComponents > this.components.length) {
+                    this._components[nComponents - 1] = undefined;
+                }
+
                 shadowingSerializeChildren = postProcessCopy({
                     serializedComponents: shadowingSerializeChildren,
                     componentIdx: shadowingParent.shadows.compositeIdx,
                 });
-
-                let originalNamesAreConsistent = true; // XXX: can we do this?
-
-                // let processResult = processAssignNames({
-                //     indOffset: assignNamesOffset,
-                //     serializedComponents: shadowingSerializeChildren,
-                //     parentIdx: shadowingParent.componentIdx,
-                //     componentInfoObjects: this.componentInfoObjects,
-                //     originalNamesAreConsistent,
-                // });
-
-                // let position = composite.position;
-                // this.gatherErrorsAndAssignDoenetMLRange({
-                //     components: processResult.serializedComponents,
-                //     errors: processResult.errors,
-                //     warnings: processResult.warnings,
-                //     position,
-                // });
-
-                // shadowingSerializeChildren = processResult.serializedComponents;
 
                 let unproxiedShadowingParent =
                     this._components[shadowingParent.componentIdx];
@@ -10120,18 +10212,24 @@ export default class Core {
                     await compositeCreatingShadow.stateValues
                         .sourceAttributesToIgnore;
 
+                let nComponents = this._components.length;
                 for (let repl of replacementsToShadow) {
                     if (typeof repl === "object") {
-                        newSerializedReplacements.push(
-                            await repl.serialize({
-                                primitiveSourceAttributesToIgnore:
-                                    sourceAttributesToIgnore,
-                            }),
-                        );
+                        const res = await repl.serialize(nComponents, {
+                            primitiveSourceAttributesToIgnore:
+                                sourceAttributesToIgnore,
+                        });
+                        nComponents = res.nComponents;
+                        newSerializedReplacements.push(res.serializedComponent);
                     } else {
                         newSerializedReplacements.push(repl);
                     }
                 }
+
+                if (nComponents > this.components.length) {
+                    this._components[nComponents - 1] = undefined;
+                }
+
                 newSerializedReplacements = postProcessCopy({
                     serializedComponents: newSerializedReplacements,
                     componentIdx: shadowingComponent.shadows.compositeIdx,
@@ -10151,8 +10249,9 @@ export default class Core {
                         if (!repl.attributes) {
                             repl.attributes = {};
                         }
-                        let attributesFromComposite =
-                            convertUnresolvedAttributesForComponentType({
+                        let nComponents = this._components.length;
+                        const res = convertUnresolvedAttributesForComponentType(
+                            {
                                 attributes: {
                                     isResponse:
                                         shadowingComponent.attributes
@@ -10161,96 +10260,18 @@ export default class Core {
                                 componentType: repl.componentType,
                                 componentInfoObjects: this.componentInfoObjects,
                                 compositeAttributesObj,
-                            });
+                                nComponents,
+                            },
+                        );
+
+                        const attributesFromComposite = res.attributes;
+                        nComponents = res.nComponents;
+                        if (nComponents > this.components.length) {
+                            this._components[nComponents - 1] = undefined;
+                        }
+
                         Object.assign(repl.attributes, attributesFromComposite);
                     }
-                }
-
-                let nameOfCompositeMediatingTheShadow =
-                    shadowingComponent.shadows.compositeIdx;
-                let compositeMediatingTheShadow =
-                    this.components[nameOfCompositeMediatingTheShadow];
-                if (shadowingComponent.constructor.assignNamesToReplacements) {
-                    let originalNamesAreConsistent = true; // XXX: can we do this?
-
-                    let assignNames =
-                        shadowingComponent.doenetAttributes.assignNames;
-                    if (
-                        assignNames &&
-                        (await shadowingComponent.stateValues
-                            .addLevelToAssignNames)
-                    ) {
-                        assignNames = assignNames.map((x) => [x]);
-                    }
-
-                    let parentIdx = shadowingComponent.componentIdx;
-                    if (
-                        shadowingComponent.doenetAttributes
-                            .parentNameForAssignNames
-                    ) {
-                        parentIdx =
-                            shadowingComponent.doenetAttributes
-                                .parentNameForAssignNames;
-                    }
-
-                    // If we added a level to assignNames, that means that this composite won't be assigning names
-                    // but that we are delegating that to the next composite.
-                    // But, we want to use the current parent name for assigning name
-                    // We set compositesParentNameForAssignNames to the current parent name.
-                    // Since we've added a level to assignNames, each name will be an array
-                    // and processAssignNames will set parentNameForAssignNames to be compositesParentNameForAssignNames
-                    let compositesParentNameForAssignNames;
-                    if (
-                        await shadowingComponent.stateValues
-                            .addLevelToAssignNames
-                    ) {
-                        compositesParentNameForAssignNames = parentIdx;
-                    }
-                    // let processResult = processAssignNames({
-                    //     assignNames,
-                    //     assignNamesForCompositeReplacement:
-                    //         shadowingComponent.doenetAttributes
-                    //             .assignNamesForCompositeReplacement,
-                    //     indOffset: assignNamesOffset,
-                    //     serializedComponents: newSerializedReplacements,
-                    //     parentIdx,
-                    //     componentInfoObjects: this.componentInfoObjects,
-                    //     originalNamesAreConsistent,
-                    //     compositesParentNameForAssignNames,
-                    // });
-
-                    // let position = compositeMediatingTheShadow.position;
-                    // this.gatherErrorsAndAssignDoenetMLRange({
-                    //     components: processResult.serializedComponents,
-                    //     errors: processResult.errors,
-                    //     warnings: processResult.warnings,
-                    //     position,
-                    // });
-
-                    // newSerializedReplacements =
-                    //     processResult.serializedComponents;
-                } else {
-                    let originalNamesAreConsistent = true; // XXX: can we do this?
-
-                    // let processResult = processAssignNames({
-                    //     // assignNames: shadowingComponent.doenetAttributes.assignNames,
-                    //     indOffset: assignNamesOffset,
-                    //     serializedComponents: newSerializedReplacements,
-                    //     parentIdx: shadowingComponent.componentIdx,
-                    //     componentInfoObjects: this.componentInfoObjects,
-                    //     originalNamesAreConsistent,
-                    // });
-
-                    // let position = compositeMediatingTheShadow.position;
-                    // this.gatherErrorsAndAssignDoenetMLRange({
-                    //     components: processResult.serializedComponents,
-                    //     errors: processResult.errors,
-                    //     warnings: processResult.warnings,
-                    //     position,
-                    // });
-
-                    // newSerializedReplacements =
-                    //     processResult.serializedComponents;
                 }
 
                 // console.log(`newSerializedReplacements for ${shadowingComponent.componentIdx} who shadows ${shadowingComponent.shadows.componentIdx}`)

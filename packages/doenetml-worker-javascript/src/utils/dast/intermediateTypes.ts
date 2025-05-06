@@ -18,7 +18,6 @@ export type UnflattenedComponent = {
     doenetAttributes?: Record<string, any>;
     position?: Position;
     extending?: Source<UnflattenedRefResolution>;
-    refResolution?: UnflattenedRefResolution;
     state: Record<string, any>;
 };
 
@@ -48,8 +47,8 @@ export function isUnflattenedComponent(
 }
 
 export type UnflattenedRefResolution = {
-    node_idx: number;
-    unresolved_path: UnflattenedPathPart[] | null;
+    nodeIdx: number;
+    unresolvedPath: UnflattenedPathPart[] | null;
 };
 
 export interface UnflattenedPathPart {

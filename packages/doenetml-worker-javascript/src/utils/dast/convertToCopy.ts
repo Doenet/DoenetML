@@ -65,14 +65,14 @@ export function convertRefsToCopies({
 
         const refResolution =
             "Ref" in extending ? extending.Ref : extending.Attribute;
-        const unresolved_path =
-            refResolution.unresolved_path === null
+        const unresolvedPath =
+            refResolution.unresolvedPath === null
                 ? null
-                : [...refResolution.unresolved_path];
+                : [...refResolution.unresolvedPath];
 
         if (
             newComponent.componentType === "evaluate" &&
-            unresolved_path === null
+            unresolvedPath === null
         ) {
             const evalResult = convertEvaluate({
                 evaluateComponent: newComponent,
@@ -114,12 +114,9 @@ export function convertRefsToCopies({
             };
         }
 
-        delete newComponent.extending;
-
         newComponent.componentType = "copy";
-        newComponent.refResolution = refResolution;
 
-        if (unresolved_path === null) {
+        if (unresolvedPath === null) {
             // a copy with no props
             newComponent.attributes = outerAttributes;
             newComponents.push(newComponent);
@@ -130,8 +127,8 @@ export function convertRefsToCopies({
         // convert any references to copies
         // and make sure that each index piece is a single integer component
         // or a single string
-        const converted_unresolved_path: UnflattenedPathPart[] =
-            unresolved_path.map((path_part) => {
+        const converted_unresolvedPath: UnflattenedPathPart[] =
+            unresolvedPath.map((path_part) => {
                 const new_index: UnflattenedIndex[] = path_part.index.map(
                     (index) => {
                         const res = convertRefsToCopies({
@@ -203,7 +200,7 @@ export function convertRefsToCopies({
                 };
             });
 
-        refResolution.unresolved_path = converted_unresolved_path;
+        refResolution.unresolvedPath = converted_unresolvedPath;
 
         newComponent.attributes = {
             ...newComponent.attributes,
@@ -239,7 +236,7 @@ function convertEvaluate({
                 componentIdx: nComponents++,
                 children: [],
                 attributes: {},
-                doenetAttributes: { extendIdx: refResolution.node_idx },
+                doenetAttributes: { extendIdx: refResolution.nodeIdx },
                 state: {},
                 extending: evaluateComponent.extending,
             },

@@ -26,7 +26,7 @@ describe("MathList tag tests", async () => {
         maths?: any[];
         resolveComponentName: (name: string, origin?: number) => number;
     }) {
-        if (!core.resolver) {
+        if (!core.getResolver()) {
             throw Error("No core resolver");
         }
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -36,7 +36,7 @@ describe("MathList tag tests", async () => {
             expect(stateVariables[cIdx].stateValues.text).eq(text);
         }
 
-        if (maths !== undefined && name !== undefined && core.resolver) {
+        if (maths !== undefined && name !== undefined) {
             const cIdx = resolveComponentName(name);
             expect(
                 stateVariables[cIdx].stateValues.maths.map((x) => x.tree),
@@ -572,7 +572,7 @@ describe("MathList tag tests", async () => {
         });
     });
 
-    it.only("dynamic maximum number", async () => {
+    it("dynamic maximum number", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     
@@ -708,9 +708,9 @@ describe("MathList tag tests", async () => {
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml1`,
+                name: `ml1`,
                 maths,
-                pName: `/p1`,
+                pName: `p1`,
                 text: texts.join(", "),
             });
 
@@ -719,10 +719,13 @@ describe("MathList tag tests", async () => {
                 true,
             );
 
-            expect(stateVariables["/p2"].stateValues.text).eq(
+            const p2Idx = resolveComponentName("p2");
+            expect(stateVariables[p2Idx].stateValues.text).eq(
                 `Third math: ${texts[2]}`,
             );
-            expect(stateVariables["/p3"].stateValues.text).eq(
+
+            const p3Idx = resolveComponentName("p3");
+            expect(stateVariables[p3Idx].stateValues.text).eq(
                 `Fifth math: ${texts[4] ?? ""}`,
             );
         }
@@ -735,7 +738,7 @@ describe("MathList tag tests", async () => {
         for (let [i, v] of vals.entries()) {
             await updateMathInputValue({
                 latex: v.toString(),
-                componentIdx: `/mi${i + 1}`,
+                componentIdx: resolveComponentName(`mi${i + 1}`),
                 core,
             });
         }
@@ -743,7 +746,7 @@ describe("MathList tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: "merge",
+            componentIdx: resolveComponentName("merge"),
             core,
         });
         vals = ["h", "b", "c", "i", "e", "j", "k"];

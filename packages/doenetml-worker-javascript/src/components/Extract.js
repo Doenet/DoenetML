@@ -245,6 +245,7 @@ export default class Extract extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         components,
+        nComponents,
         workspace,
         componentInfoObjects,
         flags,
@@ -282,6 +283,7 @@ export default class Extract extends CompositeComponent {
                     component,
                     sourceNum,
                     components,
+                    nComponents,
                     numReplacementsSoFar,
                     uniqueIdentifiersUsed,
                     componentInfoObjects,
@@ -295,6 +297,7 @@ export default class Extract extends CompositeComponent {
                 });
                 errors.push(...results.errors);
                 warnings.push(...results.warnings);
+                nComponents = results.nComponents;
 
                 workspace.propVariablesCopiedBySource[sourceNum] =
                     results.propVariablesCopiedByReplacement;
@@ -322,10 +325,12 @@ export default class Extract extends CompositeComponent {
             compositeAttributesObj,
             flags,
             components,
+            nComponents,
             publicCaseInsensitiveAliasSubstitutions,
         });
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
+        nComponents = verificationResult.nComponents;
         replacements = verificationResult.replacements;
 
         if (replacements.length === 1) {
@@ -359,12 +364,14 @@ export default class Extract extends CompositeComponent {
             replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static async createReplacementForSource({
         component,
         components,
+        nComponents,
         sourceNum,
         numReplacementsSoFar,
         uniqueIdentifiersUsed,
@@ -385,6 +392,7 @@ export default class Extract extends CompositeComponent {
         let results = await replacementFromProp({
             component,
             components,
+            nComponents,
             replacementSource: (await component.stateValues.sourceComponents)[
                 sourceNum
             ],
@@ -397,6 +405,7 @@ export default class Extract extends CompositeComponent {
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);
+        nComponents = results.nComponents;
 
         let serializedReplacements = results.serializedReplacements;
         let propVariablesCopiedByReplacement =
@@ -419,12 +428,14 @@ export default class Extract extends CompositeComponent {
             propVariablesCopiedByReplacement,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static async calculateReplacementChanges({
         component,
         components,
+        nComponents,
         workspace,
         componentInfoObjects,
         flags,
@@ -546,6 +557,7 @@ export default class Extract extends CompositeComponent {
                     (workspace.uniqueIdentifiersUsedBySource[sourceNum] = []);
                 let results = await this.recreateReplacements({
                     component,
+                    nComponents,
                     sourceNum,
                     numReplacementsSoFar,
                     numReplacementsToDelete,
@@ -557,6 +569,7 @@ export default class Extract extends CompositeComponent {
                 });
                 errors.push(...results.errors);
                 warnings.push(...results.warnings);
+                nComponents = results.nComponents;
 
                 numReplacementsSoFar += results.numReplacements;
 
@@ -608,6 +621,7 @@ export default class Extract extends CompositeComponent {
                 component,
                 sourceNum,
                 components,
+                nComponents,
                 numReplacementsSoFar,
                 uniqueIdentifiersUsed,
                 componentInfoObjects,
@@ -621,6 +635,7 @@ export default class Extract extends CompositeComponent {
             });
             errors.push(...results.errors);
             warnings.push(...results.warnings);
+            const nComponentsForNew = results.nComponents;
 
             let propVariablesCopiedByReplacement =
                 results.propVariablesCopiedByReplacement;
@@ -651,6 +666,7 @@ export default class Extract extends CompositeComponent {
                 replacementChanges.push(replacementInstruction);
 
                 recreateRemaining = true;
+                nComponents = nComponentsForNew;
 
                 // since deleted remaining, change in workspace
                 // so that don't attempt to delete again
@@ -673,6 +689,7 @@ export default class Extract extends CompositeComponent {
                                 v !== propVariablesCopiedByReplacement[ind][i],
                         )
                     ) {
+                        // XXX: what to do about nComponents here?
                         let replacementInstruction = {
                             changeType: "add",
                             changeTopLevelReplacements: true,
@@ -711,10 +728,12 @@ export default class Extract extends CompositeComponent {
             compositeAttributesObj,
             flags,
             components,
+            nComponents,
             publicCaseInsensitiveAliasSubstitutions,
         });
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
+        nComponents = verificationResult.nComponents;
 
         // console.log("replacementChanges");
         // console.log(verificationResult.replacementChanges);
@@ -729,6 +748,7 @@ export default class Extract extends CompositeComponent {
         numReplacementsToDelete,
         uniqueIdentifiersUsed,
         components,
+        nComponents,
         componentInfoObjects,
         compositeAttributesObj,
         publicCaseInsensitiveAliasSubstitutions,
@@ -743,6 +763,7 @@ export default class Extract extends CompositeComponent {
             sourceNum,
             numReplacementsSoFar,
             components,
+            nComponents,
             uniqueIdentifiersUsed,
             componentInfoObjects,
             compositeAttributesObj,
@@ -755,6 +776,7 @@ export default class Extract extends CompositeComponent {
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);
+        nComponents = results.nComponents;
 
         let propVariablesCopiedByReplacement =
             results.propVariablesCopiedByReplacement;
@@ -776,6 +798,7 @@ export default class Extract extends CompositeComponent {
             replacementInstruction,
             errors,
             warnings,
+            nComponents,
         };
     }
 }

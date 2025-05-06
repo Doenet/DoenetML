@@ -7183,15 +7183,15 @@ class RefResolutionDependency extends Dependency {
                 );
 
                 if (
-                    refResolution.unresolved_path?.length ===
+                    refResolution.unresolvedPath?.length ===
                         unresolvedPath.length &&
-                    refResolution.unresolved_path[0].name !== ""
+                    refResolution.unresolvedPath[0].name !== ""
                 ) {
                     // The resolver didn't make any progress.
                     // As a sanity check, make sure the node index and name didn't change
                     if (
-                        refResolution.node_idx !== nodeIdx ||
-                        refResolution.unresolved_path[0].name !==
+                        refResolution.nodeIdx !== nodeIdx ||
+                        refResolution.unresolvedPath[0].name !==
                             nextPathPart.name
                     ) {
                         throw Error(
@@ -7211,8 +7211,8 @@ class RefResolutionDependency extends Dependency {
                 }
 
                 // some progress was made so continue to next loop
-                nodeIdx = refResolution.node_idx;
-                unresolvedPath = refResolution.unresolved_path;
+                nodeIdx = refResolution.nodeIdx;
+                unresolvedPath = refResolution.unresolvedPath;
                 continue;
             }
 
@@ -7230,14 +7230,14 @@ class RefResolutionDependency extends Dependency {
                 };
             }
 
-            const index = unresolvedPath.index;
+            const index = nextPathPart.index;
             if (index.length === 0) {
                 throw Error(
                     "Something went wrong as we have a ref resolution without a name or an index",
                 );
             }
 
-            const replacementIdx = index[0][0];
+            const replacementIdx = index[0].value;
 
             // Note: strings that are not blank do take up a slot for replacement index.
             // However, this non-blank strings that do take up a slot

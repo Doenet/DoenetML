@@ -362,6 +362,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
+        nComponents,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`)
         // console.log(await component.stateValues.collectedComponents)
@@ -408,9 +409,11 @@ export default class Collect extends CompositeComponent {
                     compositeAttributesObj,
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
+                    nComponents,
                 });
                 errors.push(...results.errors);
                 warnings.push(...results.warnings);
+                nComponents = results.nComponents;
 
                 workspace.propVariablesCopiedByCollected[collectedNum] =
                     results.propVariablesCopiedByReplacement;
@@ -447,6 +450,7 @@ export default class Collect extends CompositeComponent {
         compositeAttributesObj,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
+        nComponents,
     }) {
         // console.log(`create replacement for collected ${collectedNum}, ${numReplacementsSoFar}`)
 
@@ -501,11 +505,12 @@ export default class Collect extends CompositeComponent {
             let sourceAttributesToIgnore =
                 await component.stateValues.sourceAttributesToIgnore;
 
-            let serializedCopy = [
-                await collectedComponent.serialize({
-                    primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
-                }),
-            ];
+            const res = await await collectedComponent.serialize(nComponents, {
+                primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
+            });
+            nComponents = res.nComponents;
+
+            let serializedCopy = [res.serializedComponent];
 
             serializedReplacements = postProcessCopy({
                 serializedComponents: serializedCopy,
@@ -530,23 +535,12 @@ export default class Collect extends CompositeComponent {
             }
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: serializedReplacements,
-            parentIdx: component.componentIdx,
-            indOffset: numReplacementsSoFar,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
-        serializedReplacements = processResult.serializedComponents;
-
         return {
             serializedReplacements,
             propVariablesCopiedByReplacement,
             errors,
             warnings,
+            nComponents,
         };
     }
 

@@ -577,12 +577,15 @@ export default class MathList extends CompositeComponent {
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite =
-                convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "math",
-                    componentInfoObjects,
-                });
+            const res = convertUnresolvedAttributesForComponentType({
+                attributes: attributesToConvert,
+                componentType: "math",
+                componentInfoObjects,
+                nComponents,
+            });
+
+            attributesFromComposite = res.attributes;
+            nComponents = res.nComponents;
         }
 
         let childInfoByComponent =

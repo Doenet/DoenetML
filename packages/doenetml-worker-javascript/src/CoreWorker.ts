@@ -2,7 +2,14 @@ import Core from "./Core";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
-import { DastRoot, NormalizedRoot, Resolver } from "@doenet/doenetml-worker";
+import {
+    DastRoot,
+    FlatRoot,
+    NormalizedRoot,
+    PathToCheck,
+    RefResolution,
+    Resolver,
+} from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 
 // Type signatures for callbacks
@@ -58,13 +65,19 @@ export class PublicDoenetMLCore {
     initializeResult?: { success: boolean; errMsg?: string };
     doenetML = "";
     flags: Record<string, unknown> = {};
-    resolver?: Resolver;
+    initialResolver?: Resolver;
     addNodesToResolver?: (
         resolver: Resolver,
         dastSubtree: DastRoot,
         subtreeParent: number,
         indexOffset: number,
-    ) => Resolver;
+    ) => { resolver: Resolver; flatSubtree: FlatRoot };
+    resolvePath?: (
+        resolver: Resolver,
+        path: PathToCheck,
+        origin: 0,
+        skip_parent_search: boolean,
+    ) => RefResolution;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -72,6 +85,10 @@ export class PublicDoenetMLCore {
 
     setFlags(flags: Record<string, unknown>) {
         this.flags = flags;
+    }
+
+    getResolver() {
+        return this.core?.resolver;
     }
 
     async initializeWorker({
@@ -82,6 +99,7 @@ export class PublicDoenetMLCore {
         normalizedRoot,
         resolver,
         addNodesToResolver,
+        resolvePath,
     }: {
         activityId: string;
         docId: string;
@@ -94,10 +112,17 @@ export class PublicDoenetMLCore {
             dastSubtree: DastRoot,
             subtreeParent: number,
             indexOffset: number,
-        ) => Resolver;
+        ) => { resolver: Resolver; flatSubtree: FlatRoot };
+        resolvePath: (
+            resolver: Resolver,
+            path: PathToCheck,
+            origin: 0,
+            skip_parent_search: boolean,
+        ) => RefResolution;
     }) {
-        this.resolver = resolver;
+        this.initialResolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
+        this.resolvePath = resolvePath;
 
         let componentInfoObjects = createComponentInfoObjects();
 
@@ -181,8 +206,9 @@ export class PublicDoenetMLCore {
         let coreArgs = {
             ...this.coreBaseArgs!,
             ...args,
-            resolver: this.resolver,
+            resolver: this.initialResolver,
             addNodesToResolver: this.addNodesToResolver,
+            resolvePath: this.resolvePath,
             updateRenderersCallback,
             reportScoreAndStateCallback,
             requestAnimationFrame,

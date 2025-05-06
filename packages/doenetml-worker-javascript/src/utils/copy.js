@@ -1,5 +1,4 @@
 import { getUniqueIdentifierFromBase } from "@doenet/utils";
-import { processAssignNames } from "./naming";
 import { convertUnresolvedAttributesForComponentType } from "./dast/convertNormalizedDast";
 
 export function postProcessCopy({
@@ -232,11 +231,11 @@ export async function verifyReplacementsMatchSpecifiedType({
     component,
     replacements,
     replacementChanges,
-    assignNames,
     workspace = {},
     componentInfoObjects,
     compositeAttributesObj,
     components,
+    nComponents,
     publicCaseInsensitiveAliasSubstitutions,
 }) {
     let errors = [];
@@ -246,7 +245,13 @@ export async function verifyReplacementsMatchSpecifiedType({
         !component.attributes.createComponentOfType?.primitive &&
         !component.sharedParameters.compositesMustHaveAReplacement
     ) {
-        return { replacements, replacementChanges, errors, warnings };
+        return {
+            replacements,
+            replacementChanges,
+            errors,
+            warnings,
+            nComponents,
+        };
     }
 
     let replacementsToWithhold = component.replacementsToWithhold;
@@ -341,7 +346,13 @@ export async function verifyReplacementsMatchSpecifiedType({
         // no changes since only reason we got this far was that
         // composites must have a replacement
         // and we have at least one replacement
-        return { replacements, replacementChanges, errors, warnings };
+        return {
+            replacements,
+            replacementChanges,
+            errors,
+            warnings,
+            nComponents,
+        };
     }
 
     let requiredComponentType =
@@ -390,7 +401,13 @@ export async function verifyReplacementsMatchSpecifiedType({
             replacements[0].attributes.numComponents = {
                 primitive: requiredLength,
             };
-            return { replacements, replacementChanges, errors, warnings };
+            return {
+                replacements,
+                replacementChanges,
+                errors,
+                warnings,
+                nComponents,
+            };
         }
 
         // if the only discrepancy is the components are the wrong type,
@@ -439,13 +456,16 @@ export async function verifyReplacementsMatchSpecifiedType({
 
         replacements = [];
         for (let i = 0; i < requiredLength; i++) {
-            let attributesFromComposite =
-                convertUnresolvedAttributesForComponentType({
-                    attributes: component.attributes,
-                    componentType: requiredComponentType,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                });
+            const res = convertUnresolvedAttributesForComponentType({
+                attributes: component.attributes,
+                componentType: requiredComponentType,
+                componentInfoObjects,
+                compositeAttributesObj,
+                nComponents,
+            });
+
+            const attributesFromComposite = res.attributes;
+            nComponents = res.nComponents;
 
             let uniqueIdentifierBase = requiredComponentType + "|empty" + i;
             let uniqueIdentifier = getUniqueIdentifierFromBase(
@@ -454,7 +474,11 @@ export async function verifyReplacementsMatchSpecifiedType({
             );
             replacements.push({
                 componentType: requiredComponentType,
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
+                doenetAttributes: {},
+                state: {},
+                children: [],
                 uniqueIdentifier,
             });
         }
@@ -553,19 +577,6 @@ export async function verifyReplacementsMatchSpecifiedType({
             }
         }
 
-        if (assignNames) {
-            let processResult = processAssignNames({
-                assignNames,
-                serializedComponents: replacements,
-                parentIdx: component.componentIdx,
-                componentInfoObjects,
-            });
-            errors.push(...processResult.errors);
-            warnings.push(...processResult.warnings);
-
-            replacements = processResult.serializedComponents;
-        }
-
         if (!wrapExistingReplacements) {
             workspace.numReplacementsBySource.push(replacements.length);
             workspace.numNonStringReplacementsBySource.push(
@@ -597,7 +608,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         }
     }
 
-    return { replacements, replacementChanges, errors, warnings };
+    return { replacements, replacementChanges, errors, warnings, nComponents };
 }
 
 export function renameAutonameBasedOnNewCounts(

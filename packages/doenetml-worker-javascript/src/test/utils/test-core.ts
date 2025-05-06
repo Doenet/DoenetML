@@ -78,7 +78,9 @@ export async function createTestCore({
     const dast = normalizeDocumentDast(lezerToDast(doenetML), true);
     rustCore.set_source(dast as DastRootInCore, doenetML);
 
-    let { normalizedRoot, resolver } = rustCore.return_normalized_dast_root();
+    const { normalizedRoot, resolver } = rustCore.return_normalized_dast_root();
+    const addNodesToResolver = PublicDoenetMLCoreRust.add_nodes_to_resolver;
+    const resolvePath = PublicDoenetMLCoreRust.resolve_path;
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -94,6 +96,8 @@ export async function createTestCore({
         attemptNumber: 1,
         normalizedRoot,
         resolver,
+        addNodesToResolver,
+        resolvePath,
     });
 
     const dastResult = await core.createCoreGenerateDast(
@@ -130,11 +134,12 @@ export async function createTestCore({
         };
 
         const resolution = PublicDoenetMLCoreRust.resolve_path(
-            resolver,
+            core.getResolver(),
             path,
             origin,
+            false,
         );
-        return resolution.node_idx;
+        return resolution.nodeIdx;
     }
 
     return { core, rustCore, resolveComponentName };

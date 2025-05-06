@@ -27,6 +27,7 @@ pub enum ResolutionError {
 #[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct RefResolution {
     pub node_idx: Index,
     pub unresolved_path: Option<Vec<FlatPathPart>>,
