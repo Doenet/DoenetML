@@ -76,8 +76,8 @@ export default React.memo(function Graph(props) {
             showCopyright: false,
             showNavigation: false, // will add navigation buttons later so can style them
             // keepAspectRatio: SVs.identicalAxisScales,
-            zoom: { wheel: !SVs.fixAxes },
-            pan: { enabled: !SVs.fixAxes },
+            zoom: { wheel: !SVs.fixAxes, needShift: false },
+            pan: { enabled: !SVs.fixAxes, needShift: false },
             grid: haveFixedGrid,
         });
 
@@ -116,6 +116,7 @@ export default React.memo(function Graph(props) {
                 }
             }
         });
+
         setBoard(newBoard);
 
         previousDimensions.current = {
@@ -910,6 +911,9 @@ export default React.memo(function Graph(props) {
             addEvent(button, "mousedown", cancelbubble);
             addEvent(button, "touchend", cancelbubble);
             addEvent(button, "touchstart", cancelbubble);
+            addEvent(button, "pointerup", cancelbubble);
+            addEvent(button, "pointerdown", cancelbubble);
+            addEvent(button, "pointerleave", cancelbubble);
         };
 
         if (board.attr.showzoom) {
