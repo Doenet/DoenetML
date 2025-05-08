@@ -14,6 +14,7 @@ import type {
     NormalizedRoot,
     Resolver,
     PathToCheck,
+    FlatFragment,
 } from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
 import {
@@ -375,17 +376,10 @@ export class CoreWorker {
         }
     }
 
-    addNodesToResolver(
-        resolver: Resolver,
-        dastSubtree: DastRoot,
-        subtreeParent: number,
-        indexOffset: number,
-    ) {
+    addNodesToResolver(resolver: Resolver, flatFragment: FlatFragment) {
         let add_nodes_result = PublicDoenetMLCore.add_nodes_to_resolver(
             resolver,
-            dastSubtree as DastRootInCore,
-            subtreeParent,
-            indexOffset,
+            flatFragment,
         );
         return add_nodes_result;
     }

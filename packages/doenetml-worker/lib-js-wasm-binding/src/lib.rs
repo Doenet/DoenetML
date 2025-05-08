@@ -12,7 +12,7 @@ use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
     core::core::Core,
     dast::{
-        flat_dast::{FlatPathPart, FlatRoot, Index, NormalizedRoot},
+        flat_dast::{FlatFragment, FlatPathPart, FlatRoot, Index, NormalizedRoot},
         ref_resolve::{RefResolution, ResolutionError, Resolver},
         DastRoot, FlatDastElementUpdate, FlatDastRoot,
     },
@@ -115,24 +115,11 @@ impl PublicDoenetMLCore {
         })
     }
 
-    pub fn add_nodes_to_resolver(
-        resolver: Resolver,
-        dast_subtree: DastRoot,
-        subtree_parent: Index,
-        index_offset: Index,
-    ) -> AddNodesResult {
+    pub fn add_nodes_to_resolver(resolver: Resolver, flat_fragment: FlatFragment) -> Resolver {
         let mut resolver2 = resolver;
-        let flat_subtree = Core::add_nodes_to_resolver(
-            &dast_subtree,
-            subtree_parent,
-            index_offset,
-            &mut resolver2,
-        );
+        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver2);
 
-        AddNodesResult {
-            resolver: resolver2,
-            flat_subtree,
-        }
+        resolver2
     }
 
     pub fn resolve_path(

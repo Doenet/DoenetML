@@ -3,8 +3,7 @@ import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
 import {
-    DastRoot,
-    FlatRoot,
+    FlatFragment,
     NormalizedRoot,
     PathToCheck,
     RefResolution,
@@ -68,10 +67,8 @@ export class PublicDoenetMLCore {
     initialResolver?: Resolver;
     addNodesToResolver?: (
         resolver: Resolver,
-        dastSubtree: DastRoot,
-        subtreeParent: number,
-        indexOffset: number,
-    ) => { resolver: Resolver; flatSubtree: FlatRoot };
+        flat_fragment: FlatFragment,
+    ) => Resolver;
     resolvePath?: (
         resolver: Resolver,
         path: PathToCheck,
@@ -109,10 +106,8 @@ export class PublicDoenetMLCore {
         resolver: Resolver;
         addNodesToResolver: (
             resolver: Resolver,
-            dastSubtree: DastRoot,
-            subtreeParent: number,
-            indexOffset: number,
-        ) => { resolver: Resolver; flatSubtree: FlatRoot };
+            flat_fragment: FlatFragment,
+        ) => Resolver;
         resolvePath: (
             resolver: Resolver,
             path: PathToCheck,

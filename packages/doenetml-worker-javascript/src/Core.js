@@ -2577,30 +2577,6 @@ export default class Core {
             return;
         }
 
-        // For now, we have addressed the case where there is one replacement,
-        // which would be the one that will take on the name specified in the DoenetML.
-        // We add all its descendants to the resolver
-
-        const dastReplacements = this.serializedComponentsToDast(
-            serializedReplacements,
-        );
-
-        const dastRoot = {
-            type: "root",
-            children: dastReplacements,
-        };
-
-        // XXX: have not yet dealt with case with more than one replacement
-        if (serializedReplacements.length > 1) {
-            console.log(
-                "************* not yet implemented adding to resolver with more than one replacement",
-            );
-            if (newNComponents > this._components.length) {
-                this._components[newNComponents - 1] = undefined;
-            }
-            return;
-        }
-
         let nComponents = this._components.length;
 
         const haveSingleIndexedReplacement =
@@ -2615,179 +2591,126 @@ export default class Core {
             ? serializedReplacements[0].componentIdx
             : component.componentIdx;
 
-        let addResult = this.addNodesToResolver?.(
-            this.resolver,
-            dastRoot,
+        const fragmentChildren = haveSingleIndexedReplacement
+            ? serializedReplacements[0].children
+            : serializedReplacements;
+
+        // For now, we have addressed the case where there is one replacement,
+        // which would be the one that will take on the name specified in the DoenetML.
+        // We add all its descendants to the resolver
+
+        const flatFragment = {
+            children: fragmentChildren
+                .filter(
+                    (child) =>
+                        typeof child === "string" ||
+                        child.componentIdx >= nComponents,
+                )
+                .map((child) =>
+                    typeof child === "string" ? child : child.componentIdx,
+                ),
+            nodes: [],
+            parentIdx,
+            idxMap: {},
+        };
+
+        this.addNodesToFlatFragment({
+            flatFragment,
+            serializedComponents: fragmentChildren,
             parentIdx,
             nComponents,
-        );
+        });
 
-        if (addResult) {
-            this.resolver = addResult.resolver;
+        if (newNComponents > this._components.length) {
+            this._components[newNComponents - 1] = undefined;
+        }
 
-            // Create a map from the original `componentIdx` found in `serializedReplacements`,
-            // which is the `componentIdx` attribute of the dast element,
-            // to the `componentIdx` that was calculated for the resolver,
-            // which is the index in the flatSubtree + nComponents
-            const originalIdxToComponentIdx = {};
-            for (const [idx, newNode] of addResult.flatSubtree.nodes
-                .slice(1)
-                .entries()) {
-                const originalComponentIdxStr = newNode.attributes?.find(
-                    (x) => x.name === "componentIdx",
-                )?.children[0];
-                if (Number(originalComponentIdxStr) > nComponents) {
-                    originalIdxToComponentIdx[originalComponentIdxStr] =
-                        nComponents + idx;
-                }
-            }
-
-            const nComponentsOriginal = nComponents;
-
-            nComponents = nComponents + addResult.flatSubtree.nodes.length;
-            if (nComponents > this._components.length) {
-                this._components[nComponents - 1] = undefined;
-            }
-
-            this.modifyComponentIndicesToMatchResolver(
-                serializedReplacements,
-                originalIdxToComponentIdx,
-                nComponentsOriginal,
+        // XXX: have not yet dealt with case with more than one replacement
+        if (serializedReplacements.length > 1) {
+            console.log(
+                "************* not yet implemented adding to resolver with more than one replacement",
             );
-        } else {
-            if (newNComponents > this._components.length) {
-                this._components[newNComponents - 1] = undefined;
-            }
+
+            return;
+        }
+
+        if (flatFragment.nodes.length > 0 && this.addNodesToResolver) {
+            let resolver = this.addNodesToResolver?.(
+                this.resolver,
+                flatFragment,
+            );
+            this.resolver = resolver;
         }
     }
 
-    serializedComponentsToDast(serializedComponents) {
-        const dastElements = serializedComponents.map((child) => {
-            if (typeof child !== "object") {
-                return { type: "text", value: child };
+    addNodesToFlatFragment({
+        flatFragment,
+        serializedComponents,
+        parentIdx,
+        nComponents,
+    }) {
+        for (const comp of serializedComponents) {
+            if (typeof comp === "string") {
+                continue;
             }
 
-            const dastElement = {
+            let componentIdx =
+                comp.attributes.createComponentIdx?.primitive.value ??
+                comp.componentIdx;
+
+            const flatElement = {
                 type: "element",
-                name: child.componentType,
-                attributes: {},
+                name: comp.componentType,
+                parent: parentIdx,
+                children: [],
+                attributes: [],
+                idx: componentIdx,
             };
 
-            if (child.children) {
-                dastElement.children = this.serializedComponentsToDast(
-                    child.children,
+            if (comp.children) {
+                flatElement.children = comp.children.map((child) =>
+                    typeof child === "string"
+                        ? child
+                        : (child.attributes.createComponentIdx?.primitive
+                              .value ?? child.componentIdx),
                 );
-            } else {
-                dastElement.children = [];
+                this.addNodesToFlatFragment({
+                    flatFragment,
+                    serializedComponents: comp.children,
+                    parentIdx: componentIdx,
+                    nComponents,
+                });
             }
 
-            if (child.componentIdx != undefined) {
-                dastElement.attributes = {
-                    componentIdx: {
-                        type: "attribute",
-                        name: "componentIdx",
-                        children: [
-                            {
-                                type: "text",
-                                value: child.componentIdx.toString(),
-                            },
-                        ],
-                    },
-                };
-            }
-
-            if (child.attributes.createComponentName) {
-                dastElement.attributes.name = {
+            if (comp.attributes.createComponentName) {
+                flatElement.attributes.push({
                     type: "attribute",
                     name: "name",
+                    parent: componentIdx,
                     children: [
-                        {
-                            type: "text",
-                            value: child.attributes.createComponentName
-                                .primitive.value,
-                        },
+                        comp.attributes.createComponentName.primitive.value,
                     ],
-                };
-            } else if (child.attributes.name) {
-                dastElement.attributes.name = {
+                });
+            } else if (comp.attributes.name) {
+                flatElement.attributes.push({
                     type: "attribute",
                     name: "name",
-                    children: [
-                        {
-                            type: "text",
-                            value: child.attributes.name.primitive.value,
-                        },
-                    ],
-                };
+                    parent: componentIdx,
+                    children: [comp.attributes.name.primitive.value],
+                });
             }
 
-            if (child.position) {
-                dastElement.position = JSON.parse(
-                    JSON.stringify(child.position),
+            if (comp.position) {
+                flatElement.position = JSON.parse(
+                    JSON.stringify(comp.position),
                 );
             }
-            return dastElement;
-        });
 
-        return dastElements;
-    }
+            if (componentIdx >= nComponents) {
+                const idxInNodes = flatFragment.nodes.length;
 
-    /**
-     * If any component of serializedComponents has an `originalIdx` that is in `originalIdxToComponentIdx`,
-     * then set `componentIdx` of the component to the value from `originalIdxToComponentIdx`.
-     *
-     * The purpose is to make sure that the components get created with the `componentIdx` that the resolver uses
-     * so that references to these components will get resolved correctly.
-     */
-    modifyComponentIndicesToMatchResolver(
-        serializedComponents,
-        originalIdxToComponentIdx,
-        nComponentsOriginal,
-    ) {
-        let nComponents = this._components.length;
-
-        for (const component of serializedComponents) {
-            if (typeof component === "object") {
-                const componentIdx =
-                    originalIdxToComponentIdx[component.componentIdx];
-                if (componentIdx === undefined) {
-                    if (!(component.componentIdx < nComponentsOriginal)) {
-                        this._components[nComponents] = undefined;
-                        component.componentIdx = nComponents++;
-                    }
-                } else {
-                    // `component.componentIdx` is in the resolver as `componentIdx`
-                    if (component.attributes.createComponentIdx) {
-                        // if the `createComponentIdx` attribute is defined,
-                        // we want the created component to be the one with the `componentIdx` from the resolver.
-                        component.attributes.createComponentIdx.primitive.value =
-                            componentIdx;
-
-                        // Give the component itself a new index
-                        this._components[nComponents] = undefined;
-                        component.componentIdx = nComponents++;
-                    } else {
-                        component.componentIdx = componentIdx;
-                    }
-                }
-
-                if (component.children) {
-                    this.modifyComponentIndicesToMatchResolver(
-                        component.children,
-                        originalIdxToComponentIdx,
-                        nComponentsOriginal,
-                    );
-                }
-                for (const attrName in component.attributes) {
-                    const attribute = component.attributes[attrName];
-                    if (attribute.component) {
-                        this.modifyComponentIndicesToMatchResolver(
-                            [attribute.component],
-                            originalIdxToComponentIdx,
-                            nComponentsOriginal,
-                        );
-                    }
-                }
+                flatFragment.nodes[idxInNodes] = flatElement;
+                flatFragment.idxMap[componentIdx] = idxInNodes;
             }
         }
     }

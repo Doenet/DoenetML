@@ -59,7 +59,7 @@ export async function normalizedDastToSerializedComponents(
             return idxOrString;
         } else {
             const node = normalized_root.nodes[idxOrString];
-            if (node.type === "Element") {
+            if (node.type === "element") {
                 return {
                     type: "unflattened",
                     componentType: node.name,
@@ -83,7 +83,7 @@ export async function normalizedDastToSerializedComponents(
                     state: {},
                 };
             } else {
-                // node.type === "Error"
+                // node.type === "error"
                 return {
                     type: "unflattened",
                     componentType: "_error",

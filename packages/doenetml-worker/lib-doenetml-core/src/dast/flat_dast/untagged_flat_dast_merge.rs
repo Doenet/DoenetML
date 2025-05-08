@@ -5,7 +5,7 @@ use crate::dast::{
 
 use super::{
     FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatIndex, FlatNode, FlatPathPart,
-    FlatRef, FlatRoot, Index, ParentIterator, UntaggedContent,
+    FlatRef, FlatRoot, Index, UntaggedContent,
 };
 
 impl FlatRoot {
@@ -14,13 +14,6 @@ impl FlatRoot {
         let mut flat = Self::new();
         flat.merge_dast_root(dast);
         flat
-    }
-
-    /// Iterate over the parent elements of a node.
-    /// If for some reason the node has a non-element parent, the iterator will panic.
-    pub fn parent_iter(&self, start_idx: Index) -> ParentIterator {
-        let start = &self.nodes[start_idx];
-        ParentIterator::new(start, self)
     }
 
     /// Merge the content of a `DastRoot` into `FlatRoot`.
