@@ -57,24 +57,67 @@ const pluginChangeCdataToText: Plugin<[], DastRoot, DastRoot> = () => {
  * Interpret all text nodes that are children of the root node as Markdown, transforming them to HTML.
  */
 const pluginTextToMarkdown: Plugin<[], DastRoot, DastRoot> = () => {
+    let processor = unified().use(pluginHtmlToDoenetml);
     return (tree) => {
         visit(tree, (node, visitInfo) => {
             // All text nodes that are children of the root node are interpreted as Markdown.
             if (node.type === "text" && visitInfo.parents.length === 1) {
-                const html = commonMarkRenderer.render(
-                    commonMarkParser.parse(node.value),
-                );
+                const parse_tree = commonMarkParser.parse(node.value);
+                const html = commonMarkRenderer.render(parse_tree);
                 // Parse this HTML into a DAST tree, then replace the text node with the new DAST tree.
                 const dast = lezerToDast(html);
+                // Use Unified to convert HTML prdouced by CommonMark to DAST.
+                const dast_clean = processor.runSync(dast);
                 visitInfo.parents[0].children.splice(
                     visitInfo.index!,
                     1,
-                    ...(dast.children as DastElementContent[]),
+                    ...(dast_clean.children as DastElementContent[]),
                 );
             }
         });
     };
 };
+
+const pluginHtmlToDoenetml: Plugin<[], DastRoot, DastRoot> = () => {
+    return (tree) => {
+        visit(tree, (node) => {
+            // Turn all `<code>` elements into `<c>` elements.
+            if (node.type === "element" && node.name === "code") {
+                console.log("code", node);
+                // Remove the `class` name if present, which specifies the name of the language.
+                if (node.attributes.class) {
+                    delete node.attributes.class;
+                }
+                node.name = "c";
+            } else 
+            // Turn `<blockquote>` elements into `<q>` elements.
+            if (node.type === "element" && node.name === "blockquote") {
+                node.name = "q";
+            } else 
+            // Turn `<a href="xxx">` elements into `<ref uri="xxx">` elements.
+            if (node.type === "element" && node.name === "a") {
+                node.name = "ref";
+                if (node.attributes.href) {
+                    node.attributes.uri = node.attributes.href;
+                    delete node.attributes.href;
+                    node.attributes.uri.name = "uri";
+                }
+            } else
+            // Turn `<img src="xxx" alt="yyy">` elements into `<image source="xxx">` elements.
+            if (node.type === "element" && node.name === "img") {
+                node.name = "image";
+                if (node.attributes.src) {
+                    node.attributes.source = node.attributes.src;
+                    delete node.attributes.src;
+                    node.attributes.source.name = "source";
+                }
+                if (node.attributes.alt) {
+                    delete node.attributes.alt;
+                }
+            } 
+        });
+    };
+}
 
 /**
  * Remove all comment/instruction/docstring nodes from the DAST tree.

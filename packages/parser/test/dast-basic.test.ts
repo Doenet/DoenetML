@@ -451,10 +451,85 @@ describe("DAST", async () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;
 
-        source = `*hi*\n\n# there!`;
-        dast = lezerToDast(source);
-        expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            "<document><p><em>hi</em></p><h1>there!</h1></document>",
-        );
-    });
+        // This is a series of basic Markdown tests, focusing on one feature at a time. These follow the [CommonMark Spec](https://spec.commonmark.org/0.31.2/), starting in section 4.
+        const markdown_xml = [
+          // Thematic breaks (section 4.1). Per [this discussion](https://github.com/Doenet/DoenetML/pull/329#issuecomment-2867792414), we'll pass thematic breaks through as-is.
+          [
+            "---",
+            "<document><hr /></document>"
+          ],
+          // TODO: headings. Need parser logic to transform these into nested `<section>` components with an associated `<title>`.
+          //
+          // Indented code blocks (section 4.4).
+          [ 
+            "    foo\n", `<document><pre><c>foo\n</c></pre></document>` 
+          ],
+          // Fenced code blocks (section 4.5). The language name, if present, is removed.
+          [
+            "```C\nfoo\n```",
+            `<document><pre><c>foo\n</c></pre></document>`
+          ],
+          // HTML blocks (section 4.6). These are passed through as-is.
+          [
+            "Select from:\n\n<choiceInput>\n  <choice>Agree</choice>\n  <choice>Disagree</choice>\n</choiceInput>",
+            "<document><p>Select from:</p><choiceInput>\n  <choice>Agree</choice>\n  <choice>Disagree</choice>\n</choiceInput></document>"
+          ],
+          // Paragraphs (section 4.7).
+          [
+            "foo\n\nbar",
+            `<document><p>foo</p><p>bar</p></document>`
+          ],
+          // Block quotes (section 5.1).
+          [
+            "> foo\n> bar",
+            `<document><q>\n<p>foo\nbar</p>\n</q></document>`
+
+          ],
+          // List items and lists (section 5.2 - 5.3).
+          [
+            "* foo\n1. bar",
+            "<document><ul>\n<li>foo</li>\n</ul><ol>\n<li>bar</li>\n</ol></document>"
+          ],
+          [
+            `Is *markdown*\n<section>\nIs not *markdown*\n</section>\nIs more *markdown*`, 
+            `<document><p>Is <em>markdown</em></p><division type="section">\nIs not *markdown*\n</division><p>Is more <em>markdown</em></p></document>`,
+          ],
+          // Code spans (section 6.1).
+          [
+            "`foo`",
+            `<document><p><c>foo</c></p></document>`
+          ],
+          // Emphasis and strong emphasis (section 6.2).
+          [
+            "*foo* **bar**",
+            `<document><p><em>foo</em> <strong>bar</strong></p></document>`
+          ],
+          // Links (section 6.3).
+          [
+            "[foo](http://bar)",
+            `<document><p><ref uri="http://bar">foo</ref></p></document>`
+          ],
+          // Images (section 6.4).
+          [
+            "![foo](http://bar)",
+            `<document><p><image source="http://bar" /></p></document>`
+          ],
+          // Autolinks (section 6.5) -- these are intercepted by the DAST parser and treated as invalid.
+          /*[
+            "<http://foo>",
+            `<document><p><ref uri="http://foo">http://foo</ref></p></document>`
+          ]*/
+          // Raw HTML (section 6.6). These are passed through as-is. However, there's a fundamental problem: the parser grabs known components, leaving text alone. But, this prevents Markdown from making sense of the HTML.
+          [
+            "foo <m>bar</m>",
+            `<document><p>foo <m>bar</m></p></document>`
+          ],
+        ];
+
+        for (const [input, expected] of markdown_xml) {
+            dast = lezerToDast(input);
+            expect(toXml(normalizeDocumentDast(dast))).toEqual(expected);
+        }
+      });
 });
+
