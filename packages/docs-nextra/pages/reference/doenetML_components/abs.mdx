@@ -1,45 +1,42 @@
 import { DoenetViewer, DoenetEditor, DoenetExample, AttrDisplay, PropDisplay } from "../../../components"
 
-# `<abs>`
+# `<abs>{:dn}`
 
 ## What it does
-The `<abs>` component renders the absolute value of the enclosed math.
+The `<abs>{:dn}` component renders the absolute value of the enclosed math.
 
 ## Attributes and Properties
-<AttrDisplay name='abs'/>
-
-<PropDisplay name='abs'/>
+The `<abs>{:dn}` component is a math operator, and shares relevant attributes and properties with the `<math>{:dn}` component.
 
 ## Examples
 <a id="math-ex"></a>
 ### Example: Render the absolute value of a math expression
-To embed the example in an editor, use doenet-editor, which defaults to top/bottom.
 
-```doenet-editor
+The `<abs>{:dn}` component is used to render the absolute value of a math expression.
+```doenet-editor-horiz
 <m>|5 - 8| = <abs>5 - 8</abs></m>
 ```
-#### Description:
-The `<abs>` component is used to render the absolute value of a math expression.
+
 
 ---
 
 <a id="mathInput-ex"></a>
 ### Example: Absolute value of `<mathInput>`
-To embed the example in a viewer, use the DoenetViewer react component with doenetml embedded in the source attribute.
-```doenet-viewer
+
+The `<abs>{:dn}` component is used to render the absolute value of a named `<mathInput/>{:dn}`.
+```doenet-editor-horiz
     <p>Type any number: <mathInput name="userN"/></p>
     <p><m>|$userN| = <abs>$userN</abs></m></p>
 ```
 
-#### Description:
-This component hides the source code and just renders the doenetML.
 
 ---
 
 <a id="numProps-ex"></a>
 ### Example: Absolute value of numerical properties
-This is what the DoenetExample component does...
-```doenet-example
+
+Children of the `<abs>{:dn}` component can include references to `<mathInput>{:dn}` values or other `math` quantities, such as single-valued numerical properties of graphical objects. Invalid children are strings and tuples.
+```doenet-editor-horiz
 <graph>
     <point name="dp1">(4,4)</point>
     <line name="l1" through="$dp1 (0,0)"/>
@@ -48,10 +45,12 @@ This is what the DoenetExample component does...
 <p>The absolute value of the slope is <m>|m| = <abs>$l1.slope</abs></m></p>
 ```
 
-Children of the `<abs>` component can include references to `<mathInput>` values or other `math` quantities, such as single-valued numerical properties of graphical objects. Invalid children are strings and tuples.  Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
 
 <a id="function-ex"></a>
 ### Example: Absolute value of a function
+
+The `<abs>{:dn}` component is used to render the absolute value of a named `<function>{:dn}` within a `<graph>{:dn}`.
 ```doenet-editor-horiz
 <graph size="small" name="g2">
     <function name="f">(1/4)x^2 - 4</function>
@@ -60,12 +59,12 @@ Children of the `<abs>` component can include references to `<mathInput>` values
     </function>
 </graph>
 ```
-The `<abs>` component is used to render the absolute value of a named `<function>` within a `<graph>`.
+
 
 ---
 ### Special usage notes
 
-Note that the `<abs>` component cannot be used directly in attribute specification. You can, however, use the `|` notation within an attribute specification. 
-You can also define a `<math>` component separately, which contains the `<abs>` component, and then reference it in an attribute specification.
+Note that the `<abs>{:dn}` component cannot be used directly in attribute specification. You can, however, use the `|` notation within an attribute specification. 
+You can also define a `<math>{:dn}` component separately, which contains the `<abs>{:dn}` component, and then reference it in an attribute specification.
 
 

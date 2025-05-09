@@ -1,9 +1,6 @@
 export default {
     componentIndex: "Alphabetical Index",
     componentTypes: "Index by Component Type",
-    abs: {
-        display: "hidden",
-    },
     Sample_Component: {
         display: "hidden",
     },
