@@ -21,9 +21,10 @@ export default class PointListComponent extends BaseComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren }) {
+            replacementFunction: function ({ matchedChildren, nComponents }) {
                 return groupIntoPointsSeparatedBySpacesOutsideParens({
                     matchedChildren,
+                    nComponents,
                 });
             },
         });

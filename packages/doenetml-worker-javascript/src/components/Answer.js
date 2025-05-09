@@ -84,7 +84,8 @@ export default class Answer extends InlineComponent {
             createStateVariable: "simplifyOnCompare",
             defaultValue: "none",
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
             public: true,
         };
@@ -265,8 +266,8 @@ export default class Answer extends InlineComponent {
                             // which means those attribute names have not been normalized
                             if (attr.toLowerCase() === "isresponse") {
                                 if (
-                                    component.attributes[attr].primitive !==
-                                    false
+                                    component.attributes[attr].primitive
+                                        .value !== false
                                 ) {
                                     // idea: catch either isResponse = true or isResponse.primitive=true
                                     return true;

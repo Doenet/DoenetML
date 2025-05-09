@@ -12,7 +12,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
-    flat_root.compactify();
+    flat_root.compactify(None);
     let normalized_flat_root = flat_root.into_normalized_root();
     assert_json_eq!(
         serde_json::to_value(&normalized_flat_root).unwrap(),

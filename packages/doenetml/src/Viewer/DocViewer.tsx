@@ -668,11 +668,9 @@ export function DocViewer({
                 for (let childInst of rendererState[componentIdx]
                     .childrenInstructions) {
                     if (childInst.componentType === "solution") {
-                        let solComponentName = childInst.componentIdx;
-                        if (
-                            rendererState[solComponentName].stateValues.hidden
-                        ) {
-                            rendererState[solComponentName].stateValues.hidden =
+                        let solComponentIdx = childInst.componentIdx;
+                        if (rendererState[solComponentIdx].stateValues.hidden) {
+                            rendererState[solComponentIdx].stateValues.hidden =
                                 false;
                         }
                     }
@@ -1168,9 +1166,6 @@ export function DocViewer({
                 errorWarnings.current = dastResult.errorWarnings;
                 setErrorsAndWarningsCallback?.(errorWarnings.current);
             }
-
-            (window as any)["componentRangePieces" + docId] =
-                dastResult.componentRangePieces;
         } else {
             setIsInErrorState?.(true);
             setErrMsg(dastResult.errMsg);

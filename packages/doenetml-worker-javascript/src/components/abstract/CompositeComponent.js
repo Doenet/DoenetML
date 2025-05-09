@@ -118,8 +118,8 @@ export default class CompositeComponent extends BaseComponent {
 
         // we still recurse to all children, even though was skipped at base component
         // due to not having a rendererType
-        for (let childIdx in this.allChildren) {
-            let child = this.allChildren[childIdx].component;
+        for (const childIdxStr in this.allChildren) {
+            let child = this.allChildren[childIdxStr].component;
             for (let rendererType of child.allPotentialRendererTypes) {
                 if (!allPotentialRendererTypes.includes(rendererType)) {
                     allPotentialRendererTypes.push(rendererType);

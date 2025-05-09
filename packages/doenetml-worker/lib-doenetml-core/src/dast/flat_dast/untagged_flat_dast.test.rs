@@ -77,7 +77,7 @@ fn can_flatten_dast_root() {
 fn can_iterate_parents() {
     let dast_root = dast_root_no_position(r#"<document><a><b></b><x><c/></x></a></document>"#);
     let flat_root = FlatRoot::from_dast(&dast_root);
-    let parent_names = flat_root
+    let parent_names = FlatRootOrFragment::Root(&flat_root)
         // Iterate from the `c` node
         .parent_iter(4)
         .map(|e| e.name.clone())

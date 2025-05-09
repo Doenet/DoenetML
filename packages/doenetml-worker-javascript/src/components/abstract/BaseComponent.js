@@ -23,6 +23,7 @@ export default class BaseComponent {
         numerics,
         parentSharedParameters,
         sharedParameters,
+        refResolution,
     }) {
         this.numerics = numerics;
         this.parentSharedParameters = parentSharedParameters;
@@ -48,6 +49,10 @@ export default class BaseComponent {
         this.serializedChildren = serializedChildren;
 
         this.attributes = attributes;
+
+        if (refResolution) {
+            this.refResolution = refResolution;
+        }
 
         this.state = {};
         for (let stateVariable in stateVariableDefinitions) {
@@ -184,8 +189,8 @@ export default class BaseComponent {
         }
 
         // recurse to all children
-        for (let childIdx in this.allChildren) {
-            let child = this.allChildren[childIdx].component;
+        for (const childIdxStr in this.allChildren) {
+            let child = this.allChildren[childIdxStr].component;
             if (typeof child !== "object") {
                 continue;
             } else {
@@ -316,6 +321,9 @@ export default class BaseComponent {
 
     static createAttributesObject() {
         return {
+            name: {
+                createPrimitiveOfType: "string",
+            },
             hide: {
                 createComponentOfType: "boolean",
                 createStateVariable: "hide",
@@ -356,12 +364,6 @@ export default class BaseComponent {
             isResponse: {
                 createPrimitiveOfType: "boolean",
                 createStateVariable: "isResponse",
-                defaultValue: false,
-                public: true,
-            },
-            newNamespace: {
-                createPrimitiveOfType: "boolean",
-                createStateVariable: "newNamespace",
                 defaultValue: false,
                 public: true,
             },
@@ -1132,32 +1134,6 @@ export default class BaseComponent {
         return this.ancestors[0].componentIdx;
     }
 
-    // TODO: if resurrect this, it would just be componentIndices
-    // getParentUpstreamComponents(includeInactive = false) {
-    //   const parent = this.parent;
-    //   let upstream = Object.values(this.upstreamDependencies)
-    //   if (includeInactive !== true) {
-    //     upstream = upstream.filter(x => x.inactive !== true);
-    //   }
-    //   upstream = upstream.map(x => x.component);
-    //   if (parent === undefined) {
-    //     return upstream;
-    //   } else {
-    //     return [parent, ...upstream];
-    //   }
-    // }
-
-    getAllChildrenDownstreamComponentNames(includeInactive = false) {
-        const childrenNames = Object.keys(this.allChildren);
-        let downstreamNames = Object.keys(this.downstreamDependencies);
-        if (includeInactive !== true) {
-            downstreamNames = downstreamNames.filter(
-                (x) => this.downstreamDependencies[x].inactive !== true,
-            );
-        }
-        return [...childrenNames, ...downstreamNames];
-    }
-
     get allDescendants() {
         let descendants = [];
         for (let name in this.allChildren) {
@@ -1167,11 +1143,7 @@ export default class BaseComponent {
         return descendants;
     }
 
-    // returnSerializeInstructions() {
-    //   return {};
-    // }
-
-    async serialize(parameters = {}) {
+    async serialize(nComponents, parameters = {}) {
         // TODO: this function is converted only for the case with the parameter
         // forLink set
 
@@ -1184,8 +1156,14 @@ export default class BaseComponent {
         let includeDefiningChildren = true;
         // let stateVariablesToInclude = [];
 
-        let serializedComponent = {
+        const serializedComponent = {
+            type: "serialized",
             componentType: this.componentType,
+            componentIdx: nComponents++,
+            children: [],
+            attributes: {},
+            doenetAttributes: {},
+            state: {},
         };
 
         let serializedChildren = [];
@@ -1217,9 +1195,12 @@ export default class BaseComponent {
                     if (typeof repl !== "object") {
                         serializedChildren.push(repl);
                     } else {
-                        serializedChildren.push(
-                            await repl.serialize(parametersForChildren),
+                        const res = await repl.serialize(
+                            nComponents,
+                            parametersForChildren,
                         );
+                        nComponents = res.nComponents;
+                        serializedChildren.push(res.serializedComponent);
                     }
                 }
             } else {
@@ -1227,9 +1208,12 @@ export default class BaseComponent {
                     if (typeof child !== "object") {
                         serializedChildren.push(child);
                     } else {
-                        serializedChildren.push(
-                            await child.serialize(parametersForChildren),
+                        const res = await child.serialize(
+                            nComponents,
+                            parametersForChildren,
                         );
+                        nComponents = res.nComponents;
+                        serializedChildren.push(res.serializedComponent);
                     }
                 }
 
@@ -1247,8 +1231,6 @@ export default class BaseComponent {
             }
         }
 
-        serializedComponent.attributes = {};
-
         for (let attrName in this.attributes) {
             let attribute = this.attributes[attrName];
             if (attribute.component) {
@@ -1261,10 +1243,14 @@ export default class BaseComponent {
                     parameters.copyAll &&
                     !componentSourceAttributesToIgnore.includes(attrName)
                 ) {
+                    const res = await attribute.component.serialize(
+                        nComponents,
+                        parametersForChildren,
+                    );
+                    nComponents = res.nComponents;
+
                     serializedComponent.attributes[attrName] = {
-                        component: await attribute.component.serialize(
-                            parametersForChildren,
-                        ),
+                        component: res.serializedComponent,
                     };
                 }
             } else {
@@ -1276,6 +1262,11 @@ export default class BaseComponent {
                     serializedComponent.attributes[attrName] = JSON.parse(
                         JSON.stringify(attribute),
                     );
+                    // set to create a new componentIdx
+                    if (attrName === "createComponentIdx") {
+                        serializedComponent.attributes.createComponentIdx.primitive.value =
+                            nComponents++;
+                    }
                 }
             }
         }
@@ -1333,10 +1324,6 @@ export default class BaseComponent {
         }
 
         if (parameters.copyEssentialState) {
-            if (!serializedComponent.state) {
-                serializedComponent.state = {};
-            }
-
             for (let varName in this.state) {
                 if (!(varName in serializedComponent.state)) {
                     let stateVar = this.state[varName];
@@ -1370,13 +1357,20 @@ export default class BaseComponent {
         serializedComponent.originalAttributes = deepClone(
             serializedComponent.attributes,
         );
+        // XXX: lost whether this was a Ref or an Attribute
+        if (this.refResolution) {
+            serializedComponent.extending = {
+                Ref: deepClone(this.refResolution),
+            };
+        }
 
+        // delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
         delete serializedComponent.doenetAttributes.assignNames;
         delete serializedComponent.doenetAttributes
             .assignNamesForCompositeReplacement;
 
-        return serializedComponent;
+        return { serializedComponent, nComponents };
     }
 
     copySerializedComponent(serializedComponent) {
@@ -1427,6 +1421,57 @@ export default class BaseComponent {
         }
 
         return serializedCopy;
+    }
+
+    copySerializedComponentToDast(serializedComponent) {
+        if (typeof serializedComponent !== "object") {
+            return { type: "text", value: serializedComponent };
+        }
+
+        let dastChildren = [];
+        if (serializedComponent.children !== undefined) {
+            for (let child of serializedComponent.children) {
+                dastChildren.push(this.copySerializedComponentToDast(child));
+            }
+        }
+
+        let dastCopy = {
+            type: "element",
+            name: serializedComponent.componentType,
+            attributes: {
+                originalIdx: {
+                    type: "attribute",
+                    name: "originalIdx",
+                    children: [
+                        {
+                            type: "text",
+                            value: serializedComponent.componentIdx.toString(),
+                        },
+                    ],
+                },
+            },
+            children: dastChildren,
+        };
+
+        if (serializedComponent.attributes.name) {
+            dastElement.attributes.name = {
+                type: "attribute",
+                name: "name",
+                children: [
+                    {
+                        type: "text",
+                        value: serializedComponent.attributes.name.primitive
+                            .value,
+                    },
+                ],
+            };
+        }
+
+        if (serializedComponent.position !== undefined) {
+            dastCopy.position = deepClone(serializedComponent.position);
+        }
+
+        return dastCopy;
     }
 
     static adapters = [];
@@ -1482,7 +1527,11 @@ export default class BaseComponent {
         }
 
         return {
+            type: "serialized",
             componentType: adapterComponentType,
+            attribute: {},
+            children: [],
+            doenetAttributes: [],
             downstreamDependencies: {
                 [this.componentIdx]: [
                     {

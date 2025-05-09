@@ -1,4 +1,19 @@
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import fs from "node:fs";
+import path from "path";
+
+import init, {
+    PublicDoenetMLCore as PublicDoenetMLCoreRust,
+    DastRoot as DastRootInCore,
+    PathToCheck,
+} from "lib-doenetml-worker";
+import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
+import util from "util";
+
+const origLog = console.log;
+console.log = (...args) => {
+    origLog(...args.map((x) => util.inspect(x, false, 10, true)));
+};
 
 type DoenetMLFlags = {
     showCorrectness: boolean;
@@ -49,6 +64,24 @@ export async function createTestCore({
         allowView: boolean;
     }>;
 }) {
+    const wasmBuffer = fs.readFileSync(
+        path.resolve(
+            __dirname,
+            "../../../../doenetml-worker/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
+        ),
+    );
+
+    await init(wasmBuffer);
+
+    const rustCore = PublicDoenetMLCoreRust.new();
+
+    const dast = normalizeDocumentDast(lezerToDast(doenetML), true);
+    rustCore.set_source(dast as DastRootInCore, doenetML);
+
+    const { normalizedRoot, resolver } = rustCore.return_normalized_dast_root();
+    const addNodesToResolver = PublicDoenetMLCoreRust.add_nodes_to_resolver;
+    const resolvePath = PublicDoenetMLCoreRust.resolve_path;
+
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
     const core = new PublicDoenetMLCore();
@@ -61,6 +94,10 @@ export async function createTestCore({
         docId: "1",
         requestedVariantIndex,
         attemptNumber: 1,
+        normalizedRoot,
+        resolver,
+        addNodesToResolver,
+        resolvePath,
     });
 
     const dastResult = await core.createCoreGenerateDast(
@@ -83,5 +120,27 @@ export async function createTestCore({
         throw Error(dastResult.errMsg);
     }
 
-    return core;
+    /**
+     * Attempts to resolve the component name `name` to a componentIdx,
+     * starting the search algorithm at node `origin`.
+     *
+     * Throws an error if the name is not resolved.
+     */
+    function resolveComponentName(name: string, origin = 0) {
+        const path: PathToCheck = {
+            path: name
+                .split(".")
+                .map((nm) => ({ type: "flatPathPart", name: nm, index: [] })),
+        };
+
+        const resolution = PublicDoenetMLCoreRust.resolve_path(
+            core.getResolver(),
+            path,
+            origin,
+            false,
+        );
+        return resolution.nodeIdx;
+    }
+
+    return { core, rustCore, resolveComponentName };
 }

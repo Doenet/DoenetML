@@ -8,8 +8,7 @@ import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
 } from "../utils/variants";
-import { convertAttributesForComponentType } from "../utils/copy";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Map extends CompositeComponent {
     static componentType = "map";
 
@@ -131,11 +130,7 @@ export default class Map extends CompositeComponent {
                 templateChild: {
                     dependencyType: "child",
                     childGroups: ["templates"],
-                    variableNames: [
-                        "serializedChildren",
-                        "newNamespace",
-                        "asList",
-                    ],
+                    variableNames: ["serializedChildren", "asList"],
                 },
             }),
             definition: function ({ dependencyValues }) {
@@ -154,9 +149,6 @@ export default class Map extends CompositeComponent {
                     originalIdx: templateChild.componentIdx,
                     attributes: {},
                 };
-                if (templateChild.stateValues.newNamespace) {
-                    template.attributes.newNamespace = { primitive: true };
-                }
                 if (templateChild.stateValues.asList) {
                     template.attributes.asList = { primitive: true };
                 }
@@ -373,29 +365,26 @@ export default class Map extends CompositeComponent {
         let warnings = [];
 
         let replacements = [deepClone(await component.stateValues.template)];
-        let newNamespace = component.attributes.newNamespace?.primitive;
         let compositeAttributesObj = this.createAttributesObject();
 
         // pass isResponse to replacements
         // (only isResponse will be copied, as it is only attribute with leaveRaw)
 
-        let attributesFromComposite = convertAttributesForComponentType({
-            attributes: component.attributes,
-            componentType: replacements[0].componentType,
-            componentInfoObjects,
-            compositeAttributesObj,
-            compositeCreatesNewNamespace: newNamespace,
-        });
+        let attributesFromComposite =
+            convertUnresolvedAttributesForComponentType({
+                attributes: component.attributes,
+                componentType: replacements[0].componentType,
+                componentInfoObjects,
+                compositeAttributesObj,
+            });
         if (!replacements[0].attributes) {
             replacements[0].attributes = {};
         }
 
         Object.assign(replacements[0].attributes, attributesFromComposite);
 
-        if (
-            !replacements[0].attributes.newNamespace?.primitive &&
-            replacements[0].children
-        ) {
+        // XXX: do we delete this? It used to be here only if didn't have a new namespace
+        if (replacements[0].children) {
             markToCreateAllUniqueNames(replacements[0].children);
         }
 
@@ -403,7 +392,6 @@ export default class Map extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
             indOffset: iter,
         });
@@ -443,7 +431,6 @@ export default class Map extends CompositeComponent {
 
         let replacements = [];
         let newChildnumberArray = [...childnumberArray, 0];
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let numIterates = await component.stateValues.numIterates;
         let numSources = await component.stateValues.numSources;
@@ -463,13 +450,13 @@ export default class Map extends CompositeComponent {
 
                 let attributesFromComposite = {};
 
-                attributesFromComposite = convertAttributesForComponentType({
-                    attributes: component.attributes,
-                    componentType: serializedComponents[0].componentType,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                    compositeCreatesNewNamespace: newNamespace,
-                });
+                attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
+                        attributes: component.attributes,
+                        componentType: serializedComponents[0].componentType,
+                        componentInfoObjects,
+                        compositeAttributesObj,
+                    });
 
                 if (!serializedComponents[0].attributes) {
                     serializedComponents[0].attributes = {};
@@ -480,11 +467,8 @@ export default class Map extends CompositeComponent {
                     attributesFromComposite,
                 );
 
-                if (
-                    !serializedComponents[0].attributes.newNamespace
-                        ?.primitive &&
-                    serializedComponents[0].children
-                ) {
+                // XXX: do we delete this? It used to be here only if didn't have a new namespace
+                if (serializedComponents[0].children) {
                     markToCreateAllUniqueNames(
                         serializedComponents[0].children,
                     );
@@ -494,7 +478,6 @@ export default class Map extends CompositeComponent {
                     assignNames: component.doenetAttributes.assignNames,
                     serializedComponents,
                     parentIdx: component.componentIdx,
-                    parentCreatesNewNamespace: newNamespace,
                     componentInfoObjects,
                     indOffset: iterateNumber,
                 });
@@ -1025,7 +1008,7 @@ async function addSharedParameters(thisRepl, component, newChildnumberArray) {
     ).entries()) {
         if (indexAlias) {
             addToPars.push({
-                parameterName: "sourceIndexMappings",
+                parameterName: "sourceIndexAliasMappings",
                 key: indexAlias,
                 value: newChildnumberArray[ind] + 1,
             });

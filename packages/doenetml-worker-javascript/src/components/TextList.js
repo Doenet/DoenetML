@@ -1,10 +1,8 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
-import {
-    convertAttributesForComponentType,
-    postProcessCopy,
-} from "../utils/copy";
+import { postProcessCopy } from "../utils/copy";
 import { processAssignNames } from "../utils/naming";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class TextList extends CompositeComponent {
     static componentType = "textList";
@@ -318,20 +316,18 @@ export default class TextList extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         // allow one to override the fixed and isResponse attributes
         // as well as rounding settings
         // by specifying it on the sequence
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite = convertAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "text",
-                componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
-            });
+            attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "text",
+                    componentInfoObjects,
+                });
         }
 
         let childNameByComponent =
@@ -373,7 +369,6 @@ export default class TextList extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

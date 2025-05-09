@@ -1,11 +1,15 @@
 import Core from "./Core";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
-import {
-    addDocumentIfItsMissing,
-    expandDoenetMLsToFullSerializedComponents,
-} from "./utils/expandDoenetML";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
+import {
+    FlatFragment,
+    NormalizedRoot,
+    PathToCheck,
+    RefResolution,
+    Resolver,
+} from "@doenet/doenetml-worker";
+import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
@@ -50,6 +54,7 @@ export class PublicDoenetMLCore {
         requestedVariantIndex: number;
         attemptNumber: number;
         serializedDocument: any;
+        nComponentsInit: number;
         allDoenetMLs: any;
         preliminaryErrors: any;
         preliminaryWarnings: any;
@@ -59,6 +64,17 @@ export class PublicDoenetMLCore {
     initializeResult?: { success: boolean; errMsg?: string };
     doenetML = "";
     flags: Record<string, unknown> = {};
+    initialResolver?: Resolver;
+    addNodesToResolver?: (
+        resolver: Resolver,
+        flat_fragment: FlatFragment,
+    ) => Resolver;
+    resolvePath?: (
+        resolver: Resolver,
+        path: PathToCheck,
+        origin: 0,
+        skip_parent_search: boolean,
+    ) => RefResolution;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -68,41 +84,52 @@ export class PublicDoenetMLCore {
         this.flags = flags;
     }
 
+    getResolver() {
+        return this.core?.resolver;
+    }
+
     async initializeWorker({
         activityId,
         docId,
         requestedVariantIndex,
         attemptNumber,
+        normalizedRoot,
+        resolver,
+        addNodesToResolver,
+        resolvePath,
     }: {
         activityId: string;
         docId: string;
         requestedVariantIndex: number;
         attemptNumber: number;
+        normalizedRoot: NormalizedRoot;
+        resolver: Resolver;
+        addNodesToResolver: (
+            resolver: Resolver,
+            flat_fragment: FlatFragment,
+        ) => Resolver;
+        resolvePath: (
+            resolver: Resolver,
+            path: PathToCheck,
+            origin: 0,
+            skip_parent_search: boolean,
+        ) => RefResolution;
     }) {
+        this.initialResolver = resolver;
+        this.addNodesToResolver = addNodesToResolver;
+        this.resolvePath = resolvePath;
+
         let componentInfoObjects = createComponentInfoObjects();
 
-        let expandResult;
-        try {
-            expandResult = await expandDoenetMLsToFullSerializedComponents({
-                doenetMLs: [this.doenetML],
-                componentInfoObjects,
-            });
-        } catch (e) {
-            // throw e;
-            const errMsg =
-                typeof e === "object" &&
-                e &&
-                "message" in e &&
-                typeof e.message === "string"
-                    ? e.message
-                    : "";
-            this.initializeResult = {
-                success: false,
-                errMsg,
-            };
-
-            return { success: false as const, errMsg };
-        }
+        const {
+            document: root,
+            nComponents: nComponentsInit,
+            errors,
+            warnings,
+        } = await normalizedDastToSerializedComponents(
+            normalizedRoot,
+            componentInfoObjects,
+        );
 
         this.coreBaseArgs = {
             doenetML: this.doenetML,
@@ -111,12 +138,11 @@ export class PublicDoenetMLCore {
             docId,
             requestedVariantIndex,
             attemptNumber,
-            serializedDocument: addDocumentIfItsMissing(
-                expandResult.fullSerializedComponents[0],
-            )[0],
-            allDoenetMLs: expandResult.allDoenetMLs,
-            preliminaryErrors: expandResult.errors,
-            preliminaryWarnings: expandResult.warnings,
+            serializedDocument: root,
+            nComponentsInit,
+            allDoenetMLs: [this.doenetML],
+            preliminaryErrors: errors,
+            preliminaryWarnings: warnings,
             componentInfoObjects,
         };
 
@@ -175,6 +201,9 @@ export class PublicDoenetMLCore {
         let coreArgs = {
             ...this.coreBaseArgs!,
             ...args,
+            resolver: this.initialResolver,
+            addNodesToResolver: this.addNodesToResolver,
+            resolvePath: this.resolvePath,
             updateRenderersCallback,
             reportScoreAndStateCallback,
             requestAnimationFrame,
@@ -191,6 +220,7 @@ export class PublicDoenetMLCore {
                 const result = await this.core.generateDast();
                 return { success: true as const, ...result };
             } catch (e) {
+                console.error(e);
                 // throw e;
                 return {
                     success: false as const,
@@ -223,7 +253,7 @@ export class PublicDoenetMLCore {
      */
     async requestAction(actionArgs: {
         actionName: string;
-        componentIdx: string | undefined;
+        componentIdx: number | undefined;
         args: Record<string, any>;
     }) {
         if (!this.core) {
@@ -236,6 +266,7 @@ export class PublicDoenetMLCore {
         try {
             return await this.core.requestAction(actionArgs);
         } catch (e) {
+            console.error(e);
             return {
                 success: false,
                 errMsg:
@@ -245,6 +276,7 @@ export class PublicDoenetMLCore {
                     typeof e.message === "string"
                         ? e.message
                         : "",
+                actionId: actionArgs.args?.actionId,
             };
         }
     }
@@ -271,7 +303,7 @@ export class PublicDoenetMLCore {
         const componentsObj: Record<
             string,
             {
-                componentIdx: string;
+                componentIdx: number;
                 componentType: string;
                 stateValues: Record<string, any>;
                 activeChildren: any[];
@@ -289,8 +321,12 @@ export class PublicDoenetMLCore {
             console.log(components);
         }
 
-        for (let componentIdx in components) {
+        for (let componentIdxStr in components) {
+            const componentIdx = Number(componentIdxStr);
             let component = components[componentIdx];
+            if (!component) {
+                continue;
+            }
             componentsObj[componentIdx] = {
                 componentIdx,
                 componentType: component.componentType,

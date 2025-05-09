@@ -1,14 +1,11 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames } from "../utils/naming";
-import { replacementFromProp } from "./Copy";
+import { replacementFromProp, addChildrenFromComposite } from "./Copy";
 import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
 
 export default class Extract extends CompositeComponent {
-    static componentType = "extract";
+    static componentType = "_extract";
 
     static excludeFromSchema = true;
-
-    static assignNamesToReplacements = true;
 
     static acceptAnyAttribute = true;
 
@@ -26,31 +23,17 @@ export default class Extract extends CompositeComponent {
         delete attributes.styleNumber;
         delete attributes.isResponse;
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
-        attributes.prop = {
+        attributes.createComponentOfType = {
             createPrimitiveOfType: "string",
         };
-        attributes.createComponentOfType = {
+        attributes.createComponentIdx = {
+            createPrimitiveOfType: "integer",
+        };
+        attributes.createComponentName = {
             createPrimitiveOfType: "string",
         };
         attributes.numComponents = {
             createPrimitiveOfType: "number",
-        };
-        attributes.componentIndex = {
-            createComponentOfType: "integer",
-            createStateVariable: "componentIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-        attributes.propIndex = {
-            createComponentOfType: "numberList",
-            createStateVariable: "propIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
         };
 
         attributes.asList = {
@@ -73,8 +56,39 @@ export default class Extract extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        stateVariableDefinitions.link = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { link: true } }),
+        };
+
+        // The unresolved path we will attempt to extract
+        // Set `wrapWithExtract` to `true` if there is the unresolved path array is longer than 1,
+        // as we'll use an extract to attempt to extract the additional unresolved path.
+        stateVariableDefinitions.unresolvedPath = {
+            additionalStateVariablesDefined: ["wrapWithExtract"],
+            returnDependencies: () => ({
+                unresolvedPath: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "unresolvedPath",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        unresolvedPath: dependencyValues.unresolvedPath,
+                        wrapWithExtract:
+                            dependencyValues.unresolvedPath.length > 1,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.numComponentsSpecified = {
             returnDependencies: () => ({
+                wrapWithExtract: {
+                    dependencyType: "stateVariable",
+                    variableName: "wrapWithExtract",
+                },
                 numComponentsAttr: {
                     dependencyType: "attributePrimitive",
                     attributeName: "numComponents",
@@ -87,7 +101,10 @@ export default class Extract extends CompositeComponent {
             definition({ dependencyValues, componentInfoObjects }) {
                 let numComponentsSpecified;
 
-                if (dependencyValues.typeAttr) {
+                if (dependencyValues.wrapWithExtract) {
+                    // if wrap with extract, extract will deal with numComponents
+                    numComponentsSpecified = null;
+                } else if (dependencyValues.typeAttr) {
                     let componentType =
                         componentInfoObjects.componentTypeLowerCaseMapping[
                             dependencyValues.typeAttr.toLowerCase()
@@ -121,91 +138,63 @@ export default class Extract extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.link = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { link: true } }),
-        };
-
-        stateVariableDefinitions.propName = {
-            shadowVariable: true,
+        stateVariableDefinitions.childComponentIdx = {
             returnDependencies: () => ({
-                propName: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "prop",
+                child: {
+                    dependencyType: "child",
+                    childGroups: ["anything"],
                 },
             }),
-            definition: function ({ dependencyValues }) {
-                let warnings = [];
-                let propName = dependencyValues.propName;
-                if (!propName) {
-                    warnings.push({
-                        message: "Invalid extract.  Must have a prop.",
-                        level: 1,
-                    });
-                    propName = "";
-                }
-                return { setValue: { propName }, sendWarnings: warnings };
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        childComponentIdx:
+                            dependencyValues.child[0]?.componentIdx,
+                    },
+                };
             },
         };
 
         stateVariableDefinitions.sourceComponents = {
             stateVariablesDeterminingDependencies: [
-                "propName",
-                "componentIndex",
-                "propIndex",
+                "unresolvedPath",
+                "childComponentIdx",
             ],
             additionalStateVariablesDefined: ["effectivePropNameBySource"],
             returnDependencies: function ({ stateValues }) {
-                let childIndices;
-                let componentIndex;
-
-                if (stateValues.componentIndex !== null) {
-                    componentIndex = Number(stateValues.componentIndex);
-                    if (Number.isInteger(componentIndex)) {
-                        childIndices = [componentIndex - 1];
-                    } else {
-                        childIndices = [];
-                    }
-                }
-                let propIndex = stateValues.propIndex;
-                if (propIndex) {
-                    // make propIndex be a shallow copy
-                    // so that can detect if it changed
-                    // when update dependencies
-                    propIndex = [...propIndex];
-                }
                 return {
-                    children: {
-                        dependencyType: "child",
-                        childGroups: ["anything"],
-                        variableNames: [stateValues.propName],
+                    child: {
+                        dependencyType: "stateVariableFromUnresolvedPath",
+                        componentIdx: stateValues.childComponentIdx,
+                        unresolvedPath: stateValues.unresolvedPath,
+                        returnAsComponentObject: true,
                         variablesOptional: true,
-                        childIndices,
-                        propIndex,
                         caseInsensitiveVariableMatch: true,
                         publicStateVariablesOnly: true,
                         useMappedVariableNames: true,
                     },
-                    propName: {
-                        dependencyType: "stateVariable",
-                        variableName: "propName",
-                    },
                 };
             },
             definition: function ({ dependencyValues }) {
-                let sourceComponents = dependencyValues.children;
+                let sourceComponents = [];
 
                 let effectivePropNameBySource = [];
 
-                for (let comp of sourceComponents) {
+                if (dependencyValues.child) {
+                    sourceComponents.push(dependencyValues.child);
                     let propName;
-                    if (comp.stateValues) {
-                        propName = Object.keys(comp.stateValues)[0];
+                    if (dependencyValues.child.stateValues) {
+                        propName = Object.keys(
+                            dependencyValues.child.stateValues,
+                        )[0];
                     }
                     if (!propName) {
                         propName = "__prop_name_not_found";
                     }
                     effectivePropNameBySource.push(propName);
+                } else {
+                    // Child not found. Create an invalid effective prop name so that get no replacement
+                    effectivePropNameBySource.push("__no_child_found");
                 }
 
                 return {
@@ -256,6 +245,7 @@ export default class Extract extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         components,
+        nComponents,
         workspace,
         componentInfoObjects,
         flags,
@@ -279,6 +269,8 @@ export default class Extract extends CompositeComponent {
 
         let sourceComponents = await component.stateValues.sourceComponents;
 
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
+
         for (
             let sourceNum = 0;
             sourceNum < sourceComponents.length;
@@ -291,14 +283,21 @@ export default class Extract extends CompositeComponent {
                     component,
                     sourceNum,
                     components,
+                    nComponents,
                     numReplacementsSoFar,
                     uniqueIdentifiersUsed,
                     componentInfoObjects,
                     compositeAttributesObj,
                     publicCaseInsensitiveAliasSubstitutions,
+
+                    copyInChildren:
+                        Number(sourceNum) === 0 &&
+                        component.attributes.copyInChildren?.primitive.value &&
+                        !wrapWithExtract,
                 });
                 errors.push(...results.errors);
                 warnings.push(...results.warnings);
+                nComponents = results.nComponents;
 
                 workspace.propVariablesCopiedBySource[sourceNum] =
                     results.propVariablesCopiedByReplacement;
@@ -321,36 +320,65 @@ export default class Extract extends CompositeComponent {
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
             component,
             replacements,
-            assignNames: component.doenetAttributes.assignNames,
             workspace,
             componentInfoObjects,
             compositeAttributesObj,
             flags,
             components,
+            nComponents,
             publicCaseInsensitiveAliasSubstitutions,
         });
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
+        nComponents = verificationResult.nComponents;
+        replacements = verificationResult.replacements;
+
+        if (replacements.length === 1) {
+            if (
+                component.attributes.createComponentName?.primitive.value !=
+                undefined
+            ) {
+                replacements[0].attributes.name = {
+                    type: "primitive",
+                    name: "name",
+                    primitive: {
+                        type: "string",
+                        value: component.attributes.createComponentName
+                            .primitive.value,
+                    },
+                };
+            }
+            if (
+                component.attributes.createComponentIdx?.primitive.value !=
+                undefined
+            ) {
+                replacements[0].componentIdx =
+                    component.attributes.createComponentIdx.primitive.value;
+            }
+        }
 
         // console.log(`serialized replacements for ${component.componentIdx}`)
         // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)))
 
         return {
-            replacements: verificationResult.replacements,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static async createReplacementForSource({
         component,
         components,
+        nComponents,
         sourceNum,
         numReplacementsSoFar,
         uniqueIdentifiersUsed,
         componentInfoObjects,
         compositeAttributesObj,
         publicCaseInsensitiveAliasSubstitutions,
+        copyInChildren,
     }) {
         // console.log(`create replacement for source ${sourceNum}, ${numReplacementsSoFar} of ${component.componentIdx}`)
 
@@ -364,6 +392,7 @@ export default class Extract extends CompositeComponent {
         let results = await replacementFromProp({
             component,
             components,
+            nComponents,
             replacementSource: (await component.stateValues.sourceComponents)[
                 sourceNum
             ],
@@ -376,39 +405,37 @@ export default class Extract extends CompositeComponent {
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);
+        nComponents = results.nComponents;
 
         let serializedReplacements = results.serializedReplacements;
         let propVariablesCopiedByReplacement =
             results.propVariablesCopiedByReplacement;
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
-        let assignNames = component.doenetAttributes.assignNames;
-
-        let processResult = processAssignNames({
-            assignNames,
-            serializedComponents: serializedReplacements,
-            parentIdx: component.componentIdx,
-            indOffset: numReplacementsSoFar,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
-        serializedReplacements = processResult.serializedComponents;
+        if (
+            copyInChildren &&
+            serializedReplacements.length === 1 &&
+            component.serializedChildren.length > 0
+        ) {
+            addChildrenFromComposite({
+                replacements: serializedReplacements,
+                children: component.serializedChildren,
+                componentInfoObjects,
+            });
+        }
 
         return {
             serializedReplacements,
             propVariablesCopiedByReplacement,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static async calculateReplacementChanges({
         component,
         components,
+        nComponents,
         workspace,
         componentInfoObjects,
         flags,
@@ -439,6 +466,8 @@ export default class Extract extends CompositeComponent {
         );
 
         let recreateRemaining = false;
+
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
 
         for (let sourceNum = 0; sourceNum < maxSourceLength; sourceNum++) {
             let source = sourceComponents[sourceNum];
@@ -528,6 +557,7 @@ export default class Extract extends CompositeComponent {
                     (workspace.uniqueIdentifiersUsedBySource[sourceNum] = []);
                 let results = await this.recreateReplacements({
                     component,
+                    nComponents,
                     sourceNum,
                     numReplacementsSoFar,
                     numReplacementsToDelete,
@@ -539,6 +569,7 @@ export default class Extract extends CompositeComponent {
                 });
                 errors.push(...results.errors);
                 warnings.push(...results.warnings);
+                nComponents = results.nComponents;
 
                 numReplacementsSoFar += results.numReplacements;
 
@@ -590,14 +621,21 @@ export default class Extract extends CompositeComponent {
                 component,
                 sourceNum,
                 components,
+                nComponents,
                 numReplacementsSoFar,
                 uniqueIdentifiersUsed,
                 componentInfoObjects,
                 compositeAttributesObj,
                 publicCaseInsensitiveAliasSubstitutions,
+
+                copyInChildren:
+                    Number(sourceNum) === 0 &&
+                    component.attributes.copyInChildren?.primitive.value &&
+                    !wrapWithExtract,
             });
             errors.push(...results.errors);
             warnings.push(...results.warnings);
+            const nComponentsForNew = results.nComponents;
 
             let propVariablesCopiedByReplacement =
                 results.propVariablesCopiedByReplacement;
@@ -628,6 +666,7 @@ export default class Extract extends CompositeComponent {
                 replacementChanges.push(replacementInstruction);
 
                 recreateRemaining = true;
+                nComponents = nComponentsForNew;
 
                 // since deleted remaining, change in workspace
                 // so that don't attempt to delete again
@@ -650,6 +689,7 @@ export default class Extract extends CompositeComponent {
                                 v !== propVariablesCopiedByReplacement[ind][i],
                         )
                     ) {
+                        // XXX: what to do about nComponents here?
                         let replacementInstruction = {
                             changeType: "add",
                             changeTopLevelReplacements: true,
@@ -683,21 +723,22 @@ export default class Extract extends CompositeComponent {
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
             component,
             replacementChanges,
-            assignNames: component.doenetAttributes.assignNames,
             workspace,
             componentInfoObjects,
             compositeAttributesObj,
             flags,
             components,
+            nComponents,
             publicCaseInsensitiveAliasSubstitutions,
         });
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
+        nComponents = verificationResult.nComponents;
 
         // console.log("replacementChanges");
         // console.log(verificationResult.replacementChanges);
 
-        return verificationResult.replacementChanges;
+        return { replacementChanges: verificationResult.replacementChanges };
     }
 
     static async recreateReplacements({
@@ -707,6 +748,7 @@ export default class Extract extends CompositeComponent {
         numReplacementsToDelete,
         uniqueIdentifiersUsed,
         components,
+        nComponents,
         componentInfoObjects,
         compositeAttributesObj,
         publicCaseInsensitiveAliasSubstitutions,
@@ -714,18 +756,27 @@ export default class Extract extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
+        const wrapWithExtract = await component.stateValues.wrapWithExtract;
+
         let results = await this.createReplacementForSource({
             component,
             sourceNum,
             numReplacementsSoFar,
             components,
+            nComponents,
             uniqueIdentifiersUsed,
             componentInfoObjects,
             compositeAttributesObj,
             publicCaseInsensitiveAliasSubstitutions,
+
+            copyInChildren:
+                Number(sourceNum) === 0 &&
+                component.attributes.copyInChildren?.primitive.value &&
+                !wrapWithExtract,
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);
+        nComponents = results.nComponents;
 
         let propVariablesCopiedByReplacement =
             results.propVariablesCopiedByReplacement;
@@ -747,6 +798,7 @@ export default class Extract extends CompositeComponent {
             replacementInstruction,
             errors,
             warnings,
+            nComponents,
         };
     }
 }

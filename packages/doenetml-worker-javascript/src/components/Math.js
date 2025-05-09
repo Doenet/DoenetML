@@ -53,6 +53,7 @@ export default class MathComponent extends InlineComponent {
 
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
+    static variableForIndexAsProp = "vector";
 
     static descendantCompositesMustHaveAReplacement = true;
     static descendantCompositesDefaultReplacementType = "math";
@@ -74,7 +75,8 @@ export default class MathComponent extends InlineComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
         };
         attributes.expand = {
