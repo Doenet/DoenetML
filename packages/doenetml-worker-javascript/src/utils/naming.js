@@ -460,11 +460,7 @@ export function createComponentNames({
                 foundError = true;
                 createUniqueNameDueToError = true;
                 if (!errorMessage) {
-                    let lastSlash = componentIdx.lastIndexOf("/");
-                    let componentNameRelative = componentIdx.slice(
-                        lastSlash + 1,
-                    );
-                    errorMessage = `Duplicate component name: ${componentNameRelative}.`;
+                    errorMessage = `Duplicate component index: ${componentIdx}.`;
                 }
 
                 // delete children and component props, as they could have automatically generated names

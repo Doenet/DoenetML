@@ -600,7 +600,7 @@ describe("Matrix tag tests", async () => {
         );
     });
 
-    it("sourcesAreFunctionSymbols", async () => {
+    it("referencesAreFunctionSymbols", async () => {
         let core = await createTestCore({
             doenetML: `
     <setup>
@@ -615,19 +615,19 @@ describe("Matrix tag tests", async () => {
       <row>$fun3(x) $fun4(x)</row>
     </matrix>
     </p>
-    <p><matrix name="Ah" sourcesAreFunctionSymbols="fun1 fun4">
+    <p><matrix name="Ah" referencesAreFunctionSymbols="fun1 fun4">
       <row>$fun1(x) $fun2(x)</row>
       <row>$fun3(x) $fun4(x)</row>
     </matrix>
     </p>
-    <p><matrix name="Amixedbyrow" sourcesAreFunctionSymbols="fun3 fun4">
-      <row><math sourcesAreFunctionSymbols="fun2">$fun3(x)</math> <math sourcesAreFunctionSymbols="fun2">$fun2(x)</math> $fun4(x)</row>
-      <row sourcesAreFunctionSymbols="fun3">$fun3(x) $fun4(x) <math sourcesAreFunctionSymbols="fun5">$fun5(x)</math></row>
+    <p><matrix name="Amixedbyrow" referencesAreFunctionSymbols="fun3 fun4">
+      <row><math referencesAreFunctionSymbols="fun2">$fun3(x)</math> <math referencesAreFunctionSymbols="fun2">$fun2(x)</math> $fun4(x)</row>
+      <row referencesAreFunctionSymbols="fun3">$fun3(x) $fun4(x) <math referencesAreFunctionSymbols="fun5">$fun5(x)</math></row>
     </matrix>
     </p>
-    <p><matrix name="Amixedbycolumn" sourcesAreFunctionSymbols="fun3 fun4">
-      <column><math sourcesAreFunctionSymbols="fun2">h(x)</math> <math sourcesAreFunctionSymbols="fun2">$fun2(x)</math> $fun4(x)</column>
-      <column sourcesAreFunctionSymbols="fun3">$fun3(x) $fun4(x) <math sourcesAreFunctionSymbols="fun5">$fun5(x)</math></column>
+    <p><matrix name="Amixedbycolumn" referencesAreFunctionSymbols="fun3 fun4">
+      <column><math referencesAreFunctionSymbols="fun2">h(x)</math> <math referencesAreFunctionSymbols="fun2">$fun2(x)</math> $fun4(x)</column>
+      <column referencesAreFunctionSymbols="fun3">$fun3(x) $fun4(x) <math referencesAreFunctionSymbols="fun5">$fun5(x)</math></column>
     </matrix>
     </p>
     `,

@@ -431,7 +431,7 @@ function substituteAttributeDeprecations(serializedComponents) {
         },
         updatewithtarget: { substitute: "updateWith", removeInVersion: 0.7 },
         targetsarefunctionsymbols: {
-            substitute: "sourcesAreFunctionSymbols",
+            substitute: "referencesAreFunctionSymbols",
             removeInVersion: 0.7,
         },
         selectforvariantnames: {

@@ -1816,7 +1816,7 @@ describe("Math tag tests", async () => {
         ]);
     });
 
-    it("sourcesAreFunctionSymbols", async () => {
+    it("referencesAreFunctionSymbols", async () => {
         let core = await createTestCore({
             doenetML: `
   <p><select assignNames="f">f g h k m n</select></p>
@@ -1824,8 +1824,8 @@ describe("Math tag tests", async () => {
 
   <p><math name="m1">$f($x)</math></p>
   <p><math name="m2">$x($f)</math></p>
-  <p><math name="m3" sourcesAreFunctionSymbols="f">$f($x)</math></p>
-  <p><math name="m4" sourcesAreFunctionSymbols="f">$x($f)</math></p>
+  <p><math name="m3" referencesAreFunctionSymbols="f">$f($x)</math></p>
+  <p><math name="m4" referencesAreFunctionSymbols="f">$x($f)</math></p>
   `,
         });
 
@@ -1844,18 +1844,18 @@ describe("Math tag tests", async () => {
         expect(stateVariables["/m4"].stateValues.value.tree).eqls(["*", x, f]);
     });
 
-    it("copy and overwrite sourcesAreFunctionSymbols", async () => {
+    it("copy and overwrite referencesAreFunctionSymbols", async () => {
         let core = await createTestCore({
             doenetML: `
   <p><select assignNames="f">f g h k m n</select></p>
 
   <p><math name="m1">$f(x)</math></p>
-  <p>$m1{sourcesAreFunctionSymbols="f" name="m2"}</p>
-  <p>$m2{sourcesAreFunctionSymbols="" name="m3"}</p>
+  <p>$m1{referencesAreFunctionSymbols="f" name="m2"}</p>
+  <p>$m2{referencesAreFunctionSymbols="" name="m3"}</p>
 
-  <p><math name="m4" sourcesAreFunctionSymbols="f">$f(x)</math></p>
-  <p>$m4{sourcesAreFunctionSymbols="" name="m5"}</p>
-  <p>$m5{sourcesAreFunctionSymbols="f" name="m6"}</p>
+  <p><math name="m4" referencesAreFunctionSymbols="f">$f(x)</math></p>
+  <p>$m4{referencesAreFunctionSymbols="" name="m5"}</p>
+  <p>$m5{referencesAreFunctionSymbols="f" name="m6"}</p>
   `,
         });
 

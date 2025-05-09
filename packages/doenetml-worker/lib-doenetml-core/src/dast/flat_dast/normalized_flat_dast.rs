@@ -80,6 +80,7 @@ impl NormalizedNode {
 /// These references are untagged, so the type of each node may be mutated and the reference remains valid.
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type")]
+#[serde(rename = "normalizedRoot")]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 pub struct NormalizedRoot {

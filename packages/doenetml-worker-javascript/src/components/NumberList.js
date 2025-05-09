@@ -4,15 +4,12 @@ import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./co
 import { convertValueToMathExpression } from "@doenet/utils";
 import { returnRoundingAttributes } from "../utils/rounding";
 import { postProcessCopy } from "../utils/copy";
-import { processAssignNames } from "../utils/naming";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class NumberList extends CompositeComponent {
     static componentType = "numberList";
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
-
-    static assignNamesToReplacements = true;
 
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
@@ -586,12 +583,15 @@ export default class NumberList extends CompositeComponent {
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite =
-                convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "number",
-                    componentInfoObjects,
-                });
+            const res = convertUnresolvedAttributesForComponentType({
+                attributes: attributesToConvert,
+                componentType: "number",
+                componentInfoObjects,
+                nComponents,
+            });
+
+            attributesFromComposite = res.attributes;
+            nComponents = res.nComponents;
         }
 
         let childInfoByComponent =
@@ -614,9 +614,12 @@ export default class NumberList extends CompositeComponent {
                 }
             }
             replacements.push({
+                type: "serialized",
                 componentType: "number",
                 componentIdx: nComponents++,
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                doenetAttributes: {},
+                children: [],
                 downstreamDependencies: {
                     [component.componentIdx]: [
                         {
@@ -638,20 +641,11 @@ export default class NumberList extends CompositeComponent {
             markAsPrimaryShadow: true,
         });
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         workspace.componentsCopied = componentsCopied;
         workspace.numComponents = numComponents;
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
             nComponents,

@@ -31,6 +31,7 @@ pub enum ResolutionError {
 pub struct RefResolution {
     pub node_idx: Index,
     pub unresolved_path: Option<Vec<FlatPathPart>>,
+    pub original_path: Vec<FlatPathPart>,
 }
 
 /// Status of a pointer referring to children of an element.
@@ -167,6 +168,8 @@ impl Resolver {
     ) -> Result<RefResolution, ResolutionError> {
         let path = path.as_ref();
         let mut current_idx = origin;
+        let original_path = path.iter().cloned().collect::<Vec<_>>();
+
         let mut path = path.iter();
 
         if !skip_parent_search {
@@ -186,6 +189,7 @@ impl Resolver {
                 return Ok(RefResolution {
                     node_idx: current_idx,
                     unresolved_path: Some(remaining_path),
+                    original_path,
                 });
             }
         }
@@ -210,6 +214,7 @@ impl Resolver {
                 return Ok(RefResolution {
                     node_idx: current_idx,
                     unresolved_path: Some(remaining_path),
+                    original_path,
                 });
             }
             // If there index specified, we immediately stop since component information is needed
@@ -225,6 +230,7 @@ impl Resolver {
                 return Ok(RefResolution {
                     node_idx: current_idx,
                     unresolved_path: Some(remaining_path),
+                    original_path,
                 });
             }
         }
@@ -233,6 +239,7 @@ impl Resolver {
         Ok(RefResolution {
             node_idx: current_idx,
             unresolved_path: None,
+            original_path,
         })
     }
 

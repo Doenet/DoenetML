@@ -7,6 +7,7 @@ import {
     flattenDeep,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
+    deepCompare,
 } from "@doenet/utils";
 import {
     moveGraphicalObjectWithAnchorAction,
@@ -120,12 +121,13 @@ export default class MathComponent extends InlineComponent {
             fallBackToSourceCompositeStateVariable: "functionSymbols",
         };
 
-        attributes.sourcesAreFunctionSymbols = {
-            createComponentOfType: "textList",
-            createStateVariable: "sourcesAreFunctionSymbols",
+        attributes.referencesAreFunctionSymbols = {
+            createReferences: true,
+            createStateVariable: "referencesAreFunctionSymbols",
             defaultValue: [],
-            fallBackToParentStateVariable: "sourcesAreFunctionSymbols",
-            fallBackToSourceCompositeStateVariable: "sourcesAreFunctionSymbols",
+            fallBackToParentStateVariable: "referencesAreFunctionSymbols",
+            fallBackToSourceCompositeStateVariable:
+                "referencesAreFunctionSymbols",
         };
 
         attributes.splitSymbols = {
@@ -327,9 +329,9 @@ export default class MathComponent extends InlineComponent {
 
         stateVariableDefinitions.mathChildrenFunctionSymbols = {
             returnDependencies: () => ({
-                sourcesAreFunctionSymbols: {
+                referencesAreFunctionSymbols: {
                     dependencyType: "stateVariable",
-                    variableName: "sourcesAreFunctionSymbols",
+                    variableName: "referencesAreFunctionSymbols",
                 },
                 mathChildren: {
                     dependencyType: "child",
@@ -342,8 +344,14 @@ export default class MathComponent extends InlineComponent {
                     for (let compositeInfo of dependencyValues.mathChildren
                         .compositeReplacementRange) {
                         if (
-                            dependencyValues.sourcesAreFunctionSymbols.includes(
-                                compositeInfo.target,
+                            dependencyValues.referencesAreFunctionSymbols.some(
+                                (reference) =>
+                                    reference.extendIdx ===
+                                        compositeInfo.extendIdx &&
+                                    deepCompare(
+                                        reference.unresolvedPath,
+                                        compositeInfo.unresolvedPath,
+                                    ),
                             )
                         ) {
                             for (

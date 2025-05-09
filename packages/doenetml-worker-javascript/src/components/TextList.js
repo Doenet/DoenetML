@@ -1,7 +1,6 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { postProcessCopy } from "../utils/copy";
-import { processAssignNames } from "../utils/naming";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class TextList extends CompositeComponent {
@@ -9,8 +8,6 @@ export default class TextList extends CompositeComponent {
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
-
-    static assignNamesToReplacements = true;
 
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
@@ -66,8 +63,11 @@ export default class TextList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren }) {
-                return groupIntoTextsSeparatedBySpaces({ matchedChildren });
+            replacementFunction: function ({ matchedChildren, nComponents }) {
+                return groupIntoTextsSeparatedBySpaces({
+                    matchedChildren,
+                    nComponents,
+                });
             },
         });
 
@@ -302,6 +302,7 @@ export default class TextList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -322,12 +323,14 @@ export default class TextList extends CompositeComponent {
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite =
-                convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "text",
-                    componentInfoObjects,
-                });
+            const res = convertUnresolvedAttributesForComponentType({
+                attributes: attributesToConvert,
+                componentType: "text",
+                componentInfoObjects,
+            });
+
+            attributesFromComposite = res.attributes;
+            nComponents = res.nComponents;
         }
 
         let childNameByComponent =
@@ -342,8 +345,11 @@ export default class TextList extends CompositeComponent {
                 componentsCopied.push(replacementSource.componentIdx);
             }
             replacements.push({
+                type: "serialized",
                 componentType: "text",
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                doenetAttributes: {},
+                children: [],
                 downstreamDependencies: {
                     [component.componentIdx]: [
                         {
@@ -365,20 +371,11 @@ export default class TextList extends CompositeComponent {
             markAsPrimaryShadow: true,
         });
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         workspace.componentsCopied = componentsCopied;
         workspace.numComponents = numComponents;
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
         };
@@ -389,6 +386,7 @@ export default class TextList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -416,7 +414,7 @@ export default class TextList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return [];
+                return { replacementChanges: [] };
             }
         }
 
@@ -426,11 +424,13 @@ export default class TextList extends CompositeComponent {
             components,
             componentInfoObjects,
             workspace,
+            nComponents,
         });
 
         let replacements = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -442,6 +442,6 @@ export default class TextList extends CompositeComponent {
             },
         ];
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 }

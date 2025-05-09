@@ -52,6 +52,7 @@ export function isSerializedComponent(
 export type SerializedRefResolution = {
     nodeIdx: number;
     unresolvedPath: SerializedRefResolutionPathPart[] | null;
+    originalPath: SerializedRefResolutionPathPart[];
 };
 
 export interface SerializedRefResolutionPathPart {
@@ -150,6 +151,30 @@ function isPrimitiveAttribute(obj: unknown): obj is PrimitiveAttribute {
     );
 }
 
+export type ReferencesAttribute = {
+    type: "references";
+    name: string;
+    references: SerializedComponent[];
+    position?: Position;
+    ignoreFixed?: boolean;
+};
+
+function isReferencesAttribute(obj: unknown): obj is ReferencesAttribute {
+    const typedObj = obj as ReferencesAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "references" &&
+        typeof typedObj.name === "string" &&
+        Array.isArray(typedObj.references) &&
+        typedObj.references.every((reference) =>
+            isSerializedComponent(reference),
+        ) &&
+        (typedObj.ignoreFixed === undefined ||
+            typeof typedObj.ignoreFixed === "boolean")
+    );
+}
+
 /**
  * An attribute that has not yet been resolved from determining its parent component type.
  * Typically used to store attributes in composites before they are added to its replacements.
@@ -183,6 +208,7 @@ function isUnresolvedAttribute(obj: unknown): obj is UnresolvedAttribute {
 export type SerializedAttribute =
     | ComponentAttribute
     | PrimitiveAttribute
+    | ReferencesAttribute
     | UnresolvedAttribute;
 
 export function isSerializedAttribute(
@@ -191,6 +217,7 @@ export function isSerializedAttribute(
     return (
         isComponentAttribute(obj) ||
         isPrimitiveAttribute(obj) ||
+        isReferencesAttribute(obj) ||
         isUnresolvedAttribute(obj)
     );
 }
@@ -212,6 +239,8 @@ export type AttributeDefinition<T> = {
     createComponentOfType?: string;
     /** Create an attribute of type "primitive" with primitive type determined by `createPrimitiveOfType` */
     createPrimitiveOfType?: string;
+    /** Create an attribute that is a list of references */
+    createReferences?: boolean;
     /**
      * If specified, then create a state variable named `createStateVariable` in the component
      * whose value is determined by this attribute

@@ -86,14 +86,25 @@ impl FlatNode {
 
                     // extending might also have indices that are references that also need fixing.
                     let resolution = extending.get_resolution_mut();
-                    resolution.unresolved_path.iter_mut().for_each(|paths| {
-                        paths.iter_mut().for_each(|path_part| {
+                    resolution
+                        .unresolved_path
+                        .iter_mut()
+                        .flatten()
+                        .for_each(|path_part| {
                             path_part.index.iter_mut().for_each(|index| {
                                 index.value.iter_mut().for_each(|node| {
                                     if let UntaggedContent::Ref(idx) = node {
                                         *idx = ref_index_map[*idx];
                                     }
                                 })
+                            });
+                        });
+                    resolution.original_path.iter_mut().for_each(|path_part| {
+                        path_part.index.iter_mut().for_each(|index| {
+                            index.value.iter_mut().for_each(|node| {
+                                if let UntaggedContent::Ref(idx) = node {
+                                    *idx = ref_index_map[*idx];
+                                }
                             })
                         });
                     });

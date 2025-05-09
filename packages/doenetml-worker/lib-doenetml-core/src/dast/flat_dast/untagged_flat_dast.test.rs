@@ -14,28 +14,28 @@ fn can_flatten_dast_root() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
             {
-                "type": "FlatRoot",
+                "type": "flatRoot",
                 "children": [0],
                 "nodes": [
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "document",
                     "children": ["hi", 1, "and", 4],
                     "attributes": [],
                     "idx": 0
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "foo",
                     "parent": 0,
                     "children": [],
                     "attributes": [
-                      { "name": "my_attr", "parent": 1, "children": ["777 ", 2] }
+                      { "type": "attribute", "name": "my_attr", "parent": 1, "children": ["777 ", 2] }
                     ],
                     "idx": 1
                   },
                   {
-                    "type": "Ref",
+                    "type": "ref",
                     "parent": 1,
                     "path": [
                       { "type": "flatPathPart", "name": "x", "index": [] },
@@ -45,7 +45,7 @@ fn can_flatten_dast_root() {
                     "idx": 2
                   },
                   {
-                    "type": "Ref",
+                    "type": "ref",
                     "parent": 2,
                     "path": [
                       { "type": "flatPathPart", "name": "a", "index": [] },
@@ -53,14 +53,14 @@ fn can_flatten_dast_root() {
                     "idx": 3
                   },
                   {
-                    "type": "FunctionRef",
+                    "type": "functionRef",
                     "parent": 0,
                     "path": [{ "type": "flatPathPart", "name": "f", "index": [] }],
                     "input": [[5]],
                     "idx": 4
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "bar",
                     "parent": 4,
                     "children": ["xxx"],

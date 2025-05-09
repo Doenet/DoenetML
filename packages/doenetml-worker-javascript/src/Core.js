@@ -1565,10 +1565,7 @@ export default class Core {
                     try {
                         let attrResult = await this.createIsolatedComponentsSub(
                             {
-                                serializedComponents: [
-                                    serializedComponent.attributes[attrName]
-                                        .component,
-                                ],
+                                serializedComponents: [attribute.component],
                                 ancestors: ancestorsForChildren,
                                 shadow,
                                 componentsReplacementOf,
@@ -1596,6 +1593,31 @@ export default class Core {
                             console.error(e);
                             throw e;
                         }
+                    }
+                } else if (attribute.references) {
+                    try {
+                        let attrResult = await this.createIsolatedComponentsSub(
+                            {
+                                serializedComponents: attribute.references,
+                                ancestors: ancestorsForChildren,
+                                shadow,
+                                componentsReplacementOf,
+                                createNameContext: `attribute|${attrName}`,
+                            },
+                        );
+
+                        if (attrResult.lastErrorMessage) {
+                            lastErrorMessage = attrResult.lastErrorMessage;
+                            lastErrorMessageFromAttribute =
+                                attrResult.lastErrorMessage;
+                        }
+
+                        attributes[attrName] = {
+                            references: attrResult.components,
+                        };
+                    } catch (e) {
+                        console.error(e);
+                        throw e;
                     }
                 } else {
                     attributes[attrName] =
@@ -1638,7 +1660,11 @@ export default class Core {
                         position: pathPart.position,
                     });
                 }
-                refResolution = { nodeIdx, unresolvedPath };
+                refResolution = {
+                    nodeIdx,
+                    unresolvedPath,
+                    originalPath: refResolution.originalPath,
+                };
             }
         }
 
@@ -2783,21 +2809,18 @@ export default class Core {
             await component.stateValues.sourceAttributesToIgnore;
 
         let nComponents = this._components.length;
+        let newNComponents = nComponents;
 
         for (let repl of shadowedComposite.replacements) {
             if (typeof repl === "object") {
                 const res = await repl.serialize(nComponents, {
                     primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                 });
-                nComponents = res.nComponents;
+                newNComponents = res.nComponents;
                 serializedReplacements.push(res.serializedComponent);
             } else {
                 serializedReplacements.push(repl);
             }
-        }
-
-        if (nComponents > this.components.length) {
-            this._components[nComponents - 1] = undefined;
         }
 
         if (serializedReplacements.length === 1) {
@@ -2845,7 +2868,11 @@ export default class Core {
         // );
         // console.log(JSON.parse(JSON.stringify(serializedReplacements)));
 
-        this.addReplacementsToResolver(serializedReplacements, component);
+        this.addReplacementsToResolver(
+            serializedReplacements,
+            component,
+            newNComponents,
+        );
 
         // Have three composites involved:
         // 1. the shadowing composite (component, the one we're trying to expand)
@@ -3292,7 +3319,8 @@ export default class Core {
                 //   and used in some components to determine if those children can be formed into a list
                 parent.compositeReplacementActiveRange.push({
                     compositeIdx: child.componentIdx,
-                    target: await child.stateValues.target,
+                    extendIdx: await child.stateValues.extendIdx,
+                    unresolvedPath: await child.stateValues.unresolvedPath,
                     firstInd: childInd,
                     lastInd: childInd + replacements.length - 1,
                     asList: await child.stateValues.asList,
@@ -3629,9 +3657,9 @@ export default class Core {
                         stateVarDef.shadowingInstructions.createComponentOfType =
                             "numberList";
                     }
-                } else if (attributeSpecification.createTargetComponentNames) {
+                } else if (attributeSpecification.createReferences) {
                     throw Error(
-                        "Cannot make a public state variable from an attribute with createTargetComponentNames",
+                        "Cannot make a public state variable from an attribute with createReferences",
                     );
                 } else {
                     stateVarDef.shadowingInstructions.createComponentOfType =
@@ -3686,9 +3714,9 @@ export default class Core {
                         dependencyType: "attributePrimitive",
                         attributeName: attrName,
                     };
-                } else if (attributeSpecification.createTargetComponentNames) {
-                    dependencies.attributeTargetComponentNames = {
-                        dependencyType: "attributeTargetComponentNames",
+                } else if (attributeSpecification.createReferences) {
+                    dependencies.attributeRefResolutions = {
+                        dependencyType: "attributeRefResolutions",
                         attributeName: attrName,
                     };
                 } else {
@@ -3713,25 +3741,18 @@ export default class Core {
                         dependencyValues.attributeComponent.stateValues[
                             stateVariableForAttributeValue
                         ];
-                } else if (
-                    dependencyValues.attributePrimitive !== undefined &&
-                    dependencyValues.attributePrimitive !== null
-                ) {
+                } else if (dependencyValues.attributePrimitive != null) {
                     attributeValue = dependencyValues.attributePrimitive;
                 } else if (
-                    dependencyValues.attributeTargetComponentNames !==
-                        undefined &&
-                    dependencyValues.attributeTargetComponentNames !== null
+                    dependencyValues.attributeRefResolutions != null &&
+                    !usedDefault.attributeRefResolutions
                 ) {
-                    attributeValue =
-                        dependencyValues.attributeTargetComponentNames;
+                    attributeValue = dependencyValues.attributeRefResolutions;
                 } else {
                     // parentValue would be undefined if fallBackToParentStateVariable wasn't specified
                     // parentValue would be null if the parentValue state variables
                     // did not exist or its value was null
-                    let haveParentValue =
-                        dependencyValues.parentValue !== undefined &&
-                        dependencyValues.parentValue !== null;
+                    let haveParentValue = dependencyValues.parentValue != null;
                     if (
                         haveParentValue &&
                         !usedDefault.parentValue &&
@@ -3749,9 +3770,7 @@ export default class Core {
                         // did not exist or its value was null
 
                         let haveSourceCompositeValue =
-                            dependencyValues.sourceCompositeValue !==
-                                undefined &&
-                            dependencyValues.sourceCompositeValue !== null;
+                            dependencyValues.sourceCompositeValue != null;
                         if (
                             haveSourceCompositeValue &&
                             !usedDefault.sourceCompositeValue &&
@@ -3796,26 +3815,17 @@ export default class Core {
                     essentialValues,
                 }) {
                     if (!dependencyValues.attributeComponent) {
-                        if (
-                            dependencyValues.attributePrimitive !== undefined &&
-                            dependencyValues.attributePrimitive !== null
-                        ) {
+                        if (dependencyValues.attributePrimitive != null) {
                             // can't invert if have primitive
                             return { success: false };
                         }
-                        if (
-                            dependencyValues.attributeTargetComponentNames !==
-                                undefined &&
-                            dependencyValues.attributeTargetComponentNames !==
-                                null
-                        ) {
-                            // can't invert if have target component names
+                        if (dependencyValues.attributeRefResolutions != null) {
+                            // can't invert if have attribute ref resolutions
                             return { success: false };
                         }
 
                         let haveParentValue =
-                            dependencyValues.parentValue !== undefined &&
-                            dependencyValues.parentValue !== null;
+                            dependencyValues.parentValue != null;
                         if (
                             haveParentValue &&
                             !usedDefault.parentValue &&
@@ -3834,9 +3844,7 @@ export default class Core {
                             };
                         } else {
                             let haveSourceCompositeValue =
-                                dependencyValues.sourceCompositeValue !==
-                                    undefined &&
-                                dependencyValues.sourceCompositeValue !== null;
+                                dependencyValues.sourceCompositeValue != null;
                             if (
                                 haveSourceCompositeValue &&
                                 !usedDefault.sourceCompositeValue &&
@@ -3964,9 +3972,9 @@ export default class Core {
                         stateVarDef.shadowingInstructions.createComponentOfType =
                             "numberList";
                     }
-                } else if (attributeSpecification.createTargetComponentNames) {
+                } else if (attributeSpecification.createReferences) {
                     throw Error(
-                        "Cannot make a public state variable from an attribute with createTargetComponentNames",
+                        "Cannot make a public state variable from an attribute with createReferences",
                     );
                 } else {
                     stateVarDef.shadowingInstructions.createComponentOfType =
@@ -4196,9 +4204,9 @@ export default class Core {
                         stateVarDef.shadowingInstructions.createComponentOfType =
                             "numberList";
                     }
-                } else if (attributeSpecification.createTargetComponentNames) {
+                } else if (attributeSpecification.createReferences) {
                     throw Error(
-                        "Cannot make a public state variable from an attribute with createTargetComponentNames",
+                        "Cannot make a public state variable from an attribute with createReferences",
                     );
                 } else {
                     stateVarDef.shadowingInstructions.createComponentOfType =
@@ -4237,9 +4245,9 @@ export default class Core {
                     dependencyType: "attributePrimitive",
                     attributeName: attrName,
                 };
-            } else if (attributeSpecification.createTargetComponentNames) {
-                thisDependencies.attributeTargetComponentNames = {
-                    dependencyType: "attributeTargetComponentNames",
+            } else if (attributeSpecification.createReferences) {
+                thisDependencies.attributeRefResolutions = {
+                    dependencyType: "attributeRefResolutions",
                     attributeName: attrName,
                 };
             } else {
@@ -4278,25 +4286,18 @@ export default class Core {
                         dependencyValues.attributeComponent.stateValues[
                             stateVariableForAttributeValue
                         ];
-                } else if (
-                    dependencyValues.attributePrimitive !== undefined &&
-                    dependencyValues.attributePrimitive !== null
-                ) {
+                } else if (dependencyValues.attributePrimitive != null) {
                     attributeValue = dependencyValues.attributePrimitive;
                 } else if (
-                    dependencyValues.attributeTargetComponentNames !==
-                        undefined &&
-                    dependencyValues.attributeTargetComponentNames !== null
+                    dependencyValues.attributeRefResolutions != null &&
+                    !usedDefault.attributeRefResolutions
                 ) {
-                    attributeValue =
-                        dependencyValues.attributeTargetComponentNames;
+                    attributeValue = dependencyValues.attributeRefResolutions;
                 } else {
                     // parentValue would be undefined if fallBackToParentStateVariable wasn't specified
                     // parentValue would be null if the parentValue state variables
                     // did not exist or its value was null
-                    let haveParentValue =
-                        dependencyValues.parentValue !== undefined &&
-                        dependencyValues.parentValue !== null;
+                    let haveParentValue = dependencyValues.parentValue != null;
                     if (
                         haveParentValue &&
                         !usedDefault.parentValue &&
@@ -4314,9 +4315,7 @@ export default class Core {
                         // did not exist or its value was null
 
                         let haveSourceCompositeValue =
-                            dependencyValues.sourceCompositeValue !==
-                                undefined &&
-                            dependencyValues.sourceCompositeValue !== null;
+                            dependencyValues.sourceCompositeValue != null;
                         if (
                             haveSourceCompositeValue &&
                             !usedDefault.sourceCompositeValue &&
@@ -4363,26 +4362,17 @@ export default class Core {
                     workspace,
                 }) {
                     if (!dependencyValues.attributeComponent) {
-                        if (
-                            dependencyValues.attributePrimitive !== undefined &&
-                            dependencyValues.attributePrimitive !== null
-                        ) {
+                        if (dependencyValues.attributePrimitive != null) {
                             // can't invert if have primitive
                             return { success: false };
                         }
-                        if (
-                            dependencyValues.attributeTargetComponentNames !==
-                                undefined &&
-                            dependencyValues.attributeTargetComponentNames !==
-                                null
-                        ) {
-                            // can't invert if have target component names
+                        if (dependencyValues.attributeRefResolutions != null) {
+                            // can't invert if have attribute ref resolutions
                             return { success: false };
                         }
 
                         let haveParentValue =
-                            dependencyValues.parentValue !== undefined &&
-                            dependencyValues.parentValue !== null;
+                            dependencyValues.parentValue != null;
                         if (
                             haveParentValue &&
                             !usedDefault.parentValue &&
@@ -4401,9 +4391,7 @@ export default class Core {
                             };
                         } else {
                             let haveSourceCompositeValue =
-                                dependencyValues.sourceCompositeValue !==
-                                    undefined &&
-                                dependencyValues.sourceCompositeValue !== null;
+                                dependencyValues.sourceCompositeValue != null;
                             if (
                                 haveSourceCompositeValue &&
                                 !usedDefault.sourceCompositeValue &&
@@ -9354,11 +9342,59 @@ export default class Core {
             );
         }
 
+        this.removeComponentsFromResolver(componentsToDelete);
+
         return {
             success: true,
             deletedComponents: componentsToDelete,
             parentsOfDeleted: allParents,
         };
+    }
+
+    removeComponentsFromResolver(componentsToDelete) {
+        // console.log("remove components from resolver", componentsToDelete);
+
+        const componentIndices = Object.keys(componentsToDelete);
+        const idxFromName = {};
+
+        for (const cIdx in componentsToDelete) {
+            const comp = componentsToDelete[cIdx];
+            if (comp.attributes.name) {
+                idxFromName[comp.attributes.name.primitive.value] =
+                    Number(cIdx);
+            }
+        }
+
+        for (const parentIdx in this.resolver.name_map) {
+            if (componentIndices.includes(parentIdx)) {
+                this.resolver.name_map[parentIdx] = {};
+            } else {
+                const parentNames = this.resolver.name_map[parentIdx];
+                for (const name in parentNames) {
+                    const idxToDelete = idxFromName[name];
+
+                    if (idxToDelete != undefined) {
+                        if (parentNames[name].Unique == idxToDelete) {
+                            delete parentNames[name];
+                        } else {
+                            // TODO: add tests for removal of ambiguous names
+                            const ambiguous = parentNames[name].Ambiguous;
+                            if (Array.isArray(ambiguous)) {
+                                const amb_idx = ambiguous.indexOf(idxToDelete);
+                                if (amb_idx != -1) {
+                                    ambiguous.splice(amb_idx, 1);
+                                    if (ambiguous.length === 1) {
+                                        parentNames[name] = {
+                                            Unique: ambiguous[0],
+                                        };
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     determineComponentsToDelete({
@@ -9571,6 +9607,14 @@ export default class Core {
                         position,
                         overwriteDoenetMLRange,
                     });
+
+                    const newNComponents = change.nComponents;
+
+                    this.addReplacementsToResolver(
+                        serializedReplacements,
+                        component,
+                        newNComponents,
+                    );
 
                     try {
                         let createResult =
@@ -10136,22 +10180,25 @@ export default class Core {
                         .sourceAttributesToIgnore;
 
                 let nComponents = this._components.length;
+                let newNComponents = nComponents;
                 for (let repl of replacementsToShadow) {
                     if (typeof repl === "object") {
                         const res = await repl.serialize(nComponents, {
                             primitiveSourceAttributesToIgnore:
                                 sourceAttributesToIgnore,
                         });
-                        nComponents = res.nComponents;
+                        newNComponents = res.nComponents;
                         newSerializedReplacements.push(res.serializedComponent);
                     } else {
                         newSerializedReplacements.push(repl);
                     }
                 }
 
-                if (nComponents > this.components.length) {
-                    this._components[nComponents - 1] = undefined;
-                }
+                this.addReplacementsToResolver(
+                    newSerializedReplacements,
+                    shadowingComponent,
+                    newNComponents,
+                );
 
                 newSerializedReplacements = postProcessCopy({
                     serializedComponents: newSerializedReplacements,

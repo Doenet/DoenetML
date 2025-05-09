@@ -12,23 +12,24 @@ fn refs_get_expanded_to_their_referents() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
             {
-                "type": "FlatRoot",
+                "type": "flatRoot",
                 "children": [0],
                 "nodes": [
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "document",
                     "children": [1, 2],
                     "attributes": [],
                     "idx": 0
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 0,
                     "children": [],
                     "attributes": [
                       {
+                        "type": "attribute",
                         "name": "name",
                         "parent": 1,
                         "children": ["p"]
@@ -37,7 +38,7 @@ fn refs_get_expanded_to_their_referents() {
                     "idx": 1
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 0,
                     "children": [],
@@ -45,8 +46,9 @@ fn refs_get_expanded_to_their_referents() {
                     "idx": 2,
                     "extending": {
                       "Ref": {
-                        "node_idx": 1,
-                        "unresolved_path": null
+                        "nodeIdx": 1,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
                       }
                     }
                   }
@@ -87,23 +89,24 @@ fn leftover_path_parts_are_kept() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
             {
-                "type": "FlatRoot",
+                "type": "flatRoot",
                 "children": [0],
                 "nodes": [
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "document",
                     "children": [1, 2],
                     "attributes": [],
                     "idx": 0
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 0,
                     "children": [],
                     "attributes": [
                       {
+                        "type": "attribute",
                         "name": "name",
                         "parent": 1,
                         "children": ["p"]
@@ -112,7 +115,7 @@ fn leftover_path_parts_are_kept() {
                     "idx": 1
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 0,
                     "children": [],
@@ -120,13 +123,17 @@ fn leftover_path_parts_are_kept() {
                     "idx": 2,
                     "extending": {
                       "Ref": {
-                        "node_idx": 1,
-                        "unresolved_path": [
+                        "nodeIdx": 1,
+                        "unresolvedPath": [
                           {
                             "type": "flatPathPart",
                             "index": [],
                             "name": "x",
                           }
+                        ],
+                        "originalPath": [
+                          { "type": "flatPathPart", "name": "p", "index": [] },
+                          { "type": "flatPathPart", "name": "x", "index": [] }
                         ]
                       }
                     }
@@ -146,23 +153,24 @@ fn references_expanded_in_leftover_path_parts() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
             {
-                "type": "FlatRoot",
+                "type": "flatRoot",
                 "children": [0],
                 "nodes": [
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "document",
                     "children": [1, 2, 3],
                     "attributes": [],
                     "idx": 0
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 0,
                     "children": [],
                     "attributes": [
                       {
+                        "type": "attribute",
                         "name": "name",
                         "parent": 1,
                         "children": ["p"]
@@ -171,12 +179,13 @@ fn references_expanded_in_leftover_path_parts() {
                     "idx": 1
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "number",
                     "parent": 0,
                     "children": [],
                     "attributes": [
                       {
+                        "type": "attribute",
                         "name": "name",
                         "parent": 2,
                         "children": ["n"]
@@ -185,7 +194,7 @@ fn references_expanded_in_leftover_path_parts() {
                     "idx": 2
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 0,
                     "children": [],
@@ -193,19 +202,23 @@ fn references_expanded_in_leftover_path_parts() {
                     "idx": 3,
                     "extending": {
                       "Ref": {
-                        "node_idx": 1,
-                        "unresolved_path": [
+                        "nodeIdx": 1,
+                        "unresolvedPath": [
                           {
                             "type": "flatPathPart",
                             "index": [{ "value": [4] }],
                             "name": "x",
                           }
+                        ],
+                        "originalPath": [
+                          { "type": "flatPathPart", "name": "p", "index": [] },
+                          { "type": "flatPathPart", "name": "x", "index": [{ "value": [4] }] }
                         ]
                       }
                     }
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 3,
                     "children": [],
@@ -213,19 +226,23 @@ fn references_expanded_in_leftover_path_parts() {
                     "idx": 4,
                     "extending": {
                       "Ref": {
-                        "node_idx": 1,
-                        "unresolved_path": [
+                        "nodeIdx": 1,
+                        "unresolvedPath": [
                           {
                             "type": "flatPathPart",
                             "index": [{ "value": [5] }],
                             "name": "y",
                           }
+                        ],
+                        "originalPath": [
+                          { "type": "flatPathPart", "name": "p", "index": [] },
+                          { "type": "flatPathPart", "name": "y", "index": [{ "value": [5] }] }
                         ]
                       }
                     }
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "number",
                     "parent": 4,
                     "children": [],
@@ -233,8 +250,9 @@ fn references_expanded_in_leftover_path_parts() {
                     "idx": 5,
                     "extending": {
                       "Ref": {
-                        "node_idx": 2,
-                        "unresolved_path": null
+                        "nodeIdx": 2,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }]
                       }
                     }
                   }
@@ -253,40 +271,46 @@ fn refs_in_attributes_are_expanded() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
             {
-                "type": "FlatRoot",
+                "type": "flatRoot",
                 "children": [0],
                 "nodes": [
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "document",
                     "children": [1, 2],
                     "attributes": [],
                     "idx": 0
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 0,
                     "children": [],
-                    "attributes": [{ "name": "name", "parent": 1, "children": ["p"] }],
+                    "attributes": [{ "type": "attribute", "name": "name", "parent": 1, "children": ["p"] }],
                     "idx": 1
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "a",
                     "parent": 0,
                     "children": [],
-                    "attributes": [{ "name": "foo", "parent": 2, "children": [3] }],
+                    "attributes": [{ "type": "attribute", "name": "foo", "parent": 2, "children": [3] }],
                     "idx": 2
                   },
                   {
-                    "type": "Element",
+                    "type": "element",
                     "name": "point",
                     "parent": 2,
                     "children": [],
                     "attributes": [],
                     "idx": 3,
-                    "extending": { "Ref": { "node_idx": 1, "unresolved_path": null } }
+                    "extending": {
+                      "Ref": {
+                        "nodeIdx": 1,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                      }
+                    },
                   }
                 ]
             }
@@ -314,43 +338,55 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1, 2],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
-                "attributes": [{ "name": "name", "parent": 1, "children": ["p"] }],
+                "attributes": [{ "type": "attribute", "name": "name", "parent": 1, "children": ["p"] }],
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
-                "attributes": [{ "name": "foo", "parent": 2, "children": ["bar"] }],
+                "attributes": [{ "type": "attribute", "name": "foo", "parent": 2, "children": ["bar"] }],
                 "idx": 2,
-                "extending": { "Attribute": { "node_idx": 1, "unresolved_path": null } }
+                "extending": {
+                  "Attribute": {
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                  }
+                }
               },
               // Note, this element is left over from the original `$p` ref. However, it is
               // no longer referenced anywhere.
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 2,
                 "children": [],
                 "attributes": [],
                 "idx": 3,
-                "extending": { "Ref": { "node_idx": 1, "unresolved_path": null } }
+                "extending": {
+                  "Ref": {
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                  }
+                }
               }
             ]
           }

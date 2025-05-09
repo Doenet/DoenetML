@@ -15,18 +15,18 @@ fn can_compactify() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "a",
                 "parent": 0,
                 "children": [2],
@@ -34,7 +34,7 @@ fn can_compactify() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "b",
                 "parent": 1,
                 "children": [],
@@ -59,25 +59,25 @@ fn can_compactify() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0, 1],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "b",
                 "children": [],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [2],
                 "attributes": [],
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "x",
                 "parent": 1,
                 "children": [3],
@@ -85,7 +85,7 @@ fn can_compactify() {
                 "idx": 2
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "y",
                 "parent": 2,
                 "children": [],
@@ -111,23 +111,24 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1, 2, 3, 4],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "text",
                 "parent": 0,
                 "children": ["hello"],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 1,
                     "children": ["t"]
@@ -136,7 +137,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "text",
                 "parent": 0,
                 "children": [" world"],
@@ -144,18 +145,20 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "idx": 2,
                 "extending": {
                   "Attribute": {
-                    "node_idx": 1,
-                    "unresolved_path": null
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "t", "index": [] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "textInput",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 3,
                     "children": ["ti"]
@@ -164,7 +167,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "idx": 3
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "p",
                 "parent": 0,
                 "children": [5],
@@ -172,12 +175,13 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "idx": 4
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "text",
                 "parent": 4,
                 "children": [" world"],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 5,
                     "children": ["tiv"]
@@ -186,13 +190,17 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "idx": 5,
                 "extending": {
                   "Attribute": {
-                    "node_idx": 3,
-                    "unresolved_path": [
+                    "nodeIdx": 3,
+                    "unresolvedPath": [
                       {
                         "type": "flatPathPart",
                         "name": "immediateValue",
                         "index": []
                       }
+                    ],
+                    "originalPath": [
+                      { "type": "flatPathPart", "name": "ti", "index": [] },
+                      { "type": "flatPathPart", "name": "immediateValue", "index": [] },
                     ]
                   }
                 }
@@ -242,23 +250,24 @@ fn compactify_preserves_refs_in_path_parts() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1, 2, 3],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "number",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 1,
                     "children": ["n"]
@@ -267,12 +276,13 @@ fn compactify_preserves_refs_in_path_parts() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 2,
                     "children": ["p"]
@@ -281,7 +291,7 @@ fn compactify_preserves_refs_in_path_parts() {
                 "idx": 2,
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
@@ -289,8 +299,8 @@ fn compactify_preserves_refs_in_path_parts() {
                 "idx": 3,
                 "extending": {
                   "Ref": {
-                    "node_idx": 2,
-                    "unresolved_path": [
+                    "nodeIdx": 2,
+                    "unresolvedPath": [
                       {
                         "type": "flatPathPart",
                         "name": "",
@@ -300,12 +310,13 @@ fn compactify_preserves_refs_in_path_parts() {
                           }
                         ]
                       }
-                    ]
+                    ],
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [{ "value": [4] }] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "number",
                 "parent": 3,
                 "children": [],
@@ -313,8 +324,9 @@ fn compactify_preserves_refs_in_path_parts() {
                 "idx": 4,
                 "extending": {
                   "Ref": {
-                    "node_idx": 1,
-                    "unresolved_path": null
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }]
                   }
                 }
               }
@@ -336,23 +348,24 @@ fn compactify_shifts_refs_in_path_parts() {
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1, 2, 3, 4],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "number",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 1,
                     "children": ["n"]
@@ -361,12 +374,13 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 2,
                     "children": ["p"]
@@ -375,7 +389,7 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 2,
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
@@ -383,13 +397,14 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 3,
                 "extending": {
                   "Attribute": {
-                    "node_idx": 2,
-                    "unresolved_path": null
+                    "nodeIdx": 2,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
@@ -397,8 +412,8 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 4,
                 "extending": {
                   "Ref": {
-                    "node_idx": 2,
-                    "unresolved_path": [
+                    "nodeIdx": 2,
+                    "unresolvedPath": [
                       {
                         "type": "flatPathPart",
                         "name": "",
@@ -408,12 +423,13 @@ fn compactify_shifts_refs_in_path_parts() {
                           }
                         ]
                       }
-                    ]
+                    ],
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [{ "value" : [5]}] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "number",
                 "parent": 4,
                 "children": [],
@@ -421,8 +437,9 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 5,
                 "extending": {
                   "Ref": {
-                    "node_idx": 1,
-                    "unresolved_path": null
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }]
                   }
                 }
               }

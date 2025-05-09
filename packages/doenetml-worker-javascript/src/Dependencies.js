@@ -5252,7 +5252,8 @@ class ChildDependency extends Dependency {
                     if (translatedLastInd !== undefined) {
                         this.compositeReplacementRange.push({
                             compositeIdx: compositeInfo.compositeIdx,
-                            target: compositeInfo.target,
+                            extendIdx: compositeInfo.extendIdx,
+                            unresolvedPath: compositeInfo.unresolvedPath,
                             firstInd: translatedFirstInd,
                             lastInd: translatedLastInd,
                             asList: compositeInfo.asList,
@@ -7067,7 +7068,8 @@ dependencyTypeArray.push(RefResolutionIndexDependencies);
  *
  * The dependency value returned is
  * - extendIdx: the resulting `nodeIdx`
- * - unresolvedPath: any remaining `unresolvedPath`.
+ * - unresolvedPath: any remaining `unresolvedPath`
+ * - originalPath: the original path
  */
 class RefResolutionDependency extends Dependency {
     static dependencyType = "refResolution";
@@ -7101,15 +7103,12 @@ class RefResolutionDependency extends Dependency {
         }
 
         let nodeIdx = composite.refResolution.nodeIdx;
+        this.originalPath = composite.refResolution.originalPath;
 
         if (composite.refResolution.unresolvedPath == null) {
             this.extendIdx = nodeIdx;
             this.unresolvedPath = null;
-            return {
-                success: true,
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
+            return this.foundExtend();
         }
 
         // Resolve all components in the unresolved path to integer values
@@ -7203,11 +7202,7 @@ class RefResolutionDependency extends Dependency {
                     this.extendIdx = nodeIdx;
                     this.unresolvedPath = unresolvedPath;
 
-                    return {
-                        success: true,
-                        downstreamComponentIndices: [],
-                        downstreamComponentTypes: [],
-                    };
+                    return this.foundExtend();
                 }
 
                 // some progress was made so continue to next loop
@@ -7223,11 +7218,7 @@ class RefResolutionDependency extends Dependency {
                 this.extendIdx = nodeIdx;
                 this.unresolvedPath = unresolvedPath;
 
-                return {
-                    success: true,
-                    downstreamComponentIndices: [],
-                    downstreamComponentTypes: [],
-                };
+                return this.foundExtend();
             }
 
             const index = nextPathPart.index;
@@ -7277,10 +7268,29 @@ class RefResolutionDependency extends Dependency {
         // No unresolved path left
         this.extendIdx = nodeIdx;
         this.unresolvedPath = null;
+
+        return this.foundExtend();
+    }
+
+    foundExtend() {
+        let extendedComponent =
+            this.dependencyHandler._components[this.extendIdx];
+
+        if (!extendedComponent) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.extendIdx);
+            this.missingComponentBlockers.push(this.extendIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
         return {
             success: true,
-            downstreamComponentIndices: [],
-            downstreamComponentTypes: [],
+            downstreamComponentIndices: [this.extendIdx],
+            downstreamComponentTypes: [extendedComponent.componentType],
         };
     }
 
@@ -7374,6 +7384,7 @@ class RefResolutionDependency extends Dependency {
         result.value = {
             extendIdx: this.extendIdx,
             unresolvedPath: this.unresolvedPath,
+            originalPath: this.originalPath,
         };
 
         return result;
@@ -7391,6 +7402,83 @@ class RefResolutionDependency extends Dependency {
 }
 
 dependencyTypeArray.push(RefResolutionDependency);
+
+class AttributeRefResolutions extends Dependency {
+    static dependencyType = "attributeRefResolutions";
+
+    setUpParameters() {
+        if (this.definition.parentIdx != undefined) {
+            this.parentIdx = this.definition.parentIdx;
+            this.specifiedComponentName = this.parentIdx;
+        } else {
+            this.parentIdx = this.upstreamComponentIdx;
+        }
+
+        this.attributeName = this.definition.attributeName;
+
+        this.originalDownstreamVariableNames = [
+            "extendIdx",
+            "unresolvedPath",
+            "originalPath",
+        ];
+
+        this.missingComponentBlockers = [];
+    }
+
+    async determineDownstreamComponents() {
+        let parent = this.dependencyHandler._components[this.parentIdx];
+
+        if (!parent) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            this.missingComponentBlockers.push(this.parentIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        let attribute = parent.attributes[this.attributeName];
+
+        if (attribute?.references) {
+            this.foundAttribute = true;
+            return {
+                success: true,
+                downstreamComponentIndices: attribute.references.map(
+                    (comp) => comp.componentIdx,
+                ),
+                downstreamComponentTypes: attribute.references.map(
+                    (comp) => comp.componentType,
+                ),
+            };
+        } else {
+            this.foundAttribute = false;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+    }
+    async getValue() {
+        const result = await super.getValue();
+
+        result.value = result.value.map((comp) => comp.stateValues);
+        result.usedDefault = !this.foundAttribute;
+
+        return result;
+    }
+
+    deleteFromUpdateTriggers() {
+        for (const componentIdx of this.missingComponentBlockers) {
+            this.deleteUpdateTriggerForMissingComponent(componentIdx);
+        }
+    }
+}
+
+dependencyTypeArray.push(AttributeRefResolutions);
+
 class SourceCompositeStateVariableDependency extends Dependency {
     static dependencyType = "sourceCompositeStateVariable";
 
@@ -8609,161 +8697,6 @@ class CountAmongSiblingsDependency extends Dependency {
 }
 
 dependencyTypeArray.push(CountAmongSiblingsDependency);
-
-// XXX: how does attributeTargetComponentNames work with componentIdx?
-class AttributeTargetComponentNamesDependency extends StateVariableDependency {
-    static dependencyType = "attributeTargetComponentNames";
-
-    setUpParameters() {
-        this.attributeName = this.definition.attributeName;
-
-        if (this.definition.parentIdx != undefined) {
-            this.componentIdx = this.definition.parentIdx;
-            this.specifiedComponentName = this.componentIdx;
-        } else {
-            this.componentIdx = this.upstreamComponentIdx;
-        }
-    }
-
-    async getValue() {
-        let value = null;
-        let changes = {};
-
-        if (this.componentIdentitiesChanged) {
-            changes.componentIdentitiesChanged = true;
-            this.componentIdentitiesChanged = false;
-        }
-
-        if (this.downstreamComponentIndices.length === 1) {
-            let parent = this.dependencyHandler.components[this.componentIdx];
-
-            if (parent) {
-                value = parent.attributes[this.attributeName];
-                if (value) {
-                    value = value.targetComponentNames;
-                } else {
-                    value = null;
-                }
-            }
-        }
-
-        // if (!this.doNotProxy && value !== null && typeof value === 'object') {
-        //   value = new Proxy(value, readOnlyProxyHandler)
-        // }
-
-        return { value, changes };
-    }
-}
-
-dependencyTypeArray.push(AttributeTargetComponentNamesDependency);
-
-class TargetComponentDependency extends Dependency {
-    static dependencyType = "targetComponent";
-
-    setUpParameters() {
-        let component =
-            this.dependencyHandler._components[this.upstreamComponentIdx];
-
-        this.target = component.doenetAttributes.target;
-
-        if (this.target) {
-            this.targetComponentIdx = this.specifiedComponentName =
-                component.doenetAttributes.targetComponentIdx;
-        }
-
-        if (this.definition.variableNames) {
-            if (!Array.isArray(this.definition.variableNames)) {
-                throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: variableNames must be an array`,
-                );
-            }
-            this.originalDownstreamVariableNames =
-                this.definition.variableNames;
-        } else {
-            this.originalDownstreamVariableNames = [];
-        }
-
-        this.returnSingleComponent = true;
-    }
-
-    async determineDownstreamComponents() {
-        if (!this.target) {
-            return {
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
-        }
-
-        let targetComponent =
-            this.dependencyHandler._components[this.targetComponentIdx];
-
-        if (!targetComponent) {
-            let dependenciesMissingComponent =
-                this.dependencyHandler.updateTriggers
-                    .dependenciesMissingComponentBySpecifiedName[
-                    this.targetComponentIdx
-                ];
-            if (!dependenciesMissingComponent) {
-                dependenciesMissingComponent =
-                    this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
-                        this.targetComponentIdx
-                    ] = [];
-            }
-            if (!dependenciesMissingComponent.includes(this)) {
-                dependenciesMissingComponent.push(this);
-            }
-
-            for (let varName of this.upstreamVariableNames) {
-                await this.dependencyHandler.addBlocker({
-                    blockerComponentIdx: this.targetComponentIdx,
-                    blockerType: "componentIdentity",
-                    componentIdxBlocked: this.upstreamComponentIdx,
-                    typeBlocked: "recalculateDownstreamComponents",
-                    stateVariableBlocked: varName,
-                    dependencyBlocked: this.dependencyName,
-                });
-
-                await this.dependencyHandler.addBlocker({
-                    blockerComponentIdx: this.upstreamComponentIdx,
-                    blockerType: "recalculateDownstreamComponents",
-                    blockerStateVariable: varName,
-                    blockerDependency: this.dependencyName,
-                    componentIdxBlocked: this.upstreamComponentIdx,
-                    typeBlocked: "stateVariable",
-                    stateVariableBlocked: varName,
-                });
-            }
-
-            return {
-                success: false,
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
-        }
-
-        return {
-            success: true,
-            downstreamComponentIndices: [this.targetComponentIdx],
-            downstreamComponentTypes: [targetComponent.componentType],
-        };
-    }
-
-    deleteFromUpdateTriggers() {
-        let dependenciesMissingComponent =
-            this.dependencyHandler.updateTriggers
-                .dependenciesMissingComponentBySpecifiedName[
-                this.specifiedComponentName
-            ];
-        if (dependenciesMissingComponent) {
-            let ind = dependenciesMissingComponent.indexOf(this);
-            if (ind !== -1) {
-                dependenciesMissingComponent.splice(ind, 1);
-            }
-        }
-    }
-}
-
-dependencyTypeArray.push(TargetComponentDependency);
 
 class ValueDependency extends Dependency {
     static dependencyType = "value";

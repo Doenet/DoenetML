@@ -148,6 +148,7 @@ export default class Copy extends CompositeComponent {
             additionalStateVariablesDefined: [
                 "unresolvedPath",
                 "wrapWithExtract",
+                "originalPath",
             ],
             stateVariablesDeterminingDependencies: [
                 "refResolutionIndexDependencyValues",
@@ -169,6 +170,7 @@ export default class Copy extends CompositeComponent {
                     wrapWithExtract:
                         dependencyValues.refResolution.unresolvedPath?.length >
                         1,
+                    originalPath: dependencyValues.refResolution.originalPath,
                 },
             }),
         };

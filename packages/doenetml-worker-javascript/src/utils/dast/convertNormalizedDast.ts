@@ -1,4 +1,5 @@
 import {
+    FlatPathPart,
     NormalizedRoot,
     RefResolution,
     Source,
@@ -106,31 +107,38 @@ export async function normalizedDastToSerializedComponents(
         let unresolvedPath: UnflattenedPathPart[] | null = null;
 
         if (refResolution.unresolvedPath) {
-            unresolvedPath = refResolution.unresolvedPath.map((path_part) => {
-                let index = path_part.index.map((flat_index) => {
-                    let value = flat_index.value.map(unflattenDastNode);
-                    return {
-                        value,
-                        position: flat_index.position,
-                    };
-                });
-
-                return {
-                    index,
-                    name: path_part.name,
-                    position: path_part.position,
-                };
-            });
+            unresolvedPath = unflattenPath(refResolution.unresolvedPath);
         }
+
+        const originalPath = unflattenPath(refResolution.originalPath);
 
         const unflattenedRefResolution: UnflattenedRefResolution = {
             nodeIdx: refResolution.nodeIdx,
             unresolvedPath,
+            originalPath,
         };
 
         return "Ref" in extending
             ? { Ref: unflattenedRefResolution }
             : { Attribute: unflattenedRefResolution };
+    }
+
+    function unflattenPath(path: FlatPathPart[]) {
+        return path.map((path_part) => {
+            let index = path_part.index.map((flat_index) => {
+                let value = flat_index.value.map(unflattenDastNode);
+                return {
+                    value,
+                    position: flat_index.position,
+                };
+            });
+
+            return {
+                index,
+                name: path_part.name,
+                position: path_part.position,
+            };
+        });
     }
 
     const documentIdx = normalized_root.children[0];
@@ -356,43 +364,33 @@ function expandUnflattenedRefResolution({
     let errors: ErrorRecord[] = [];
 
     if (unflattenedRefResolution.unresolvedPath) {
-        unresolvedPath = unflattenedRefResolution.unresolvedPath.map(
-            (path_part) => {
-                let index = path_part.index.map((flat_index) => {
-                    let res = expandUnflattenedToSerializedComponents({
-                        serializedComponents: flat_index.value,
-                        componentInfoObjects,
-                        nComponents,
-                        ignoreErrors,
-                    });
-                    let valueComponents = res.components;
-                    errors.push(...res.errors);
-                    nComponents = res.nComponents;
+        const res = expandUnflattenedPath({
+            unflattenedPath: unflattenedRefResolution.unresolvedPath,
+            componentInfoObjects,
+            nComponents,
+            ignoreErrors,
+        });
 
-                    if (valueComponents.length !== 1) {
-                        throw Error(
-                            "Unresolved index should be a single component",
-                        );
-                    }
-
-                    return {
-                        value: valueComponents,
-                        position: flat_index.position,
-                    };
-                });
-
-                return {
-                    index,
-                    name: path_part.name,
-                    position: path_part.position,
-                };
-            },
-        );
+        unresolvedPath = res.expandedPath;
+        nComponents = res.nComponents;
+        errors.push(...res.errors);
     }
+
+    const res = expandUnflattenedPath({
+        unflattenedPath: unflattenedRefResolution.originalPath,
+        componentInfoObjects,
+        nComponents,
+        ignoreErrors,
+    });
+
+    const originalPath = res.expandedPath;
+    nComponents = res.nComponents;
+    errors.push(...res.errors);
 
     const refResolution: SerializedRefResolution = {
         nodeIdx: unflattenedRefResolution.nodeIdx,
         unresolvedPath,
+        originalPath,
     };
 
     return {
@@ -400,6 +398,51 @@ function expandUnflattenedRefResolution({
         errors,
         nComponents,
     };
+}
+
+function expandUnflattenedPath({
+    unflattenedPath,
+    componentInfoObjects,
+    nComponents,
+    ignoreErrors,
+}: {
+    unflattenedPath: UnflattenedPathPart[];
+    componentInfoObjects: ComponentInfoObjects;
+    nComponents: number;
+    ignoreErrors: boolean;
+}) {
+    let errors: ErrorRecord[] = [];
+
+    const expandedPath = unflattenedPath.map((path_part) => {
+        let index = path_part.index.map((flat_index) => {
+            let res = expandUnflattenedToSerializedComponents({
+                serializedComponents: flat_index.value,
+                componentInfoObjects,
+                nComponents,
+                ignoreErrors,
+            });
+            let valueComponents = res.components;
+            errors.push(...res.errors);
+            nComponents = res.nComponents;
+
+            if (valueComponents.length !== 1) {
+                throw Error("Unresolved index should be a single component");
+            }
+
+            return {
+                value: valueComponents,
+                position: flat_index.position,
+            };
+        });
+
+        return {
+            index,
+            name: path_part.name,
+            position: path_part.position,
+        };
+    });
+
+    return { expandedPath, nComponents, errors };
 }
 
 /**
@@ -636,18 +679,27 @@ export function expandAttribute({
             errors,
             nComponents,
         };
+    } else if (attrDef?.createReferences) {
+        let res = expandUnflattenedToSerializedComponents({
+            serializedComponents: attribute.children,
+            componentInfoObjects,
+            nComponents,
+        });
+        errors.push(...res.errors);
+        nComponents = res.nComponents;
+        return {
+            attribute: {
+                type: "references",
+                name: attribute.name,
+                references: res.components.filter(
+                    (child) => typeof child === "object",
+                ),
+                position: attribute.position,
+            },
+            errors,
+            nComponents,
+        };
     } else {
-        // XXX: ignoring attrDef.createTargetComponentNames
-        // which might be obsolete with new reference conventions
-        // so creating "unresolved" if get this far
-
-        // let res = expandUnflattenedToSerializedComponents({
-        //     serializedComponents: attribute.children,
-        //     componentInfoObjects,
-        //     nComponents,
-        // });
-        // errors.push(...res.errors);
-        // nComponents = res.nComponents;
         return {
             attribute: {
                 type: "unresolved",

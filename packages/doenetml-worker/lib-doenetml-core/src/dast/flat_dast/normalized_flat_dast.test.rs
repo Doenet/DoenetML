@@ -18,23 +18,24 @@ fn can_create_normalized_dast_after_expanding_refs() {
         serde_json::to_value(&normalized_flat_root).unwrap(),
         json!(
           {
-            "type": "NormalizedRoot",
+            "type": "normalizedRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1, 2, 3, 5],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 1,
                     "children": ["p"]
@@ -43,12 +44,13 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "function",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 2,
                     "children": ["f"]
@@ -57,7 +59,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 2
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "evaluate",
                 "parent": 0,
                 "children": [7],
@@ -65,13 +67,14 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 3,
                 "extending": {
                   "Ref": {
-                    "node_idx": 2,
-                    "unresolved_path": null
+                    "nodeIdx": 2,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "f", "index": [] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 3,
                 "children": [],
@@ -79,18 +82,20 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 4,
                 "extending": {
                   "Ref": {
-                    "node_idx": 1,
-                    "unresolved_path": null
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "foo",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "bar",
                     "parent": 5,
                     "children": [6]
@@ -99,7 +104,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 5
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 5,
                 "children": [],
@@ -107,13 +112,14 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 6,
                 "extending": {
                   "Ref": {
-                    "node_idx": 1,
-                    "unresolved_path": null
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "ol",
                 "parent": 3,
                 "children": [8, 9, 10],
@@ -121,7 +127,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 7
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "li",
                 "parent": 7,
                 "children": ["1"],
@@ -129,7 +135,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 8
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "li",
                 "parent": 7,
                 "children": ["2"],
@@ -137,7 +143,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
                 "idx": 9
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "li",
                 "parent": 7,
                 "children": [4],

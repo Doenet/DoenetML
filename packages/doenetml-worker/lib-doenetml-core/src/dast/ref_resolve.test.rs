@@ -51,7 +51,8 @@ fn can_resolve_names() {
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
-            unresolved_path: None
+            unresolved_path: None,
+            original_path: make_path(["y"])
         })
     );
 
@@ -60,7 +61,8 @@ fn can_resolve_names() {
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
-            unresolved_path: None
+            unresolved_path: None,
+            original_path: make_path(["y", "z"])
         })
     );
 
@@ -74,7 +76,8 @@ fn can_resolve_names() {
                 name: "w".into(),
                 index: vec![],
                 position: None
-            }])
+            }]),
+            original_path: make_path(["y", "z", "w"])
         })
     );
 }
@@ -108,12 +111,13 @@ fn resolution_stops_at_path_index() {
             position: None,
         },
     ];
-    let referent = resolver.resolve(path, c_idx, false);
+    let referent = resolver.resolve(path.clone(), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
-            unresolved_path: None
+            unresolved_path: None,
+            original_path: path
         })
     );
 
@@ -135,7 +139,7 @@ fn resolution_stops_at_path_index() {
             position: None,
         },
     ];
-    let referent = resolver.resolve(path, c_idx, false);
+    let referent = resolver.resolve(path.clone(), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
@@ -151,7 +155,8 @@ fn resolution_stops_at_path_index() {
                     index: vec![],
                     position: None
                 }
-            ])
+            ]),
+            original_path: path
         })
     );
 }
@@ -189,7 +194,7 @@ fn resolution_matches_largest_possible_when_index_present() {
         },
     ];
 
-    let referent = resolver.resolve(path, c_idx, false);
+    let referent = resolver.resolve(path.clone(), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
@@ -198,7 +203,8 @@ fn resolution_matches_largest_possible_when_index_present() {
                 name: "".into(),
                 index: index.clone(),
                 position: None
-            },])
+            },]),
+            original_path: path
         })
     );
 }
@@ -240,7 +246,8 @@ fn resolve_with_skip_parent_match() {
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
-            unresolved_path: Some(make_path(["y"]))
+            unresolved_path: Some(make_path(["y"])),
+            original_path: make_path(["y"])
         })
     );
 
@@ -251,7 +258,8 @@ fn resolve_with_skip_parent_match() {
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
-            unresolved_path: None
+            unresolved_path: None,
+            original_path: make_path(["y"])
         })
     );
 
@@ -262,7 +270,8 @@ fn resolve_with_skip_parent_match() {
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
-            unresolved_path: None
+            unresolved_path: None,
+            original_path: make_path(["y"])
         })
     );
 

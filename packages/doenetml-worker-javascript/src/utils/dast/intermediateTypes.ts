@@ -49,6 +49,7 @@ export function isUnflattenedComponent(
 export type UnflattenedRefResolution = {
     nodeIdx: number;
     unresolvedPath: UnflattenedPathPart[] | null;
+    originalPath: UnflattenedPathPart[];
 };
 
 export interface UnflattenedPathPart {

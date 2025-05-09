@@ -68,12 +68,13 @@ export default class MathList extends CompositeComponent {
             fallBackToSourceCompositeStateVariable: "functionSymbols",
         };
 
-        attributes.sourcesAreFunctionSymbols = {
-            createComponentOfType: "textList",
-            createStateVariable: "sourcesAreFunctionSymbols",
+        attributes.referencesAreFunctionSymbols = {
+            createReferences: true,
+            createStateVariable: "referencesAreFunctionSymbols",
             defaultValue: [],
-            fallBackToParentStateVariable: "sourcesAreFunctionSymbols",
-            fallBackToSourceCompositeStateVariable: "sourcesAreFunctionSymbols",
+            fallBackToParentStateVariable: "referencesAreFunctionSymbols",
+            fallBackToSourceCompositeStateVariable:
+                "referencesAreFunctionSymbols",
         };
 
         attributes.splitSymbols = {
