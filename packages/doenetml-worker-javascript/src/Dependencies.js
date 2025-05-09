@@ -7139,11 +7139,11 @@ class RefResolutionDependency extends Dependency {
             const refComponent = this.dependencyHandler._components[nodeIdx];
 
             if (!refComponent) {
-                this.addBlockerUpdateTriggerForMissingComponent(nodeIdx);
+                this.addUpdateTriggerForMissingComponent(nodeIdx);
                 this.missingComponentBlockers.push(nodeIdx);
 
                 return {
-                    success: false,
+                    success: true,
                     downstreamComponentIndices: [],
                     downstreamComponentTypes: [],
                 };

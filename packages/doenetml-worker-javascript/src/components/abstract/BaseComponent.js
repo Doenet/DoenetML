@@ -1253,6 +1253,19 @@ export default class BaseComponent {
                         component: res.serializedComponent,
                     };
                 }
+            } else if (attribute.references) {
+                const references = [];
+
+                for (const refComp of attribute.references) {
+                    const res = await refComp.serialize(
+                        nComponents,
+                        parametersForChildren,
+                    );
+                    nComponents = res.nComponents;
+                    references.push(res.serializedComponent);
+                }
+
+                serializedComponent.attributes[attrName] = { references };
             } else {
                 // copy others if copy all or not set to be ignored
                 if (

@@ -93,11 +93,21 @@ export default class NumberComponent extends InlineComponent {
             replacementFunction: ({
                 matchedChildren,
                 componentAttributes,
+                nComponents,
             }) => ({
                 success: !componentAttributes.convertBoolean,
                 newChildren: [
-                    { componentType: "math", children: matchedChildren },
+                    {
+                        type: "serialized",
+                        componentType: "math",
+                        componentIdx: nComponents++,
+                        children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
+                    },
                 ],
+                nComponents,
             }),
         });
 

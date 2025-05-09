@@ -37,7 +37,7 @@ export function convertToErrorComponent(
             nameAttribute = component.attributes.name;
         } else {
             if (
-                component.attributes.name.children.length === 1 &&
+                component.attributes.name.children?.length === 1 &&
                 typeof component.attributes.name.children[0] === "string"
             ) {
                 nameAttribute = {

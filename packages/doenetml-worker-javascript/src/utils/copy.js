@@ -281,61 +281,21 @@ export async function verifyReplacementsMatchSpecifiedType({
                 .filter((x) => x.componentType || x.trim().length > 0)
                 .map((x) => x.componentType);
         }
-    } else {
-        replacementTypes = component.replacements.map((x) => x.componentType);
 
-        // apply any replacement changes to replacementTypes and replacementsToWithhold
-        for (let change of replacementChanges) {
-            if (change.changeType === "add") {
-                if (change.replacementsToWithhold !== undefined) {
-                    replacementsToWithhold = change.replacementsToWithhold;
-                }
-
-                if (!change.changeTopLevelReplacements) {
-                    continue;
-                }
-
-                if (change.serializedReplacements) {
-                    let numberToDelete = change.numberReplacementsToReplace;
-                    if (!(numberToDelete > 0)) {
-                        numberToDelete = 0;
-                    }
-
-                    let firstIndex = change.firstReplacementInd;
-
-                    let newTypes = change.serializedReplacements.map(
-                        (x) => x.componentType,
-                    );
-
-                    replacementTypes.splice(
-                        firstIndex,
-                        numberToDelete,
-                        ...newTypes,
-                    );
-                }
-            } else if (change.changeType === "delete") {
-                if (change.replacementsToWithhold !== undefined) {
-                    replacementsToWithhold = change.replacementsToWithhold;
-                }
-
-                if (change.changeTopLevelReplacements) {
-                    let firstIndex = change.firstReplacementInd;
-                    let numberToDelete = change.numberReplacementsToDelete;
-                    replacementTypes.splice(firstIndex, numberToDelete);
-                }
-            } else if (change.changeType === "changeReplacementsToWithhold") {
-                if (change.replacementsToWithhold !== undefined) {
-                    replacementsToWithhold = change.replacementsToWithhold;
-                }
-            }
+        if (replacementsToWithhold > 0) {
+            replacementTypes = replacementTypes.slice(
+                0,
+                replacementTypes.length - replacementsToWithhold,
+            );
         }
-    }
-
-    if (replacementsToWithhold > 0) {
-        replacementTypes = replacementTypes.slice(
-            0,
-            replacementTypes.length - replacementsToWithhold,
+    } else {
+        const res = calculateReplacementTypesFromChanges(
+            component,
+            replacementChanges,
         );
+
+        replacementTypes = res.replacementTypes;
+        replacementsToWithhold = res.replacementsToWithhold;
     }
 
     if (
@@ -609,6 +569,68 @@ export async function verifyReplacementsMatchSpecifiedType({
     }
 
     return { replacements, replacementChanges, errors, warnings, nComponents };
+}
+
+export function calculateReplacementTypesFromChanges(
+    component,
+    replacementChanges,
+) {
+    let replacementsToWithhold = component.replacementsToWithhold;
+    const replacementTypes = component.replacements.map((x) => x.componentType);
+
+    // apply any replacement changes to replacementTypes and replacementsToWithhold
+    for (const change of replacementChanges) {
+        if (change.changeType === "add") {
+            if (change.replacementsToWithhold !== undefined) {
+                replacementsToWithhold = change.replacementsToWithhold;
+            }
+
+            if (!change.changeTopLevelReplacements) {
+                continue;
+            }
+
+            if (change.serializedReplacements) {
+                let numberToDelete = change.numberReplacementsToReplace;
+                if (!(numberToDelete > 0)) {
+                    numberToDelete = 0;
+                }
+
+                const firstIndex = change.firstReplacementInd;
+
+                const newTypes = change.serializedReplacements.map(
+                    (x) => x.componentType,
+                );
+
+                replacementTypes.splice(
+                    firstIndex,
+                    numberToDelete,
+                    ...newTypes,
+                );
+            }
+        } else if (change.changeType === "delete") {
+            if (change.replacementsToWithhold !== undefined) {
+                replacementsToWithhold = change.replacementsToWithhold;
+            }
+
+            if (change.changeTopLevelReplacements) {
+                const firstIndex = change.firstReplacementInd;
+                const numberToDelete = change.numberReplacementsToDelete;
+                replacementTypes.splice(firstIndex, numberToDelete);
+            }
+        } else if (change.changeType === "changeReplacementsToWithhold") {
+            if (change.replacementsToWithhold !== undefined) {
+                replacementsToWithhold = change.replacementsToWithhold;
+            }
+        }
+    }
+
+    if (replacementsToWithhold > 0) {
+        replacementTypes = replacementTypes.slice(
+            0,
+            replacementTypes.length - replacementsToWithhold,
+        );
+    }
+    return { replacementTypes, replacementsToWithhold };
 }
 
 export function renameAutonameBasedOnNewCounts(

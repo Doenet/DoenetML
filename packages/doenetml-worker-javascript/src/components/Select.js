@@ -4,10 +4,6 @@ import {
     enumerateSelectionCombinations,
     enumerateCombinations,
 } from "@doenet/utils";
-import {
-    processAssignNames,
-    markToCreateAllUniqueNames,
-} from "../utils/naming";
 import { gatherVariantComponents } from "../utils/variants";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 
@@ -15,8 +11,6 @@ export default class Select extends CompositeComponent {
     static componentType = "select";
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
-
-    static assignNamesToReplacements = true;
 
     static createsVariants = true;
 
@@ -68,6 +62,7 @@ export default class Select extends CompositeComponent {
             matchedChildren,
             componentAttributes,
             componentInfoObjects,
+            nComponents,
         }) {
             // only if all children are strings or macros
             if (
@@ -105,25 +100,27 @@ export default class Select extends CompositeComponent {
             let result = groupIntoComponentTypesSeparatedBySpaces({
                 matchedChildren,
                 componentInfoObjects,
+                nComponents,
             });
 
             if (result.success) {
-                let newChildren = result.newChildren.map((child) => ({
-                    componentType: "option",
-                    children: [child],
-                }));
+                nComponents = result.nComponents;
 
-                let newAttributes = {
-                    addLevelToAssignNames: {
-                        primitive: true,
-                    },
-                };
+                let newChildren = result.newChildren.map((child) => ({
+                    type: "serialized",
+                    componentType: "option",
+                    componentIdx: nComponents++,
+                    children: [child],
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                }));
 
                 return {
                     success: true,
                     newChildren,
-                    newAttributes,
                     warnings,
+                    nComponents,
                 };
             } else {
                 return { success: false, warnings };
@@ -641,6 +638,7 @@ export default class Select extends CompositeComponent {
         component,
         components,
         componentInfoObjects,
+        nComponents,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
@@ -655,12 +653,18 @@ export default class Select extends CompositeComponent {
             return {
                 replacements: [
                     {
+                        type: "serialized",
                         componentType: "_error",
+                        componentIdx: nComponents++,
                         state: { message: errorMessage },
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
                     },
                 ],
                 errors,
                 warnings,
+                nComponents,
             };
         }
 
@@ -678,8 +682,11 @@ export default class Select extends CompositeComponent {
                 await selectedChild.stateValues.serializedChildren,
             );
             let serializedChild = {
+                type: "serialized",
                 componentType: "option",
+                componentIdx: nComponents++,
                 state: { rendered: true },
+                attributes: {},
                 doenetAttributes: Object.assign(
                     {},
                     selectedChild.doenetAttributes,
@@ -717,43 +724,11 @@ export default class Select extends CompositeComponent {
             }
         }
 
-        let assignNames = component.doenetAttributes.assignNames;
-
-        if (
-            assignNames &&
-            (await component.stateValues.addLevelToAssignNames)
-        ) {
-            assignNames = assignNames.map((x) => [x]);
-        }
-
-        // XXX: do we delete this? It used to be here only if didn't have a new namespace
-        for (let rep of replacements) {
-            if (rep.children) {
-                markToCreateAllUniqueNames(rep.children);
-            }
-        }
-
-        let newReplacements = [];
-
-        for (let [ind, rep] of replacements.entries()) {
-            let processResult = processAssignNames({
-                assignNames,
-                serializedComponents: [rep],
-                parentIdx: component.componentIdx,
-                componentInfoObjects,
-                indOffset: ind,
-            });
-            errors.push(...processResult.errors);
-            warnings.push(...processResult.warnings);
-
-            newReplacements.push(processResult.serializedComponents[0]);
-        }
-
-        return { replacements: newReplacements, errors, warnings };
+        return { replacements, errors, warnings, nComponents };
     }
 
     static calculateReplacementChanges() {
-        return [];
+        return { replacementChanges: [] };
     }
 
     static determineNumberOfUniqueVariants({

@@ -11,7 +11,7 @@ export default class Sources extends BaseComponent {
         let attributes = super.createAttributesObject();
         attributes.alias = {
             createPrimitiveOfType: "string",
-            validatePrimitives: function (value) {
+            validatePrimitives: function ({ value }) {
                 if (!/[a-zA-Z_]/.test(value.substring(0, 1))) {
                     throw Error(
                         "All aliases must begin with a letter or an underscore",
@@ -28,7 +28,7 @@ export default class Sources extends BaseComponent {
 
         attributes.indexAlias = {
             createPrimitiveOfType: "string",
-            validatePrimitives: function (value) {
+            validatePrimitives: function ({ value }) {
                 if (!/[a-zA-Z_]/.test(value.substring(0, 1))) {
                     throw Error(
                         "All index aliases must begin with a letter or an underscore",

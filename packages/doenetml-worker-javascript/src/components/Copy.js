@@ -3,6 +3,7 @@ import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
     restrictTNamesToNamespace,
+    calculateReplacementTypesFromChanges,
 } from "../utils/copy";
 import {
     flattenDeep,
@@ -502,6 +503,8 @@ export default class Copy extends CompositeComponent {
                                 compositeIdx:
                                     stateValues.extendedComponent.componentIdx,
                                 recursive: true,
+                                recurseNonStandardComposites:
+                                    stateValues.unresolvedPath != null,
                             };
                         }
                     }
@@ -1706,6 +1709,7 @@ export default class Copy extends CompositeComponent {
             serializedReplacements = [res.serializedComponent];
             nComponents = res.nComponents;
         } catch (e) {
+            console.error("we're calling this circular", e);
             let message = "Circular dependency detected";
             if (component.attributes.createComponentOfType?.primitive) {
                 message += ` involving <${component.attributes.createComponentOfType.primitive.value}> component`;
@@ -1713,8 +1717,13 @@ export default class Copy extends CompositeComponent {
             message += ".";
             serializedReplacements = [
                 {
+                    type: "serialized",
                     componentType: "_error",
+                    componentIdx: nComponents++,
                     state: { message },
+                    attributes: {},
+                    doenetAttributes: {},
+                    children: [],
                 },
             ];
             errors.push({
@@ -2403,6 +2412,7 @@ export default class Copy extends CompositeComponent {
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
         nComponents = verificationResult.nComponents;
+        replacementChanges = verificationResult.replacementChanges;
 
         // Note: this has to run after verify,
         // as verify has side effects of setting workspace variables,
@@ -2414,10 +2424,56 @@ export default class Copy extends CompositeComponent {
             return { replacementChanges: [] };
         }
 
-        // console.log("replacementChanges");
-        // console.log(verificationResult.replacementChanges);
+        // If, after changes, we have a single component that has a componentName and componentIdx
+        // given by the Copy, then assign those to the replacement
+        // We have dealt just with the special case that we arrive at one replacement with a single "add" change.
+        // We could generalize if we need to.
+        const { replacementTypes, replacementsToWithhold } =
+            calculateReplacementTypesFromChanges(component, replacementChanges);
+        if (
+            !wrapWithExtract &&
+            replacementTypes.length === 1 &&
+            !(replacementsToWithhold > 0)
+        ) {
+            if (
+                replacementChanges.length === 1 &&
+                replacementChanges[0].changeType === "add" &&
+                replacementChanges[0].serializedReplacements.length === 1
+            ) {
+                const theNewReplacement =
+                    replacementChanges[0].serializedReplacements[0];
 
-        return { replacementChanges: verificationResult.replacementChanges };
+                if (
+                    component.attributes.createComponentName?.primitive.value !=
+                    undefined
+                ) {
+                    theNewReplacement.attributes.name = {
+                        type: "primitive",
+                        name: "name",
+                        primitive: {
+                            type: "string",
+                            value: component.attributes.createComponentName
+                                .primitive.value,
+                        },
+                    };
+                }
+                if (
+                    component.attributes.createComponentIdx?.primitive.value !=
+                    undefined
+                ) {
+                    theNewReplacement.componentIdx =
+                        component.attributes.createComponentIdx.primitive.value;
+                }
+            }
+        }
+
+        // console.log("replacementChanges");
+        // console.log(replacementChanges);
+
+        return {
+            replacementChanges,
+            nComponents,
+        };
     }
 
     static async recreateReplacements({
@@ -2800,7 +2856,13 @@ export async function replacementFromProp({
 
                                 if (attributeComponentType) {
                                     let shadowComponent = {
+                                        type: "serialized",
                                         componentType: attributeComponentType,
+                                        componentIdx: nComponents++,
+                                        attributes: {},
+                                        doenetAttributes: {},
+                                        state: {},
+                                        children: [],
                                         downstreamDependencies: {
                                             [target.componentIdx]: [
                                                 {
@@ -3136,8 +3198,14 @@ export async function replacementFromProp({
 
                                     if (attributeComponentType) {
                                         let shadowComponent = {
+                                            type: "serialized",
                                             componentType:
                                                 attributeComponentType,
+                                            componentIdx: nComponents++,
+                                            attributes: {},
+                                            doenetAttributes: {},
+                                            state: {},
+                                            children: [],
                                             downstreamDependencies: {
                                                 [target.componentIdx]: [
                                                     {
@@ -3431,8 +3499,14 @@ export async function replacementFromProp({
 
                                     if (attributeComponentType) {
                                         let shadowComponent = {
+                                            type: "serialized",
                                             componentType:
                                                 attributeComponentType,
+                                            componentIdx: nComponents++,
+                                            attributes: {},
+                                            doenetAttributes: {},
+                                            state: {},
+                                            children: [],
                                             downstreamDependencies: {
                                                 [target.componentIdx]: [
                                                     {
@@ -3705,8 +3779,13 @@ export async function replacementFromProp({
 
                         if (attributeComponentType) {
                             let shadowComponent = {
+                                type: "serialized",
                                 componentType: attributeComponentType,
                                 componentIdx: nComponents++,
+                                attributes: {},
+                                doenetAttributes: {},
+                                state: {},
+                                children: [],
                                 downstreamDependencies: {
                                     [target.componentIdx]: [
                                         {

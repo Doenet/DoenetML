@@ -2605,6 +2605,8 @@ export default class Core {
 
         let nComponents = this._components.length;
 
+        // XXX: it's not clear that this is the right choice.
+        // Another option is to see if the resolver name map as the componentIdx
         const haveSingleIndexedReplacement =
             serializedReplacements.length === 1 &&
             serializedReplacements[0].componentIdx < nComponents;
@@ -2627,11 +2629,7 @@ export default class Core {
 
         const flatFragment = {
             children: fragmentChildren
-                .filter(
-                    (child) =>
-                        typeof child === "string" ||
-                        child.componentIdx >= nComponents,
-                )
+                .filter((child) => typeof child === "string")
                 .map((child) =>
                     typeof child === "string" ? child : child.componentIdx,
                 ),
@@ -2813,7 +2811,7 @@ export default class Core {
 
         for (let repl of shadowedComposite.replacements) {
             if (typeof repl === "object") {
-                const res = await repl.serialize(nComponents, {
+                const res = await repl.serialize(newNComponents, {
                     primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                 });
                 newNComponents = res.nComponents;
@@ -9342,7 +9340,9 @@ export default class Core {
             );
         }
 
-        this.removeComponentsFromResolver(componentsToDelete);
+        // TODO: skipping removing components from resolver as it was removing too much,
+        // e.g., removing outside references that wouldn't be replaced if the component is recreated.
+        // this.removeComponentsFromResolver(componentsToDelete);
 
         return {
             success: true,
@@ -9351,6 +9351,7 @@ export default class Core {
         };
     }
 
+    // TODO: not currently being called, as we are skipping the call, above.
     removeComponentsFromResolver(componentsToDelete) {
         // console.log("remove components from resolver", componentsToDelete);
 

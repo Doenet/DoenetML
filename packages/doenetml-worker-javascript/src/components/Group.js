@@ -2,7 +2,6 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { deepClone } from "@doenet/utils";
 import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import { processAssignNames } from "../utils/naming";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Group extends CompositeComponent {
     static componentType = "group";
@@ -12,8 +11,6 @@ export default class Group extends CompositeComponent {
     static treatAsComponentForRecursiveReplacements = true;
     static includeBlankStringChildren = true;
     static renderedDefault = true;
-
-    static assignNamesToReplacements = true;
 
     static createsVariants = true;
 
@@ -213,6 +210,7 @@ export default class Group extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         components,
+        nComponents,
         componentInfoObjects,
 
         publicCaseInsensitiveAliasSubstitutions,
@@ -224,7 +222,7 @@ export default class Group extends CompositeComponent {
         await component.stateValues.numComponentsSpecified;
 
         if (!(await component.stateValues.rendered)) {
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         } else {
             let replacements = deepClone(
                 await component.state.serializedChildren.value,
@@ -238,14 +236,17 @@ export default class Group extends CompositeComponent {
                         continue;
                     }
 
-                    let attributesFromComposite =
-                        convertUnresolvedAttributesForComponentType({
-                            attributes: {
-                                isResponse: component.attributes.isResponse,
-                            },
-                            componentType: repl.componentType,
-                            componentInfoObjects,
-                        });
+                    const res = convertUnresolvedAttributesForComponentType({
+                        attributes: {
+                            isResponse: component.attributes.isResponse,
+                        },
+                        componentType: repl.componentType,
+                        componentInfoObjects,
+                        nComponents,
+                    });
+
+                    nComponents = res.nComponents;
+                    const attributesFromComposite = res.attributes;
                     if (!repl.attributes) {
                         repl.attributes = {};
                     }
@@ -254,33 +255,10 @@ export default class Group extends CompositeComponent {
                 }
             }
 
-            // TODO: usual procedure is that original names are consistent
-            // if have new namespace
-            // In addition, we make them consistent if don't assignNames
-            // so that a group
-            // gets expanded with the original names.
-
-            // However, at some point, got duplicate names if copying without link,
-            // but can't reproduce that error now
-            // Adding condition for not being replacement fixed the duplicate name
-            // error but broke above requirements
-            // Find a solution when can reproduce that duplicate name error
-
-            let processResult = processAssignNames({
-                assignNames: component.doenetAttributes.assignNames,
-                serializedComponents: replacements,
-                parentIdx: component.componentIdx,
-                componentInfoObjects,
-                originalNamesAreConsistent: true,
-            });
-            errors.push(...processResult.errors);
-            warnings.push(...processResult.warnings);
-
             let verificationResult = await verifyReplacementsMatchSpecifiedType(
                 {
                     component,
-                    replacements: processResult.serializedComponents,
-                    assignNames: component.doenetAttributes.assignNames,
+                    replacements,
                     componentInfoObjects,
                     compositeAttributesObj: this.createAttributesObject(),
 
@@ -288,6 +266,7 @@ export default class Group extends CompositeComponent {
                     publicCaseInsensitiveAliasSubstitutions,
                 },
             );
+            nComponents = verificationResult.nComponents;
             errors.push(...verificationResult.errors);
             warnings.push(...verificationResult.warnings);
 
@@ -298,6 +277,7 @@ export default class Group extends CompositeComponent {
                 replacements: verificationResult.replacements,
                 errors,
                 warnings,
+                nComponents,
             };
         }
     }
@@ -305,6 +285,7 @@ export default class Group extends CompositeComponent {
     static async calculateReplacementChanges({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -320,9 +301,9 @@ export default class Group extends CompositeComponent {
                     changeType: "changeReplacementsToWithhold",
                     replacementsToWithhold,
                 };
-                return [replacementInstruction];
+                return { replacementChanges: [replacementInstruction] };
             } else {
-                return [];
+                return { replacementChanges: [] };
             }
         } else {
             if (component.replacements.length > 0) {
@@ -331,19 +312,21 @@ export default class Group extends CompositeComponent {
                         changeType: "changeReplacementsToWithhold",
                         replacementsToWithhold: 0,
                     };
-                    return [replacementInstruction];
+                    return { replacementChanges: [replacementInstruction] };
                 } else {
-                    return [];
+                    return { replacementChanges: [] };
                 }
             } else {
                 let createResult = await this.createSerializedReplacements({
                     component,
                     componentInfoObjects,
+                    nComponents,
                 });
 
                 let replacements = createResult.replacements;
                 errors.push(...createResult.errors);
                 warnings.push(...createResult.warnings);
+                nComponents = createResult.nComponents;
 
                 let replacementInstruction = {
                     changeType: "add",
@@ -354,7 +337,10 @@ export default class Group extends CompositeComponent {
                     replacementsToWithhold: 0,
                 };
 
-                return [replacementInstruction];
+                return {
+                    replacementChanges: [replacementInstruction],
+                    nComponents,
+                };
             }
         }
     }

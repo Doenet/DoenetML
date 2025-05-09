@@ -133,13 +133,18 @@ export async function createTestCore({
                 .map((nm) => ({ type: "flatPathPart", name: nm, index: [] })),
         };
 
-        const resolution = PublicDoenetMLCoreRust.resolve_path(
-            core.getResolver(),
-            path,
-            origin,
-            false,
-        );
-        return resolution.nodeIdx;
+        try {
+            const resolution = PublicDoenetMLCoreRust.resolve_path(
+                core.getResolver(),
+                path,
+                origin,
+                false,
+            );
+            return resolution.nodeIdx;
+        } catch (e) {
+            console.log("error when resolving", { path, origin });
+            throw e;
+        }
     }
 
     return { core, rustCore, resolveComponentName };

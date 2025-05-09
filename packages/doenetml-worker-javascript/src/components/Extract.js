@@ -333,7 +333,7 @@ export default class Extract extends CompositeComponent {
         nComponents = verificationResult.nComponents;
         replacements = verificationResult.replacements;
 
-        if (replacements.length === 1) {
+        if (replacements.length === 1 && !wrapWithExtract) {
             if (
                 component.attributes.createComponentName?.primitive.value !=
                 undefined
@@ -734,11 +734,56 @@ export default class Extract extends CompositeComponent {
         errors.push(...verificationResult.errors);
         warnings.push(...verificationResult.warnings);
         nComponents = verificationResult.nComponents;
+        replacementChanges = verificationResult.replacementChanges;
+
+        // If, after changes, we have a single component that has a componentName and componentIdx
+        // given by the Copy, then assign those to the replacement
+        // We have dealt just with the special case that we arrive at one replacement with a single "add" change.
+        // We could generalize if we need to.
+
+        const { replacementTypes, replacementsToWithhold } =
+            calculateReplacementTypesFromChanges(component, replacementChanges);
+        if (
+            !wrapWithExtract &&
+            replacementTypes.length === 1 &&
+            !(replacementsToWithhold > 0)
+        ) {
+            if (
+                replacementChanges.length === 1 &&
+                replacementChanges[0].changeType === "add" &&
+                replacementChanges[0].serializedReplacements.length === 1
+            ) {
+                const theNewReplacement =
+                    replacementChanges[0].serializedReplacements[0];
+
+                if (
+                    component.attributes.createComponentName?.primitive.value !=
+                    undefined
+                ) {
+                    theNewReplacement.attributes.name = {
+                        type: "primitive",
+                        name: "name",
+                        primitive: {
+                            type: "string",
+                            value: component.attributes.createComponentName
+                                .primitive.value,
+                        },
+                    };
+                }
+                if (
+                    component.attributes.createComponentIdx?.primitive.value !=
+                    undefined
+                ) {
+                    theNewReplacement.componentIdx =
+                        component.attributes.createComponentIdx.primitive.value;
+                }
+            }
+        }
 
         // console.log("replacementChanges");
-        // console.log(verificationResult.replacementChanges);
+        // console.log(replacementChanges);
 
-        return { replacementChanges: verificationResult.replacementChanges };
+        return { replacementChanges, nComponents };
     }
 
     static async recreateReplacements({

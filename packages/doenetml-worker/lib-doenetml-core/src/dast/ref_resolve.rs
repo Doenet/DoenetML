@@ -84,10 +84,7 @@ impl Resolver {
     /// - `flat_subtree`: a `FlatRoot` containing the new descendants added to `"p2"`.
     pub fn add_nodes(&mut self, flat_fragment: &FlatFragment) {
         let num_prev_nodes = self.node_parent.len();
-        let min_idx = flat_fragment.min_idx();
-        if min_idx < num_prev_nodes {
-            panic!("Cannot add nodes to resolver if min_idx of fragment is less than the number of previous nodes")
-        }
+        let new_len = flat_fragment.len();
 
         let parent_idx = flat_fragment
             .parent_idx
@@ -95,17 +92,18 @@ impl Resolver {
 
         // placeholder for missing nodes
         self.node_parent
-            .extend(iter::repeat_n(None, min_idx - num_prev_nodes));
+            .extend(iter::repeat_n(None, new_len - num_prev_nodes));
 
         // Add parents for new nodes/
         // If the parent index is 0 (i.e., that placeholder node), set the parent to be `parent_idx`,
         // else add `start_indexing_at-1` to each node
-        self.node_parent
-            .extend(flat_fragment.nodes.iter().map(|node| node.parent()));
+        for node in flat_fragment.nodes.iter() {
+            self.node_parent[node.idx()] = node.parent();
+        }
 
         // add placeholders for missing nodes as well as new nodes to be added
         self.name_map
-            .extend(iter::repeat_with(HashMap::new).take(flat_fragment.len() - num_prev_nodes));
+            .extend(iter::repeat_with(HashMap::new).take(new_len - num_prev_nodes));
 
         let mut subtree_name_map =
             Self::build_name_map(&FlatRootOrFragment::Fragment(flat_fragment));
@@ -124,7 +122,8 @@ impl Resolver {
             parent_map.insert(key, ref_);
         }
 
-        // add new items to name_map
+        // Add new items to `name_map`.
+        // If a node was already in the `name_map`, its value is replaced.
         for node in flat_fragment.nodes.iter() {
             let names = mem::take(&mut subtree_name_map[node.idx()]);
             for (key, ref_) in names.into_iter() {
