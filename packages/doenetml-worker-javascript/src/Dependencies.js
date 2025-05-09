@@ -3612,18 +3612,7 @@ class Dependency {
      * this dependency when the component is created.
      */
     async addBlockerUpdateTriggerForMissingComponent(componentIdx) {
-        const dependenciesMissingComponent =
-            this.dependencyHandler.updateTriggers
-                .dependenciesMissingComponentBySpecifiedName[componentIdx];
-        if (!dependenciesMissingComponent) {
-            dependenciesMissingComponent =
-                this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
-                    componentIdx
-                ] = [];
-        }
-        if (!dependenciesMissingComponent.includes(this)) {
-            dependenciesMissingComponent.push(this);
-        }
+        this.addUpdateTriggerForMissingComponent(componentIdx);
 
         for (const varName of this.upstreamVariableNames) {
             await this.dependencyHandler.addBlocker({
@@ -3644,6 +3633,25 @@ class Dependency {
                 typeBlocked: "stateVariable",
                 stateVariableBlocked: varName,
             });
+        }
+    }
+
+    /**
+     * Add update triggers to the component with `componentIdx`
+     * that will update this dependency when the component is created.
+     */
+    async addUpdateTriggerForMissingComponent(componentIdx) {
+        let dependenciesMissingComponent =
+            this.dependencyHandler.updateTriggers
+                .dependenciesMissingComponentBySpecifiedName[componentIdx];
+        if (!dependenciesMissingComponent) {
+            dependenciesMissingComponent =
+                this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
+                    componentIdx
+                ] = [];
+        }
+        if (!dependenciesMissingComponent.includes(this)) {
+            dependenciesMissingComponent.push(this);
         }
     }
 
@@ -7277,11 +7285,11 @@ class RefResolutionDependency extends Dependency {
             this.dependencyHandler._components[this.extendIdx];
 
         if (!extendedComponent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.extendIdx);
+            this.addUpdateTriggerForMissingComponent(this.extendIdx);
             this.missingComponentBlockers.push(this.extendIdx);
 
             return {
-                success: false,
+                success: true,
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };

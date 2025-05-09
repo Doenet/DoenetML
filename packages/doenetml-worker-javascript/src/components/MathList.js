@@ -572,28 +572,28 @@ export default class MathList extends CompositeComponent {
             }
         }
 
-        // allow one to override the fixed and isResponse attributes
-        // as well as rounding settings
-        // by specifying it on the mathList
-        let attributesFromComposite = {};
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            const res = convertUnresolvedAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "math",
-                componentInfoObjects,
-                nComponents,
-            });
-
-            attributesFromComposite = res.attributes;
-            nComponents = res.nComponents;
-        }
-
         let childInfoByComponent =
             await component.stateValues.childInfoByComponent;
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
+            // allow one to override the fixed and isResponse attributes
+            // as well as rounding settings
+            // by specifying it on the mathList
+            let attributesFromComposite = {};
+
+            if (Object.keys(attributesToConvert).length > 0) {
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "math",
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
+
             let childInfo = childInfoByComponent[i];
             if (childInfo) {
                 let replacementSource = components[childInfo.childIdx];
@@ -612,7 +612,7 @@ export default class MathList extends CompositeComponent {
                 type: "serialized",
                 componentType: "math",
                 componentIdx: nComponents++,
-                attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                attributes: attributesFromComposite,
                 doenetAttributes: {},
                 children: [],
                 downstreamDependencies: {

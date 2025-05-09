@@ -451,7 +451,7 @@ describe("MathList tag tests", async () => {
 
             await updateMathInputValue({
                 latex: val,
-                componentIdx: `/mi${mathInd + 1}`,
+                componentIdx: resolveComponentName(`mi${mathInd + 1}`),
                 core,
             });
             unique_values[uniqueInd] = val;
@@ -1267,12 +1267,15 @@ describe("MathList tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pDefault"].stateValues.text).eq(
-            "1 E - 12, 3 E2",
+        expect(
+            stateVariables[resolveComponentName("pDefault")].stateValues.text,
+        ).eq("1 E - 12, 3 E2");
+        expect(stateVariables[resolveComponentName("pP")].stateValues.text).eq(
+            "1 * 10⁻¹², 300",
         );
-        expect(stateVariables["/pP"].stateValues.text).eq("1 * 10⁻¹², 300");
     });
 
+    // TODO: fix the link="false" cases
     it("mathList and rounding, from strings", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
@@ -1283,19 +1286,19 @@ describe("MathList tag tests", async () => {
     <p name="p5"><mathList name="ml5" displayDecimals="4" displayDigits="3" displaySmallAsZero="false">2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</mathList></p>
     <p name="p6"><mathList name="ml6" displayDecimals="4" displayDigits="3" displaySmallAsZero="false" padZeros>2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</mathList></p>
 
-    <p name="p1a"><mathList name="ml1a" copySource="ml1" /></p>
-    <p name="p2a"><mathList name="ml2a" copySource="ml2" /></p>
-    <p name="p3a"><mathList name="ml3a" copySource="ml3" /></p>
-    <p name="p4a"><mathList name="ml4a" copySource="ml4" /></p>
-    <p name="p5a"><mathList name="ml5a" copySource="ml5" /></p>
-    <p name="p6a"><mathList name="ml6a" copySource="ml6" /></p>
+    <p name="p1a"><mathList name="ml1a" extend="$ml1" /></p>
+    <p name="p2a"><mathList name="ml2a" extend="$ml2" /></p>
+    <p name="p3a"><mathList name="ml3a" extend="$ml3" /></p>
+    <p name="p4a"><mathList name="ml4a" extend="$ml4" /></p>
+    <p name="p5a"><mathList name="ml5a" extend="$ml5" /></p>
+    <p name="p6a"><mathList name="ml6a" extend="$ml6" /></p>
 
-    <p name="p1b"><mathList name="ml1b" copySource="ml1" link="false" /></p>
-    <p name="p2b"><mathList name="ml2b" copySource="ml2" link="false" /></p>
-    <p name="p3b"><mathList name="ml3b" copySource="ml3" link="false" /></p>
-    <p name="p4b"><mathList name="ml4b" copySource="ml4" link="false" /></p>
-    <p name="p5b"><mathList name="ml5b" copySource="ml5" link="false" /></p>
-    <p name="p6b"><mathList name="ml6b" copySource="ml6" link="false" /></p>
+    <p name="p1b"><mathList name="ml1b" extend="$ml1" link="false" /></p>
+    <p name="p2b"><mathList name="ml2b" extend="$ml2" link="false" /></p>
+    <p name="p3b"><mathList name="ml3b" extend="$ml3" link="false" /></p>
+    <p name="p4b"><mathList name="ml4b" extend="$ml4" link="false" /></p>
+    <p name="p5b"><mathList name="ml5b" extend="$ml5" link="false" /></p>
+    <p name="p6b"><mathList name="ml6b" extend="$ml6" link="false" /></p>
 
 
     `,
@@ -1330,49 +1333,49 @@ describe("MathList tag tests", async () => {
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml1${post}`,
+                name: `ml1${post}`,
                 maths: vals,
-                pName: `/p1${post}`,
+                pName: `p1${post}`,
                 text: text1,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml2${post}`,
+                name: `ml2${post}`,
                 maths: vals,
-                pName: `/p2${post}`,
+                pName: `p2${post}`,
                 text: text2,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml3${post}`,
+                name: `ml3${post}`,
                 maths: vals,
-                pName: `/p3${post}`,
+                pName: `p3${post}`,
                 text: text3,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml4${post}`,
+                name: `ml4${post}`,
                 maths: vals,
-                pName: `/p4${post}`,
+                pName: `p4${post}`,
                 text: text4,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml5${post}`,
+                name: `ml5${post}`,
                 maths: vals,
-                pName: `/p5${post}`,
+                pName: `p5${post}`,
                 text: text5,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml6${post}`,
+                name: `ml6${post}`,
                 maths: vals,
-                pName: `/p6${post}`,
+                pName: `p6${post}`,
                 text: text6,
             });
         }
@@ -1487,49 +1490,49 @@ describe("MathList tag tests", async () => {
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml1${post}`,
+                name: `ml1${post}`,
                 maths: vals,
-                pName: `/p1${post}`,
+                pName: `p1${post}`,
                 text: text1,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml2${post}`,
+                name: `ml2${post}`,
                 maths: vals,
-                pName: `/p2${post}`,
+                pName: `p2${post}`,
                 text: text2,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml3${post}`,
+                name: `ml3${post}`,
                 maths: vals,
-                pName: `/p3${post}`,
+                pName: `p3${post}`,
                 text: text3,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml4${post}`,
+                name: `ml4${post}`,
                 maths: vals,
-                pName: `/p4${post}`,
+                pName: `p4${post}`,
                 text: text4,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml5${post}`,
+                name: `ml5${post}`,
                 maths: vals,
-                pName: `/p5${post}`,
+                pName: `p5${post}`,
                 text: text5,
             });
             await test_mathList({
                 resolveComponentName,
                 core,
-                name: `/ml6${post}`,
+                name: `ml6${post}`,
                 maths: vals,
-                pName: `/p6${post}`,
+                pName: `p6${post}`,
                 text: text6,
             });
         }
@@ -1539,10 +1542,10 @@ describe("MathList tag tests", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><mathList name="ml">34.245023482352345 <math displayDigits="7">0.0023823402358234234</math></mathList></p>
-    <p name="pDig6"><mathList name="mlDig6" copySource="ml" displayDigits="6" /></p>
-    <p name="pDec6"><mathList name="mlDec6" copySource="ml" displayDecimals="6" /></p>
-    <p name="pDig6a"><mathList name="mlDig6a" copySource="mlDec6" displayDigits="6" /></p>
-    <p name="pDec6a"><mathList name="mlDec6a" copySource="mlDig6" displayDecimals="6" /></p>
+    <p name="pDig6"><mathList name="mlDig6" extend="$ml" displayDigits="6" /></p>
+    <p name="pDec6"><mathList name="mlDec6" extend="$ml" displayDecimals="6" /></p>
+    <p name="pDig6a"><mathList name="mlDig6a" extend="$mlDec6" displayDigits="6" /></p>
+    <p name="pDec6a"><mathList name="mlDec6a" extend="$mlDig6" displayDecimals="6" /></p>
     `,
         });
 
@@ -1555,41 +1558,41 @@ describe("MathList tag tests", async () => {
         await test_mathList({
             resolveComponentName,
             core,
-            name: `/ml`,
+            name: `ml`,
             maths: vals,
-            pName: `/p`,
+            pName: `p`,
             text: text,
         });
         await test_mathList({
             resolveComponentName,
             core,
-            name: `/mlDig6`,
+            name: `mlDig6`,
             maths: vals,
-            pName: `/pDig6`,
+            pName: `pDig6`,
             text: textDig6,
         });
         await test_mathList({
             resolveComponentName,
             core,
-            name: `/mlDig6a`,
+            name: `mlDig6a`,
             maths: vals,
-            pName: `/pDig6a`,
+            pName: `pDig6a`,
             text: textDig6,
         });
         await test_mathList({
             resolveComponentName,
             core,
-            name: `/mlDec6`,
+            name: `mlDec6`,
             maths: vals,
-            pName: `/pDec6`,
+            pName: `pDec6`,
             text: textDec6,
         });
         await test_mathList({
             resolveComponentName,
             core,
-            name: `/mlDec6a`,
+            name: `mlDec6a`,
             maths: vals,
-            pName: `/pDec6a`,
+            pName: `pDec6a`,
             text: textDec6,
         });
     });
@@ -1606,13 +1609,12 @@ describe("MathList tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m"].stateValues.value.tree).eqls([
-            "list",
-            "a",
-            "b",
-            "c",
-        ]);
-        expect(stateVariables["/t"].stateValues.value).eq("a, b, c");
+        expect(
+            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+        ).eqls(["list", "a", "b", "c"]);
+        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
+            "a, b, c",
+        );
     });
 
     it("mathList adapts to numberList", async () => {
@@ -1643,7 +1645,9 @@ describe("MathList tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/p2"].stateValues.text).eq(text);
+            expect(
+                stateVariables[resolveComponentName("p2")].stateValues.text,
+            ).eq(text);
         }
 
         let n1 = 9,
@@ -1655,7 +1659,7 @@ describe("MathList tag tests", async () => {
         n2 = 83;
         await updateMathInputValue({
             latex: n2.toString(),
-            componentIdx: "mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
         await test_items(n1, n2, n3);
@@ -1664,7 +1668,7 @@ describe("MathList tag tests", async () => {
         n3 = 2;
         await updateMathInputValue({
             latex: `(${n1}, ${n3})`,
-            componentIdx: "mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
         await test_items(n1, n2, n3);
@@ -1682,10 +1686,12 @@ describe("MathList tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pText"].stateValues.text).eq("Text: x/y, a^b");
-        expect(stateVariables["/pLatex"].stateValues.text).eq(
-            "Latex: \\frac{x}{y}, a^{b}",
-        );
+        expect(
+            stateVariables[resolveComponentName("pText")].stateValues.text,
+        ).eq("Text: x/y, a^b");
+        expect(
+            stateVariables[resolveComponentName("pLatex")].stateValues.text,
+        ).eq("Latex: \\frac{x}{y}, a^{b}");
     });
 
     it("definition and inverse based on shadowed value from a mathList prop", async () => {
@@ -1694,7 +1700,7 @@ describe("MathList tag tests", async () => {
 
     <matchesPattern excludeMatches="a b" name="mp" />
 
-    <p name="p">$mp.excludeMatches{assignNames="ml"}</p>
+    <p name="p"><mathList extend="$mp.excludeMatches" name="ml" /></p>
 
     <mathInput name="mi">$mp.excludeMatches</mathInput>
 
@@ -1718,7 +1724,7 @@ describe("MathList tag tests", async () => {
         x2 = "d";
         await updateMathInputValue({
             latex: `${x1}, ${x2}`,
-            componentIdx: "mi",
+            componentIdx: resolveComponentName("mi"),
             core,
         });
         await test_mathList({

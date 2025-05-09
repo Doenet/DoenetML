@@ -61,12 +61,11 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
                     type: "serialized",
                     componentType,
                     children: pieces,
-                    componentIdx: nComponents,
+                    componentIdx: nComponents++,
                     attributes: {},
                     state: {},
                     doenetAttributes: {},
                 });
-                nComponents++;
             }
 
             pieces = [];

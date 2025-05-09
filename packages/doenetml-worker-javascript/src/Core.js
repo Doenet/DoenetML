@@ -2618,7 +2618,7 @@ export default class Core {
             : component.componentIdx;
 
         const fragmentChildren = haveSingleIndexedReplacement
-            ? serializedReplacements[0].children
+            ? (serializedReplacements[0].children ?? [])
             : serializedReplacements;
 
         // For now, we have addressed the case where there is one replacement,
