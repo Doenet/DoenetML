@@ -23,7 +23,7 @@ export default class Award extends BaseComponent {
             createStateVariable: "credit",
             defaultValue: 1,
             public: true,
-            attributesForCreatedComponent: { convertBoolean: true },
+            attributesForCreatedComponent: { convertBoolean: "true" },
         };
         attributes.matchPartial = {
             createComponentOfType: "boolean",

@@ -451,6 +451,7 @@ export default class Copy extends CompositeComponent {
                 "obtainPropFromComposite",
                 "linkAttrForDetermineDeps",
             ],
+            additionalStateVariablesDefined: ["usedReplacements"],
             returnDependencies: function ({
                 stateValues,
                 componentInfoObjects,
@@ -470,8 +471,8 @@ export default class Copy extends CompositeComponent {
                                 stateValues.extendedComponent.componentType,
                             includeNonStandard: true,
                         }) &&
-                            stateValues.unresolvedPath &&
-                            !stateValues.obtainPropFromComposite)
+                            (!stateValues.unresolvedPath ||
+                                !stateValues.obtainPropFromComposite))
                     ) {
                         // If the target is a copy or extract (no matter what),
                         // then we'll use replacements (if link attribute is not set to false),
@@ -505,6 +506,11 @@ export default class Copy extends CompositeComponent {
                             variableName: "extendedComponent",
                         };
                     }
+
+                    dependencies.usedReplacements = {
+                        dependencyType: "value",
+                        value: useReplacements,
+                    };
                 }
 
                 return dependencies;
@@ -523,6 +529,9 @@ export default class Copy extends CompositeComponent {
                 return {
                     setValue: {
                         replacementSourceIdentities,
+                        usedReplacements: Boolean(
+                            dependencyValues.usedReplacements,
+                        ),
                     },
                 };
             },
@@ -552,6 +561,10 @@ export default class Copy extends CompositeComponent {
                         dependencyType: "stateVariable",
                         variableName: "unresolvedPath",
                     },
+                    usedReplacements: {
+                        dependencyType: "stateVariable",
+                        variableName: "usedReplacements",
+                    },
                 };
 
                 if (!stateValues.unresolvedPath) {
@@ -574,6 +587,7 @@ export default class Copy extends CompositeComponent {
             definition({ dependencyValues, componentInfoObjects }) {
                 if (
                     dependencyValues.unresolvedPath ||
+                    dependencyValues.usedReplacements ||
                     !(dependencyValues.replacementSourceIdentities?.length > 0)
                 ) {
                     return { setValue: { implicitProp: null } };
@@ -584,7 +598,7 @@ export default class Copy extends CompositeComponent {
                 let variableForImplicitProp =
                     componentInfoObjects.allComponentClasses[
                         source.componentType
-                    ].variableForImplicitProp;
+                    ]?.variableForImplicitProp;
 
                 if (!variableForImplicitProp) {
                     return { setValue: { implicitProp: null } };
@@ -1106,7 +1120,7 @@ export default class Copy extends CompositeComponent {
         workspace.numReplacementsBySource = [];
         workspace.numNonStringReplacementsBySource = [];
         workspace.propVariablesCopiedBySource = [];
-        workspace.sourceNames = [];
+        workspace.sourceIndices = [];
         workspace.uniqueIdentifiersUsedBySource = {};
 
         let compositeAttributesObj = this.createAttributesObject();
@@ -1490,7 +1504,7 @@ export default class Copy extends CompositeComponent {
         workspace.numReplacementsBySource = numReplacementsBySource;
         workspace.numNonStringReplacementsBySource =
             numNonStringReplacementsBySource;
-        workspace.sourceNames = replacementSourceIdentities.map(
+        workspace.sourceIndices = replacementSourceIdentities.map(
             (x) => x.componentIdx,
         );
 
@@ -1844,10 +1858,10 @@ export default class Copy extends CompositeComponent {
                     replacementChanges.push(replacementInstruction);
                 }
 
-                let previousZeroSourceNames =
-                    workspace.sourceNames.length === 0;
+                let previousZeroSourceIndices =
+                    workspace.sourceIndices.length === 0;
 
-                workspace.sourceNames = [];
+                workspace.sourceIndices = [];
                 workspace.numReplacementsBySource = [];
                 workspace.numNonStringReplacementsBySource = [];
                 workspace.propVariablesCopiedBySource = [];
@@ -1870,7 +1884,7 @@ export default class Copy extends CompositeComponent {
                 // Note: this has to run after verify,
                 // as verify has side effects of setting workspace variables,
                 // such as numReplacementsBySource
-                if (previousZeroSourceNames) {
+                if (previousZeroSourceIndices) {
                     // didn't have sources before and still don't have sources.
                     // we're just getting filler components being recreated.
                     // Don't actually make those changes
@@ -1997,6 +2011,9 @@ export default class Copy extends CompositeComponent {
             workspace.numReplacementsBySource.length,
         );
 
+        const wrapAsList =
+            workspace.wrapExistingReplacements && workspace.wrapAsList;
+
         let recreateRemaining = false;
 
         for (let sourceNum = 0; sourceNum < maxSourceLength; sourceNum++) {
@@ -2072,12 +2089,12 @@ export default class Copy extends CompositeComponent {
                 continue;
             }
 
-            let prevSourceName = workspace.sourceNames[sourceNum];
+            let prevSourceIdx = workspace.sourceIndices[sourceNum];
 
             // check if replacementSource has changed
             let needToRecreate =
-                prevSourceName === undefined ||
-                replacementSource.componentIdx !== prevSourceName ||
+                prevSourceIdx === undefined ||
+                replacementSource.componentIdx !== prevSourceIdx ||
                 recreateRemaining;
 
             if (!needToRecreate) {
@@ -2087,8 +2104,12 @@ export default class Copy extends CompositeComponent {
                     ind < workspace.numReplacementsBySource[sourceNum];
                     ind++
                 ) {
-                    let currentReplacement =
-                        component.replacements[numReplacementsSoFar + ind];
+                    let currentReplacement = wrapAsList
+                        ? component.replacements[0]?.definingChildren[
+                              numReplacementsSoFar + ind
+                          ]
+                        : component.replacements[numReplacementsSoFar + ind];
+
                     if (!currentReplacement) {
                         needToRecreate = true;
                         break;
@@ -2296,10 +2317,16 @@ export default class Copy extends CompositeComponent {
                             onlyDifferenceIsType = false;
                             foundDifference = true;
                         } else {
+                            let currentReplacement = wrapAsList
+                                ? component.replacements[0]?.definingChildren[
+                                      numReplacementsSoFar + ind
+                                  ]
+                                : component.replacements[
+                                      numReplacementsSoFar + ind
+                                  ];
+
                             if (
-                                component.replacements[
-                                    numReplacementsSoFar + ind
-                                ].componentType !==
+                                currentReplacement.componentType !==
                                 newSerializedReplacements[ind].componentType
                             ) {
                                 foundDifference = true;
@@ -2315,7 +2342,7 @@ export default class Copy extends CompositeComponent {
                             requiredLength === 1 &&
                             nNewReplacements === 1 &&
                             !(component.replacementsToWithhold > 0) &&
-                            workspace.sourceNames.length === 1;
+                            workspace.sourceIndices.length === 1;
 
                         if (wrapExistingReplacements) {
                             foundDifference = false;
@@ -2358,12 +2385,12 @@ export default class Copy extends CompositeComponent {
                 propVariablesCopiedByReplacement;
         }
 
-        let previousZeroSourceNames = workspace.sourceNames.length === 0;
+        let previousZeroSourceIndices = workspace.sourceIndices.length === 0;
 
         workspace.numReplacementsBySource = numReplacementsBySource;
         workspace.numNonStringReplacementsBySource =
             numNonStringReplacementsBySource;
-        workspace.sourceNames = replacementSourceIdentities.map(
+        workspace.sourceIndices = replacementSourceIdentities.map(
             (x) => x.componentIdx,
         );
         workspace.propVariablesCopiedBySource = propVariablesCopiedBySource;
@@ -2386,7 +2413,7 @@ export default class Copy extends CompositeComponent {
         // Note: this has to run after verify,
         // as verify has side effects of setting workspace variables,
         // such as numReplacementsBySource
-        if (previousZeroSourceNames && workspace.sourceNames.length === 0) {
+        if (previousZeroSourceIndices && workspace.sourceIndices.length === 0) {
             // didn't have sources before and still don't have sources.
             // we're just getting filler components being recreated.
             // Don't actually make those changes

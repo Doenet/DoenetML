@@ -2536,6 +2536,18 @@ export default class Core {
 
         const newNComponents = result.nComponents;
 
+        if (
+            !(
+                Number.isInteger(newNComponents) &&
+                newNComponents >= this._components.length
+            )
+        ) {
+            throw Error(
+                `Invalid nComponents return by createSerializedReplacements for ${component.componentType}: `,
+                newNComponents,
+            );
+        }
+
         let position = this.components[component.componentIdx].position;
         let overwriteDoenetMLRange = component.componentType === "copy";
 
@@ -2647,15 +2659,6 @@ export default class Core {
 
         if (newNComponents > this._components.length) {
             this._components[newNComponents - 1] = undefined;
-        }
-
-        // XXX: have not yet dealt with case with more than one replacement
-        if (serializedReplacements.length > 1) {
-            console.log(
-                "************* not yet implemented adding to resolver with more than one replacement",
-            );
-
-            return;
         }
 
         if (flatFragment.nodes.length > 0 && this.addNodesToResolver) {

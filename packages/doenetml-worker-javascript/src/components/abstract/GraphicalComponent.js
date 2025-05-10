@@ -26,7 +26,7 @@ export default class GraphicalComponent extends BaseComponent {
             defaultValue: 0,
             public: true,
             forRenderer: true,
-            attributesForCreatedComponent: { valueOnNaN: 0 },
+            attributesForCreatedComponent: { valueOnNaN: "0" },
         };
         return attributes;
     }

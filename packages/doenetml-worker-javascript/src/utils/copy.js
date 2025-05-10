@@ -378,7 +378,34 @@ export async function verifyReplacementsMatchSpecifiedType({
         let wrapExistingReplacements =
             replacementTypes.length === requiredLength &&
             !(replacementsToWithhold > 0) &&
-            workspace.sourceNames?.length === requiredLength;
+            workspace.sourceIndices?.length === requiredLength;
+
+        let wrapAsList = false;
+
+        if (
+            !wrapExistingReplacements &&
+            !(replacementsToWithhold > 0) &&
+            requiredLength === 1 &&
+            replacementTypes.length === workspace.sourceIndices?.length &&
+            requiredComponentType.endsWith("List")
+        ) {
+            const pieceType = requiredComponentType.substring(
+                0,
+                requiredComponentType.length - 4,
+            );
+
+            if (
+                replacementTypes.every((x) =>
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: pieceType,
+                        baseComponentType: pieceType,
+                    }),
+                )
+            ) {
+                wrapExistingReplacements = true;
+                wrapAsList = true;
+            }
+        }
 
         // let uniqueIdentifiersUsed;
         let originalReplacements;
@@ -407,7 +434,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
             workspace.propVariablesCopiedBySource = [];
-            workspace.sourceNames = [];
+            workspace.sourceIndices = [];
             workspace.uniqueIdentifiersUsedBySource = {};
 
             workspace.uniqueIdentifiersUsedBySource[0] = [];
@@ -532,10 +559,17 @@ export async function verifyReplacementsMatchSpecifiedType({
         }
 
         if (wrapExistingReplacements) {
-            for (let [ind, repl] of replacements.entries()) {
-                repl.children = [originalReplacements[ind]];
+            if (wrapAsList) {
+                replacements[0].children = originalReplacements;
+            } else {
+                for (let [ind, repl] of replacements.entries()) {
+                    repl.children = [originalReplacements[ind]];
+                }
             }
         }
+
+        workspace.wrapExistingReplacements = wrapExistingReplacements;
+        workspace.wrapAsList = wrapAsList;
 
         if (!wrapExistingReplacements) {
             workspace.numReplacementsBySource.push(replacements.length);
