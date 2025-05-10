@@ -1071,6 +1071,9 @@ export default class BaseComponent {
                             ? theStateDef.shadowingInstructions.returnWrappingComponents()
                             : [];
 
+                    stateVariableDescriptions[varName].indexAliases =
+                        theStateDef.indexAliases;
+
                     let entryPrefixes;
                     if (theStateDef.entryPrefixes) {
                         entryPrefixes = theStateDef.entryPrefixes;

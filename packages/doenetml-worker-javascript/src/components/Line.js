@@ -599,6 +599,7 @@ export default class Line extends GraphicalComponent {
             },
             isArray: true,
             numDimensions: 2,
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["pointX", "point"],
             returnEntryDimensions: (prefix) => (prefix === "point" ? 1 : 0),
             getArrayKeysFromVarName({

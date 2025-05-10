@@ -3867,22 +3867,7 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
             );
         }
 
-        if (this.definition.unresolvedPath[0].name !== "") {
-            this.originalDownstreamVariableNames = [
-                this.definition.unresolvedPath[0].name,
-            ];
-        } else {
-            this.originalDownstreamVariableNames = [];
-        }
-
-        if (this.definition.unresolvedPath[0].index.length > 0) {
-            this.propIndex = this.definition.unresolvedPath[0].index.map(
-                (index_part) => Math.round(Number(index_part.value[0])),
-            );
-            if (!this.propIndex.every(Number.isFinite)) {
-                this.propIndex = [];
-            }
-        }
+        this.originalDownstreamVariableNames = [];
 
         if (this.definition.returnAsComponentObject) {
             this.returnSingleComponent = true;
@@ -3904,12 +3889,12 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
             };
         }
 
-        if (this.definition.unresolvedPath[0].name === "") {
-            const variableForIndexAsProp =
-                component.constructor.variableForIndexAsProp;
+        let variableName = this.definition.unresolvedPath[0].name;
 
-            if (!variableForIndexAsProp) {
-                // if refer to source index on a component that doesn't have variableForIndexAsProp,
+        if (variableName === "") {
+            variableName = component.constructor.variableForIndexAsProp;
+            if (!variableName) {
+                // if refer to index on a component that doesn't have variableForIndexAsProp,
                 // then return nothing
                 return {
                     success: true,
@@ -3917,7 +3902,44 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
                     downstreamComponentTypes: [],
                 };
             }
-            this.originalDownstreamVariableNames = [variableForIndexAsProp];
+        }
+
+        this.originalDownstreamVariableNames = [variableName];
+
+        let propIndex = [];
+        let foundBadIndex = false;
+        if (this.definition.unresolvedPath[0].index.length > 0) {
+            propIndex = this.definition.unresolvedPath[0].index.map(
+                (index_part) => Math.round(Number(index_part.value[0])),
+            );
+            if (!propIndex.every(Number.isFinite)) {
+                foundBadIndex = true;
+            }
+        }
+
+        if (!foundBadIndex && this.definition.unresolvedPath.length > 1) {
+            const nextPart = this.definition.unresolvedPath[1];
+
+            const stateVarInfo =
+                this.dependencyHandler.componentInfoObjects
+                    .publicStateVariableInfo[component.componentType]
+                    .stateVariableDescriptions[variableName];
+
+            if (stateVarInfo.indexAliases) {
+                const dim = propIndex.length;
+                const aliases = stateVarInfo.indexAliases[dim];
+
+                const aliasIdx = aliases.indexOf(nextPart.name);
+                if (aliasIdx !== -1) {
+                    propIndex.push(aliasIdx + 1);
+                }
+            }
+        }
+
+        if (foundBadIndex) {
+            this.propIndex = [];
+        } else if (propIndex.length > 0) {
+            this.propIndex = propIndex;
         }
 
         return {

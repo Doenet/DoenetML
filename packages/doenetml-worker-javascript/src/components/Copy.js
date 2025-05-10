@@ -142,14 +142,8 @@ export default class Copy extends CompositeComponent {
         };
 
         // The componentIdx of the component we are extending, along with any remaining unresolved path.
-        // Set `wrapWithExtract` to `true` if there is the unresolved path array is longer than 1,
-        // as we'll use an extract to attempt to extract the additional unresolved path.
         stateVariableDefinitions.extendIdx = {
-            additionalStateVariablesDefined: [
-                "unresolvedPath",
-                "wrapWithExtract",
-                "originalPath",
-            ],
+            additionalStateVariablesDefined: ["unresolvedPath", "originalPath"],
             stateVariablesDeterminingDependencies: [
                 "refResolutionIndexDependencyValues",
             ],
@@ -167,9 +161,6 @@ export default class Copy extends CompositeComponent {
                     extendIdx: dependencyValues.refResolution.extendIdx,
                     unresolvedPath:
                         dependencyValues.refResolution.unresolvedPath,
-                    wrapWithExtract:
-                        dependencyValues.refResolution.unresolvedPath?.length >
-                        1,
                     originalPath: dependencyValues.refResolution.originalPath,
                 },
             }),
@@ -776,10 +767,6 @@ export default class Copy extends CompositeComponent {
 
         stateVariableDefinitions.numComponentsSpecified = {
             returnDependencies: () => ({
-                wrapWithExtract: {
-                    dependencyType: "stateVariable",
-                    variableName: "wrapWithExtract",
-                },
                 numComponentsAttr: {
                     dependencyType: "attributePrimitive",
                     attributeName: "numComponents",
@@ -792,10 +779,7 @@ export default class Copy extends CompositeComponent {
             definition({ dependencyValues, componentInfoObjects }) {
                 let numComponentsSpecified;
 
-                if (dependencyValues.wrapWithExtract) {
-                    // if wrap with extract, extract will deal with numComponents
-                    numComponentsSpecified = null;
-                } else if (dependencyValues.typeAttr) {
+                if (dependencyValues.typeAttr) {
                     let componentType =
                         componentInfoObjects.componentTypeLowerCaseMapping[
                             dependencyValues.typeAttr.toLowerCase()
@@ -1447,18 +1431,13 @@ export default class Copy extends CompositeComponent {
         let numReplacementsSoFar = 0;
         let numNonStringReplacementsSoFar = 0;
 
-        const wrapWithExtract = await component.stateValues.wrapWithExtract;
-
         for (let sourceNum in replacementSourceIdentities) {
             let uniqueIdentifiersUsed =
                 (workspace.uniqueIdentifiersUsedBySource[sourceNum] = []);
 
             let numComponentsForSource;
 
-            if (
-                component.attributes.createComponentOfType?.primitive &&
-                !wrapWithExtract
-            ) {
+            if (component.attributes.createComponentOfType?.primitive) {
                 let numComponentsTotal =
                     await component.stateValues.numComponentsSpecified;
                 let numSources = replacementSourceIdentities.length;
@@ -1488,8 +1467,7 @@ export default class Copy extends CompositeComponent {
 
                 copyInChildren:
                     Number(sourceNum) === 0 &&
-                    component.attributes.copyInChildren?.primitive.value &&
-                    !wrapWithExtract,
+                    component.attributes.copyInChildren?.primitive.value,
             });
 
             errors.push(...results.errors);
@@ -1534,8 +1512,7 @@ export default class Copy extends CompositeComponent {
         if (replacements.length === 1) {
             if (
                 component.attributes.createComponentName?.primitive.value !=
-                    undefined &&
-                !wrapWithExtract
+                undefined
             ) {
                 replacements[0].attributes.name = {
                     type: "primitive",
@@ -1549,8 +1526,7 @@ export default class Copy extends CompositeComponent {
             }
             if (
                 component.attributes.createComponentIdx?.primitive.value !=
-                    undefined &&
-                !wrapWithExtract
+                undefined
             ) {
                 replacements[0].componentIdx =
                     component.attributes.createComponentIdx.primitive.value;
@@ -2021,17 +1997,12 @@ export default class Copy extends CompositeComponent {
             workspace.numReplacementsBySource.length,
         );
 
-        const wrapWithExtract = await component.stateValues.wrapWithExtract;
-
         let recreateRemaining = false;
 
         for (let sourceNum = 0; sourceNum < maxSourceLength; sourceNum++) {
             let numComponentsForSource;
 
-            if (
-                component.attributes.createComponentOfType?.primitive &&
-                !wrapWithExtract
-            ) {
+            if (component.attributes.createComponentOfType?.primitive) {
                 let numComponentsTotal =
                     await component.stateValues.numComponentsSpecified;
                 let numSources = replacementSourceIdentities.length;
@@ -2254,8 +2225,7 @@ export default class Copy extends CompositeComponent {
                 publicCaseInsensitiveAliasSubstitutions,
                 copyInChildren:
                     Number(sourceNum) === 0 &&
-                    component.attributes.copyInChildren?.primitive.value &&
-                    !wrapWithExtract,
+                    component.attributes.copyInChildren?.primitive.value,
             });
             errors.push(...results.errors);
             warnings.push(...results.warnings);
@@ -2429,11 +2399,7 @@ export default class Copy extends CompositeComponent {
         // We could generalize if we need to.
         const { replacementTypes, replacementsToWithhold } =
             calculateReplacementTypesFromChanges(component, replacementChanges);
-        if (
-            !wrapWithExtract &&
-            replacementTypes.length === 1 &&
-            !(replacementsToWithhold > 0)
-        ) {
+        if (replacementTypes.length === 1 && !(replacementsToWithhold > 0)) {
             if (
                 replacementChanges.length === 1 &&
                 replacementChanges[0].changeType === "add" &&
@@ -2489,8 +2455,6 @@ export default class Copy extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        const wrapWithExtract = await component.stateValues.wrapWithExtract;
-
         let errors = [];
         let warnings = [];
 
@@ -2508,8 +2472,7 @@ export default class Copy extends CompositeComponent {
             publicCaseInsensitiveAliasSubstitutions,
             copyInChildren:
                 Number(sourceNum) === 0 &&
-                component.attributes.primitive?.copyInChildren.value &&
-                !wrapWithExtract,
+                component.attributes.primitive?.copyInChildren.value,
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);
@@ -3959,47 +3922,6 @@ export async function replacementFromProp({
                 ][0].fromImplicitProp = true;
             }
         }
-    }
-
-    if (
-        (await component.stateValues.wrapWithExtract) &&
-        serializedReplacements.length > 0
-    ) {
-        const attributes = {};
-        if (component.attributes.createComponentOfType) {
-            attributes.createComponentOfType =
-                component.attributes.createComponentOfType;
-        }
-        if (component.attributes.createComponentIdx) {
-            attributes.createComponentIdx =
-                component.attributes.createComponentIdx;
-        }
-        if (component.attributes.createComponentName) {
-            attributes.createComponentName =
-                component.attributes.createComponentName;
-        }
-        if (component.attributes.numComponents) {
-            attributes.numComponents = component.attributes.numComponents;
-        }
-        if (component.attributes.copyInChildren) {
-            attributes.copyInChildren = component.attributes.copyInChildren;
-        }
-
-        serializedReplacements = [
-            {
-                type: "serialized",
-                componentType: "_extract",
-                componentIdx: nComponents++,
-                children: serializedReplacements,
-                attributes,
-                doenetAttributes: {
-                    unresolvedPath: (
-                        await component.stateValues.unresolvedPath
-                    ).slice(1),
-                },
-                state: {},
-            },
-        ];
     }
 
     // console.log(`serializedReplacements for ${component.componentIdx}`)

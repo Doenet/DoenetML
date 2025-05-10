@@ -36,7 +36,6 @@ import BooleanComponent from "./components/Boolean";
 import BooleanList from "./components/BooleanList";
 import MathComponent from "./components/Math";
 import Copy from "./components/Copy";
-import Extract from "./components/Extract";
 import Collect from "./components/Collect";
 import Ref from "./components/Ref";
 import Point from "./components/Point";
@@ -236,7 +235,6 @@ const componentTypeArray = [
     TupleList,
     NumberList,
     Copy,
-    Extract,
     Collect,
     Ref,
     Point,
