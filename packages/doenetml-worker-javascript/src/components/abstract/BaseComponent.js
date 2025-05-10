@@ -1219,9 +1219,12 @@ export default class BaseComponent {
 
                 if (this.serializedChildren !== undefined) {
                     for (let child of this.serializedChildren) {
-                        serializedChildren.push(
-                            this.copySerializedComponent(child),
+                        const res = this.copySerializedComponent(
+                            child,
+                            nComponents,
                         );
+                        nComponents = res.nComponents;
+                        serializedChildren.push(res.serializedComponent);
                     }
                 }
             }
@@ -1386,25 +1389,30 @@ export default class BaseComponent {
         return { serializedComponent, nComponents };
     }
 
-    copySerializedComponent(serializedComponent) {
+    copySerializedComponent(serializedComponent, nComponents) {
         if (typeof serializedComponent !== "object") {
-            return serializedComponent;
+            return { serializedComponent, nComponents };
         }
 
         let serializedChildren = [];
         if (serializedComponent.children !== undefined) {
             for (let child of serializedComponent.children) {
-                serializedChildren.push(this.copySerializedComponent(child));
+                const res = this.copySerializedComponent(child, nComponents);
+                nComponents = res.nComponents;
+                serializedChildren.push(res.serializedComponent);
             }
         }
 
         let serializedCopy = {
+            type: "serialized",
             componentType: serializedComponent.componentType,
+            componentIdx: nComponents++,
             originalIdx: serializedComponent.componentIdx,
             originalNameFromSerializedComponent: true,
             children: serializedChildren,
             state: {},
             doenetAttributes: {},
+            attributes: {},
         };
 
         if (serializedComponent.doenetAttributes !== undefined) {
@@ -1433,7 +1441,7 @@ export default class BaseComponent {
             Object.assign(serializedCopy.state, serializedComponent.state);
         }
 
-        return serializedCopy;
+        return { serializedComponent: serializedCopy, nComponents };
     }
 
     copySerializedComponentToDast(serializedComponent) {

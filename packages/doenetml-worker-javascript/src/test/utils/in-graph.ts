@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { createTestCore, returnAllStateVariables } from "./test-core";
+import { createTestCore } from "./test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import {
     updateBooleanInputValue,
@@ -10,12 +10,12 @@ import {
 export async function test_in_graph(
     doenetMLsnippet: string,
     moveCommand: ({
-        name,
+        componentIdx,
         x,
         y,
         core,
     }: {
-        name: string;
+        componentIdx: number;
         x: number;
         y: number;
         core: PublicDoenetMLCore;
@@ -75,336 +75,394 @@ export async function test_in_graph(
 
     `;
 
-    let core = await createTestCore({ doenetML });
+    let { core, resolveComponentName } = await createTestCore({ doenetML });
 
     let stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-        "Anchor 1 coordinates: ( 1, 3 )",
-    );
-    expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-        "Anchor 2 coordinates: ( 0, 0 )",
-    );
-    expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-        "Position from anchor 1: upperright",
-    );
-    expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-        "Position from anchor 2: center",
-    );
     expect(
-        stateVariables["/positionFromAnchor1"].stateValues.selectedIndices,
+        stateVariables[resolveComponentName("pAnchor1")].stateValues.text,
+    ).eq("Anchor 1 coordinates: ( 1, 3 )");
+    expect(
+        stateVariables[resolveComponentName("pAnchor2")].stateValues.text,
+    ).eq("Anchor 2 coordinates: ( 0, 0 )");
+    expect(
+        stateVariables[resolveComponentName("pPositionFromAnchor1")].stateValues
+            .text,
+    ).eq("Position from anchor 1: upperright");
+    expect(
+        stateVariables[resolveComponentName("pPositionFromAnchor2")].stateValues
+            .text,
+    ).eq("Position from anchor 2: center");
+    expect(
+        stateVariables[resolveComponentName("positionFromAnchor1")].stateValues
+            .selectedIndices,
     ).eqls([1]);
     expect(
-        stateVariables["/positionFromAnchor2"].stateValues.selectedIndices,
+        stateVariables[resolveComponentName("positionFromAnchor2")].stateValues
+            .selectedIndices,
     ).eqls([9]);
-    expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-        "Draggable 1: true",
+    expect(
+        stateVariables[resolveComponentName("pDraggable1")].stateValues.text,
+    ).eq("Draggable 1: true");
+    expect(
+        stateVariables[resolveComponentName("pDraggable2")].stateValues.text,
+    ).eq("Draggable 2: true");
+    expect(
+        stateVariables[resolveComponentName("pDisabled1")].stateValues.text,
+    ).eq("Disabled 1: true");
+    expect(
+        stateVariables[resolveComponentName("pDisabled2")].stateValues.text,
+    ).eq("Disabled 2: false");
+    expect(stateVariables[resolveComponentName("pFixed1")].stateValues.text).eq(
+        "Fixed 1: false",
     );
-    expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-        "Draggable 2: true",
+    expect(stateVariables[resolveComponentName("pFixed2")].stateValues.text).eq(
+        "Fixed 2: false",
     );
-    expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-        "Disabled 1: true",
-    );
-    expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-        "Disabled 2: false",
-    );
-    expect(stateVariables["/pFixed1"].stateValues.text).eq("Fixed 1: false");
-    expect(stateVariables["/pFixed2"].stateValues.text).eq("Fixed 2: false");
-    expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-        "FixLocation 1: false",
-    );
-    expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-        "FixLocation 2: false",
-    );
+    expect(
+        stateVariables[resolveComponentName("pFixLocation1")].stateValues.text,
+    ).eq("FixLocation 1: false");
+    expect(
+        stateVariables[resolveComponentName("pFixLocation2")].stateValues.text,
+    ).eq("FixLocation 2: false");
 
     // move items by dragging
 
-    await moveCommand({ name: "/item1", x: -2, y: 3, core });
-    await moveCommand({ name: "/item2", x: 4, y: -5, core });
+    await moveCommand({
+        componentIdx: resolveComponentName("item1"),
+        x: -2,
+        y: 3,
+        core,
+    });
+    await moveCommand({
+        componentIdx: resolveComponentName("item2"),
+        x: 4,
+        y: -5,
+        core,
+    });
 
     stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-        "Anchor 1 coordinates: ( -2, 3 )",
-    );
-    expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-        "Anchor 2 coordinates: ( 4, -5 )",
-    );
+    expect(
+        stateVariables[resolveComponentName("pAnchor1")].stateValues.text,
+    ).eq("Anchor 1 coordinates: ( -2, 3 )");
+    expect(
+        stateVariables[resolveComponentName("pAnchor2")].stateValues.text,
+    ).eq("Anchor 2 coordinates: ( 4, -5 )");
 
     // move items by entering coordinates
 
     await updateMathInputValue({
         latex: "(6,7)",
-        name: "/anchorCoords1",
+        componentIdx: resolveComponentName("anchorCoords1"),
         core,
     });
     await updateMathInputValue({
         latex: "(8,9)",
-        name: "/anchorCoords2",
+        componentIdx: resolveComponentName("anchorCoords2"),
         core,
     });
 
     stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-        "Anchor 1 coordinates: ( 6, 7 )",
-    );
-    expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-        "Anchor 2 coordinates: ( 8, 9 )",
-    );
+    expect(
+        stateVariables[resolveComponentName("pAnchor1")].stateValues.text,
+    ).eq("Anchor 1 coordinates: ( 6, 7 )");
+    expect(
+        stateVariables[resolveComponentName("pAnchor2")].stateValues.text,
+    ).eq("Anchor 2 coordinates: ( 8, 9 )");
 
     // change position from anchor
     await updateSelectedIndices({
-        name: "/positionFromAnchor1",
+        componentIdx: resolveComponentName("positionFromAnchor1"),
         selectedIndices: [4],
         core,
     });
     await updateSelectedIndices({
-        name: "/positionFromAnchor2",
+        componentIdx: resolveComponentName("positionFromAnchor2"),
         selectedIndices: [3],
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-        "Position from anchor 1: lowerleft",
-    );
-    expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-        "Position from anchor 2: lowerright",
-    );
+    expect(
+        stateVariables[resolveComponentName("pPositionFromAnchor1")].stateValues
+            .text,
+    ).eq("Position from anchor 1: lowerleft");
+    expect(
+        stateVariables[resolveComponentName("pPositionFromAnchor2")].stateValues
+            .text,
+    ).eq("Position from anchor 2: lowerright");
 
     // make not draggable
     await updateBooleanInputValue({
         boolean: false,
-        name: "/draggable1",
+        componentIdx: resolveComponentName("draggable1"),
         core,
     });
     await updateBooleanInputValue({
         boolean: false,
-        name: "/draggable2",
+        componentIdx: resolveComponentName("draggable2"),
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-        "Draggable 1: false",
-    );
-    expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-        "Draggable 2: false",
-    );
+    expect(
+        stateVariables[resolveComponentName("pDraggable1")].stateValues.text,
+    ).eq("Draggable 1: false");
+    expect(
+        stateVariables[resolveComponentName("pDraggable2")].stateValues.text,
+    ).eq("Draggable 2: false");
 
     // cannot move items by dragging
-    await moveCommand({ name: "/item1", x: -10, y: -9, core });
-    await moveCommand({ name: "/item2", x: -8, y: -7, core });
+    await moveCommand({
+        componentIdx: resolveComponentName("item1"),
+        x: -10,
+        y: -9,
+        core,
+    });
+    await moveCommand({
+        componentIdx: resolveComponentName("item2"),
+        x: -8,
+        y: -7,
+        core,
+    });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-        "Anchor 1 coordinates: ( 6, 7 )",
-    );
-    expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-        "Anchor 2 coordinates: ( 8, 9 )",
-    );
+    expect(
+        stateVariables[resolveComponentName("pAnchor1")].stateValues.text,
+    ).eq("Anchor 1 coordinates: ( 6, 7 )");
+    expect(
+        stateVariables[resolveComponentName("pAnchor2")].stateValues.text,
+    ).eq("Anchor 2 coordinates: ( 8, 9 )");
 
     // make draggable again
     await updateBooleanInputValue({
         boolean: true,
-        name: "/draggable1",
+        componentIdx: resolveComponentName("draggable1"),
         core,
     });
     await updateBooleanInputValue({
         boolean: true,
-        name: "/draggable2",
+        componentIdx: resolveComponentName("draggable2"),
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-        "Draggable 1: true",
-    );
-    expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-        "Draggable 2: true",
-    );
+    expect(
+        stateVariables[resolveComponentName("pDraggable1")].stateValues.text,
+    ).eq("Draggable 1: true");
+    expect(
+        stateVariables[resolveComponentName("pDraggable2")].stateValues.text,
+    ).eq("Draggable 2: true");
 
-    await moveCommand({ name: "/item1", x: -10, y: -9, core });
-    await moveCommand({ name: "/item2", x: -8, y: -7, core });
+    await moveCommand({
+        componentIdx: resolveComponentName("item1"),
+        x: -10,
+        y: -9,
+        core,
+    });
+    await moveCommand({
+        componentIdx: resolveComponentName("item2"),
+        x: -8,
+        y: -7,
+        core,
+    });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-        "Anchor 1 coordinates: ( -10, -9 )",
-    );
-    expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-        "Anchor 2 coordinates: ( -8, -7 )",
-    );
+    expect(
+        stateVariables[resolveComponentName("pAnchor1")].stateValues.text,
+    ).eq("Anchor 1 coordinates: ( -10, -9 )");
+    expect(
+        stateVariables[resolveComponentName("pAnchor2")].stateValues.text,
+    ).eq("Anchor 2 coordinates: ( -8, -7 )");
 
     // fix location
     await updateBooleanInputValue({
         boolean: true,
-        name: "/fixLocation1",
+        componentIdx: resolveComponentName("fixLocation1"),
         core,
     });
     await updateBooleanInputValue({
         boolean: true,
-        name: "/fixLocation2",
+        componentIdx: resolveComponentName("fixLocation2"),
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-        "FixLocation 1: true",
-    );
-    expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-        "FixLocation 2: true",
-    );
+    expect(
+        stateVariables[resolveComponentName("pFixLocation1")].stateValues.text,
+    ).eq("FixLocation 1: true");
+    expect(
+        stateVariables[resolveComponentName("pFixLocation2")].stateValues.text,
+    ).eq("FixLocation 2: true");
 
     // can change coordinates entering coordinates only for button 1
     await updateMathInputValue({
         latex: "(1,2)",
-        name: "/anchorCoords1",
+        componentIdx: resolveComponentName("anchorCoords1"),
         core,
     });
     await updateMathInputValue({
         latex: "(3,4)",
-        name: "/anchorCoords2",
+        componentIdx: resolveComponentName("anchorCoords2"),
         core,
     });
 
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-        "Anchor 1 coordinates: ( 1, 2 )",
-    );
-    expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-        "Anchor 2 coordinates: ( -8, -7 )",
-    );
+    expect(
+        stateVariables[resolveComponentName("pAnchor1")].stateValues.text,
+    ).eq("Anchor 1 coordinates: ( 1, 2 )");
+    expect(
+        stateVariables[resolveComponentName("pAnchor2")].stateValues.text,
+    ).eq("Anchor 2 coordinates: ( -8, -7 )");
 
     // cannot move items by dragging
-    await moveCommand({ name: "/item1", x: 4, y: 6, core });
-    await moveCommand({ name: "/item2", x: 7, y: 8, core });
+    await moveCommand({
+        componentIdx: resolveComponentName("item1"),
+        x: 4,
+        y: 6,
+        core,
+    });
+    await moveCommand({
+        componentIdx: resolveComponentName("item2"),
+        x: 7,
+        y: 8,
+        core,
+    });
 
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-        "Anchor 1 coordinates: ( 1, 2 )",
-    );
-    expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-        "Anchor 2 coordinates: ( -8, -7 )",
-    );
+    expect(
+        stateVariables[resolveComponentName("pAnchor1")].stateValues.text,
+    ).eq("Anchor 1 coordinates: ( 1, 2 )");
+    expect(
+        stateVariables[resolveComponentName("pAnchor2")].stateValues.text,
+    ).eq("Anchor 2 coordinates: ( -8, -7 )");
 
     // can change position from anchor only for button 1
     await updateSelectedIndices({
-        name: "/positionFromAnchor1",
+        componentIdx: resolveComponentName("positionFromAnchor1"),
         selectedIndices: [7],
         core,
     });
     await updateSelectedIndices({
-        name: "/positionFromAnchor2",
+        componentIdx: resolveComponentName("positionFromAnchor2"),
         selectedIndices: [8],
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-        "Position from anchor 1: top",
-    );
-    expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-        "Position from anchor 2: lowerright",
-    );
+    expect(
+        stateVariables[resolveComponentName("pPositionFromAnchor1")].stateValues
+            .text,
+    ).eq("Position from anchor 1: top");
+    expect(
+        stateVariables[resolveComponentName("pPositionFromAnchor2")].stateValues
+            .text,
+    ).eq("Position from anchor 2: lowerright");
 
     // can change disabled attribute
 
     await updateBooleanInputValue({
         boolean: false,
-        name: "/disabled1",
+        componentIdx: resolveComponentName("disabled1"),
         core,
     });
     await updateBooleanInputValue({
         boolean: true,
-        name: "/disabled2",
+        componentIdx: resolveComponentName("disabled2"),
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-        "Disabled 1: false",
-    );
-    expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-        "Disabled 2: true",
-    );
+    expect(
+        stateVariables[resolveComponentName("pDisabled1")].stateValues.text,
+    ).eq("Disabled 1: false");
+    expect(
+        stateVariables[resolveComponentName("pDisabled2")].stateValues.text,
+    ).eq("Disabled 2: true");
 
     // make completely fixed
 
     await updateBooleanInputValue({
         boolean: true,
-        name: "/fixed1",
+        componentIdx: resolveComponentName("fixed1"),
         core,
     });
     await updateBooleanInputValue({
         boolean: true,
-        name: "/fixed2",
+        componentIdx: resolveComponentName("fixed2"),
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pFixed1"].stateValues.text).eq("Fixed 1: true");
-    expect(stateVariables["/pFixed2"].stateValues.text).eq("Fixed 2: true");
+    expect(stateVariables[resolveComponentName("pFixed1")].stateValues.text).eq(
+        "Fixed 1: true",
+    );
+    expect(stateVariables[resolveComponentName("pFixed2")].stateValues.text).eq(
+        "Fixed 2: true",
+    );
 
     // can change coordinates entering coordinates only for button 1
     await updateMathInputValue({
         latex: "(5,6)",
-        name: "/anchorCoords1",
+        componentIdx: resolveComponentName("anchorCoords1"),
         core,
     });
     await updateMathInputValue({
         latex: "(7,8)",
-        name: "/anchorCoords2",
+        componentIdx: resolveComponentName("anchorCoords2"),
         core,
     });
 
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-        "Anchor 1 coordinates: ( 5, 6 )",
-    );
-    expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-        "Anchor 2 coordinates: ( -8, -7 )",
-    );
+    expect(
+        stateVariables[resolveComponentName("pAnchor1")].stateValues.text,
+    ).eq("Anchor 1 coordinates: ( 5, 6 )");
+    expect(
+        stateVariables[resolveComponentName("pAnchor2")].stateValues.text,
+    ).eq("Anchor 2 coordinates: ( -8, -7 )");
 
     // can change position from anchor only for button 1
     await updateSelectedIndices({
-        name: "/positionFromAnchor1",
+        componentIdx: resolveComponentName("positionFromAnchor1"),
         selectedIndices: [6],
         core,
     });
     await updateSelectedIndices({
-        name: "/positionFromAnchor2",
+        componentIdx: resolveComponentName("positionFromAnchor2"),
         selectedIndices: [5],
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-        "Position from anchor 1: right",
-    );
-    expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-        "Position from anchor 2: lowerright",
-    );
+    expect(
+        stateVariables[resolveComponentName("pPositionFromAnchor1")].stateValues
+            .text,
+    ).eq("Position from anchor 1: right");
+    expect(
+        stateVariables[resolveComponentName("pPositionFromAnchor2")].stateValues
+            .text,
+    ).eq("Position from anchor 2: lowerright");
 
     // can change disabled attribute only for button 1
 
     await updateBooleanInputValue({
         boolean: true,
-        name: "/disabled1",
+        componentIdx: resolveComponentName("disabled1"),
         core,
     });
     await updateBooleanInputValue({
         boolean: false,
-        name: "/disabled2",
+        componentIdx: resolveComponentName("disabled2"),
         core,
     });
     stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-        "Disabled 1: true",
-    );
-    expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-        "Disabled 2: true",
-    );
+    expect(
+        stateVariables[resolveComponentName("pDisabled1")].stateValues.text,
+    ).eq("Disabled 1: true");
+    expect(
+        stateVariables[resolveComponentName("pDisabled2")].stateValues.text,
+    ).eq("Disabled 2: true");
 }

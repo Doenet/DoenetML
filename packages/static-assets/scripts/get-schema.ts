@@ -27,7 +27,6 @@ type ComponentClass = {
     returnStateVariableDefinitions: () => Record<string, unknown>;
     excludeFromSchema: boolean;
     allowInSchemaAsComponent?: string[];
-    acceptTarget: boolean;
     createAttributesObject: () => Record<string, AttributeObject>;
     inSchemaOnlyInheritAs: string[];
     getAdapterComponentType: (...args: any[]) => string;
@@ -168,16 +167,6 @@ export function getSchema() {
         let attributes = [{ name: "name" }, { name: "copySource" }];
 
         let cClass = componentClasses[type];
-
-        // Until we clean up the target/source mess,
-        // we have to make a special case for this attribute
-        if (cClass.acceptTarget) {
-            if (type === "copy" || type === "collect") {
-                attributes.push({ name: "source" });
-            } else {
-                attributes.push({ name: "target" });
-            }
-        }
 
         // a composite with assignNamesToReplacements has the assignNames attribute
         if (

@@ -29,9 +29,9 @@ export class ComponentWithSelectableType extends BaseComponent {
             nComponents,
         }) {
             let warnings = [];
-            let type = componentAttributes.type;
+            let type = componentAttributes.type?.value;
             if (!type) {
-                type = parentAttributes.type;
+                type = parentAttributes.type?.value;
             }
             if (!type) {
                 type = "number";
@@ -229,9 +229,9 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
             }) {
                 let warnings = [];
 
-                let type = componentAttributes.type;
+                let type = componentAttributes.type?.value;
                 if (!type) {
-                    type = parentAttributes.type;
+                    type = parentAttributes.type?.value;
                 }
                 if (!type) {
                     type = "number";
@@ -430,9 +430,9 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             }
 
             let warnings = [];
-            let type = componentAttributes.type;
+            let type = componentAttributes.type?.value;
             if (!type) {
-                type = parentAttributes.type;
+                type = parentAttributes.type?.value;
             }
             if (!type) {
                 type = "number";

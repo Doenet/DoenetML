@@ -7472,7 +7472,10 @@ class AttributeRefResolutions extends Dependency {
     async getValue() {
         const result = await super.getValue();
 
-        result.value = result.value.map((comp) => comp.stateValues);
+        result.value = result.value.map((comp) => ({
+            componentIdx: comp.stateValues.extendIdx,
+            unresolvedPath: comp.stateValues.unresolvedPath,
+        }));
         result.usedDefault = !this.foundAttribute;
 
         return result;

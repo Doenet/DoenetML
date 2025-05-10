@@ -1,10 +1,6 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { deepClone } from "@doenet/utils";
 import {
-    processAssignNames,
-    markToCreateAllUniqueNames,
-} from "../utils/naming";
-import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
 } from "../utils/variants";
@@ -13,8 +9,6 @@ export default class Map extends CompositeComponent {
     static componentType = "map";
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
-
-    static assignNamesToReplacements = true;
 
     static createsVariants = true;
 
@@ -383,23 +377,6 @@ export default class Map extends CompositeComponent {
 
         Object.assign(replacements[0].attributes, attributesFromComposite);
 
-        // XXX: do we delete this? It used to be here only if didn't have a new namespace
-        if (replacements[0].children) {
-            markToCreateAllUniqueNames(replacements[0].children);
-        }
-
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-            indOffset: iter,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
-        replacements = processResult.serializedComponents;
-
         await addSharedParameters(
             replacements[0],
             component,
@@ -467,24 +444,7 @@ export default class Map extends CompositeComponent {
                     attributesFromComposite,
                 );
 
-                // XXX: do we delete this? It used to be here only if didn't have a new namespace
-                if (serializedComponents[0].children) {
-                    markToCreateAllUniqueNames(
-                        serializedComponents[0].children,
-                    );
-                }
-
-                let processResult = processAssignNames({
-                    assignNames: component.doenetAttributes.assignNames,
-                    serializedComponents,
-                    parentIdx: component.componentIdx,
-                    componentInfoObjects,
-                    indOffset: iterateNumber,
-                });
-                errors.push(...processResult.errors);
-                warnings.push(...processResult.warnings);
-
-                let thisRepl = processResult.serializedComponents[0];
+                let thisRepl = serializedComponents[0];
 
                 await addSharedParameters(
                     thisRepl,

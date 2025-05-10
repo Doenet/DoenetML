@@ -37,7 +37,7 @@ export default class Label extends InlineComponent {
         let attributes = super.createAttributesObject();
 
         attributes.forObject = {
-            createTargetComponentNames: true,
+            createReferences: true,
         };
 
         attributes.draggable = {
@@ -465,24 +465,27 @@ export default class Label extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.forObjectComponentName = {
+        stateVariableDefinitions.forObjectComponentIdx = {
             returnDependencies: () => ({
                 forObject: {
-                    dependencyType: "attributeTargetComponentNames",
+                    dependencyType: "attributeRefResolutions",
                     attributeName: "forObject",
                 },
             }),
             definition({ dependencyValues }) {
-                let forObjectComponentName;
+                let forObjectComponentIdx;
 
-                if (dependencyValues.forObject?.length === 1) {
-                    forObjectComponentName =
-                        dependencyValues.forObject[0].absoluteName;
+                if (
+                    dependencyValues.forObject?.length === 1 &&
+                    dependencyValues.forObject[0].unresolvedPath == null
+                ) {
+                    forObjectComponentIdx =
+                        dependencyValues.forObject[0].componentIdx;
                 } else {
-                    forObjectComponentName = null;
+                    forObjectComponentIdx = null;
                 }
 
-                return { setValue: { forObjectComponentName } };
+                return { setValue: { forObjectComponentIdx } };
             },
         };
 

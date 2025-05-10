@@ -23,8 +23,6 @@ export default class AnimateFromSequence extends BaseComponent {
     static componentType = "animateFromSequence";
     static rendererType = undefined;
 
-    static acceptTarget = true;
-
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

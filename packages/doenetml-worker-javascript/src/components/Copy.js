@@ -18,7 +18,6 @@ export default class Copy extends CompositeComponent {
 
     static excludeFromSchema = true;
 
-    static acceptTarget = true;
     static acceptAnyAttribute = true;
 
     static includeBlankStringChildren = true;

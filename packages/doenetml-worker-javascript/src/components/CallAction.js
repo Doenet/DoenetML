@@ -29,8 +29,6 @@ export default class CallAction extends InlineComponent {
     static componentType = "callAction";
     static rendererType = "button";
 
-    static acceptTarget = true;
-
     static keepChildrenSerialized({
         serializedComponent,
         componentInfoObjects,

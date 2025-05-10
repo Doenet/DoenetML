@@ -346,7 +346,7 @@ export default class MathComponent extends InlineComponent {
                         if (
                             dependencyValues.referencesAreFunctionSymbols.some(
                                 (reference) =>
-                                    reference.extendIdx ===
+                                    reference.componentIdx ===
                                         compositeInfo.extendIdx &&
                                     deepCompare(
                                         reference.unresolvedPath,

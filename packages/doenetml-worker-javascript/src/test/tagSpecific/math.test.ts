@@ -3488,20 +3488,20 @@ describe("Math tag tests", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
           <math name="ordered1">2,3</math>
-          $ordered1{unordered name="unordered1"}
-          $unordered1{unordered="false" name="ordered2"}
+          <math extend="$ordered1" unordered name="unordered1" />
+          <math extend="$unordered1" unordered="false" name="ordered2" />
         
           <math name="unordered2" unordered>2,3</math>
-          $unordered2{unordered="false" name="ordered3"}
-          $ordered3{unordered name="unordered3"}
+          <math extend="$unordered2" unordered="false" name="ordered3" />
+          <math extend="$ordered3" unordered name="unordered3" />
         
           <math name="unordered4"><math unordered>2,3</math></math>
-          $unordered4{unordered="false" name="ordered4"}
-          $ordered4{unordered name="unordered5"}
+          <math extend="$unordered4" unordered="false" name="ordered4" />
+          <math extend="$ordered4" unordered name="unordered5" />
         
           <math name="ordered5" unordered="false"><math unordered>2,3</math></math>
-          $ordered5{unordered name="unordered6"}
-          $unordered6{unordered="false" name="ordered6"}
+          <math extend="$ordered5" unordered name="unordered6" />
+          <math extend="$unordered6" unordered="false" name="ordered6" />
         
           `,
         });
@@ -3561,73 +3561,82 @@ describe("Math tag tests", async () => {
     it("copy math and overwrite unordered, change dynamically", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-          <booleaninput name="b1" prefill="true" />
-          <booleaninput name="b2" />
-          <booleaninput name="b3" prefill="true" />
+          <booleanInput name="b1" prefill="true" />
+          <booleanInput name="b2" />
+          <booleanInput name="b3" prefill="true" />
         
-          <p name="p1" newNamespace>
-            <math name="m1" unordered="$(../b1)">2,3</math>
-            $m1{unordered="$(../b2)" name="m2"}
-            $m2{unordered="$(../b3)" name="m3"}
+          <p name="p1">
+            <math name="m1" unordered="$b1">2,3</math>
+            <math extend="$m1" unordered="$b2" name="m2" />
+            <math extend="$m2" unordered="$b3" name="m3" />
           </p>
         
-          $p1{name="p2"}
+          <p extend="$p1" name="p2" />
           `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        async function check_values(b1: boolean, b2: boolean, b3: boolean) {
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
-        expect(stateVariables["/p1/m1"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p1/m2"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p1/m3"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p2/m1"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p2/m2"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p2/m3"].stateValues.unordered).eq(true);
+            expect(
+                stateVariables[resolveComponentName("p1.m1")].stateValues
+                    .unordered,
+            ).eq(b1);
+            expect(
+                stateVariables[resolveComponentName("p1.m2")].stateValues
+                    .unordered,
+            ).eq(b2);
+            expect(
+                stateVariables[resolveComponentName("p1.m3")].stateValues
+                    .unordered,
+            ).eq(b3);
+            expect(
+                stateVariables[resolveComponentName("p2.m1")].stateValues
+                    .unordered,
+            ).eq(b1);
+            expect(
+                stateVariables[resolveComponentName("p2.m2")].stateValues
+                    .unordered,
+            ).eq(b2);
+            expect(
+                stateVariables[resolveComponentName("p2.m3")].stateValues
+                    .unordered,
+            ).eq(b3);
+        }
+
+        let b1 = true;
+        let b2 = false;
+        let b3 = true;
+        await check_values(b1, b2, b3);
+
+        b1 = false;
 
         await updateBooleanInputValue({
-            boolean: false,
+            boolean: b1,
             componentIdx: resolveComponentName("b1"),
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        await check_values(b1, b2, b3);
 
-        expect(stateVariables["/p1/m1"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p1/m2"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p1/m3"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p2/m1"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p2/m2"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p2/m3"].stateValues.unordered).eq(true);
-
+        b2 = true;
         await updateBooleanInputValue({
-            boolean: true,
+            boolean: b2,
             componentIdx: resolveComponentName("b2"),
             core,
         });
+        await check_values(b1, b2, b3);
 
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(stateVariables["/p1/m1"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p1/m2"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p1/m3"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p2/m1"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p2/m2"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p2/m3"].stateValues.unordered).eq(true);
-
+        b3 = false;
         await updateBooleanInputValue({
-            boolean: false,
+            boolean: b3,
             componentIdx: resolveComponentName("b3"),
             core,
         });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(stateVariables["/p1/m1"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p1/m2"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p1/m3"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p2/m1"].stateValues.unordered).eq(false);
-        expect(stateVariables["/p2/m2"].stateValues.unordered).eq(true);
-        expect(stateVariables["/p2/m3"].stateValues.unordered).eq(false);
+        await check_values(b1, b2, b3);
     });
 
     it("shrink vector dimensions in inverse direction", async () => {
@@ -3666,7 +3675,7 @@ describe("Math tag tests", async () => {
           <number name="n">1</number>
           <graph>
             <point name="P" coords="(2$n+1,1)" />
-            $P{name="Q" x="2$n-1"}
+            <point extend="$P" name="Q" x="2$n-1" />
           </graph>
           `,
         });
@@ -3719,7 +3728,7 @@ describe("Math tag tests", async () => {
           <math name="coords" simplify>(2$n+1,1)</math>
           <graph>
             <point name="P" coords="$coords" />
-            $P{name="Q" x="2$n-1"}
+            <point extend="$P" name="Q" x="2$n-1" />
           </graph>
           `,
         });
@@ -3773,7 +3782,7 @@ describe("Math tag tests", async () => {
           <mathInput name="coords2" bindValueTo="$coords1" />
           <graph>
             <point name="P" coords="$coords2" />
-            $P{name="Q" x="2$n-1"}
+            <point extend="$P" name="Q" x="2$n-1" />
           </graph>
           `,
         });
@@ -10973,7 +10982,7 @@ describe("Math tag tests", async () => {
           <p name="m3t">$m3.text</p>
           <p><text name="t1">a₂-b²</text></p>
           
-          <p><updateValue name="uv" type="text" target="m3.text" newValue="$t1.text" ><label>Update via text</label></updateValue></p>
+          <p><updateValue name="uv" type="text" target="$m3.text" newValue="$t1.text" ><label>Update via text</label></updateValue></p>
         
           `,
         });
@@ -11244,22 +11253,22 @@ describe("Math tag tests", async () => {
             <coords extend="$m2.anchor" name="m2coords" />
         
             <graph name="g2">
-              $m1{name="m1a"}
-              $m2{name="m2a"}
+              <math extend="$m1" name="m1a" />
+              <math extend="$m2" name="m2a" />
             </graph>
         
             <collect componentTypes="math" source="g2" prop="anchor" assignNames="m1acoords m2acoords" />
         
             <graph name="g3">
-              $m1.value{assignNames="m1b"}
-              $m2.value{assignNames="m2b"}
+              <math extend="$m1.value" name="m1b" />
+              <math extend="$m2.value" name="m2b" />
             </graph>
         
             <collect componentTypes="math" source="g3" prop="anchor" assignNames="m1bcoords m2bcoords" />
         
-            <p name="p1">$m1{name="m1c"} $m2{name="m2c"}</p>
+            <p name="p1"><math extend="$m1" name="m1c" /> <math extend="$m2" name="m2c" /></p>
         
-            <p name="p2">$m1.value{assignNames="m1d"} $m2.value{assignNames="m2d"}</p>
+            <p name="p2"><math extend="$m1.value" name="m1d" /> <math extend="$m2.value" name="m2d" /></p>
         
             `,
         });
@@ -11842,8 +11851,8 @@ describe("Math tag tests", async () => {
             <m name="m">\\frac{x}{y}</m>
             <math name="math">y/z</math>
             <line name="l">y=x+4</line>
-            <aslist name="al"><math>sin(x)</math><math>cos(x)</math></aslist>
-            <mathlist name="ml">tan(x) cot(y)</mathlist>
+            <asList name="al"><math>sin(x)</math><math>cos(x)</math></asList>
+            <mathList name="ml">tan(x) cot(y)</mathList>
           </p>
           <p>
             <math name="v2">$v.latex</math>

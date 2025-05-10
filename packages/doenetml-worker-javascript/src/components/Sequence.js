@@ -209,6 +209,7 @@ export default class Sequence extends CompositeComponent {
         component,
         workspace,
         componentInfoObjects,
+        nComponents,
     }) {
         // console.log(`calculate replacement changes for ${component.componentIdx}`);
 
@@ -245,7 +246,7 @@ export default class Sequence extends CompositeComponent {
             // we can restore the old replacements
             lrp.length = 0;
 
-            return replacementChanges;
+            return { replacementChanges };
         }
 
         let from = await component.stateValues.from;
@@ -264,11 +265,13 @@ export default class Sequence extends CompositeComponent {
                 component,
                 workspace,
                 componentInfoObjects,
+                nComponents,
             });
 
             let newSerializedReplacements = replacementResults.replacements;
             errors.push(...replacementResults.errors);
             warnings.push(...replacementResults.warnings);
+            nComponents = replacementResults.nComponents;
 
             let replacementInstruction = {
                 changeType: "add",
@@ -334,7 +337,7 @@ export default class Sequence extends CompositeComponent {
                         numToModify += component.replacementsToWithhold;
                         prevlength += component.replacementsToWithhold;
                         newReplacementsToWithhold = 0;
-                        // don't need to send changedReplacementsToWithold instructions
+                        // don't need to send changedReplacementsToWithhold instructions
                         // since will send add instructions,
                         // which will also recalculate replacements in parent
                     }
@@ -412,32 +415,30 @@ export default class Sequence extends CompositeComponent {
                     let attributesFromComposite = {};
 
                     if (Object.keys(attributesToConvert).length > 0) {
-                        attributesFromComposite =
-                            convertUnresolvedAttributesForComponentType({
+                        const res = convertUnresolvedAttributesForComponentType(
+                            {
                                 attributes: attributesToConvert,
                                 componentType,
                                 componentInfoObjects,
-                            });
+                                nComponents,
+                            },
+                        );
+
+                        nComponents = res.nComponents;
+                        attributesFromComposite = res.attributes;
                     }
 
                     let serializedComponent = {
+                        type: "serialized",
                         componentType,
+                        componentIdx: nComponents++,
                         attributes: attributesFromComposite,
                         state: { value: componentValue, fixed: true },
+                        doenetAttributes: {},
+                        children: [],
                     };
 
                     newSerializedReplacements.push(serializedComponent);
-                }
-                if (component.attributes.assignNames) {
-                    let processResult = assignNamesToComponents({
-                        assignNames:
-                            component.attributes.assignNames.primitive.value,
-                        serializedComponents: newSerializedReplacements,
-                        componentInfoObjects,
-                        indOffset: prevlength,
-                    });
-                    warnings.push(...processResult.warnings);
-                    newSerializedReplacements = processResult.components;
                 }
 
                 let replacementInstruction = {
@@ -458,7 +459,7 @@ export default class Sequence extends CompositeComponent {
         lrp.step = step;
         lrp.exclude = exclude;
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 
     get allPotentialRendererTypes() {

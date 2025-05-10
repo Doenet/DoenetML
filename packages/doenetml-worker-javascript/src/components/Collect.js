@@ -10,9 +10,6 @@ export default class Collect extends CompositeComponent {
 
     static assignNamesToReplacements = true;
 
-    static acceptTarget = true;
-    static acceptAnyAttribute = true;
-
     static stateVariableToEvaluateAfterReplacements =
         "needsReplacementsUpdatedWhenStale";
 
