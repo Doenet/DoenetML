@@ -23,7 +23,7 @@ async function run_tests({
     }[];
     type?: "math" | "text" | "boolean";
 }) {
-    const core = await createTestCore({ doenetML });
+    const { core, resolveComponentName } = await createTestCore({ doenetML });
 
     for (let responseObj of responseCredits) {
         await submit_check(responseObj);
@@ -40,29 +40,35 @@ async function run_tests({
             if (type === "math") {
                 await updateMathInputValue({
                     latex: `${responses[name]}`,
-                    name,
+                    componentIdx: resolveComponentName(name),
                     core,
                 });
             } else if (type === "text") {
                 await updateTextInputValue({
                     text: `${responses[name]}`,
-                    name,
+                    componentIdx: resolveComponentName(name),
                     core,
                 });
             } else if (type === "boolean") {
                 await updateBooleanInputValue({
                     boolean: Boolean(responses[name]),
-                    name,
+                    componentIdx: resolveComponentName(name),
                     core,
                 });
             }
         }
         for (let code in credits) {
-            await submitAnswer({ name: `/ans${code}`, core });
+            await submitAnswer({
+                componentIdx: resolveComponentName(`ans${code}`),
+                core,
+            });
         }
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (let code in credits) {
-            expect(stateVariables[`/ans${code}`].stateValues.creditAchieved).eq(
+            expect(
+                stateVariables[resolveComponentName(`ans${code}`)].stateValues
+                    .creditAchieved,
+            ).eq(
                 credits[code],
                 `${code} credit for response ${JSON.stringify(responses)}`,
             );
@@ -106,67 +112,67 @@ async function run_ordered_unordered_tests({
         doenetML,
         responseCredits: [
             {
-                responses: { "/resp": "" },
+                responses: { resp: "" },
                 credits: { P: 0, PEP: 0, PU: 0, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("1,2,3") },
+                responses: { resp: make_response("1,2,3") },
                 credits: { P: 1, PEP: 1, PU: 1, S: 1, U: 1 },
             },
             {
-                responses: { "/resp": make_response("1,3") },
+                responses: { resp: make_response("1,3") },
                 credits: { P: 2 / 3, PEP: 1 / 3, PU: 2 / 3, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("2") },
+                responses: { resp: make_response("2") },
                 credits: { P: 1 / 3, PEP: 0, PU: 1 / 3, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("1") },
+                responses: { resp: make_response("1") },
                 credits: { P: 1 / 3, PEP: 1 / 3, PU: 1 / 3, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("1,2,a,3") },
+                responses: { resp: make_response("1,2,a,3") },
                 credits: { P: 3 / 4, PEP: 1 / 2, PU: 3 / 4, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("0,1,2,a,3") },
+                responses: { resp: make_response("0,1,2,a,3") },
                 credits: { P: 3 / 5, PEP: 0, PU: 3 / 5, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_alt_response("1,2,3", 1) },
+                responses: { resp: make_alt_response("1,2,3", 1) },
                 credits: { P: 0, PEP: 0, PU: 0, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_alt_response("1,2,3", 2) },
+                responses: { resp: make_alt_response("1,2,3", 2) },
                 credits: { P: 0, PEP: 0, PU: 0, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("3,1,2") },
+                responses: { resp: make_response("3,1,2") },
                 credits: { P: 2 / 3, PEP: 0, PU: 1, S: 0, U: 1 },
             },
             {
-                responses: { "/resp": make_response("3,2,1") },
+                responses: { resp: make_response("3,2,1") },
                 credits: { P: 1 / 3, PEP: 1 / 3, PU: 1, S: 0, U: 1 },
             },
             {
-                responses: { "/resp": make_response("3,2,1,3") },
+                responses: { resp: make_response("3,2,1,3") },
                 credits: { P: 2 / 4, PEP: 1 / 4, PU: 3 / 4, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("3,a,2,1,3") },
+                responses: { resp: make_response("3,a,2,1,3") },
                 credits: { P: 2 / 5, PEP: 0, PU: 3 / 5, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("1,3,a,2,1,3") },
+                responses: { resp: make_response("1,3,a,2,1,3") },
                 credits: { P: 3 / 6, PEP: 1 / 6, PU: 3 / 6, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("3,1") },
+                responses: { resp: make_response("3,1") },
                 credits: { P: 1 / 3, PEP: 0, PU: 2 / 3, S: 0, U: 0 },
             },
             {
-                responses: { "/resp": make_response("3,1,1") },
+                responses: { resp: make_response("3,1,1") },
                 credits: { P: 1 / 3, PEP: 0, PU: 2 / 3, S: 0, U: 0 },
             },
         ],
@@ -346,41 +352,41 @@ describe("match partial validation tests", async () => {
         await run_tests({
             doenetML,
             responseCredits: [
-                { responses: { "/resp": "" }, credits: { P: 0, S: 0 } },
+                { responses: { resp: "" }, credits: { P: 0, S: 0 } },
                 {
-                    responses: { "/resp": "\\{1,2,3\\}" },
+                    responses: { resp: "\\{1,2,3\\}" },
                     credits: { P: 1, S: 1 },
                 },
                 {
-                    responses: { "/resp": "\\{3,2,1\\}" },
+                    responses: { resp: "\\{3,2,1\\}" },
                     credits: { P: 1, S: 1 },
                 },
                 {
-                    responses: { "/resp": "\\{3,a,2,1\\}" },
+                    responses: { resp: "\\{3,a,2,1\\}" },
                     credits: { P: 3 / 4, S: 0 },
                 },
                 {
-                    responses: { "/resp": "\\{3,a,2,b,1\\}" },
+                    responses: { resp: "\\{3,a,2,b,1\\}" },
                     credits: { P: 3 / 5, S: 0 },
                 },
                 {
-                    responses: { "/resp": "\\{3,2,3,1,1\\}" },
+                    responses: { resp: "\\{3,2,3,1,1\\}" },
                     credits: { P: 1, S: 1 },
                 },
                 {
-                    responses: { "/resp": "\\{3,2,3,a,1,1\\}" },
+                    responses: { resp: "\\{3,2,3,a,1,1\\}" },
                     credits: { P: 3 / 4, S: 0 },
                 },
                 {
-                    responses: { "/resp": "1,2,3" },
+                    responses: { resp: "1,2,3" },
                     credits: { P: 0, S: 0 },
                 },
                 {
-                    responses: { "/resp": "3" },
+                    responses: { resp: "3" },
                     credits: { P: 1 / 3, S: 0 },
                 },
                 {
-                    responses: { "/resp": "\\{2,1\\}" },
+                    responses: { resp: "\\{2,1\\}" },
                     credits: { P: 2 / 3, S: 0 },
                 },
             ],
@@ -427,7 +433,7 @@ describe("match partial validation tests", async () => {
             doenetML,
             responseCredits: [
                 {
-                    responses: { "/resp": "" },
+                    responses: { resp: "" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -440,7 +446,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "1" },
+                    responses: { resp: "1" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -453,7 +459,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "(1,2)" },
+                    responses: { resp: "(1,2)" },
                     credits: {
                         OP: 1,
                         OS: 1,
@@ -466,7 +472,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "(3,2)" },
+                    responses: { resp: "(3,2)" },
                     credits: {
                         OP: 0.5,
                         OS: 0,
@@ -479,7 +485,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "[1,2]" },
+                    responses: { resp: "[1,2]" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -492,7 +498,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "[1,3]" },
+                    responses: { resp: "[1,3]" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -505,7 +511,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "[2,1]" },
+                    responses: { resp: "[2,1]" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -518,7 +524,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "(1,2]" },
+                    responses: { resp: "(1,2]" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -531,7 +537,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "(1,3]" },
+                    responses: { resp: "(1,3]" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -544,7 +550,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "(2,1]" },
+                    responses: { resp: "(2,1]" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -557,7 +563,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "[1,2)" },
+                    responses: { resp: "[1,2)" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -570,7 +576,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "[1,3)" },
+                    responses: { resp: "[1,3)" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -583,7 +589,7 @@ describe("match partial validation tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "[2,1)" },
+                    responses: { resp: "[2,1)" },
                     credits: {
                         OP: 0,
                         OS: 0,
@@ -611,39 +617,39 @@ describe("match partial validation tests", async () => {
             type,
             responseCredits: [
                 {
-                    responses: { "/x": "", "/y": "", "/z": "" },
+                    responses: { x: "", y: "", z: "" },
                     credits: { P: 0, PEP: 0, PU: 0, S: 0, U: 0 },
                 },
                 {
-                    responses: { "/x": "x", "/y": "y", "/z": "z" },
+                    responses: { x: "x", y: "y", z: "z" },
                     credits: { P: 1, PEP: 1, PU: 1, S: 1, U: 1 },
                 },
                 {
-                    responses: { "/x": "x", "/y": "z", "/z": "" },
+                    responses: { x: "x", y: "z", z: "" },
                     credits: { P: 2 / 3, PEP: 1 / 3, PU: 2 / 3, S: 0, U: 0 },
                 },
                 {
-                    responses: { "/x": "z", "/y": "x", "/z": "y" },
+                    responses: { x: "z", y: "x", z: "y" },
                     credits: { P: 2 / 3, PEP: 0, PU: 1, S: 0, U: 1 },
                 },
                 {
-                    responses: { "/x": "z", "/y": "y", "/z": "x" },
+                    responses: { x: "z", y: "y", z: "x" },
                     credits: { P: 1 / 3, PEP: 1 / 3, PU: 1, S: 0, U: 1 },
                 },
                 {
-                    responses: { "/x": "z", "/y": "", "/z": "x" },
+                    responses: { x: "z", y: "", z: "x" },
                     credits: { P: 1 / 3, PEP: 0, PU: 2 / 3, S: 0, U: 0 },
                 },
                 {
-                    responses: { "/x": "z", "/y": "x", "/z": "x" },
+                    responses: { x: "z", y: "x", z: "x" },
                     credits: { P: 1 / 3, PEP: 0, PU: 2 / 3, S: 0, U: 0 },
                 },
                 {
-                    responses: { "/x": "x", "/y": "x", "/z": "z" },
+                    responses: { x: "x", y: "x", z: "z" },
                     credits: { P: 2 / 3, PEP: 2 / 3, PU: 2 / 3, S: 0, U: 0 },
                 },
                 {
-                    responses: { "/x": "x", "/y": "x", "/z": "y" },
+                    responses: { x: "x", y: "x", z: "y" },
                     credits: { P: 2 / 3, PEP: 1 / 3, PU: 2 / 3, S: 0, U: 0 },
                 },
             ],
@@ -897,23 +903,23 @@ describe("match partial validation tests", async () => {
             type: "boolean",
             responseCredits: [
                 {
-                    responses: { "/x": false, "/y": true, "/z": true },
+                    responses: { x: false, y: true, z: true },
                     credits: { P: 1, PEP: 1, PU: 1, S: 1, U: 1 },
                 },
                 {
-                    responses: { "/x": true, "/y": true, "/z": true },
+                    responses: { x: true, y: true, z: true },
                     credits: { P: 2 / 3, PEP: 2 / 3, PU: 2 / 3, S: 0, U: 0 },
                 },
                 {
-                    responses: { "/x": true, "/y": false, "/z": true },
+                    responses: { x: true, y: false, z: true },
                     credits: { P: 2 / 3, PEP: 1 / 3, PU: 1, S: 0, U: 1 },
                 },
                 {
-                    responses: { "/x": true, "/y": false, "/z": false },
+                    responses: { x: true, y: false, z: false },
                     credits: { P: 1 / 3, PEP: 0, PU: 2 / 3, S: 0, U: 0 },
                 },
                 {
-                    responses: { "/x": false, "/y": false, "/z": false },
+                    responses: { x: false, y: false, z: false },
                     credits: { P: 1 / 3, PEP: 1 / 3, PU: 1 / 3, S: 0, U: 0 },
                 },
             ],
@@ -933,27 +939,27 @@ describe("match partial validation tests", async () => {
             doenetML,
             responseCredits: [
                 {
-                    responses: { "/m1": "(1,2)", "/m2": "(3,4)" },
+                    responses: { m1: "(1,2)", m2: "(3,4)" },
                     credits: { P: 1, S: 1 },
                 },
                 {
-                    responses: { "/m1": "2", "/m2": "(3,4)" },
+                    responses: { m1: "2", m2: "(3,4)" },
                     credits: { P: 3 / 4, S: 0 },
                 },
                 {
-                    responses: { "/m1": "2", "/m2": "3" },
+                    responses: { m1: "2", m2: "3" },
                     credits: { P: inner_no_partial ? 1 / 4 : 1 / 2, S: 0 },
                 },
                 {
-                    responses: { "/m1": "(2,1)", "/m2": "(3,4)" },
+                    responses: { m1: "(2,1)", m2: "(3,4)" },
                     credits: { P: 3 / 4, S: 0 },
                 },
                 {
-                    responses: { "/m1": "(2,1)", "/m2": "(4,3)" },
+                    responses: { m1: "(2,1)", m2: "(4,3)" },
                     credits: { P: force_ordered ? 1 / 2 : 3 / 4, S: 0 },
                 },
                 {
-                    responses: { "/m1": "(1,2)", "/m2": "(4,3)" },
+                    responses: { m1: "(1,2)", m2: "(4,3)" },
                     credits: force_ordered
                         ? { P: 3 / 4, S: 0 }
                         : { P: 1, S: 1 },
@@ -1180,55 +1186,55 @@ describe("match partial validation tests", async () => {
             responseCredits: [
                 {
                     responses: {
-                        "/u": true,
-                        "/v": false,
-                        "/x": true,
-                        "/y": false,
+                        u: true,
+                        v: false,
+                        x: true,
+                        y: false,
                     },
                     credits: { P: 1, S: 1 },
                 },
                 {
                     responses: {
-                        "/u": true,
-                        "/v": true,
-                        "/x": true,
-                        "/y": false,
+                        u: true,
+                        v: true,
+                        x: true,
+                        y: false,
                     },
                     credits: { P: 3 / 4, S: 0 },
                 },
                 {
                     responses: {
-                        "/u": true,
-                        "/v": true,
-                        "/x": true,
-                        "/y": true,
+                        u: true,
+                        v: true,
+                        x: true,
+                        y: true,
                     },
                     credits: { P: 1 / 2, S: 0 },
                 },
                 {
                     responses: {
-                        "/u": false,
-                        "/v": true,
-                        "/x": true,
-                        "/y": true,
+                        u: false,
+                        v: true,
+                        x: true,
+                        y: true,
                     },
                     credits: { P: 1 / 2, S: 0 },
                 },
                 {
                     responses: {
-                        "/u": false,
-                        "/v": true,
-                        "/x": false,
-                        "/y": true,
+                        u: false,
+                        v: true,
+                        x: false,
+                        y: true,
                     },
                     credits: { P: 3 / 4, S: 0 },
                 },
                 {
                     responses: {
-                        "/u": true,
-                        "/v": false,
-                        "/x": false,
-                        "/y": true,
+                        u: true,
+                        v: false,
+                        x: false,
+                        y: true,
                     },
                     credits: { P: 1, S: 1 },
                 },
@@ -1240,19 +1246,19 @@ describe("match partial validation tests", async () => {
         await run_tests({
             doenetML,
             responseCredits: [
-                { responses: { "/mi": "(1,2)" }, credits: { 1: 0.5, 2: 0.5 } },
+                { responses: { mi: "(1,2)" }, credits: { 1: 0.5, 2: 0.5 } },
                 {
-                    responses: { "/mi": "(1,2),(3,4)" },
+                    responses: { mi: "(1,2),(3,4)" },
                     credits: { 1: 1, 2: 1 },
                 },
-                { responses: { "/mi": "(3,4)" }, credits: { 1: 0.5, 2: 0.5 } },
+                { responses: { mi: "(3,4)" }, credits: { 1: 0.5, 2: 0.5 } },
                 {
-                    responses: { "/mi": "\\langle 1,2 \\rangle" },
+                    responses: { mi: "\\langle 1,2 \\rangle" },
                     credits: { 1: 0.5, 2: 0.5 },
                 },
                 {
                     responses: {
-                        "/mi": "\\langle 1,2 \\rangle,\\langle 3,4 \\rangle",
+                        mi: "\\langle 1,2 \\rangle,\\langle 3,4 \\rangle",
                     },
                     credits: { 1: 1, 2: 1 },
                 },
@@ -1375,12 +1381,12 @@ describe("match partial validation tests", async () => {
         await run_tests({
             doenetML,
             responseCredits: [
-                { responses: { "/mi": "[1,2)" }, credits: { 1: 0.5, 2: 0.5 } },
+                { responses: { mi: "[1,2)" }, credits: { 1: 0.5, 2: 0.5 } },
                 {
-                    responses: { "/mi": "[1,2),(3,4]" },
+                    responses: { mi: "[1,2),(3,4]" },
                     credits: { 1: 1, 2: 1 },
                 },
-                { responses: { "/mi": "(3,4]" }, credits: { 1: 0.5, 2: 0.5 } },
+                { responses: { mi: "(3,4]" }, credits: { 1: 0.5, 2: 0.5 } },
             ],
         });
     });
@@ -1408,12 +1414,12 @@ describe("match partial validation tests", async () => {
         await run_tests({
             doenetML,
             responseCredits: [
-                { responses: { "/mi": "[1,2]" }, credits: { 1: 0.5, 2: 0.5 } },
+                { responses: { mi: "[1,2]" }, credits: { 1: 0.5, 2: 0.5 } },
                 {
-                    responses: { "/mi": "[1,2],[3,4]" },
+                    responses: { mi: "[1,2],[3,4]" },
                     credits: { 1: 1, 2: 1 },
                 },
-                { responses: { "/mi": "[3,4]" }, credits: { 1: 0.5, 2: 0.5 } },
+                { responses: { mi: "[3,4]" }, credits: { 1: 0.5, 2: 0.5 } },
             ],
         });
     });
@@ -1442,19 +1448,19 @@ describe("match partial validation tests", async () => {
             doenetML,
             responseCredits: [
                 {
-                    responses: { "/mi": "(1,2),(3,4)" },
+                    responses: { mi: "(1,2),(3,4)" },
                     credits: { P: 1, PU: 1 },
                 },
                 {
-                    responses: { "/mi": "(1,-2),(3,4)" },
+                    responses: { mi: "(1,-2),(3,4)" },
                     credits: { P: 0.5, PU: 0.5 },
                 },
                 {
-                    responses: { "/mi": "(3,4),(1,2)" },
+                    responses: { mi: "(3,4),(1,2)" },
                     credits: { P: 0.5, PU: 1 },
                 },
                 {
-                    responses: { "/mi": "(1,2),(4,3)" },
+                    responses: { mi: "(1,2),(4,3)" },
                     credits: { P: 0.5, PU: 0.5 },
                 },
             ],

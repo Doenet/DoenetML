@@ -16,7 +16,7 @@ async function run_tests({
         credits: Record<string, number>;
     }[];
 }) {
-    const core = await createTestCore({ doenetML });
+    const { core, resolveComponentName } = await createTestCore({ doenetML });
 
     for (let responseObj of responseCredits) {
         await submit_check(responseObj);
@@ -32,16 +32,22 @@ async function run_tests({
         for (let name in responses) {
             await updateMathInputValue({
                 latex: `${responses[name]}`,
-                name,
+                componentIdx: resolveComponentName(name),
                 core,
             });
         }
         for (let code in credits) {
-            await submitAnswer({ name: `/ans${code}`, core });
+            await submitAnswer({
+                componentIdx: resolveComponentName(`ans${code}`),
+                core,
+            });
         }
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (let code in credits) {
-            expect(stateVariables[`/ans${code}`].stateValues.creditAchieved).eq(
+            expect(
+                stateVariables[resolveComponentName(`ans${code}`)].stateValues
+                    .creditAchieved,
+            ).eq(
                 credits[code],
                 `${code} credit for response ${JSON.stringify(responses)}`,
             );
@@ -79,19 +85,19 @@ describe("Symbolic equality tests", async () => {
             responseCredits: [
                 { responses: {}, credits: { S1: 0, S2: 0, N1: 0, N2: 0 } },
                 {
-                    responses: { "/resp": "4" },
+                    responses: { resp: "4" },
                     credits: { S1: 0, S2: 0, N1: 1, N2: 1 },
                 },
                 {
-                    responses: { "/resp": "3+1" },
+                    responses: { resp: "3+1" },
                     credits: { S1: 0, S2: 1, N1: 1, N2: 1 },
                 },
                 {
-                    responses: { "/resp": "1+3" },
+                    responses: { resp: "1+3" },
                     credits: { S1: 1, S2: 0, N1: 1, N2: 1 },
                 },
                 {
-                    responses: { "/resp": "1+1+1+1" },
+                    responses: { resp: "1+1+1+1" },
                     credits: { S1: 0, S2: 0, N1: 1, N2: 1 },
                 },
             ],
@@ -118,31 +124,31 @@ describe("Symbolic equality tests", async () => {
             responseCredits: [
                 { responses: {}, credits: { S: 0, N: 0 } },
                 {
-                    responses: { "/resp": "1x-0y+-3s" },
+                    responses: { resp: "1x-0y+-3s" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x-0y-3s" },
+                    responses: { resp: "1x-0y-3s" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x-0y+(-3s)" },
+                    responses: { resp: "1x-0y+(-3s)" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x+0y-3s" },
+                    responses: { resp: "1x+0y-3s" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x-3s" },
+                    responses: { resp: "1x-3s" },
                     credits: { S: 0, N: 1 },
                 },
                 {
-                    responses: { "/resp": "x-0y-3s" },
+                    responses: { resp: "x-0y-3s" },
                     credits: { S: 0, N: 1 },
                 },
                 {
-                    responses: { "/resp": "-0y+1x-3s" },
+                    responses: { resp: "-0y+1x-3s" },
                     credits: { S: 0, N: 1 },
                 },
             ],
@@ -225,7 +231,7 @@ describe("Symbolic equality tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "z-5x-3" },
+                    responses: { resp: "z-5x-3" },
                     credits: {
                         S1: 1,
                         S2: 1,
@@ -242,7 +248,7 @@ describe("Symbolic equality tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "z+-5x+-3" },
+                    responses: { resp: "z+-5x+-3" },
                     credits: {
                         S1: 1,
                         S2: 1,
@@ -259,7 +265,7 @@ describe("Symbolic equality tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "z-(5x)+-(3)" },
+                    responses: { resp: "z-(5x)+-(3)" },
                     credits: {
                         S1: 1,
                         S2: 1,
@@ -276,7 +282,7 @@ describe("Symbolic equality tests", async () => {
                     },
                 },
                 {
-                    responses: { "/resp": "z-1(5x)-3" },
+                    responses: { resp: "z-1(5x)-3" },
                     credits: {
                         S1: 0,
                         S2: 0,
@@ -302,31 +308,31 @@ describe("Symbolic equality tests", async () => {
             responseCredits: [
                 { responses: {}, credits: { S: 0, N: 0 } },
                 {
-                    responses: { "/resp": "1x^2+2-0x^2+3+x^2+3x^2+7+4" },
+                    responses: { resp: "1x^2+2-0x^2+3+x^2+3x^2+7+4" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "x^2+5+x^2+3x^2+11" },
+                    responses: { resp: "x^2+5+x^2+3x^2+11" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x^2+2-0x^2+3+x^2+3x^2+4+7" },
+                    responses: { resp: "1x^2+2-0x^2+3+x^2+3x^2+4+7" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x^2+2-0x^2+3+3x^2+x^2+7+4" },
+                    responses: { resp: "1x^2+2-0x^2+3+3x^2+x^2+7+4" },
                     credits: { S: 0, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x^2+2-0x^2+3+4x^2+7+4" },
+                    responses: { resp: "1x^2+2-0x^2+3+4x^2+7+4" },
                     credits: { S: 0, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x^2-0x^2+x^2+3x^2+16" },
+                    responses: { resp: "1x^2-0x^2+x^2+3x^2+16" },
                     credits: { S: 0, N: 1 },
                 },
                 {
-                    responses: { "/resp": "5x^2+16" },
+                    responses: { resp: "5x^2+16" },
                     credits: { S: 0, N: 1 },
                 },
             ],
@@ -415,23 +421,23 @@ describe("Symbolic equality tests", async () => {
             responseCredits: [
                 { responses: {}, credits: { S: 0, N: 0 } },
                 {
-                    responses: { "/resp": "1x^2+2-0x^2+3+x^2+3x^2+7+4" },
+                    responses: { resp: "1x^2+2-0x^2+3+x^2+3x^2+7+4" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "x^2-0x^2+x^2+3x^2+16" },
+                    responses: { resp: "x^2-0x^2+x^2+3x^2+16" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "7+1x^2-0x^2+3+3x^2+4+2+x^2" },
+                    responses: { resp: "7+1x^2-0x^2+3+3x^2+4+2+x^2" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "1x^2+2-0x^2+3+4x^2+7+4" },
+                    responses: { resp: "1x^2+2-0x^2+3+4x^2+7+4" },
                     credits: { S: 0, N: 1 },
                 },
                 {
-                    responses: { "/resp": "5x^2+16" },
+                    responses: { resp: "5x^2+16" },
                     credits: { S: 0, N: 1 },
                 },
             ],
@@ -460,27 +466,27 @@ describe("Symbolic equality tests", async () => {
             responseCredits: [
                 { responses: {}, credits: { S: 0, N: 0 } },
                 {
-                    responses: { "/resp": "6x^2 -3x +8x -4 + (2x-3)(4-x)" },
+                    responses: { resp: "6x^2 -3x +8x -4 + (2x-3)(4-x)" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "6x^2 +5x -4 + (2x-3)(4-x)" },
+                    responses: { resp: "6x^2 +5x -4 + (2x-3)(4-x)" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "-4 + 6x^2 + (4-x)(-3+2x) + 5x" },
+                    responses: { resp: "-4 + 6x^2 + (4-x)(-3+2x) + 5x" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "6x^2 +5x -4 -2x^2+11x-12" },
+                    responses: { resp: "6x^2 +5x -4 -2x^2+11x-12" },
                     credits: { S: 0, N: 1 },
                 },
                 {
-                    responses: { "/resp": "4x^2 +16x -16" },
+                    responses: { resp: "4x^2 +16x -16" },
                     credits: { S: 0, N: 1 },
                 },
                 {
-                    responses: { "/resp": "(3x+4)(2x -1) + (2x-3)(4-x)" },
+                    responses: { resp: "(3x+4)(2x -1) + (2x-3)(4-x)" },
                     credits: { S: 0, N: 1 },
                 },
             ],
@@ -510,18 +516,18 @@ describe("Symbolic equality tests", async () => {
                 { responses: {}, credits: { S: 0, N: 0 } },
                 {
                     responses: {
-                        "/resp": "(2x-3)(4-x) + \\sin(x)^2+\\cos(x)^2",
+                        resp: "(2x-3)(4-x) + \\sin(x)^2+\\cos(x)^2",
                     },
                     credits: { S: 1, N: 1 },
                 },
                 {
                     responses: {
-                        "/resp": "-2x^2+11x-12 + \\sin(x)^2+\\cos(x)^2",
+                        resp: "-2x^2+11x-12 + \\sin(x)^2+\\cos(x)^2",
                     },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "(2x-3)(4-x) + 1" },
+                    responses: { resp: "(2x-3)(4-x) + 1" },
                     credits: { S: 0, N: 1 },
                 },
             ],
@@ -535,14 +541,14 @@ describe("Symbolic equality tests", async () => {
     <p>
     What is <math name="expr">-3-4</math>?
     <answer name="ansS">
-      <award symbolicEquality><when>$resp=$expr{simplify}</when></award>
+      <award symbolicEquality><when>$resp=<math extend="$expr" simplify /></when></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
     <p>What is $expr? 
     <answer name="ansN">
-      <award><when>$resp=$expr{simplify}</when></award>
+      <award><when>$resp=<math extend="$expr" simplify /></when></award>
     </answer></p>
     `;
 
@@ -551,11 +557,11 @@ describe("Symbolic equality tests", async () => {
             responseCredits: [
                 { responses: {}, credits: { S: 0, N: 0 } },
                 {
-                    responses: { "/resp": "-7" },
+                    responses: { resp: "-7" },
                     credits: { S: 1, N: 1 },
                 },
                 {
-                    responses: { "/resp": "-3-4" },
+                    responses: { resp: "-3-4" },
                     credits: { S: 0, N: 1 },
                 },
             ],
@@ -589,19 +595,19 @@ describe("Symbolic equality tests", async () => {
             responseCredits: [
                 { responses: {}, credits: { E: 0, EXP: 0, ES: 0, EXPS: 0 } },
                 {
-                    responses: { "/resp": "-5e^{-t}" },
+                    responses: { resp: "-5e^{-t}" },
                     credits: { E: 1, EXP: 1, ES: 1, EXPS: 1 },
                 },
                 {
-                    responses: { "/resp": "-5\\exp(-t)" },
+                    responses: { resp: "-5\\exp(-t)" },
                     credits: { E: 1, EXP: 1, ES: 1, EXPS: 1 },
                 },
                 {
-                    responses: { "/resp": "-5/e^t" },
+                    responses: { resp: "-5/e^t" },
                     credits: { E: 1, EXP: 1, ES: 1, EXPS: 1 },
                 },
                 {
-                    responses: { "/resp": "-5/\\exp(t)" },
+                    responses: { resp: "-5/\\exp(t)" },
                     credits: { E: 1, EXP: 1, ES: 1, EXPS: 1 },
                 },
             ],

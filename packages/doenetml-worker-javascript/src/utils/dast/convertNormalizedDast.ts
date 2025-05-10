@@ -599,13 +599,15 @@ export function expandAttribute({
     let errors: ErrorRecord[] = [];
 
     if (attrDef?.createComponentOfType) {
-        const unflattenedComponent = createInitialComponentFromAttribute({
+        const initialResult = createInitialComponentFromAttribute({
             attrDef,
             attribute,
             componentInfoObjects,
             nComponents,
         });
-        nComponents++;
+
+        const unflattenedComponent = initialResult.component;
+        nComponents = initialResult.nComponents;
 
         if (attribute.position) {
             unflattenedComponent.position = attribute.position;
@@ -633,6 +635,7 @@ export function expandAttribute({
             if (attrDef.copyComponentAttributesForCreatedComponent) {
                 for (let attrName of attrDef.copyComponentAttributesForCreatedComponent) {
                     if (allUnflattenedAttributes[attrName]) {
+                        // XXX: we many need to increment component indices here
                         unflattenedComponentAttributes[attrName] = JSON.parse(
                             JSON.stringify(allUnflattenedAttributes[attrName]),
                         );
@@ -732,7 +735,7 @@ function createInitialComponentFromAttribute({
     attribute: UnflattenedAttribute | UnresolvedAttribute;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
-}): UnflattenedComponent {
+}): { component: UnflattenedComponent; nComponents: number } {
     if (attrDef.createComponentOfType === undefined) {
         throw Error(
             "Cannot call initialComponentFromAttribute unless have createComponentOfType",
@@ -744,12 +747,15 @@ function createInitialComponentFromAttribute({
         // create a component from `true`
         if (attrDef.valueForTrue !== undefined) {
             return {
-                type: "unflattened",
-                componentType: attrDef.createComponentOfType,
-                componentIdx: nComponents,
-                attributes: {},
-                children: [],
-                state: { value: attrDef.valueForTrue },
+                component: {
+                    type: "unflattened",
+                    componentType: attrDef.createComponentOfType,
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    children: [],
+                    state: { value: attrDef.valueForTrue },
+                },
+                nComponents,
             };
         } else if (
             componentInfoObjects.isInheritedComponentType({
@@ -758,12 +764,15 @@ function createInitialComponentFromAttribute({
             })
         ) {
             return {
-                type: "unflattened",
-                componentType: attrDef.createComponentOfType,
-                componentIdx: nComponents,
-                attributes: {},
-                children: [],
-                state: { value: true },
+                component: {
+                    type: "unflattened",
+                    componentType: attrDef.createComponentOfType,
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    children: [],
+                    state: { value: true },
+                },
+                nComponents,
             };
         } else {
             throw Error(`Invalid empty attribute ${attribute.name}`);
@@ -782,24 +791,30 @@ function createInitialComponentFromAttribute({
                 attrDef.valueForTrue !== undefined
             ) {
                 return {
-                    type: "unflattened",
-                    componentType: attrDef.createComponentOfType,
-                    componentIdx: nComponents,
-                    attributes: {},
-                    children: [],
-                    state: { value: attrDef.valueForTrue },
+                    component: {
+                        type: "unflattened",
+                        componentType: attrDef.createComponentOfType,
+                        componentIdx: nComponents++,
+                        attributes: {},
+                        children: [],
+                        state: { value: attrDef.valueForTrue },
+                    },
+                    nComponents,
                 };
             } else if (
                 valueTrimLower === "false" &&
                 attrDef.valueForFalse !== undefined
             ) {
                 return {
-                    type: "unflattened",
-                    componentType: attrDef.createComponentOfType,
-                    componentIdx: nComponents,
-                    attributes: {},
-                    children: [],
-                    state: { value: attrDef.valueForFalse },
+                    component: {
+                        type: "unflattened",
+                        componentType: attrDef.createComponentOfType,
+                        componentIdx: nComponents++,
+                        attributes: {},
+                        children: [],
+                        state: { value: attrDef.valueForFalse },
+                    },
+                    nComponents,
                 };
             } else if (
                 componentInfoObjects.isInheritedComponentType({
@@ -809,25 +824,37 @@ function createInitialComponentFromAttribute({
                 ["true", "false"].includes(valueTrimLower)
             ) {
                 return {
-                    type: "unflattened",
-                    componentIdx: nComponents,
-                    componentType: attrDef.createComponentOfType,
-                    attributes: {},
-                    children: [],
-                    state: { value: valueTrimLower === "true" },
+                    component: {
+                        type: "unflattened",
+                        componentIdx: nComponents++,
+                        componentType: attrDef.createComponentOfType,
+                        attributes: {},
+                        children: [],
+                        state: { value: valueTrimLower === "true" },
+                    },
+                    nComponents,
                 };
             }
         }
     }
 
-    return {
+    const component: UnflattenedComponent = {
         type: "unflattened",
         componentType: attrDef.createComponentOfType,
-        componentIdx: nComponents,
+        componentIdx: nComponents++,
         attributes: {},
-        children: attribute.children,
+        children: [],
         state: {},
     };
+
+    component.children = attribute.children.map((child) => {
+        if (typeof child === "object") {
+            child.componentIdx = nComponents++;
+        }
+        return child;
+    });
+
+    return { component, nComponents };
 }
 
 /**

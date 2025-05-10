@@ -187,6 +187,7 @@ export default class Award extends BaseComponent {
             matchedChildren,
             parentAttributes,
             componentInfoObjects,
+            nComponents,
         }) {
             // wrap with componentType if have more than one child or a single string
 
@@ -270,10 +271,16 @@ export default class Award extends BaseComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType: type,
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
+                nComponents,
             };
         };
 

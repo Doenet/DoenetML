@@ -253,6 +253,7 @@ export default class Answer extends InlineComponent {
             matchedChildren,
             componentAttributes,
             componentInfoObjects,
+            nComponents,
         }) {
             // if children are strings and macros
             // wrap with award
@@ -297,10 +298,11 @@ export default class Answer extends InlineComponent {
                         if (!component.attributes) {
                             component.attributes = {};
                         }
-                        // Note we don't add the attribute as {primitive: true}
-                        // because the composite don't have the attribute isResponse
-                        // but pass it on to their replacements
-                        component.attributes.isResponse = true;
+                        component.attributes.isResponse = {
+                            type: "unresolved",
+                            name: "isResponse",
+                            children: ["true"],
+                        };
                     } else if (component.children) {
                         addResponsesToCompositeDescendants(component.children);
                     }
@@ -480,8 +482,13 @@ export default class Answer extends InlineComponent {
                 } else {
                     // wrap all choices in a choiceinput
                     let choiceinput = {
+                        type: "serialized",
                         componentType: "choiceInput",
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     };
                     if (componentAttributes.shuffleOrder) {
                         choiceinput.attributes = {
@@ -491,6 +498,7 @@ export default class Answer extends InlineComponent {
                     return {
                         success: true,
                         newChildren: [choiceinput],
+                        nComponents,
                     };
                 }
             }
@@ -614,8 +622,13 @@ export default class Answer extends InlineComponent {
                 newChildren = [
                     ...childrenToNotWrapBegin,
                     {
+                        type: "serialized",
                         componentType: "award",
+                        componentIdx: nComponents++,
                         children: awardChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                     ...childrenToNotWrapEnd,
                 ];
@@ -624,13 +637,25 @@ export default class Answer extends InlineComponent {
             if (mayNeedInput && !definitelyDoNotAddInput) {
                 let inputType = type + "Input";
 
-                newChildren = [{ componentType: inputType }, ...newChildren];
+                newChildren = [
+                    {
+                        type: "serialized",
+                        componentType: inputType,
+                        componentIdx: nComponents++,
+                        children: [],
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
+                    },
+                    ...newChildren,
+                ];
             }
 
             return {
                 success: true,
                 newChildren: newChildren,
                 warnings,
+                nComponents,
             };
         };
 

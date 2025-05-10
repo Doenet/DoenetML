@@ -90,7 +90,11 @@ async function run_tests({
         }
     >;
 }) {
-    const core = await createTestCore({
+    const { core, resolveComponentName } = await createTestCore({
+        doenetML: createDoenetML(factoredString, partialFactoredString),
+    });
+
+    console.log({
         doenetML: createDoenetML(factoredString, partialFactoredString),
     });
 
@@ -119,16 +123,20 @@ async function run_tests({
     }) {
         await updateMathInputValue({
             latex: response,
-            name: "/resp",
+            componentIdx: resolveComponentName("resp"),
             core,
         });
         for (let ans of answers) {
-            await submitAnswer({ name: `/check${ans}`, core });
+            await submitAnswer({
+                componentIdx: resolveComponentName(`check${ans}`),
+                core,
+            });
         }
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (let ans of answers) {
             expect(
-                stateVariables[`/check${ans}`].stateValues.creditAchieved,
+                stateVariables[resolveComponentName(`check${ans}`)].stateValues
+                    .creditAchieved,
             ).eq(creditAchieved[ans], `${ans} credit for response ${response}`);
         }
     }

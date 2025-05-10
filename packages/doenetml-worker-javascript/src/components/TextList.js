@@ -327,6 +327,7 @@ export default class TextList extends CompositeComponent {
                 attributes: attributesToConvert,
                 componentType: "text",
                 componentInfoObjects,
+                nComponents,
             });
 
             attributesFromComposite = res.attributes;
@@ -347,9 +348,11 @@ export default class TextList extends CompositeComponent {
             replacements.push({
                 type: "serialized",
                 componentType: "text",
+                componentIdx: nComponents++,
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 doenetAttributes: {},
                 children: [],
+                state: {},
                 downstreamDependencies: {
                     [component.componentIdx]: [
                         {
@@ -378,6 +381,7 @@ export default class TextList extends CompositeComponent {
             replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 

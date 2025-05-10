@@ -2,15 +2,12 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
-import { processAssignNames } from "../utils/naming";
 
 export default class BooleanList extends CompositeComponent {
     static componentType = "booleanList";
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
-
-    static assignNamesToReplacements = true;
 
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
@@ -63,8 +60,11 @@ export default class BooleanList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren }) {
-                return groupIntoBooleansSeparatedBySpaces({ matchedChildren });
+            replacementFunction: function ({ matchedChildren, nComponents }) {
+                return groupIntoBooleansSeparatedBySpaces({
+                    matchedChildren,
+                    nComponents,
+                });
             },
         });
 
@@ -301,6 +301,7 @@ export default class BooleanList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -321,12 +322,15 @@ export default class BooleanList extends CompositeComponent {
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite =
-                convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "boolean",
-                    componentInfoObjects,
-                });
+            const res = convertUnresolvedAttributesForComponentType({
+                attributes: attributesToConvert,
+                componentType: "boolean",
+                componentInfoObjects,
+                nComponents,
+            });
+
+            attributesFromComposite = res.attributes;
+            nComponents = res.nComponents;
         }
 
         let childNameByComponent =
@@ -341,8 +345,13 @@ export default class BooleanList extends CompositeComponent {
                 componentsCopied.push(replacementSource.componentIdx);
             }
             replacements.push({
+                type: "serialized",
                 componentType: "boolean",
+                componentIdx: nComponents++,
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                doenetAttributes: {},
+                children: [],
+                state: {},
                 downstreamDependencies: {
                     [component.componentIdx]: [
                         {
@@ -364,28 +373,21 @@ export default class BooleanList extends CompositeComponent {
             markAsPrimaryShadow: true,
         });
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         workspace.componentsCopied = componentsCopied;
         workspace.numComponents = numComponents;
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static async calculateReplacementChanges({
         component,
         components,
+        nComponents,
         componentInfoObjects,
         workspace,
     }) {
@@ -425,11 +427,13 @@ export default class BooleanList extends CompositeComponent {
             components,
             componentInfoObjects,
             workspace,
+            nComponents,
         });
 
         let replacements = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -441,6 +445,6 @@ export default class BooleanList extends CompositeComponent {
             },
         ];
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 }
