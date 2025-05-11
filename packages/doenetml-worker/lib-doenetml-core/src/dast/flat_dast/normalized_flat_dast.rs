@@ -21,6 +21,7 @@ impl Default for NormalizedNode {
         NormalizedNode::Error(FlatError {
             parent: None,
             message: "DEFAULT NODE".to_string(),
+            unresolved_path: None,
             position: None,
             idx: 0,
         })

@@ -4,7 +4,7 @@ use anyhow::anyhow;
 
 use super::{
     flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent},
-    ref_resolve::{RefResolution, Resolver},
+    ref_resolve::{RefResolution, ResolutionError, Resolver},
     DastElement, DastElementContent, DastError,
 };
 
@@ -66,6 +66,11 @@ impl Expander {
                             idx: ref_.idx,
                             parent: ref_.parent,
                             message: format!("Ref resolution error: {}", err),
+                            unresolved_path: if let ResolutionError::NoReferent = err {
+                                Some(ref_.path.clone())
+                            } else {
+                                None
+                            },
                             position: ref_.position.clone(),
                         }),
                     }
@@ -139,6 +144,11 @@ impl Expander {
                                 idx: function_ref.idx,
                                 parent: function_ref.parent,
                                 message: format!("Ref resolution error: {}", err),
+                                unresolved_path: if let ResolutionError::NoReferent = err {
+                                    Some(function_ref.path.clone())
+                                } else {
+                                    None
+                                },
                                 position: function_ref.position.clone(),
                             }),
                         };

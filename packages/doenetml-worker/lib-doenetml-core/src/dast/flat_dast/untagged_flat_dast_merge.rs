@@ -183,6 +183,7 @@ impl FlatRoot {
     fn set_error(&mut self, node: &DastError, idx: Index, parent: Option<Index>) -> usize {
         self.nodes[idx] = FlatNode::Error(FlatError {
             message: node.message.clone(),
+            unresolved_path: None,
             position: node.position.clone(),
             parent,
             idx,

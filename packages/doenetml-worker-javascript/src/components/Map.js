@@ -5,6 +5,7 @@ import {
     setUpVariantSeedAndRng,
 } from "../utils/variants";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Map extends CompositeComponent {
     static componentType = "map";
 
@@ -18,9 +19,6 @@ export default class Map extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.behavior = {
             createComponentOfType: "text",
             createStateVariable: "behavior",
@@ -59,7 +57,7 @@ export default class Map extends CompositeComponent {
 
         stateVariableDefinitions.numSources = {
             additionalStateVariablesDefined: [
-                "sourcesNames",
+                "sourceComponentIndices",
                 "sourceAliases",
                 "sourceIndexAliases",
             ],
@@ -74,9 +72,10 @@ export default class Map extends CompositeComponent {
                 return {
                     setValue: {
                         numSources: dependencyValues.sourcesChildren.length,
-                        sourcesNames: dependencyValues.sourcesChildren.map(
-                            (x) => x.componentIdx,
-                        ),
+                        sourceComponentIndices:
+                            dependencyValues.sourcesChildren.map(
+                                (x) => x.componentIdx,
+                            ),
                         sourceAliases: dependencyValues.sourcesChildren.map(
                             (x) => x.stateValues.alias,
                         ),
@@ -280,6 +279,7 @@ export default class Map extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         components,
+        nComponents,
         workspace,
         componentInfoObjects,
     }) {
@@ -290,17 +290,18 @@ export default class Map extends CompositeComponent {
 
         if (!(await component.stateValues.validBehavior)) {
             workspace.lastReplacementParameters = {
-                sourcesNames: [],
+                sourceComponentIndices: [],
                 sourcesChildNames: [],
                 behavior: undefined,
                 numIterates: undefined,
                 minNIterates: undefined,
             };
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         }
 
         workspace.lastReplacementParameters = {
-            sourcesNames: await component.stateValues.sourcesNames,
+            sourceComponentIndices:
+                await component.stateValues.sourceComponentIndices,
             sourcesChildNames: await component.stateValues.sourcesChildNames,
             behavior: await component.stateValues.behavior,
             numIterates: await component.stateValues.numIterates,
@@ -317,35 +318,39 @@ export default class Map extends CompositeComponent {
                 iter < (await component.stateValues.minNIterates);
                 iter++
             ) {
-                let res = await this.parallelReplacement({
+                const res = await this.parallelReplacement({
                     component,
                     iter,
                     componentInfoObjects,
                     components,
+                    nComponents,
                 });
                 replacements.push(...res.replacements);
                 errors.push(...res.errors);
                 warnings.push(...res.warnings);
+                nComponents = res.nComponents;
             }
         } else {
             //behavior is combination
             // A better solution here?
             // https://stackoverflow.com/a/51470002
-            let results = await this.recurseThroughCombinations({
+            const results = await this.recurseThroughCombinations({
                 component,
                 sourcesNumber: 0,
                 iterateNumber: -1,
                 componentInfoObjects,
                 components,
+                nComponents,
             });
             replacements = results.replacements;
             errors.push(...results.errors);
             warnings.push(...results.warnings);
+            nComponents = results.nComponents;
         }
 
-        // console.log(`replacements of map`)
+        // console.log(`replacements of map`);
         // console.log(JSON.parse(JSON.stringify(replacements)));
-        return { replacements, errors, warnings };
+        return { replacements, errors, warnings, nComponents };
     }
 
     static async parallelReplacement({
@@ -354,34 +359,48 @@ export default class Map extends CompositeComponent {
         componentInfoObjects,
         components,
         isUpdate = false,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
 
         let replacements = [deepClone(await component.stateValues.template)];
+
+        const idxResult = createNewComponentIndices(replacements, nComponents);
+        replacements = idxResult.components;
+        nComponents = idxResult.nComponents;
+
         let compositeAttributesObj = this.createAttributesObject();
 
         // pass isResponse to replacements
         // (only isResponse will be copied, as it is only attribute with leaveRaw)
 
-        let attributesFromComposite =
-            convertUnresolvedAttributesForComponentType({
-                attributes: component.attributes,
-                componentType: replacements[0].componentType,
-                componentInfoObjects,
-                compositeAttributesObj,
-            });
+        const res = convertUnresolvedAttributesForComponentType({
+            attributes: component.attributes,
+            componentType: replacements[0].componentType,
+            componentInfoObjects,
+            compositeAttributesObj,
+            nComponents,
+        });
+
+        const attributesFromComposite = res.attributes;
+        nComponents = res.nComponents;
+
         if (!replacements[0].attributes) {
             replacements[0].attributes = {};
         }
 
         Object.assign(replacements[0].attributes, attributesFromComposite);
 
-        await addSharedParameters(
+        const aliasResult = await addAliasComponents(
             replacements[0],
             component,
             Array(await component.stateValues.numSources).fill(iter),
+            nComponents,
         );
+
+        replacements[0] = aliasResult.replacement;
+        nComponents = aliasResult.nComponents;
 
         if (component.unlinkedCopySource && !isUpdate) {
             await copyStateFromUnlinkedSource({
@@ -392,22 +411,23 @@ export default class Map extends CompositeComponent {
             });
         }
 
-        return { replacements, errors, warnings };
+        return { replacements, errors, warnings, nComponents };
     }
 
     static async recurseThroughCombinations({
         component,
         sourcesNumber,
-        childnumberArray = [],
+        childNumberArray = [],
         iterateNumber,
         componentInfoObjects,
         components,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
 
         let replacements = [];
-        let newChildnumberArray = [...childnumberArray, 0];
+        let newChildNumberArray = [...childNumberArray, 0];
 
         let numIterates = await component.stateValues.numIterates;
         let numSources = await component.stateValues.numSources;
@@ -416,7 +436,7 @@ export default class Map extends CompositeComponent {
         let compositeAttributesObj = this.createAttributesObject();
 
         for (let iter = 0; iter < numIterates[sourcesNumber]; iter++) {
-            newChildnumberArray[sourcesNumber] = iter;
+            newChildNumberArray[sourcesNumber] = iter;
             if (sourcesNumber >= numSources - 1) {
                 iterateNumber++;
 
@@ -425,15 +445,16 @@ export default class Map extends CompositeComponent {
                 // pass isResponse to replacements
                 // (only isResponse will be copied, as it is only attribute with leaveRaw)
 
-                let attributesFromComposite = {};
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: component.attributes,
+                    componentType: serializedComponents[0].componentType,
+                    componentInfoObjects,
+                    compositeAttributesObj,
+                    nComponents,
+                });
 
-                attributesFromComposite =
-                    convertUnresolvedAttributesForComponentType({
-                        attributes: component.attributes,
-                        componentType: serializedComponents[0].componentType,
-                        componentInfoObjects,
-                        compositeAttributesObj,
-                    });
+                const attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
 
                 if (!serializedComponents[0].attributes) {
                     serializedComponents[0].attributes = {};
@@ -446,10 +467,10 @@ export default class Map extends CompositeComponent {
 
                 let thisRepl = serializedComponents[0];
 
-                await addSharedParameters(
+                await addAliasComponents(
                     thisRepl,
                     component,
-                    newChildnumberArray,
+                    newChildNumberArray,
                 );
 
                 if (component.unlinkedCopySource) {
@@ -466,7 +487,7 @@ export default class Map extends CompositeComponent {
                 let results = await this.recurseThroughCombinations({
                     component,
                     sourcesNumber: sourcesNumber + 1,
-                    childnumberArray: newChildnumberArray,
+                    childNumberArray: newChildNumberArray,
                     iterateNumber,
                     componentInfoObjects,
                     components,
@@ -498,7 +519,7 @@ export default class Map extends CompositeComponent {
         // if invalid behavior, have no replacements
         if (!(await component.stateValues.validBehavior)) {
             workspace.lastReplacementParameters = {
-                sourcesNames: [],
+                sourceComponentIndices: [],
                 sourcesChildNames: [],
                 behavior: undefined,
                 numIterates: undefined,
@@ -524,17 +545,21 @@ export default class Map extends CompositeComponent {
         let lrp = workspace.lastReplacementParameters;
         let recreateReplacements = false;
 
-        let allSameSourcesNames = true;
+        let allSameSourceComponentIndices = true;
 
         let numSources = await component.stateValues.numSources;
-        let sourcesNames = await component.stateValues.sourcesNames;
+        let sourceComponentIndices =
+            await component.stateValues.sourceComponentIndices;
 
-        if (numSources !== lrp.sourcesNames.length) {
-            allSameSourcesNames = false;
+        if (numSources !== lrp.sourceComponentIndices.length) {
+            allSameSourceComponentIndices = false;
         } else {
             for (let ind = 0; ind < numSources; ind++) {
-                if (sourcesNames[ind] !== lrp.sourcesNames[ind]) {
-                    allSameSourcesNames = false;
+                if (
+                    sourceComponentIndices[ind] !==
+                    lrp.sourceComponentIndices[ind]
+                ) {
+                    allSameSourceComponentIndices = false;
                     break;
                 }
             }
@@ -547,7 +572,10 @@ export default class Map extends CompositeComponent {
         let sourcesChildNames = await component.stateValues.sourcesChildNames;
         let behavior = await component.stateValues.behavior;
 
-        if (!allSameSourcesNames || lrp.behavior !== (await behavior)) {
+        if (
+            !allSameSourceComponentIndices ||
+            lrp.behavior !== (await behavior)
+        ) {
             recreateReplacements = true;
         } else {
             // same substitution names and behavior
@@ -616,7 +644,7 @@ export default class Map extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
 
             workspace.lastReplacementParameters = {
-                sourcesNames,
+                sourceComponentIndices,
                 sourcesChildNames,
                 behavior,
                 numIterates,
@@ -781,7 +809,7 @@ export default class Map extends CompositeComponent {
         }
 
         workspace.lastReplacementParameters = {
-            sourcesNames,
+            sourceComponentIndices,
             sourcesChildNames,
             behavior,
             numIterates,
@@ -899,7 +927,9 @@ async function copyStateFromUnlinkedSource({
         components[component.unlinkedCopySource].replacements[iterateNumber];
 
     if (sourceTemplate) {
-        let serializedSourceTemplate = await sourceTemplate.serialize({
+        // Note: use 1 for nComponent as component indices from this template won't be used.
+        // We are just getting the state from the serialized template
+        let serializedSourceTemplate = await sourceTemplate.serialize(1, {
             copyAll: true,
             copyVariants: true,
             copyPrimaryEssential: true,
@@ -942,22 +972,63 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
     }
 }
 
-async function addSharedParameters(thisRepl, component, newChildnumberArray) {
-    let addToPars = (thisRepl.doenetAttributes.addToSharedParameters = []);
-    let sourcesNames = await component.stateValues.sourcesNames;
+async function addAliasComponents(
+    thisRepl,
+    component,
+    newChildNumberArray,
+    nComponents,
+) {
+    let sourceComponentIndices =
+        await component.stateValues.sourceComponentIndices;
+
+    const setupComponent = {
+        type: "serialized",
+        componentType: "setup",
+        componentIdx: nComponents++,
+        attributes: {},
+        doenetAttributes: {},
+        state: {},
+        children: [],
+    };
 
     for (let [ind, alias] of (
         await component.stateValues.sourceAliases
     ).entries()) {
         if (alias) {
-            let sourcesName = sourcesNames[ind];
+            const sourcesIdx = sourceComponentIndices[ind];
+            const childNum = newChildNumberArray[ind];
 
-            addToPars.push({
-                parameterName: "sourceNameMappings",
-                key: alias,
-                value: {
-                    name: sourcesName,
-                    childNumber: newChildnumberArray[ind],
+            // Create reference with name `alias` that will link to sources
+            setupComponent.children.push({
+                type: "serialized",
+                componentType: "copy",
+                componentIdx: nComponents++,
+                attributes: {
+                    createComponentIdx: {
+                        type: "primitive",
+                        name: "createComponentIdx",
+                        primitive: { type: "number", value: nComponents++ },
+                    },
+                    createComponentName: {
+                        type: "primitive",
+                        name: "createComponentName",
+                        primitive: { type: "string", value: alias },
+                    },
+                },
+                doenetAttributes: {},
+                children: [],
+                state: {},
+                extending: {
+                    Ref: {
+                        nodeIdx: sourcesIdx,
+                        originalPath: null,
+                        unresolvedPath: [
+                            {
+                                name: "",
+                                index: [{ value: [`${childNum + 1}`] }],
+                            },
+                        ],
+                    },
                 },
             });
         }
@@ -967,11 +1038,27 @@ async function addSharedParameters(thisRepl, component, newChildnumberArray) {
         await component.stateValues.sourceIndexAliases
     ).entries()) {
         if (indexAlias) {
-            addToPars.push({
-                parameterName: "sourceIndexAliasMappings",
-                key: indexAlias,
-                value: newChildnumberArray[ind] + 1,
+            setupComponent.children.push({
+                type: "serialized",
+                componentType: "number",
+                componentIdx: nComponents++,
+                attributes: {
+                    name: {
+                        type: "primitive",
+                        name: "name",
+                        primitive: { type: "string", value: indexAlias },
+                    },
+                },
+                doenetAttributes: {},
+                children: [],
+                state: { value: newChildNumberArray[ind] + 1 },
             });
         }
     }
+
+    const newRepl = { ...thisRepl };
+    newRepl.children = [...thisRepl.children];
+    newRepl.children.push(setupComponent);
+
+    return { replacement: newRepl, nComponents };
 }

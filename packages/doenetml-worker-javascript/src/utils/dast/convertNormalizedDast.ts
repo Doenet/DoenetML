@@ -91,7 +91,10 @@ export async function normalizedDastToSerializedComponents(
                     componentIdx: idxOrString,
                     attributes: {},
                     position: node.position,
-                    state: { message: node.message },
+                    state: {
+                        message: node.message,
+                        unresolvedPath: node.unresolvedPath,
+                    },
                     children: [],
                 };
             }

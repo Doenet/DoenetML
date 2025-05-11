@@ -212,7 +212,6 @@ export default class Group extends CompositeComponent {
         components,
         nComponents,
         componentInfoObjects,
-
         publicCaseInsensitiveAliasSubstitutions,
     }) {
         let errors = [];
@@ -261,9 +260,9 @@ export default class Group extends CompositeComponent {
                     replacements,
                     componentInfoObjects,
                     compositeAttributesObj: this.createAttributesObject(),
-
                     components,
                     publicCaseInsensitiveAliasSubstitutions,
+                    nComponents,
                 },
             );
             nComponents = verificationResult.nComponents;

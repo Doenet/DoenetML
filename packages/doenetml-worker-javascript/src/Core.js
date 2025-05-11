@@ -2543,7 +2543,7 @@ export default class Core {
             )
         ) {
             throw Error(
-                `Invalid nComponents return by createSerializedReplacements for ${component.componentType}: `,
+                `Invalid nComponents returned by createSerializedReplacements for ${component.componentType}: `,
                 newNComponents,
             );
         }

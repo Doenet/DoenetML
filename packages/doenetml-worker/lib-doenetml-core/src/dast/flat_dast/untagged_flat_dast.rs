@@ -132,10 +132,13 @@ pub struct FlatAttribute {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "error")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatError {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unresolved_path: Option<Vec<FlatPathPart>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
     pub idx: Index,
@@ -146,6 +149,7 @@ impl FlatError {
         Self {
             parent: None,
             message,
+            unresolved_path: None,
             position: None,
             idx,
         }
@@ -221,6 +225,7 @@ impl Default for FlatNode {
         FlatNode::Error(FlatError {
             parent: None,
             message: "DEFAULT NODE".to_string(),
+            unresolved_path: None,
             position: None,
             idx: 0,
         })
