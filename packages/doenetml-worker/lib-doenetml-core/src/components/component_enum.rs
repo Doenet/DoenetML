@@ -26,7 +26,7 @@ pub use super::doenet::xref::Xref;
 /// The component node traits are implemented on the `ComponentEnum`
 /// to allow easy access to the methods.
 ///
-/// Each component type added to `ComponentEnum` must implement that component node traits.
+/// Each component type added to `ComponentEnum` must implement the component node traits.
 #[derive(Debug, EnumString, Clone)]
 #[enum_dispatch(
     ComponentNode,

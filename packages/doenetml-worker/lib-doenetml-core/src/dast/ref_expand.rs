@@ -59,6 +59,7 @@ impl Expander {
                                 children: Vec::new(),
                                 name,
                                 position: ref_.position.clone(),
+                                children_position: None,
                                 extending: Some(Source::Ref(ref_resolution)),
                             })
                         }
@@ -88,6 +89,7 @@ impl Expander {
                                     children: Vec::new(),
                                     name: "evaluate".to_string(),
                                     position: function_ref.position.clone(),
+                                    children_position: None,
                                     extending: Some(Source::Ref(ref_resolution)),
                                 };
                                 // An `<evaluate />` node's children are the inputs to the function.

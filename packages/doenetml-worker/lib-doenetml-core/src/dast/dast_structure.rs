@@ -44,6 +44,18 @@ impl DastElementContent {
     pub fn element_with_name(name: &str) -> Self {
         DastElementContent::Element(DastElement::with_name(name))
     }
+
+    pub fn position(&self) -> Option<&Position> {
+        match self {
+            DastElementContent::Element(dast_element) => (&dast_element.position).as_ref(),
+            DastElementContent::Text(dast_text) => (&dast_text.position).as_ref(),
+            DastElementContent::Ref(dast_ref) => (&dast_ref.position).as_ref(),
+            DastElementContent::FunctionRef(dast_function_ref) => {
+                (&dast_function_ref.position).as_ref()
+            }
+            DastElementContent::Error(dast_error) => (&dast_error.position).as_ref(),
+        }
+    }
 }
 
 /// Allowed children of an attribute node

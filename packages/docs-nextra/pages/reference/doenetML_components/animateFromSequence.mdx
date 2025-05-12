@@ -17,7 +17,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
   <codeEditor showResults resultsLocation="left">   
 n = <number name="n">1</number>
     
-<animateFromSequence target="n" from="1" to="20" animationOn="true"/>
+<animateFromSequence target="$n" from="1" to="20" animationOn="true"/>
   </codeEditor>
   <aside startOpen><title>About this example</title> The <tage>animateFromSequence</tage> component is used to animate a <tag>number</tag> over a sequence of values from 1 to 20.</aside>  
 </example>
@@ -31,13 +31,13 @@ n = <number name="n">1</number>
 <example newNameSpace><title>Animation with start/stop button</title>
   <setup><topic>Quick start</topic></setup>
   <codeEditor showResults resultsLocation="left">   
-<callAction actionName="toggleAnimation" target="countUp">
+<callAction actionName="toggleAnimation" target="$countUp">
   <label>Start/Stop</label>
 </callAction>
 
 <p>n = <number name="n">1</number></p>
 
-<animateFromSequence name="countUp" target="n" from="1" to="20" animationOn="false" animationInterval="100"/>
+<animateFromSequence name="countUp" target="$n" from="1" to="20" animationOn="false" animationInterval="100"/>
   </codeEditor>
   
 <aside startOpen><title>About this example</title> A <tag>callAction</tag> component references a named <tage>animateFromSequence</tage> with the <attr>actionName</attr> set to <c>toggleAnimation</c>.</aside>  
@@ -59,7 +59,7 @@ n = <number name="n">1</number>
 
 r = <number name="r">0</number>
 
-<animateFromSequence target="r" from="0"to="10" animationInterval="200" animationOn="true"/>
+<animateFromSequence target="$r" from="0"to="10" animationInterval="200" animationOn="true"/>
   </codeEditor>
   <aside startOpen><title>About this example</title> The <tage>animateFromSequence</tage> component is used to animate the radius of a <tag>circle</tag> where the radius has been defined as a <tag>number</tag> over a sequence of values from 0 to 10.</aside>  
 </example>
@@ -78,7 +78,7 @@ r = <number name="r">0</number>
 
 i = <number name="i">-9</number>
 
-<animateFromSequence target="i" from="-9"to="9" step="1/2" animationInterval="100" animationOn="true"/>
+<animateFromSequence target="$i" from="-9"to="9" step="1/2" animationInterval="100" animationOn="true"/>
   </codeEditor>
   <aside startOpen><title>About this example</title> The <tage>animateFromSequence</tage> component is used to animate the <m>x-</m>coordinate of a point which has been defined as a <tag>number</tag> over a sequence of values from -9 to 9. The <m>y-</m>coordinate of the point is defined with the function evaluation macro &dollar;&dollar;<m>f(x)</m>.
   </aside>  
@@ -96,7 +96,7 @@ i = <number name="i">-9</number>
   <point name="P">(-10, 0)</point>
 </graph>
     
-<animateFromSequence target="P.x" from="-10"to="10" animationInterval="100" animationOn="true"/>
+<animateFromSequence target="$P.x" from="-10"to="10" animationInterval="100" animationOn="true"/>
   </codeEditor>
   <aside startOpen><title>About this example</title> The <attr>target</attr> attribute is used to specify the value to animate. Since points have a numerical property corresponding to their <m>x-</m>coordinate, this value can be animated directly without having to define a separate <tag>number</tag>.</aside>  
 </example>
@@ -111,7 +111,7 @@ i = <number name="i">-9</number>
 <slider name="s">0</slider>
     
 Click to animate <booleanInput name="switch"/> $switch
-<animateFromSequence target="s" from="0" to="10" animationInterval="200" animationOn="$switch"/>
+<animateFromSequence target="$s" from="0" to="10" animationInterval="200" animationOn="$switch"/>
   </codeEditor>
   <aside startOpen><title>About this example</title> The <attr>animationOn</attr> attribute is used to specify the current state of the animation. This attributes takes a boolean value or an expression which evaluates to a boolean. In this particular example the boolean value is specified by the user with a <tage>booleanInput</tage>.</aside>  
 </example>
@@ -134,7 +134,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <label>Start/Stop Animation</label>
 </booleanInput>
     
-<animateFromSequence target="P.x" from="-10" to="10" animationInterval="200" animationOn="$switch" animationMode="$userMode.text"/>
+<animateFromSequence target="$P.x" from="-10" to="10" animationInterval="200" animationOn="$switch" animationMode="$userMode.text"/>
   </codeEditor>
   <aside startOpen><title>About this example</title> The <attr>animationMode</attr> attribute is used to specify the directional behavior of the animation. Valid values for the input text are: "increase", "increase once", "decrease", "decrease once", and "oscillate". The default value is "increase".</aside>  
 </example>
@@ -160,9 +160,9 @@ Click to animate <booleanInput name="switch"/> $switch
   <label>Start/Stop Animation</label>
 </booleanInput>
     
-<animateFromSequence target="A.y" from="8" to="-10" animationInterval="$miA" animationOn="$switch" animationMode="increase once"/>
+<animateFromSequence target="$A.y" from="8" to="-10" animationInterval="$miA" animationOn="$switch" animationMode="increase once"/>
     
-<animateFromSequence target="B.y" from="8" to="-10" animationInterval="$miB" animationOn="$switch" animationMode="increase once"/>
+<animateFromSequence target="$B.y" from="8" to="-10" animationInterval="$miB" animationOn="$switch" animationMode="increase once"/>
   </codeEditor>
   <aside startOpen><title>About this example</title> The <m>y-</m>coordinate of two points are both animated with the <tage>animateFromSequence</tage> component, and the user must specify the input value for the <attr>animationInterval</attr> attribute for each point. The length of the <attr>animationInterval</attr> governs the amount of time elapsed between successive steps of the animation sequence. The default value is 1000 ms. </aside>  
 </example>
@@ -179,7 +179,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <label>Start/Stop Animation</label>
 </booleanInput></p>
     
-<animateFromSequence target="letter" from="a" to="z" type="letters" animationInterval="100" animationOn="$switch" animationMode="increase once"/>    
+<animateFromSequence target="$letter" from="a" to="z" type="letters" animationInterval="100" animationOn="$switch" animationMode="increase once"/>    
   </codeEditor>
   <aside startOpen><title>About this example</title> The <attr>type</attr> attribute takes either <c>letters</c> or <c>number</c> as a text input. If unspecified, the default <attr>type</attr> is <c>number</c>. </aside>  
 </example>
@@ -197,7 +197,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <label>Start/Stop Animation</label>
 </booleanInput></p>
     
-<animateFromSequence target="n" from="1" step="2" length="10" animationInterval="200" animationOn="$switch" animationMode="increase once"/>    
+<animateFromSequence target="$n" from="1" step="2" length="10" animationInterval="200" animationOn="$switch" animationMode="increase once"/>    
   </codeEditor>
   <aside startOpen><title>About this example</title> The <attr>length</attr> attribute specifies the length, in number of terms, of the animation sequence.</aside>  
 </example>
@@ -215,7 +215,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <label>Start/Stop Animation</label>
 </booleanInput></p>
     
-<animateFromSequence target="n" from="1" step="2" to="19" animationInterval="200" animationOn="$switch" animationMode="increase once"/>    
+<animateFromSequence target="$n" from="1" step="2" to="19" animationInterval="200" animationOn="$switch" animationMode="increase once"/>    
   </codeEditor>
   <aside startOpen><title>About this example</title> The <attr>from</attr> and <attr>to</attr> attributes specify the starting and ending values in the animation sequence.</aside>  
 </example>
@@ -233,7 +233,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <label>Start/Stop Animation</label>
 </booleanInput></p>
     
-<animateFromSequence target="n" from="0" step="10" to="100" animationInterval="200" animationOn="$switch" animationMode="increase once"/>    
+<animateFromSequence target="$n" from="0" step="10" to="100" animationInterval="200" animationOn="$switch" animationMode="increase once"/>    
   </codeEditor>
   <aside startOpen><title>About this example</title> The <attr>step</attr> attribute specifies the size of each increment in the animation sequence. The default <attr>step</attr> is <m>1</m>.</aside>  
 </example>
@@ -251,7 +251,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <label>Start/Stop Animation</label>
 </booleanInput></p>
     
-<animateFromSequence target="n" from="0" to="5" exclude="3" animationInterval="600" animationOn="$switch" animationMode="oscillate"/>    
+<animateFromSequence target="$n" from="0" to="5" exclude="3" animationInterval="600" animationOn="$switch" animationMode="oscillate"/>    
   </codeEditor>
   <aside startOpen><title>About this example</title> The <attr>exclude</attr> attribute specifies values to exclude in the animation sequence.</aside>  
 </example>
@@ -281,7 +281,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <label>Start/Stop Animation</label>
 </booleanInput></p>
     
-<animateFromSequence name="counting" target="n" from="0" to="5" animationInterval="600" animationOn="$switch" animationMode="oscillate"/>
+<animateFromSequence name="counting" target="$n" from="0" to="5" animationInterval="600" animationOn="$switch" animationMode="oscillate"/>
 
 <p><c>animationOn</c> = $counting.animationOn</p>
 
@@ -301,7 +301,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <setup><topic>Property examples</topic></setup>
   <codeEditor showResults resultsLocation="left">      
  n = <number name="n">1</number>
-    <animateFromSequence name="countingAnimation" target="n" from="1" to="20" animationOn="true"/>
+    <animateFromSequence name="countingAnimation" target="$n" from="1" to="20" animationOn="true"/>
 
     <p><c>value</c> = $countingAnimation.value</p>
   </codeEditor>
@@ -316,7 +316,7 @@ Click to animate <booleanInput name="switch"/> $switch
   <setup><topic>Property examples</topic></setup>
   <codeEditor showResults resultsLocation="left">      
 n = <number name="n">0</number>
-    <animateFromSequence name="countingAnimation" target="n" from="-2" to="2" animationOn="true" animationMode="oscillate"/>
+    <animateFromSequence name="countingAnimation" target="$n" from="-2" to="2" animationOn="true" animationMode="oscillate"/>
 
     <p><c>currentAnimationDirection</c> = $countingAnimation.currentAnimationDirection</p>
   </codeEditor>
@@ -332,7 +332,7 @@ n = <number name="n">0</number>
   <setup><topic>Property examples</topic></setup>
   <codeEditor showResults resultsLocation="left">      
 n = <number name="n">0</number>
-    <animateFromSequence name="countingAnimation" target="n" from="2" to="20" step="2" animationOn="true" animationMode="increase"/>
+    <animateFromSequence name="countingAnimation" target="$n" from="2" to="20" step="2" animationOn="true" animationMode="increase"/>
 
     <p><c>selectedIndex</c> = $countingAnimation.selectedIndex</p>
   </codeEditor>

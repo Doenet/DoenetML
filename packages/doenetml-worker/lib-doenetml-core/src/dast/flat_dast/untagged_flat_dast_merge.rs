@@ -1,6 +1,6 @@
 use crate::dast::{
     DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
-    DastTextRefContent, PathPart,
+    DastTextRefContent, PathPart, Position,
 };
 
 use super::{
@@ -171,6 +171,18 @@ impl FlatRoot {
             children: Vec::new(),
             attributes: Vec::new(),
             position: node.position.clone(),
+            // Calculate the position of the vector of children before the position of text nodes is discarded
+            children_position: node.children.iter().fold(None::<Position>, |acc, x| {
+                if let Some(pos) = acc {
+                    let mut new_pos = pos.clone();
+                    if let Some(child_pos) = x.position() {
+                        new_pos.end = child_pos.end.clone()
+                    }
+                    Some(new_pos)
+                } else {
+                    x.position().cloned()
+                }
+            }),
             parent,
             idx,
             // It is impossible to directly set `extending` in DAST; it is computed later.

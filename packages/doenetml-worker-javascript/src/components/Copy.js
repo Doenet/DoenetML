@@ -304,12 +304,16 @@ export default class Copy extends CompositeComponent {
                     };
                 }
 
-                return {
-                    extendedComponent: {
-                        dependencyType: "componentIdentity",
-                        componentIdx: stateValues.extendIdx,
-                    },
-                };
+                if (stateValues.extendIdx != undefined) {
+                    return {
+                        extendedComponent: {
+                            dependencyType: "componentIdentity",
+                            componentIdx: stateValues.extendIdx,
+                        },
+                    };
+                } else {
+                    return {};
+                }
             },
             definition: function ({ dependencyValues }) {
                 let extendedComponent = null;
@@ -444,12 +448,29 @@ export default class Copy extends CompositeComponent {
             },
         };
 
+        stateVariableDefinitions.createComponentOfType = {
+            returnDependencies: () => ({
+                typeAttr: {
+                    dependencyType: "attributePrimitive",
+                    attributeName: "createComponentOfType",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let createComponentOfType = null;
+                if (dependencyValues.typeAttr) {
+                    createComponentOfType = dependencyValues.typeAttr;
+                }
+                return { setValue: { createComponentOfType } };
+            },
+        };
+
         stateVariableDefinitions.replacementSourceIdentities = {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
                 "unresolvedPath",
                 "obtainPropFromComposite",
                 "linkAttrForDetermineDeps",
+                "createComponentOfType",
             ],
             additionalStateVariablesDefined: ["usedReplacements"],
             returnDependencies: function ({
@@ -464,15 +485,15 @@ export default class Copy extends CompositeComponent {
                     if (
                         stateValues.extendedComponent.componentType ===
                             "copy" ||
-                        stateValues.extendedComponent.componentType ===
-                            "extract" ||
                         (componentInfoObjects.isCompositeComponent({
                             componentType:
                                 stateValues.extendedComponent.componentType,
                             includeNonStandard: true,
                         }) &&
                             (!stateValues.unresolvedPath ||
-                                !stateValues.obtainPropFromComposite))
+                                !stateValues.obtainPropFromComposite) &&
+                            stateValues.extendedComponent.componentType !==
+                                stateValues.createComponentOfType)
                     ) {
                         // If the target is a copy or extract (no matter what),
                         // then we'll use replacements (if link attribute is not set to false),
@@ -1786,7 +1807,23 @@ export default class Copy extends CompositeComponent {
             });
         }
 
-        // console.log(`ending serializedReplacements for ${component.componentIdx}`);
+        // XXX: is the the right approach to not shadow composites?
+        // If we can get away with this, we can delete a lot of code about shadowing composites.
+        // though we probably need to address other composites further down in the tree.
+        // Test this as a way to avoid having to deal with copyInChildren in the shadowing composites code.
+        if (
+            serializedReplacements.length === 1 &&
+            componentInfoObjects.isCompositeComponent({
+                componentType: serializedReplacements[0].componentType,
+                includeNonStandard: true,
+            })
+        ) {
+            delete serializedReplacements[0].downstreamDependencies;
+        }
+
+        // console.log(
+        //     `ending serializedReplacements for ${component.componentIdx}`,
+        // );
         // console.log(JSON.parse(JSON.stringify(serializedReplacements)));
 
         return {

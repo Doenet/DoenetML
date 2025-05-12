@@ -109,6 +109,9 @@ pub struct FlatElement {
     pub attributes: Vec<FlatAttribute>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The position of the vector of child nodes
+    pub children_position: Option<Position>,
     pub idx: Index,
     /// Information about the referent that this element extends (e.g., as specified by the `extend` attribute).
     #[serde(skip_serializing_if = "Option::is_none")]

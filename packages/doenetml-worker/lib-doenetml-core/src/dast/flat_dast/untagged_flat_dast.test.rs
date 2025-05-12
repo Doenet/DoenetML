@@ -110,3 +110,54 @@ fn can_print_to_xml() {
         flat_root.to_xml()
     );
 }
+
+#[test]
+fn calculate_children_position() {
+    let dast_root = dast_root(r#"<document>hi <text>bye</text></document>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    // It is easier to compare JSON, so we serialize and deserialize for the comparison.
+
+    println!("{:#?}", serde_json::to_value(&flat_root).unwrap());
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+            {
+                "type": "flatRoot",
+                "children": [0],
+                "nodes": [
+                  {
+                    "type": "element",
+                    "name": "document",
+                    "children": ["hi ", 1],
+                    "attributes": [],
+                    "idx": 0,
+                    "position": {
+                      "start": {"line": 1, "column": 1, "offset": 0},
+                      "end": {"line": 1, "column": 41, "offset": 40}
+                    },
+                    "children_position": {
+                      "start": {"line": 1, "column": 11, "offset": 10},
+                      "end": {"line": 1, "column": 30, "offset": 29}
+                    }
+                  },
+                  {
+                    "type": "element",
+                    "name": "text",
+                    "parent": 0,
+                    "children": ["bye"],
+                    "attributes": [],
+                    "idx": 1,
+                    "position": {
+                      "start": {"line": 1, "column": 14, "offset": 13},
+                      "end": {"line": 1, "column": 30, "offset": 29}
+                    },
+                    "children_position": {
+                      "start": {"line": 1, "column": 20, "offset": 19},
+                      "end": {"line": 1, "column": 23, "offset": 22}
+                    }
+                  },
+                ]
+              }
+        )
+    );
+}
