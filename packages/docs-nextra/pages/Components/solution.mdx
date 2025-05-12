@@ -1,0 +1,39 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <solution>{:dn}`
+
+
+
+` <solution>{:dn}` is a [**Sectional**](../reference/essentialConcepts/#componentTypes) component whose function is to display an explanation or problem solution.
+
+## Attributes and Properties 
+The ` <solution>{:dn}` component has no attributes.
+ <PropDisplay name='solution'/>
+
+---
+
+### Example: Default ` <solution>{:dn}`
+
+
+```doenet-editor-horiz
+<problem>Move the point.
+  <graph size="small">
+    <point name="p"/>
+  </graph>
+  <answer>
+    <award><when>$p != (0,0)</when></award>
+  </answer>
+  <solution>
+    A nice explanation of all the fine details.
+    <graph size="small"/>
+  </solution>
+</problem>
+```
+
+
+
+A ` <solution>{:dn}` is placed within a ` <problem>{:dn}`. Authors can control the conditions under which solutions may be viewed by students in the document-wide settings.
+

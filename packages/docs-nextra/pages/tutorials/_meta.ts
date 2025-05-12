@@ -2,24 +2,39 @@ export default {
     starting: "Tutorials",
     quickStart: {
         display: "hidden",
-        title: "📘 Quick Start Tutorial (0.5 hr)",
+        title: "📘 Quick Start Tutorial",
     },
     introdTutorial: {
-        title: "📘 Introductory Tutorial: Basic Syntax and User-Input (10 lessons)",
+        title: "📘 Introductory Tutorial",
     },
     intermediateTutorial: {
-        title: "📘 Intermediate Tutorial: Graphing (10 lessons)",
+        title: "📘 Intermediate Tutorial",
+    },
+    shareOnDoenet: {
+        title: "📘 🖥  Share on Doenet",
+    },
+    embedInPretext: {
+        title: "📘 🖥  Embed in PreTeXt",
+    },
+    runestone: {
+        title: "📘 🖥  Assign in Runestone",
+    },
+    googleSite: {
+        title: "📘 🖥  Embed in a Google Site",
+    },
+    canvas: {
+        title: "📘 🖥  Assign in Canvas",
     },
     sampleProject1: {
-        title: "📘 Sample Project 1 (0.5 hr)",
+        title: "📘 Sample Project 1",
         display: "hidden",
     },
     sampleProject2: {
-        title: "📘 Sample Project 2 (0.5 hr)",
+        title: "📘 Sample Project 2",
         display: "hidden",
     },
     sampleProject3: {
-        title: "🖥 Sample Project 3 (1.0 hr)",
+        title: "🖥 Sample Project 3",
         display: "hidden",
     },
 };

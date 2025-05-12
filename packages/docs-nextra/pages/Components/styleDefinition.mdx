@@ -1,0 +1,48 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <styleDefinition>{:dn}`
+
+The ` <styleDefinition>{:dn}` component allows the user to define custom styles for an individual document. Default styleNumbers, used in Graphical Components, are numbered $1$ to $6$. Additional styleNumbers are defined with a ` <styleDefinition>{:dn}` component nested within a ` <styleDefinitions>{:dn}` block.
+These new styles are assigned unique numbers that can be used locally in that document.
+
+## Attributes and Properties 
+ <AttrDisplay name='styleDefinition'/> 
+
+The ` <styleDefinition>{:dn}` component has no associated Props.
+
+---
+
+### Example: Defining a custom style
+
+
+```doenet-editor-horiz
+<graph>
+  <line name="thickRedLine" styleNumber="10">y = x</line>
+  <line name="defLine" styleNumber="2">y = -x</line>
+  <point name="redCircle" styleNumber="10">(3,3)</point>
+  <point name="defPt" styleNumber="2">(-3,3)</point>
+</graph>
+
+<setup>
+<styleDefinitions>
+  <styleDefinition styleNumber="10" 
+    fillColor="#D4042D" 
+    fillOpacity="0.1" 
+    markerSize="6" 
+    markerStyle="circle" 
+    markerColor="#D4042D" 
+    lineColor="#D4042D" 
+    lineOpacity="0.7"  
+    lineWidth="4"/>
+</styleDefinitions> 
+</setup>
+```
+
+
+
+In this example, a custom style has been created and assigned a `styleNumber` of $10$. This custom style is defined within a `<styleDefinitions>{:dn}`
+block. This block should be placed in a `<setup>{:dn}` block at the end of the document.
+The custom style is an adaptation of the default "red" `styleNumber` of $2$, generating a thicker line and a round rather than a square point.
+
