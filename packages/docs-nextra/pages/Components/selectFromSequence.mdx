@@ -1,0 +1,208 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <selectFromSequence>{:dn}`
+
+
+
+` <selectFromSequence>{:dn}` creates named variants from a user-defined range of numerical values.
+
+## Attributes and Properties 
+ <AttrDisplay name='selectFromSequence'/> 
+ <PropDisplay name='selectFromSequence'/>
+
+---
+
+### Example: Default ` <selectFromSequence>{:dn}`
+
+
+```doenet-editor-horiz
+<selectFromSequence/>
+<selectFromSequence/>
+<selectFromSequence/>
+```
+
+
+
+The default ` <selectFromSequence>{:dn}` has a sequence range from $1$ to $10$.
+
+
+
+---
+
+### Example: Generate and name multiple selections
+
+
+```doenet-editor-horiz
+
+  <selectFromSequence assignNames="x1 x2 x3" from="-5" to="5" step="0.5" numToSelect="3"/>
+
+<me>x_1 = $x1</me>
+<me>x_2 = $x2</me>
+<me>x_3 = $x3</me>  
+```
+
+
+
+Three numbers are selected
+between -5 and 5 (stepping in increments of 0.5) are
+assigned to the named variables `x1`, `x2`,
+and `x3`.
+
+
+
+---
+
+### Example: numToSelect
+
+
+```doenet-editor-horiz
+<asList>
+  <selectFromSequence from="0" to="50" numToSelect="5"/>
+</asList>
+```
+
+
+
+The `numToSelect` attribute allows for selection of multiple values within the range of a single ` <selectFromSequence>{:dn}` component. Multiple selections are made without replacement.
+
+
+
+---
+
+### Example: sortResults
+
+
+```doenet-editor-horiz
+<asList>
+  <selectFromSequence sortResults from="0" to="50" numToSelect="5"/>
+</asList>
+```
+
+
+
+The `sortResults` attribute sorts the selected results in increasing order.
+
+
+
+---
+
+### Example: assignNames
+
+
+```doenet-editor-horiz
+<asList>
+  <selectFromSequence assignNames="a b" from="0" to="50" numToSelect="2"/>
+</asList>
+<p>a = $a</p>
+<p>b = $b</p>
+```
+
+
+
+The `assignNames` attribute takes a list of text values (which must meet DoenetML [naming conventions](../reference/essentialConcepts/#namingConventions) ) for assigning names to individual selections.
+
+
+
+---
+
+### Example: from, to
+
+
+```doenet-editor-horiz
+<asList>
+  <selectFromSequence from="10" to="20" numToSelect="4"/>
+</asList>
+```
+
+
+
+The `from` and `to` attributes specify the endpoints of the selction interval.
+
+
+
+---
+
+### Example: step
+
+
+```doenet-editor-horiz
+<asList>
+  <selectFromSequence from="10" to="20" step="2" numToSelect="4"/>
+</asList>
+```
+
+
+
+The `step` attribute specifies the size of each increment in the sequence. The default `step` is $1$
+
+
+
+---
+
+### Example: exclude
+
+
+```doenet-editor-horiz
+<asList>
+  <selectFromSequence from="-5" to="5" exclude="0" numToSelect="10"/>
+</asList>
+```
+
+
+
+The `exclude` attribute specifies values to exclude in the selection.
+
+---
+
+### Example: withReplacement
+
+
+```doenet-editor-horiz
+<asList>
+  <selectFromSequence from="-1" to="1" withReplacement numToSelect="10"/>
+</asList>
+```
+
+
+
+If selection with replacement is the desired behavior, use the `withReplacement` attribute.
+
+
+
+---
+
+### Example: excludeCombinations
+
+
+```doenet-editor-horiz
+
+  <selectfromsequence assignNames="a b" exclude="0" numToSelect="2"  from="-3" to="3" excludecombinations="(-3 3) (3 -3) (-2 2) (2 -2) (-1 1) (1 -1)" />
+
+<p><math simplify="numberspreserveorder">$a x + $b x</math></p>       
+```
+
+
+
+The `excludeCombinations` attribute can be used to exclude unfavorable combinations of parameters. In this example, the exclusions have been designed to prevent the condition that the coefficients in the expression result in a sum of $0$. Scroll through the page variants to observe the selections for each.
+
+
+
+---
+
+### Example: type
+
+
+```doenet-editor-horiz
+<asList>
+  <selectFromSequence type="letters" from="a" to="g" numToSelect="5" />
+</asList>
+<selectFromSequence type="number"from="0" to="10"/>      
+```
+
+
+
+The `type` attribute takes either `letters` or `number` as a text input. If unspecified, the default `type` is `number`. 
+

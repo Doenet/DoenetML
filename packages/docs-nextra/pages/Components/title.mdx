@@ -1,0 +1,132 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <title>{:dn}`
+
+
+` <title>{:dn}` renders a title with default formatting to match the heierarchy of its associated sectional component. A ` <title>{:dn}` placed at the top of the document creates a document title.
+
+## Attributes and Properties 
+ The ` <title>{:dn}` component has no attributes.
+ <PropDisplay name='title'/>
+
+---
+
+### Example: ` <title>{:dn}` for a ` <section>{:dn}`
+
+
+```doenet-editor-horiz
+<section>
+  <p>This section has a default title.</p>
+</section>
+
+<section><title>How to change a lightbulb</title>
+  <p>This section has a custom title.</p>
+</section>
+```
+
+
+
+A ` <title>{:dn}` placed inside a ` <section>{:dn}` overrides the default title for that ` <section>{:dn}`.
+
+
+
+---
+
+### Example: ` <title>{:dn}` for a subsection
+
+
+```doenet-editor-horiz
+<section><title>Really important</title>
+  <p>This is the larger section.</p>
+  <section><title>Slightly less important</title>
+    <p>This section is nested inside and creates a subsection.</p>
+  </section>
+</section>
+```
+
+
+
+A ` <section>{:dn}` nested inside another ` <section>{:dn}` creates a subsection of lower hierarchy.
+
+
+
+---
+
+### Example: ` <title>{:dn}` for an ` <example>{:dn}`
+
+
+```doenet-editor-horiz
+<example>
+  <p>This example has a default title.</p>
+</example>
+      
+<example><title>How to make toast</title>
+  <p>This example has a custom title.</p>
+</example>
+```
+
+A ` <title>{:dn}` nested inside an ` <example>{:dn}` overrides the default title for the ` <example>{:dn}`.
+
+
+---
+
+### Example: ` <title>{:dn}` for a ` <problem>{:dn}`
+
+
+```doenet-editor-horiz
+<problem>
+  <p>This problem has a default title.</p>
+</problem>
+<problem><title>A challenging problem!</title>
+  <p>This problem has a custom title.</p>
+</problem>
+```
+
+
+
+A ` <title>{:dn}` nested inside a ` <problem>{:dn}` overrides the default title for the ` <problem>{:dn}`.
+
+
+
+---
+
+### Example: ` <title>{:dn}` for a ` <hint>{:dn}`
+
+
+```doenet-editor-horiz
+<hint>
+  <p>This hint has a default title.</p>
+</hint>
+<hint><title>A useful tip...</title>
+  <p>This hint has a custom title.</p>
+</hint>
+```
+
+
+
+A ` <title>{:dn}` nested inside a ` <hint>{:dn}` overrides the default title for the ` <hint>{:dn}`.
+
+
+
+---
+
+### Example: ` <title>{:dn}` for an ` <aside>{:dn}`
+
+
+```doenet-editor-horiz
+<aside>
+  <p>This aside has a default title.</p>
+</aside>
+<aside><title>More about this topic...</title>
+  <p>This aside has a custom title.</p>
+</aside>
+```
+
+
+
+A ` <title>{:dn}` nested inside an ` <aside>{:dn}` overrides the default title for the ` <aside>{:dn}`.
+
+

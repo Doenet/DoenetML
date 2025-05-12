@@ -1,0 +1,245 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+## Attributes and Properties 
+ <AttrDisplay name='nameHere'/> 
+ <PropDisplay name='nameHere'/>
+# ` <spreadsheet>{:dn}`
+
+
+
+The ` <spreadsheet>{:dn}` component renders a basic embedded spreadsheet tool.
+
+
+---
+
+### Example: default ` <spreadsheet>{:dn}`
+
+
+```doenet-editor-horiz
+<spreadsheet/>      
+```
+
+
+
+Without any additional attributes, the default ` <spreadsheet>{:dn}` is $4$ rows by $4$ columns.
+
+
+
+---
+
+### Example: referencing ` <spreadsheet>{:dn}` data
+
+
+```doenet-editor-horiz
+<spreadsheet name="foods" minNumColumns="3" minNumRows="3">
+  <row><cell>apple</cell><cell>cherry</cell><cell>banana</cell></row>
+  <row><cell>broccoli</cell><cell>tomato</cell><cell>spinach</cell></row>
+</spreadsheet>
+<p>foods.cellA2.text = $foods.cellA2.text</p>
+```
+
+
+
+Cells within a spreadsheet that store text values can be accessed using the following notation: `spreadsheetName.cell##.text`.
+
+
+
+---
+
+### Example: ` <spreadsheet>{:dn}` with ` <cell>{:dn}` children
+
+
+```doenet-editor-horiz
+<spreadsheet>   
+  <cell>first</cell>
+  <cell>second</cell>
+  <cell colNum="C" rowNum="3">hello</cell>
+  <cell>bye</cell>
+  <cell colNum="B">before</cell>
+  <cell rowNum="2">above</cell>
+</spreadsheet>
+```
+
+
+
+Initial data can be prefilled using nested ` <cell>{:dn}` children. The `rowNum` and `colNum` attributes can be used to locate data.
+
+
+When only one or neither of these attributes is specified, data is populated in the following manner:
+
+
+* data is placed in the first row, first column
+* subsequent entries are placed in the next availabe column, in the same row
+* if only the column number is specified, data is placed in the previously used row
+* if only the row number is specified, data is placed in the previously used column
+
+
+
+
+
+---
+
+### Example: build ` <spreadsheet>{:dn}` with rows
+
+
+```doenet-editor-horiz
+<spreadsheet>
+  <row><cell>Name</cell><cell>Type</cell><cell>Exp</cell></row>
+  <row><cell>Gandalf</cell><cell>wizard</cell><cell>sage</cell></row>
+  <row><cell>Legolas</cell><cell>elf</cell><cell>advanced</cell></row>
+  <row><cell>Frodo</cell><cell>hobbit</cell><cell>novice</cell></row>
+</spreadsheet>
+```
+
+
+
+Initial data can be prefilled using nested ` <row>{:dn}` children, which in turn contain individual ` <cell>{:dn}`s.
+
+
+
+---
+
+### Example: build ` <spreadsheet>{:dn}` with rows
+
+
+```doenet-editor-horiz
+<spreadsheet>
+  <column>
+    <cell>Name</cell>
+    <cell>Gandalf</cell>
+    <cell>Legolas</cell>
+    <cell>Frodo</cell>
+  </column>
+  <column>
+    <cell>Type</cell>
+    <cell>wizard</cell>
+    <cell>elf</cell>
+    <cell>hobbit</cell>
+  </column>
+  <column>
+    <cell>Exp</cell>
+    <cell>sage</cell>
+    <cell>advanced</cell>
+    <cell>novice</cell>
+  </column>
+</spreadsheet>
+```
+
+
+
+Initial data can be prefilled using nested ` <column>{:dn}` children, which in turn contain individual ` <cell>{:dn}`s.
+
+
+
+---
+
+### Example: using spreadsheets for computations
+
+
+```doenet-editor-horiz
+<spreadsheet minNumRows="3" minNumColumns="3">
+  <row><cell>2</cell><cell>2</cell><cell>= A1 + B1</cell></row>
+  <row><cell>4</cell><cell>5</cell><cell>= A2 * B2</cell></row>
+  <row><cell>= A1 / A2</cell><cell></cell><cell>=C1 + C2</cell></row>
+</spreadsheet>
+```
+
+
+
+Spreadsheet computation formulas can be entered directly into an individual ` <cell>{:dn}` component. References for data within spreadsheets follow standard spreadsheet naming conventions, but no &dollar; is required. Formulas can be prefilled, or entered manually by the user by clicking on the cell. Try directly entering a formula into cell B3 that references one or more of the other cells.
+
+
+
+---
+
+### Example: minNumRows, minNumColumns
+
+
+```doenet-editor-horiz
+<spreadsheet minNumRows="2" minNumColumns="6"/>     
+```
+
+
+
+The default size ` <spreadsheet/>{:dn}` of 4 rows by 4 columns has been modified with the `minNumRows` and the `minNumColumns` attributes.
+
+
+
+---
+
+### Example: width, height
+
+
+```doenet-editor-horiz
+<spreadsheet/>
+<spreadsheet width="50%"/>    
+```
+
+
+
+The default size ` <spreadsheet>{:dn}` component (100% of available screen width) is shown above one with a specified `width` of 50% of available width.
+
+
+
+---
+
+### Example: rowHeaders, columnHeaders
+
+
+```doenet-editor-horiz
+<spreadsheet rowHeaders="false" columnHeaders="false"/> 
+```
+
+
+
+In this example, the `rowHeaders` and `columnHeaders` are suppressed by setting these attributes to `false`.
+
+
+
+---
+
+### Example: hiddenRows, hiddenColumns
+
+
+```doenet-editor-horiz
+<spreadsheet hiddenRows="2 4" hiddenColumns="1 3"/>
+```
+
+
+
+Individual rows and columns may be hidden using the `hiddenRows` and `hiddenColumns` attributes.
+
+
+
+---
+
+### Example: fixedRowsTop, fixedColumnsLeft
+
+
+```doenet-editor-horiz
+<spreadsheet fixedRowsTop="2" fixedColumnsLeft="2" minNumRows="20" minNumColumns="20"/>
+```
+
+
+
+Individual rows and columns may be fixed in place during scrolling using the `fixedRowsTop` and `fixedColumnsLeft` attributes. Each of these accepts an integer value for the number of rows or columns to fix in place.
+
+
+Since Doenet will allow for as much height as required for the spreadsheet to display its rows, this effect is easier to observe with the columns than the rows.
+
+
+
+---
+
+### Example: 
+
+
+```doenet-editor-horiz
+```
+
+
+
+. 
+

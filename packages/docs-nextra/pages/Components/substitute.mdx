@@ -1,0 +1,247 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <substitute>{:dn}`
+
+
+` <substitute>{:dn}` is a General Operator component that replaces one character or string from a math or a text with another specified string.
+
+
+Note that substitution is used for variables in math expressions, not numerical values. Doenet ignores requests for substitution of strict numerical values in math expressions.
+
+## Attributes and Properties 
+ <AttrDisplay name='substitute'/> 
+ <PropDisplay name='substitute'/>
+
+---
+
+### Example: substitute a different variable in a math
+
+
+```doenet-editor-horiz
+
+  <substitute name="sub" match="y" replacement="z">
+      $mi
+  </substitute>
+
+<p>Enter <m>x + y</m> 
+  <mathInput name="mi"/>
+</p>
+<p>You've entered $mi</p>
+<p>Substituting <m>z</m> for <m>y</m>, we have: $sub</p>
+```
+
+
+
+In this example, the ` <substitute>{:dn}` component is used to swap out one variable from a user-input expression for another. Two attributes are required:
+
+
+* `match`, which defines the content to replace
+* `replacement`, which defines the new content
+
+The default type for substitution is math.
+
+
+The substititution is performed in a ` <setup>{:dn}` block, which does not render on the page. The modified expression is later rendered by referencing the name of the ` <substitute>{:dn}` component in line $10$ with `$sub`.
+
+
+
+---
+
+### Example: Replace one word with another in a text string
+
+
+```doenet-editor-horiz
+
+  <substitute name="sub" match="vanilla" replacement="chocolate" type="text">
+      $ti
+  </substitute>
+
+<p>Enter "vanilla ice cream"
+  <textInput name="ti"/>
+</p>
+<p>You've entered $ti</p>
+<p>But wouldn't you rather have: $sub ?</p>
+```
+
+
+
+In this example, the ` <substitute>{:dn}` component is used to swap out one word from a user's ` <textInput>{:dn}` for another. The `type = "text"` specification is made for the ` <substitute>{:dn}` component; this is required as the default `type` is math.
+
+
+The substititution is performed in a ` <setup>{:dn}` block, which does not render on the page. The modified text is later rendered by referencing the name of the ` <substitute>{:dn}` component in line $10$ with `$sub`.
+
+
+
+---
+
+### Example: substitute a user-provided value in a math
+
+
+```doenet-editor-horiz
+<p>The given expression is 
+  <math name="math1">a + b = c</math></p>
+<p>What would you like to replace <m>c</m> with?
+  <mathInput name="mi"/>
+</p>
+<p>Substituting <m>$mi</m> for <m>c</m>, we have:</p>
+  <substitute name="sub" match="c" replacement="$mi">
+      $math1
+  </substitute>
+```
+
+
+
+In this example, the user provides the substituted value in the math expression.
+
+
+
+---
+
+### Example: type
+
+
+```doenet-editor-horiz
+<p><text name="color">red</text></p>
+<p>Substitution: 
+  <substitute type="text" match="red" replacement="green">
+    $color
+  </substitute>
+</p>
+<p><math name="equation">y = x</math></p>
+<p>Substitution:
+  <substitute match="x" replacement="x^2">
+    $equation
+  </substitute>
+</p>
+```
+
+
+
+The default substitution type is `math`. Use `type="text"` to switch the type of substitution to text.
+
+
+
+---
+
+### Example: match, replacement
+
+
+```doenet-editor-horiz
+<substitute type="text" match="oo" replacement="ee">
+  goose
+</substitute>
+```
+
+
+
+The `match` attribute specifies content to be replaced with the ` <substitution>{:dn}` component.
+
+
+The `replacement` attribute specifies new content to be inserted with the ` <substitution>{:dn}` component.
+
+
+
+---
+
+### Example: simplify
+
+
+```doenet-editor-horiz
+<booleanInput name="simplify">
+  <label>Simplify</label>
+</booleanInput>
+<p><math name="math1">x + 2x + 4 - 1</math></p>
+<substitute match="x" replacement="y" simplify="$simplify">
+      $math1
+</substitute>
+```
+
+
+
+The ` <substitution>{:dn}` component accepts the standard `simplify` attribute for math components.
+
+
+
+---
+
+### Example: matchWholeWord
+
+
+```doenet-editor-horiz
+<p>If your name is Billy, you're a dude:</p>
+<p>What's your name? <textInput name="nameWholeMatch"/></p>
+<p>Hey, 
+  <substitute type="text" match="Billy" matchWholeWord replacement="dude">
+    $nameWholeMatch
+  </substitute>
+</p>
+<p>(Default)</p>
+<p>If your name starts with a B, you're a dude (sort of):</p>
+<p>What's your name? <textInput name="namePartial"/></p>
+<p>Hey, 
+  <substitute type="text" match="B" replacement="dude">
+    $namePartial
+  </substitute>
+</p>
+```
+
+
+
+By default, Doenet separates strings into individual, case-insensitive characters when finding matches for substitution. If a strict match of the entire word is desired, use the the `matchWholeWord` attribute
+
+
+
+---
+
+### Example: matchCase
+
+
+```doenet-editor-horiz
+<p>Case matters: <text name="word">AaAaAaAa</text></p>
+<p>Substituted word: 
+  <substitute type="text" match="A" matchCase replacement="B">
+    $word
+  </substitute>
+</p>
+<p>Default case: 
+  <substitute type="text" match="A" replacement="B">
+    $word
+  </substitute>
+</p>
+```
+
+
+
+By default, matching is case-insensitive with the ` <substitution>{:dn}` component. Use `matchCase` to change this default behavior.
+
+
+
+---
+
+### Example: preserveCase
+
+
+```doenet-editor-horiz
+<p>
+  <booleanInput name="preserve">
+    <label>Preserve case</label>
+  </booleanInput>
+</p>
+<p>Type a name with an uppercase letter: <textInput name="name"/></p>
+<p>Replace the first letter with a "z"</p>
+
+  <split name="splitName" type="text">$name</split>
+  <substitute name="zName" type="text" match="$splitName.values[1]" replacement="z" preserveCase="$preserve">
+      $name
+  </substitute>
+
+<p>Substituted name: $zName</p>
+```
+
+
+
+To preserve the case of the letter in the original text string, use the `preserveCase` attribute.
+

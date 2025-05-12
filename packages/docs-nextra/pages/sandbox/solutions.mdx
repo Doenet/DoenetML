@@ -1,0 +1,49 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# Solutions to Puzzles
+
+## Basic Geometry
+
+<a id="geo1_sol"></a>
+### Puzzle 1: Line through a point
+
+```doenet
+<graph>
+    <point name="p1">(1,1)</point>
+    <line through="$p1"/>
+</graph>
+```
+
+---
+
+<a id="geo2_sol"></a>
+### Puzzle 2: Circle with inscribed polygon
+
+#### First solution
+```doenet
+<graph>
+    <point name="p1">(0,5)</point>
+    <circle name="circ1" radius="5" through="$p1"/>
+    <regularPolygon vertices="$p1" center="$circ1.center"/>
+</graph>
+```
+
+#### Bonus Challenge solution
+```doenet
+<p>Challenge solution:</p>
+<p>Enter number of sides: <mathInput name="userSides" prefill="4"/></p>
+<graph>
+    <point name="p1">(0,5)</point>
+    <circle name="circ`" radius="5" through="$p1"/>
+    <regularPolygon vertices="$p1" center="$circ1.center" numSides="$userSides"/>
+</graph>
+```
+
+#### An alternative solution
+```doenet
+<graph>
+    <circle name="circ1" radius="5"/>
+    <regularPolygon circumradius="$circ1.radius" center="$circ1.center"/>
+</graph>
+```

@@ -1,6 +1,5 @@
 export default {
     essentialConcepts: "Essential Concepts",
-    doenetML_components: "Components",
     documentStructure: {
         name: "Document Structure",
         display: "hidden",
