@@ -266,12 +266,22 @@ export default class Answer extends InlineComponent {
                             // don't have have an isResponse attribute, but accept any attribute,
                             // which means those attribute names have not been normalized
                             if (attr.toLowerCase() === "isresponse") {
-                                if (
-                                    component.attributes[attr].primitive
-                                        .value !== false
-                                ) {
-                                    // idea: catch either isResponse = true or isResponse.primitive=true
-                                    return true;
+                                const attribute = component.attributes[attr];
+                                if (attribute.type === "primitive") {
+                                    if (attribute.primitive.value) {
+                                        return true;
+                                    }
+                                } else if (attribute.type === "unresolved") {
+                                    const children = attribute.children;
+                                    if (
+                                        children.length === 0 ||
+                                        (children.length === 1 &&
+                                            typeof children[0] === "string" &&
+                                            children[0].toLowerCase() ===
+                                                "true")
+                                    ) {
+                                        return true;
+                                    }
                                 }
                             }
                         }
@@ -359,7 +369,7 @@ export default class Answer extends InlineComponent {
                 } else if (componentIsSpecifiedType(child, "award")) {
                     foundAward = true;
                     childIsWrappable.push(false);
-                    if (child.attributes?.sourcesAreResponses) {
+                    if (child.attributes?.referencesAreResponses) {
                         foundResponse = true;
                     }
                     if (child.children?.length > 0) {
@@ -492,7 +502,11 @@ export default class Answer extends InlineComponent {
                     };
                     if (componentAttributes.shuffleOrder) {
                         choiceinput.attributes = {
-                            shuffleOrder: { primitive: true },
+                            shuffleOrder: {
+                                type: "primitive",
+                                name: "shuffleOrder",
+                                primitive: { type: "boolean", value: true },
+                            },
                         };
                     }
                     return {
@@ -589,7 +603,7 @@ export default class Answer extends InlineComponent {
             let warnings = [];
 
             if (componentAttributes.type) {
-                type = componentAttributes.type;
+                type = componentAttributes.type.value;
                 if (!["math", "text", "boolean"].includes(type)) {
                     warnings.push({
                         message: `Invalid type for answer: ${type}`,

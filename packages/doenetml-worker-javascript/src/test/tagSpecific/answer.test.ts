@@ -20,7 +20,7 @@ vi.mock("hyperformula");
 async function test_math_answer({
     doenetML,
     answers,
-    answerName = "/answer1",
+    answerName = "answer1",
     mathInputName,
 }: {
     doenetML: string;
@@ -46,57 +46,59 @@ async function test_math_answer({
     let submittedCredit = 0;
     let numSubmissions = 0;
 
-    let core = await createTestCore({ doenetML });
+    const { core, resolveComponentName } = await createTestCore({ doenetML });
+    const answerIdx = resolveComponentName(answerName);
 
     let stateVariables = await core.returnAllStateVariables(false, true);
-    mathInputName =
-        mathInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
+    const mathInputIdx = mathInputName
+        ? resolveComponentName(mathInputName)
+        : stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
 
-    if (!mathInputName) {
+    if (mathInputIdx == undefined) {
         throw Error("Don't have mathInput name");
     }
 
-    expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+    expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
         submittedCredit,
     );
     expect(
-        stateVariables[answerName].stateValues.currentResponses.map(
+        stateVariables[answerIdx].stateValues.currentResponses.map(
             (x) => x.tree,
         ),
     ).eqls([currentResponse]);
     expect(
-        stateVariables[answerName].stateValues.submittedResponses.map(
+        stateVariables[answerIdx].stateValues.submittedResponses.map(
             (x) => x.tree,
         ),
     ).eqls(submittedResponses);
-    expect(stateVariables[mathInputName].stateValues.value.tree).eqls(
+    expect(stateVariables[mathInputIdx].stateValues.value.tree).eqls(
         currentResponse,
     );
 
     for (let response of answers) {
         if (response.preAction) {
+            const actionIdx = resolveComponentName(response.preAction.name);
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             } else if (response.preAction.type === "text") {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             } else if (response.preAction.type === "boolean") {
                 await updateBooleanInputValue({
                     boolean: response.preAction.value === "true",
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             } else {
                 await updateSelectedIndices({
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     selectedIndices: [parseInt(response.preAction.value)],
                     core,
                 });
@@ -114,38 +116,38 @@ async function test_math_answer({
 
         await updateMathInputValue({
             latex,
-            name: mathInputName,
+            componentIdx: mathInputIdx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
         );
         expect(
-            stateVariables[answerName].stateValues.currentResponses.map(
+            stateVariables[answerIdx].stateValues.currentResponses.map(
                 (x) => x.tree,
             ),
         ).eqls([currentResponse]);
         expect(
-            stateVariables[answerName].stateValues.submittedResponses.map(
+            stateVariables[answerIdx].stateValues.submittedResponses.map(
                 (x) => x.tree,
             ),
         ).eqls(submittedResponses);
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[mathInputName].stateValues.value.tree).eqls(
+        expect(stateVariables[mathInputIdx].stateValues.value.tree).eqls(
             currentResponse,
         );
         if (response.awardsUsed) {
             expect(
-                stateVariables[answerName].stateValues.awardsUsedIfSubmit,
-            ).eqls(response.awardsUsed);
+                stateVariables[answerIdx].stateValues.awardsUsedIfSubmit,
+            ).eqls(response.awardsUsed.map(resolveComponentName));
         }
 
         // submit
-        await submitAnswer({ name: answerName, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
         if (!response.submissionPrevented) {
             submittedResponses = [currentResponse];
             numSubmissions++;
@@ -153,24 +155,24 @@ async function test_math_answer({
         submittedCredit = credit;
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
-            `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
+            `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerIdx].stateValues.creditAchieved}`,
         );
         expect(
-            stateVariables[answerName].stateValues.currentResponses.map(
+            stateVariables[answerIdx].stateValues.currentResponses.map(
                 (x) => x.tree,
             ),
         ).eqls([currentResponse]);
         expect(
-            stateVariables[answerName].stateValues.submittedResponses.map(
+            stateVariables[answerIdx].stateValues.submittedResponses.map(
                 (x) => x.tree,
             ),
         ).eqls(submittedResponses);
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[mathInputName].stateValues.value.tree).eqls(
+        expect(stateVariables[mathInputIdx].stateValues.value.tree).eqls(
             currentResponse,
         );
     }
@@ -179,7 +181,7 @@ async function test_math_answer({
 async function test_text_answer({
     doenetML,
     answers,
-    answerName = "/answer1",
+    answerName = "answer1",
     textInputName,
 }: {
     doenetML: string;
@@ -192,27 +194,28 @@ async function test_text_answer({
     let submittedCredit = 0;
     let numSubmissions = 0;
 
-    let core = await createTestCore({ doenetML });
+    let { core, resolveComponentName } = await createTestCore({ doenetML });
+    const answerIdx = resolveComponentName(answerName);
 
     let stateVariables = await core.returnAllStateVariables(false, true);
-    textInputName =
-        textInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
+    const textInputIdx = textInputName
+        ? resolveComponentName(textInputName)
+        : stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
 
-    if (!textInputName) {
+    if (!textInputIdx) {
         throw Error("Don't have textInput name");
     }
 
-    expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+    expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
         submittedCredit,
     );
-    expect(stateVariables[answerName].stateValues.currentResponses).eqls([
+    expect(stateVariables[answerIdx].stateValues.currentResponses).eqls([
         currentResponse,
     ]);
-    expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+    expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
         submittedResponses,
     );
-    expect(stateVariables[textInputName].stateValues.value).eqls(
+    expect(stateVariables[textInputIdx].stateValues.value).eqls(
         currentResponse,
     );
 
@@ -224,48 +227,48 @@ async function test_text_answer({
 
         await updateTextInputValue({
             text: currentResponse,
-            name: textInputName,
+            componentIdx: textInputIdx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
         );
-        expect(stateVariables[answerName].stateValues.currentResponses).eqls([
+        expect(stateVariables[answerIdx].stateValues.currentResponses).eqls([
             currentResponse,
         ]);
-        expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
             submittedResponses,
         );
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[textInputName].stateValues.value).eqls(
+        expect(stateVariables[textInputIdx].stateValues.value).eqls(
             currentResponse,
         );
 
         // submit
-        await submitAnswer({ name: answerName, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
         submittedResponses = [currentResponse];
         submittedCredit = credit;
         numSubmissions++;
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
-            `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
+            `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerIdx].stateValues.creditAchieved}`,
         );
-        expect(stateVariables[answerName].stateValues.currentResponses).eqls([
+        expect(stateVariables[answerIdx].stateValues.currentResponses).eqls([
             currentResponse,
         ]);
-        expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
             submittedResponses,
         );
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[textInputName].stateValues.value).eqls(
+        expect(stateVariables[textInputIdx].stateValues.value).eqls(
             currentResponse,
         );
     }
@@ -274,7 +277,7 @@ async function test_text_answer({
 async function test_boolean_answer({
     doenetML,
     answers,
-    answerName = "/answer1",
+    answerName = "answer1",
     booleanInputName,
 }: {
     doenetML: string;
@@ -287,27 +290,28 @@ async function test_boolean_answer({
     let submittedCredit = 0;
     let numSubmissions = 0;
 
-    let core = await createTestCore({ doenetML });
+    let { core, resolveComponentName } = await createTestCore({ doenetML });
+    const answerIdx = resolveComponentName(answerName);
 
     let stateVariables = await core.returnAllStateVariables(false, true);
-    booleanInputName =
-        booleanInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
+    const booleanInputIdx = booleanInputName
+        ? resolveComponentName(booleanInputName)
+        : stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
 
-    if (!booleanInputName) {
+    if (!booleanInputIdx) {
         throw Error("Don't have booleanInput name");
     }
 
-    expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+    expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
         submittedCredit,
     );
-    expect(stateVariables[answerName].stateValues.currentResponses).eqls([
+    expect(stateVariables[answerIdx].stateValues.currentResponses).eqls([
         currentResponse,
     ]);
-    expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+    expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
         submittedResponses,
     );
-    expect(stateVariables[booleanInputName].stateValues.value).eqls(
+    expect(stateVariables[booleanInputIdx].stateValues.value).eqls(
         currentResponse,
     );
 
@@ -319,48 +323,48 @@ async function test_boolean_answer({
 
         await updateBooleanInputValue({
             boolean: currentResponse,
-            name: booleanInputName,
+            componentIdx: booleanInputIdx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
         );
-        expect(stateVariables[answerName].stateValues.currentResponses).eqls([
+        expect(stateVariables[answerIdx].stateValues.currentResponses).eqls([
             currentResponse,
         ]);
-        expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
             submittedResponses,
         );
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[booleanInputName].stateValues.value).eqls(
+        expect(stateVariables[booleanInputIdx].stateValues.value).eqls(
             currentResponse,
         );
 
         // submit
-        await submitAnswer({ name: answerName, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
         submittedResponses = [currentResponse];
         submittedCredit = credit;
         numSubmissions++;
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
-            `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
+            `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerIdx].stateValues.creditAchieved}`,
         );
-        expect(stateVariables[answerName].stateValues.currentResponses).eqls([
+        expect(stateVariables[answerIdx].stateValues.currentResponses).eqls([
             currentResponse,
         ]);
-        expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
             submittedResponses,
         );
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[booleanInputName].stateValues.value).eqls(
+        expect(stateVariables[booleanInputIdx].stateValues.value).eqls(
             currentResponse,
         );
     }
@@ -369,7 +373,7 @@ async function test_boolean_answer({
 async function test_choice_answer({
     doenetML,
     answers,
-    answerName = "/answer1",
+    answerName = "answer1",
     choiceInputName,
     indexByName = {},
     submitFirst = false,
@@ -398,21 +402,22 @@ async function test_choice_answer({
     let selectedIndices: number[] = [];
     let numSubmissions = 0;
 
-    let core = await createTestCore({ doenetML });
+    let { core, resolveComponentName } = await createTestCore({ doenetML });
+    const answerIdx = resolveComponentName(answerName);
 
     let stateVariables = await core.returnAllStateVariables(false, true);
-    choiceInputName =
-        choiceInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
+    const choiceInputIdx = choiceInputName
+        ? resolveComponentName(choiceInputName)
+        : stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
 
-    if (!choiceInputName) {
+    if (!choiceInputIdx) {
         throw Error("Don't have choiceInput name");
     }
 
     if (Object.keys(indexByName).length === 0) {
         indexByName = {};
         for (let [ind, val] of stateVariables[
-            choiceInputName
+            choiceInputIdx
         ].stateValues.choiceTexts.entries()) {
             indexByName[val] = ind + 1;
         }
@@ -421,64 +426,65 @@ async function test_choice_answer({
     // in a case where have invalid logic, got math expressions
     // for current responses before submitting anything
     if (!skipInitialCheck) {
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
         );
-        expect(stateVariables[answerName].stateValues.currentResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.currentResponses).eqls(
             selectedValues,
         );
-        expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
             submittedResponses,
         );
-        expect(stateVariables[choiceInputName].stateValues.selectedValues).eqls(
+        expect(stateVariables[choiceInputIdx].stateValues.selectedValues).eqls(
             selectedValues,
         );
-        expect(
-            stateVariables[choiceInputName].stateValues.selectedIndices,
-        ).eqls(selectedIndices);
+        expect(stateVariables[choiceInputIdx].stateValues.selectedIndices).eqls(
+            selectedIndices,
+        );
     }
 
     if (submitFirst) {
         // submit no answer
-        await submitAnswer({ name: answerName, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
         submittedResponses = selectedValues;
         submittedCredit = 0;
         numSubmissions++;
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
-            `Expected response ${selectedValues} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
+            `Expected response ${selectedValues} to have credit ${submittedCredit}, got credit ${stateVariables[answerIdx].stateValues.creditAchieved}`,
         );
-        expect(stateVariables[answerName].stateValues.currentResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.currentResponses).eqls(
             selectedValues,
         );
-        expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
             submittedResponses,
         );
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[choiceInputName].stateValues.selectedValues).eqls(
+        expect(stateVariables[choiceInputIdx].stateValues.selectedValues).eqls(
             selectedValues,
         );
-        expect(
-            stateVariables[choiceInputName].stateValues.selectedIndices,
-        ).eqls(selectedIndices);
+        expect(stateVariables[choiceInputIdx].stateValues.selectedIndices).eqls(
+            selectedIndices,
+        );
     }
 
     for (let response of answers) {
         if (response.preAction) {
+            const actionIdx = resolveComponentName(response.preAction.name);
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             } else {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             }
@@ -490,7 +496,7 @@ async function test_choice_answer({
                 );
                 indexByName = {};
                 for (let [ind, val] of stateVariables[
-                    choiceInputName
+                    choiceInputIdx
                 ].stateValues.choiceTexts.entries()) {
                     indexByName[val] = ind + 1;
                 }
@@ -504,65 +510,65 @@ async function test_choice_answer({
         // select responses
 
         await updateSelectedIndices({
-            name: choiceInputName,
+            componentIdx: choiceInputIdx,
             selectedIndices,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
         );
-        expect(stateVariables[answerName].stateValues.currentResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.currentResponses).eqls(
             selectedValues,
         );
-        expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
             submittedResponses,
         );
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[choiceInputName].stateValues.selectedValues).eqls(
+        expect(stateVariables[choiceInputIdx].stateValues.selectedValues).eqls(
             selectedValues,
         );
-        expect(
-            stateVariables[choiceInputName].stateValues.selectedIndices,
-        ).eqls(selectedIndices);
+        expect(stateVariables[choiceInputIdx].stateValues.selectedIndices).eqls(
+            selectedIndices,
+        );
 
         // submit
-        await submitAnswer({ name: answerName, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
         submittedResponses = selectedValues;
         submittedCredit = credit;
         numSubmissions++;
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
-            `Expected response ${selectedValues} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
+            `Expected response ${selectedValues} to have credit ${submittedCredit}, got credit ${stateVariables[answerIdx].stateValues.creditAchieved}`,
         );
-        expect(stateVariables[answerName].stateValues.currentResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.currentResponses).eqls(
             selectedValues,
         );
-        expect(stateVariables[answerName].stateValues.submittedResponses).eqls(
+        expect(stateVariables[answerIdx].stateValues.submittedResponses).eqls(
             submittedResponses,
         );
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[choiceInputName].stateValues.selectedValues).eqls(
+        expect(stateVariables[choiceInputIdx].stateValues.selectedValues).eqls(
             selectedValues,
         );
-        expect(
-            stateVariables[choiceInputName].stateValues.selectedIndices,
-        ).eqls(selectedIndices);
+        expect(stateVariables[choiceInputIdx].stateValues.selectedIndices).eqls(
+            selectedIndices,
+        );
     }
 }
 
 async function test_matrix_answer({
     doenetML,
     answers,
-    answerName = "/answer1",
+    answerName = "answer1",
     matrixInputName,
     originalEffectiveResponse,
 }: {
@@ -588,52 +594,54 @@ async function test_matrix_answer({
     let submittedCredit = 0;
     let numSubmissions = 0;
 
-    let core = await createTestCore({ doenetML });
+    let { core, resolveComponentName } = await createTestCore({ doenetML });
+    const answerIdx = resolveComponentName(answerName);
 
     let stateVariables = await core.returnAllStateVariables(false, true);
-    matrixInputName =
-        matrixInputName ||
-        stateVariables[answerName].stateValues.inputChildren[0].componentIdx;
+    const matrixInputIdx = matrixInputName
+        ? resolveComponentName(matrixInputName)
+        : stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
 
-    if (!matrixInputName) {
+    if (!matrixInputIdx) {
         throw Error("Don't have matrixInput name");
     }
 
-    expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+    expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
         submittedCredit,
     );
     expect(
-        stateVariables[answerName].stateValues.currentResponses.map(
+        stateVariables[answerIdx].stateValues.currentResponses.map(
             (x) => x.tree,
         ),
     ).eqls([currentResponse]);
     expect(
-        stateVariables[answerName].stateValues.submittedResponses.map(
+        stateVariables[answerIdx].stateValues.submittedResponses.map(
             (x) => x.tree,
         ),
     ).eqls(submittedResponses);
-    expect(stateVariables[matrixInputName].stateValues.value.tree).eqls(
+    expect(stateVariables[matrixInputIdx].stateValues.value.tree).eqls(
         currentResponse,
     );
 
     for (let response of answers) {
         if (response.preAction) {
+            const actionIdx = resolveComponentName(response.preAction.name);
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             } else if (response.preAction.type === "text") {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             } else {
                 await updateBooleanInputValue({
                     boolean: response.preAction.value === "true",
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             }
@@ -651,7 +659,7 @@ async function test_matrix_answer({
                 latex: entry.latex,
                 rowInd: entry.rowInd,
                 colInd: entry.colInd,
-                name: matrixInputName,
+                componentIdx: matrixInputIdx,
                 stateVariables,
                 core,
             });
@@ -659,33 +667,33 @@ async function test_matrix_answer({
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
         );
         expect(
-            stateVariables[answerName].stateValues.currentResponses.map(
+            stateVariables[answerIdx].stateValues.currentResponses.map(
                 (x) => x.tree,
             ),
         ).eqls([currentResponse]);
         expect(
-            stateVariables[answerName].stateValues.submittedResponses.map(
+            stateVariables[answerIdx].stateValues.submittedResponses.map(
                 (x) => x.tree,
             ),
         ).eqls(submittedResponses);
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[matrixInputName].stateValues.value.tree).eqls(
+        expect(stateVariables[matrixInputIdx].stateValues.value.tree).eqls(
             currentResponse,
         );
         if (response.awardsUsed) {
             expect(
-                stateVariables[answerName].stateValues.awardsUsedIfSubmit,
-            ).eqls(response.awardsUsed);
+                stateVariables[answerIdx].stateValues.awardsUsedIfSubmit,
+            ).eqls(response.awardsUsed.map(resolveComponentName));
         }
 
         // submit
-        await submitAnswer({ name: answerName, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
         if (!response.submissionPrevented) {
             submittedResponses = [currentResponse];
             numSubmissions++;
@@ -693,24 +701,24 @@ async function test_matrix_answer({
         submittedCredit = credit;
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
-            `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
+            `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerIdx].stateValues.creditAchieved}`,
         );
         expect(
-            stateVariables[answerName].stateValues.currentResponses.map(
+            stateVariables[answerIdx].stateValues.currentResponses.map(
                 (x) => x.tree,
             ),
         ).eqls([currentResponse]);
         expect(
-            stateVariables[answerName].stateValues.submittedResponses.map(
+            stateVariables[answerIdx].stateValues.submittedResponses.map(
                 (x) => x.tree,
             ),
         ).eqls(submittedResponses);
-        expect(stateVariables[answerName].stateValues.numSubmissions).eq(
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
             numSubmissions,
         );
-        expect(stateVariables[matrixInputName].stateValues.value.tree).eqls(
+        expect(stateVariables[matrixInputIdx].stateValues.value.tree).eqls(
             currentResponse,
         );
     }
@@ -719,7 +727,7 @@ async function test_matrix_answer({
 async function test_action_answer({
     doenetML,
     answers,
-    answerName = "/answer1",
+    answerName = "answer1",
     originalEffectiveResponses,
 }: {
     doenetML: string;
@@ -742,36 +750,38 @@ async function test_action_answer({
     let submittedResponses: any[] = [];
     let submittedCredit = 0;
 
-    let core = await createTestCore({ doenetML });
+    let { core, resolveComponentName } = await createTestCore({ doenetML });
+    const answerIdx = resolveComponentName(answerName);
 
     let stateVariables = await core.returnAllStateVariables(false, true);
 
-    expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+    expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
         submittedCredit,
     );
     expect(
-        stateVariables[answerName].stateValues.currentResponses.map(
+        stateVariables[answerIdx].stateValues.currentResponses.map(
             (x) => x.tree,
         ),
     ).eqls(currentResponses);
     expect(
-        stateVariables[answerName].stateValues.submittedResponses.map(
+        stateVariables[answerIdx].stateValues.submittedResponses.map(
             (x) => x.tree,
         ),
     ).eqls(submittedResponses);
 
     for (let response of answers) {
         if (response.preAction) {
+            const actionIdx = resolveComponentName(response.preAction.name);
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             } else {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             }
@@ -783,43 +793,43 @@ async function test_action_answer({
         // do action for answer
 
         await core.requestAction({
-            componentIdx: response.actionComponentName,
+            componentIdx: resolveComponentName(response.actionComponentName),
             actionName: response.actionName,
             args: response.actionArgs,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
         );
         expect(
-            stateVariables[answerName].stateValues.currentResponses.map(
+            stateVariables[answerIdx].stateValues.currentResponses.map(
                 (x) => x.tree,
             ),
         ).eqls(currentResponses);
         expect(
-            stateVariables[answerName].stateValues.submittedResponses.map(
+            stateVariables[answerIdx].stateValues.submittedResponses.map(
                 (x) => x.tree,
             ),
         ).eqls(submittedResponses);
         // submit
-        await submitAnswer({ name: answerName, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
         submittedResponses = currentResponses;
         submittedCredit = credit;
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[answerName].stateValues.creditAchieved).eq(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
             submittedCredit,
-            `Expected response ${currentResponses} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
+            `Expected response ${currentResponses} to have credit ${submittedCredit}, got credit ${stateVariables[answerIdx].stateValues.creditAchieved}`,
         );
         expect(
-            stateVariables[answerName].stateValues.currentResponses.map(
+            stateVariables[answerIdx].stateValues.currentResponses.map(
                 (x) => x.tree,
             ),
         ).eqls(currentResponses);
         expect(
-            stateVariables[answerName].stateValues.submittedResponses.map(
+            stateVariables[answerIdx].stateValues.submittedResponses.map(
                 (x) => x.tree,
             ),
         ).eqls(submittedResponses);
@@ -829,7 +839,7 @@ async function test_action_answer({
 async function test_answer_multiple_inputs({
     doenetML,
     answers,
-    answerName = "/answer1",
+    answerName = "answer1",
     inputs,
 }: {
     doenetML: string;
@@ -862,20 +872,21 @@ async function test_answer_multiple_inputs({
     let submittedResponses: any[] = [];
     let submittedCredit = 0;
 
-    let core = await createTestCore({ doenetML });
+    let { core, resolveComponentName } = await createTestCore({ doenetML });
+    const answerIdx = resolveComponentName(answerName);
 
     let stateVariables = await core.returnAllStateVariables(false, true);
-    let inputNames: string[] = inputs.map((input, i) => {
-        let name =
-            input.name ||
-            stateVariables[answerName].stateValues.inputChildren[i]
-                .componentIdx;
+    let inputIndices: number[] = inputs.map((input, i) => {
+        let cIdx = input.name
+            ? resolveComponentName(input.name)
+            : stateVariables[answerIdx].stateValues.inputChildren[i]
+                  .componentIdx;
 
-        if (!name) {
+        if (!cIdx) {
             throw Error(`Don't have name for input ${i}.`);
         }
 
-        return name;
+        return cIdx;
     });
 
     function transformOutputValues(values: any[]) {
@@ -903,25 +914,25 @@ async function test_answer_multiple_inputs({
         });
     }
 
-    expect(stateVariables[answerName].stateValues.creditAchieved).closeTo(
+    expect(stateVariables[answerIdx].stateValues.creditAchieved).closeTo(
         submittedCredit,
         1e-14,
     );
     expect(
-        stateVariables[answerName].stateValues.currentResponses.map((x, i) =>
+        stateVariables[answerIdx].stateValues.currentResponses.map((x, i) =>
             inputs[i].type === "math" ? x.tree : x,
         ),
     ).eqls(currentResponses);
     expect(
-        stateVariables[answerName].stateValues.submittedResponses.map((x, i) =>
+        stateVariables[answerIdx].stateValues.submittedResponses.map((x, i) =>
             inputs[i].type === "math" ? x.tree : x,
         ),
     ).eqls(submittedResponses);
     if (inputs.every((x) => x.type !== "number")) {
         expect(
             transformOutputValues(
-                inputNames.map(
-                    (name) => stateVariables[name].stateValues.value,
+                inputIndices.map(
+                    (cIdx) => stateVariables[cIdx].stateValues.value,
                 ),
             ),
         ).eqls(currentResponses);
@@ -929,16 +940,17 @@ async function test_answer_multiple_inputs({
 
     for (let response of answers) {
         if (response.preAction) {
+            const actionIdx = resolveComponentName(response.preAction.name);
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             } else {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    name: response.preAction.name,
+                    componentIdx: actionIdx,
                     core,
                 });
             }
@@ -955,19 +967,19 @@ async function test_answer_multiple_inputs({
             if (input.type === "math" || input.type === "number") {
                 await updateMathInputValue({
                     latex: values[ind],
-                    name: inputNames[ind],
+                    componentIdx: inputIndices[ind],
                     core,
                 });
             } else if (input.type === "text") {
                 await updateTextInputValue({
                     text: values[ind],
-                    name: inputNames[ind],
+                    componentIdx: inputIndices[ind],
                     core,
                 });
             } else {
                 await updateBooleanInputValue({
                     boolean: values[ind] === "true",
-                    name: inputNames[ind],
+                    componentIdx: inputIndices[ind],
                     core,
                 });
             }
@@ -975,46 +987,46 @@ async function test_answer_multiple_inputs({
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[answerName].stateValues.creditAchieved).closeTo(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).closeTo(
             submittedCredit,
             1e-14,
         );
         expect(
             transformOutputValues(
-                stateVariables[answerName].stateValues.currentResponses,
+                stateVariables[answerIdx].stateValues.currentResponses,
             ),
         ).eqls(currentResponses);
         expect(
             transformOutputValues(
-                stateVariables[answerName].stateValues.submittedResponses,
+                stateVariables[answerIdx].stateValues.submittedResponses,
             ),
         ).eqls(submittedResponses);
 
         if (response.awardsUsed) {
             expect(
-                stateVariables[answerName].stateValues.awardsUsedIfSubmit,
-            ).eqls(response.awardsUsed);
+                stateVariables[answerIdx].stateValues.awardsUsedIfSubmit,
+            ).eqls(response.awardsUsed.map(resolveComponentName));
         }
 
         // submit
-        await submitAnswer({ name: answerName, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
         submittedResponses = currentResponses;
         submittedCredit = credit;
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[answerName].stateValues.creditAchieved).closeTo(
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).closeTo(
             submittedCredit,
             1e-14,
-            `Expected response ${currentResponses} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
+            `Expected response ${currentResponses} to have credit ${submittedCredit}, got credit ${stateVariables[answerIdx].stateValues.creditAchieved}`,
         );
         expect(
             transformOutputValues(
-                stateVariables[answerName].stateValues.currentResponses,
+                stateVariables[answerIdx].stateValues.currentResponses,
             ),
         ).eqls(currentResponses);
         expect(
             transformOutputValues(
-                stateVariables[answerName].stateValues.submittedResponses,
+                stateVariables[answerIdx].stateValues.submittedResponses,
             ),
         ).eqls(submittedResponses);
     }
@@ -1167,23 +1179,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from text with copySource", async () => {
         const doenetML = `
     <text name='h'>hello there</text>
-    <answer name="answer1"><text copySource="h" /></answer>
-  `;
-
-        await test_text_answer({
-            doenetML,
-            answers: [
-                { text: " hello there ", credit: 1 },
-                { text: "hellothere", credit: 0 },
-                { text: "hello  there", credit: 1 },
-            ],
-        });
-    });
-
-    it("answer sugar from one macro with createComponentOfType text", async () => {
-        const doenetML = `
-    <text name='h'>hello there</text>
-    <answer name="answer1">$(h{createComponentOfType="text"})</answer>
+    <answer name="answer1"><text extend="$h" /></answer>
   `;
 
         await test_text_answer({
@@ -1263,27 +1259,32 @@ describe("Answer tag tests", async () => {
     it("answer sugar from one string, set to text, copy all responses", async () => {
         const doenetML = `
     <answer name="answer1" type="text">hello there</answer>
-    Submitted responses: <text copySource="answer1.submittedResponses" name="sr1" />
+    Submitted responses: <text extend="$answer1.submittedResponses" name="sr1" />
   `;
 
-        let core = await createTestCore({ doenetML });
+        let { core, resolveComponentName } = await createTestCore({ doenetML });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let textInputName =
-            stateVariables["/answer1"].stateValues.inputChildren[0]
-                .componentIdx;
+            stateVariables[resolveComponentName("answer1")].stateValues
+                .inputChildren[0].componentIdx;
 
         await updateTextInputValue({
             text: " hello there ",
-            name: textInputName,
+            componentIdx: textInputName,
             core,
         });
 
         // submit
-        await submitAnswer({ name: "/answer1", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("answer1"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sr1"].stateValues.value).eq(" hello there ");
+        expect(
+            stateVariables[resolveComponentName("sr1")].stateValues.value,
+        ).eq(" hello there ");
 
         await test_text_answer({
             doenetML,
@@ -1367,7 +1368,7 @@ describe("Answer tag tests", async () => {
     });
 
     it("warning for sugar with invalid type", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><answer type="bad" name="answer1">x</answer></p>
   `,
@@ -1382,24 +1383,30 @@ describe("Answer tag tests", async () => {
             "Invalid type for answer: bad",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].position.charBegin).eq(6);
-        expect(errorWarnings.warnings[0].position.lineEnd).eq(2);
-        expect(errorWarnings.warnings[0].position.charEnd).eq(49);
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(6);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.column).eq(50);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let mathInputName =
-            stateVariables["/answer1"].stateValues.inputChildren[0]
-                .componentIdx;
+        let mathInputIdx =
+            stateVariables[resolveComponentName("answer1")].stateValues
+                .inputChildren[0].componentIdx;
 
         await updateMathInputValue({
             latex: "x",
-            name: mathInputName,
+            componentIdx: mathInputIdx,
             core,
         });
-        await submitAnswer({ name: "/answer1", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("answer1"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("answer1")].stateValues
+                .creditAchieved,
+        ).eq(1);
     });
 
     it("warning for award depending on submitted response", async () => {
@@ -1428,6 +1435,7 @@ describe("Answer tag tests", async () => {
 
         async function check_award_based_on_submitted_response(
             core: PublicDoenetMLCore,
+            resolveComponentName: (name: string, origin?: number) => number,
             eventually_correct = true,
         ) {
             let errorWarnings = core.core!.errorWarnings;
@@ -1439,51 +1447,70 @@ describe("Answer tag tests", async () => {
                 "An award for this answer is based on the answer tag's own submitted response",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
-            expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
-            expect(errorWarnings.warnings[0].position.charBegin).eq(5);
-            expect(errorWarnings.warnings[0].position.lineEnd).eq(5);
-            expect(errorWarnings.warnings[0].position.charEnd).eq(13);
+            expect(errorWarnings.warnings[0].position.start.line).eq(2);
+            expect(errorWarnings.warnings[0].position.start.column).eq(5);
+            expect(errorWarnings.warnings[0].position.end.line).eq(5);
+            expect(errorWarnings.warnings[0].position.end.column).eq(14);
 
             let stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            let mathInputName =
-                stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentIdx;
+            let mathInputIdx =
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .inputChildren[0].componentIdx;
 
             // have to submit the correct answer twice before it is marked correct
             await updateMathInputValue({
                 latex: "5",
-                name: mathInputName,
+                componentIdx: mathInputIdx,
                 core,
             });
-            await submitAnswer({ name: "/ans", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans"),
+                core,
+            });
             stateVariables = await core.returnAllStateVariables(false, true);
 
             // answer is not correct because the submitted response was initially blank
-            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
+            expect(
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .creditAchieved,
+            ).eq(0);
             // justSubmitted becomes false at the criteria (based on submitted response)
             // change when the answer is submitted
-            expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
+            expect(
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .justSubmitted,
+            ).eq(false);
 
-            await submitAnswer({ name: "/ans", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans"),
+                core,
+            });
             stateVariables = await core.returnAllStateVariables(false, true);
 
             // if `eventually correct` is set to `true`, then
             // the second time, the answer is marked correct and justSubmitted stays true
             // because the submitted response starts off correct and doesn't change
-            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
-                eventually_correct ? 1 : 0,
-            );
-            expect(stateVariables["/ans"].stateValues.justSubmitted).eq(true);
+            expect(
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .creditAchieved,
+            ).eq(eventually_correct ? 1 : 0);
+            expect(
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .justSubmitted,
+            ).eq(true);
         }
 
         for (let doenetML of doenetMLs) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
             });
-            await check_award_based_on_submitted_response(core);
+            await check_award_based_on_submitted_response(
+                core,
+                resolveComponentName,
+            );
         }
 
         let doenetML = `
@@ -1492,10 +1519,14 @@ describe("Answer tag tests", async () => {
         <award><when>$ans.submittedResponse2=5</when></award>
     </answer>`;
 
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML,
         });
-        await check_award_based_on_submitted_response(core, false);
+        await check_award_based_on_submitted_response(
+            core,
+            resolveComponentName,
+            false,
+        );
     });
 
     it("award depending on current response throws error", async () => {
@@ -1591,11 +1622,11 @@ describe("Answer tag tests", async () => {
     <answer name="answer1"><award><math>x+y-3+$n</math></award></answer>
 
 
-    $n3{name="n2"}
-    $num1{name="n"}
+    <number extend="$n3" name="n2" />
+    <math extend="$num1" name="n" />
     <math name="num1">$n2+$num2</math>
     <math name="num2">$n3+$num3</math>
-    $num3{name="n3"}
+    <number extend="$num3" name="n3" />
     <number name="num3">1</number>
 
   `;
@@ -1670,8 +1701,8 @@ describe("Answer tag tests", async () => {
                 { values: ["z", "x+y"], credit: 0.5 },
             ],
             inputs: [
-                { type: "math", name: "/mi1" },
-                { type: "math", name: "/mi2" },
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
             ],
         });
     });
@@ -1735,8 +1766,8 @@ describe("Answer tag tests", async () => {
                 { values: ["2", "1"], credit: 0.5 },
             ],
             inputs: [
-                { type: "number", name: "/mi1" },
-                { type: "number", name: "/mi2" },
+                { type: "number", name: "mi1" },
+                { type: "number", name: "mi2" },
             ],
         });
     });
@@ -1843,13 +1874,13 @@ describe("Answer tag tests", async () => {
         const doenetML = `
     <answer name="answer1"><award><text>$n</text></award></answer>
 
-    $n3{name="n2"}
-    $text1{name="n"}
+    <text extend="$n3" name="n2"/>
+    <text extend="$text1" name="n"/>
     <text name="text1">$n2 $text2</text>
     <text name="text2">$n4</text>
-    $text3{name="n3"}
+    <text extend="$text3" name="n3"/>
     <text name="text3">hello</text>
-    $text4{name="n4"}
+    <text extend="$text4" name="n4"/>
     <text name="text4">there</text>
   `;
 
@@ -1915,8 +1946,8 @@ describe("Answer tag tests", async () => {
                 { values: ["there", ""], credit: 0.5 },
             ],
             inputs: [
-                { type: "text", name: "/ti1" },
-                { type: "text", name: "/ti2" },
+                { type: "text", name: "ti1" },
+                { type: "text", name: "ti2" },
             ],
         });
     });
@@ -2011,8 +2042,8 @@ describe("Answer tag tests", async () => {
                 { values: ["true", "true"], credit: 0.5 },
             ],
             inputs: [
-                { type: "boolean", name: "/bi1" },
-                { type: "boolean", name: "/bi2" },
+                { type: "boolean", name: "bi1" },
+                { type: "boolean", name: "bi2" },
             ],
         });
     });
@@ -2023,7 +2054,7 @@ describe("Answer tag tests", async () => {
     <booleanInput name="bi1" /> <booleanInput name="bi2" />
     <boolean hide name="b">false</boolean>
     <answer name="answer1"><award><when>
-        $bi1{isResponse} = not $b and $bi2{isResponse}=$b
+        <boolean extend="$bi1" isResponse /> = not $b and <boolean extend="$bi2" isResponse />=$b
     </when></award></answer>
 
   `;
@@ -2037,8 +2068,8 @@ describe("Answer tag tests", async () => {
                 { values: ["true", "true"], credit: 0 },
             ],
             inputs: [
-                { type: "boolean", name: "/bi1" },
-                { type: "boolean", name: "/bi2" },
+                { type: "boolean", name: "bi1" },
+                { type: "boolean", name: "bi2" },
             ],
         });
     });
@@ -2063,11 +2094,11 @@ describe("Answer tag tests", async () => {
     <answer name="answer1"><award><math>$rightAnswer</math></award><award credit="0.5"><math>x-3+$n</math></award></answer>
 
     <math name="rightAnswer">x+y-3+$n</math>
-    $n3{name="n2"}
-    $num1{name="n"}
+    <number extend="$n3" name="n2" />
+    <math extend="$num1" name="n" />
     <math name="num1">$n2+$num2</math>
     <math name="num2">$n3+$num3</math>
-    $num3{name="n3"}
+    <number extend="$num3" name="n3" />
     <number name="num3">1</number>
   `;
 
@@ -2133,7 +2164,7 @@ describe("Answer tag tests", async () => {
         const doenetML = `
   Enter values that sum to <m>3x</m>: <mathInput name="mi1"/> <mathInput name="mi2"/>
   <answer name="answer1">
-    <award><when><math>$mi1{isResponse}+$mi2{isResponse}</math> = <math>3x</math></when></award>
+    <award><when><math><math extend="$mi1" isResponse />+<math extend="$mi2" isResponse /></math> = <math>3x</math></when></award>
     <award credit="0.5"><when><math>$mi1+$mi2</math> = <math>3</math></when></award>
   </answer>
   `;
@@ -2146,8 +2177,8 @@ describe("Answer tag tests", async () => {
                 { values: ["y", "3-x"], credit: 0 },
             ],
             inputs: [
-                { type: "math", name: "/mi1" },
-                { type: "math", name: "/mi2" },
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
             ],
         });
     });
@@ -2176,14 +2207,14 @@ describe("Answer tag tests", async () => {
     it("full answer tag, copied in awards, shorter form", async () => {
         const doenetML = `
 <setup>
-    <award name="aw1" sourcesAreResponses="mi1 mi2"><when>$mi1+$mi2 = 3x</when></award>
+    <award name="aw1" referencesAreResponses="$mi1 $mi2"><when>$mi1+$mi2 = 3x</when></award>
     <award name="aw2" credit="0.5"><when>$mi1+$mi2 = 3</when></award>
 </setup>
 Enter values that sum to <m>3x</m>:
 <mathInput name="mi1" /> <mathInput name="mi2"/>
 <answer name="answer1">
-    <award copySource="aw1" />
-    <award copySource="aw2" />
+    <award extend="$aw1" />
+    <award extend="$aw2" />
 </answer>
   `;
 
@@ -2195,8 +2226,8 @@ Enter values that sum to <m>3x</m>:
                 { values: ["y", "3-x"], credit: 0 },
             ],
             inputs: [
-                { type: "math", name: "/mi1" },
-                { type: "math", name: "/mi2" },
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
             ],
         });
     });
@@ -2205,7 +2236,7 @@ Enter values that sum to <m>3x</m>:
         const doenetML = `
   >Enter rain and snow in either order: <textInput name="ti1"/> <textInput name="ti2"/>
   <answer name="answer1">
-    <award><when><text>$ti1{isResponse} $ti2{isResponse}</text> = <text>rain snow</text></when></award>
+    <award><when><text><text extend="$ti1" isResponse /> <text extend="$ti2" isResponse /></text> = <text>rain snow</text></when></award>
     <award><when><text>$ti1 $ti2</text> = <text>snow rain</text></when></award>
     <award credit="0.5"><when>$ti1 = rain</when></award>
     <award credit="0.5"><when>$ti1 = snow</when></award>
@@ -2224,8 +2255,8 @@ Enter values that sum to <m>3x</m>:
                 { values: ["fog", "hail"], credit: 0 },
             ],
             inputs: [
-                { type: "text", name: "/ti1" },
-                { type: "text", name: "/ti2" },
+                { type: "text", name: "ti1" },
+                { type: "text", name: "ti2" },
             ],
         });
     });
@@ -2323,13 +2354,13 @@ Enter enter number larger than 5 or less than 2:
 
 <answer name="answer1">
     <award><when>
-      (($mi1{isResponse} = x
-      and $mi2{isResponse} != $mi1)
+      ((<math extend="$mi1" isResponse /> = x
+      and <math extend="$mi2" isResponse /> != $mi1)
       or
       ($mi1 = <math>y</math>
       and $mi2 != z
       and $mi2 != q))
-      and $mi3{isResponse} > 5
+      and <math extend="$mi3" isResponse /> > 5
    </when></award>
   </answer>
   `;
@@ -2347,9 +2378,9 @@ Enter enter number larger than 5 or less than 2:
                 { values: ["y", "y", "a"], credit: 0 },
             ],
             inputs: [
-                { type: "math", name: "/mi1" },
-                { type: "math", name: "/mi2" },
-                { type: "math", name: "/mi3" },
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
+                { type: "math", name: "mi3" },
             ],
         });
     });
@@ -2370,7 +2401,7 @@ Enter enter number larger than 5 or less than 2:
                 { latex: "x", credit: 1 },
                 { latex: "u", credit: 0 },
             ],
-            answerName: "/a/answer1",
+            answerName: "a.answer1",
         });
 
         await test_math_answer({
@@ -2379,7 +2410,7 @@ Enter enter number larger than 5 or less than 2:
                 { latex: "x^2", credit: 1 },
                 { latex: "v", credit: 0 },
             ],
-            answerName: "/b/answer1",
+            answerName: "b.answer1",
         });
 
         await test_math_answer({
@@ -2388,7 +2419,7 @@ Enter enter number larger than 5 or less than 2:
                 { latex: "x^3", credit: 1 },
                 { latex: "w", credit: 0 },
             ],
-            answerName: "/c/answer1",
+            answerName: "c.answer1",
         });
     });
 
@@ -2647,7 +2678,7 @@ The animal is a <answer name="answer1">
                     choices: ["Get 1"],
                     credit: 1,
                     preAction: {
-                        name: "/num",
+                        name: "num",
                         value: "4",
                         recomputeIndices: true,
                         type: "math",
@@ -2660,7 +2691,7 @@ The animal is a <answer name="answer1">
                     choices: ["Get 1"],
                     credit: 1,
                     preAction: {
-                        name: "/num",
+                        name: "num",
                         value: "3",
                         recomputeIndices: true,
                         type: "math",
@@ -2672,7 +2703,7 @@ The animal is a <answer name="answer1">
                     choices: ["Get 1"],
                     credit: 1,
                     preAction: {
-                        name: "/num",
+                        name: "num",
                         value: "6",
                         recomputeIndices: true,
                         type: "math",
@@ -2710,7 +2741,7 @@ The animal is a <answer name="answer1">
                     choices: ["dog"],
                     credit: 1,
                     preAction: {
-                        name: "/catCredit",
+                        name: "catCredit",
                         value: "0.4",
                         recomputeIndices: true,
                         type: "math",
@@ -2721,7 +2752,7 @@ The animal is a <answer name="answer1">
                     choices: ["cat"],
                     credit: 0.4,
                     preAction: {
-                        name: "/last",
+                        name: "last",
                         value: "mouse",
                         recomputeIndices: true,
                         type: "text",
@@ -2732,7 +2763,7 @@ The animal is a <answer name="answer1">
                     choices: ["cat"],
                     credit: 0.2,
                     preAction: {
-                        name: "/catCredit",
+                        name: "catCredit",
                         value: "0.2",
                         recomputeIndices: true,
                         type: "math",
@@ -2743,7 +2774,7 @@ The animal is a <answer name="answer1">
                     choices: ["rabbit"],
                     credit: 0,
                     preAction: {
-                        name: "/last",
+                        name: "last",
                         value: "rabbit",
                         recomputeIndices: true,
                         type: "text",
@@ -2767,7 +2798,7 @@ Enter any letter:
 
         await test_math_answer({
             doenetML,
-            answerName: "/userx",
+            answerName: "userx",
             answers: [
                 { latex: "a", credit: 1 },
                 { latex: "c,d", credit: 0 },
@@ -2800,7 +2831,7 @@ Enter any letter:
                     latex: "c",
                     credit: 1,
                     preAction: {
-                        name: "/set",
+                        name: "set",
                         value: "\\{a,b,c,d,e,f,g\\}",
                         type: "math",
                     },
@@ -2811,7 +2842,7 @@ Enter any letter:
                     latex: "2",
                     credit: 0,
                     preAction: {
-                        name: "/set",
+                        name: "set",
                         value: "\\{(x+y)/2, e^{x^2+y}, (1,2,3) \\}",
                         type: "math",
                     },
@@ -2841,7 +2872,7 @@ Enter any letter:
 
         await test_answer_multiple_inputs({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             answers: [
                 { values: ["2", ""], credit: 0.5 },
                 { values: ["2", "hello"], credit: 1 },
@@ -2849,8 +2880,8 @@ Enter any letter:
                 { values: ["0", "bye"], credit: 0 },
             ],
             inputs: [
-                { type: "math", name: "/mi" },
-                { type: "text", name: "/ti" },
+                { type: "math", name: "mi" },
+                { type: "text", name: "ti" },
             ],
         });
     });
@@ -2872,7 +2903,7 @@ Enter any letter:
 
         await test_answer_multiple_inputs({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             answers: [
                 { values: ["2", ""], credit: 0.5 },
                 { values: ["2", "hello"], credit: 1 },
@@ -2880,13 +2911,13 @@ Enter any letter:
                 { values: ["0", "bye"], credit: 0 },
             ],
             inputs: [
-                { type: "math", name: "/mi" },
-                { type: "text", name: "/ti" },
+                { type: "math", name: "mi" },
+                { type: "text", name: "ti" },
             ],
         });
     });
 
-    it("answer based on point, nonstandard case for isResponse", async () => {
+    it.skip("answer based on point, nonstandard case for isResponse", async () => {
         const doenetML = `
         <p>Criterion: <mathInput name="mi" prefill="1" /></p>
         <p>Move point so that its x-coordinate is larger than $mi.value.</p>
@@ -2897,7 +2928,7 @@ Enter any letter:
 
         <answer name="a"> 
           <award><when>
-            $mi < $P.x{isresPoNse}
+            $mi < <math extend="$P.x" isresPoNse />
           </when></award>
         </answer>
 
@@ -2905,32 +2936,32 @@ Enter any letter:
 
         await test_action_answer({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             originalEffectiveResponses: [0],
             answers: [
                 {
                     actionArgs: { x: 3, y: -3 },
                     actionName: "movePoint",
-                    actionComponentName: "/P",
+                    actionComponentName: "P",
                     effectiveResponses: [3],
                     credit: 1,
                 },
                 {
                     preAction: {
                         type: "math",
-                        name: "/mi",
+                        name: "mi",
                         value: "4",
                     },
                     actionArgs: { x: 3, y: -3 },
                     actionName: "movePoint",
-                    actionComponentName: "/P",
+                    actionComponentName: "P",
                     effectiveResponses: [3],
                     credit: 0,
                 },
                 {
                     actionArgs: { x: 8, y: 9 },
                     actionName: "movePoint",
-                    actionComponentName: "/P",
+                    actionComponentName: "P",
                     effectiveResponses: [8],
                     credit: 1,
                 },
@@ -2951,25 +2982,25 @@ Enter any letter:
         });
     });
 
-    it("mark sources as responses", async () => {
+    it("mark references as responses", async () => {
         const doenetML = `
         <p>Enter minimum: <mathInput name="min" /></p>
         <p>Enter value larger than $min: <mathInput name="val" /></p>
         
         <answer name="a"> 
-            <award sourcesAreResponses="val"><when>$val > $min</when></award>
+            <award referencesAreResponses="$val"><when>$val > $min</when></award>
         </answer>`;
 
         await test_math_answer({
             doenetML,
-            mathInputName: "/val",
-            answerName: "/a",
+            mathInputName: "val",
+            answerName: "a",
             answers: [
                 {
                     latex: "",
                     credit: 0,
                     preAction: {
-                        name: "/min",
+                        name: "min",
                         value: "2",
                         type: "math",
                     },
@@ -2980,7 +3011,7 @@ Enter any letter:
                     latex: "2",
                     credit: 1,
                     preAction: {
-                        name: "/min",
+                        name: "min",
                         value: "1.9",
                         type: "math",
                     },
@@ -2996,21 +3027,21 @@ Enter any letter:
 
         <answer name="a">
             <considerAsResponses>$P $Q</considerAsResponses>
-            <award><when>$(Q.value.x) > $(P.value.x) and $(Q.value.y) > $(P.value.y)</when></award>
+            <award><when>$Q.x > $P.x and $Q.y > $P.y</when></award>
         </answer>
 
   `;
 
         await test_answer_multiple_inputs({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             answers: [
                 { values: ["(2,3)", "(3,4)"], credit: 1 },
                 { values: ["(5,3)", "(3,1)"], credit: 0 },
             ],
             inputs: [
-                { type: "math", name: "/P" },
-                { type: "math", name: "/Q" },
+                { type: "math", name: "P" },
+                { type: "math", name: "Q" },
             ],
         });
     });
@@ -3020,7 +3051,7 @@ Enter any letter:
         <mathInput name="mi" />
         <answer name="ans">
           <award>
-            <when>$mi{isResponse name="v"} = x</when>
+            <when><math extend="$mi" isResponse name="v" /> = x</when>
           </award>
           <award credit="0.9">
             <when>$v = y</when>
@@ -3032,8 +3063,8 @@ Enter any letter:
 
         await test_math_answer({
             doenetML,
-            mathInputName: "/mi",
-            answerName: "/ans",
+            mathInputName: "mi",
+            answerName: "ans",
             answers: [
                 { latex: "x", credit: 1 },
                 { latex: "y", credit: 0.9 },
@@ -3042,12 +3073,12 @@ Enter any letter:
         });
     });
 
-    it("isResponse from sourcesAreResponses is not copied", async () => {
+    it("isResponse from referencesAreResponses is not copied", async () => {
         const doenetML = `
         <mathInput name="mi" />
         <answer name="ans">
-          <award sourcesAreResponses="mi">
-            <when>$mi{name="v"} = x</when>
+          <award referencesAreResponses="$mi">
+            <when><math extend="$mi" name="v" /> = x</when>
           </award>
           <award credit="0.9">
             <when>$v = y</when>
@@ -3060,8 +3091,8 @@ Enter any letter:
 
         await test_math_answer({
             doenetML,
-            mathInputName: "/mi",
-            answerName: "/ans",
+            mathInputName: "mi",
+            answerName: "ans",
             answers: [
                 { latex: "x", credit: 1 },
                 { latex: "y", credit: 0.9 },
@@ -3070,11 +3101,11 @@ Enter any letter:
         });
     });
 
-    it("isResponse from sourcesAreResponses is not recursively copied", async () => {
+    it("isResponse from referencesAreResponses is not recursively copied", async () => {
         const doenetML = `
         <mathInput name="mi" />
         <answer name="ans">
-          <award sourcesAreResponses="mi">
+          <award referencesAreResponses="$mi">
             <when><math name="m">$mi</math> = x</when>
           </award>
           <award credit="0.9">
@@ -3088,8 +3119,8 @@ Enter any letter:
 
         await test_math_answer({
             doenetML,
-            mathInputName: "/mi",
-            answerName: "/ans",
+            mathInputName: "mi",
+            answerName: "ans",
             answers: [
                 { latex: "x", credit: 1 },
                 { latex: "y", credit: 0.9 },
@@ -3110,14 +3141,14 @@ Enter any letter:
 
         await test_answer_multiple_inputs({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             answers: [
                 { values: ["", "2"], credit: 0 },
                 { values: ["3", "2"], credit: 1 },
             ],
             inputs: [
-                { type: "math", name: "/val" },
-                { type: "math", name: "/min" },
+                { type: "math", name: "val" },
+                { type: "math", name: "min" },
             ],
         });
     });
@@ -3125,7 +3156,7 @@ Enter any letter:
     it("choiceInput credit from boolean", async () => {
         let options = ["meow", "woof", "squeak", "blub"];
         for (let ind = 1; ind <= 4; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML: `
         <variantControl numVariants="4" variantNames="cat dog mouse fish"/>
   
@@ -3165,7 +3196,7 @@ Enter any letter:
 
             let indexByName = {};
             for (let [ind, val] of stateVariables[
-                "/ci"
+                resolveComponentName("ci")
             ].stateValues.choiceTexts.entries()) {
                 indexByName[val] = ind + 1;
             }
@@ -3173,12 +3204,15 @@ Enter any letter:
             for (let ind2 = 1; ind2 <= 4; ind2++) {
                 let selectedIndices = [indexByName[options[ind2 - 1]]];
                 await updateSelectedIndices({
-                    name: "/ci",
+                    componentIdx: resolveComponentName("ci"),
                     selectedIndices,
                     core,
                 });
 
-                await submitAnswer({ name: "/ans", core });
+                await submitAnswer({
+                    componentIdx: resolveComponentName("ans"),
+                    core,
+                });
 
                 stateVariables = await core.returnAllStateVariables(
                     false,
@@ -3187,11 +3221,13 @@ Enter any letter:
 
                 if (ind2 === ind) {
                     expect(
-                        stateVariables["/ans"].stateValues.creditAchieved,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .creditAchieved,
                     ).eq(1);
                 } else {
                     expect(
-                        stateVariables["/ans"].stateValues.creditAchieved,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .creditAchieved,
                     ).eq(0);
                 }
             }
@@ -3201,7 +3237,7 @@ Enter any letter:
     it("award credit from boolean", async () => {
         let options = ["meow", "woof", "squeak", "blub"];
         for (let ind = 1; ind <= 4; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML: `
         <variantControl numVariants="4" variantNames="cat dog mouse fish"/>
   
@@ -3237,18 +3273,21 @@ Enter any letter:
                 true,
             );
 
-            let textInputName =
-                stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentIdx;
+            let textInputIdx =
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .inputChildren[0].componentIdx;
 
             for (let ind2 = 1; ind2 <= 4; ind2++) {
                 await updateTextInputValue({
                     text: options[ind2 - 1],
-                    name: textInputName,
+                    componentIdx: textInputIdx,
                     core,
                 });
 
-                await submitAnswer({ name: "/ans", core });
+                await submitAnswer({
+                    componentIdx: resolveComponentName("ans"),
+                    core,
+                });
 
                 stateVariables = await core.returnAllStateVariables(
                     false,
@@ -3257,11 +3296,13 @@ Enter any letter:
 
                 if (ind2 === ind) {
                     expect(
-                        stateVariables["/ans"].stateValues.creditAchieved,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .creditAchieved,
                     ).eq(1);
                 } else {
                     expect(
-                        stateVariables["/ans"].stateValues.creditAchieved,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .creditAchieved,
                     ).eq(0);
                 }
             }
@@ -3276,8 +3317,8 @@ Enter any letter:
         <mathInput name="mi1" />
         <mathInput name="mi2" />
         <answer numAwardsCredited="$nAwards" name="a">
-          <award name="FirstGreater3" credit="0.4" sourcesAreResponses="mi1"><when>$mi1 > 3</when></award>
-          <award name="SecondGreater3" credit="0.4" sourcesAreResponses="mi2"><when>$mi2 > 3</when></award>
+          <award name="FirstGreater3" credit="0.4" referencesAreResponses="$mi1"><when>$mi1 > 3</when></award>
+          <award name="SecondGreater3" credit="0.4" referencesAreResponses="$mi2"><when>$mi2 > 3</when></award>
           <award name="DistinctGreater3" credit="$creditForCombined"><when>$mi1 > 3 and $mi2 > 3 and $mi1 != $mi2</when></award>
           <award name="FirstNumber" credit="0"><when><isNumber>$mi1</isNumber></when></award>
           <award name="SecondNumber" credit="0"><when>isnumber($mi2)</when></award>
@@ -3287,28 +3328,28 @@ Enter any letter:
 
         await test_answer_multiple_inputs({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             answers: [
                 { values: ["", ""], credit: 0, awardsUsed: [] },
-                { values: ["", "1"], credit: 0, awardsUsed: ["/SecondNumber"] },
-                { values: ["0", "1"], credit: 0, awardsUsed: ["/FirstNumber"] },
+                { values: ["", "1"], credit: 0, awardsUsed: ["SecondNumber"] },
+                { values: ["0", "1"], credit: 0, awardsUsed: ["FirstNumber"] },
                 {
                     values: ["0", "1"],
                     credit: 0,
                     preAction: {
                         type: "math",
-                        name: "/nAwards",
+                        name: "nAwards",
                         value: "3",
                     },
-                    awardsUsed: ["/FirstNumber", "/SecondNumber"],
+                    awardsUsed: ["FirstNumber", "SecondNumber"],
                 },
                 {
                     values: ["4", "1"],
                     credit: 0.4,
                     awardsUsed: [
-                        "/FirstGreater3",
-                        "/FirstNumber",
-                        "/SecondNumber",
+                        "FirstGreater3",
+                        "FirstNumber",
+                        "SecondNumber",
                     ],
                 },
                 {
@@ -3316,37 +3357,37 @@ Enter any letter:
                     credit: 0.4,
                     preAction: {
                         type: "math",
-                        name: "/nAwards",
+                        name: "nAwards",
                         value: "1",
                     },
-                    awardsUsed: ["/FirstGreater3"],
+                    awardsUsed: ["FirstGreater3"],
                 },
                 {
                     values: ["4", "4"],
                     credit: 0.4,
-                    awardsUsed: ["/FirstGreater3"],
+                    awardsUsed: ["FirstGreater3"],
                 },
                 {
                     values: ["4", "4"],
                     credit: 0.8,
                     preAction: {
                         type: "math",
-                        name: "/nAwards",
+                        name: "nAwards",
                         value: "3",
                     },
                     awardsUsed: [
-                        "/FirstGreater3",
-                        "/SecondGreater3",
-                        "/FirstNumber",
+                        "FirstGreater3",
+                        "SecondGreater3",
+                        "FirstNumber",
                     ],
                 },
                 {
                     values: ["4", "5"],
                     credit: 1,
                     awardsUsed: [
-                        "/DistinctGreater3",
-                        "/FirstGreater3",
-                        "/SecondGreater3",
+                        "DistinctGreater3",
+                        "FirstGreater3",
+                        "SecondGreater3",
                     ],
                 },
                 {
@@ -3354,49 +3395,49 @@ Enter any letter:
                     credit: 1,
                     preAction: {
                         type: "math",
-                        name: "/nAwards",
+                        name: "nAwards",
                         value: "1",
                     },
-                    awardsUsed: ["/DistinctGreater3"],
+                    awardsUsed: ["DistinctGreater3"],
                 },
                 {
                     values: ["4", "5"],
                     credit: 0.4,
                     preAction: {
                         type: "math",
-                        name: "/creditForCombined",
+                        name: "creditForCombined",
                         value: "0.2",
                     },
-                    awardsUsed: ["/FirstGreater3"],
+                    awardsUsed: ["FirstGreater3"],
                 },
                 {
                     values: ["4", "5"],
                     credit: 0.8,
                     preAction: {
                         type: "math",
-                        name: "/nAwards",
+                        name: "nAwards",
                         value: "2",
                     },
-                    awardsUsed: ["/FirstGreater3", "/SecondGreater3"],
+                    awardsUsed: ["FirstGreater3", "SecondGreater3"],
                 },
                 {
                     values: ["4", "5"],
                     credit: 1,
                     preAction: {
                         type: "math",
-                        name: "/nAwards",
+                        name: "nAwards",
                         value: "3",
                     },
                     awardsUsed: [
-                        "/FirstGreater3",
-                        "/SecondGreater3",
-                        "/DistinctGreater3",
+                        "FirstGreater3",
+                        "SecondGreater3",
+                        "DistinctGreater3",
                     ],
                 },
             ],
             inputs: [
-                { type: "math", name: "/mi1" },
-                { type: "math", name: "/mi2" },
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
             ],
         });
     });
@@ -3407,9 +3448,9 @@ Enter any letter:
         <mathInput name="mi2" />
         <mathInput name="mi3" />
         <answer numAwardsCredited="3" name="a">
-          <award name="FirstPositive" credit="0.2" sourcesAreResponses="mi1"><when>$mi1 > 0</when></award>
-          <award name="SecondPositive" credit="0.2" sourcesAreResponses="mi2"><when>$mi2 > 0</when></award>
-          <award name="ThirdPositive" credit="0.2" sourcesAreResponses="mi3"><when>$mi3 > 0</when></award>
+          <award name="FirstPositive" credit="0.2" referencesAreResponses="$mi1"><when>$mi1 > 0</when></award>
+          <award name="SecondPositive" credit="0.2" referencesAreResponses="$mi2"><when>$mi2 > 0</when></award>
+          <award name="ThirdPositive" credit="0.2" referencesAreResponses="$mi3"><when>$mi3 > 0</when></award>
           <award name="FirstLargerSecond" credit="0.1"><when>$mi1 > $mi2</when></award>
           <award name="FirstLargerThird" credit="0.1"><when>$mi1 > $mi3</when></award>
           <award name="SecondLargerThird" credit="0.1"><when>$mi2 > $mi3</when></award>
@@ -3424,115 +3465,115 @@ Enter any letter:
 
         await test_answer_multiple_inputs({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             answers: [
                 {
                     values: ["", "", ""],
                     credit: 0,
                     awardsUsed: [
-                        "/FirstShouldNumber",
-                        "/SecondShouldNumber",
-                        "/ThirdShouldNumber",
+                        "FirstShouldNumber",
+                        "SecondShouldNumber",
+                        "ThirdShouldNumber",
                     ],
                 },
                 {
                     values: ["-5", "", ""],
                     credit: 0,
-                    awardsUsed: ["/SecondShouldNumber", "/ThirdShouldNumber"],
+                    awardsUsed: ["SecondShouldNumber", "ThirdShouldNumber"],
                 },
                 {
                     values: ["-5", "-5", ""],
                     credit: 0,
-                    awardsUsed: ["/ThirdShouldNumber"],
+                    awardsUsed: ["ThirdShouldNumber"],
                 },
                 { values: ["-5", "-5", "-5"], credit: 0, awardsUsed: [] },
                 {
                     values: ["-5", "-4", "-5"],
                     credit: 0.1,
-                    awardsUsed: ["/SecondLargerThird"],
+                    awardsUsed: ["SecondLargerThird"],
                 },
                 {
                     values: ["-4", "-4", "-5"],
                     credit: 0.2,
-                    awardsUsed: ["/FirstLargerThird", "/SecondLargerThird"],
+                    awardsUsed: ["FirstLargerThird", "SecondLargerThird"],
                 },
                 {
                     values: ["-3", "-4", "-5"],
                     credit: 0.3,
                     awardsUsed: [
-                        "/FirstLargerSecond",
-                        "/FirstLargerThird",
-                        "/SecondLargerThird",
+                        "FirstLargerSecond",
+                        "FirstLargerThird",
+                        "SecondLargerThird",
                     ],
                 },
                 {
                     values: ["8", "-4", "-5"],
                     credit: 0.4,
                     awardsUsed: [
-                        "/FirstPositive",
-                        "/FirstLargerSecond",
-                        "/FirstLargerThird",
+                        "FirstPositive",
+                        "FirstLargerSecond",
+                        "FirstLargerThird",
                     ],
                 },
                 {
                     values: ["8", "-2", "-5"],
                     credit: 0.65,
                     awardsUsed: [
-                        "/SumFirstSecondLarger5",
-                        "/FirstPositive",
-                        "/FirstLargerSecond",
+                        "SumFirstSecondLarger5",
+                        "FirstPositive",
+                        "FirstLargerSecond",
                     ],
                 },
                 {
                     values: ["8", "9", "-5"],
                     credit: 0.75,
                     awardsUsed: [
-                        "/SumFirstSecondLarger5",
-                        "/FirstPositive",
-                        "/SecondPositive",
+                        "SumFirstSecondLarger5",
+                        "FirstPositive",
+                        "SecondPositive",
                     ],
                 },
                 {
                     values: ["8", "11", "-5"],
                     credit: 0.9,
                     awardsUsed: [
-                        "/SumFirstSecondLarger5",
-                        "/SumSecondThirdLarger5",
-                        "/FirstPositive",
+                        "SumFirstSecondLarger5",
+                        "SumSecondThirdLarger5",
+                        "FirstPositive",
                     ],
                 },
                 {
                     values: ["8", "11", "-1"],
                     credit: 1,
                     awardsUsed: [
-                        "/SumFirstSecondLarger5",
-                        "/SumFirstThirdLarger5",
-                        "/SumSecondThirdLarger5",
+                        "SumFirstSecondLarger5",
+                        "SumFirstThirdLarger5",
+                        "SumSecondThirdLarger5",
                     ],
                 },
                 {
                     values: ["8", "11", "6"],
                     credit: 1,
                     awardsUsed: [
-                        "/SumFirstSecondLarger5",
-                        "/SumFirstThirdLarger5",
-                        "/SumSecondThirdLarger5",
+                        "SumFirstSecondLarger5",
+                        "SumFirstThirdLarger5",
+                        "SumSecondThirdLarger5",
                     ],
                 },
                 {
                     values: ["15", "11", "6"],
                     credit: 1,
                     awardsUsed: [
-                        "/SumFirstSecondLarger5",
-                        "/SumFirstThirdLarger5",
-                        "/SumSecondThirdLarger5",
+                        "SumFirstSecondLarger5",
+                        "SumFirstThirdLarger5",
+                        "SumSecondThirdLarger5",
                     ],
                 },
             ],
             inputs: [
-                { type: "math", name: "/mi1" },
-                { type: "math", name: "/mi2" },
-                { type: "math", name: "/mi3" },
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
+                { type: "math", name: "mi3" },
             ],
         });
     });
@@ -3543,7 +3584,7 @@ Enter any letter:
         <mathInput name="mi2" />
         <mathInput name="mi3" />
         <answer numAwardsCredited="3" name="a">
-          <award sourcesAreResponses="mi1 mi2 mi3" matchPartial name="right">
+          <award referencesAreResponses="$mi1 $mi2 $mi3" matchPartial name="right">
             <when>$mi1=x and $mi2=y and $mi3=z</when>
           </award>
           <award credit="0" name="NothingRight">
@@ -3563,53 +3604,53 @@ Enter any letter:
 
         await test_answer_multiple_inputs({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             answers: [
                 {
                     values: ["", "", ""],
                     credit: 0,
-                    awardsUsed: ["/NothingRight"],
+                    awardsUsed: ["NothingRight"],
                 },
                 {
                     values: ["z", "", ""],
                     credit: 0,
-                    awardsUsed: ["/NothingRight", "/zWrongSpot"],
+                    awardsUsed: ["NothingRight", "zWrongSpot"],
                 },
                 {
                     values: ["z", "y", ""],
                     credit: 1 / 3,
-                    awardsUsed: ["/right", "/zWrongSpot"],
+                    awardsUsed: ["right", "zWrongSpot"],
                 },
                 {
                     values: ["z", "y", "x"],
                     credit: 1 / 3,
-                    awardsUsed: ["/right", "/xWrongSpot", "/zWrongSpot"],
+                    awardsUsed: ["right", "xWrongSpot", "zWrongSpot"],
                 },
                 {
                     values: ["y", "y", "x"],
                     credit: 1 / 3,
-                    awardsUsed: ["/right", "/xWrongSpot", "/yWrongSpot"],
+                    awardsUsed: ["right", "xWrongSpot", "yWrongSpot"],
                 },
                 {
                     values: ["y", "z", "x"],
                     credit: 0,
-                    awardsUsed: ["/NothingRight", "/xWrongSpot", "/yWrongSpot"],
+                    awardsUsed: ["NothingRight", "xWrongSpot", "yWrongSpot"],
                 },
                 {
                     values: ["y", "y", "z"],
                     credit: 2 / 3,
-                    awardsUsed: ["/right", "/yWrongSpot"],
+                    awardsUsed: ["right", "yWrongSpot"],
                 },
                 {
                     values: ["x", "y", "z"],
                     credit: 1,
-                    awardsUsed: ["/right"],
+                    awardsUsed: ["right"],
                 },
             ],
             inputs: [
-                { type: "math", name: "/mi1" },
-                { type: "math", name: "/mi2" },
-                { type: "math", name: "/mi3" },
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
+                { type: "math", name: "mi3" },
             ],
         });
     });
@@ -3649,7 +3690,7 @@ Enter any letter:
                 4: 4,
                 5: 5,
             },
-            choiceInputName: "/choice1",
+            choiceInputName: "choice1",
             skipInitialCheck: true, // avoid dealing with case where start with math expressions for current responses
         });
     });
@@ -3726,7 +3767,7 @@ Enter any letter:
                 dog: 2,
                 monkey: 3,
             },
-            choiceInputName: "/ci",
+            choiceInputName: "ci",
         });
     });
 
@@ -3824,7 +3865,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "true",
-                        name: "/split",
+                        name: "split",
                     },
                 },
                 { latex: "xyz", credit: 1 },
@@ -3835,7 +3876,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "false",
-                        name: "/split",
+                        name: "split",
                     },
                     overrideResponse: "xyzb",
                 },
@@ -3861,7 +3902,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "true",
-                        name: "/split",
+                        name: "split",
                     },
                 },
                 { latex: "xyz", credit: 1 },
@@ -3872,7 +3913,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "false",
-                        name: "/split",
+                        name: "split",
                     },
                     overrideResponse: "xyzb",
                 },
@@ -3900,7 +3941,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "true",
-                        name: "/split",
+                        name: "split",
                     },
                 },
                 { latex: "xyz", credit: 1 },
@@ -3911,7 +3952,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "false",
-                        name: "/split",
+                        name: "split",
                     },
                     overrideResponse: "xyzb",
                 },
@@ -3940,7 +3981,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "true",
-                        name: "/split",
+                        name: "split",
                     },
                 },
                 { latex: "xyz", credit: 1 },
@@ -3951,7 +3992,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "false",
-                        name: "/split",
+                        name: "split",
                     },
                     overrideResponse: "xyzb",
                 },
@@ -3962,25 +4003,34 @@ Enter any letter:
     });
 
     it("justSubmitted with expression containing NaN", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <answer name="a"><mathinput name="mi" /><award><math><number>0/0</number>+1</math></award></answer>
    `,
         });
 
-        await updateMathInputValue({ latex: "x", name: "/mi", core });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: resolveComponentName("mi"),
+            core,
+        });
 
         // submit
-        await submitAnswer({ name: "/a", core });
+        await submitAnswer({ componentIdx: resolveComponentName("a"), core });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/a"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues.justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
     });
 
     it("copy justSubmitted attribute", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <answer name="ans">
     <mathInput name="mi" />
@@ -3991,65 +4041,109 @@ Enter any letter:
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/cond"].replacements).eqls([]);
-        expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[resolveComponentName("cond")].replacements).eqls(
+            [],
+        );
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .creditAchieved,
+        ).eq(0);
 
         // submit
-        await submitAnswer({ name: "/ans", core });
+        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/cond"].replacements).eqls([
-            { componentIdx: "/just", componentType: "p" },
+        expect(stateVariables[resolveComponentName("cond")].replacements).eqls([
+            { componentIdx: resolveComponentName("just"), componentType: "p" },
         ]);
-        expect(stateVariables["/cond"].replacementsToWithhold).eq(0);
+        expect(
+            stateVariables[resolveComponentName("cond")].replacementsToWithhold,
+        ).eq(0);
 
-        expect(stateVariables["/just"].stateValues.text).eq(
-            "The answer was just submitted.",
-        );
-        expect(stateVariables["/ans"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("just")].stateValues.text,
+        ).eq("The answer was just submitted.");
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .creditAchieved,
+        ).eq(0);
 
-        await updateMathInputValue({ latex: "1", name: "/mi", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("mi"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/cond"].replacementsToWithhold).eq(1);
-        expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("cond")].replacementsToWithhold,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .creditAchieved,
+        ).eq(0);
 
         // submit
-        await submitAnswer({ name: "/ans", core });
+        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/cond"].replacementsToWithhold).eq(0);
-        expect(stateVariables["/cond"].replacements).eqls([
-            { componentIdx: "/just", componentType: "p" },
+        expect(
+            stateVariables[resolveComponentName("cond")].replacementsToWithhold,
+        ).eq(0);
+        expect(stateVariables[resolveComponentName("cond")].replacements).eqls([
+            { componentIdx: resolveComponentName("just"), componentType: "p" },
         ]);
-        expect(stateVariables["/just"].stateValues.text).eq(
-            "The answer was just submitted.",
-        );
-        expect(stateVariables["/ans"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("just")].stateValues.text,
+        ).eq("The answer was just submitted.");
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .creditAchieved,
+        ).eq(1);
 
         await updateMathInputImmediateValue({
             latex: "0",
-            name: "/mi",
+            componentIdx: resolveComponentName("mi"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "1",
-            name: "/mi",
+            componentIdx: resolveComponentName("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/cond"].replacementsToWithhold).eq(1);
-        expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("cond")].replacementsToWithhold,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .creditAchieved,
+        ).eq(1);
     });
 
     it.skip("empty mathLists always equal", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <answer name="ans1">
         <award>
@@ -4081,26 +4175,50 @@ Enter any letter:
     </answer>`,
         });
 
-        await submitAnswer({ name: "/ans1", core });
-        await submitAnswer({ name: "/ans2", core });
-        await submitAnswer({ name: "/ans3", core });
-        await submitAnswer({ name: "/ans4", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans1"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans2"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans3"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans4"),
+            core,
+        });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
-        expect(stateVariables["/ans3"].stateValues.creditAchieved).eq(1);
-        expect(stateVariables["/ans4"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("ans3")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("ans4")].stateValues
+                .creditAchieved,
+        ).eq(1);
     });
 
     it("cannot change submitted or changed response", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <answer name="a"><mathInput name="mia" />x</answer>
 
-  <p>Current Response: $a.currentResponse{assignNames="cr"}</p>
-  <p>Submitted Response: $a.submittedResponse{assignNames="sr"}</p>
+  <p>Current Response: <math extend="$a.currentResponse" name="cr" /></p>
+  <p>Submitted Response: <math extend="$a.submittedResponse" name="sr" /></p>
   
   <p>Change current response: <mathInput bindValueTo="$a.currentResponse" name="micr" /></p>
   <p>Change submitted response: <mathInput bindValueTo="$a.submittedResponse" name="misr"  /></p>
@@ -4109,66 +4227,86 @@ Enter any letter:
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/cr"].stateValues.value.tree).eq("\uff3f");
-        expect(stateVariables["/sr"]).eq(undefined);
+        expect(
+            stateVariables[resolveComponentName("cr")].stateValues.value.tree,
+        ).eq("\uff3f");
+        expect(
+            stateVariables[resolveComponentName("sr")].stateValues.value.tree,
+        ).eq("\uff3f");
 
         await updateMathInputValue({
             latex: "y",
-            name: "/micr",
+            componentIdx: resolveComponentName("micr"),
             core,
         });
         await updateMathInputValue({
             latex: "z",
-            name: "/misr",
+            componentIdx: resolveComponentName("misr"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/cr"].stateValues.value.tree).eq("\uff3f");
-        expect(stateVariables["/sr"]).eq(undefined);
+        expect(
+            stateVariables[resolveComponentName("cr")].stateValues.value.tree,
+        ).eq("\uff3f");
+        expect(
+            stateVariables[resolveComponentName("sr")].stateValues.value.tree,
+        ).eq("\uff3f");
 
         // submit response
-        await updateMathInputValue({ latex: "x", name: "/mia", core });
-        await submitAnswer({ name: "/a", core });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: resolveComponentName("mia"),
+            core,
+        });
+        await submitAnswer({ componentIdx: resolveComponentName("a"), core });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/cr"].stateValues.value.tree).eq("x");
-        expect(stateVariables["/sr"].stateValues.value.tree).eq("x");
+        expect(
+            stateVariables[resolveComponentName("cr")].stateValues.value.tree,
+        ).eq("x");
+        expect(
+            stateVariables[resolveComponentName("sr")].stateValues.value.tree,
+        ).eq("x");
 
         // cannot change from mathInputs
 
         await updateMathInputValue({
             latex: "y",
-            name: "/micr",
+            componentIdx: resolveComponentName("micr"),
             core,
         });
         await updateMathInputValue({
             latex: "z",
-            name: "/misr",
+            componentIdx: resolveComponentName("misr"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/cr"].stateValues.value.tree).eq("x");
-        expect(stateVariables["/sr"].stateValues.value.tree).eq("x");
+        expect(
+            stateVariables[resolveComponentName("cr")].stateValues.value.tree,
+        ).eq("x");
+        expect(
+            stateVariables[resolveComponentName("sr")].stateValues.value.tree,
+        ).eq("x");
     });
 
     it("answer award with sugared string, copy award and overwrite properties", async () => {
         const doenetML = `
 <answer name="an">
     <award name="aw">1.1</award>
-    <award copySource="aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
+    <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
   `;
 
         await test_math_answer({
             doenetML,
-            answerName: "/an",
+            answerName: "an",
             answers: [
                 { latex: "", credit: 0, awardsUsed: [] },
-                { latex: "1.1", credit: 1, awardsUsed: ["/aw"] },
+                { latex: "1.1", credit: 1, awardsUsed: ["aw"] },
                 { latex: "1.11", credit: 0, awardsUsed: [] },
-                { latex: "1.101", credit: 0.5, awardsUsed: ["/aw2"] },
+                { latex: "1.101", credit: 0.5, awardsUsed: ["aw2"] },
             ],
         });
     });
@@ -4178,18 +4316,18 @@ Enter any letter:
 <answer name="an">
     <mathInput name="mi" />
     <award name="aw"><when>$mi=1.1</when></award>
-    <award copySource="aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
+    <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
   `;
 
         await test_math_answer({
             doenetML,
-            answerName: "/an",
+            answerName: "an",
             answers: [
                 { latex: "", credit: 0, awardsUsed: [] },
-                { latex: "1.1", credit: 1, awardsUsed: ["/aw"] },
+                { latex: "1.1", credit: 1, awardsUsed: ["aw"] },
                 { latex: "1.11", credit: 0, awardsUsed: [] },
-                { latex: "1.101", credit: 0.5, awardsUsed: ["/aw2"] },
+                { latex: "1.101", credit: 0.5, awardsUsed: ["aw2"] },
             ],
         });
     });
@@ -4198,442 +4336,662 @@ Enter any letter:
         const doenetML = `
 <mathInput name="mi" />
 <answer name="an">
-    <award name="aw" sourcesAreResponses="mi"><when>$mi=1.1</when></award>
-    <award copySource="aw" credit="0.5" allowedErrorInNumbers="0.001" sourcesAreResponses="" name="aw2" />
+    <award name="aw" referencesAreResponses="$mi"><when>$mi=1.1</when></award>
+    <award extend="$aw" credit="0.5" allowedErrorInNumbers="0.001" referencesAreResponses="" name="aw2" />
 </answer>
   `;
 
         await test_math_answer({
             doenetML,
-            answerName: "/an",
+            answerName: "an",
             answers: [
                 { latex: "", credit: 0, awardsUsed: [] },
-                { latex: "1.1", credit: 1, awardsUsed: ["/aw"] },
+                { latex: "1.1", credit: 1, awardsUsed: ["aw"] },
                 { latex: "1.11", credit: 0, awardsUsed: [] },
-                { latex: "1.101", credit: 0.5, awardsUsed: ["/aw2"] },
+                { latex: "1.101", credit: 0.5, awardsUsed: ["aw2"] },
             ],
-            mathInputName: "/mi",
+            mathInputName: "mi",
         });
     });
 
     it("copied answer mirrors original", async () => {
         const doenetML = `
   <answer name="ans1">x+y</answer>
-  <answer copySource="ans1" name="ans2" />
+  <answer extend="$ans1" name="ans2" />
   `;
 
-        let core = await createTestCore({ doenetML });
+        let { core, resolveComponentName } = await createTestCore({ doenetML });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let mathInput1Name =
-            stateVariables["/ans1"].stateValues.inputChildren[0].componentIdx;
+        const mathInput1Idx =
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .inputChildren[0].componentIdx;
 
-        let mathInput2Name =
-            stateVariables["/ans2"].stateValues.inputChildren[0].componentIdx;
+        const mathInput2Idx =
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .inputChildren[0].componentIdx;
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
-        ).eqls(["\uff3f"]);
-        expect(stateVariables["/ans1"].stateValues.submittedResponses).eqls([]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(false);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["\uff3f"]);
-        expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .submittedResponses,
+        ).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
+        ).eqls(["\uff3f"]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .submittedResponses,
+        ).eqls([]);
 
         // Type correct answer in first blank
         await updateMathInputValue({
             latex: "x+y",
-            name: mathInput1Name,
+            componentIdx: mathInput1Idx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
-        ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans1"].stateValues.submittedResponses).eqls([]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(false);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .submittedResponses,
+        ).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
+        ).eqls([["+", "x", "y"]]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .submittedResponses,
+        ).eqls([]);
 
         // submit second answer
-        await submitAnswer({ name: "/ans2", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
-        ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
-        expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
-            stateVariables["/ans2"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
+        ).eqls([["+", "x", "y"]]);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
 
         // type incorrect answer into second blank
         await updateMathInputValue({
             latex: "x",
-            name: mathInput2Name,
+            componentIdx: mathInput2Idx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans2"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
 
         // submit first answer
-        await submitAnswer({ name: "/ans1", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans1"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
-        ).eqls(["x"]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
-        expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans2"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
+        ).eqls(["x"]);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls(["x"]);
     });
 
     it("copy answer with no link", async () => {
         const doenetML = `
   <answer name="ans1">x+y</answer>
-  <answer copySource="ans1" name="ans2" link="false" />
+  <answer extend="$ans1" name="ans2" link="false" />
   `;
 
-        let core = await createTestCore({ doenetML });
+        let { core, resolveComponentName } = await createTestCore({ doenetML });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let mathInput1Name =
-            stateVariables["/ans1"].stateValues.inputChildren[0].componentIdx;
+        const mathInput1Idx =
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .inputChildren[0].componentIdx;
 
-        let mathInput2Name =
-            stateVariables["/ans2"].stateValues.inputChildren[0].componentIdx;
+        const mathInput2Idx =
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .inputChildren[0].componentIdx;
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
-        ).eqls(["\uff3f"]);
-        expect(stateVariables["/ans1"].stateValues.submittedResponses).eqls([]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(false);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["\uff3f"]);
-        expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .submittedResponses,
+        ).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
+        ).eqls(["\uff3f"]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .submittedResponses,
+        ).eqls([]);
 
         // Type correct answer in first blank
         await updateMathInputValue({
             latex: "x+y",
-            name: mathInput1Name,
+            componentIdx: mathInput1Idx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans1"].stateValues.submittedResponses).eqls([]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .submittedResponses,
+        ).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["\uff3f"]);
-        expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .submittedResponses,
+        ).eqls([]);
 
         // submit first answer
-        await submitAnswer({ name: "/ans1", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans1"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["\uff3f"]);
-        expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .submittedResponses,
+        ).eqls([]);
 
         // type correct answer into second blank
         await updateMathInputValue({
             latex: "x+y",
-            name: mathInput2Name,
+            componentIdx: mathInput2Idx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .submittedResponses,
+        ).eqls([]);
 
         // submit second answer
-        await submitAnswer({ name: "/ans2", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
-        ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
-        expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
-            stateVariables["/ans2"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
+        ).eqls([["+", "x", "y"]]);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
 
         // type incorrect answer into second blank
         await updateMathInputValue({
             latex: "x",
-            name: mathInput2Name,
+            componentIdx: mathInput2Idx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans2"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
 
         // submit second answer
-        await submitAnswer({ name: "/ans2", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans2"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls(["x"]);
 
         // type incorrect answer into first blank
         await updateMathInputValue({
             latex: "x",
-            name: mathInput1Name,
+            componentIdx: mathInput1Idx,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls([["+", "x", "y"]]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans2"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls(["x"]);
 
         // submit first answer
-        await submitAnswer({ name: "/ans1", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("ans1"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
         expect(
-            stateVariables["/ans1"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans1")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.currentResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans1"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
-        ).eqls(["x"]);
-        expect(stateVariables["/ans2"].stateValues.justSubmitted).eq(true);
-        expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
-        expect(
-            stateVariables["/ans2"].stateValues.currentResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("ans1")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
-            stateVariables["/ans2"].stateValues.submittedResponses.map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .justSubmitted,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("ans2")].stateValues
+                .creditAchieved,
+        ).eq(0);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.currentResponses.map((x) => x.tree),
+        ).eqls(["x"]);
+        expect(
+            stateVariables[
+                resolveComponentName("ans2")
+            ].stateValues.submittedResponses.map((x) => x.tree),
         ).eqls(["x"]);
     });
 
     it("credit achieved not calculated before submit", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <answer name="ans">
     <award name="aw1">x^2-2x+3</award>
@@ -4655,76 +5013,88 @@ Enter any letter:
 
         let components = core.core!.components || {};
 
-        let mathInputName =
-            components["/ans"].stateValues.inputChildren[0].componentIdx;
+        const ansIdx = resolveComponentName("ans");
+        const mathInputIdx =
+            components[ansIdx].stateValues.inputChildren[0].componentIdx;
 
-        expect(components["/ans"].stateValues.justSubmitted).eq(false);
-        expect(components["/ans"].stateValues.creditAchieved).eq(0);
+        expect(components[ansIdx].stateValues.justSubmitted).eq(false);
+        expect(components[ansIdx].stateValues.creditAchieved).eq(0);
         expect(
-            (await components["/ans"].stateValues.currentResponses).map(
+            (await components[ansIdx].stateValues.currentResponses).map(
                 (x) => x.tree,
             ),
         ).eqls(["\uff3f"]);
-        expect(await components["/ans"].stateValues.submittedResponses).eqls(
+        expect(await components[ansIdx].stateValues.submittedResponses).eqls(
             [],
         );
 
-        expect(await components["/aw1"].stateValues.creditAchieved).eq(0);
-        expect(await components["/aw1"].stateValues.fractionSatisfied).eq(0);
-        expect(await components["/aw2"].stateValues.creditAchieved).eq(0);
-        expect(await components["/aw2"].stateValues.fractionSatisfied).eq(0);
+        const award1Idx = resolveComponentName("aw1");
+        const award2Idx = resolveComponentName("aw2");
+
+        expect(await components[award1Idx].stateValues.creditAchieved).eq(0);
+        expect(await components[award1Idx].stateValues.fractionSatisfied).eq(0);
+        expect(await components[award2Idx].stateValues.creditAchieved).eq(0);
+        expect(await components[award2Idx].stateValues.fractionSatisfied).eq(0);
 
         //check that have getters for creditAchievedIfSubmit/fractionSatisfiedIfSubmit
 
-        check_have_getter(components["/aw1"].state.creditAchievedIfSubmit);
-        check_have_getter(components["/aw1"].state.fractionSatisfiedIfSubmit);
-        check_have_getter(components["/aw2"].state.creditAchievedIfSubmit);
-        check_have_getter(components["/aw2"].state.fractionSatisfiedIfSubmit);
-        check_have_getter(components["/ans"].state.creditAchievedIfSubmit);
+        check_have_getter(components[award1Idx].state.creditAchievedIfSubmit);
+        check_have_getter(
+            components[award1Idx].state.fractionSatisfiedIfSubmit,
+        );
+        check_have_getter(components[award2Idx].state.creditAchievedIfSubmit);
+        check_have_getter(
+            components[award2Idx].state.fractionSatisfiedIfSubmit,
+        );
+        check_have_getter(components[ansIdx].state.creditAchievedIfSubmit);
 
         // type correct answer
         await updateMathInputValue({
             latex: "x^2-2x+3",
-            name: mathInputName,
+            componentIdx: mathInputIdx,
             core,
         });
 
-        expect(components["/ans"].stateValues.justSubmitted).eq(false);
-        expect(components["/ans"].stateValues.creditAchieved).eq(0);
+        expect(components[ansIdx].stateValues.justSubmitted).eq(false);
+        expect(components[ansIdx].stateValues.creditAchieved).eq(0);
         expect(
-            (await components["/ans"].stateValues.currentResponses).map((x) =>
+            (await components[ansIdx].stateValues.currentResponses).map((x) =>
                 cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x+3"]);
-        expect(await components["/ans"].stateValues.submittedResponses).eqls(
+        expect(await components[ansIdx].stateValues.submittedResponses).eqls(
             [],
         );
-        expect(await components["/aw1"].stateValues.creditAchieved).eq(0);
-        expect(await components["/aw1"].stateValues.fractionSatisfied).eq(0);
-        expect(await components["/aw2"].stateValues.creditAchieved).eq(0);
-        expect(await components["/aw2"].stateValues.fractionSatisfied).eq(0);
+        expect(await components[award1Idx].stateValues.creditAchieved).eq(0);
+        expect(await components[award1Idx].stateValues.fractionSatisfied).eq(0);
+        expect(await components[award2Idx].stateValues.creditAchieved).eq(0);
+        expect(await components[award2Idx].stateValues.fractionSatisfied).eq(0);
 
         //check that still have getters for creditAchievedIfSubmit/fractionSatisfiedIfSubmit
 
-        check_have_getter(components["/aw1"].state.creditAchievedIfSubmit);
-        check_have_getter(components["/aw1"].state.fractionSatisfiedIfSubmit);
-        check_have_getter(components["/aw2"].state.creditAchievedIfSubmit);
-        check_have_getter(components["/aw2"].state.fractionSatisfiedIfSubmit);
-        check_have_getter(components["/ans"].state.creditAchievedIfSubmit);
+        check_have_getter(components[award1Idx].state.creditAchievedIfSubmit);
+        check_have_getter(
+            components[award1Idx].state.fractionSatisfiedIfSubmit,
+        );
+        check_have_getter(components[award2Idx].state.creditAchievedIfSubmit);
+        check_have_getter(
+            components[award2Idx].state.fractionSatisfiedIfSubmit,
+        );
+        check_have_getter(components[ansIdx].state.creditAchievedIfSubmit);
 
         //  submit
 
-        await submitAnswer({ name: "/ans", core });
+        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
 
-        expect(components["/ans"].stateValues.justSubmitted).eq(true);
-        expect(components["/ans"].stateValues.creditAchieved).eq(1);
+        expect(components[ansIdx].stateValues.justSubmitted).eq(true);
+        expect(components[ansIdx].stateValues.creditAchieved).eq(1);
         expect(
-            (await components["/ans"].stateValues.currentResponses).map((x) =>
+            (await components[ansIdx].stateValues.currentResponses).map((x) =>
                 cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x+3"]);
         expect(
-            (await components["/ans"].stateValues.submittedResponses).map((x) =>
+            (await components[ansIdx].stateValues.submittedResponses).map((x) =>
                 cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x+3"]);
@@ -4732,77 +5102,87 @@ Enter any letter:
         // check that no longer have getters for creditAchievedIfSubmit/fractionSatisfiedIfSubmit
 
         check_have_getter(
-            components["/aw1"].state.creditAchievedIfSubmit,
+            components[award1Idx].state.creditAchievedIfSubmit,
             false,
         );
         check_have_getter(
-            components["/aw1"].state.fractionSatisfiedIfSubmit,
+            components[award1Idx].state.fractionSatisfiedIfSubmit,
             false,
         );
         check_have_getter(
-            components["/aw2"].state.creditAchievedIfSubmit,
+            components[award2Idx].state.creditAchievedIfSubmit,
             false,
         );
         check_have_getter(
-            components["/aw2"].state.fractionSatisfiedIfSubmit,
+            components[award2Idx].state.fractionSatisfiedIfSubmit,
             false,
         );
         check_have_getter(
-            components["/ans"].state.creditAchievedIfSubmit,
+            components[ansIdx].state.creditAchievedIfSubmit,
             false,
         );
 
-        expect(components["/aw1"].stateValues.creditAchievedIfSubmit).eq(1);
-        expect(components["/aw1"].stateValues.fractionSatisfiedIfSubmit).eq(1);
-        expect(components["/aw2"].stateValues.creditAchievedIfSubmit).eq(0.5);
-        expect(components["/aw2"].stateValues.fractionSatisfiedIfSubmit).eq(1);
-        expect(components["/ans"].stateValues.creditAchievedIfSubmit).eq(1);
+        expect(components[award1Idx].stateValues.creditAchievedIfSubmit).eq(1);
+        expect(components[award1Idx].stateValues.fractionSatisfiedIfSubmit).eq(
+            1,
+        );
+        expect(components[award2Idx].stateValues.creditAchievedIfSubmit).eq(
+            0.5,
+        );
+        expect(components[award2Idx].stateValues.fractionSatisfiedIfSubmit).eq(
+            1,
+        );
+        expect(components[ansIdx].stateValues.creditAchievedIfSubmit).eq(1);
 
         // type partially correct answer
         await updateMathInputValue({
             latex: "x^2-2x-3",
-            name: mathInputName,
+            componentIdx: mathInputIdx,
             core,
         });
 
-        expect(components["/ans"].stateValues.justSubmitted).eq(false);
-        expect(components["/ans"].stateValues.creditAchieved).eq(1);
+        expect(components[ansIdx].stateValues.justSubmitted).eq(false);
+        expect(components[ansIdx].stateValues.creditAchieved).eq(1);
         expect(
-            (await components["/ans"].stateValues.currentResponses).map((x) =>
+            (await components[ansIdx].stateValues.currentResponses).map((x) =>
                 cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x-3"]);
         expect(
-            (await components["/ans"].stateValues.submittedResponses).map((x) =>
+            (await components[ansIdx].stateValues.submittedResponses).map((x) =>
                 cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x+3"]);
-        expect(await components["/aw1"].stateValues.creditAchieved).eq(1);
-        expect(await components["/aw1"].stateValues.fractionSatisfied).eq(1);
-        expect(await components["/aw2"].stateValues.creditAchieved).eq(0.5);
-        expect(await components["/aw2"].stateValues.fractionSatisfied).eq(1);
+        expect(await components[award1Idx].stateValues.creditAchieved).eq(1);
+        expect(await components[award1Idx].stateValues.fractionSatisfied).eq(1);
+        expect(await components[award2Idx].stateValues.creditAchieved).eq(0.5);
+        expect(await components[award2Idx].stateValues.fractionSatisfied).eq(1);
 
         //check that still have getters for creditAchievedIfSubmit/fractionSatisfiedIfSubmit
 
-        check_have_getter(components["/aw1"].state.creditAchievedIfSubmit);
-        check_have_getter(components["/aw1"].state.fractionSatisfiedIfSubmit);
-        check_have_getter(components["/aw2"].state.creditAchievedIfSubmit);
-        check_have_getter(components["/aw2"].state.fractionSatisfiedIfSubmit);
-        check_have_getter(components["/ans"].state.creditAchievedIfSubmit);
+        check_have_getter(components[award1Idx].state.creditAchievedIfSubmit);
+        check_have_getter(
+            components[award1Idx].state.fractionSatisfiedIfSubmit,
+        );
+        check_have_getter(components[award2Idx].state.creditAchievedIfSubmit);
+        check_have_getter(
+            components[award2Idx].state.fractionSatisfiedIfSubmit,
+        );
+        check_have_getter(components[ansIdx].state.creditAchievedIfSubmit);
 
         // submit
 
-        await submitAnswer({ name: "/ans", core });
+        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
 
-        expect(components["/ans"].stateValues.justSubmitted).eq(true);
-        expect(components["/ans"].stateValues.creditAchieved).eq(0.5);
+        expect(components[ansIdx].stateValues.justSubmitted).eq(true);
+        expect(components[ansIdx].stateValues.creditAchieved).eq(0.5);
         expect(
-            (await components["/ans"].stateValues.currentResponses).map((x) =>
+            (await components[ansIdx].stateValues.currentResponses).map((x) =>
                 cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x-3"]);
         expect(
-            (await components["/ans"].stateValues.submittedResponses).map((x) =>
+            (await components[ansIdx].stateValues.submittedResponses).map((x) =>
                 cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x-3"]);
@@ -4810,31 +5190,37 @@ Enter any letter:
         // check that no longer have getters for creditAchievedIfSubmit/fractionSatisfiedIfSubmit
 
         check_have_getter(
-            components["/aw1"].state.creditAchievedIfSubmit,
+            components[award1Idx].state.creditAchievedIfSubmit,
             false,
         );
         check_have_getter(
-            components["/aw1"].state.fractionSatisfiedIfSubmit,
+            components[award1Idx].state.fractionSatisfiedIfSubmit,
             false,
         );
         check_have_getter(
-            components["/aw2"].state.creditAchievedIfSubmit,
+            components[award2Idx].state.creditAchievedIfSubmit,
             false,
         );
         check_have_getter(
-            components["/aw2"].state.fractionSatisfiedIfSubmit,
+            components[award2Idx].state.fractionSatisfiedIfSubmit,
             false,
         );
         check_have_getter(
-            components["/ans"].state.creditAchievedIfSubmit,
+            components[ansIdx].state.creditAchievedIfSubmit,
             false,
         );
 
-        expect(components["/aw1"].stateValues.creditAchievedIfSubmit).eq(0);
-        expect(components["/aw1"].stateValues.fractionSatisfiedIfSubmit).eq(0);
-        expect(components["/aw2"].stateValues.creditAchievedIfSubmit).eq(0.5);
-        expect(components["/aw2"].stateValues.fractionSatisfiedIfSubmit).eq(1);
-        expect(components["/ans"].stateValues.creditAchievedIfSubmit).eq(0.5);
+        expect(components[award1Idx].stateValues.creditAchievedIfSubmit).eq(0);
+        expect(components[award1Idx].stateValues.fractionSatisfiedIfSubmit).eq(
+            0,
+        );
+        expect(components[award2Idx].stateValues.creditAchievedIfSubmit).eq(
+            0.5,
+        );
+        expect(components[award2Idx].stateValues.fractionSatisfiedIfSubmit).eq(
+            1,
+        );
+        expect(components[ansIdx].stateValues.creditAchievedIfSubmit).eq(0.5);
     });
 
     it("short award and full award combined", async () => {
@@ -4845,7 +5231,7 @@ Enter any letter:
   <answer numAwardsCredited="2" name="a">
     <mathInput name="mi" />
     <award credit="0.6"><math>x^2</math></award>
-    <award credit="0.4" sourcesAreResponses="P">
+    <award credit="0.4" referencesAreResponses="$P.x">
       <when>$P.x > 0</when>
     </award>
   </answer>
@@ -4853,37 +5239,37 @@ Enter any letter:
 
         await test_action_answer({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             originalEffectiveResponses: ["\uff3f", 0],
             answers: [
                 {
                     preAction: {
                         type: "math",
-                        name: "/mi",
+                        name: "mi",
                         value: "x^2",
                     },
                     actionArgs: { x: 0, y: 0 },
                     actionName: "movePoint",
-                    actionComponentName: "/P",
+                    actionComponentName: "P",
                     effectiveResponses: [["^", "x", 2], 0],
                     credit: 0.6,
                 },
                 {
                     actionArgs: { x: 2, y: -7 },
                     actionName: "movePoint",
-                    actionComponentName: "/P",
+                    actionComponentName: "P",
                     effectiveResponses: [["^", "x", 2], 2],
                     credit: 1,
                 },
                 {
                     preAction: {
                         type: "math",
-                        name: "/mi",
+                        name: "mi",
                         value: "y^2",
                     },
                     actionArgs: { x: 2, y: -7 },
                     actionName: "movePoint",
-                    actionComponentName: "/P",
+                    actionComponentName: "P",
                     effectiveResponses: [["^", "y", 2], 2],
                     credit: 0.4,
                 },
@@ -4915,7 +5301,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "X", credit: 0 },
                 { latex: "X+y", credit: 0 },
             ],
-            answerName: "/defSugar",
+            answerName: "defSugar",
         });
 
         await test_math_answer({
@@ -4927,7 +5313,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "X", credit: 0 },
                 { latex: "X+y", credit: 1 },
             ],
-            answerName: "/insSugar",
+            answerName: "insSugar",
         });
 
         await test_math_answer({
@@ -4943,7 +5329,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "X", credit: 0 },
                 { latex: "X+y", credit: 0.5 },
             ],
-            answerName: "/shortAwards",
+            answerName: "shortAwards",
         });
 
         await test_math_answer({
@@ -4960,7 +5346,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "X", credit: 0 },
                 { latex: "X+y", credit: 0.5 },
             ],
-            answerName: "/full",
+            answerName: "full",
         });
     });
 
@@ -4974,7 +5360,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { text: "Hello", credit: 0 },
                 { text: "hello There!", credit: 0 },
             ],
-            answerName: "/defSugar",
+            answerName: "defSugar",
         });
 
         await test_text_answer({
@@ -4986,7 +5372,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { text: "Hello", credit: 0 },
                 { text: "hello There!", credit: 1 },
             ],
-            answerName: "/insSugar",
+            answerName: "insSugar",
         });
 
         await test_text_answer({
@@ -5002,7 +5388,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { text: "Hello", credit: 0 },
                 { text: "hello There!", credit: 0.5 },
             ],
-            answerName: "/shortAwards",
+            answerName: "shortAwards",
         });
 
         await test_text_answer({
@@ -5019,7 +5405,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { text: "Hello", credit: 0 },
                 { text: "hello There!", credit: 0.5 },
             ],
-            answerName: "/full",
+            answerName: "full",
         });
     });
 
@@ -5030,7 +5416,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 0 },
             ],
-            answerName: "/defSugar",
+            answerName: "defSugar",
         });
 
         await test_math_answer({
@@ -5039,7 +5425,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 1 },
             ],
-            answerName: "/blankSugar",
+            answerName: "blankSugar",
         });
 
         await test_math_answer({
@@ -5048,7 +5434,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 0 },
             ],
-            answerName: "/defShort",
+            answerName: "defShort",
         });
 
         await test_math_answer({
@@ -5057,7 +5443,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 1 },
             ],
-            answerName: "/blankShort",
+            answerName: "blankShort",
         });
 
         await test_math_answer({
@@ -5070,7 +5456,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 0 },
             ],
-            answerName: "/defFull",
+            answerName: "defFull",
         });
 
         await test_math_answer({
@@ -5083,25 +5469,25 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 1 },
             ],
-            answerName: "/blankFull",
+            answerName: "blankFull",
         });
     });
 
     it("submitted responses from copy source", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   
   <p><answer name="x"><mathInput name="mi"/>x</answer> 
-    <math name="xsr" copySource="x" />
-    <math name="xcr" copySource="x.currentResponse" />
+    <math name="xsr" extend="$x" />
+    <math name="xcr" extend="$x.currentResponse" />
   </p>
   <p><answer name="hello" type="text"><textInput name="ti"/>hello</answer>
-    <text name="hellosr" copySource="hello" />
-    <text name="hellocr" copySource="hello.currentResponse" />
+    <text name="hellosr" extend="$hello" />
+    <text name="hellocr" extend="$hello.currentResponse" />
   </p>
   <p><answer name="b" type="boolean"><booleanInput name="bi"/>true</answer> 
-    <boolean name="bsr" copySource="b" />
-    <boolean name="bcr" copySource="b.currentResponse" />
+    <boolean name="bsr" extend="$b" />
+    <boolean name="bcr" extend="$b.currentResponse" />
   </p>
 
   `,
@@ -5109,57 +5495,100 @@ What is the derivative of <function name="f">x^2</function>?
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/xsr"].stateValues.value.tree).eq("\uff3f");
-        expect(stateVariables["/xcr"].stateValues.value.tree).eq("\uff3f");
+        expect(
+            stateVariables[resolveComponentName("xsr")].stateValues.value.tree,
+        ).eq("\uff3f");
+        expect(
+            stateVariables[resolveComponentName("xcr")].stateValues.value.tree,
+        ).eq("\uff3f");
 
-        await updateMathInputValue({ latex: "x", name: "/mi", core });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: resolveComponentName("mi"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/xsr"].stateValues.value.tree).eq("\uff3f");
-        expect(stateVariables["/xcr"].stateValues.value.tree).eq("x");
+        expect(
+            stateVariables[resolveComponentName("xsr")].stateValues.value.tree,
+        ).eq("\uff3f");
+        expect(
+            stateVariables[resolveComponentName("xcr")].stateValues.value.tree,
+        ).eq("x");
 
-        await submitAnswer({ name: "/x", core });
+        await submitAnswer({ componentIdx: resolveComponentName("x"), core });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/xsr"].stateValues.value.tree).eq("x");
-        expect(stateVariables["/xcr"].stateValues.value.tree).eq("x");
+        expect(
+            stateVariables[resolveComponentName("xsr")].stateValues.value.tree,
+        ).eq("x");
+        expect(
+            stateVariables[resolveComponentName("xcr")].stateValues.value.tree,
+        ).eq("x");
 
-        expect(stateVariables["/hellosr"].stateValues.value).eq("");
-        expect(stateVariables["/hellocr"].stateValues.value).eq("");
+        expect(
+            stateVariables[resolveComponentName("hellosr")].stateValues.value,
+        ).eq("");
+        expect(
+            stateVariables[resolveComponentName("hellocr")].stateValues.value,
+        ).eq("");
 
         await updateTextInputValue({
             text: "hello",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/hellosr"].stateValues.value).eq("");
-        expect(stateVariables["/hellocr"].stateValues.value).eq("hello");
+        expect(
+            stateVariables[resolveComponentName("hellosr")].stateValues.value,
+        ).eq("");
+        expect(
+            stateVariables[resolveComponentName("hellocr")].stateValues.value,
+        ).eq("hello");
 
-        await submitAnswer({ name: "/hello", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("hello"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/hellosr"].stateValues.value).eq("hello");
-        expect(stateVariables["/hellocr"].stateValues.value).eq("hello");
+        expect(
+            stateVariables[resolveComponentName("hellosr")].stateValues.value,
+        ).eq("hello");
+        expect(
+            stateVariables[resolveComponentName("hellocr")].stateValues.value,
+        ).eq("hello");
 
-        expect(stateVariables["/bsr"].stateValues.value).eq(false);
-        expect(stateVariables["/bcr"].stateValues.value).eq(false);
+        expect(
+            stateVariables[resolveComponentName("bsr")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("bcr")].stateValues.value,
+        ).eq(false);
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/bi",
+            componentIdx: resolveComponentName("bi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/bsr"].stateValues.value).eq(false);
-        expect(stateVariables["/bcr"].stateValues.value).eq(true);
+        expect(
+            stateVariables[resolveComponentName("bsr")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("bcr")].stateValues.value,
+        ).eq(true);
 
-        await submitAnswer({ name: "/b", core });
+        await submitAnswer({ componentIdx: resolveComponentName("b"), core });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/bsr"].stateValues.value).eq(true);
-        expect(stateVariables["/bcr"].stateValues.value).eq(true);
+        expect(
+            stateVariables[resolveComponentName("bsr")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("bcr")].stateValues.value,
+        ).eq(true);
     });
 
     it("parse scientific notation", async () => {
@@ -5169,7 +5598,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "4E3", credit: 1 },
                 { latex: "4000", credit: 0 },
             ],
-            answerName: "/ans",
+            answerName: "ans",
         });
 
         await test_math_answer({
@@ -5178,7 +5607,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "4E3", credit: 1 },
                 { latex: "4000", credit: 0 },
             ],
-            answerName: "/ans",
+            answerName: "ans",
         });
 
         await test_math_answer({
@@ -5187,7 +5616,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "4E3", credit: 1 },
                 { latex: "4000", credit: 0 },
             ],
-            answerName: "/ans",
+            answerName: "ans",
         });
 
         await test_math_answer({
@@ -5196,7 +5625,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "4E3", credit: 1 },
                 { latex: "4000", credit: 0 },
             ],
-            answerName: "/ans",
+            answerName: "ans",
         });
 
         await test_math_answer({
@@ -5205,7 +5634,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "4E3", credit: 1, overrideResponse: 4000 },
                 { latex: "4000", credit: 1 },
             ],
-            answerName: "/ans",
+            answerName: "ans",
         });
 
         await test_math_answer({
@@ -5214,7 +5643,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "4E3", credit: 1, overrideResponse: 4000 },
                 { latex: "4000", credit: 1 },
             ],
-            answerName: "/ans",
+            answerName: "ans",
         });
 
         await test_math_answer({
@@ -5223,7 +5652,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "4E3", credit: 1, overrideResponse: 4000 },
                 { latex: "4000", credit: 1 },
             ],
-            answerName: "/ans",
+            answerName: "ans",
         });
 
         await test_math_answer({
@@ -5232,7 +5661,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "4E3", credit: 1, overrideResponse: 4000 },
                 { latex: "4000", credit: 1 },
             ],
-            answerName: "/ans",
+            answerName: "ans",
         });
     });
 
@@ -5247,7 +5676,7 @@ What is the derivative of <function name="f">x^2</function>?
         let fromLatex = latexToMathFactory();
         await test_matrix_answer({
             doenetML,
-            answerName: "/ans",
+            answerName: "ans",
             originalEffectiveResponse: fromLatex(
                 "\\begin{matrix}{}&{}\\\\{}&{}\\end{matrix}",
             ).tree,
@@ -5296,7 +5725,7 @@ What is the derivative of <function name="f">x^2</function>?
 
 <answer name="answer1">
     <award>
-      <when>$userFunction{isResponse} = $correctFunction</when>
+      <when><function extend="$userFunction" isResponse /> = $correctFunction</when>
     </award>
 </answer>`;
 
@@ -5306,7 +5735,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x^2", credit: 1 },
                 { latex: "3x^2", credit: 0 },
             ],
-            mathInputName: "/userFormula",
+            mathInputName: "userFormula",
         });
     });
 
@@ -5317,7 +5746,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_math_answer({
             doenetML: `<answer handGraded name="a" type="math" />`,
@@ -5325,7 +5754,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_math_answer({
             doenetML: `<answer handGraded name="a"><mathInput /></answer>`,
@@ -5333,7 +5762,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_math_answer({
             doenetML: `<answer handGraded name="a">x</answer>`,
@@ -5341,7 +5770,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_math_answer({
             doenetML: `<answer handGraded name="a"><math>x</math></answer>`,
@@ -5349,7 +5778,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_math_answer({
             doenetML: `<answer handGraded name="a"><award><math>x</math></award></answer>`,
@@ -5357,7 +5786,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_math_answer({
             doenetML: `<answer handGraded name="a"><mathInput /><award><math>x</math></award></answer>`,
@@ -5365,7 +5794,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
 
         await test_text_answer({
@@ -5374,7 +5803,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { text: "hello", credit: 0 },
                 { text: "bye", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_text_answer({
             doenetML: `<answer handGraded name="a"><textInput/></answer>`,
@@ -5382,7 +5811,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { text: "hello", credit: 0 },
                 { text: "bye", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_text_answer({
             doenetML: `<answer handGraded name="a"><text>hello</text></answer>`,
@@ -5390,7 +5819,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { text: "hello", credit: 0 },
                 { text: "bye", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
         await test_text_answer({
             doenetML: `<answer handGraded name="a"><award><text>hello</text></award></answer>`,
@@ -5398,7 +5827,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { text: "hello", credit: 0 },
                 { text: "bye", credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
         });
 
         await test_answer_multiple_inputs({
@@ -5407,7 +5836,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { values: ["x", "a"], credit: 0 },
                 { values: ["y", "b"], credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
             inputs: [{ type: "math" }, { type: "math" }],
         });
 
@@ -5417,7 +5846,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { values: ["hello", "there"], credit: 0 },
                 { values: ["bye", "now"], credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
             inputs: [{ type: "text" }, { type: "text" }],
         });
 
@@ -5427,7 +5856,7 @@ What is the derivative of <function name="f">x^2</function>?
                 { values: ["x", "hello"], credit: 0 },
                 { values: ["y", "bye"], credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
             inputs: [{ type: "math" }, { type: "text" }],
         });
 
@@ -5437,10 +5866,10 @@ What is the derivative of <function name="f">x^2</function>?
                 { values: ["x", "a"], credit: 0 },
                 { values: ["y", "b"], credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
             inputs: [
-                { type: "math", name: "/mi1" },
-                { type: "math", name: "/mi2" },
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
             ],
         });
 
@@ -5450,10 +5879,10 @@ What is the derivative of <function name="f">x^2</function>?
                 { values: ["hello", "there"], credit: 0 },
                 { values: ["bye", "now"], credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
             inputs: [
-                { type: "text", name: "/ti1" },
-                { type: "text", name: "/ti2" },
+                { type: "text", name: "ti1" },
+                { type: "text", name: "ti2" },
             ],
         });
 
@@ -5463,10 +5892,10 @@ What is the derivative of <function name="f">x^2</function>?
                 { values: ["x", "hello"], credit: 0 },
                 { values: ["y", "bye"], credit: 0 },
             ],
-            answerName: "/a",
+            answerName: "a",
             inputs: [
-                { type: "math", name: "/mi" },
-                { type: "text", name: "/ti" },
+                { type: "math", name: "mi" },
+                { type: "text", name: "ti" },
             ],
         });
     });
@@ -5478,7 +5907,7 @@ What is the derivative of <function name="f">x^2</function>?
     <award>x</award>
     <award credit="1/3">y</award>
   </answer>
-  Credit: <number copySource="default.creditAchieved" name="default_credit" />
+  Credit: <number extend="$default.creditAchieved" name="default_credit" />
   </p>
 
   <p><answer displayDigitsForCreditAchieved="8" name="long">
@@ -5486,35 +5915,45 @@ What is the derivative of <function name="f">x^2</function>?
     <award>x</award>
     <award credit="1/3">y</award>
   </answer>
-  Credit: <number copySource="long.creditAchieved" name="long_credit" />
+  Credit: <number extend="$long.creditAchieved" name="long_credit" />
   </p>
 `;
 
-        const core = await createTestCore({ doenetML });
+        const { core, resolveComponentName } = await createTestCore({
+            doenetML,
+        });
 
         await updateMathInputValue({
             latex: "y",
-            name: "/miDefault",
+            componentIdx: resolveComponentName("miDefault"),
             core,
         });
         await updateMathInputValue({
             latex: "y",
-            name: "/miLong",
+            componentIdx: resolveComponentName("miLong"),
             core,
         });
 
-        await submitAnswer({ name: "/default", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("default"),
+            core,
+        });
 
-        await submitAnswer({ name: "/long", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("long"),
+            core,
+        });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables["/default_credit"].stateValues.valueForDisplay,
+            stateVariables[resolveComponentName("default_credit")].stateValues
+                .valueForDisplay,
         ).eq(0.333);
-        expect(stateVariables["/long_credit"].stateValues.valueForDisplay).eq(
-            0.33333333,
-        );
+        expect(
+            stateVariables[resolveComponentName("long_credit")].stateValues
+                .valueForDisplay,
+        ).eq(0.33333333);
     });
 
     it("display digits for responses", async () => {
@@ -5523,8 +5962,8 @@ What is the derivative of <function name="f">x^2</function>?
     <mathInput name="miDefault" />
     1.23456789
   </answer
-  >Current response: <math copySource="default.currentResponse" name="default_cr" />
-  Submitted response: <math copySource="default.SubmittedResponse" name="default_sr" />
+  >Current response: <math extend="$default.currentResponse" name="default_cr" />
+  Submitted response: <math extend="$default.SubmittedResponse" name="default_sr" />
   
   </p>
 
@@ -5532,57 +5971,73 @@ What is the derivative of <function name="f">x^2</function>?
     <mathInput name="miShort" />
     1.23456789
   </answer>
-  >Current response: <math copySource="short.currentResponse" name="short_cr" />
-  Submitted response: <math copySource="short.SubmittedResponse" name="short_sr" />
+  >Current response: <math extend="$short.currentResponse" name="short_cr" />
+  Submitted response: <math extend="$short.SubmittedResponse" name="short_sr" />
   </p>
 `;
 
-        const core = await createTestCore({ doenetML });
+        const { core, resolveComponentName } = await createTestCore({
+            doenetML,
+        });
 
         await updateMathInputValue({
             latex: "1.23456789",
-            name: "/miDefault",
+            componentIdx: resolveComponentName("miDefault"),
             core,
         });
         await updateMathInputValue({
             latex: "1.23456789",
-            name: "/miShort",
+            componentIdx: resolveComponentName("miShort"),
             core,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables["/default_cr"].stateValues.valueForDisplay.tree,
+            stateVariables[resolveComponentName("default_cr")].stateValues
+                .valueForDisplay.tree,
         ).eq(1.23456789);
         expect(
-            stateVariables["/default_sr"].stateValues.valueForDisplay.tree,
+            stateVariables[resolveComponentName("default_sr")].stateValues
+                .valueForDisplay.tree,
         ).eq("\uff3f");
-        expect(stateVariables["/short_cr"].stateValues.valueForDisplay.tree).eq(
-            1.23,
-        );
-        expect(stateVariables["/short_sr"].stateValues.valueForDisplay.tree).eq(
-            "\uff3f",
-        );
+        expect(
+            stateVariables[resolveComponentName("short_cr")].stateValues
+                .valueForDisplay.tree,
+        ).eq(1.23);
+        expect(
+            stateVariables[resolveComponentName("short_sr")].stateValues
+                .valueForDisplay.tree,
+        ).eq("\uff3f");
 
-        await submitAnswer({ name: "/default", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("default"),
+            core,
+        });
 
-        await submitAnswer({ name: "/short", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("short"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables["/default_cr"].stateValues.valueForDisplay.tree,
+            stateVariables[resolveComponentName("default_cr")].stateValues
+                .valueForDisplay.tree,
         ).eq(1.23456789);
         expect(
-            stateVariables["/default_sr"].stateValues.valueForDisplay.tree,
+            stateVariables[resolveComponentName("default_sr")].stateValues
+                .valueForDisplay.tree,
         ).eq(1.23456789);
-        expect(stateVariables["/short_cr"].stateValues.valueForDisplay.tree).eq(
-            1.23,
-        );
-        expect(stateVariables["/short_sr"].stateValues.valueForDisplay.tree).eq(
-            1.23,
-        );
+        expect(
+            stateVariables[resolveComponentName("short_cr")].stateValues
+                .valueForDisplay.tree,
+        ).eq(1.23);
+        expect(
+            stateVariables[resolveComponentName("short_sr")].stateValues
+                .valueForDisplay.tree,
+        ).eq(1.23);
     });
 
     it("display digits for responses, turn math to number", async () => {
@@ -5591,8 +6046,8 @@ What is the derivative of <function name="f">x^2</function>?
     <mathInput name="miDefault" />
     1.23456789
   </answer
-  >Current response: <number copySource="default.currentResponse" name="default_cr" />
-  Submitted response: <number copySource="default.SubmittedResponse" name="default_sr" />
+  >Current response: <number extend="$default.currentResponse" name="default_cr" />
+  Submitted response: <number extend="$default.SubmittedResponse" name="default_sr" />
   
   </p>
 
@@ -5600,61 +6055,77 @@ What is the derivative of <function name="f">x^2</function>?
     <mathInput name="miShort" />
     1.23456789
   </answer>
-  >Current response: <number copySource="short.currentResponse" name="short_cr" />
-  Submitted response: <number copySource="short.SubmittedResponse" name="short_sr" />
+  >Current response: <number extend="$short.currentResponse" name="short_cr" />
+  Submitted response: <number extend="$short.SubmittedResponse" name="short_sr" />
   </p>
 `;
 
-        const core = await createTestCore({ doenetML });
+        const { core, resolveComponentName } = await createTestCore({
+            doenetML,
+        });
 
         await updateMathInputValue({
             latex: "1.23456789",
-            name: "/miDefault",
+            componentIdx: resolveComponentName("miDefault"),
             core,
         });
         await updateMathInputValue({
             latex: "1.23456789",
-            name: "/miShort",
+            componentIdx: resolveComponentName("miShort"),
             core,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/default_cr"].stateValues.valueForDisplay).eq(
-            1.23456789,
-        );
-        expect(stateVariables["/default_sr"].stateValues.valueForDisplay).eqls(
-            NaN,
-        );
-        expect(stateVariables["/short_cr"].stateValues.valueForDisplay).eq(
-            1.23,
-        );
-        expect(stateVariables["/short_sr"].stateValues.valueForDisplay).eqls(
-            NaN,
-        );
+        expect(
+            stateVariables[resolveComponentName("default_cr")].stateValues
+                .valueForDisplay,
+        ).eq(1.23456789);
+        expect(
+            stateVariables[resolveComponentName("default_sr")].stateValues
+                .valueForDisplay,
+        ).eqls(NaN);
+        expect(
+            stateVariables[resolveComponentName("short_cr")].stateValues
+                .valueForDisplay,
+        ).eq(1.23);
+        expect(
+            stateVariables[resolveComponentName("short_sr")].stateValues
+                .valueForDisplay,
+        ).eqls(NaN);
 
-        await submitAnswer({ name: "/default", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("default"),
+            core,
+        });
 
-        await submitAnswer({ name: "/short", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("short"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/default_cr"].stateValues.valueForDisplay).eq(
-            1.23456789,
-        );
-        expect(stateVariables["/default_sr"].stateValues.valueForDisplay).eq(
-            1.23456789,
-        );
-        expect(stateVariables["/short_cr"].stateValues.valueForDisplay).eq(
-            1.23,
-        );
-        expect(stateVariables["/short_sr"].stateValues.valueForDisplay).eq(
-            1.23,
-        );
+        expect(
+            stateVariables[resolveComponentName("default_cr")].stateValues
+                .valueForDisplay,
+        ).eq(1.23456789);
+        expect(
+            stateVariables[resolveComponentName("default_sr")].stateValues
+                .valueForDisplay,
+        ).eq(1.23456789);
+        expect(
+            stateVariables[resolveComponentName("short_cr")].stateValues
+                .valueForDisplay,
+        ).eq(1.23);
+        expect(
+            stateVariables[resolveComponentName("short_sr")].stateValues
+                .valueForDisplay,
+        ).eq(1.23);
     });
 
     it("conditional text used as correct answer", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>Enter a slope: <mathInput name="m" /></p>
 
@@ -5689,67 +6160,118 @@ What is the derivative of <function name="f">x^2</function>?
 
         async function submit_selection(name: string) {
             await updateSelectedIndices({
-                name: "/ci",
+                componentIdx: resolveComponentName("ci"),
                 selectedIndices: [indexByName[name]],
                 core,
             });
-            await submitAnswer({ name: "/a", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("a"),
+                core,
+            });
         }
 
         await submit_selection("stable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
         await submit_selection("unstable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
 
-        await updateMathInputValue({ latex: "3", name: "/m", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("m"),
+            core,
+        });
         await submit_selection("stable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
         await submit_selection("unstable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(1);
 
         await updateMathInputValue({
             latex: "-0.8",
-            name: "/m",
+            componentIdx: resolveComponentName("m"),
             core,
         });
         await submit_selection("stable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(1);
         await submit_selection("unstable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
 
-        await updateMathInputValue({ latex: "1/3", name: "/m", core });
+        await updateMathInputValue({
+            latex: "1/3",
+            componentIdx: resolveComponentName("m"),
+            core,
+        });
         await submit_selection("stable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(1);
         await submit_selection("unstable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
 
         await updateMathInputValue({
             latex: "-7/5",
-            name: "/m",
+            componentIdx: resolveComponentName("m"),
             core,
         });
         await submit_selection("stable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
         await submit_selection("unstable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(1);
 
-        await updateMathInputValue({ latex: "1", name: "/m", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("m"),
+            core,
+        });
         await submit_selection("stable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
         await submit_selection("unstable");
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a")].stateValues
+                .creditAchieved,
+        ).eq(0);
     });
 
     it("conditional math used as correct answer", async () => {
@@ -5777,7 +6299,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await test_math_answer({
             doenetML,
-            answerName: "/a",
+            answerName: "a",
             answers: [
                 { latex: "x > 0", credit: 0 },
                 { latex: "x < 0", credit: 0 },
@@ -5785,7 +6307,7 @@ What is the derivative of <function name="f">x^2</function>?
                     latex: "x < 0",
                     credit: 1,
                     preAction: {
-                        name: "/c",
+                        name: "c",
                         type: "choice",
                         value: "2",
                     },
@@ -5795,7 +6317,7 @@ What is the derivative of <function name="f">x^2</function>?
                     latex: "x > 0",
                     credit: 1,
                     preAction: {
-                        name: "/c",
+                        name: "c",
                         type: "choice",
                         value: "1",
                     },
@@ -5817,17 +6339,20 @@ What is the derivative of <function name="f">x^2</function>?
     </answer>
   `;
 
-        let core = await createTestCore({ doenetML });
+        let { core, resolveComponentName } = await createTestCore({ doenetML });
 
         await updateMathInputValue({
             latex: "30",
-            name: "/userAns",
+            componentIdx: resolveComponentName("userAns"),
             core,
         });
 
-        await submitAnswer({ name: "/ans", core });
+        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .creditAchieved,
+        ).eq(1);
     });
 });

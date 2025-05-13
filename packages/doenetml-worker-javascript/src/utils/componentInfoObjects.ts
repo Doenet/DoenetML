@@ -42,7 +42,11 @@ export type ComponentInfoObjects = {
     componentIsSpecifiedType: (
         comp: {
             componentType: string;
-            attributes?: { createComponentOfType?: { primitive: string } };
+            attributes?: {
+                createComponentOfType?: {
+                    primitive: { type: "string"; value: string };
+                };
+            };
         },
         specifiedCType: string,
     ) => boolean;
@@ -221,14 +225,18 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
     const componentIsSpecifiedType = (
         comp: {
             componentType: string;
-            attributes?: { createComponentOfType?: { primitive: string } };
+            attributes?: {
+                createComponentOfType?: {
+                    primitive: { type: "string"; value: string };
+                };
+            };
         },
         specifiedCType: string,
     ) =>
         componentTypeIsSpecifiedType(comp.componentType, specifiedCType) ||
         (comp.attributes?.createComponentOfType?.primitive !== undefined &&
             componentTypeIsSpecifiedType(
-                comp.attributes?.createComponentOfType?.primitive,
+                comp.attributes?.createComponentOfType?.primitive.value,
                 specifiedCType,
             ));
 

@@ -77,6 +77,7 @@ export async function normalizedDastToSerializedComponents(
                         ]),
                     ),
                     position: node.position,
+                    childrenPosition: node.children_position,
                     extending: node.extending
                         ? unFlattenExtending(node.extending)
                         : undefined,
@@ -666,7 +667,8 @@ export function expandAttribute({
             )[0] as SerializedComponent,
         };
         if (attrDef.ignoreFixed) {
-            attr.ignoreFixed = true;
+            // set the component to ignore the fixed of its parent
+            attr.component.doenetAttributes.ignoreParentFixed = true;
         }
         return { attribute: attr, errors, nComponents };
     } else if (attrDef?.createPrimitiveOfType) {

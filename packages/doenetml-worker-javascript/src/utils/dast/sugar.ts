@@ -338,6 +338,7 @@ export function applySugar({
 
             newComponents.push(newComponent);
         } catch (e) {
+            console.error(e);
             const convertResult = convertToErrorComponent(component, e);
             newComponents.push(convertResult.component);
 

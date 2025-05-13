@@ -2546,7 +2546,7 @@ export class DependencyHandler {
                     if (position) {
                         if (
                             position.doenetMLId === 0 &&
-                            position.lineBegin === undefined
+                            position.start.line === undefined
                         ) {
                             Object.assign(
                                 position,
@@ -2556,10 +2556,10 @@ export class DependencyHandler {
                                 ),
                             );
                         }
-                        let lineBegin = position.lineBegin;
+                        let lineBegin = position.start.line;
                         if (lineBegin) {
                             addedLine = true;
-                            let lineEnd = position.lineEnd;
+                            let lineEnd = position.end.line;
                             if (lineEnd === lineBegin) {
                                 linesForUniqueNames.push(`line ${lineBegin}`);
                             } else {
@@ -9147,26 +9147,12 @@ class DoenetMLRangeDependency extends Dependency {
     async getValue() {
         let component = this.dependencyHandler._components[this.componentIdx];
 
-        let position = component.position;
-        if (position?.doenetMLId === 0) {
-            if (position.lineBegin === undefined) {
-                let allNewlines = this.dependencyHandler.core.doenetMLNewlines;
-                Object.assign(
-                    position,
-                    getLineCharRange(position, allNewlines),
-                );
-            }
+        // TODO: address doenetmlId
 
-            return {
-                value: position,
-                changes: {},
-            };
-        } else {
-            return {
-                value: {},
-                changes: {},
-            };
-        }
+        return {
+            value: component.position ?? null,
+            changes: {},
+        };
     }
 
     deleteFromUpdateTriggers() {

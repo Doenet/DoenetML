@@ -15,6 +15,7 @@ export type SerializedComponent = {
     children: (SerializedComponent | string)[];
     attributes: Record<string, SerializedAttribute>;
     position?: Position;
+    childrenPosition?: Position;
     extending?: Source<SerializedRefResolution>;
     state: Record<string, any>;
     skipSugar?: boolean;

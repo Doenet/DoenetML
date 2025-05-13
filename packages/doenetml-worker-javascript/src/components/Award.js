@@ -5,6 +5,7 @@ import {
     evaluateLogic,
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
+import { deepCompare } from "@doenet/utils";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -132,8 +133,9 @@ export default class Award extends BaseComponent {
             defaultValue: null,
             public: true,
         };
-        attributes.sourcesAreResponses = {
-            createPrimitiveOfType: "string",
+
+        attributes.referencesAreResponses = {
+            createResponses: true,
         };
 
         attributes.splitSymbols = {
@@ -160,18 +162,19 @@ export default class Award extends BaseComponent {
         attributes,
         componentIdx,
     }) {
-        if (attributes.sourcesAreResponses) {
-            let targetNames = attributes.sourcesAreResponses.primitive.value
-                .split(/\s+/)
-                .filter((s) => s);
+        if (attributes.referencesAreResponses?.type === "unresolved") {
+            const references = attributes.referencesAreResponses.children
+                .filter(
+                    (child) =>
+                        child.type === "unflattened" &&
+                        child.componentType === "copy",
+                )
+                .map((child) => child.extending.Ref);
 
-            for (let target of targetNames) {
-                let absoluteTarget = target;
-
-                addResponsesToDescendantsWithTarget(
+            for (let reference of references) {
+                addResponsesToDescendantsWithReference(
                     serializedChildren,
-                    target,
-                    absoluteTarget,
+                    reference,
                 );
             }
         }
@@ -246,7 +249,7 @@ export default class Award extends BaseComponent {
 
             let type;
             if (parentAttributes.type) {
-                type = parentAttributes.type;
+                type = parentAttributes.type.value;
                 if (!["math", "text", "boolean"].includes(type)) {
                     // Note: no need to send warning here, as answer sends a warning
                     // (and is the location of the type attribute)
@@ -821,24 +824,21 @@ function evaluateLogicDirectlyFromChildren({ dependencyValues, usedDefault }) {
     });
 }
 
-function addResponsesToDescendantsWithTarget(
-    components,
-    target,
-    absoluteTarget,
-) {
+function addResponsesToDescendantsWithReference(components, reference) {
     for (let component of components) {
-        let propsOrDAttrs = component.props;
-        if (!propsOrDAttrs || Object.keys(propsOrDAttrs).length === 0) {
-            propsOrDAttrs = component.doenetAttributes;
-        }
-        if (propsOrDAttrs) {
-            for (let prop in propsOrDAttrs) {
+        if (component.type === "serialized") {
+            if (component.extending) {
+                const refResolution =
+                    "Ref" in component.extending
+                        ? component.extending.Ref
+                        : component.extending.Attribute;
+
                 if (
-                    (prop.toLowerCase() === "target" &&
-                        propsOrDAttrs[prop] === target) ||
-                    // XXX: this is presumably broken with shift to componentIdx
-                    (prop.toLowerCase() === "targetcomponentidx" &&
-                        propsOrDAttrs[prop] === absoluteTarget)
+                    refResolution.nodeIdx === reference.nodeIdx &&
+                    deepCompare(
+                        refResolution.unresolvedPath,
+                        reference.unresolvedPath,
+                    )
                 ) {
                     if (!component.attributes) {
                         component.attributes = {};
@@ -847,21 +847,24 @@ function addResponsesToDescendantsWithTarget(
                         .map((x) => x.toLowerCase())
                         .includes("isresponse");
                     if (!foundIsResponse) {
-                        // Note we don't add the attribute as {primitive: true}
-                        // because the composite don't have the attribute isResponse
+                        // Make it an unresolved attribute
+                        // as the composite don't have the attribute isResponse
                         // but pass it on to their replacements
-                        component.attributes.isResponse = true;
+                        component.attributes.isResponse = {
+                            type: "unresolved",
+                            name: "isResponse",
+                            children: [],
+                        };
                     }
                 }
             }
-        }
 
-        if (component.children) {
-            addResponsesToDescendantsWithTarget(
-                component.children,
-                target,
-                absoluteTarget,
-            );
+            if (component.children) {
+                addResponsesToDescendantsWithReference(
+                    component.children,
+                    reference,
+                );
+            }
         }
     }
 }

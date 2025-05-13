@@ -1636,6 +1636,12 @@ export default class Core {
                     : serializedComponent.extending.Attribute;
 
             if (refResolution.unresolvedPath !== null) {
+                // console.log(
+                //     "found unresolved path",
+                //     serializedComponent,
+                //     refResolution,
+                //     refResolution.unresolvedPath,
+                // );
                 let nodeIdx = refResolution.nodeIdx;
                 let unresolvedPath = [];
                 for (const pathPart of refResolution.unresolvedPath) {
@@ -2559,8 +2565,8 @@ export default class Core {
             overwriteDoenetMLRange,
         });
 
-        // console.log(`expand result for ${component.componentIdx}`);
-        // console.log(JSON.parse(JSON.stringify(result)));
+        console.log(`expand result for ${component.componentIdx}`);
+        console.log(JSON.parse(JSON.stringify(result)));
 
         if (component.constructor.stateVariableToEvaluateAfterReplacements) {
             // console.log(`evaluating ${component.constructor.stateVariableToEvaluateAfterReplacements} of ${component.componentIdx}`)
@@ -2825,42 +2831,27 @@ export default class Core {
         }
 
         if (serializedReplacements.length === 1) {
-            const wrapWithExtract =
-                "wrapWithExtract" in component.stateValues
-                    ? await component.stateValues.wrapWithExtract
-                    : false;
-
             if (
                 component.attributes.createComponentIdx?.primitive.value !=
                 undefined
             ) {
-                if (wrapWithExtract) {
-                    serializedReplacements[0].attributes.createComponentIdx =
-                        component.attributes.createComponentIdx;
-                } else {
-                    serializedReplacements[0].componentIdx =
-                        component.attributes.createComponentIdx.primitive.value;
-                }
+                serializedReplacements[0].componentIdx =
+                    component.attributes.createComponentIdx.primitive.value;
             }
 
             if (
                 component.attributes.createComponentName?.primitive.value !=
                 undefined
             ) {
-                if (wrapWithExtract) {
-                    serializedReplacements[0].attributes.createComponentName =
-                        component.attributes.createComponentName;
-                } else {
-                    serializedReplacements[0].attributes.name = {
-                        type: "primitive",
-                        name: "name",
-                        primitive: {
-                            type: "string",
-                            value: component.attributes.createComponentName
-                                .primitive.value,
-                        },
-                    };
-                }
+                serializedReplacements[0].attributes.name = {
+                    type: "primitive",
+                    name: "name",
+                    primitive: {
+                        type: "string",
+                        value: component.attributes.createComponentName
+                            .primitive.value,
+                    },
+                };
             }
         }
 
@@ -2904,7 +2895,7 @@ export default class Core {
             // which by default is ["isResponse"]
             // so that isResponse, is not, in general copied.
             // (We don't want copies of responses to be responses.)
-            // However, if an award has sourcesAreResponses set, then we want
+            // However, if an award has referencesAreResponses set, then we want
             // copies of the award to also set those sources to be responses.
             // The award accomplishes this through preprocessSerializedChildren,
             // which adds isResponse to copies of those targets.
@@ -10671,7 +10662,7 @@ export default class Core {
                 // along with other triggered actions using triggerWith="uv",
                 // inside a <setup> and then including an unamed $uv
                 // where we want the button to be.
-                // TODO: if <point copySource="P" /> no longer has a name like "_point1",
+                // TODO: if <point extend="$P" /> no longer has a name like "_point1",
                 // should triggerWhenObjectsClicked="P" be triggered from that point?
                 // Currently (Oct 2, 2023), it is not triggered.
                 cIdx = comp.shadows.componentIdx;
@@ -12825,7 +12816,6 @@ export default class Core {
         }
     }
 
-    // XXX: fix this for new position conventions
     requestComponentDoenetML(componentIdx, displayOnlyChildren) {
         let component = this.components[componentIdx];
 
@@ -12842,31 +12832,25 @@ export default class Core {
         let startInd, endInd;
 
         if (displayOnlyChildren) {
-            if (position.selfCloseBegin !== undefined) {
+            if (!component.childrenPosition) {
                 return "";
             }
-            startInd = position.openEnd + 1;
-            endInd = position.closeBegin - 1;
+            startInd = component.childrenPosition.start.offset;
+            endInd = component.childrenPosition.end.offset;
         } else {
-            startInd =
-                position.openBegin !== undefined
-                    ? position.openBegin
-                    : position.selfCloseBegin;
-            endInd =
-                position.closeEnd !== undefined
-                    ? position.closeEnd
-                    : position.selfCloseEnd;
+            startInd = position.start.offset;
+            endInd = position.end.offset;
         }
 
         let doenetMLId = position.doenetMLId || 0;
         let componentDoenetML = this.allDoenetMLs[doenetMLId].slice(
-            startInd - 1,
+            startInd,
             endInd,
         );
 
         if (displayOnlyChildren) {
             // remove any leading linebreak
-            // or any trailing linebreak (possibility followed by spaces or tabs)
+            // or any trailing linebreak (possibly followed by spaces or tabs)
             // to remove spacing due to just having the children on different lines from the enclosing parent tags
             if (componentDoenetML[0] === "\n") {
                 componentDoenetML = componentDoenetML.slice(1);

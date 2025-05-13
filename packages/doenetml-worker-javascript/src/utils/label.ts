@@ -185,15 +185,25 @@ export function returnLabelStateVariableDefinitions() {
                 dependencyType: "unlinkedCopySource",
                 variableNames: ["componentNameAndShadowSourceNames"],
             },
+            name: {
+                dependencyType: "attributePrimitive",
+                attributeName: "name",
+            },
         }),
         definition({
             dependencyValues,
-            componentIdx,
         }: {
-            dependencyValues: Record<string, any>;
-            componentIdx: number;
+            dependencyValues: {
+                shadowSource: any;
+                unlinkedCopySource: any;
+                name: string | null;
+            };
         }) {
-            let componentNameAndShadowSourceNames = [componentIdx];
+            const componentNameAndShadowSourceNames: string[] = [];
+
+            if (dependencyValues.name != null) {
+                componentNameAndShadowSourceNames.push(dependencyValues.name);
+            }
             if (
                 dependencyValues.shadowSource?.stateValues
                     .componentNameAndShadowSourceNames
@@ -313,8 +323,7 @@ export function returnLabelStateVariableDefinitions() {
                 let cNames = dependencyValues.componentNameAndShadowSourceNames;
 
                 for (let cN of cNames) {
-                    let lastSlashInd = cN.lastIndexOf("/");
-                    label = cN.substring(lastSlashInd + 1);
+                    label = cN;
                     if (label[0] !== "_") {
                         break;
                     }
