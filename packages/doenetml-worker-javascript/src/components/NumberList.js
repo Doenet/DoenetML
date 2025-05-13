@@ -3,12 +3,9 @@ import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { convertValueToMathExpression } from "@doenet/utils";
 import { returnRoundingAttributes } from "../utils/rounding";
-import {
-    convertAttributesForComponentType,
-    postProcessCopy,
-} from "../utils/copy";
+import { postProcessCopy } from "../utils/copy";
 import { processAssignNames } from "../utils/naming";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class NumberList extends CompositeComponent {
     static componentType = "numberList";
 
@@ -77,8 +74,11 @@ export default class NumberList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren }) {
-                return groupIntoNumbersSeparatedBySpaces({ matchedChildren });
+            replacementFunction: function ({ matchedChildren, nComponents }) {
+                return groupIntoNumbersSeparatedBySpaces({
+                    matchedChildren,
+                    nComponents,
+                });
             },
         });
 
@@ -561,6 +561,7 @@ export default class NumberList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -579,20 +580,18 @@ export default class NumberList extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         // allow one to override the fixed and isResponse attributes
         // as well as rounding settings
         // by specifying it on the sequence
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite = convertAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "number",
-                componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
-            });
+            attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "number",
+                    componentInfoObjects,
+                });
         }
 
         let childInfoByComponent =
@@ -616,6 +615,7 @@ export default class NumberList extends CompositeComponent {
             }
             replacements.push({
                 componentType: "number",
+                componentIdx: nComponents++,
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 downstreamDependencies: {
                     [component.componentIdx]: [
@@ -642,7 +642,6 @@ export default class NumberList extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);
@@ -655,6 +654,7 @@ export default class NumberList extends CompositeComponent {
             replacements: processResult.serializedComponents,
             errors,
             warnings,
+            nComponents,
         };
     }
 
@@ -663,6 +663,7 @@ export default class NumberList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -696,7 +697,7 @@ export default class NumberList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return [];
+                return { replacementChanges: [] };
             }
         }
 
@@ -706,11 +707,13 @@ export default class NumberList extends CompositeComponent {
             components,
             componentInfoObjects,
             workspace,
+            nComponents,
         });
 
         let replacements = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -722,6 +725,6 @@ export default class NumberList extends CompositeComponent {
             },
         ];
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 }

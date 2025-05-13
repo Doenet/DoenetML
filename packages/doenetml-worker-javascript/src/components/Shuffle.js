@@ -371,7 +371,6 @@ export default class Shuffle extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: await component.stateValues.newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);
@@ -462,7 +461,7 @@ export default class Shuffle extends CompositeComponent {
                         child.attributes.numComponents?.primitive !== undefined
                     ) {
                         let newComponents = Number(
-                            child.attributes.numComponents?.primitive,
+                            child.attributes.numComponents?.primitive.value,
                         );
                         if (
                             Number.isInteger(newComponents) &&

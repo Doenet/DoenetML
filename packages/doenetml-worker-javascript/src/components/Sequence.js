@@ -1,6 +1,4 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames } from "../utils/naming";
-import { convertAttributesForComponentType } from "../utils/copy";
 import {
     returnSequenceValues,
     returnSequenceValueForIndex,
@@ -8,11 +6,11 @@ import {
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
 import { returnRoundingAttributes } from "../utils/rounding";
+import { assignNamesToComponents } from "../utils/assignNames";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class Sequence extends CompositeComponent {
     static componentType = "sequence";
-
-    static assignNamesToReplacements = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
@@ -39,6 +37,10 @@ export default class Sequence extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+        };
+
+        attributes.assignNames = {
+            createPrimitiveOfType: "recursiveStringArray",
         };
 
         return attributes;
@@ -92,6 +94,7 @@ export default class Sequence extends CompositeComponent {
         component,
         workspace,
         componentInfoObjects,
+        nComponents,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`)
 
@@ -122,8 +125,6 @@ export default class Sequence extends CompositeComponent {
             type,
             exclude,
         };
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let sequenceValues = returnSequenceValues({
             from,
@@ -162,17 +163,21 @@ export default class Sequence extends CompositeComponent {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite = convertAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType,
-                    componentInfoObjects,
-                    compositeCreatesNewNamespace: newNamespace,
-                });
+                attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
+                        attributes: attributesToConvert,
+                        componentType,
+                        componentInfoObjects,
+                    });
             }
 
             let serializedComponent = {
+                type: "serialized",
                 componentType,
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
+                doenetAttributes: {},
+                children: [],
                 state: { value: componentValue, fixed: true },
             };
             replacements.push(serializedComponent);
@@ -181,20 +186,22 @@ export default class Sequence extends CompositeComponent {
         // console.log(`replacements for ${component.componentIdx}`)
         // console.log(replacements)
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
+        if (component.attributes.assignNames) {
+            let processResult = assignNamesToComponents({
+                assignNames: component.attributes.assignNames.primitive.value,
+                serializedComponents: replacements,
+                componentInfoObjects,
+            });
+            warnings.push(...processResult.warnings);
+
+            replacements = processResult.components;
+        }
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
@@ -369,7 +376,6 @@ export default class Sequence extends CompositeComponent {
                 // Need to add more replacement components
 
                 let newSerializedReplacements = [];
-                let newNamespace = component.attributes.newNamespace?.primitive;
 
                 let attributesToConvert = {};
                 for (let attr of [
@@ -407,11 +413,10 @@ export default class Sequence extends CompositeComponent {
 
                     if (Object.keys(attributesToConvert).length > 0) {
                         attributesFromComposite =
-                            convertAttributesForComponentType({
+                            convertUnresolvedAttributesForComponentType({
                                 attributes: attributesToConvert,
                                 componentType,
                                 componentInfoObjects,
-                                compositeCreatesNewNamespace: newNamespace,
                             });
                     }
 
@@ -423,23 +428,23 @@ export default class Sequence extends CompositeComponent {
 
                     newSerializedReplacements.push(serializedComponent);
                 }
-
-                let processResult = processAssignNames({
-                    assignNames: component.doenetAttributes.assignNames,
-                    serializedComponents: newSerializedReplacements,
-                    parentIdx: component.componentIdx,
-                    parentCreatesNewNamespace: newNamespace,
-                    componentInfoObjects,
-                    indOffset: prevlength,
-                });
-                errors.push(...processResult.errors);
-                warnings.push(...processResult.warnings);
+                if (component.attributes.assignNames) {
+                    let processResult = assignNamesToComponents({
+                        assignNames:
+                            component.attributes.assignNames.primitive.value,
+                        serializedComponents: newSerializedReplacements,
+                        componentInfoObjects,
+                        indOffset: prevlength,
+                    });
+                    warnings.push(...processResult.warnings);
+                    newSerializedReplacements = processResult.components;
+                }
 
                 let replacementInstruction = {
                     changeType: "add",
                     changeTopLevelReplacements: true,
                     firstReplacementInd: prevlength,
-                    serializedReplacements: processResult.serializedComponents,
+                    serializedReplacements: newSerializedReplacements,
                     replacementsToWithhold: 0,
                     assignNamesOffset: prevlength,
                 };
@@ -461,7 +466,7 @@ export default class Sequence extends CompositeComponent {
 
         let type = "number";
         if (this.attributes.type && this.attributes.type.primitive) {
-            type = this.attributes.type.primitive.toLowerCase();
+            type = this.attributes.type.primitive.value.toLowerCase();
         }
         if (!["number", "math", "letters"].includes(type)) {
             type = "number";

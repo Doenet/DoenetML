@@ -1,7 +1,7 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::dast::{
-    flat_dast::{FlatRoot, NormalizedRoot},
+    flat_dast::{FlatFragment, FlatRoot, NormalizedRoot},
     ref_expand::Expander,
     ref_resolve::Resolver,
     DastRoot, FlatDastRoot,
@@ -39,10 +39,14 @@ impl Core {
     /// and expanding all references to elements (or errors).
     pub fn normalized_root_from_dast_root(dast_root: &DastRoot) -> (NormalizedRoot, Resolver) {
         let mut flat_root = FlatRoot::from_dast(dast_root);
-        let resolver = Expander::expand(&mut flat_root);
-        flat_root.compactify();
+        let mut resolver = Expander::expand(&mut flat_root);
+        flat_root.compactify(Some(&mut resolver));
         let normalized_flat_root = flat_root.into_normalized_root();
         (normalized_flat_root, resolver)
+    }
+
+    pub fn add_nodes_to_resolver(flat_fragment: &FlatFragment, resolver: &mut Resolver) {
+        resolver.add_nodes(&flat_fragment);
     }
 
     /// Initialize `structure_graph`, `state_graph`, and other data

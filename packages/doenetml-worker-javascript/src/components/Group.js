@@ -1,12 +1,9 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { deepClone } from "@doenet/utils";
-import {
-    convertAttributesForComponentType,
-    verifyReplacementsMatchSpecifiedType,
-} from "../utils/copy";
+import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { processAssignNames } from "../utils/naming";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Group extends CompositeComponent {
     static componentType = "group";
 
@@ -82,22 +79,6 @@ export default class Group extends CompositeComponent {
                 return {
                     setValue: {
                         serializedChildren: dependencyValues.serializedChildren,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.newNamespace = {
-            returnDependencies: () => ({
-                newNamespace: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "newNamespace",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        newNamespace: dependencyValues.newNamespace,
                     },
                 };
             },
@@ -249,8 +230,6 @@ export default class Group extends CompositeComponent {
                 await component.state.serializedChildren.value,
             );
 
-            let newNamespace = component.attributes.newNamespace?.primitive;
-
             if ("isResponse" in component.attributes) {
                 // pass isResponse to replacements
 
@@ -260,13 +239,12 @@ export default class Group extends CompositeComponent {
                     }
 
                     let attributesFromComposite =
-                        convertAttributesForComponentType({
+                        convertUnresolvedAttributesForComponentType({
                             attributes: {
                                 isResponse: component.attributes.isResponse,
                             },
                             componentType: repl.componentType,
                             componentInfoObjects,
-                            compositeCreatesNewNamespace: newNamespace,
                         });
                     if (!repl.attributes) {
                         repl.attributes = {};
@@ -292,7 +270,6 @@ export default class Group extends CompositeComponent {
                 assignNames: component.doenetAttributes.assignNames,
                 serializedComponents: replacements,
                 parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects,
                 originalNamesAreConsistent: true,
             });

@@ -1686,8 +1686,6 @@ export default class Graph extends BlockComponent {
             let processResult = processAssignNames({
                 serializedComponents,
                 parentIdx: this.componentIdx,
-                parentCreatesNewNamespace:
-                    this.attributes.newNamespace?.primitive,
                 componentInfoObjects: this.componentInfoObjects,
                 indOffset: await this.stateValues.numChildrenAdded,
             });

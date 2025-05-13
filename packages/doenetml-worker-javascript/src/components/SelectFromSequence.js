@@ -7,7 +7,7 @@ import {
 import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
 import { processAssignNames } from "../utils/naming";
 
-import { convertAttributesForComponentType } from "../utils/copy";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnRoundingAttributes } from "../utils/rounding";
 import { textToMathFactory } from "../utils/math";
 import {
@@ -259,8 +259,6 @@ export default class SelectFromSequence extends Sequence {
             componentType = "text";
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let attributesToConvert = {};
         for (let attr of [
             "fixed",
@@ -277,12 +275,12 @@ export default class SelectFromSequence extends Sequence {
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite = convertAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType,
-                componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
-            });
+            attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType,
+                    componentInfoObjects,
+                });
         }
 
         let replacements = [];
@@ -299,7 +297,6 @@ export default class SelectFromSequence extends Sequence {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);
@@ -320,7 +317,7 @@ export default class SelectFromSequence extends Sequence {
         let numToSelect = 1,
             withReplacement = false;
 
-        let sequenceType = serializedComponent.attributes.type.primitive;
+        let sequenceType = serializedComponent.attributes.type.primitive.value;
 
         let numToSelectComponent =
             serializedComponent.attributes.numToSelect?.component;
