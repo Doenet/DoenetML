@@ -27,7 +27,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-` <ol>{:dn}` renders an ordered list, with list items given by ` <li>{:dn}` children. ` <ol>{:dn}` is a block component and should not contain any components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
+` <ol>{:dn}` renders an ordered list, with list items given by ` <li>{:dn}` children. ` <ol>{:dn}` is a [**Sectional**](../document_structure/essentialConcepts/#componentTypes) 
+component and should not contain any components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children 
+may themselves contain graphs, problems, paragraphs, and other content.
 
 
 
@@ -97,4 +99,5 @@ When nesting ` <ol>{:dn}` components, the `level` attribute can be used to speci
 
 
 
-Use the `marker` attribute to indicate a specific counting marker for the list. See the `level` example for the default markers at each level.
+Use the `marker` attribute to indicate a specific counting marker for the list. See the `level` example 
+for the default markers at each level.

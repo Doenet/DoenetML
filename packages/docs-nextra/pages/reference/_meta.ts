@@ -1,19 +1,31 @@
+import { split } from "postcss/lib/list";
+
 export default {
-    essentialConcepts: "Essential Concepts",
-    documentStructure: {
-        name: "Document Structure",
+    componentIndex: "Alphabetical Index",
+    componentTypes: "Index by Component Type",
+    Sample_Component: {
         display: "hidden",
     },
-    advancedExamples: {
-        name: "Advanced Examples",
+    archive: {
         display: "hidden",
     },
-    answerValidation: {
-        name: "Answer Validation",
-        display: "hidden",
-    },
-    creditAchieved: {
-        name: "Controlling Credit Awarded",
-        display: "hidden",
-    },
+    ol: { title: "ol" },
+    select: { title: "select" },
+    selectFromSequence: { title: "selectFromSequence" },
+    selectRandomNumbers: { title: "selectRandomNumbers" },
+    setup: { title: "setup" },
+    sideBySide: { title: "sideBySide" },
+    solution: { title: "solution" },
+    sort: { title: "sort" },
+    sources: { title: "sources" },
+    split: { title: "split" },
+    spreadsheet: { title: "spreadsheet" },
+    styleDefinition: { title: "styleDefinition" },
+    subsetOfReals: { title: "subsetOfReals" },
+    substitute: { title: "substitute" },
+    table: { title: "table" },
+    tabular: { title: "tabular" },
+    template: { title: "template" },
+    title: { title: "title" },
+    ul: { title: "ul" },
 };

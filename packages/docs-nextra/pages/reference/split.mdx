@@ -1,0 +1,97 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+## Attributes and Properties 
+
+# ` <split>{:dn}`
+
+
+` <split>{:dn}` is an [**General Operator**](../document_structure/essentialConcepts/#componentTypes) 
+component that splits a numerical value or a text string into separate characters.
+
+<AttrDisplay name='split'/> 
+The ` <split>{:dn}` component has no properties.
+
+---
+
+### Example: ` <split>{:dn}` numbers from user-input
+
+
+```doenet-editor-horiz
+<p>Type a 4-digit number: <mathInput name="n" prefill="3.142"/></p>
+<p><split name="sN">$n</split></p>
+<p>sN[1] = $sN[1]</p>
+<p>sN[2] = $sN[2]</p>
+<p>sN[3] = $sN[3]</p>
+<p>sN[4] = $sN[4]</p>
+<p>sN[5] = $sN[5]</p>
+```
+
+
+
+In this example, a numerical value is split into separate digits that can be retrieved by 
+by referring to the desired index of the named  ` <split>{:dn}` component. Note that decimal 
+points will occupy their own index.
+
+
+---
+
+### Example: ` <split>{:dn}` a text string
+
+
+```doenet-editor-horiz
+<p>Type a word: <textInput name="t" prefill="Hi you!"/></p>
+<p><split name="sT">$t</split></p>
+<p>sT[1] = $sT[1]</p>
+<p>sT[2] = $sT[2]</p>
+<p>sT[3] = $sT[3]</p>
+<p>sT[4] = $sT[4]</p>
+<p>sT[5] = $sT[5]</p>
+<p>sT[6] = $sT[6]</p>
+<p>sT[7] = $sT[7]</p>
+```
+
+
+
+In this example, a text string value is split into separate characters that can be 
+retrieved by referring to the desired index of the named ` <split>{:dn}` component. 
+Note that spaces and puncuation will occupy their own index.
+
+
+
+---
+
+### Example: splitBy
+
+
+```doenet-editor-horiz
+<p>Split the following by commas: <textInput name="ti" prefill="red,green,blue"/></p>
+<p>
+  <split name="cSplit" splitBy="comma">
+    $ti
+  </split>
+</p>
+<p>cSplit[2] = $cSplit[2]</p>
+
+<p>Split the following by letter: <textInput name="ti2" prefill="red,green,blue"/></p>
+<p>
+  <split name="lSplit" splitBy="letter">
+    $ti2
+  </split>
+</p>
+<p>lSplit[2] = $lSplit[2]</p>
+
+<p>Split the following by word: <textInput name="ti3" prefill="red green blue"/></p>
+<p>
+  <split name="wSplit" splitBy="word">
+    $ti3
+  </split>
+</p>
+<p>wSplit[2] = $wSplit[2]</p>
+```
+
+
+
+For text strings, the `splitBy` attribute can be used to adjust the type of splitting that occurs. The options are `comma`, `letter`, and `word`.
+
