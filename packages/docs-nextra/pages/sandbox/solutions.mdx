@@ -14,6 +14,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
     <line through="$p1"/>
 </graph>
 ```
+[Back to Puzzle 1](puzzles/#geo1_puzzle)
 
 ---
 
@@ -35,7 +36,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 <p>Enter number of sides: <mathInput name="userSides" prefill="4"/></p>
 <graph>
     <point name="p1">(0,5)</point>
-    <circle name="circ`" radius="5" through="$p1"/>
+    <circle name="circ1" radius="5" through="$p1"/>
     <regularPolygon vertices="$p1" center="$circ1.center" numSides="$userSides"/>
 </graph>
 ```
@@ -47,3 +48,4 @@ import { AttrDisplay, PropDisplay } from "../../components"
     <regularPolygon circumradius="$circ1.radius" center="$circ1.center"/>
 </graph>
 ```
+[Back to Puzzle 2](puzzles/#geo2_puzzle)

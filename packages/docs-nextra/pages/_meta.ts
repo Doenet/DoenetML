@@ -3,12 +3,16 @@ export default {
         title: "Home",
         display: "hidden",
     },
-    tutorials: {
-        title: "Tutorials",
-        type: "page",
-    },
     reference: {
         title: "Reference",
+        type: "page",
+    },
+    document_structure: {
+        title: "Document Structure",
+        type: "page",
+    },
+    tutorials: {
+        title: "Tutorials",
         type: "page",
     },
     sandbox: {
