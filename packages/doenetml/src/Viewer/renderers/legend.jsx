@@ -169,7 +169,7 @@ export default React.memo(function Legend(props) {
         }
 
         if (atRight && usedMathJax) {
-            MathJax.Hub.Queue(() => {
+            MathJax.startup.promise.then(() => {
                 maxTextWidth = 0;
                 for (let txt of labels.current) {
                     maxTextWidth = Math.max(
