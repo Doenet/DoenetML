@@ -24,7 +24,8 @@ export function normalizeDocumentDast(
         .use(pluginChangeCdataToText)
         .use(pluginEnsureDocumentElement)
         .use(pluginConvertPretextAttributes)
-        .use(pluginExpandAliasedElements);
+        .use(pluginExpandAliasedElements)
+        .use(pluginComponentSugar);
     if (addCompatibilityNames) {
         processor = processor.use(pluginAddCompatibilityNames);
     }
@@ -154,6 +155,120 @@ const pluginAddCompatibilityNames: Plugin<[], DastRoot, DastRoot> = () => {
                         name: "name",
                         children: [{ type: "text", value: name }],
                     };
+                }
+            }
+        });
+    };
+};
+
+/**
+ * Perform substitutions for syntactic sugar based on the component type
+ */
+const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
+    return (tree) => {
+        visit(tree, (node) => {
+            if (!isDastElement(node)) {
+                return;
+            }
+            if (node.name === "repeat") {
+                // If a `<repeat>` element has a `"valueName"` and/or `"indexName" attribute with a single text child,
+                // then add a `<_repeatSetup>` child to the `<repeat>` that contains children
+                // named by the values of those attributes.
+                // These children will not be rendered, but they create targets for references to `valueName` and `indexName`.
+                // Mapping those references to the correct target will be addressed when the `<repeat>` is expanded.
+                let setupChildren: DastElementContent[] = [];
+                if (node.attributes.valueName) {
+                    const attrChildren = node.attributes.valueName.children;
+                    if (
+                        attrChildren.length === 1 &&
+                        attrChildren[0].type === "text"
+                    ) {
+                        const valueName = attrChildren[0].value;
+
+                        setupChildren.push({
+                            type: "element",
+                            name: "_placeholder",
+                            children: [],
+                            attributes: {
+                                name: {
+                                    type: "attribute",
+                                    name: "name",
+                                    children: [
+                                        { type: "text", value: valueName },
+                                    ],
+                                },
+                            },
+                        });
+                    }
+                }
+                if (node.attributes.indexName) {
+                    const attrChildren = node.attributes.indexName.children;
+                    if (
+                        attrChildren.length === 1 &&
+                        attrChildren[0].type === "text"
+                    ) {
+                        const indexName = attrChildren[0].value;
+
+                        setupChildren.push({
+                            type: "element",
+                            name: "integer",
+                            children: [],
+                            attributes: {
+                                name: {
+                                    type: "attribute",
+                                    name: "name",
+                                    children: [
+                                        { type: "text", value: indexName },
+                                    ],
+                                },
+                            },
+                        });
+                    }
+                }
+
+                if (setupChildren.length > 0) {
+                    node.children.push({
+                        type: "element",
+                        name: "_repeatSetup",
+                        children: setupChildren,
+                        attributes: {},
+                    });
+                }
+            } else if (node.name === "conditionalContent") {
+                // Turn any `<else>` children to `<case>`.
+                // Wrap all children in a `<case>` if there were no `<case>` or `<else>` children.
+                let nCaseChildren = 0;
+                for (const child of node.children) {
+                    if (!isDastElement(child)) {
+                        continue;
+                    }
+                    if (child.name === "case") {
+                        nCaseChildren++;
+                    } else if (child.name === "else") {
+                        // change `else` to a `case`
+                        child.name = "case";
+                        nCaseChildren++;
+                    }
+                }
+
+                if (nCaseChildren === 0) {
+                    // If there are no `<case>` children (and no `<else>` children that were converted)
+                    // then wrap all children in a `<case>` child and move the `condition` attribute
+                    // from the `<conditionalContent>` to the `<case>`.
+                    const attributes: Record<string, DastAttribute> = {};
+                    node.children = [
+                        {
+                            type: "element",
+                            name: "case",
+                            children: node.children,
+                            attributes,
+                        },
+                    ];
+
+                    if (node.attributes.condition) {
+                        attributes.condition = node.attributes.condition;
+                        delete node.attributes.condition;
+                    }
                 }
             }
         });

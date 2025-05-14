@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import util from "util";
-import { lezerToDast, toXml, normalizeDocumentDast } from "@doenet/parser";
+import { lezerToDast } from "../src/lezer-to-dast";
+import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
+import { normalizeDocumentDast } from "../src/dast-normalize/normalize-dast";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -117,6 +119,67 @@ describe("Normalize dast", async () => {
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
             '<document><xref ref="$(foo-bar)" /></document>',
+        );
+    });
+
+    it("Sugars in repeat setup children", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        // nothing added with no valueName or indexName
+        source = "<repeat>x</repeat>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><repeat>x</repeat></document>",
+        );
+
+        // with valueName
+        source = "<repeat valueName='q'>x</repeat>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><repeat valueName="q">x<_repeatSetup><_placeholder name="q" /></_repeatSetup></repeat></document>',
+        );
+
+        // with indexName
+        source = "<repeat indexName='i'>x</repeat>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><repeat indexName="i">x<_repeatSetup><integer name="i" /></_repeatSetup></repeat></document>',
+        );
+
+        // with valueName and indexName
+        source = "<repeat valueName='v' indexName='j'>x</repeat>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><repeat valueName="v" indexName="j">x<_repeatSetup><_placeholder name="v" /><integer name="j" /></_repeatSetup></repeat></document>',
+        );
+    });
+
+    it("Sugars in cases of conditionalContent", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        // nothing changed with just case
+        source =
+            '<conditionalContent><case condition="a">b</case></conditionalContent>';
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><conditionalContent><case condition="a">b</case></conditionalContent></document>',
+        );
+
+        // else changes to cases
+        source =
+            '<conditionalContent><case condition="a">b</case><else>c</else></conditionalContent>';
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><conditionalContent><case condition="a">b</case><case condition="true">c</case></conditionalContent></document>',
+        );
+
+        // with no else/cases, we add a single case
+        source = '<conditionalContent condition="a">b</conditionalContent>';
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><conditionalContent><case condition="a">b</case></conditionalContent></document>',
         );
     });
 });
