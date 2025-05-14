@@ -17,13 +17,16 @@ export default {
         title: "📘 🖥  Embed in PreTeXt",
     },
     runestone: {
-        title: "📘 🖥  Assign in Runestone",
+        title: "📘  Assign in Runestone",
     },
     googleSite: {
         title: "📘 🖥  Embed in a Google Site",
     },
     canvas: {
-        title: "📘 🖥  Assign in Canvas",
+        title: "📘  Assign in Canvas",
+    },
+    vsCodeExtension: {
+        title: "📘  Author in VS Code",
     },
     sampleProject1: {
         title: "📘 Sample Project 1",

@@ -2,3 +2,27 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 # How to Embed your DoenetML in a PreTeXt book
+
+## Recommended Workflow
+To start, we assume that you have a PreTeXt book already created. If you don't, you can 
+create one by following the instructions in the [PreTeXt Getting Started Guide](https://pretextbook.org/doc/guide/html/tutorial.html).
+
+1. Create your DoenetML content in the Doenet editor on the [Doenet website](https://alpha.doenet.org/), 
+    *or* author content alongside your PreTeXt source in VS Code with the [DoenetML extension](vsCodeExtension.mdx)
+2. If authoring in the Doenet editor, copy the DoenetML text and paste it into an empty file in the relevant directory of your PreTeXt book. 
+    Name this file with the format `filename.doenetml`.
+3. If using the VS Code extension, save your doenetML source file in your PreTeXt book with the extension `filename.doenetml` 
+5. In the PreTeXt file in which you want to embed the DoenetML (this is most likely a section file with the `.ptx` extension), add the following code:
+
+```xml
+<interactive label="interactive-label" platform="doenetml" width="100%" aspect="2:8">
+  <slate surface="doenetml">
+    <xi:include parse="text" href="filename.doenetml"/> 
+  </slate>
+</interactive>
+```
+Note, this code is a PreTeXt snippet. The `xi:include` tag is used to include the DoenetML file in the PreTeXt book. The `@aspect` 
+attribute is used to set the aspect ratio of the DoenetML content - you may need to experiment with this to get the desired size for 
+your doenetML content.
+
+### [Link to Sample Book](...)
