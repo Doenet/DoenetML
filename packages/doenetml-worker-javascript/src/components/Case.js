@@ -44,14 +44,19 @@ export default class Case extends Template {
         return stateVariableDefinitions;
     }
 
-    static createSerializedReplacements({ component, componentInfoObjects }) {
+    static createSerializedReplacements({
+        component,
+        componentInfoObjects,
+        nComponents,
+    }) {
         if (!component.stateValues.conditionSatisfied) {
-            return { replacements: [], errors: [], warnings: [] };
+            return { replacements: [], errors: [], warnings: [], nComponents };
         }
 
         return super.createSerializedReplacements({
             component,
             componentInfoObjects,
+            nComponents,
         });
     }
 }

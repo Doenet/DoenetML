@@ -20,10 +20,6 @@ export class Description extends TextOrInline {
     static rendererType = undefined;
 }
 
-export class Else extends Template {
-    static componentType = "else";
-}
-
 export class Xlabel extends Label {
     static componentType = "xlabel";
     static rendererType = "label";
