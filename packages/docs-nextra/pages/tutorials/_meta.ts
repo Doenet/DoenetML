@@ -14,7 +14,7 @@ export default {
         title: "📘 🖥  Share on Doenet",
     },
     embedInPretext: {
-        title: "📘 🖥  Embed in PreTeXt",
+        title: "📘 Embed in PreTeXt",
     },
     runestone: {
         title: "📘  Assign in Runestone",
