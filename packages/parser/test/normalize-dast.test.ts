@@ -122,7 +122,7 @@ describe("Normalize dast", async () => {
         );
     });
 
-    it("Sugars in repeat setup children", () => {
+    it("Sugars in repeat template and _repeatSetup children", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;
 
@@ -130,28 +130,28 @@ describe("Normalize dast", async () => {
         source = "<repeat>x</repeat>";
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            "<document><repeat>x</repeat></document>",
+            "<document><repeat><template>x</template></repeat></document>",
         );
 
         // with valueName
         source = "<repeat valueName='q'>x</repeat>";
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><repeat valueName="q">x<_repeatSetup><_placeholder name="q" /></_repeatSetup></repeat></document>',
+            '<document><repeat valueName="q"><template>x</template><_repeatSetup><_placeholder name="q" /></_repeatSetup></repeat></document>',
         );
 
         // with indexName
         source = "<repeat indexName='i'>x</repeat>";
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><repeat indexName="i">x<_repeatSetup><integer name="i" /></_repeatSetup></repeat></document>',
+            '<document><repeat indexName="i"><template>x</template><_repeatSetup><integer name="i" /></_repeatSetup></repeat></document>',
         );
 
         // with valueName and indexName
         source = "<repeat valueName='v' indexName='j'>x</repeat>";
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><repeat valueName="v" indexName="j">x<_repeatSetup><_placeholder name="v" /><integer name="j" /></_repeatSetup></repeat></document>',
+            '<document><repeat valueName="v" indexName="j"><template>x</template><_repeatSetup><_placeholder name="v" /><integer name="j" /></_repeatSetup></repeat></document>',
         );
     });
 
@@ -172,7 +172,7 @@ describe("Normalize dast", async () => {
             '<conditionalContent><case condition="a">b</case><else>c</else></conditionalContent>';
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><conditionalContent><case condition="a">b</case><case condition="true">c</case></conditionalContent></document>',
+            '<document><conditionalContent><case condition="a">b</case><case>c</case></conditionalContent></document>',
         );
 
         // with no else/cases, we add a single case
@@ -180,6 +180,46 @@ describe("Normalize dast", async () => {
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
             '<document><conditionalContent><case condition="a">b</case></conditionalContent></document>',
+        );
+    });
+
+    it("Sugars in options and component wrapper of select", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        // nothing changes if have options already
+        source = "<select><option>$a</option><option>b</option></select>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><select><option>$a</option><option>b</option></select></document>",
+        );
+
+        // defaults to math
+        source = "<select>$a b</select>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><select><option><math>$a</math></option><option><math>b</math></option></select></document>",
+        );
+
+        // set type to "text"
+        source = `<select type="text">$a b</select>`;
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            `<document><select type="text"><option><text>$a</text></option><option><text>b</text></option></select></document>`,
+        );
+
+        // invalid type becomes "math"
+        source = `<select type="bad">$a b</select>`;
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            `<document><select type="bad"><option><math>$a</math></option><option><math>b</math></option></select></document>`,
+        );
+
+        // parentheses prevent a split
+        source = `<select> ($a b (c - $$f(x)) ) d$e</select>`;
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            `<document><select><option><math>($a b (c - $$f(x)) )</math></option><option><math>d$e</math></option></select></document>`,
         );
     });
 });

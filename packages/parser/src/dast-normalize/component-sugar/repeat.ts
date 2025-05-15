@@ -1,17 +1,21 @@
 import { DastElement, DastElementContent } from "../../types";
 
 /**
- * If a `<repeat>` element has a `"valueName"` and/or `"indexName" attribute with a single text child,
+ * Two transformations to the repeat children are made
+ * 1. All children are wrapped in a `<template>` tag.
+ * 1. If the `"valueName"` and/or `"indexName"` attribute contain a single text child,
  * then add a `<_repeatSetup>` child to the `<repeat>` that contains children
  * named by the values of those attributes.
- * These children will not be rendered, but they create targets for references to `valueName` and `indexName`.
- * Mapping those references to the correct target will be addressed when the `<repeat>` is expanded.
+ * (These children will not be rendered, but they create targets for references to `valueName` and `indexName`.
+ * Mapping those references to the correct target will be addressed when the `<repeat>` is expanded.)
  *
  * For example, `<repeat valueName="v" indexName="i">$v+$i</repeat>` becomes
  *
  * ```xml
  * <repeat valueName="v" indexName="i">
- *  $v+$i
+ *  <template>
+ *    $v+$i
+ *  </template>
  *  <_repeatSetup>
  *     <_placeholder name="v" />
  *     <integer name="i" />
@@ -21,6 +25,15 @@ import { DastElement, DastElementContent } from "../../types";
  */
 export function repeatSugar(node: DastElement) {
     let setupChildren: DastElementContent[] = [];
+
+    node.children = [
+        {
+            type: "element",
+            name: "template",
+            children: node.children,
+            attributes: {},
+        },
+    ];
 
     if (node.attributes.valueName) {
         const attrChildren = node.attributes.valueName.children;
