@@ -38,7 +38,10 @@ async function setupLanguageServer(context: ExtensionContext) {
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
-        documentSelector: [{ language: "doenet" }],
+        documentSelector: [
+            { scheme: "file", language: "doenet" },
+            { scheme: "untitled", language: "doenet" },
+        ],
     };
 
     // Create a worker. The worker main file implements the language server.

@@ -25,6 +25,34 @@ import {
     UpdateRenderersCallback,
 } from "@doenet/doenetml-worker-javascript";
 
+// 2025-05-14
+// There is some weirdness with CORS/Firefox/Data URLs that makes it so that
+// the bundled WASM cannot actually be loaded. To work around this,
+// we import it as a string and create a blob URL from it.
+// @ts-ignore
+import WASM_BYTES_DATA_URL from "lib-doenetml-worker/lib_doenetml_worker_bg.wasm?url";
+let wasmBlobUrl: string = WASM_BYTES_DATA_URL;
+try {
+    // If the URL starts with `data:*;base64,`, then it is a data URL and we want to get
+    // the base64 part
+    if (wasmBlobUrl.match(/^data:.*;base64,/)) {
+        const base64 = wasmBlobUrl.split(",")[1];
+        // Create a blob URL from the base64 data
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        wasmBlobUrl = URL.createObjectURL(
+            new Blob([byteArray], { type: "application/wasm" }),
+        );
+        console.log("BLOB URL", wasmBlobUrl);
+    }
+} catch (e) {
+    console.warn("Error while creating blob URL for wasm bundle", e);
+}
+
 /**
  * The correct type of `FlatDastRoot`. **This should be used instead of
  * `FlatDastRoot`**
@@ -78,26 +106,34 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
-        if (!this.wasm_initialized) {
-            await init();
-            this.wasm_initialized = true;
-        }
-
-        if (!this.doenetCore) {
-            this.doenetCore = PublicDoenetMLCore.new();
-        }
-        if (this.core_type === "javascript") {
-            if (!this.javascriptCore) {
-                this.javascriptCore = new PublicDoenetMLCoreJavascript();
+        try {
+            if (!this.wasm_initialized) {
+                await init(wasmBlobUrl);
+                this.wasm_initialized = true;
             }
-            this.javascriptCore.setSource(args.source);
-        }
 
-        // We need to cast `args.dast` to `DastRootInCore` because
-        // a real `DastRoot` allows things like comments and cdata, etc.
-        // These are assume to be filtered out by the time we send data to core.
-        this.doenetCore.set_source(args.dast as DastRootInCore, args.source);
-        this.source_set = true;
+            if (!this.doenetCore) {
+                this.doenetCore = PublicDoenetMLCore.new();
+            }
+            if (this.core_type === "javascript") {
+                if (!this.javascriptCore) {
+                    this.javascriptCore = new PublicDoenetMLCoreJavascript();
+                }
+                this.javascriptCore.setSource(args.source);
+            }
+
+            // We need to cast `args.dast` to `DastRootInCore` because
+            // a real `DastRoot` allows things like comments and cdata, etc.
+            // These are assume to be filtered out by the time we send data to core.
+            this.doenetCore.set_source(
+                args.dast as DastRootInCore,
+                args.source,
+            );
+            this.source_set = true;
+        } catch (err) {
+            console.error("Error when setting source", err);
+            throw err;
+        }
 
         resolve();
     }
@@ -110,7 +146,7 @@ export class CoreWorker {
         await isProcessingPromise;
 
         if (!this.wasm_initialized) {
-            await init();
+            await init(wasmBlobUrl);
             this.wasm_initialized = true;
         }
 
