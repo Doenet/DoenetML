@@ -47,7 +47,6 @@ try {
         wasmBlobUrl = URL.createObjectURL(
             new Blob([byteArray], { type: "application/wasm" }),
         );
-        console.log("BLOB URL", wasmBlobUrl);
     }
 } catch (e) {
     console.warn("Error while creating blob URL for wasm bundle", e);
