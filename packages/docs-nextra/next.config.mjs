@@ -134,7 +134,9 @@ const withNextra = nextraConfig({
 let assetPrefix = "";
 let basePath = "";
 
-export default withNextra({
+const fullConfig = withNextra({
+    compress: false,
+    productionBrowserSourceMaps: true,
     output: "export",
     assetPrefix,
     basePath,
@@ -142,6 +144,17 @@ export default withNextra({
         unoptimized: true,
     },
 });
+// 2025-05-15 With Next.js 14 and Nextra 3, minification results in an error about
+// a duplicate identifier `e`. Preventing minification seems to fix the issue.
+// Since Nextra deeply modifies the Next.js config webpack config, we
+// apply its configuration and then our own.
+// Replace the webpack config with the one that prevents minification
+const nextraWebpackConfig = fullConfig.webpack;
+fullConfig.webpack = (config, options) => {
+    const newConfig = nextraWebpackConfig(config, options);
+    newConfig.optimization.minimizer = [];
+    newConfig.optimization.minimize = false;
+    return config;
+};
 
-// If you have other Next.js configurations, you can pass them as the parameter:
-// module.exports = withNextra({ /* other next.js config */ })
+export default fullConfig;
