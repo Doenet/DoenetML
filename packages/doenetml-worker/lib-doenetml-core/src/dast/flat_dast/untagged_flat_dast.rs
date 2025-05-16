@@ -421,12 +421,19 @@ impl FlatFragment {
     /// a position equal to its index.
     /// (This would be a sparse array for `FlatFragment`)
     pub fn len(&self) -> usize {
-        self.idx_map
+        let n = self
+            .idx_map
             .iter()
             .map(|(k, _v)| *k)
             .max_by_key(|x| *x)
             .map(|x| x + 1)
-            .unwrap_or_default()
+            .unwrap_or_default();
+        if let Some(idx) = self.parent_idx {
+            if idx + 1 > n {
+                return idx + 1;
+            }
+        }
+        n
     }
 
     pub fn get_node(&self, idx: Index) -> &FlatNode {

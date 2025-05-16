@@ -2623,14 +2623,15 @@ export default class Core {
 
         let nComponents = this._components.length;
 
-        // XXX: it's not clear that this is the right choice.
-        // Another option is to see if the resolver name map as the componentIdx
+        // Check if have a single component whose componentIdx was already assigned by the composite.
+        // This means that the replacement's componentIdx was already available
+        // during the initial resolve phase and so could have references already resolved to it.
+        // In this case, we'll make it the parent of the `flatFragment` we'll sent to the resolver.
         const haveSingleIndexedReplacement =
             serializedReplacements.length === 1 &&
-            serializedReplacements[0].componentIdx < nComponents;
+            component.attributes.createComponentIdx?.primitive.value;
 
-        // If we have a single replacement that already has an componentIdx that was assigned before
-        // (i.e., a componentIdx is in this._components),
+        // If we have a single replacement whose componentIdx was already assigned,
         // then use that for the parentIdx.
         // Otherwise, use the composite's index for the parentIdx
         const parentIdx = haveSingleIndexedReplacement
@@ -2646,11 +2647,9 @@ export default class Core {
         // We add all its descendants to the resolver
 
         const flatFragment = {
-            children: fragmentChildren
-                .filter((child) => typeof child === "string")
-                .map((child) =>
-                    typeof child === "string" ? child : child.componentIdx,
-                ),
+            children: fragmentChildren.map((child) =>
+                typeof child === "string" ? child : child.componentIdx,
+            ),
             nodes: [],
             parentIdx,
             idxMap: {},
@@ -2739,12 +2738,10 @@ export default class Core {
                 );
             }
 
-            if (componentIdx >= nComponents) {
-                const idxInNodes = flatFragment.nodes.length;
+            const idxInNodes = flatFragment.nodes.length;
 
-                flatFragment.nodes[idxInNodes] = flatElement;
-                flatFragment.idxMap[componentIdx] = idxInNodes;
-            }
+            flatFragment.nodes[idxInNodes] = flatElement;
+            flatFragment.idxMap[componentIdx] = idxInNodes;
         }
     }
 
@@ -9334,10 +9331,6 @@ export default class Core {
             );
         }
 
-        // TODO: skipping removing components from resolver as it was removing too much,
-        // e.g., removing outside references that wouldn't be replaced if the component is recreated.
-        // this.removeComponentsFromResolver(componentsToDelete);
-
         return {
             success: true,
             deletedComponents: componentsToDelete,
@@ -9345,45 +9338,35 @@ export default class Core {
         };
     }
 
-    // TODO: not currently being called, as we are skipping the call, above.
-    removeComponentsFromResolver(componentsToDelete) {
-        // console.log("remove components from resolver", componentsToDelete);
-
-        const componentIndices = Object.keys(componentsToDelete);
+    removeComponentsFromResolver(componentsToRemove, parentIdx) {
         const idxFromName = {};
 
-        for (const cIdx in componentsToDelete) {
-            const comp = componentsToDelete[cIdx];
+        for (const comp of componentsToRemove) {
             if (comp.attributes.name) {
-                idxFromName[comp.attributes.name.primitive.value] =
-                    Number(cIdx);
+                idxFromName[comp.attributes.name.primitive.value] = Number(
+                    comp.componentIdx,
+                );
             }
         }
 
-        for (const parentIdx in this.resolver.name_map) {
-            if (componentIndices.includes(parentIdx)) {
-                this.resolver.name_map[parentIdx] = {};
-            } else {
-                const parentNames = this.resolver.name_map[parentIdx];
-                for (const name in parentNames) {
-                    const idxToDelete = idxFromName[name];
+        const descendantNames = this.resolver.name_map[parentIdx];
+        for (const name in descendantNames) {
+            const idxToDelete = idxFromName[name];
 
-                    if (idxToDelete != undefined) {
-                        if (parentNames[name].Unique == idxToDelete) {
-                            delete parentNames[name];
-                        } else {
-                            // TODO: add tests for removal of ambiguous names
-                            const ambiguous = parentNames[name].Ambiguous;
-                            if (Array.isArray(ambiguous)) {
-                                const amb_idx = ambiguous.indexOf(idxToDelete);
-                                if (amb_idx != -1) {
-                                    ambiguous.splice(amb_idx, 1);
-                                    if (ambiguous.length === 1) {
-                                        parentNames[name] = {
-                                            Unique: ambiguous[0],
-                                        };
-                                    }
-                                }
+            if (idxToDelete != undefined) {
+                if (descendantNames[name].Unique == idxToDelete) {
+                    delete descendantNames[name];
+                } else {
+                    // TODO: add tests for removal of ambiguous names
+                    const ambiguous = descendantNames[name].Ambiguous;
+                    if (Array.isArray(ambiguous)) {
+                        const amb_idx = ambiguous.indexOf(idxToDelete);
+                        if (amb_idx != -1) {
+                            ambiguous.splice(amb_idx, 1);
+                            if (ambiguous.length === 1) {
+                                descendantNames[name] = {
+                                    Unique: ambiguous[0],
+                                };
                             }
                         }
                     }
@@ -9532,8 +9515,8 @@ export default class Core {
             ];
         }
 
-        // console.log("replacement changes for " + component.componentIdx);
-        // console.log(replacementResults);
+        console.log("replacement changes for " + component.componentIdx);
+        console.log(replacementResults);
         // console.log(component.replacements.map(x => x.componentIdx));
         // console.log(component.replacements);
         // console.log(component.unresolvedState);
@@ -9574,6 +9557,46 @@ export default class Core {
                 let firstIndex = change.firstReplacementInd;
 
                 if (numberToDelete > 0 && change.changeTopLevelReplacements) {
+                    const hadSingleIndexedReplacement =
+                        component.replacements.length === 1 &&
+                        component.attributes.createComponentIdx?.primitive
+                            .value;
+
+                    // If the componentIdx of the a single replacement was prescribed by the composite,
+                    // then it was in the resolver even before it was created,
+                    // so we don't delete it from the resolver when it is removed
+                    if (!hadSingleIndexedReplacement) {
+                        // delete the indices of the current replacements from
+                        // composite's entry of the name map of the resolver
+
+                        let componentsToRemove = [];
+
+                        let newComponentsToRemove = component.replacements
+                            .slice(firstIndex, firstIndex + numberToDelete)
+                            .filter((comp) => typeof comp !== "string");
+
+                        // recurse to all descendants of the replacements,
+                        // including both `definingChildren` and `replacements` of the descendants
+                        while (newComponentsToRemove.length > 0) {
+                            componentsToRemove.push(...newComponentsToRemove);
+                            newComponentsToRemove =
+                                newComponentsToRemove.flatMap((comp) => {
+                                    let newComps = [...comp.definingChildren];
+                                    if (comp.replacements) {
+                                        newComps.push(...comp.replacements);
+                                    }
+                                    return newComps.filter(
+                                        (comp) => typeof comp !== "string",
+                                    );
+                                });
+                        }
+
+                        this.removeComponentsFromResolver(
+                            componentsToRemove,
+                            component.componentIdx,
+                        );
+                    }
+
                     // delete replacements before creating new replacements so that can reuse componentNames
                     await this.deleteReplacementsFromShadowsThenComposite({
                         change,

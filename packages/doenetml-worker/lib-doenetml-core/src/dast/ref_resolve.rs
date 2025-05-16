@@ -50,21 +50,38 @@ enum Ref {
 pub struct Resolver {
     /// List of the parent of a node at a given index.
     node_parent: Vec<Option<Index>>,
+    /// List of whether or not a node at a given index is a type that will stop the propagation
+    /// of the ref resolution
+    stop_propagation: Vec<bool>,
     /// Map of all the names that are accessible (as descendants) from a given node.
     name_map: Vec<HashMap<String, Ref>>,
 }
+
+const STOP_AT_PARENT_TYPES: [&str; 3] = ["option", "case", "template"];
 
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
         Resolver {
             node_parent: flat_root.nodes.iter().map(|node| node.parent()).collect(),
+            stop_propagation: flat_root
+                .nodes
+                .iter()
+                .map(|node| {
+                    if let FlatNode::Element(element) = node {
+                        STOP_AT_PARENT_TYPES.contains(&element.name.as_str())
+                    } else {
+                        false
+                    }
+                })
+                .collect(),
             name_map: Self::build_name_map(&FlatRootOrFragment::Root(flat_root)),
         }
     }
 
-    /// Add nodes of `flat_subtree` with parent `parent_idx` to the resolver.
+    /// Add nodes of `flat_fragment` to the resolver.
     ///
-    /// This is used when new descendants of `parent_idx` are added due to expanding a composite component.
+    /// This is used when new descendants of `flat_fragment.parent_idx` are added
+    /// due to expanding a composite component.
     ///
     /// For example, for this DoenetML, on the first pass of processing, `"p2"` does not have any children named `"t"`.
     /// This function allows you to manipulate the resolution tree so that added in children can be resolved by name,
@@ -76,12 +93,7 @@ impl Resolver {
     /// ```
     ///
     /// Arguments:
-    /// - `parent_idx`: the index of the parent (in the example, the index of `"p2"`)
-    /// - `start_indexing_at`: optional number to add to the index of `flat_subtree` to calculate the component index
-    ///    Used if one needs to account for nodes that have not been added to the resolver.
-    ///    (For example, there might be nodes created in JavaScript that are not in the resolver and we need to avoid index collisions.)
-    ///    TODO: re-evaluate if `start_indexing_at` is needed when we have moved fully to the rust core.
-    /// - `flat_subtree`: a `FlatRoot` containing the new descendants added to `"p2"`.
+    /// - `flat_fragment`: a `FlatFragment` containing the new descendants added to `flat_fragment.parent_idx`.
     pub fn add_nodes(&mut self, flat_fragment: &FlatFragment) {
         let num_prev_nodes = self.node_parent.len();
         let new_len = flat_fragment.len();
@@ -90,20 +102,26 @@ impl Resolver {
             .parent_idx
             .expect("add_nodes should be called with a flat fragment that has a parent.");
 
-        // placeholder for missing nodes
-        self.node_parent
-            .extend(iter::repeat_n(None, new_len - num_prev_nodes));
-
-        // Add parents for new nodes/
-        // If the parent index is 0 (i.e., that placeholder node), set the parent to be `parent_idx`,
-        // else add `start_indexing_at-1` to each node
-        for node in flat_fragment.nodes.iter() {
-            self.node_parent[node.idx()] = node.parent();
+        // add placeholders for missing nodes as well as new nodes to be added
+        if new_len > num_prev_nodes {
+            self.node_parent
+                .extend(iter::repeat_n(None, new_len - num_prev_nodes));
+            self.stop_propagation
+                .extend(iter::repeat_n(false, new_len - num_prev_nodes));
+            self.name_map
+                .extend(iter::repeat_with(HashMap::new).take(new_len - num_prev_nodes));
         }
 
-        // add placeholders for missing nodes as well as new nodes to be added
-        self.name_map
-            .extend(iter::repeat_with(HashMap::new).take(new_len - num_prev_nodes));
+        // Add parents and stop_propagation for new nodes
+        for node in flat_fragment.nodes.iter() {
+            self.node_parent[node.idx()] = node.parent();
+            if let FlatNode::Element(element) = node {
+                self.stop_propagation[node.idx()] =
+                    STOP_AT_PARENT_TYPES.contains(&element.name.as_str())
+            }
+        }
+
+        // placeholder for missing nodes
 
         let mut subtree_name_map =
             Self::build_name_map(&FlatRootOrFragment::Fragment(flat_fragment));
@@ -194,6 +212,16 @@ impl Resolver {
         }
 
         while let Some(part) = path.next() {
+            if self.stop_propagation[current_idx] {
+                let remaining_path: Vec<FlatPathPart> =
+                    iter::once(part.clone()).chain(path.cloned()).collect();
+                return Ok(RefResolution {
+                    node_idx: current_idx,
+                    unresolved_path: Some(remaining_path),
+                    original_path,
+                });
+            }
+
             // current_idx specifies the "root" of the search. We try to resolve
             // children based on the path part, returning an error if there is an ambiguity.
             if let Some(referent) = self.name_map[current_idx].get(&part.name) {
@@ -288,13 +316,12 @@ impl Resolver {
             .take(flat_root_or_fragment.len())
             .collect::<Vec<_>>();
 
-        let mut fragment_parent = Vec::new();
+        let mut fragment_parent = None;
         if let FlatRootOrFragment::Fragment(flat_fragment) = flat_root_or_fragment {
-            fragment_parent.push(
-                flat_fragment.parent_idx.expect(
+            fragment_parent =
+                Some(flat_fragment.parent_idx.expect(
                     "build_name_map should be called with a flat fragment that has a parent.",
-                ),
-            );
+                ));
         }
 
         for element in flat_root_or_fragment
@@ -305,6 +332,7 @@ impl Resolver {
                 _ => None,
             })
         {
+            // XXX: we need to enforce restrictions on valid names. Is this the right place?
             let name = element
                 .attributes
                 .iter()
@@ -349,6 +377,19 @@ impl Resolver {
                         // There is no current match for the name `name`, so we have a unique reference
                         descendant_names[parent_idx].insert(name.clone(), Ref::Unique(element.idx));
                     });
+
+                // Stop if we've reached a parent that isn't the fragment parent
+                // and is a type that is in `STOP_AT_PARENT_TYPES`
+                if fragment_parent
+                    .map(|p_idx| p_idx != parent_idx)
+                    .unwrap_or(true)
+                {
+                    if let FlatNode::Element(element) = flat_root_or_fragment.get_node(parent_idx) {
+                        if STOP_AT_PARENT_TYPES.contains(&element.name.as_str()) {
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -366,6 +407,15 @@ impl Resolver {
             .map(|(_idx, parent)| parent.map(|par_idx| old_to_new_indices[par_idx]))
             .collect();
         self.node_parent = new_node_parent;
+
+        let new_stop_propagation: Vec<bool> = self
+            .stop_propagation
+            .iter()
+            .enumerate()
+            .filter(|(idx, _val)| node_is_referenced[*idx])
+            .map(|(_idx, val)| *val)
+            .collect();
+        self.stop_propagation = new_stop_propagation;
 
         let new_name_map: Vec<HashMap<String, Ref>> = self
             .name_map

@@ -221,6 +221,14 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
             0,
             4
           ],
+          "stop_propagation": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
           "name_map": [
             {
               "t": { "Unique": 1 },

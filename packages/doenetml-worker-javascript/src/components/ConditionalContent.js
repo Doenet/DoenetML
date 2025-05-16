@@ -6,8 +6,6 @@ export default class ConditionalContent extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
-    static includeBlankStringChildren = true;
-
     static createsVariants = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -194,7 +192,7 @@ export default class ConditionalContent extends CompositeComponent {
             );
             let serializedChild = {
                 type: "serialized",
-                componentType: "case",
+                componentType: "group",
                 componentIdx: nComponents++,
                 state: { rendered: true },
                 attributes: {},
@@ -228,7 +226,6 @@ export default class ConditionalContent extends CompositeComponent {
         component,
         components,
         workspace,
-        componentInfoObjects,
         nComponents,
     }) {
         // console.log(`calculate replacement changes for selectByCondition ${component.componentIdx}`)
@@ -254,7 +251,6 @@ export default class ConditionalContent extends CompositeComponent {
         let replacementResults = await this.getReplacements(
             component,
             components,
-            componentInfoObjects,
             nComponents,
         );
         errors.push(...replacementResults.errors);

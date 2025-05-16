@@ -35,6 +35,16 @@ impl Core {
         }
     }
 
+    /// Create a `FlatRoot` from `dast_root`, which involves creating a `FlatDast`
+    /// and expanding most references to elements (or errors)
+    /// unless the component type specifies to hold its children from resolving
+    pub fn flat_root_from_dast_root(dast_root: &DastRoot) -> (FlatRoot, Resolver) {
+        let mut flat_root = FlatRoot::from_dast(dast_root);
+        let mut resolver = Expander::expand(&mut flat_root);
+        flat_root.compactify(Some(&mut resolver));
+        (flat_root, resolver)
+    }
+
     /// Create a `NormalizedRoot` from `dast_root`, which involves creating a `FlatDast`
     /// and expanding all references to elements (or errors).
     pub fn normalized_root_from_dast_root(dast_root: &DastRoot) -> (NormalizedRoot, Resolver) {

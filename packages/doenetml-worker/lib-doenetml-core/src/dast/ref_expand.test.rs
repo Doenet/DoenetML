@@ -393,3 +393,169 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
         )
     );
 }
+
+#[test]
+fn initial_ref_skips_option_children() {
+    let dast_root = dast_root_no_position(
+        r#"<number name="n1" />$n1$n2$o.n2<option name="o"><number name="n2" />$n1$n2</option>"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+
+    println!("{:#?}", serde_json::to_value(&flat_root).unwrap());
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+            {
+                "type": "flatRoot",
+                "children": [0],
+                "nodes": [
+                  {
+                    "type": "element",
+                    "name": "document",
+                    "children": [1, 2, 3, 4, 5],
+                    "attributes": [],
+                    "idx": 0
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 0,
+                    "children": [],
+                    "attributes": [
+                      {
+                        "type": "attribute",
+                        "name": "name",
+                        "parent": 1,
+                        "children": ["n1"]
+                      }
+                    ],
+                    "idx": 1
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 0,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 2,
+                    "extending": {
+                      "Ref": {
+                        "nodeIdx": 1,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "n1", "index": [] }]
+                      }
+                    }
+                  },
+                  {
+                    "type": "error",
+                    "message": "Ref resolution error: No node identified by path",
+                    "parent": 0,
+                    "idx": 3,
+                    "unresolvedPath": [{ "type": "flatPathPart", "name": "n2", "index": [] }]
+                  },
+                  {
+                    "type": "element",
+                    "name": "option",
+                    "parent": 0,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 4,
+                    "extending": {
+                      "Ref": {
+                        "nodeIdx": 5,
+                        "unresolvedPath":  [{ "type": "flatPathPart", "name": "n2", "index": [] }],
+                        "originalPath": [
+                          { "type": "flatPathPart", "name": "o", "index": [] },
+                          { "type": "flatPathPart", "name": "n2", "index": [] }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "element",
+                    "name": "option",
+                    "parent": 0,
+                    "children": [6, 7, 8],
+                    "attributes": [
+                      {
+                        "type": "attribute",
+                        "name": "name",
+                        "parent": 5,
+                        "children": ["o"]
+                      }
+                    ],
+                    "idx": 5
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 5,
+                    "children": [],
+                    "attributes": [
+                      {
+                        "type": "attribute",
+                        "name": "name",
+                        "parent": 6,
+                        "children": ["n2"]
+                      }
+                    ],
+                    "idx": 6
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 5,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 7,
+                    "extending": {
+                      "Ref": {
+                        "nodeIdx": 1,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "n1", "index": [] }]
+                      }
+                    }
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 5,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 8,
+                    "extending": {
+                      "Ref": {
+                        "nodeIdx": 6,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "n2", "index": [] }]
+                      }
+                    }
+                  },
+                ]
+              }
+        )
+    );
+
+    let dast_root = dast_root_no_position(
+        &r#"<a name="x">
+            <b name="y">
+                <c name="z" />
+                $x.y
+            </b>
+            <f>
+                <e name="w" />
+            </f>
+        </a>
+        $w
+        <d name="y" />"#
+            .replace("\n", "")
+            .replace("  ", ""),
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    assert_eq!(
+        r#"<document><a name="x"><b name="y"><c name="z" /><b /></b><f><e name="w" /></f></a><e /><d name="y" /></document>"#,
+        flat_root.to_xml()
+    );
+}
