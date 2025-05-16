@@ -173,12 +173,16 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
             if (!isDastElement(node)) {
                 return;
             }
-            if (node.name === "repeat") {
-                repeatSugar(node);
-            } else if (node.name === "conditionalContent") {
-                conditionalContentSugar(node);
-            } else if (node.name === "select") {
-                selectSugar(node);
+            switch (node.name) {
+                case "repeat":
+                    repeatSugar(node);
+                    break;
+                case "conditionalContent":
+                    conditionalContentSugar(node);
+                    break;
+                case "select":
+                    selectSugar(node);
+                    break;
             }
         });
     };
