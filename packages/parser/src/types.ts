@@ -36,6 +36,7 @@ import {
 } from "./macros-v6/types";
 
 export type Position = UnistLiteral["position"] & {};
+export type Point = Position["start"];
 
 // ## Interfaces
 
