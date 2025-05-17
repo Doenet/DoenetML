@@ -26,15 +26,6 @@ import { DastElement, DastElementContent } from "../../types";
 export function repeatSugar(node: DastElement) {
     let setupChildren: DastElementContent[] = [];
 
-    node.children = [
-        {
-            type: "element",
-            name: "template",
-            children: node.children,
-            attributes: {},
-        },
-    ];
-
     if (node.attributes.valueName) {
         const attrChildren = node.attributes.valueName.children;
         if (attrChildren.length === 1 && attrChildren[0].type === "text") {

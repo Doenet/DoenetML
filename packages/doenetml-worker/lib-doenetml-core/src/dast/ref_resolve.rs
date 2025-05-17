@@ -41,6 +41,33 @@ enum Ref {
     Ambiguous(Vec<Index>),
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+enum ResolutionAlgorithm {
+    SearchChildren,
+    DontSearchChildren,
+    Unsearchable,
+}
+
+impl ResolutionAlgorithm {
+    fn lookup_by_name(name: &str) -> Self {
+        if DONT_SEARCH_CHILDREN.contains(&name) {
+            ResolutionAlgorithm::DontSearchChildren
+        } else {
+            ResolutionAlgorithm::SearchChildren
+        }
+    }
+
+    fn lookup_by_flat_node(node: &FlatNode) -> Self {
+        if let FlatNode::Element(element) = node {
+            Self::lookup_by_name(&element.name.as_str())
+        } else {
+            ResolutionAlgorithm::Unsearchable
+        }
+    }
+}
+
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
 /// recreated.
@@ -50,29 +77,22 @@ enum Ref {
 pub struct Resolver {
     /// List of the parent of a node at a given index.
     node_parent: Vec<Option<Index>>,
-    /// List of whether or not a node at a given index is a type that will stop the propagation
-    /// of the ref resolution
-    stop_propagation: Vec<bool>,
+    /// List of the resolution algorithm of a node at a given index
+    resolution_algorithm: Vec<ResolutionAlgorithm>,
     /// Map of all the names that are accessible (as descendants) from a given node.
     name_map: Vec<HashMap<String, Ref>>,
 }
 
-const STOP_AT_PARENT_TYPES: [&str; 3] = ["option", "case", "template"];
+const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
 
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
         Resolver {
             node_parent: flat_root.nodes.iter().map(|node| node.parent()).collect(),
-            stop_propagation: flat_root
+            resolution_algorithm: flat_root
                 .nodes
                 .iter()
-                .map(|node| {
-                    if let FlatNode::Element(element) = node {
-                        STOP_AT_PARENT_TYPES.contains(&element.name.as_str())
-                    } else {
-                        false
-                    }
-                })
+                .map(|node| ResolutionAlgorithm::lookup_by_flat_node(node))
                 .collect(),
             name_map: Self::build_name_map(&FlatRootOrFragment::Root(flat_root)),
         }
@@ -106,8 +126,10 @@ impl Resolver {
         if new_len > num_prev_nodes {
             self.node_parent
                 .extend(iter::repeat_n(None, new_len - num_prev_nodes));
-            self.stop_propagation
-                .extend(iter::repeat_n(false, new_len - num_prev_nodes));
+            self.resolution_algorithm.extend(iter::repeat_n(
+                ResolutionAlgorithm::SearchChildren,
+                new_len - num_prev_nodes,
+            ));
             self.name_map
                 .extend(iter::repeat_with(HashMap::new).take(new_len - num_prev_nodes));
         }
@@ -115,10 +137,7 @@ impl Resolver {
         // Add parents and stop_propagation for new nodes
         for node in flat_fragment.nodes.iter() {
             self.node_parent[node.idx()] = node.parent();
-            if let FlatNode::Element(element) = node {
-                self.stop_propagation[node.idx()] =
-                    STOP_AT_PARENT_TYPES.contains(&element.name.as_str())
-            }
+            self.resolution_algorithm[node.idx()] = ResolutionAlgorithm::lookup_by_flat_node(node);
         }
 
         // placeholder for missing nodes
@@ -212,7 +231,28 @@ impl Resolver {
         }
 
         while let Some(part) = path.next() {
-            if self.stop_propagation[current_idx] {
+            let mut matched_part_name = false;
+
+            if self.resolution_algorithm[current_idx] == ResolutionAlgorithm::SearchChildren {
+                // current_idx specifies the "root" of the search. We try to resolve
+                // children based on the path part, returning an error if there is an ambiguity.
+                if let Some(referent) = self.name_map[current_idx].get(&part.name) {
+                    matched_part_name = true;
+                    match referent {
+                        Ref::Unique(idx) => {
+                            current_idx = *idx;
+                        }
+                        Ref::Ambiguous(_) => {
+                            return Err(ResolutionError::NonUniqueReferent);
+                        }
+                    }
+                }
+            }
+
+            if !matched_part_name {
+                // If we cannot find an appropriate child, the remaining path parts might be
+                // prop references. Return them and consider `current_idx` the match.
+                // This also handles the case where we don't search children.
                 let remaining_path: Vec<FlatPathPart> =
                     iter::once(part.clone()).chain(path.cloned()).collect();
                 return Ok(RefResolution {
@@ -222,28 +262,6 @@ impl Resolver {
                 });
             }
 
-            // current_idx specifies the "root" of the search. We try to resolve
-            // children based on the path part, returning an error if there is an ambiguity.
-            if let Some(referent) = self.name_map[current_idx].get(&part.name) {
-                match referent {
-                    Ref::Unique(idx) => {
-                        current_idx = *idx;
-                    }
-                    Ref::Ambiguous(_) => {
-                        return Err(ResolutionError::NonUniqueReferent);
-                    }
-                }
-            } else {
-                // If we cannot find an appropriate child, the remaining path parts might be
-                // prop references. Return them and consider `current_idx` the match.
-                let remaining_path: Vec<FlatPathPart> =
-                    iter::once(part.clone()).chain(path.cloned()).collect();
-                return Ok(RefResolution {
-                    node_idx: current_idx,
-                    unresolved_path: Some(remaining_path),
-                    original_path,
-                });
-            }
             // If there index specified, we immediately stop since component information is needed
             // to resolve all remaining path parts.
             if !part.index.is_empty() {
@@ -379,15 +397,17 @@ impl Resolver {
                     });
 
                 // Stop if we've reached a parent that isn't the fragment parent
-                // and is a type that is in `STOP_AT_PARENT_TYPES`
+                // and is a type where we don't search children
                 if fragment_parent
                     .map(|p_idx| p_idx != parent_idx)
                     .unwrap_or(true)
                 {
-                    if let FlatNode::Element(element) = flat_root_or_fragment.get_node(parent_idx) {
-                        if STOP_AT_PARENT_TYPES.contains(&element.name.as_str()) {
-                            break;
-                        }
+                    match ResolutionAlgorithm::lookup_by_flat_node(
+                        flat_root_or_fragment.get_node(parent_idx),
+                    ) {
+                        ResolutionAlgorithm::SearchChildren => {}
+                        ResolutionAlgorithm::DontSearchChildren => break,
+                        ResolutionAlgorithm::Unsearchable => break,
                     }
                 }
             }
@@ -408,14 +428,14 @@ impl Resolver {
             .collect();
         self.node_parent = new_node_parent;
 
-        let new_stop_propagation: Vec<bool> = self
-            .stop_propagation
+        let new_resolution_algorithm: Vec<ResolutionAlgorithm> = self
+            .resolution_algorithm
             .iter()
             .enumerate()
             .filter(|(idx, _val)| node_is_referenced[*idx])
             .map(|(_idx, val)| *val)
             .collect();
-        self.stop_propagation = new_stop_propagation;
+        self.resolution_algorithm = new_resolution_algorithm;
 
         let new_name_map: Vec<HashMap<String, Ref>> = self
             .name_map
