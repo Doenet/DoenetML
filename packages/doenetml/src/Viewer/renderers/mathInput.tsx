@@ -1,4 +1,10 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
+import React, {
+    useRef,
+    useState,
+    useEffect,
+    useContext,
+    FocusEventHandler,
+} from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
@@ -8,7 +14,7 @@ import {
     faTimes,
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
-import { addStyles, EditableMathField } from "react-mathquill";
+import { addStyles, EditableMathField, MathField } from "react-mathquill";
 addStyles(); // Styling for react-mathquill input field
 import {
     focusedMathField,
@@ -44,7 +50,7 @@ const Button = styled.button`
     }
 `;
 
-export default function MathInput(props) {
+export default function MathInput(props: object) {
     let {
         name,
         id,
@@ -56,11 +62,12 @@ export default function MathInput(props) {
         callAction,
     } = useDoenetRenderer(props);
 
+    // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
 
-    const [mathField, setMathField] = useState(null);
-    const [focused, setFocused] = useState(null);
-    const textareaRef = useRef(null); // Ref to keep track of the mathInput's disabled state
+    const [mathField, setMathField] = useState<MathField | null>(null);
+    const [focused, setFocused] = useState<boolean | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null); // Ref to keep track of the mathInput's disabled state
 
     const lastKeyboardAccessTime = useRef(0);
     const lastBlurTime = useRef(0);
@@ -83,7 +90,9 @@ export default function MathInput(props) {
 
     // need to use a ref for validation state as handlePressEnter
     // does not update to current values
-    let validationState = useRef(null);
+    let validationState = useRef<
+        "unvalidated" | "correct" | "incorrect" | "partialcorrect" | null
+    >(null);
 
     const setFocusedField = useSetRecoilState(focusedMathField);
     const setFocusedFieldReturn = useSetRecoilState(focusedMathFieldReturn);
@@ -103,7 +112,15 @@ export default function MathInput(props) {
         }
     };
 
-    const handleVirtualKeyboardClick = ({ type, command, timestamp }) => {
+    const handleVirtualKeyboardClick = ({
+        type,
+        command,
+        timestamp,
+    }: {
+        type: "accessed" | "cmd" | "write" | "keystroke" | "type";
+        command: string;
+        timestamp: number;
+    }) => {
         if (type == "accessed") {
             // record the time the keyboard was accessed
             lastKeyboardAccessTime.current = timestamp;
@@ -138,7 +155,7 @@ export default function MathInput(props) {
         }
     };
 
-    const handlePressEnter = (e) => {
+    const handlePressEnter = () => {
         callAction({
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
@@ -155,21 +172,23 @@ export default function MathInput(props) {
     };
 
     React.useEffect(() => {
+        // XXX: typescript doesn't like this. I am not sure what the desired behavior is
         if (!mathField || mathField.el() !== containerRef) {
             return;
         }
         setFocusedField(() => handleVirtualKeyboardClick);
     }, [mathField, containerRef]);
 
-    const handleFocus = (e) => {
+    const handleFocus = (e: React.FocusEvent) => {
         if (mathField) {
+            // XXX: typescript doesn't like this. I am not sure what the desired behavior is
             setContainerRef(mathField.el());
         }
         setFocusedFieldReturn(() => handlePressEnter);
         setFocused(true);
     };
 
-    const handleBlur = (e) => {
+    const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
         callAction({
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
@@ -187,7 +206,7 @@ export default function MathInput(props) {
             100;
     };
 
-    const onChangeHandler = (text) => {
+    const onChangeHandler = (text: string) => {
         // whitespace differences and whether or not a single character exponent has braces
         // do not count as a difference for changing raw renderer value
         if (
@@ -222,12 +241,12 @@ export default function MathInput(props) {
 
     // const inputKey = this.componentIdx + '_input';
 
-    let checkWorkStyle = {
+    let checkWorkStyle: React.CSSProperties = {
         cursor: "pointer",
         padding: "1px 6px 1px 6px",
     };
 
-    let mathInputStyle = {
+    let mathInputStyle: React.CSSProperties = {
         /* Set each border attribute separately since the borderColor is updated during rerender (checking mathInput's disabled state)
     Currently does not work with border: "var(--mainBorder)" */
         borderColor: "var(--canvastext)",
@@ -246,7 +265,7 @@ export default function MathInput(props) {
     }
 
     let mathInputWrapperCursor = "allowed";
-    let checkWorkTabIndex = "0";
+    let checkWorkTabIndex = 0;
     if (SVs.disabled) {
         // Disable the checkWorkButton
         checkWorkStyle.backgroundColor = getComputedStyle(
@@ -254,7 +273,7 @@ export default function MathInput(props) {
         ).getPropertyValue("--mainGray");
         checkWorkStyle.color = "black";
         checkWorkStyle.cursor = "not-allowed";
-        checkWorkTabIndex = "-1";
+        checkWorkTabIndex = -1;
 
         // Disable the mathInput
         mathInputStyle.borderColor = getComputedStyle(
@@ -389,8 +408,6 @@ export default function MathInput(props) {
     }
     return (
         <React.Fragment>
-            <a name={id} />
-
             <span id={id}>
                 <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}
@@ -433,7 +450,7 @@ export default function MathInput(props) {
                             onBlur={handleBlur}
                             onFocus={handleFocus}
                             mathquillDidMount={(mf) => {
-                                //console.log(">>> MathQuilMounted")
+                                //console.log(">>> MathQuillMounted")
                                 setMathField(mf);
                             }}
                         />

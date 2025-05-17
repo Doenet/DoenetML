@@ -114,6 +114,8 @@ export type JXGObject = {
     center: JXGObject;
     setRadius: (radius: number) => void;
     radius: number;
+    rendNodeInput: HTMLInputElement;
+    rendNodeLabel: HTMLElement;
 };
 
 export type JXGEvent = {
