@@ -46,7 +46,7 @@ export type Point = Position["start"];
 export interface DastAttribute extends DastAbstractNode {
     type: "attribute";
     name: string;
-    children: (DastText | DastMacro | DastFunctionMacro)[];
+    children: (DastText | DastMacro | DastFunctionMacro | DastElement)[];
 }
 
 /**

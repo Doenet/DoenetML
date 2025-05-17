@@ -1,6 +1,6 @@
 use crate::dast::{
     DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
-    DastTextRefContent, PathPart, Position,
+    DastTextRefElementContent, PathPart, Position,
 };
 
 use super::{
@@ -54,14 +54,17 @@ impl FlatRoot {
                             .children
                             .iter()
                             .map(|child| match child {
-                                DastTextRefContent::Text(txt) => {
+                                DastTextRefElementContent::Text(txt) => {
                                     DastElementContent::Text(txt.clone())
                                 }
-                                DastTextRefContent::Ref(ref_) => {
+                                DastTextRefElementContent::Ref(ref_) => {
                                     DastElementContent::Ref(ref_.clone())
                                 }
-                                DastTextRefContent::FunctionRef(function_ref) => {
+                                DastTextRefElementContent::FunctionRef(function_ref) => {
                                     DastElementContent::FunctionRef(function_ref.clone())
+                                }
+                                DastTextRefElementContent::Element(element) => {
+                                    DastElementContent::Element(element.clone())
                                 }
                             })
                             .map(|child| self.merge_content(&child, Some(idx)))
@@ -220,14 +223,17 @@ impl FlatRoot {
                             .value
                             .iter()
                             .map(|val| match val {
-                                DastTextRefContent::Text(txt) => {
+                                DastTextRefElementContent::Text(txt) => {
                                     DastElementContent::Text(txt.clone())
                                 }
-                                DastTextRefContent::Ref(ref_) => {
+                                DastTextRefElementContent::Ref(ref_) => {
                                     DastElementContent::Ref(ref_.clone())
                                 }
-                                DastTextRefContent::FunctionRef(function_ref) => {
+                                DastTextRefElementContent::FunctionRef(function_ref) => {
                                     DastElementContent::FunctionRef(function_ref.clone())
+                                }
+                                DastTextRefElementContent::Element(element) => {
+                                    DastElementContent::Element(element.clone())
                                 }
                             })
                             .map(|val| self.merge_content(&val, Some(parent_idx)))
