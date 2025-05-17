@@ -1,0 +1,103 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <ol>{:dn}`
+
+` <ol>{:dn}` defines an ordered (numbered) list.  List items are nested within using an ` <li>{:dn}` tag.
+
+## Attributes and Properties 
+ <AttrDisplay name='ol'/> 
+ <PropDisplay name='ol'/>
+
+---
+
+### Example: ` <ol>{:dn}` with nested ` <li>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Homework:</p>
+<ol>
+  <li><m>x + 3x</m></li>
+  <li><m>5x - 2x</m></li>
+  <li><m>8x + 4x</m></li>
+</ol>
+```
+
+
+
+` <ol>{:dn}` renders an ordered list, with list items given by ` <li>{:dn}` children. ` <ol>{:dn}` is a [**Sectional**](../document_structure/essentialConcepts/#componentTypes) 
+component and should not contain any components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children 
+may themselves contain graphs, problems, paragraphs, and other content.
+
+
+
+---
+
+### Example: level
+
+
+```doenet-editor-horiz
+<ol>
+  <li>Animals
+    <ol level="2">
+      <li>dog</li>
+      <li>zebra</li>
+      <li>whale
+        <ol level="3">
+          <li>blue whale</li>
+          <li>beluga whale</li>
+          <li>killer whale</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>Plants
+    <ol level="2">
+      <li>oak tree</li>
+      <li>rose</li>
+      <li>eucalyptus</li>
+    </ol> 
+  </li>
+</ol>
+```
+
+
+
+When nesting ` <ol>{:dn}` components, the `level` attribute can be used to specify a change in the counting marker for the inner lists.
+
+
+
+---
+
+### Example: marker
+
+
+```doenet-editor-horiz
+<ol marker="A">
+  <li>red</li>
+  <li>blue</li>
+  <li>green</li>
+</ol>
+<ol marker="1">
+  <li>red</li>
+  <li>blue</li>
+  <li>green</li>
+</ol>
+<ol marker="I">
+  <li>red</li>
+  <li>blue</li>
+  <li>green</li>
+</ol>
+<ol marker="a">
+  <li>red</li>
+  <li>blue</li>
+  <li>green</li>
+</ol>
+```
+
+
+
+Use the `marker` attribute to indicate a specific counting marker for the list. See the `level` example 
+for the default markers at each level.

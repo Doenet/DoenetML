@@ -60,7 +60,7 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<li>`](https://www.doenet.org/portfolioviewer/_1RITl0DcbD_QFSE9VK2Jj)                | list item                                                                             |
 | `<note>`                                                                               | an auto-numbered sectional component with default title                               |
 | `<objectives>`                                                                         | a boxed sectional component with default title and auto-numbering                     |
-| [`<ol>`](https://www.doenet.org/portfolioviewer/_MP-Q8bsNcXgOTRoqD-vFk)                | ordered list                                                                          |
+| [`<ol>`](ol.mdx)                | ordered list                                                                          |
 | [`<p>`](https://www.doenet.org/portfolioviewer/_ZKtFO1M4oFzd4S8zfJj55)                 | create a paragraph or drop down a line                                                |
 | `<paragraphs>`                                                                         | a container element for `<p>` components                                              |
 | [`<problem>`](https://www.doenet.org/portfolioviewer/_OSqdvfYm0vKtv3aKnR3V8)           | sectional component with default numbering that defines a problem                     |
@@ -71,17 +71,17 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<row> (in a matrix)`](https://www.doenet.org/portfolioviewer/_LCHR59iXJ1u2qFEL3IVRi) | container element for horizontal entries in a single row of a `<matrix>`              |
 | [`<sbsGroup>`](https://www.doenet.org/portfolioviewer/_25jqJs9elpIguM3Jj6ysA)          | a container element for `<sideBySide>` components                                     |
 | [`<section>`](https://www.doenet.org/portfolioviewer/_v17W36JKpVOoCVEw1-1P5)           | sectional component that renders an auto-numbered block of content                    |
-| [`<setup>`](https://www.doenet.org/portfolioviewer/_gHn9-Jhc4JFQpUKxVPCE2)             | defines a block for defining or initializing named content; does not render to viewer |
-| [`<sidebySide>`](https://www.doenet.org/portfolioviewer/_m60eBCbehXNF3VGwAsGO9)        | renders components in a side-by-side horizontal format                                |
-| [`<solution>`](https://www.doenet.org/portfolioviewer/__OoOsUCWGwMR_TF1BTZSB)          | expandable block component which displays a problem solution                          |
+| [`<setup>`](setup.mdx)             | defines a block for defining or initializing named content; does not render to viewer |
+| [`<sidebySide>`](sideBySide.mdx)        | renders components in a side-by-side horizontal format                                |
+| [`<solution>`](solution.mdx)          | expandable block component which displays a problem solution                          |
 | [`<stack>`](https://www.doenet.org/portfolioviewer/_urmQ5hZeKmwkVMZsyPeZ6)             | vertical container element for organizing content within a `<sideBySide>`             |
 | [`<statement>`](https://www.doenet.org/portfolioviewer/_HFggoMSQFK6p3rfP5DT2C)         | container element for content that does not have auto-numbering                       |
-| [`<table>`](https://www.doenet.org/portfolioviewer/_zRuXlzQ0_iNqNqZHHQMxG)             | container element for a `<tabular>`                                                   |
-| [`<tabular>`](https://www.doenet.org/portfolioviewer/_Bm5kSKo8GvPyl85lokH8_)           | define data arranged in a tabular format                                              |
+| [`<table>`](table.mdx)             | container element for a `<tabular>`                                                   |
+| [`<tabular>`](tabular.mdx)           | define data arranged in a tabular format                                              |
 | `<theorem>`                                                                            | a sectional component with auto-numbering and auto-title                              |
-| [`<title>`](https://www.doenet.org/portfolioviewer/_5HERf7liZuJ_-NnhzeTaU)             | creates a title within a document, section, or other block component                  |
+| [`<title>`](title.mdx)             | creates a title within a document, section, or other block component                  |
 | `<topic>`                                                                              | container element for content that does not have auto-numbering                       |
-| [`<ul>`](https://www.doenet.org/portfolioviewer/_NscifFtWYTqus6MOefEoH)                | unordered, or bulleted, list                                                          |
+| [`<ul>`](ul.mdx)                | unordered, or bulleted, list                                                          |
 
 
 ## Input components
@@ -138,7 +138,7 @@ Graphical components are any objects that can be placed on a `<graph>`. The foll
 | [`<parabola>`](https://www.doenet.org/portfolioviewer/_7V2odJAgabEKmxaIxqt9-)                | parabola Graphical Component                                                                     |
 | `<pegboard>`                                                                                 | a Graphical Component that renders dots at grid intersections                                    |
 | [`<piecewiseFunction>`](https://www.doenet.org/portfolioviewer/_NwfDzKZEkd8fndWkyutym)       | define piecewise functions for graphing and evaluation                                           |
-| [`<point>`](https://www.doenet.org/portfolioviewer/_gN8NlDY3WLRc7jgAvXKXm)                   | point Graphical Component                                                                        |
+| [`<point>`](point.mdx)                   | point Graphical Component                                                                        |
 | [`<polygon/>`](https://www.doenet.org/portfolioviewer/_gHZxIksVZufxA2ozsqqsK)                | polygon Graphical Component                                                                      |
 | [`<polyline/>`](https://www.doenet.org/portfolioviewer/__o-EPRIVmYmgzUQguNDwv)               | polyline Graphical Component                                                                     |
 | [`<ray>`](https://www.doenet.org/portfolioviewer/_vS-1_a4CjUanl_snhHyKA)                     | ray Graphical Component                                                                          |
@@ -186,16 +186,16 @@ Mathematical content can be defined and rendered with Math Components. These com
 | `<rightHandSide>`                                                                         | used with `<odeSystem>` to define the right-hand side of a differential equation             |
 | [`<samplePrimeNumbers/>`](https://www.doenet.org/portfolioviewer/_8JE3yhXX5m8aSrvMKH5Om)  | generates randomly sampled prime numbers within a specified range                            |
 | [`<sampleRandomNumbers/>`](https://www.doenet.org/portfolioviewer/_dsZ8b8U8RP2wolpvwnlf6) | generates randomly sampled numbers from a specified distribution                             |
-| [`<select>`](https://www.doenet.org/portfolioviewer/_Gr390ti8Arno_SklfPbUt)               | select values from a list or set of `<option>`s to create document variants                  |
-| [`<selectFromSequence>`](https://www.doenet.org/portfolioviewer/_HtetAL1AhP13dJyv4sP2H)   | generates immutable random values within a predefined range to create document variants      |
+| [`<select>`](select._kL9zdAlMU3MicSaZVXdDr)               | select values from a list or set of `<option>`s to create document variants                  |
+| [`<selectFromSequence>`](selectFromSequence.mdx)   | generates immutable random values within a predefined range to create document variants      |
 | [`<selectPrimeNumbers/>`](https://www.doenet.org/portfolioviewer/_xtFsgCMVGLnY2QIdrs6NI)  | generates immutable random prime numbers to create document variants                         |
 | [`<selectRandomNumbers>`](https://www.doenet.org/portfolioviewer/_HFhH7id_K4u5E1OiZTTby)  | generates immutable random numbers from a specified distribution to create document variants |
 | [`<sequence />`](https://www.doenet.org/portfolioviewer/___VgxVIdpE3sN4POU0EKT)           | generate a sequence with predefined parameters                                               |
 | [`<setSmallToZero>`](https://www.doenet.org/portfolioviewer/_1o4bnebi6CB7XkoiYydDV)       | replaces small numerical values with a precise zero value                                    |
 | [`<sign>`](https://www.doenet.org/portfolioviewer/_DQlZ0KZRnI9ppjgzng10T)                 | returns the result of the sign function of the enclosed argument                             |
 | `<solveEquations>`                                                                        | *under development*                                                                          |
-| [`<subsetOfReals>`](https://www.doenet.org/portfolioviewer/_GaLUcM3WpT51EBLYBVasu)        | defines an interval or a subset on the number line                                           |
-| [`<subsetOfRealsInput />`](https://www.doenet.org/portfolioviewer/_OjzGJtfwD4HidwtlSsXE_) | renders an interactive number line applet                                                    |
+| [`<subsetOfReals>`](subsetOfReals.mdx)        | defines an interval or a subset on the number line                                           |
+| `<subsetOfRealsInput />` | renders an interactive number line applet                                                    |
 | `<tupleList>`                                                                             | a list of tuples (points or intervals)                                                       |
 
 
@@ -255,13 +255,13 @@ These components perform actions on Math components as well as other component t
 | `<paginatorControls />`                                                                  | render navigation buttons for progression through content in a `<paginator>`                                   |
 | [`<ref>`](https://www.doenet.org/portfolioviewer/_v9Fd4g-lLDO_e_LsrtgJ9)                 | creates a link to another document, or a referenced component's location within the same document              |
 | [`<shuffle>`](https://www.doenet.org/portfolioviewer/_niXv2jdoVH7DPlohKdyQD)             | shuffle a list, or a listing of referenced components                                                          |
-| [`<sort>`](https://www.doenet.org/portfolioviewer/_sl86id2rJXtKKjLIZ9qT-)                | sort components based on their values in numerical or alphabetical order                                       |
-| [`<sources>`](https://www.doenet.org/portfolioviewer/_7DHdSFMGgXO23YarWCeYj)             | used within a `<map>` to define input values for `<template>` and alias                                        |
-| [`<split>`](https://www.doenet.org/portfolioviewer/_ruoJ6-7CRVGo6U-4n-a-2)               | splits multi-digit numbers or text strings into individual characters                                          |
-| [`<spreadsheet>`](https://www.doenet.org/portfolioviewer/_gUo2iz9wRVPmkLj8qPukz)         | renders a basic spreadsheet tool                                                                               |
-| [`<styleDefinition>`](https://www.doenet.org/portfolioviewer/_fnsFKIfGZm3CZkGNdPL7I)     | defines custom styling for graphical elements outside the default styleNumbers (1-6)                           |
+| [`<sort>`](sort.mdx)                | sort components based on their values in numerical or alphabetical order                                       |
+| [`<sources>`](sources.mdx)             | used within a `<map>` to define input values for `<template>` and alias                                        |
+| [`<split>`](split.mdx)               | splits multi-digit numbers or text strings into individual characters                                          |
+| [`<spreadsheet>`](spreadsheet.mdx)         | renders a basic spreadsheet tool                                                                               |
+| [`<styleDefinition>`](styleDefinition.mdx)     | defines custom styling for graphical elements outside the default styleNumbers (1-6)                           |
 | [`<styleDefinitions>`](https://www.doenet.org/portfolioviewer/_aiz0YAHTREXJLw4PdCxN5)    | container element for the custom `<styleDefinition>` in a document                                             |
-| [`<substitute>`](https://www.doenet.org/portfolioviewer/_02qOpOUkM7nupgZTHeFfH)          | replace a math, character or string with a user-specified alternative                                          |
+| [`<substitute>`](substitute.mdx)          | replace a math, character or string with a user-specified alternative                                          |
 | [`<template>`](https://www.doenet.org/portfolioviewer/_RwwwA15KDsX6ZvjlkZmCm)            | defines operations to apply to individual `<sources>` within a `<map>`                                         |
 | [`<triggerSet>`](https://www.doenet.org/portfolioviewer/_P08LLb1zQh2IHO065jrWZ)          | groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition            |
 | [`<updateValue>`](https://www.doenet.org/portfolioviewer/_86tBH9JR_KiY1NrrABnn9)         | changes the value or property of a named component                                                             |

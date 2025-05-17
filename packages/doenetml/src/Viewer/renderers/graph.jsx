@@ -921,10 +921,6 @@ export default React.memo(function Graph(props) {
             createButton("o", board.zoom100);
             createButton("+", board.zoomIn);
         }
-        createButton("\u2190", board.clickLeftArrow);
-        createButton("\u2193", board.clickUpArrow);
-        createButton("\u2191", board.clickDownArrow);
-        createButton("\u2192", board.clickRightArrow);
     }
 
     function removeNavigationButtons() {

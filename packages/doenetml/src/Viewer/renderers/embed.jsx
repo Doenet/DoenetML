@@ -19,7 +19,7 @@ export default React.memo(function Figure(props) {
             let width = sizeToCSS(SVs.width);
             let height = sizeToCSS(SVs.height);
 
-            window.MathJax.Hub.Register.StartupHook("End", function () {
+            MathJax.startup.promise.then(function () {
                 let parameters = {
                     id: cIdx,
                     width,
