@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import { Button, Menu, Portal } from "@chakra-ui/react";
 
 export function AnswerResponseMenu({
     answerId,
@@ -14,32 +14,39 @@ export function AnswerResponseMenu({
 }) {
     const modifiedId = answerId[0] === "/" ? answerId.substring(1) : answerId;
     return (
-        <Menu>
-            <MenuButton
-                as={Button}
-                size="xs"
-                paddingLeft="2px"
-                paddingRight="2px"
-                cursor="pointer"
-            >
-                {numResponses}
-            </MenuButton>
-            <MenuList>
-                <MenuItem
+        <Menu.Root>
+            <Menu.Trigger asChild>
+                <Button
+                    as={Button}
+                    size="xs"
+                    paddingLeft="2px"
+                    paddingRight="2px"
                     cursor="pointer"
-                    onClick={() => {
-                        window.postMessage({
-                            subject: "requestAnswerResponses",
-                            answerId,
-                            activityId,
-                            docId,
-                        });
-                    }}
                 >
-                    Show {numResponses} response{numResponses === 1 ? "" : "s"}{" "}
-                    to {modifiedId}
-                </MenuItem>
-            </MenuList>
-        </Menu>
+                    {numResponses}
+                </Button>
+            </Menu.Trigger>
+            <Portal>
+                <Menu.Positioner>
+                    <Menu.Content>
+                        <Menu.Item
+                            cursor="pointer"
+                            value="showResponses"
+                            onClick={() => {
+                                window.postMessage({
+                                    subject: "requestAnswerResponses",
+                                    answerId,
+                                    activityId,
+                                    docId,
+                                });
+                            }}
+                        >
+                            Show {numResponses} response
+                            {numResponses === 1 ? "" : "s"} to {modifiedId}
+                        </Menu.Item>
+                    </Menu.Content>
+                </Menu.Positioner>
+            </Portal>
+        </Menu.Root>
     );
 }

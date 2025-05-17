@@ -1,20 +1,17 @@
 import {
-    ChevronDownIcon,
-    TriangleDownIcon,
-    TriangleUpIcon,
-} from "@chakra-ui/icons";
-import {
+    Box,
     Button,
     HStack,
+    Icon,
     IconButton,
     Input,
     Menu,
-    MenuButton,
     MenuItem,
-    MenuList,
-    Tooltip,
+    Portal,
 } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
+import { Tooltip } from "../components/tooltip";
+import { BsCaretDownFill, BsCaretUpFill, BsChevronDown } from "react-icons/bs";
 
 export default function VariantSelect({
     size = "sm",
@@ -23,7 +20,7 @@ export default function VariantSelect({
     onChange = () => {},
     syncIndex, //Optional attribute to keep several variant selects in sync
 }: {
-    size: string;
+    size: "sm" | "md" | "lg";
     menuWidth: string;
     array: string[];
     onChange: (index: number) => void;
@@ -49,39 +46,52 @@ export default function VariantSelect({
     );
     return (
         <>
-            <HStack m={0} spacing={0} borderRadius="lg">
-                <Menu
-                    onOpen={() => {
-                        setShowTooltip(false);
-                        setMenuIsOpen(true);
-                    }}
-                    onClose={() => {
-                        setShowTooltip(false);
-                        setMenuIsOpen(false);
+            <HStack m={0} borderRadius="lg">
+                <Menu.Root
+                    onOpenChange={(details) => {
+                        if (details.open) {
+                            setShowTooltip(false);
+                            setMenuIsOpen(true);
+                        } else {
+                            setShowTooltip(false);
+                            setMenuIsOpen(false);
+                        }
                     }}
                 >
-                    <Tooltip hasArrow label="Variant" isOpen={showTooltip}>
-                        <MenuButton
-                            data-test="Variant Select Menu Button"
-                            borderBottomRightRadius={0}
-                            borderTopRightRadius={0}
-                            size={size}
-                            as={Button}
-                            rightIcon={<ChevronDownIcon />}
-                            width={menuWidth ? menuWidth : undefined}
-                            borderWidth={1}
-                            onMouseEnter={() => {
-                                !menuIsOpen ? setShowTooltip(true) : null;
-                            }}
-                            onMouseLeave={() => {
-                                setShowTooltip(false);
-                            }}
-                            aria-label="Select variant menu button"
-                        >
-                            {value}
-                        </MenuButton>
-                    </Tooltip>
-
+                    <Menu.Trigger>
+                        <Tooltip showArrow content="Variant" open={showTooltip}>
+                            <Button
+                                data-test="Variant Select Menu Button"
+                                borderBottomRightRadius={0}
+                                borderTopRightRadius={0}
+                                size={size}
+                                as={Button}
+                                width={menuWidth ? menuWidth : undefined}
+                                borderWidth={1}
+                                onMouseEnter={() => {
+                                    !menuIsOpen ? setShowTooltip(true) : null;
+                                }}
+                                onMouseLeave={() => {
+                                    setShowTooltip(false);
+                                }}
+                                aria-label="Select variant menu button"
+                            >
+                                <Icon>
+                                    <BsChevronDown />
+                                </Icon>
+                                {value}
+                            </Button>
+                        </Tooltip>
+                    </Menu.Trigger>
+                    <Portal>
+                        <Menu.Content>
+                            <Menu.Item value="">
+                                <Box>hi</Box>
+                            </Menu.Item>
+                        </Menu.Content>
+                    </Portal>
+                </Menu.Root>
+                {/* <Menu>
                     <MenuList pt={0} maxHeight="400px" overflowY="auto">
                         <Input
                             m={0}
@@ -113,15 +123,14 @@ export default function VariantSelect({
                             );
                         })}
                     </MenuList>
-                </Menu>
+                </Menu> */}
 
-                <Tooltip hasArrow label="Next variant">
+                <Tooltip showArrow content="Next variant">
                     <IconButton
-                        isDisabled={index == array.length - 1}
+                        disabled={index == array.length - 1}
                         data-test="Variant Select Down Button"
                         borderRadius={0}
                         size={size}
-                        icon={<TriangleDownIcon />}
                         m={0}
                         aria-label="Select next variant button"
                         borderWidth={1}
@@ -135,16 +144,17 @@ export default function VariantSelect({
                             setInputValue("");
                             onChange(nextIndex);
                         }}
-                    />
+                    >
+                        <BsCaretDownFill />
+                    </IconButton>
                 </Tooltip>
-                <Tooltip hasArrow label="Previous variant">
+                <Tooltip showArrow content="Previous variant">
                     <IconButton
-                        isDisabled={index < 1}
+                        disabled={index < 1}
                         data-test="Variant Select Up Button"
                         size={size}
                         borderBottomLeftRadius={0}
                         borderTopLeftRadius={0}
-                        icon={<TriangleUpIcon />}
                         m={0}
                         aria-label="Select previous variant button"
                         borderWidth={1}
@@ -158,7 +168,9 @@ export default function VariantSelect({
                             setInputValue("");
                             onChange(nextIndex);
                         }}
-                    />
+                    >
+                        <BsCaretUpFill />
+                    </IconButton>
                 </Tooltip>
             </HStack>
         </>
