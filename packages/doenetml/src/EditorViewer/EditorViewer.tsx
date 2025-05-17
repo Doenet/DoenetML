@@ -2,14 +2,10 @@ import {
     Box,
     Button,
     Flex,
-    FormControl,
-    FormLabel,
     Grid,
     GridItem,
     HStack,
-    Spacer,
     Switch,
-    Tooltip,
 } from "@chakra-ui/react";
 import React, {
     ReactElement,
@@ -20,7 +16,6 @@ import React, {
 } from "react";
 import { ResizablePanelPair } from "./ResizablePanelPair";
 import { RxUpdate } from "react-icons/rx";
-import { WarningTwoIcon } from "@chakra-ui/icons";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
@@ -35,6 +30,8 @@ import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "./ResizableCollapsiblePanelPair";
+import { BsExclamationTriangleFill } from "react-icons/bs";
+import { Tooltip } from "../components/tooltip";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -318,26 +315,22 @@ export function EditorViewer({
             {showFormatter ? (
                 <>
                     <Box>
-                        <FormControl display="flex" alignItems="center">
-                            <Switch
-                                id="asXml"
-                                isChecked={formatAsDoenetML}
-                                onChange={(e) => {
-                                    setFormatAsDoenetML(e.target.checked);
-                                }}
-                                title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
-                            />
-                            <FormLabel
-                                htmlFor="asXml"
-                                mb="0"
-                                ml="2"
-                                width="9.8em"
-                                mr="10px"
-                            >
+                        <Switch.Root
+                            title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
+                            checked={formatAsDoenetML}
+                            onCheckedChange={(e) => {
+                                setFormatAsDoenetML(e.checked);
+                            }}
+                        >
+                            <Switch.HiddenInput />
+                            <Switch.Control>
+                                <Switch.Thumb />
+                            </Switch.Control>
+                            <Switch.Label>
                                 Format as{" "}
                                 {formatAsDoenetML ? "DoenetML" : "XML"}
-                            </FormLabel>
-                        </FormControl>
+                            </Switch.Label>
+                        </Switch.Root>
                     </Box>
                     <Box>
                         <Button
@@ -383,7 +376,7 @@ export function EditorViewer({
     const codeMirror = (
         <CodeMirror
             value={editorDoenetML}
-            //TODO: read only isn't working <codeeditor disabled />
+            // TODO: read only isn't working <codeEditor disabled />
             readOnly={readOnly}
             onBlur={() => {
                 window.clearTimeout(updateValueTimer.current ?? undefined);
@@ -484,8 +477,8 @@ export function EditorViewer({
                     {!readOnly && (
                         <Box>
                             <Tooltip
-                                hasArrow
-                                label={
+                                showArrow
+                                content={
                                     platform == "Mac"
                                         ? "Updates Viewer cmd+s"
                                         : "Updates Viewer ctrl+s"
@@ -496,16 +489,7 @@ export function EditorViewer({
                                     variant="outline"
                                     data-test="Viewer Update Button"
                                     bg="doenet.canvas"
-                                    leftIcon={<RxUpdate />}
-                                    rightIcon={
-                                        codeChanged ? (
-                                            <WarningTwoIcon
-                                                color="doenet.mainBlue"
-                                                fontSize="18px"
-                                            />
-                                        ) : undefined
-                                    }
-                                    isDisabled={!codeChanged}
+                                    disabled={!codeChanged}
                                     onClick={() => {
                                         setViewerDoenetML(
                                             editorDoenetMLRef.current,
@@ -531,7 +515,13 @@ export function EditorViewer({
                                         setResponses([]);
                                     }}
                                 >
-                                    Update
+                                    <RxUpdate /> Update{" "}
+                                    {codeChanged ? (
+                                        <BsExclamationTriangleFill
+                                            color="doenet.mainBlue"
+                                            fontSize="18px"
+                                        />
+                                    ) : undefined}
                                 </Button>
                             </Tooltip>
                         </Box>

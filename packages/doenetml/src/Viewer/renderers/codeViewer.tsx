@@ -2,11 +2,12 @@ import React, { useState, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { DoenetViewer } from "../../doenetml";
-import { Box, HStack, Button, Tooltip } from "@chakra-ui/react";
+import { Box, HStack, Button, Icon } from "@chakra-ui/react";
 import VariantSelect from "../../EditorViewer/VariantSelect";
-import { WarningTwoIcon } from "@chakra-ui/icons";
+import { BsExclamationTriangleFill } from "react-icons/bs";
 import { RxUpdate } from "react-icons/rx";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { Tooltip } from "../../components/tooltip";
 
 export default React.memo(function CodeViewer(props) {
     let { name, id, SVs, children, actions, callAction } = useDoenetRenderer(
@@ -20,7 +21,7 @@ export default React.memo(function CodeViewer(props) {
         allPossibleVariants: ["a"],
     });
 
-    const ref = useRef(null);
+    const ref = useRef<HTMLDivElement>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -59,31 +60,30 @@ export default React.memo(function CodeViewer(props) {
             <div style={{ height: "28px" }}>
                 <HStack>
                     <Box>
-                        <Tooltip hasArrow label="Updates Viewer">
+                        <Tooltip showArrow content="Updates Viewer">
                             <Button
                                 size="sm"
                                 variant="outline"
                                 id={id + "_updateButton"}
                                 bg="doenet.canvas"
-                                leftIcon={<RxUpdate />}
-                                rightIcon={
-                                    SVs.codeChanged ? (
-                                        <WarningTwoIcon
-                                            color="doenet.mainBlue"
-                                            fontSize="18px"
-                                        />
-                                    ) : (
-                                        <></>
-                                    )
-                                }
-                                isDisabled={!SVs.codeChanged}
+                                disabled={!SVs.codeChanged}
                                 onClick={() => {
                                     callAction({
                                         action: actions.updateComponents,
                                     });
                                 }}
                             >
-                                Update
+                                <RxUpdate /> Update{" "}
+                                {SVs.codeChanged ? (
+                                    <Icon
+                                        color="doenet.mainBlue"
+                                        fontSize="18px"
+                                    >
+                                        <BsExclamationTriangleFill />
+                                    </Icon>
+                                ) : (
+                                    <></>
+                                )}
                             </Button>
                         </Tooltip>
                     </Box>

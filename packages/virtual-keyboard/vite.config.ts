@@ -24,7 +24,6 @@ export default defineConfig({
                 "styled-components",
                 "recoil",
                 "@chakra-ui/react",
-                "@chakra-ui/icons",
                 "@fortawesome/free-solid-svg-icons",
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",
