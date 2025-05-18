@@ -757,7 +757,7 @@ export function DocViewer({
                 "contentPicker",
                 "curve",
                 "mathInput",
-                //"textInput",
+                "textInput",
             ]);
             if (CONVERTED_TO_TSX.has(rendererClassName)) {
                 extension = "tsx";
