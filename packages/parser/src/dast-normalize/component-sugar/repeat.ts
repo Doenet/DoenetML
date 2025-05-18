@@ -1,18 +1,19 @@
 import { DastElement, DastElementContent } from "../../types";
+import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
 
 /**
  * Two transformations to the repeat children are made
  * 1. All children are wrapped in a `<template>` tag.
- * 1. If the `"valueName"` and/or `"indexName"` attribute contain a single text child,
+ * 1. If the `"itemName"` and/or `"indexName"` attribute contain a single text child,
  * then add a `<_repeatSetup>` child to the `<repeat>` that contains children
  * named by the values of those attributes.
- * (These children will not be rendered, but they create targets for references to `valueName` and `indexName`.
+ * (These children will not be rendered, but they create targets for references to `itemName` and `indexName`.
  * Mapping those references to the correct target will be addressed when the `<repeat>` is expanded.)
  *
- * For example, `<repeat valueName="v" indexName="i">$v+$i</repeat>` becomes
+ * For example, `<repeat itemName="v" indexName="i">$v+$i</repeat>` becomes
  *
  * ```xml
- * <repeat valueName="v" indexName="i">
+ * <repeat itemName="v" indexName="i">
  *  <template>
  *    $v+$i
  *  </template>
@@ -24,10 +25,15 @@ import { DastElement, DastElementContent } from "../../types";
  * ```
  */
 export function repeatSugar(node: DastElement) {
+    if (node.name !== "repeat") {
+        // This should be unreachable
+        throw Error("Repeat sugar can only be applied to a `<repeat>`");
+    }
+
     let setupChildren: DastElementContent[] = [];
 
-    if (node.attributes.valueName) {
-        const attrChildren = node.attributes.valueName.children;
+    if (node.attributes.itemName) {
+        const attrChildren = node.attributes.itemName.children;
         if (attrChildren.length === 1 && attrChildren[0].type === "text") {
             // We don't know what type of component the value will be,
             // so we use `"_placeholder"` for now.
@@ -64,6 +70,36 @@ export function repeatSugar(node: DastElement) {
                     },
                 },
             });
+        }
+    }
+
+    let forType = "math";
+    if (node.attributes.forType) {
+        const attrChildren = node.attributes.forType.children;
+        if (attrChildren.length === 1 && attrChildren[0].type === "text") {
+            forType = attrChildren[0].value;
+            if (!["math", "text", "number", "boolean"].includes(forType)) {
+                forType = "math";
+            }
+        }
+    }
+
+    if (node.attributes.for) {
+        const attrChildren = node.attributes.for.children;
+        const groupResult = groupTextAndReferencesBySpacesOutsideParens({
+            children: attrChildren,
+            componentType: forType,
+            wrapSingleNonTextNodes: false,
+        });
+
+        if (groupResult.success) {
+            let newChildren = groupResult.newChildren.map((child) => ({
+                type: "element" as const,
+                name: "option",
+                children: [child],
+                attributes: {},
+            }));
+            node.attributes.for.children = groupResult.newChildren;
         }
     }
 

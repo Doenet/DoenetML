@@ -3,6 +3,7 @@ import { postProcessCopy } from "../utils/copy";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import { createNewComponentIndices } from "../utils/componentIndices";
 
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
@@ -340,11 +341,17 @@ export default class Shuffle extends CompositeComponent {
             if (replacementSource) {
                 componentsCopied.push(replacementSource.componentIdx);
 
-                const res = await replacementSource.serialize(nComponents, {
+                const serializedComponent = await replacementSource.serialize({
                     primitiveSourceAttributesToIgnore: ["isResponse"],
                 });
-                replacements.push(res.serializedComponent);
+
+                const res = createNewComponentIndices(
+                    [serializedComponent],
+                    nComponents,
+                );
                 nComponents = res.nComponents;
+
+                replacements.push(...res.components);
             }
         }
 

@@ -7268,8 +7268,59 @@ class RefResolutionDependency extends Dependency {
             const nonBlankStringReplacements = refComponent.replacements.filter(
                 (x) => typeof x !== "string" || x.trim() !== "",
             );
+
+            // Replace all copies with their replacements so that copies don't take up an index
+            // but are treated as though they were not an intermediary
+
+            // Reverse the replacements so that we can use them as a queue
+            nonBlankStringReplacements.reverse();
+
+            let foundUnexpandedCopy = false;
+            const replacementsWithoutCopies = [];
+
+            let elt = nonBlankStringReplacements.pop();
+
+            while (elt) {
+                if (elt.componentType === "copy") {
+                    // make sure that the copy is expanded
+                    if (!elt.isExpanded) {
+                        this.addBlockerForUnexpandedComposite(elt);
+
+                        foundUnexpandedCopy = true;
+                    } else {
+                        this.compositeReplacementDependencies.push(
+                            elt.componentIdx,
+                        );
+                        this.addUpdateTriggersForCompositeReplacements([
+                            elt.componentIdx,
+                        ]);
+
+                        // Add the replacements of the copy to the queue (in reverse order)
+                        const newNonBlankReplacements = elt.replacements.filter(
+                            (x) => typeof x !== "string" || x.trim() !== "",
+                        );
+                        newNonBlankReplacements.reverse();
+                        nonBlankStringReplacements.push(
+                            ...newNonBlankReplacements,
+                        );
+                    }
+                } else {
+                    replacementsWithoutCopies.push(elt);
+                }
+
+                elt = nonBlankStringReplacements.pop();
+            }
+
+            if (foundUnexpandedCopy) {
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
             const theReplacement =
-                nonBlankStringReplacements[replacementIdx - 1];
+                replacementsWithoutCopies[replacementIdx - 1];
             if (theReplacement && typeof theReplacement !== "string") {
                 // found a replacement component that matches
                 nodeIdx = theReplacement.componentIdx;

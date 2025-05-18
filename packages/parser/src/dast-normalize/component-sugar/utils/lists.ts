@@ -1,6 +1,8 @@
 import {
     DastElement,
     DastElementContent,
+    DastFunctionMacro,
+    DastMacro,
     DastText,
     Point,
 } from "../../../types";
@@ -18,6 +20,9 @@ import {
  * The children will then be grouped into five groups `[[$a], [$b], [$$f(x)], ["(c - ", $d, ")"], ["e", "$g"]]`
  * and each of those groups will become the children of a new child of type `componentType`.
  *
+ * If `wrapSingleNonTextNodes` is `false` and a group is a single reference node such as `[$a]`,
+ * then node is returned without wrapping it in a parent of type `componentType`.
+ *
  * Returns:
  * - `success`: `true` if the `children` were successfully broken into groups.
  *   `success` will be `false` if there is a child that is not a text node or a reference node
@@ -27,10 +32,22 @@ import {
 export function groupTextAndReferencesBySpacesOutsideParens({
     children,
     componentType,
+    wrapSingleNonTextNodes = true,
 }: {
     children: DastElementContent[];
     componentType: string;
-}): { success: false } | { success: true; newChildren: DastElementContent[] } {
+    wrapSingleNonTextNodes?: boolean;
+}):
+    | { success: false }
+    | {
+          success: true;
+          newChildren: (
+              | DastText
+              | DastMacro
+              | DastFunctionMacro
+              | DastElement
+          )[];
+      } {
     // Only apply transformation if all children are text or references
     for (const child of children) {
         if (!["text", "macro", "function"].includes(child.type)) {
@@ -38,8 +55,18 @@ export function groupTextAndReferencesBySpacesOutsideParens({
         }
     }
 
-    const newChildren: DastElementContent[] = [];
-    let currentGroup: DastElementContent[] = [];
+    const newChildren: (
+        | DastText
+        | DastMacro
+        | DastFunctionMacro
+        | DastElement
+    )[] = [];
+    let currentGroup: (
+        | DastText
+        | DastMacro
+        | DastFunctionMacro
+        | DastElement
+    )[] = [];
 
     let nParens = 0;
 
@@ -89,6 +116,7 @@ export function groupTextAndReferencesBySpacesOutsideParens({
                                 createElementFromChildren(
                                     componentType,
                                     currentGroup,
+                                    wrapSingleNonTextNodes,
                                 ),
                             );
 
@@ -125,12 +153,13 @@ export function groupTextAndReferencesBySpacesOutsideParens({
 
     // Any remaining components become the last child.
     if (currentGroup.length > 0) {
-        newChildren.push({
-            type: "element",
-            name: componentType,
-            children: currentGroup,
-            attributes: {},
-        });
+        newChildren.push(
+            createElementFromChildren(
+                componentType,
+                currentGroup,
+                wrapSingleNonTextNodes,
+            ),
+        );
     }
 
     return { success: true, newChildren };
@@ -138,11 +167,23 @@ export function groupTextAndReferencesBySpacesOutsideParens({
 
 /**
  * Create a new dast element with `name` and `children`.
+ *
+ * If `wrapSingleNonTextNodes` is `true` and `children` is a single node that isn't a text node,
+ * then return that node without wrapping it as a child of an element with `name`.
  */
 function createElementFromChildren(
     name: string,
-    children: DastElementContent[],
+    children: (DastText | DastMacro | DastFunctionMacro | DastElement)[],
+    wrapSingleNonTextNodes: boolean,
 ) {
+    if (
+        !wrapSingleNonTextNodes &&
+        children.length === 1 &&
+        children[0].type !== "text"
+    ) {
+        return children[0];
+    }
+
     const newChild: DastElement = {
         type: "element",
         name,

@@ -12,6 +12,7 @@ import {
     getUniqueIdentifierFromBase,
 } from "@doenet/utils";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import { createNewComponentIndices } from "../utils/componentIndices";
 
 export default class Copy extends CompositeComponent {
     static componentType = "copy";
@@ -499,7 +500,8 @@ export default class Copy extends CompositeComponent {
                         // then we'll use replacements (if link attribute is not set to false),
                         // which means we cannot obtainPropFromComposite for a copy.
                         // For any other composite, we'll use replacements (if link attribute is not set to false)
-                        // only if we're are getting a prop that is not from the composite.
+                        // only if we're are getting a prop that is not from the composite
+                        // and we're not extending the component (where createComponentOfType == componentType)
                         // TODO: the behavior of unlinked needs more investigation and documentation,
                         // including why linkAttrForDetermineDeps,
                         // which is used only here, is different from the link state variable
@@ -1704,9 +1706,8 @@ export default class Copy extends CompositeComponent {
 
         let serializedReplacements;
         try {
-            const res = await replacementSourceComponent.serialize(
-                nComponents,
-                {
+            serializedReplacements = [
+                await replacementSourceComponent.serialize(nComponents, {
                     copyAll: !link,
                     componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,
@@ -1714,9 +1715,14 @@ export default class Copy extends CompositeComponent {
                     copyPrimaryEssential,
                     copyEssentialState,
                     errorIfEncounterComponent: [component.componentIdx],
-                },
+                }),
+            ];
+
+            let res = createNewComponentIndices(
+                serializedReplacements,
+                nComponents,
             );
-            serializedReplacements = [res.serializedComponent];
+            serializedReplacements = res.components;
             nComponents = res.nComponents;
         } catch (e) {
             console.error("we're calling this circular", e);
@@ -1813,10 +1819,11 @@ export default class Copy extends CompositeComponent {
         // Test this as a way to avoid having to deal with copyInChildren in the shadowing composites code.
         if (
             serializedReplacements.length === 1 &&
-            componentInfoObjects.isCompositeComponent({
-                componentType: serializedReplacements[0].componentType,
-                includeNonStandard: true,
-            })
+            serializedReplacements[0].componentType === "copy"
+            // componentInfoObjects.isCompositeComponent({
+            //     componentType: serializedReplacements[0].componentType,
+            //     includeNonStandard: true,
+            // })
         ) {
             delete serializedReplacements[0].downstreamDependencies;
         }
@@ -2993,17 +3000,22 @@ export async function replacementFromProp({
                                     if (
                                         target.attributes[attrName]?.component
                                     ) {
-                                        const res = await target.attributes[
-                                            attrName
-                                        ].component.serialize(nComponents, {
-                                            copyAll: true,
-                                            copyVariants: true,
-                                        });
+                                        const serializedComponent =
+                                            await target.attributes[
+                                                attrName
+                                            ].component.serialize({
+                                                copyAll: true,
+                                                copyVariants: true,
+                                            });
 
+                                        let res = createNewComponentIndices(
+                                            [serializedComponent],
+                                            nComponents,
+                                        );
                                         nComponents = res.nComponents;
 
                                         attributesFromComponent[attrName] = {
-                                            component: res.serializedComponent,
+                                            component: res.components[0],
                                         };
                                     } else if (
                                         target.attributes[attrName]
@@ -3335,18 +3347,24 @@ export async function replacementFromProp({
                                             target.attributes[attrName]
                                                 ?.component
                                         ) {
-                                            const res = await target.attributes[
-                                                attrName
-                                            ].component.serialize(nComponents, {
-                                                copyAll: true,
-                                                copyVariants: true,
-                                            });
+                                            let serializedComponent =
+                                                await target.attributes[
+                                                    attrName
+                                                ].component.serialize({
+                                                    copyAll: true,
+                                                    copyVariants: true,
+                                                });
+
+                                            let res = createNewComponentIndices(
+                                                [serializedComponent],
+                                                nComponents,
+                                            );
                                             nComponents = res.nComponents;
 
                                             attributesFromComponent[attrName] =
                                                 {
                                                     component:
-                                                        res.serializedComponent,
+                                                        res.components[0],
                                                 };
                                         } else if (
                                             target.attributes[attrName]
@@ -3908,15 +3926,22 @@ export async function replacementFromProp({
                         for (let attrName of stateVarObj.shadowingInstructions
                             .attributesToShadow) {
                             if (target.attributes[attrName]?.component) {
-                                const res = await target.attributes[
-                                    attrName
-                                ].component.serialize(nComponents, {
-                                    copyAll: true,
-                                    copyVariants: true,
-                                });
+                                let serializedComponent =
+                                    await target.attributes[
+                                        attrName
+                                    ].component.serialize({
+                                        copyAll: true,
+                                        copyVariants: true,
+                                    });
+
+                                let res = createNewComponentIndices(
+                                    [serializedComponent],
+                                    nComponents,
+                                );
                                 nComponents = res.nComponents;
+
                                 attributesFromComponent[attrName] = {
-                                    component: res.serializedComponent,
+                                    component: res.components[0],
                                 };
                             } else if (
                                 target.attributes[attrName]?.primitive !==

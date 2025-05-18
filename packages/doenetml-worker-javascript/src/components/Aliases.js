@@ -1,10 +1,10 @@
 import TextComponent from "./Text";
 import TextOrInline from "./abstract/TextOrInline";
-import Template from "./Template";
 import MathComponent from "./Math";
 import Label from "./Label";
 import MathList from "./MathList";
 import { Div } from "./Divisions";
+import Setup from "./Setup";
 
 export class Title extends TextOrInline {
     static componentType = "title";
@@ -55,4 +55,12 @@ export class Conclusion extends Div {
 export class Topic extends TextComponent {
     static componentType = "topic";
     static rendererType = "text";
+}
+
+export class RepeatSetup extends Setup {
+    static componentType = "_repeatSetup";
+}
+
+export class Placeholder extends Setup {
+    static componentType = "_placeholder";
 }

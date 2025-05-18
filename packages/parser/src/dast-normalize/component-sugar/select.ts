@@ -23,7 +23,12 @@ import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
  * - a node whose componentType is determined by the select's `type` tag, defaulting to `"math"`.
  *   (Currently supported types are `"math"`, `"number"`, `"text"`, and `"boolean"`.)
  */
-export function selectSugar(node: DastElement & { name: "select" }) {
+export function selectSugar(node: DastElement) {
+    if (node.name !== "select") {
+        // This should be unreachable
+        throw Error("Select sugar can only be applied to a `<select>`");
+    }
+
     // Determine the type from the select's `type` attribute, defaulting to `"math"`
     // if the attribute is not present or is not "math", "text", "number", or "boolean".
     // TODO: issue a warning if invalid type attribute?

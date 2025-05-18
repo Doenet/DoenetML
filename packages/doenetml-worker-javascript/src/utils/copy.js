@@ -11,7 +11,6 @@ export function postProcessCopy({
     unlinkExternalCopies = false,
     copiesByTargetComponentName = {},
     componentNamesFound = [],
-    assignNamesFound = [],
     activeAliases = [],
     init = true,
 }) {
@@ -27,19 +26,10 @@ export function postProcessCopy({
         }
 
         let uniqueIdentifierBase;
-        if (component.originalIdx) {
+        if (component.originalIdx != undefined) {
             if (unlinkExternalCopies) {
                 componentNamesFound.push(component.originalIdx);
-                if (
-                    component.originalDoenetAttributes &&
-                    component.originalDoenetAttributes.assignNames
-                ) {
-                    for (let cIdx of component.originalDoenetAttributes
-                        .assignNames) {
-                        componentNamesFound.push(cIdx);
-                        assignNamesFound.push(cIdx);
-                    }
-                }
+
                 if (component.attributes) {
                     if (component.attributes.alias) {
                         activeAliases.push(
@@ -148,7 +138,6 @@ export function postProcessCopy({
             unlinkExternalCopies,
             copiesByTargetComponentName,
             componentNamesFound,
-            assignNamesFound,
             activeAliases: [...activeAliases], // don't add values from children
             init: false,
         });
@@ -166,7 +155,6 @@ export function postProcessCopy({
                     unlinkExternalCopies,
                     copiesByTargetComponentName,
                     componentNamesFound,
-                    assignNamesFound,
                     activeAliases: [...activeAliases], // don't add values from children
                     init: false,
                 })[0];
@@ -184,7 +172,6 @@ export function postProcessCopy({
                 unlinkExternalCopies,
                 copiesByTargetComponentName,
                 componentNamesFound,
-                assignNamesFound,
                 activeAliases: [...activeAliases], // don't add values from children
                 init: false,
             });
@@ -196,29 +183,15 @@ export function postProcessCopy({
     if (init && unlinkExternalCopies) {
         for (let targetComponentIdxStr in copiesByTargetComponentName) {
             if (!componentNamesFound.includes(targetComponentIdxStr)) {
-                let foundMatchViaAssignNames = false;
-                for (let cIdx of assignNamesFound) {
-                    let namespace = cIdx + "/";
-                    let nSpaceLen = namespace.length;
-                    if (
-                        targetComponentIdxStr.substring(0, nSpaceLen) ===
-                        namespace
-                    ) {
-                        foundMatchViaAssignNames = true;
-                        break;
+                for (let copyComponent of copiesByTargetComponentName[
+                    targetComponentIdxStr
+                ]) {
+                    if (!copyComponent.attributes) {
+                        copyComponent.attributes = {};
                     }
-                }
-                if (!foundMatchViaAssignNames) {
-                    for (let copyComponent of copiesByTargetComponentName[
-                        targetComponentIdxStr
-                    ]) {
-                        if (!copyComponent.attributes) {
-                            copyComponent.attributes = {};
-                        }
-                        copyComponent.attributes.link = { primitive: false };
-                        copyComponent.doenetAttributes.target =
-                            copyComponent.doenetAttributes.targetComponentIdx;
-                    }
+                    copyComponent.attributes.link = { primitive: false };
+                    copyComponent.doenetAttributes.target =
+                        copyComponent.doenetAttributes.targetComponentIdx;
                 }
             }
         }

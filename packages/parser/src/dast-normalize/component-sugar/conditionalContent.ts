@@ -33,6 +33,13 @@ import { isDastElement } from "../../types-util";
  * ```
  */
 export function conditionalContentSugar(node: DastElement) {
+    if (node.name !== "conditionalContent") {
+        // This should be unreachable
+        throw Error(
+            "Conditional content sugar can only be applied to a `<conditionalContent>`",
+        );
+    }
+
     let nCaseChildren = 0;
     for (const child of node.children) {
         if (!isDastElement(child)) {

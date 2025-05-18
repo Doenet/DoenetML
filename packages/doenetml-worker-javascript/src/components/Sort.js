@@ -1,6 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import { createNewComponentIndices } from "../utils/componentIndices";
 
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
@@ -401,10 +402,14 @@ export default class Sort extends CompositeComponent {
             if (replacementSource) {
                 componentsCopied.push(replacementSource.componentIdx);
 
-                const res = await replacementSource.serialize(nComponents, {
+                const serializedComponent = await replacementSource.serialize({
                     primitiveSourceAttributesToIgnore: ["isResponse"],
                 });
-                replacements.push(res.serializedComponent);
+
+                const res = createNewComponentIndices(
+                    [serializedComponent],
+                    nComponents,
+                );
                 nComponents = res.nComponents;
             }
         }

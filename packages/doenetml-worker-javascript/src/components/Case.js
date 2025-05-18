@@ -1,7 +1,12 @@
-import Template from "./Template";
+import Group from "./Group";
 
-export default class Case extends Template {
+export default class Case extends Group {
     static componentType = "case";
+
+    static inSchemaOnlyInheritAs = [];
+    static allowInSchemaAsComponent = undefined;
+
+    static renderedDefault = false;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

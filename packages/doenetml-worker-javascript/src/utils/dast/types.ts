@@ -17,6 +17,7 @@ export type SerializedComponent = {
     position?: Position;
     childrenPosition?: Position;
     extending?: Source<SerializedRefResolution>;
+    originalIdx?: number;
     state: Record<string, any>;
     skipSugar?: boolean;
     preSugarInd?: number;

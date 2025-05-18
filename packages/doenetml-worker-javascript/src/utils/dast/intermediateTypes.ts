@@ -19,6 +19,7 @@ export type UnflattenedComponent = {
     position?: Position;
     childrenPosition?: Position;
     extending?: Source<UnflattenedRefResolution>;
+    originalIdx?: number;
     state: Record<string, any>;
 };
 

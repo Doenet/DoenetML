@@ -29,6 +29,7 @@ import {
     returnDefaultGetArrayKeysFromVarName,
 } from "./utils/stateVariables";
 import { set as idb_set } from "idb-keyval";
+import { createNewComponentIndices } from "./utils/componentIndices";
 
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
@@ -1404,6 +1405,7 @@ export default class Core {
         }
 
         if (this._components[componentIdx] !== undefined) {
+            console.log(this._components[componentIdx], serializedComponent);
             throw Error(`Found a duplicate componentIdx: ${componentIdx}`);
         }
 
@@ -1583,6 +1585,7 @@ export default class Core {
                             component: attrResult.components[0],
                         };
                     } catch (e) {
+                        console.error(e);
                         if (e.message.includes("Circular dependency")) {
                             throw Error(
                                 this.dependencies.getCircularDependencyMessage([
@@ -1590,7 +1593,6 @@ export default class Core {
                                 ]),
                             );
                         } else {
-                            console.error(e);
                             throw e;
                         }
                     }
@@ -2817,11 +2819,17 @@ export default class Core {
 
         for (let repl of shadowedComposite.replacements) {
             if (typeof repl === "object") {
-                const res = await repl.serialize(newNComponents, {
+                const serializedComponent = await repl.serialize({
                     primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                 });
+
+                const res = createNewComponentIndices(
+                    [serializedComponent],
+                    newNComponents,
+                );
                 newNComponents = res.nComponents;
-                serializedReplacements.push(res.serializedComponent);
+
+                serializedReplacements.push(...res.components);
             } else {
                 serializedReplacements.push(repl);
             }
@@ -9000,14 +9008,18 @@ export default class Core {
 
                 for (let child of newChildren) {
                     if (typeof child === "object") {
-                        const res = await child.serialize(nComponents, {
+                        const serializedComponent = await child.serialize({
                             primitiveSourceAttributesToIgnore:
                                 sourceAttributesToIgnore,
                         });
-                        nComponents = res.nComponents;
-                        shadowingSerializeChildren.push(
-                            res.serializedComponent,
+
+                        const res = createNewComponentIndices(
+                            [serializedComponent],
+                            nComponents,
                         );
+                        nComponents = res.nComponents;
+
+                        shadowingSerializeChildren.push(...res.components);
                     } else {
                         shadowingSerializeChildren.push(child);
                     }
@@ -10201,12 +10213,18 @@ export default class Core {
                 let newNComponents = nComponents;
                 for (let repl of replacementsToShadow) {
                     if (typeof repl === "object") {
-                        const res = await repl.serialize(nComponents, {
+                        const serializedComponent = await repl.serialize({
                             primitiveSourceAttributesToIgnore:
                                 sourceAttributesToIgnore,
                         });
+
+                        const res = createNewComponentIndices(
+                            [serializedComponent],
+                            newNComponents,
+                        );
                         newNComponents = res.nComponents;
-                        newSerializedReplacements.push(res.serializedComponent);
+
+                        newSerializedReplacements.push(...res.components);
                     } else {
                         newSerializedReplacements.push(repl);
                     }

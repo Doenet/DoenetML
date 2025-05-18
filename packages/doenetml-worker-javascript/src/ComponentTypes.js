@@ -74,11 +74,9 @@ import Graph from "./components/Graph";
 import Function from "./components/Function";
 import PiecewiseFunction from "./components/PiecewiseFunction";
 import Interval from "./components/Interval";
-import Template from "./components/Template";
 import Option from "./components/Option";
 import Sequence from "./components/Sequence";
-import Map from "./components/Map";
-import Sources from "./components/Sources";
+import Repeat from "./components/Repeat";
 import Slider from "./components/Slider";
 import Markers from "./components/Markers";
 import Pegboard from "./components/Pegboard";
@@ -268,7 +266,6 @@ const componentTypeArray = [
     Function,
     PiecewiseFunction,
     Interval,
-    Template,
     Option,
     Sequence,
     Slider,
@@ -284,8 +281,7 @@ const componentTypeArray = [
     Figure,
     Markers,
     Panel,
-    Map,
-    Sources,
+    Repeat,
     Pegboard,
     Constraints,
     ConstrainToGrid,

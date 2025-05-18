@@ -1,6 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
@@ -425,15 +426,21 @@ export default class Collect extends CompositeComponent {
         let sourceAttributesToIgnore =
             await component.stateValues.sourceAttributesToIgnore;
 
-        const res = await collectedComponent.serialize(nComponents, {
-            primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
-        });
+        serializedReplacements = [
+            await collectedComponent.serialize({
+                primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
+            }),
+        ];
+
+        let res = createNewComponentIndices(
+            serializedReplacements,
+            nComponents,
+        );
+        serializedReplacements = res.components;
         nComponents = res.nComponents;
 
-        let serializedCopy = [res.serializedComponent];
-
         serializedReplacements = postProcessCopy({
-            serializedComponents: serializedCopy,
+            serializedComponents: serializedReplacements,
             componentIdx: component.componentIdx,
             uniqueIdentifiersUsed,
             identifierPrefix: collectedNum + "|",
