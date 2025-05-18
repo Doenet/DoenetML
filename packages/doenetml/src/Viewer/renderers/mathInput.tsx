@@ -1,10 +1,4 @@
-import React, {
-    useRef,
-    useState,
-    useEffect,
-    useContext,
-    FocusEventHandler,
-} from "react";
+import React, { useRef, useState, FocusEventHandler } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
@@ -20,11 +14,10 @@ import {
     focusedMathField,
     focusedMathFieldReturn,
     palletRef,
-    handleRef,
 } from "@doenet/virtual-keyboard/math-input";
 import { MathJax } from "better-react-mathjax";
 
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
 

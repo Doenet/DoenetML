@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, ReactText } from "react";
+import React, { useRef, useState, useEffect } from "react";
 // @ts-ignore
 import me from "math-expressions";
 import styled from "styled-components";
@@ -10,7 +10,6 @@ import { ActionButtonGroup } from "@doenet/ui-components";
 import { useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
-import { Point } from "framer-motion";
 
 let round_to_decimals = (x: number, n: number) =>
     me.round_numbers_to_decimals(x, n).tree as number;
