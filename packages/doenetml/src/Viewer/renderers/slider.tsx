@@ -3,7 +3,9 @@ import React, { useRef, useState, useEffect } from "react";
 import me from "math-expressions";
 import styled from "styled-components";
 // import { Spring } from '@react-spring/web';
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
 
@@ -377,7 +379,7 @@ function nearestValue(refval: number, points: number[], SVs) {
     return [val, index];
 }
 
-export default React.memo(function Slider(props) {
+export default React.memo(function Slider(props: UseDoenetRendererProps) {
     let { name, id, SVs, actions, ignoreUpdate, rendererName, callAction } =
         useDoenetRenderer(props);
     // console.log("name: ", name, " value: ", SVs.value, " index: ", SVs.index, "ignoreUpdate", ignoreUpdate);

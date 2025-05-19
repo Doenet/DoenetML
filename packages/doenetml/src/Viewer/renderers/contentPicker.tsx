@@ -1,11 +1,15 @@
 import React, { useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
-export default React.memo(function ContentPicker(props) {
+export default React.memo(function ContentPicker(
+    props: UseDoenetRendererProps,
+) {
     let {
         name,
         id,

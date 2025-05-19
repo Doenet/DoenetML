@@ -1,10 +1,13 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext, POINT_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
 import { textRendererStyle } from "@doenet/utils";
 import { characterizeOffGraphPoint } from "./utils/offGraphIndicators";
 import {
+    LabelPosition,
     adjustPointLabelPosition,
     calculatePointLabelAnchor,
     normalizePointSize,
@@ -13,7 +16,7 @@ import {
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
-export default React.memo(function Point(props) {
+export default React.memo(function Point(props: UseDoenetRendererProps) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
@@ -33,17 +36,17 @@ export default React.memo(function Point(props) {
     let pointerMovedSinceDown = useRef(false);
     let dragged = useRef(false);
     let previousWithLabel = useRef<boolean | null>(null);
-    let previousLabelPosition = useRef(null);
+    let previousLabelPosition = useRef<LabelPosition | null>(null);
     let calculatedX = useRef<number | null>(null);
     let calculatedY = useRef<number | null>(null);
 
     let lastPositionFromCore = useRef<[number, number] | null>(null);
 
     // for each coordinate, will be -1 or 1 if moved off graph in that direction
-    let offGraphIndicator = useRef([0, 0]);
+    let offGraphIndicator = useRef<[number, number]>([0, 0]);
 
     // for each coordinate, will be -1 or 1 if near edge of graph (or off graph) in that direction
-    let nearEdgeOfGraph = useRef([0, 0]);
+    let nearEdgeOfGraph = useRef<[number, number]>([0, 0]);
 
     let fixed = useRef(false);
     let fixLocation = useRef(false);

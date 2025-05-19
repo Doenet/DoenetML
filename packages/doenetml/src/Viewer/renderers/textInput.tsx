@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -65,7 +67,7 @@ const Input = styled.input`
     }
 `;
 
-export default function TextInput(props: object) {
+export default function TextInput(props: UseDoenetRendererProps) {
     let {
         name,
         id,

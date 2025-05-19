@@ -1,5 +1,7 @@
 import React, { useRef, useState, FocusEventHandler } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
 import {
@@ -43,7 +45,7 @@ const Button = styled.button`
     }
 `;
 
-export default function MathInput(props: object) {
+export default function MathInput(props: UseDoenetRendererProps) {
     let {
         name,
         id,

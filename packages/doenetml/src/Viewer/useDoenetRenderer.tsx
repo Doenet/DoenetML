@@ -25,9 +25,29 @@ export const rendererState = atomFamily<
     // dangerouslyAllowMutability: true,
 });
 
+export type UseDoenetRendererProps = {
+    coreId: string;
+    componentInstructions: {
+        actions: Record<string, { actionName: string; componentIdx: string }>;
+        componentIdx: number;
+        effectiveName: string;
+        componentType: string;
+        rendererType: string;
+    };
+    rendererClasses: Record<string, any>;
+    docId: string;
+    activityId: string;
+    callAction: (argObj: Record<string, any>) => void;
+    linkSettings?: { viewURL: string; editURL: string };
+    scrollableContainer?: HTMLDivElement | Window;
+};
+
 // TODO: potentially remove initializeChildrenOnConstruction
+/**
+ * Hook to retrieve the state variables needed to render a component
+ */
 export default function useDoenetRenderer(
-    props: Record<string, any>,
+    props: UseDoenetRendererProps,
     initializeChildrenOnConstruction = true,
 ) {
     let actions = props.componentInstructions.actions;

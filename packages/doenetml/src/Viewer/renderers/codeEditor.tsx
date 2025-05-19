@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
-import useDoenetRenderer, { rendererState } from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+    rendererState,
+} from "../useDoenetRenderer";
 // @ts-ignore
 import { sizeToCSS } from "./utils/css";
 import { useInView } from "framer-motion";
 import { useSetRecoilState } from "recoil";
 import { EditorViewer } from "../../EditorViewer/EditorViewer";
 
-export default React.memo(function CodeEditor(props) {
+export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
     let {
         name,
         id,

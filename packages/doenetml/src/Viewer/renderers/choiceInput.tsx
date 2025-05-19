@@ -1,5 +1,7 @@
 import React, { useContext, useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -36,7 +38,7 @@ const Button = styled.button`
     }
 `;
 
-export default React.memo(function ChoiceInput(props) {
+export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let {
         name,
         id,
