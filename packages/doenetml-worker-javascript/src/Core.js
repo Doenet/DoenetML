@@ -2567,8 +2567,8 @@ export default class Core {
             overwriteDoenetMLRange,
         });
 
-        console.log(`expand result for ${component.componentIdx}`);
-        console.log(JSON.parse(JSON.stringify(result)));
+        // console.log(`expand result for ${component.componentIdx}`);
+        // console.log(JSON.parse(JSON.stringify(result)));
 
         if (component.constructor.stateVariableToEvaluateAfterReplacements) {
             // console.log(`evaluating ${component.constructor.stateVariableToEvaluateAfterReplacements} of ${component.componentIdx}`)

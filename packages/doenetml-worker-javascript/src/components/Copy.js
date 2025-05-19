@@ -84,7 +84,7 @@ export default class Copy extends CompositeComponent {
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
+            createStateVariable: "asListPreliminary",
             defaultValue: true,
         };
 
@@ -557,6 +557,59 @@ export default class Copy extends CompositeComponent {
                         ),
                     },
                 };
+            },
+        };
+
+        stateVariableDefinitions.asList = {
+            stateVariablesDeterminingDependencies: [
+                "usedReplacements",
+                "extendedComponent",
+            ],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    asListPreliminary: {
+                        dependencyType: "stateVariable",
+                        variableName: "asListPreliminary",
+                    },
+                    usedReplacements: {
+                        dependencyType: "stateVariable",
+                        variableName: "usedReplacements",
+                    },
+                };
+                if (stateValues.usedReplacements) {
+                    dependencies.extendedComponentAsList = {
+                        dependencyType: "stateVariable",
+                        componentIdx:
+                            stateValues.extendedComponent.componentIdx,
+                        variableName: "asList",
+                        variablesOptional: true,
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues, usedDefault }) {
+                // If the copy is based on replacements (`usedReplacements` is `true`),
+                // then the `asList` state variable of the extended composite skipped.
+                // In this case, we add look up that `asList` variable
+                // and modify the copy's `asList` if it wasn't specifically set on the copy.
+                if (
+                    usedDefault.asListPreliminary &&
+                    dependencyValues.usedReplacements &&
+                    typeof dependencyValues.extendedComponentAsList ===
+                        "boolean"
+                ) {
+                    return {
+                        setValue: {
+                            asList: dependencyValues.extendedComponentAsList,
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            asList: dependencyValues.asListPreliminary,
+                        },
+                    };
+                }
             },
         };
 
@@ -2055,6 +2108,9 @@ export default class Copy extends CompositeComponent {
             workspace.numReplacementsBySource.length,
         );
 
+        // `wrapAsList` will be true if `verifyReplacementsMatchSpecifiedType`
+        // had a required component type that ends in "List"
+        // and so rewrapped all the replacement with that list component
         const wrapAsList =
             workspace.wrapExistingReplacements && workspace.wrapAsList;
 

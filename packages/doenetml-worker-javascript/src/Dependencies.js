@@ -7327,9 +7327,9 @@ class RefResolutionDependency extends Dependency {
 
                 if (index.length === 1) {
                     // we finished off this path part
-                    unresolvedPath.shift(1);
+                    unresolvedPath.shift();
                 } else {
-                    unresolvedPath.index.shift(1);
+                    nextPathPart.index.shift();
                 }
 
                 // We made progress so continue in the loop

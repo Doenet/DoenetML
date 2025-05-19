@@ -695,6 +695,22 @@ export default class Repeat extends CompositeComponent {
         let desiredVariant = { index: variantIndex };
         return { success: true, desiredVariant };
     }
+
+    get allPotentialRendererTypes() {
+        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+
+        let additionalRendererTypes =
+            this.potentialRendererTypesFromSerializedComponents(
+                this.serializedChildren,
+            );
+        for (let rendererType of additionalRendererTypes) {
+            if (!allPotentialRendererTypes.includes(rendererType)) {
+                allPotentialRendererTypes.push(rendererType);
+            }
+        }
+
+        return allPotentialRendererTypes;
+    }
 }
 
 // If a map is an unlinked copy of another map,
@@ -833,7 +849,7 @@ async function addAndLinkAliasComponents(
 
         setupComponent.children.push({
             type: "serialized",
-            componentType: "number",
+            componentType: "integer",
             componentIdx: indexComponentIdx,
             attributes: {
                 name: {
@@ -844,7 +860,7 @@ async function addAndLinkAliasComponents(
             },
             doenetAttributes: {},
             children: [],
-            state: { value: iter + 1 },
+            state: { value: iter + 1, fixed: true },
         });
     }
 

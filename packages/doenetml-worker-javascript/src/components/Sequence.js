@@ -109,7 +109,7 @@ export default class Sequence extends CompositeComponent {
                 type: null,
                 exclude: null,
             };
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         }
 
         let from = await component.stateValues.from;
