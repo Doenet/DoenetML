@@ -190,403 +190,519 @@ describe("Collect tag tests", async () => {
             doenetML: `
     <mathInput name="length" prefill="3"/>
     <mathInput name="mult" prefill="2"/>
-    <panel>
+    <panel name="panel1">
     <graph>
-      <map assignNames="(p1) (p2) (p3) (p4) (p5) (p6)">
-        <template><point>($x, <copy prop="value" source="mult" />$x)</point></template>
-        <sources alias="x"><sequence to="$length" /></sources>
-      </map>
+      <setup>
+        <sequence name="seq" to="$length" />
+      </setup>
+      <repeat name="repeat1" for="$seq" itemName="x">
+        <point name="p">($x, $mult$x)</point>
+      </repeat>
       <line>y=x/3</line>
     </graph>
 
     <graph>
-      <map assignNames="(q1) (q2) (q3) (q4) (q5) (q6)">
-        <template><point>(<extract prop="x">$p</extract>+1, 1.5*<extract prop="y">$p</extract>)</point></template>
-        <sources alias="p"><collect componentTypes="point" source="_map1" assignNames="pa1 pa2 pa3 pa4 pa5 pa6" /></sources>
-      </map>
+      <setup>
+        <collect componentType="point" from="$repeat1" name="collect1" />
+      </setup>
+      <repeat name="repeat2" itemName="pt" for="$collect1">
+        <point name="p">($pt.x+1, 1.5*$pt.y)</point>
+      </repeat>
 
     </graph>
     </panel>
 
-    <graph>
-      <collect componentTypes="point" source="_panel1" assignNames="r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12" />
+    <graph name="graph3">
+      <collect componentType="point" from="$panel1" name="collect2" />
     </graph>
 
-    <p>y-coordinates of points: <aslist>
-      <collect componentTypes="point" prop="y" source="_graph3" assignNames="y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11 y12" />
-    </aslist></p>
+    <p>y-coordinates of points: <asList>
+      <setup>
+        <collect componentType="point" from="$graph3" name="collect3" />
+      </setup>
+      <mathList extend="$collect3.y" name="ys" />
+    </asList></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
+
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(6);
 
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/r${i + 4}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 4}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/y${i + 4}`].stateValues.value.tree).eq(
-                3 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 4}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 4}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 4}]`)].stateValues
+                    .value.tree,
+            ).eq(3 * x);
         }
 
         // increase number of points
         await updateMathInputValue({
             latex: "5",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/y${i + 6}`].stateValues.value.tree).eq(
-                3 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
+                    .value.tree,
+            ).eq(3 * x);
         }
 
         // change multiple
         await updateMathInputValue({
             latex: "0.5",
-            name: "/mult",
+            componentIdx: resolveComponentName("mult"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 6}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // decrease number of points
         await updateMathInputValue({
             latex: "1",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(2);
 
         for (let i = 0; i < 1; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 2}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 2}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 2}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 2}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // increase number of points back to 4
         await updateMathInputValue({
             latex: "4",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(8);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(8);
 
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 5}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 5}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 5}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 5}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // increase number of points to 6
         await updateMathInputValue({
             latex: "6",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(12);
 
         for (let i = 0; i < 6; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 7}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 7}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 7}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 7}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 7}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 7}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
     });
 
@@ -595,403 +711,518 @@ describe("Collect tag tests", async () => {
             doenetML: `
     <mathInput name="length" prefill="3"/>
     <mathInput name="mult" prefill="2"/>
-    <section>
+    <section name="section1">
     <group>
-      <map assignNames="(p1) (p2) (p3) (p4) (p5) (p6)">
-        <template><point>($x, <copy prop="value" source="mult" />$x)</point></template>
-        <sources alias="x"><sequence to="$length" /></sources>
-      </map>
+      <setup>
+        <sequence name="seq" to="$length" />
+      </setup>
+      <repeat name="repeat1" for="$seq" itemName="x">
+        <point name="p">($x, $mult$x)</point>
+      </repeat>
       <line>y=x/3</line>
     </group>
 
     <group>
-      <map assignNames="(q1) (q2) (q3) (q4) (q5) (q6)">
-        <template><point>(<extract prop="x">$p</extract>+1, 1.5*<extract prop="y">$p</extract>)</point></template>
-        <sources alias="p"><collect componentTypes="point" source="_map1" assignNames="pa1 pa2 pa3 pa4 pa5 pa6" /></sources>
-      </map>
+    <setup>
+        <collect componentType="point" from="$repeat1" name="collect1" />
+      </setup>
+      <repeat name="repeat2" itemName="pt" for="$collect1">
+        <point name="p">($pt.x+1, 1.5*$pt.y)</point>
+      </repeat>
 
     </group>
     </section>
 
-    <group>
-      <collect componentTypes="point" source="_section1" assignNames="r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12" />
+    <group name="group3">
+      <collect componentType="point" from="$section1" name="collect2" />
     </group>
 
-    <p>y-coordinates of points: <aslist>
-      <collect componentTypes="point" prop="y" source="_group3" assignNames="y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11 y12" />
-    </aslist></p>
+    <p>y-coordinates of points: <asList>
+      <setup>
+        <collect componentType="point" from="$group3" name="collect3" />
+      </setup>
+      <mathList extend="$collect3.y" name="ys" />
+    </asList></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(6);
 
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/r${i + 4}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 4}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/y${i + 4}`].stateValues.value.tree).eq(
-                3 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 4}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 4}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 4}]`)].stateValues
+                    .value.tree,
+            ).eq(3 * x);
         }
 
         // increase number of points
         await updateMathInputValue({
             latex: "5",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/y${i + 6}`].stateValues.value.tree).eq(
-                3 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
+                    .value.tree,
+            ).eq(3 * x);
         }
 
         // change multiple
         await updateMathInputValue({
             latex: "0.5",
-            name: "/mult",
+            componentIdx: resolveComponentName("mult"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 6}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // decrease number of points
         await updateMathInputValue({
             latex: "1",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(2);
 
         for (let i = 0; i < 1; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 2}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 2}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 2}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 2}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // increase number of points back to 4
         await updateMathInputValue({
             latex: "4",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(8);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(8);
 
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 5}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 5}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 5}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 5}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // increase number of points to 6
         await updateMathInputValue({
             latex: "6",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(12);
 
         for (let i = 0; i < 6; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 7}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 7}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 7}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 7}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 7}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 7}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
     });
 
@@ -1001,474 +1232,603 @@ describe("Collect tag tests", async () => {
     <mathInput name="length" prefill="5"/>
     <mathInput name="mult" prefill="2"/>
     <mathInput name="maxnumber" prefill="2"/>
-    <panel>
+    <panel name="panel1">
     <graph>
-      <map assignNames="(p1) (p2) (p3) (p4) (p5)">
-        <template><point>($x, <copy prop="value" source="../mult" />$x)</point></template>
-        <sources alias="x"><sequence to="$length" /></sources>
-      </map>
+      <setup>
+        <sequence name="seq" to="$length" />
+      </setup>
+      <repeat name="repeat1" for="$seq" itemName="x">
+        <point name="p">($x, $mult$x)</point>
+      </repeat>
       <line>y=x/3</line>
     </graph>
 
     <graph>
-      <map assignNames="(q1) (q2) (q3) (q4) (q5)">
-      <template><point>(<extract prop="x">$p</extract>+1, 1.5*<extract prop="y">$p</extract>)</point></template>
-      <sources alias="p"><collect componentTypes="point" source="_map1" maxNumber="$maxnumber" assignNames="pa1 pa2 pa3 pa4 pa5" /></sources>
+      <setup>
+        <collect componentType="point" from="$repeat1" name="collect1" maxNumber="$maxnumber"  />
+      </setup>
+      <repeat name="repeat2" itemName="pt" for="$collect1">
+        <point name="p">($pt.x+1, 1.5*$pt.y)</point>
+      </repeat>
     </map>
 
     </graph>
     </panel>
 
-    <graph>
-      <collect componentTypes="point" source="_panel1" maxNumber="2$maxnumber" assignNames="r1 r2 r3 r4 r5 r6 r7 r8 r9 r10" />
+    <graph name="graph3">
+      <collect componentType="point" from="$panel1" name="collect2" maxNumber="2$maxnumber" />
     </graph>
 
-    <p>y-coordinates of points: <aslist>
-      <collect componentTypes="point" prop="y" source="_graph3" maxNumber="$maxnumber" assignNames="y1 y2 y3 y4 y5 y6 y7 y8 y9 y10" />
-    </aslist></p>
+    <p>y-coordinates of points: <asList>
+      <setup>
+        <collect componentType="point" from="$graph3" name="collect3" maxNumber="$maxnumber" />
+      </setup>
+      <mathList extend="$collect3.y" name="ys" />
+    </asList></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(2);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
         }
         for (let i = 0; i < 2; i++) {
             let x = i + 1;
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
         }
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
         }
         for (let i = 0; i < 2; i++) {
             let x = i + 1;
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                2 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(2 * x);
         }
 
         // increase maxnumber
         await updateMathInputValue({
             latex: "5",
-            name: "/maxnumber",
+            componentIdx: resolveComponentName("maxnumber"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(5);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                2 * x,
-            );
-            //expect(stateVariables[`/y${i + 6}`].stateValues.value.tree).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(2 * x);
+            //expect(stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues.value.tree).eq(3 * x);
         }
 
         // increase maxnumber further
         await updateMathInputValue({
             latex: "10",
-            name: "/maxnumber",
+            componentIdx: resolveComponentName("maxnumber"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[1].tree).eq(
-                3 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                2 * x,
-            );
-            expect(stateVariables[`/y${i + 6}`].stateValues.value.tree).eq(
-                3 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
+                    .value.tree,
+            ).eq(3 * x);
         }
 
         // change multiple
         await updateMathInputValue({
             latex: "0.5",
-            name: "/mult",
+            componentIdx: resolveComponentName("mult"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 6}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 6}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // decrease number of points
         await updateMathInputValue({
             latex: "1",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(2);
 
         for (let i = 0; i < 1; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 2}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 2}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 2}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 2}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // increase number of points back to 4
         await updateMathInputValue({
             latex: "4",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(8);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(8);
 
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/r${i + 5}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 5}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/y${i + 5}`].stateValues.value.tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 5}]`)].stateValues
+                    .value.tree,
+            ).eq(0.75 * x);
         }
 
         // decrease max number to 3
         await updateMathInputValue({
             latex: "3",
-            name: "/maxnumber",
+            componentIdx: resolveComponentName("maxnumber"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_map1")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat1")].stateValues
+                .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("_collect1")].stateValues
+            stateVariables[resolveComponentName("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("_map2")].stateValues
-                .numIterates[0],
+            stateVariables[resolveComponentName("repeat2")].stateValues
+                .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("_collect2")].stateValues
+            stateVariables[resolveComponentName("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("_collect3")].stateValues
+            stateVariables[resolveComponentName("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(3);
 
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/p${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
         }
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/q${i + 1}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
         }
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
 
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables[`/r${i + 1}`].stateValues.xs[1].tree).eq(
-                0.5 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.5 * x);
         }
         for (let i = 0; i < 2; i++) {
             let x = i + 1;
-            expect(stateVariables[`/r${i + 5}`].stateValues.xs[0].tree).eq(
-                x + 1,
-            );
-            expect(stateVariables[`/r${i + 5}`].stateValues.xs[1].tree).eq(
-                0.75 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                    .stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                    .stateValues.xs[1].tree,
+            ).eq(0.75 * x);
         }
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
-            expect(stateVariables[`/y${i + 1}`].stateValues.value.tree).eq(
-                0.5 * x,
-            );
+            expect(
+                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
+                    .value.tree,
+            ).eq(0.5 * x);
         }
     });
 
@@ -1480,98 +1840,94 @@ describe("Collect tag tests", async () => {
   </p>
  
   <p name="p_original">Enter expressions:
-    <map asList="false" assignNames="(mi1) (mi2) (mi3) (mi4) (mi5)">
-      <template>
-        <mathInput />
-      </template>
-      <sources>
-        <sequence length="$n" />
-      </sources>
-    </map>
+    <setup><sequence name="s" length="$n" /></setup>
+    <repeat asList="false" for="$s" name="repeat1">
+      <mathInput name="mi" />
+    </repeat>
   </p>
   
+  <setup><collect componentType="mathInput" from="$p_original" name="collect1" /></setup>
   <p name="p_1">Inputs collected then, values extracted: 
-  <aslist name="al1"><extract prop="value" name="values1"><collect componentTypes="mathInput" source="p_original"/></extract></aslist></p>
+  <asList name="al1"><mathList name="values1" extend="$collect1.value" /></asList></p>
 
-  <p name="p_1a">Copied: <aslist name="al1a"><copy name="values1a" source="values1" /></aslist></p>
-  <p name="p_1b">Copy aslist: <copy name="al1b" source="al1" /></p>
-  <p name="p_1c">Copy copied: <aslist>$values1a</aslist></p>
-  <p name="p_1d">Copy aslist containing copy: $al1a</p>
-  <p name="p_1e">Copy copied aslist: $al1b</p>
-
-  <p name="p_2">Values collected: 
-    <aslist name="al2"><collect prop="value" name="values2" componentTypes="mathInput" source="p_original"/></aslist></p>
-    
-  <p name="p_2a">Copied: <aslist name="al2a"><copy name="values2a" source="values2" /></aslist></p>
-  <p name="p_2b">Copy aslist: <copy name="al2b" source="al2" /></p>
-  <p name="p_2c">Copy copied: <aslist>$values2a</aslist></p>
-  <p name="p_2d">Copy aslist containing copy: $al2a</p>
-  <p name="p_2e">Copy copied aslist: $al2b</p>
+  <p name="p_1a">Copied: <asList name="al1a"><mathList name="values1a" extend="$values1" /></asList></p>
+  <p name="p_1b">Copy asList: <asList name="al1b" extend="$al1" /></p>
+  <p name="p_1c">Copy copied: <asList>$values1a</asList></p>
+  <p name="p_1d">Copy asList containing copy: $al1a</p>
+  <p name="p_1e">Copy copied asList: $al1b</p>
 
     <p name="p_3">
     Inputs collected:
-    <aslist name="al3">
+    <asList name="al3">
         <collect
         name="col"
-        componentTypes="mathInput"
-        source="p_original"
-        assignNames="micol1 micol2 micol3 micol4 micol5"
+        componentType="mathInput"
+        from="$p_original"
         />
-    </aslist>
+    </asList>
     </p>
 
     <p name="p_3a">
     Copied:
-    <aslist name="al3a">
-        <copy name="cola" source="col" assignNames="mia1 mia2 mia3 mia4 mia5" />
-    </aslist>
+    <asList name="al3a">
+        $col
+    </asList>
     </p>
-    <p name="p_3b">Copy aslist: <copy name="al3b" source="al3" newNamespace /></p>
-    <p name="p_3c">
-    Copy copied: <aslist>$cola{assignNames="mic1 mic2 mic3 mic4 mic5"}</aslist>
-    </p>
-    <p name="p_3d">Copy aslist containing copy: $al3a{name="al3d" newNamespace}</p>
-    <p name="p_3e">Copy copied aslist: $al3b{name="al3e"}</p>
+    <p name="p_3b">Copy asList: $al3</p>
+    <p name="p_3d">Copy asList containing copy: $al3a</p>
   
     `,
         });
 
-        async function set_and_check_items(values, mis_used = "orig") {
+        async function set_and_check_items(
+            values: string[],
+            mis_used = "orig",
+        ) {
             await updateMathInputValue({
                 latex: `${values.length}`,
-                name: "/n",
+                componentIdx: resolveComponentName("n"),
                 core,
             });
 
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            const al3Children =
+                stateVariables[resolveComponentName("al3")].activeChildren;
+
+            const p3bGrandchildren =
+                stateVariables[
+                    stateVariables[resolveComponentName("p_3b")]
+                        .activeChildren[1].componentIdx
+                ].activeChildren;
+            const p3dGrandchildren =
+                stateVariables[
+                    stateVariables[resolveComponentName("p_3d")]
+                        .activeChildren[1].componentIdx
+                ].activeChildren;
+
             for (let [ind, val] of values.entries()) {
-                let mi_name;
+                let mi_idx: number = -1;
                 if (mis_used === "orig") {
-                    mi_name = `/mi${ind + 1}`;
-                } else if ((mis_used = "col")) {
-                    mi_name = `/micol${ind + 1}`;
-                } else if ((mis_used = "a")) {
-                    mi_name = `/mia${ind + 1}`;
-                } else if ((mis_used = "b")) {
-                    mi_name = `/al3b/micol${ind + 1}`;
-                } else if ((mis_used = "c")) {
-                    mi_name = `/mic${ind + 1}`;
-                } else if ((mis_used = "d")) {
-                    mi_name = `/al3d/mia${ind + 1}`;
-                } else if ((mis_used = "e")) {
-                    mi_name = `/al3e/micol${ind + 1}`;
+                    mi_idx = resolveComponentName(`repeat1[${ind + 1}].mi`);
+                } else if (mis_used == "a") {
+                    mi_idx = al3Children[ind].componentIdx;
+                } else if (mis_used === "b") {
+                    mi_idx = p3bGrandchildren[ind].componentIdx;
+                } else if (mis_used === "d") {
+                    mi_idx = p3dGrandchildren[ind].componentIdx;
                 }
 
                 await updateMathInputValue({
                     latex: val,
-                    name: mi_name,
+                    componentIdx: mi_idx,
                     core,
                 });
             }
 
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             const listText = values.join(", ");
 
@@ -1583,60 +1939,33 @@ describe("Collect tag tests", async () => {
             ).eq(`Copied: ${listText}`);
             expect(
                 stateVariables[resolveComponentName("p_1b")].stateValues.text,
-            ).eq(`Copy aslist: ${listText}`);
+            ).eq(`Copy asList: ${listText}`);
             expect(
                 stateVariables[resolveComponentName("p_1c")].stateValues.text,
             ).eq(`Copy copied: ${listText}`);
             expect(
                 stateVariables[resolveComponentName("p_1d")].stateValues.text,
-            ).eq(`Copy aslist containing copy: ${listText}`);
+            ).eq(`Copy asList containing copy: ${listText}`);
             expect(
                 stateVariables[resolveComponentName("p_1e")].stateValues.text,
-            ).eq(`Copy copied aslist: ${listText}`);
-
-            expect(
-                stateVariables[resolveComponentName("p_2")].stateValues.text,
-            ).eq(`Values collected: \n    ${listText}`);
-            expect(
-                stateVariables[resolveComponentName("p_2a")].stateValues.text,
-            ).eq(`Copied: ${listText}`);
-            expect(
-                stateVariables[resolveComponentName("p_2b")].stateValues.text,
-            ).eq(`Copy aslist: ${listText}`);
-            expect(
-                stateVariables[resolveComponentName("p_2c")].stateValues.text,
-            ).eq(`Copy copied: ${listText}`);
-            expect(
-                stateVariables[resolveComponentName("p_2d")].stateValues.text,
-            ).eq(`Copy aslist containing copy: ${listText}`);
-            expect(
-                stateVariables[resolveComponentName("p_2e")].stateValues.text,
-            ).eq(`Copy copied aslist: ${listText}`);
+            ).eq(`Copy copied asList: ${listText}`);
 
             for (let [ind, val] of values.entries()) {
                 expect(
-                    stateVariables[`/micol${ind + 1}`].stateValues
+                    stateVariables[resolveComponentName(`col[${ind + 1}]`)]
+                        .stateValues.immediateValue.tree,
+                ).eq(val);
+                expect(
+                    stateVariables[al3Children[ind].componentIdx].stateValues
                         .immediateValue.tree,
                 ).eq(val);
                 expect(
-                    stateVariables[`/mia${ind + 1}`].stateValues.immediateValue
-                        .tree,
+                    stateVariables[p3bGrandchildren[ind].componentIdx]
+                        .stateValues.immediateValue.tree,
                 ).eq(val);
                 expect(
-                    stateVariables[`/al3b/micol${ind + 1}`].stateValues
-                        .immediateValue.tree,
-                ).eq(val);
-                expect(
-                    stateVariables[`/mic${ind + 1}`].stateValues.immediateValue
-                        .tree,
-                ).eq(val);
-                expect(
-                    stateVariables[`/al3d/mia${ind + 1}`].stateValues
-                        .immediateValue.tree,
-                ).eq(val);
-                expect(
-                    stateVariables[`/al3e/micol${ind + 1}`].stateValues
-                        .immediateValue.tree,
+                    stateVariables[p3dGrandchildren[ind].componentIdx]
+                        .stateValues.immediateValue.tree,
                 ).eq(val);
             }
         }
@@ -1649,11 +1978,7 @@ describe("Collect tag tests", async () => {
 
         await set_and_check_items(["x2", "y2"], "b");
 
-        await set_and_check_items(["a", "b"], "c");
-
         await set_and_check_items(["e", "f", "g", "h", "i"], "d");
-
-        await set_and_check_items(["j", "k", "l"], "e");
     });
 
     // main point: no longer turn inputs into their value
@@ -1689,8 +2014,6 @@ describe("Collect tag tests", async () => {
             stateVariables[resolveComponentName("pcollect2")].activeChildren;
         let group2Replacements =
             stateVariables[resolveComponentName("pgroup2")].activeChildren;
-
-        console.log({ group1Replacements, collect1Replacements });
 
         expect(group1Replacements.length).eq(13);
         expect(collect1Replacements.length).eq(3);
@@ -1947,26 +2270,22 @@ describe("Collect tag tests", async () => {
         ).eq("Hidden paragraph with hidden text: ");
     });
 
-    it("copies hide dynamically", async () => {
+    it("collects hide dynamically", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>
-      <map>
-        <template><text>Hello, $l! </text></template>
-        <sources alias="l"><sequence type="letters" from="a" length="$n" /></sources>
-      </map>
+    <p name="p1">
+      <setup><sequence name="s" type="letters" from="a" length="$n" /></setup>
+      <repeat for="$s" itemName="l">
+        <text>Hello, $l! </text>
+      </repeat>
     </p>
 
     <booleanInput name='h1' prefill="false" >
       <label>Hide first collect</label>
     </booleanInput>
-    <booleanInput name='h2' prefill="true" >
-      <label>Hide second collect</label>
-    </booleanInput>
     <p>Number of points <mathInput name="n" prefill="4" /></p>
 
-    <p name="c1">collect 1: <collect hide="$h1" componentTypes="text" source="_p1" asList="false" /></p>
-    <p name="c2">collect 2: <collect hide="$h2" componentTypes="text" prop="value" source="_p1" asList="false" /></p>
+    <p name="c1">collect 1: <collect hide="$h1" componentType="text" from="$p1" asList="false" name="collect1" /></p>
     `,
         });
 
@@ -1975,28 +2294,33 @@ describe("Collect tag tests", async () => {
         expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! ",
         );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.text).eq(
-            "collect 2: ",
-        );
 
-        await updateMathInputValue({ latex: "6", name: "/n", core });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! ",
         );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.text).eq(
-            "collect 2: ",
-        );
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h1",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
-        await updateBooleanInputValue({
-            boolean: false,
-            name: "/h2",
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
+            "collect 1: ",
+        );
+
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: resolveComponentName("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -2004,28 +2328,10 @@ describe("Collect tag tests", async () => {
         expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
             "collect 1: ",
         );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.text).eq(
-            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! ",
-        );
-
-        await updateMathInputValue({ latex: "8", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
-            "collect 1: ",
-        );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.text).eq(
-            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! Hello, g! Hello, h! ",
-        );
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/h1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            name: "/h2",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -2033,47 +2339,27 @@ describe("Collect tag tests", async () => {
         expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! Hello, g! Hello, h! ",
         );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.text).eq(
-            "collect 2: ",
-        );
 
-        await updateMathInputValue({ latex: "3", name: "/n", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! ",
         );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.text).eq(
-            "collect 2: ",
-        );
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            name: "/h2",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
             "collect 1: ",
-        );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.text).eq(
-            "collect 2: Hello, a! Hello, b! Hello, c! ",
-        );
-
-        await updateMathInputValue({ latex: "4", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
-            "collect 1: ",
-        );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.text).eq(
-            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! ",
         );
     });
 
@@ -2083,7 +2369,7 @@ describe("Collect tag tests", async () => {
     <p name="p">We an <text>apple</text>, a <text>banana</text>, and a <text>cherry</text>.</p> 
 
     <p name="pdefault"><collect componentType="text" from="$p" /></p>
-    <p name="pnolist"><collect componentType="text" from="$p" aslist="false"/></p>
+    <p name="pnolist"><collect componentType="text" from="$p" asList="false"/></p>
 
     `,
         });
@@ -2110,8 +2396,6 @@ describe("Collect tag tests", async () => {
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(2);
-
-        console.log(errorWarnings.warnings);
 
         expect(errorWarnings.warnings[0].message).contain(
             "No source found for collect",
@@ -2140,15 +2424,15 @@ describe("Collect tag tests", async () => {
     <p name="p1">
       begin
       <point name="A">(1,2)</point>
-      <map name="map1">
-        <template><point>($x, $i)</point></template>
-        <sources alias="x" indexAlias="i"><sequence length="$n" /></sources>
-      </map>
+      <setup><sequence name="s" length="$n" /></setup>
+      <repeat name="repeat1" for="$s" itemName="x" indexName="i">
+        <point>($x, $i)</point>
+      </repeat>
       <point name="B">(3,4)</point>
       end
     </p>
     
-    <p name="p2">Hello <collect componentTypes="point" source="_p1" name="collect1" /> there</p>
+    <p name="p2">Hello <collect componentType="point" from="$p1" name="collect1" /> there</p>
     `,
         });
 
@@ -2159,17 +2443,19 @@ describe("Collect tag tests", async () => {
             );
             let components: {} = core.core!.components!;
 
-            let p1AllChildren: string[] = [];
-            p1AllChildren.push("/A");
-            p1AllChildren.push(components["/A"].adapterUsed.componentIdx);
-            p1AllChildren.push("/map1");
+            let p1AllChildren: number[] = [];
+            p1AllChildren.push(resolveComponentName("A"));
+            p1AllChildren.push(
+                components[resolveComponentName("A")].adapterUsed.componentIdx,
+            );
+            p1AllChildren.push(resolveComponentName("repeat1"));
 
-            let map = stateVariables[resolveComponentName("map1")];
+            let map = stateVariables[resolveComponentName("repeat1")];
 
             let nActiveReps = map.replacements!.length;
             if (map.replacementsToWithhold) {
                 nActiveReps -=
-                    stateVariables[resolveComponentName("map1")]
+                    stateVariables[resolveComponentName("repeat1")]
                         .replacementsToWithhold || 0;
             }
             for (let template of map.replacements!.slice(0, nActiveReps)) {
@@ -2178,14 +2464,22 @@ describe("Collect tag tests", async () => {
                 p1AllChildren.push(point.componentIdx);
                 p1AllChildren.push(point.adapterUsed.componentIdx);
             }
-            p1AllChildren.push("/B");
-            p1AllChildren.push(components["/B"].adapterUsed.componentIdx);
+            p1AllChildren.push(resolveComponentName("B"));
+            p1AllChildren.push(
+                components[resolveComponentName("B")].adapterUsed.componentIdx,
+            );
 
-            expect(components["/p1"].allChildrenOrdered).eqls(p1AllChildren);
+            expect(
+                components[
+                    resolveComponentName("p1")
+                ].allChildrenOrdered.filter(
+                    (cIdx) => components[cIdx].componentType !== "setup",
+                ),
+            ).eqls(p1AllChildren);
 
-            let p2AllChildren: string[] = [];
-            p2AllChildren.push("/collect1");
-            let collect = stateVariables[resolveComponentName("collect1")];
+            let p2AllChildren: number[] = [];
+            p2AllChildren.push(resolveComponentName("collect1"));
+            let collect = components[resolveComponentName("collect1")];
             nActiveReps = collect.replacements!.length;
             if (collect.replacementsToWithhold) {
                 nActiveReps -=
@@ -2197,18 +2491,32 @@ describe("Collect tag tests", async () => {
                 p2AllChildren.push(rep.adapterUsed.componentIdx);
             }
 
-            expect(components["/p2"].allChildrenOrdered).eqls(p2AllChildren);
+            expect(
+                components[resolveComponentName("p2")].allChildrenOrdered,
+            ).eqls(p2AllChildren);
         }
 
         await checkAllChildren();
 
-        await updateMathInputValue({ latex: "4", name: "/n", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         await checkAllChildren();
 
-        await updateMathInputValue({ latex: "3", name: "/n", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         await checkAllChildren();
 
-        await updateMathInputValue({ latex: "1", name: "/n", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         await checkAllChildren();
     });
 
@@ -2284,34 +2592,34 @@ describe("Collect tag tests", async () => {
             doenetML: `
     <booleanInput name="bi" />
 
-    <conditionalContent assignNames="g" condition="$bi">
-      <graph>
+    <conditionalContent name="c" condition="$bi">
+      <graph name="g">
         <point>(1,2)</point>
         <point>(3,4)</point>
       </graph>
     </conditionalContent>
     
-    <collect source="g" componentTypes="point" assignNames="P1 P2" />
+    <collect from="$c.g" componentType="point" name="collect" />
     `,
         });
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/bi",
+            componentIdx: resolveComponentName("bi"),
             core,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("collect[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([1, 2]);
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("collect[2]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
     });
 });

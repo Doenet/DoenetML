@@ -1261,7 +1261,10 @@ export default class BaseComponent {
                     );
                 }
 
-                serializedComponent.attributes[attrName] = { references };
+                serializedComponent.attributes[attrName] = {
+                    type: "references",
+                    references,
+                };
             } else {
                 // copy others if copy all or not set to be ignored
                 if (

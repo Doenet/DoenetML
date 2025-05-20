@@ -324,7 +324,6 @@ export default class Collect extends CompositeComponent {
         workspace.numReplacementsByCollected = [];
         workspace.collectedNames = [];
         workspace.replacementNamesByCollected = [];
-        workspace.uniqueIdentifiersUsedByCollected = {};
 
         if (!(await component.stateValues.sourceComponent)) {
             return { replacements: [], errors, warnings, nComponents };
@@ -346,15 +345,11 @@ export default class Collect extends CompositeComponent {
             collectedNum++
         ) {
             if (collectedComponents[collectedNum]) {
-                let uniqueIdentifiersUsed =
-                    (workspace.uniqueIdentifiersUsedByCollected[collectedNum] =
-                        []);
                 let results = await this.createReplacementForCollected({
                     component,
                     collectedNum,
                     components,
                     numReplacementsSoFar,
-                    uniqueIdentifiersUsed,
                     componentInfoObjects,
                     compositeAttributesObj,
                     numComponentsForSource,
@@ -391,7 +386,6 @@ export default class Collect extends CompositeComponent {
         components,
         collectedNum,
         numReplacementsSoFar,
-        uniqueIdentifiersUsed,
         componentInfoObjects,
         compositeAttributesObj,
         numComponentsForSource,
@@ -442,7 +436,6 @@ export default class Collect extends CompositeComponent {
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
             componentIdx: component.componentIdx,
-            uniqueIdentifiersUsed,
             identifierPrefix: collectedNum + "|",
         });
 
@@ -583,9 +576,6 @@ export default class Collect extends CompositeComponent {
                                         0),
                             );
                     }
-
-                    workspace.uniqueIdentifiersUsedByCollected[collectedNum] =
-                        [];
                 }
 
                 numReplacementsByCollected[collectedNum] = 0;
@@ -614,9 +604,6 @@ export default class Collect extends CompositeComponent {
                     numReplacementsToDelete = 0;
                 }
 
-                let uniqueIdentifiersUsed =
-                    (workspace.uniqueIdentifiersUsedByCollected[collectedNum] =
-                        []);
                 let results = await this.recreateReplacements({
                     component,
                     collectedNum,
@@ -624,7 +611,6 @@ export default class Collect extends CompositeComponent {
                     numReplacementsToDelete,
                     components,
                     nComponents,
-                    uniqueIdentifiersUsed,
                     componentInfoObjects,
                     compositeAttributesObj,
                     numComponentsForSource,
@@ -701,7 +687,6 @@ export default class Collect extends CompositeComponent {
         collectedNum,
         numReplacementsSoFar,
         numReplacementsToDelete,
-        uniqueIdentifiersUsed,
         components,
         componentInfoObjects,
         compositeAttributesObj,
@@ -717,7 +702,6 @@ export default class Collect extends CompositeComponent {
             collectedNum,
             components,
             numReplacementsSoFar,
-            uniqueIdentifiersUsed,
             componentInfoObjects,
             compositeAttributesObj,
             numComponentsForSource,
