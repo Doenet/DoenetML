@@ -130,7 +130,7 @@ export default class Function extends InlineComponent {
             createComponentOfType: "extrema",
         };
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.throughSlopes = {
             createComponentOfType: "mathList",

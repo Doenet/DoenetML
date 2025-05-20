@@ -114,7 +114,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.parMin = {
             createComponentOfType: "math",

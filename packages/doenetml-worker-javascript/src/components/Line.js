@@ -41,7 +41,7 @@ export default class Line extends GraphicalComponent {
             createComponentOfType: "math",
         };
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.slope = {
             createComponentOfType: "number",

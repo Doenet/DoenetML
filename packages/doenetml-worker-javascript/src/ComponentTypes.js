@@ -53,7 +53,7 @@ import Parabola from "./components/Parabola";
 import Curve from "./components/Curve";
 import BezierControls from "./components/BezierControls";
 import ControlVectors from "./components/ControlVectors";
-import PointListComponent from "./components/abstract/PointListComponent";
+import PointList from "./components/PointList";
 import IntervalListComponent from "./components/abstract/IntervalListComponent";
 import LineListComponent from "./components/abstract/LineListComponent";
 import VectorListComponent from "./components/abstract/VectorListComponent";
@@ -369,7 +369,7 @@ const componentTypeArray = [
     SegmentConstraintComponent,
     Input,
     CompositeComponent,
-    PointListComponent,
+    PointList,
     IntervalListComponent,
     LineListComponent,
     VectorListComponent,
