@@ -245,18 +245,21 @@ export default class TextList extends CompositeComponent {
                             variableIndex: 0,
                         });
                     } else if (globalDependencyValues.textsShadow !== null) {
-                        if (!workspace.desiredTextShadow) {
-                            workspace.desiredTextShadow = [
+                        if (!workspace.desiredTextsShadow) {
+                            workspace.desiredTextsShadow = [
                                 ...globalDependencyValues.textsShadow,
                             ];
                         }
-                        workspace.desiredTextShadow[arrayKey] =
+                        workspace.desiredTextsShadow[arrayKey] =
                             desiredStateVariableValues.texts[arrayKey];
-                        instructions.push({
-                            setDependency: "textsShadow",
-                            desiredValue: workspace.desiredTextShadow,
-                        });
                     }
+                }
+
+                if (workspace.desiredTextsShadow) {
+                    instructions.push({
+                        setDependency: "textsShadow",
+                        desiredValue: workspace.desiredTextsShadow,
+                    });
                 }
 
                 return {
@@ -318,7 +321,6 @@ export default class TextList extends CompositeComponent {
         }
 
         // allow one to override the fixed and isResponse attributes
-        // as well as rounding settings
         // by specifying it on the sequence
         let attributesFromComposite = {};
 
@@ -365,11 +367,9 @@ export default class TextList extends CompositeComponent {
             });
         }
 
-        workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
             componentIdx: component.componentIdx,
-            uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
         });

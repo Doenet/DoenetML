@@ -5,12 +5,7 @@ import {
     restrictTNamesToNamespace,
     calculateReplacementTypesFromChanges,
 } from "../utils/copy";
-import {
-    flattenDeep,
-    flattenLevels,
-    deepClone,
-    getUniqueIdentifierFromBase,
-} from "@doenet/utils";
+import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
 
@@ -167,144 +162,11 @@ export default class Copy extends CompositeComponent {
             }),
         };
 
-        stateVariableDefinitions.targetSourcesName = {
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "sourcesChildNumber",
-                    hasEssential: true,
-                    shadowVariable: true,
-                },
-            ],
-            stateVariablesDeterminingDependencies: ["extendIdx"],
-            determineDependenciesImmediately: true,
-            hasEssential: true,
-            shadowVariable: true,
-            returnDependencies: function ({ stateValues, sharedParameters }) {
-                let sourceNameMappings = sharedParameters.sourceNameMappings;
-                if (!sourceNameMappings) {
-                    return {};
-                }
-
-                let theMapping = sourceNameMappings[stateValues.extendIdx];
-                if (!theMapping) {
-                    return {};
-                }
-                return {
-                    targetSourcesName: {
-                        dependencyType: "value",
-                        value: theMapping.name,
-                    },
-                    sourcesChildNumber: {
-                        dependencyType: "value",
-                        value: theMapping.childNumber,
-                    },
-                };
-            },
-            definition: function ({ dependencyValues }) {
-                let targetSourcesName = dependencyValues.targetSourcesName;
-                let sourcesChildNumber = dependencyValues.sourcesChildNumber;
-                if (!targetSourcesName) {
-                    targetSourcesName = null;
-                    sourcesChildNumber = null;
-                }
-                return {
-                    setValue: { targetSourcesName, sourcesChildNumber },
-                    setEssentialValue: {
-                        targetSourcesName,
-                        sourcesChildNumber,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.targetSources = {
-            stateVariablesDeterminingDependencies: ["targetSourcesName"],
-            determineDependenciesImmediately: true,
-            returnDependencies({ stateValues }) {
-                if (!stateValues.targetSourcesName) {
-                    return {};
-                }
-                return {
-                    targetSourcesComponent: {
-                        dependencyType: "componentIdentity",
-                        componentIdx: stateValues.targetSourcesName,
-                    },
-                };
-            },
-            definition: function ({ dependencyValues }) {
-                let targetSources = dependencyValues.targetSourcesComponent;
-                if (!targetSources) {
-                    targetSources = null;
-                }
-                return { setValue: { targetSources } };
-            },
-        };
-
-        stateVariableDefinitions.sourceIndexAlias = {
-            stateVariablesDeterminingDependencies: ["extendIdx"],
-            determineDependenciesImmediately: true,
-            hasEssential: true,
-            shadowVariable: true,
-            returnDependencies: function ({ stateValues, sharedParameters }) {
-                let sourceIndexAliasMappings =
-                    sharedParameters.sourceIndexAliasMappings;
-                if (!sourceIndexAliasMappings) {
-                    return {};
-                }
-
-                let theMapping =
-                    sourceIndexAliasMappings[stateValues.extendIdx];
-                if (theMapping === undefined) {
-                    return {};
-                }
-
-                return {
-                    sourceIndexAlias: {
-                        dependencyType: "value",
-                        value: theMapping,
-                    },
-                };
-            },
-            definition: function ({ dependencyValues }) {
-                let sourceIndexAlias = dependencyValues.sourceIndexAlias;
-                if (sourceIndexAlias === undefined) {
-                    sourceIndexAlias = null;
-                }
-                return {
-                    setValue: { sourceIndexAlias },
-                    setEssentialValue: { sourceIndexAlias },
-                };
-            },
-        };
-
         stateVariableDefinitions.extendedComponent = {
             shadowVariable: true,
-            stateVariablesDeterminingDependencies: [
-                "targetSources",
-                "sourceIndexAlias",
-                "extendIdx",
-            ],
+            stateVariablesDeterminingDependencies: ["extendIdx"],
             determineDependenciesImmediately: true,
             returnDependencies({ stateValues }) {
-                if (stateValues.sourceIndexAlias !== null) {
-                    return {};
-                }
-
-                if (stateValues.targetSources !== null) {
-                    return {
-                        targetSourcesChildren: {
-                            dependencyType: "stateVariable",
-                            componentIdx:
-                                stateValues.targetSources.componentIdx,
-                            variableName: "childIdentities",
-                        },
-                        sourcesChildNumber: {
-                            dependencyType: "stateVariable",
-                            variableName: "sourcesChildNumber",
-                        },
-                    };
-                }
-
                 if (stateValues.extendIdx != undefined) {
                     return {
                         extendedComponent: {
@@ -318,15 +180,7 @@ export default class Copy extends CompositeComponent {
             },
             definition: function ({ dependencyValues }) {
                 let extendedComponent = null;
-                if (dependencyValues.targetSourcesChildren) {
-                    extendedComponent =
-                        dependencyValues.targetSourcesChildren[
-                            dependencyValues.sourcesChildNumber
-                        ];
-                    if (!extendedComponent) {
-                        extendedComponent = null;
-                    }
-                } else if (dependencyValues.extendedComponent) {
+                if (dependencyValues.extendedComponent) {
                     extendedComponent = dependencyValues.extendedComponent;
                 }
 
@@ -1197,7 +1051,6 @@ export default class Copy extends CompositeComponent {
         workspace.numNonStringReplacementsBySource = [];
         workspace.propVariablesCopiedBySource = [];
         workspace.sourceIndices = [];
-        workspace.uniqueIdentifiersUsedBySource = {};
 
         let compositeAttributesObj = this.createAttributesObject();
 
@@ -1341,53 +1194,6 @@ export default class Copy extends CompositeComponent {
             };
         }
 
-        // if have a sourceIndexAlias, it means we are copying the indexAlias from a source
-        // so we just return a number that is the index
-        let sourceIndexAlias = await component.stateValues.sourceIndexAlias;
-        if (sourceIndexAlias !== null) {
-            const res = convertUnresolvedAttributesForComponentType({
-                attributes: component.attributes,
-                componentType: "number",
-                componentInfoObjects,
-                compositeAttributesObj,
-                nComponents,
-            });
-
-            const attributesFromComposite = res.attributes;
-            nComponents = res.nComponents;
-
-            let replacements = [
-                {
-                    componentType: "number",
-                    attributes: attributesFromComposite,
-                    state: { value: sourceIndexAlias, fixed: true },
-                },
-            ];
-
-            let verificationResult = await verifyReplacementsMatchSpecifiedType(
-                {
-                    component,
-                    replacements,
-                    workspace,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                    components,
-                    nComponents,
-                    publicCaseInsensitiveAliasSubstitutions,
-                },
-            );
-            errors.push(...verificationResult.errors);
-            warnings.push(...verificationResult.warnings);
-            nComponents = verificationResult.nComponents;
-
-            return {
-                replacements: verificationResult.replacements,
-                errors,
-                warnings,
-                nComponents,
-            };
-        }
-
         let replacementSourceIdentities =
             await component.stateValues.replacementSourceIdentities;
         if (
@@ -1420,13 +1226,6 @@ export default class Copy extends CompositeComponent {
                 const attributesFromComposite = res.attributes;
                 nComponents = res.nComponents;
 
-                workspace.uniqueIdentifiersUsedBySource[0] = [];
-                let uniqueIdentifierBase = componentType + "|empty";
-                let uniqueIdentifier = getUniqueIdentifierFromBase(
-                    uniqueIdentifierBase,
-                    workspace.uniqueIdentifiersUsedBySource[0],
-                );
-
                 let children = deepClone(component.serializedChildren);
                 if (!componentClass.includeBlankStringChildren) {
                     children = children.filter(
@@ -1441,7 +1240,6 @@ export default class Copy extends CompositeComponent {
                         componentType,
                         attributes,
                         children,
-                        uniqueIdentifier,
                     },
                 ];
 
@@ -1522,9 +1320,6 @@ export default class Copy extends CompositeComponent {
         let numNonStringReplacementsSoFar = 0;
 
         for (let sourceNum in replacementSourceIdentities) {
-            let uniqueIdentifiersUsed =
-                (workspace.uniqueIdentifiersUsedBySource[sourceNum] = []);
-
             let numComponentsForSource;
 
             if (component.attributes.createComponentOfType?.primitive) {
@@ -1549,7 +1344,6 @@ export default class Copy extends CompositeComponent {
                 nComponents,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
-                uniqueIdentifiersUsed,
                 compositeAttributesObj,
                 componentInfoObjects,
                 numComponentsForSource,
@@ -1641,7 +1435,6 @@ export default class Copy extends CompositeComponent {
         nComponents,
         numReplacementsSoFar,
         numNonStringReplacementsSoFar,
-        uniqueIdentifiersUsed,
         compositeAttributesObj,
         componentInfoObjects,
         numComponentsForSource,
@@ -1705,7 +1498,6 @@ export default class Copy extends CompositeComponent {
                 propName,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
-                uniqueIdentifiersUsed,
                 compositeAttributesObj,
                 componentInfoObjects,
                 numComponentsForSource,
@@ -1813,7 +1605,6 @@ export default class Copy extends CompositeComponent {
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
             componentIdx: component.componentIdx,
-            uniqueIdentifiersUsed,
             addShadowDependencies: link,
             unlinkExternalCopies: !link,
         });
@@ -1918,11 +1709,6 @@ export default class Copy extends CompositeComponent {
             return { replacementChanges: [], nComponents };
         }
 
-        // for indexAlias from a source, the replacements never change
-        if ((await component.stateValues.sourceIndexAlias) !== null) {
-            return { replacementChanges: [], nComponents };
-        }
-
         if ((await component.stateValues.link) === false) {
             return { replacementChanges: [], nComponents };
         }
@@ -1935,64 +1721,56 @@ export default class Copy extends CompositeComponent {
             !(await component.stateValues.extendedComponent) ||
             !replacementSourceIdentities
         ) {
-            if (await component.stateValues.targetSources) {
-                // if have targetSources, then we're in a template instance
-                // that will be withheld
-                // Don't change replacements so that maintain replacement
-                // if the template instance is later no longer withheld
-                return { replacementChanges: [], nComponents };
-            } else {
-                let replacementChanges = [];
+            let replacementChanges = [];
 
-                if (component.replacements.length > 0) {
-                    let replacementInstruction = {
-                        changeType: "delete",
-                        changeTopLevelReplacements: true,
-                        firstReplacementInd: 0,
-                        numberReplacementsToDelete:
-                            component.replacements.length,
-                    };
-                    replacementChanges.push(replacementInstruction);
-                }
-
-                let previousZeroSourceIndices =
-                    workspace.sourceIndices.length === 0;
-
-                workspace.sourceIndices = [];
-                workspace.numReplacementsBySource = [];
-                workspace.numNonStringReplacementsBySource = [];
-                workspace.propVariablesCopiedBySource = [];
-
-                let verificationResult =
-                    await verifyReplacementsMatchSpecifiedType({
-                        component,
-                        replacementChanges,
-                        workspace,
-                        componentInfoObjects,
-                        compositeAttributesObj,
-                        components,
-                        nComponents,
-                        publicCaseInsensitiveAliasSubstitutions,
-                    });
-                errors.push(...verificationResult.errors);
-                warnings.push(...verificationResult.warnings);
-                nComponents = verificationResult.nComponents;
-
-                // Note: this has to run after verify,
-                // as verify has side effects of setting workspace variables,
-                // such as numReplacementsBySource
-                if (previousZeroSourceIndices) {
-                    // didn't have sources before and still don't have sources.
-                    // we're just getting filler components being recreated.
-                    // Don't actually make those changes
-                    return { replacementChanges: [], nComponents };
-                }
-
-                return {
-                    replacementChanges: verificationResult.replacementChanges,
-                    nComponents,
+            if (component.replacements.length > 0) {
+                let replacementInstruction = {
+                    changeType: "delete",
+                    changeTopLevelReplacements: true,
+                    firstReplacementInd: 0,
+                    numberReplacementsToDelete: component.replacements.length,
                 };
+                replacementChanges.push(replacementInstruction);
             }
+
+            let previousZeroSourceIndices =
+                workspace.sourceIndices.length === 0;
+
+            workspace.sourceIndices = [];
+            workspace.numReplacementsBySource = [];
+            workspace.numNonStringReplacementsBySource = [];
+            workspace.propVariablesCopiedBySource = [];
+
+            let verificationResult = await verifyReplacementsMatchSpecifiedType(
+                {
+                    component,
+                    replacementChanges,
+                    workspace,
+                    componentInfoObjects,
+                    compositeAttributesObj,
+                    components,
+                    nComponents,
+                    publicCaseInsensitiveAliasSubstitutions,
+                },
+            );
+            errors.push(...verificationResult.errors);
+            warnings.push(...verificationResult.warnings);
+            nComponents = verificationResult.nComponents;
+
+            // Note: this has to run after verify,
+            // as verify has side effects of setting workspace variables,
+            // such as numReplacementsBySource
+            if (previousZeroSourceIndices) {
+                // didn't have sources before and still don't have sources.
+                // we're just getting filler components being recreated.
+                // Don't actually make those changes
+                return { replacementChanges: [], nComponents };
+            }
+
+            return {
+                replacementChanges: verificationResult.replacementChanges,
+                nComponents,
+            };
         }
 
         if (await component.stateValues.targetInactive) {
@@ -2069,23 +1847,6 @@ export default class Copy extends CompositeComponent {
             }
         }
 
-        if (!component.doenetAttributes.sourceIsProp) {
-            let extendedComponent =
-                components[
-                    (await component.stateValues.extendedComponent).componentIdx
-                ];
-            let sourceIndex = await component.stateValues.sourceIndex;
-            if (
-                extendedComponent.doenetAttributes.sourceIsProp &&
-                !sourceIndex
-            ) {
-                // The case where we added an extra copy as a workaround for sourceIsProp.
-                // Any replacement changes will be handled by that copy,
-                // so we ignored changes here.
-                return { replacementChanges: [], nComponents };
-            }
-        }
-
         let replacementChanges = [];
 
         if (component.replacementsToWithhold > 0) {
@@ -2108,13 +1869,9 @@ export default class Copy extends CompositeComponent {
             workspace.numReplacementsBySource.length,
         );
 
-        // `wrapAsList` will be true if `verifyReplacementsMatchSpecifiedType`
-        // had a required component type that ends in "List"
-        // and so rewrapped all the replacement with that list component
-        const wrapAsList =
-            workspace.wrapExistingReplacements && workspace.wrapAsList;
-
         let recreateRemaining = false;
+
+        let numSourcesRecreated = 0;
 
         for (let sourceNum = 0; sourceNum < maxSourceLength; sourceNum++) {
             let numComponentsForSource;
@@ -2178,8 +1935,6 @@ export default class Copy extends CompositeComponent {
                                     ] = 0),
                             );
                     }
-
-                    workspace.uniqueIdentifiersUsedBySource[sourceNum] = [];
                 }
 
                 numReplacementsBySource[sourceNum] = 0;
@@ -2204,11 +1959,8 @@ export default class Copy extends CompositeComponent {
                     ind < workspace.numReplacementsBySource[sourceNum];
                     ind++
                 ) {
-                    let currentReplacement = wrapAsList
-                        ? component.replacements[0]?.definingChildren[
-                              numReplacementsSoFar + ind
-                          ]
-                        : component.replacements[numReplacementsSoFar + ind];
+                    let currentReplacement =
+                        component.replacements[numReplacementsSoFar + ind];
 
                     if (!currentReplacement) {
                         needToRecreate = true;
@@ -2225,6 +1977,7 @@ export default class Copy extends CompositeComponent {
             }
 
             if (needToRecreate) {
+                numSourcesRecreated++;
                 let prevNumReplacements = 0;
                 if (sourceNum in workspace.numReplacementsBySource) {
                     prevNumReplacements =
@@ -2237,8 +1990,6 @@ export default class Copy extends CompositeComponent {
                     numReplacementsToDelete = 0;
                 }
 
-                let uniqueIdentifiersUsed =
-                    (workspace.uniqueIdentifiersUsedBySource[sourceNum] = []);
                 let results = await this.recreateReplacements({
                     component,
                     sourceNum,
@@ -2247,7 +1998,6 @@ export default class Copy extends CompositeComponent {
                     numReplacementsToDelete,
                     components,
                     nComponents,
-                    uniqueIdentifiersUsed,
                     compositeAttributesObj,
                     componentInfoObjects,
                     numComponentsForSource,
@@ -2327,11 +2077,6 @@ export default class Copy extends CompositeComponent {
                 continue;
             }
 
-            // use new uniqueIdentifiersUsed
-            // so will get the same names for pieces that match
-            let uniqueIdentifiersUsed =
-                (workspace.uniqueIdentifiersUsedBySource[sourceNum] = []);
-
             let results = await this.createReplacementForSource({
                 component,
                 sourceNum,
@@ -2339,7 +2084,6 @@ export default class Copy extends CompositeComponent {
                 nComponents,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
-                uniqueIdentifiersUsed,
                 compositeAttributesObj,
                 componentInfoObjects,
                 numComponentsForSource,
@@ -2375,7 +2119,6 @@ export default class Copy extends CompositeComponent {
                     firstReplacementInd: numReplacementsSoFar,
                     numberReplacementsToReplace: numberReplacementsLeft,
                     serializedReplacements: newSerializedReplacements,
-                    assignNamesOffset: numNonStringReplacementsSoFar,
                 };
 
                 replacementChanges.push(replacementInstruction);
@@ -2417,13 +2160,10 @@ export default class Copy extends CompositeComponent {
                             onlyDifferenceIsType = false;
                             foundDifference = true;
                         } else {
-                            let currentReplacement = wrapAsList
-                                ? component.replacements[0]?.definingChildren[
-                                      numReplacementsSoFar + ind
-                                  ]
-                                : component.replacements[
-                                      numReplacementsSoFar + ind
-                                  ];
+                            let currentReplacement =
+                                component.replacements[
+                                    numReplacementsSoFar + ind
+                                ];
 
                             if (
                                 currentReplacement.componentType !==
@@ -2459,8 +2199,6 @@ export default class Copy extends CompositeComponent {
                             serializedReplacements: [
                                 newSerializedReplacements[ind],
                             ],
-                            assignNamesOffset:
-                                numNonStringReplacementsSoFar + nonStringInd,
                         };
                         replacementChanges.push(replacementInstruction);
                     }
@@ -2574,7 +2312,6 @@ export default class Copy extends CompositeComponent {
         numReplacementsSoFar,
         numNonStringReplacementsSoFar,
         numReplacementsToDelete,
-        uniqueIdentifiersUsed,
         components,
         nComponents,
         compositeAttributesObj,
@@ -2592,7 +2329,6 @@ export default class Copy extends CompositeComponent {
             numNonStringReplacementsSoFar,
             components,
             nComponents,
-            uniqueIdentifiersUsed,
             compositeAttributesObj,
             componentInfoObjects,
             numComponentsForSource,
@@ -2617,7 +2353,6 @@ export default class Copy extends CompositeComponent {
                 firstReplacementInd: numReplacementsSoFar,
                 numberReplacementsToReplace: numReplacementsToDelete,
                 serializedReplacements: newSerializedChildren,
-                assignNamesOffset: numNonStringReplacementsSoFar,
             };
 
             return {
@@ -2652,7 +2387,6 @@ export async function replacementFromProp({
     replacementSource,
     propName,
     // numReplacementsSoFar,
-    uniqueIdentifiersUsed,
     compositeAttributesObj,
     componentInfoObjects,
     numComponentsForSource,
@@ -2846,15 +2580,6 @@ export async function replacementFromProp({
 
                     propVariablesCopied.push(propVariable);
 
-                    let uniqueIdentifierBase =
-                        replacementSource.componentIdx +
-                        "|shadow|" +
-                        propVariable;
-                    let uniqueIdentifier = getUniqueIdentifierFromBase(
-                        uniqueIdentifierBase,
-                        uniqueIdentifiersUsed,
-                    );
-
                     const res = convertUnresolvedAttributesForComponentType({
                         attributes: component.attributes,
                         componentType: createComponentOfType,
@@ -2993,7 +2718,6 @@ export async function replacementFromProp({
                                     },
                                 ],
                             },
-                            uniqueIdentifier,
                         });
                     } else {
                         // no link
@@ -3131,22 +2855,15 @@ export async function replacementFromProp({
                             state: {
                                 [primaryEssentialStateVariable]: propStateValue,
                             },
-                            uniqueIdentifier,
                         };
 
                         serializedReplacements.push(serializedComponent);
                     }
                 } else {
                     // didn't match an array key, so just add an empty component of createComponentOfType
-                    let uniqueIdentifierBase = createComponentOfType + "|empty";
-                    let uniqueIdentifier = getUniqueIdentifierFromBase(
-                        uniqueIdentifierBase,
-                        uniqueIdentifiersUsed,
-                    );
 
                     serializedReplacements.push({
                         componentType: createComponentOfType,
-                        uniqueIdentifier,
                     });
                 }
             }
@@ -3181,15 +2898,6 @@ export async function replacementFromProp({
                         let propVariable =
                             arrayStateVarObj.arrayVarNameFromArrayKey(arrayKey);
                         let propVariablesCopiedForThisPiece = [propVariable];
-
-                        let uniqueIdentifierBase =
-                            replacementSource.componentIdx +
-                            "|shadow|" +
-                            propVariable;
-                        let uniqueIdentifier = getUniqueIdentifierFromBase(
-                            uniqueIdentifierBase,
-                            uniqueIdentifiersUsed,
-                        );
 
                         let createComponentOfType =
                             arrayStateVarObj.shadowingInstructions
@@ -3337,7 +3045,6 @@ export async function replacementFromProp({
                                         },
                                     ],
                                 },
-                                uniqueIdentifier,
                             });
                         } else {
                             let attributesForReplacement = {};
@@ -3480,7 +3187,6 @@ export async function replacementFromProp({
                                     [primaryEssentialStateVariable]:
                                         propStateValue,
                                 },
-                                uniqueIdentifier,
                             };
 
                             pieces.push(serializedComponent);
@@ -3500,11 +3206,6 @@ export async function replacementFromProp({
                             typeof wrapCs[ind] === "object"
                                 ? wrapCs[ind].componentType
                                 : wrapCs[ind];
-                        let uniqueIdentifierBase = wrapCT + "|wrapper";
-                        let uniqueIdentifier = getUniqueIdentifierFromBase(
-                            uniqueIdentifierBase,
-                            uniqueIdentifiersUsed,
-                        );
 
                         let children = [];
                         let attributes = {};
@@ -3525,7 +3226,6 @@ export async function replacementFromProp({
                                 componentIdx: nComponents++,
                                 children,
                                 attributes,
-                                uniqueIdentifier,
                                 skipSugar: true,
                             },
                         ];
@@ -3781,16 +3481,9 @@ export async function replacementFromProp({
 
                     // just add an empty component of createComponentOfType
 
-                    let uniqueIdentifierBase = createComponentOfType + "|empty";
-                    let uniqueIdentifier = getUniqueIdentifierFromBase(
-                        uniqueIdentifierBase,
-                        uniqueIdentifiersUsed,
-                    );
-
                     let newReplacement = {
                         componentType: createComponentOfType,
                         componentIdx: nComponents++,
-                        uniqueIdentifier,
                     };
                     if (wrapDoenetAttributes) {
                         newReplacement.doenetAttributes = wrapDoenetAttributes;
@@ -3828,12 +3521,6 @@ export async function replacementFromProp({
         ] = []);
 
         propVariablesCopied.push(varName);
-
-        let uniqueIdentifierBase = target.componentIdx + "|shadow|" + varName;
-        let uniqueIdentifier = getUniqueIdentifierFromBase(
-            uniqueIdentifierBase,
-            uniqueIdentifiersUsed,
-        );
 
         if (
             stateVarObj.shadowingInstructions.createComponentOfType === "string"
@@ -3927,7 +3614,6 @@ export async function replacementFromProp({
                             },
                         ],
                     },
-                    uniqueIdentifier,
                 });
             } else {
                 let attributesForReplacement = {};
@@ -4047,7 +3733,6 @@ export async function replacementFromProp({
                     state: {
                         [primaryEssentialStateVariable]: stateVarValue,
                     },
-                    uniqueIdentifier,
                 };
 
                 serializedReplacements.push(serializedComponent);

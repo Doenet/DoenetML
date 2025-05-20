@@ -1,4 +1,3 @@
-import { getUniqueIdentifierFromBase } from "@doenet/utils";
 import { convertUnresolvedAttributesForComponentType } from "./dast/convertNormalizedDast";
 
 export function postProcessCopy({
@@ -6,7 +5,6 @@ export function postProcessCopy({
     componentIdx,
     addShadowDependencies = true,
     markAsPrimaryShadow = false,
-    uniqueIdentifiersUsed = [],
     identifierPrefix = "",
     unlinkExternalCopies = false,
     copiesByTargetComponentName = {},
@@ -25,7 +23,6 @@ export function postProcessCopy({
             continue;
         }
 
-        let uniqueIdentifierBase;
         if (component.originalIdx != undefined) {
             if (unlinkExternalCopies) {
                 componentNamesFound.push(component.originalIdx);
@@ -45,8 +42,6 @@ export function postProcessCopy({
             }
 
             // preserializedNamesFound[component.originalIdx] = component;
-            uniqueIdentifierBase =
-                identifierPrefix + component.originalIdx + "|shadow";
 
             if (!component.originalNameFromSerializedComponent) {
                 // if originalNameFromSerializedComponent, then was copied from a serialized component
@@ -76,9 +71,6 @@ export function postProcessCopy({
                     component.unlinkedCopySource = component.originalIdx;
                 }
             }
-        } else {
-            uniqueIdentifierBase =
-                identifierPrefix + component.componentType + "|shadowUnnamed";
         }
 
         if (component.componentType === "copy" && unlinkExternalCopies) {
@@ -112,11 +104,6 @@ export function postProcessCopy({
                 }
             }
         }
-
-        component.uniqueIdentifier = getUniqueIdentifierFromBase(
-            uniqueIdentifierBase,
-            uniqueIdentifiersUsed,
-        );
     }
 
     // recurse after processing all components
@@ -133,7 +120,6 @@ export function postProcessCopy({
             componentIdx,
             addShadowDependencies,
             markAsPrimaryShadow,
-            uniqueIdentifiersUsed,
             identifierPrefix,
             unlinkExternalCopies,
             copiesByTargetComponentName,
@@ -150,7 +136,6 @@ export function postProcessCopy({
                     componentIdx,
                     addShadowDependencies,
                     markAsPrimaryShadow,
-                    uniqueIdentifiersUsed,
                     identifierPrefix,
                     unlinkExternalCopies,
                     copiesByTargetComponentName,
@@ -167,7 +152,6 @@ export function postProcessCopy({
                 componentIdx,
                 addShadowDependencies,
                 markAsPrimaryShadow,
-                uniqueIdentifiersUsed,
                 identifierPrefix,
                 unlinkExternalCopies,
                 copiesByTargetComponentName,
@@ -353,34 +337,6 @@ export async function verifyReplacementsMatchSpecifiedType({
             !(replacementsToWithhold > 0) &&
             workspace.sourceIndices?.length === requiredLength;
 
-        let wrapAsList = false;
-
-        if (
-            !wrapExistingReplacements &&
-            !(replacementsToWithhold > 0) &&
-            requiredLength === 1 &&
-            replacementTypes.length === workspace.sourceIndices?.length &&
-            requiredComponentType.endsWith("List")
-        ) {
-            const pieceType = requiredComponentType.substring(
-                0,
-                requiredComponentType.length - 4,
-            );
-
-            if (
-                replacementTypes.every((x) =>
-                    componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: pieceType,
-                        baseComponentType: pieceType,
-                    }),
-                )
-            ) {
-                wrapExistingReplacements = true;
-                wrapAsList = true;
-            }
-        }
-
-        // let uniqueIdentifiersUsed;
         let originalReplacements;
 
         if (wrapExistingReplacements && replacementChanges) {
@@ -389,7 +345,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             if (
                 replacementChanges.length === 1 &&
                 replacementChanges[0].numberReplacementsToReplace ===
-                    requiredLength
+                    component.replacements.length
             ) {
                 originalReplacements =
                     replacementChanges[0].serializedReplacements;
@@ -408,10 +364,6 @@ export async function verifyReplacementsMatchSpecifiedType({
             workspace.numNonStringReplacementsBySource = [];
             workspace.propVariablesCopiedBySource = [];
             workspace.sourceIndices = [];
-            workspace.uniqueIdentifiersUsedBySource = {};
-
-            workspace.uniqueIdentifiersUsedBySource[0] = [];
-            // uniqueIdentifiersUsed = workspace.uniqueIdentifiersUsedBySource[0] = [];
         }
 
         replacements = [];
@@ -427,11 +379,6 @@ export async function verifyReplacementsMatchSpecifiedType({
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
 
-            let uniqueIdentifierBase = requiredComponentType + "|empty" + i;
-            let uniqueIdentifier = getUniqueIdentifierFromBase(
-                uniqueIdentifierBase,
-                workspace.uniqueIdentifiersUsedBySource[0],
-            );
             replacements.push({
                 componentType: requiredComponentType,
                 componentIdx: nComponents++,
@@ -439,7 +386,6 @@ export async function verifyReplacementsMatchSpecifiedType({
                 doenetAttributes: {},
                 state: {},
                 children: [],
-                uniqueIdentifier,
             });
         }
 
@@ -532,17 +478,12 @@ export async function verifyReplacementsMatchSpecifiedType({
         }
 
         if (wrapExistingReplacements) {
-            if (wrapAsList) {
-                replacements[0].children = originalReplacements;
-            } else {
-                for (let [ind, repl] of replacements.entries()) {
-                    repl.children = [originalReplacements[ind]];
-                }
+            for (let [ind, repl] of replacements.entries()) {
+                repl.children = [originalReplacements[ind]];
             }
         }
 
         workspace.wrapExistingReplacements = wrapExistingReplacements;
-        workspace.wrapAsList = wrapAsList;
 
         if (!wrapExistingReplacements) {
             workspace.numReplacementsBySource.push(replacements.length);

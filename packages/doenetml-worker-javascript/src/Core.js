@@ -472,7 +472,6 @@ export default class Core {
         parentIdx,
         indexOfDefiningChildren,
         initialAdd = false,
-        assignNamesOffset,
     }) {
         if (!Array.isArray(serializedComponents)) {
             serializedComponents = [serializedComponents];
@@ -623,7 +622,6 @@ export default class Core {
                 parent,
                 indexOfDefiningChildren: indexOfDefiningChildren,
                 newChildren: newComponents,
-                assignNamesOffset,
             });
             if (!addResults.success) {
                 throw Error(
@@ -2876,8 +2874,6 @@ export default class Core {
         // 2. the shadowed composite
         // 3. the composite mediating the shadowing
         //    (of which shadowing composite is the replacement)
-        let uniqueIdentifiersUsed =
-            (component.replacementsWorkspace.uniqueIdentifiersUsed = []);
 
         let nameOfCompositeMediatingTheShadow = component.shadows.compositeIdx;
         let compositeMediatingTheShadow =
@@ -2885,7 +2881,6 @@ export default class Core {
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
             componentIdx: nameOfCompositeMediatingTheShadow,
-            uniqueIdentifiersUsed,
         });
 
         let compositeAttributesObj =
@@ -8968,7 +8963,6 @@ export default class Core {
         parent,
         indexOfDefiningChildren,
         newChildren,
-        assignNamesOffset,
     }) {
         this.spliceChildren(parent, indexOfDefiningChildren, newChildren);
 
@@ -9045,9 +9039,7 @@ export default class Core {
                     serializedComponents: shadowingSerializeChildren,
                     ancestors: shadowingParent.ancestors,
                     createNameContext:
-                        shadowingParent.componentIdx +
-                        "|addChildren|" +
-                        assignNamesOffset,
+                        shadowingParent.componentIdx + "|addChildren|",
                 });
 
                 this.parameterStack.pop();
@@ -9056,7 +9048,6 @@ export default class Core {
                     parent: unproxiedShadowingParent,
                     indexOfDefiningChildren,
                     newChildren: createResult.components,
-                    assignNamesOffset,
                 });
 
                 if (!shadowResult.success) {
@@ -9527,8 +9518,8 @@ export default class Core {
             ];
         }
 
-        console.log("replacement changes for " + component.componentIdx);
-        console.log(replacementResults);
+        // console.log("replacement changes for " + component.componentIdx);
+        // console.log(replacementResults);
         // console.log(component.replacements.map(x => x.componentIdx));
         // console.log(component.replacements);
         // console.log(component.unresolvedState);
@@ -9689,7 +9680,6 @@ export default class Core {
                             componentToShadow: unproxiedComponent,
                             parentToShadow: change.parent,
                             currentShadowedBy,
-                            assignNamesOffset: change.assignNamesOffset,
                             componentChanges,
                             sourceOfUpdate,
                             parentsOfDeleted,
@@ -10145,7 +10135,6 @@ export default class Core {
         componentToShadow,
         parentToShadow,
         currentShadowedBy,
-        assignNamesOffset,
         componentChanges,
         sourceOfUpdate,
         parentsOfDeleted,
@@ -10199,8 +10188,6 @@ export default class Core {
             }
 
             if (shadowingComponent.isExpanded) {
-                // TODO: not using uniqueIdentifiers used here
-                // is this a problem?
                 let newSerializedReplacements = [];
 
                 let compositeCreatingShadow =
@@ -10354,7 +10341,6 @@ export default class Core {
                             componentToShadow: shadowingComponent,
                             parentToShadow: shadowingParent,
                             currentShadowedBy,
-                            assignNamesOffset,
                             componentChanges,
                             sourceOfUpdate,
                             parentsOfDeleted,
@@ -10902,7 +10888,6 @@ export default class Core {
                 await this.addComponents({
                     serializedComponents: instruction.serializedComponents,
                     parentIdx: instruction.parentIdx,
-                    assignNamesOffset: instruction.assignNamesOffset,
                 });
             } else if (instruction.updateType === "deleteComponents") {
                 if (instruction.componentIndices.length > 0) {

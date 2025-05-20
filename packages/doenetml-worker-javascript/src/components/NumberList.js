@@ -579,7 +579,7 @@ export default class NumberList extends CompositeComponent {
 
         // allow one to override the fixed and isResponse attributes
         // as well as rounding settings
-        // by specifying it on the sequence
+        // by specifying it on the list
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
@@ -620,6 +620,7 @@ export default class NumberList extends CompositeComponent {
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 doenetAttributes: {},
                 children: [],
+                state: {},
                 downstreamDependencies: {
                     [component.componentIdx]: [
                         {
@@ -632,11 +633,9 @@ export default class NumberList extends CompositeComponent {
             });
         }
 
-        workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
             componentIdx: component.componentIdx,
-            uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
         });

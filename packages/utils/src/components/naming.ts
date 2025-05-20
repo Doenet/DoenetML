@@ -18,20 +18,3 @@ export function createUniqueName(componentType: string, longNameId: string) {
 
     return "__" + componentType + "_" + hashStringShortened;
 }
-
-export function getUniqueIdentifierFromBase(
-    uniqueIdentifierBase: string,
-    uniqueIdentifiersUsed: string[],
-) {
-    let postfix = 1;
-    let uniqueIdentifier = uniqueIdentifierBase + postfix;
-
-    while (uniqueIdentifiersUsed.includes(uniqueIdentifier)) {
-        postfix += 1;
-        uniqueIdentifier = uniqueIdentifierBase + postfix;
-    }
-
-    uniqueIdentifiersUsed.push(uniqueIdentifier);
-
-    return uniqueIdentifier;
-}

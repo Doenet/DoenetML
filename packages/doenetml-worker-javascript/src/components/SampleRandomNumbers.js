@@ -725,7 +725,6 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     firstReplacementInd: component.replacements.length,
                     numberReplacementsToReplace: 0,
                     serializedReplacements: result.replacements,
-                    assignNamesOffset: component.replacements.length,
                 };
                 replacementChanges.push(replacementInstruction);
             }

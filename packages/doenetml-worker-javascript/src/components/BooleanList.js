@@ -251,11 +251,14 @@ export default class BooleanList extends CompositeComponent {
                         }
                         workspace.desiredBooleanShadow[arrayKey] =
                             desiredStateVariableValues.booleans[arrayKey];
-                        instructions.push({
-                            setDependency: "booleansShadow",
-                            desiredValue: workspace.desiredBooleanShadow,
-                        });
                     }
+                }
+
+                if (workspace.desiredBooleanShadow) {
+                    instructions.push({
+                        setDependency: "booleansShadow",
+                        desiredValue: workspace.desiredBooleanShadow,
+                    });
                 }
 
                 return {
@@ -317,7 +320,6 @@ export default class BooleanList extends CompositeComponent {
         }
 
         // allow one to override the fixed and isResponse attributes
-        // as well as rounding settings
         // by specifying it on the sequence
         let attributesFromComposite = {};
 
@@ -364,11 +366,9 @@ export default class BooleanList extends CompositeComponent {
             });
         }
 
-        workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
             componentIdx: component.componentIdx,
-            uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
         });

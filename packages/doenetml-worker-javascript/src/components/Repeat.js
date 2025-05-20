@@ -594,7 +594,6 @@ export default class Repeat extends CompositeComponent {
                     firstReplacementInd: prevNumIterates,
                     serializedReplacements: replacements,
                     replacementsToWithhold: 0,
-                    assignNamesOffset: prevNumIterates,
                 };
                 replacementChanges.push(replacementInstruction);
             }

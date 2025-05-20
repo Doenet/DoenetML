@@ -88,38 +88,60 @@ export function convertRefsToCopies({
         const outerAttributes = { ...newComponent.attributes };
         newComponent.attributes = {};
 
+        let wrappingComponent: UnflattenedComponent | null = null;
+
         // If the reference was is an Attribute
         // then we know the resulting componentType
         // and we make the name and componentIdx the component be assigned to the eventual replacement
 
         if ("Attribute" in extending) {
-            outerAttributes.createComponentOfType = {
-                name: "createComponentOfType",
-                children: [newComponent.componentType],
-            };
-            outerAttributes.createComponentIdx = {
-                name: "createComponentIdx",
-                children: [newComponent.componentIdx.toString()],
-            };
-            newComponent.componentIdx = nComponents++;
+            if (newComponent.componentType.endsWith("List")) {
+                wrappingComponent = newComponent;
+                wrappingComponent.attributes = outerAttributes;
+                newComponent = {
+                    type: "unflattened",
+                    componentType: "copy",
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    state: {},
+                    children: [],
+                    extending: wrappingComponent.extending,
+                };
+                delete wrappingComponent.extending;
+            } else {
+                outerAttributes.createComponentOfType = {
+                    name: "createComponentOfType",
+                    children: [newComponent.componentType],
+                };
+                outerAttributes.createComponentIdx = {
+                    name: "createComponentIdx",
+                    children: [newComponent.componentIdx.toString()],
+                };
+                newComponent.componentIdx = nComponents++;
 
-            outerAttributes.createComponentName = {
-                name: "createComponentName",
-                children: outerAttributes.name.children,
-            };
-            delete outerAttributes.name;
-            outerAttributes.copyInChildren = {
-                name: "copyInChildren",
-                children: ["true"],
-            };
+                outerAttributes.createComponentName = {
+                    name: "createComponentName",
+                    children: outerAttributes.name.children,
+                };
+                delete outerAttributes.name;
+                outerAttributes.copyInChildren = {
+                    name: "copyInChildren",
+                    children: ["true"],
+                };
+            }
         }
 
         newComponent.componentType = "copy";
 
         if (unresolvedPath === null) {
             // a copy with no props
-            newComponent.attributes = outerAttributes;
-            newComponents.push(newComponent);
+            if (wrappingComponent) {
+                wrappingComponent.children.push(newComponent);
+                newComponents.push(wrappingComponent);
+            } else {
+                newComponent.attributes = outerAttributes;
+                newComponents.push(newComponent);
+            }
             continue;
         }
 
@@ -202,12 +224,16 @@ export function convertRefsToCopies({
 
         refResolution.unresolvedPath = converted_unresolvedPath;
 
-        newComponent.attributes = {
-            ...newComponent.attributes,
-            ...outerAttributes,
-        };
-
-        newComponents.push(newComponent);
+        if (wrappingComponent) {
+            wrappingComponent.children.push(newComponent);
+            newComponents.push(wrappingComponent);
+        } else {
+            newComponent.attributes = {
+                ...newComponent.attributes,
+                ...outerAttributes,
+            };
+            newComponents.push(newComponent);
+        }
     }
 
     return { components: newComponents, nComponents };

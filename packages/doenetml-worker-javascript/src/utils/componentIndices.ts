@@ -104,6 +104,9 @@ function createNewComponentIndicesSub(
                     attribute.primitive = { type: "number", value: newIdx };
                     idxMap[originalIdx] = newIdx;
                 }
+            } else {
+                console.error("Found invalid attribute", attribute);
+                throw Error("Found invalid attribute");
             }
         }
 

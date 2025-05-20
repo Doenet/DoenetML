@@ -2977,7 +2977,6 @@ export class MatrixInputGrid extends CompositeComponent {
                 attributes: {},
                 doenetAttributes: {},
                 children: [],
-                uniqueIdentifier: rowInd,
             });
         }
 
@@ -3056,7 +3055,6 @@ export class MatrixInputGrid extends CompositeComponent {
                     attributes: {},
                     doenetAttributes: {},
                     children: [],
-                    uniqueIdentifier: rowInd,
                 });
             }
 
@@ -3066,7 +3064,6 @@ export class MatrixInputGrid extends CompositeComponent {
                 firstReplacementInd: previousNumRows,
                 serializedReplacements: newSerializedReplacements,
                 replacementsToWithhold: 0,
-                assignNamesOffset: previousNumRows,
             };
             replacementChanges.push(replacementInstruction);
         }
@@ -3156,8 +3153,6 @@ export class MatrixInputRow extends CompositeComponent {
                 attributes: {},
                 doenetAttributes: {},
                 children: [],
-                uniqueIdentifier: rowInd,
-                uniqueIdentifier: colInd,
             });
         }
 
@@ -3245,8 +3240,6 @@ export class MatrixInputRow extends CompositeComponent {
                     attributes: {},
                     doenetAttributes: {},
                     children: [],
-                    uniqueIdentifier: rowInd,
-                    uniqueIdentifier: colInd,
                 });
             }
 
@@ -3256,7 +3249,6 @@ export class MatrixInputRow extends CompositeComponent {
                 firstReplacementInd: previousNumColumns,
                 serializedReplacements: newSerializedReplacements,
                 replacementsToWithhold: 0,
-                assignNamesOffset: previousNumColumns,
             };
             replacementChanges.push(replacementInstruction);
         }

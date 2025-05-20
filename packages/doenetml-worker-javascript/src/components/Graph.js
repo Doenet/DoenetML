@@ -1697,8 +1697,6 @@ export default class Graph extends BlockComponent {
                         serializedComponents:
                             processResult.serializedComponents,
                         parentIdx: this.componentIdx,
-                        assignNamesOffset:
-                            await this.stateValues.numChildrenAdded,
                     },
                     {
                         updateType: "updateValue",

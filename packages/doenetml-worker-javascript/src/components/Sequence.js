@@ -447,7 +447,6 @@ export default class Sequence extends CompositeComponent {
                     firstReplacementInd: prevlength,
                     serializedReplacements: newSerializedReplacements,
                     replacementsToWithhold: 0,
-                    assignNamesOffset: prevlength,
                 };
                 replacementChanges.push(replacementInstruction);
             }
