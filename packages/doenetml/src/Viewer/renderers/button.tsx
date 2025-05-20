@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
 // @ts-ignore
@@ -8,7 +10,9 @@ import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { cesc } from "@doenet/utils";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
-export default React.memo(function ButtonComponent(props) {
+export default React.memo(function ButtonComponent(
+    props: UseDoenetRendererProps,
+) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(
         props,
         false,

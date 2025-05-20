@@ -1,9 +1,11 @@
 import React, { useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
-export default React.memo(function Container(props) {
+export default React.memo(function Container(props: UseDoenetRendererProps) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
