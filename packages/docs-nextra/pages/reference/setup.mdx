@@ -1,0 +1,84 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <setup>{:dn}`
+
+
+
+` <setup>{:dn}`is a [**Sectional**](../document_structure/essentialConcepts/#componentTypes) component that acts as a container element 
+for defining other components. Content defined within the ` <setup>{:dn}` portion will not be rendered.
+
+## Attributes and Properties 
+
+The ` <setup>{:dn}` component has no attributes or props.
+
+---
+
+### Example: Defining maths in a ` <setup>{:dn}`
+
+
+```doenet-editor-horiz
+<setup>
+  <math name="a">3</math>
+  <math name="b">4</math>
+  <math name="c">sqrt($a^2+$b^2)</math>
+</setup>
+
+<p>Given a triangle with side lengths $a and $b, the length of the hypotenuse is given by <me>$c = $c{simplify}.</me>
+</p>
+```
+
+
+
+Components can be defined in a ` <setup>{:dn}` and referenced later in the document with the `$name`
+notation.
+
+
+
+---
+
+### Example: Defining geometry in a ` <setup>{:dn}`
+
+
+```doenet-editor-horiz
+<setup>
+  <point name="p">(-3,2)</point>
+  <line name="line1">y = 2x - 3</line>
+  <circle name="circ1" radius="6"/>
+</setup>
+
+<graph size="small">
+  $p $line1 $circ1
+</graph>    
+```
+
+
+
+Components can be defined in a ` <setup>{:dn}` and referenced later in the document with the `$name` notation.
+
+
+
+---
+
+### Example: Using a ` <setup>{:dn}` within a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Move the point to make it turn red.</p>
+<graph size="small">
+  <point name="p">(-3,2)</point>
+  <setup>
+    <boolean name="pMoved">
+      $p != (-3,2)
+    </boolean>
+  </setup>
+  <updateValue target="p.styleNumber" triggerWhen="$pMoved" newValue="2" type="number"/>
+</graph>
+```
+
+
+
+A ` <setup>{:dn}` block can also occur in a ` <graph>{:dn}`. In this case, we don't want the ` <boolean>{:dn}` value to render on the ` <graph>{:dn}`, we just want to define it near the ` <updateValue>{:dn}` that is using it.
+

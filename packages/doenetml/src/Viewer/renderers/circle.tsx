@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, POINT_LAYER_OFFSET } from "./graph";
 import {
     characterizeOffGraphCircleArc,
@@ -17,7 +19,7 @@ import {
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
-export default React.memo(function Circle(props) {
+export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
 
     // @ts-ignore

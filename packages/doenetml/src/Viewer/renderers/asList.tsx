@@ -1,7 +1,9 @@
 import React from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 
-export default React.memo(function AsList(props) {
+export default React.memo(function AsList(props: UseDoenetRendererProps) {
     let { name, id, SVs, children } = useDoenetRenderer(props);
 
     if (SVs.hidden) {

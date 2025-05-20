@@ -1,0 +1,212 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <table>{:dn}`
+
+
+The ` <table>{:dn}` component serves as a container element for data rendered 
+in a `<tabular>{:dn}` format.  Much of the DoenetML for customizing the appearance 
+of a table occurs its ` <tabular>{:dn}`, ` <row>{:dn}`, or ` <cell>{:dn}` children.
+
+## Attributes and Properties 
+ <AttrDisplay name='table'/> 
+ <PropDisplay name='table'/>
+
+
+---
+
+### Example: ` <table>{:dn}` without attributes
+
+
+```doenet-editor-horiz
+        <table><title>Fake Weather Statistics</title>
+          <tabular>
+            <row header>
+              <cell>Time</cell>
+              <cell>Mon</cell>
+              <cell>Tue</cell>
+              <cell>Wed</cell>
+            </row>
+            <row>
+              <cell></cell>
+              <cell>🌧</cell>
+              <cell>❄️</cell>
+              <cell>☀️</cell>
+            </row>
+            <row>
+              <cell>AM</cell>
+              <cell>rain</cell>
+              <cell>snow</cell>
+              <cell>sunny</cell>
+            </row>
+            <row>
+              <cell></cell>
+              <cell>50<m>^{\circ}</m></cell>
+              <cell>15<m>^{\circ}</m></cell>
+              <cell>-10<m>^{\circ}</m></cell>
+            </row>
+          </tabular>
+        </table>
+```
+
+
+
+In the sample code above, the ` <table>{:dn}` component is used without any additional attributes specified.
+
+
+
+---
+
+### Example: ` <table>{:dn}` with dividing lines
+
+
+```doenet-editor-horiz
+<table><title>Fake Weather Statistics</title>
+  <tabular top="minor" bottom="minor" left="minor" right="minor">
+    <row header>
+      <cell>Mon</cell>
+      <cell>Tue</cell>
+      <cell>Wed</cell>
+    </row>
+    <row>
+      <cell>🌧</cell>
+      <cell>❄️</cell>
+      <cell>☀️</cell>
+    </row>
+    <row>
+      <cell>rain</cell>
+      <cell>snow</cell>
+      <cell>sunny</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+In order to render dividing lines inside a ` <table>{:dn}`, the relevant border attributes, `top`, `bottom`, `left`, and `right` are specified in either the ` <tabular>{:dn}`, or ` <row>{:dn}` children.
+
+
+
+---
+
+### Example: ` <table>{:dn}` with varying widths
+
+
+```doenet-editor-horiz
+<table>
+  <tabular left="minor" right="minor" top="minor" bottom="minor">
+    <row>
+      <cell>1</cell>
+      <cell colSpan="2">2...........3</cell>
+      <cell colSpan="3">
+        4...........5............6</cell>
+    </row>
+    <row>
+      <cell>1</cell>
+      <cell>2</cell>
+      <cell>3</cell>
+      <cell>4</cell>
+      <cell>5</cell>
+      <cell>6</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+Tables with varying widths are constructed by adjusting the `colSpan` attribute within the ` <cell>{:dn}` components.
+
+
+
+---
+
+### Example: ` <table>{:dn}` with thick line below header only
+
+
+```doenet-editor-horiz
+<table>
+  <tabular top="minor">
+    <row bottom="medium" header>
+      <cell>1</cell>
+      <cell>2</cell>
+      <cell>3</cell>
+    </row>
+    <row>
+      <cell>a</cell>
+      <cell>b</cell>
+      <cell>c</cell>
+    </row>
+    <row>
+      <cell>i</cell>
+      <cell>ii</cell>
+      <cell>iii</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+To render a thicker line below the header row, use the `bottom` attribute with the `medium` or `major` specification within the ` <row>{:dn}` component.
+
+
+
+---
+
+### Example: number
+
+
+```doenet-editor-horiz
+      <table number="false">
+        <tabular top="medium" bottom="medium" left="medium" right="medium">
+          <row bottom="minor">
+            <cell right="minor">Data 1</cell>
+            <cell right="minor">Data 2</cell>
+            <cell>Data 3</cell>
+          </row>
+          <row>
+            <cell right="minor">A</cell>
+            <cell right="minor">B</cell>
+            <cell>C</cell>
+          </row>
+        </tabular>
+      </table>
+```
+
+
+
+In the sample code above, the ` <table>{:dn}` component is used in combination with the `number` attribute set to `false`, which removes the default numbering for a table.
+
+
+
+---
+
+### Example: suppressTableNameInTitle
+
+
+```doenet-editor-horiz
+      <table suppressTableNameInTitle="true">
+        <title>Title Only</title>
+
+        <tabular top="medium" bottom="medium" left="medium" right="medium">
+          <row bottom="minor">
+            <cell right="minor">Data 1</cell>
+            <cell right="minor">Data 2</cell>
+            <cell>Data 3</cell>
+          </row>
+          <row>
+            <cell right="minor">A</cell>
+            <cell right="minor">B</cell>
+            <cell>C</cell>
+          </row>
+        </tabular>
+      </table>
+```
+
+
+
+In the sample code above, the ` <table>{:dn}` component is used in combination with the `suppressTableNameInTitle` attribute set to `true`, which results in a table with only the user-defined title rendered.
+

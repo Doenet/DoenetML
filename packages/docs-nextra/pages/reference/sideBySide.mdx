@@ -1,0 +1,84 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <sideBySide>{:dn}`
+
+
+` <sideBySide>{:dn}` is a [**Sectional**](../document_structure/essentialConcepts/#componentTypes) component that takes enclosed sectional components and renders them in a sideBySide horizontal format.
+
+## Attributes and Properties 
+ <AttrDisplay name='sideBySide'/> 
+ <PropDisplay name='sideBySide'/>
+
+
+---
+
+### Example: Default ` <sideBySide>{:dn}`
+
+
+```doenet-editor-horiz
+<sideBySide> 
+  <ul>
+    <li>red</li>
+    <li>orange</li>
+    <li>yellow</li>
+  </ul>
+  <p><lorem generateWords="10"/></p>
+</sideBySide>
+<sideBySide> 
+  <p><lorem generateWords="10"/></p>
+  <p><lorem generateWords="10"/></p>
+</sideBySide>
+<sideBySide> 
+  <graph/>
+  <graph/>
+  <graph/>
+</sideBySide>
+```
+
+
+
+Three examples of different components placed in a ` <sideBySide>{:dn}` are illustrated. By default, portions are assigned an equal percentage width, with no margin. These settings can be modified with the `widths` and `margins` attributes.
+
+
+
+---
+
+### Example: widths
+
+
+```doenet-editor-horiz
+<sideBySide widths="20% 80%">
+  <graph/>
+  <graph/>
+</sideBySide>
+```
+
+
+
+The `widths` attribute assigns a width to each side-by-side portion by percent.
+
+
+
+---
+
+### Example: margins
+
+
+```doenet-editor-horiz
+<sideBySide widths="20% 40% 40%" margins="2%">
+  <graph/>
+  <graph/>
+  <graph/>
+</sideBySide>      
+```
+
+
+
+The `margins` attribute assigns a margin between each side-by-side portion by percent. When `widths` and `margins` attributes are both applied, margins are applied first.
+
+
+
+

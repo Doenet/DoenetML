@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -43,7 +45,7 @@ const Button = styled.button`
     }
 `;
 
-export default React.memo(function BooleanInput(props) {
+export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { name, id, SVs, actions, ignoreUpdate, rendererName, callAction } =
         useDoenetRenderer(props);
 

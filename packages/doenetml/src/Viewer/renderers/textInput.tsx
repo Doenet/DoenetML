@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -14,8 +16,10 @@ import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
+// @ts-ignore
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
+import { JXGObject } from "./jsxgraph-distrib/types";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -38,9 +42,6 @@ const Button = styled.button`
 `;
 
 const TextArea = styled.textarea`
-    width: ${(props) => props.width};
-    height: ${(props) =>
-        props.height}; // Same height as the checkWorkButton, accounting for the borders
     font-size: 14px;
     border: ${(props) =>
         props.disabled ? "2px solid var(--mainGray)" : "var(--mainBorder)"};
@@ -66,7 +67,7 @@ const Input = styled.input`
     }
 `;
 
-export default function TextInput(props) {
+export default function TextInput(props: UseDoenetRendererProps) {
     let {
         name,
         id,
@@ -81,7 +82,9 @@ export default function TextInput(props) {
     let width = sizeToCSS(SVs.width);
     let height = sizeToCSS(SVs.height); // only for TextArea
 
+    // @ts-ignore
     TextInput.baseStateVariable = "immediateValue";
+    // @ts-ignore
     TextInput.ignoreActionsWithoutCore = (actionName) =>
         actionName === "moveInput";
 
@@ -94,24 +97,24 @@ export default function TextInput(props) {
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let valueToRevertTo = useRef(SVs.immediateValue);
-    let focused = useRef(null);
+    let focused = useRef<boolean | null>(null);
 
     let immediateValueWhenSetState = useRef(null);
 
-    let inputJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
-    let anchorRel = useRef(null);
+    let inputJXG = useRef<JXGObject | null>(null);
+    let anchorPointJXG = useRef<JXGObject | null>(null);
+    let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
 
-    let pointerAtDown = useRef(false);
-    let pointAtDown = useRef(false);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<[number, number, number] | null>(null);
     let dragged = useRef(false);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    let calculatedX = useRef<number | null>(null);
+    let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef(null);
+    let lastPositionFromCore = useRef<number[] | null>(null);
     let previousPositionFromAnchor = useRef(null);
 
     let fixed = useRef(false);
@@ -152,7 +155,7 @@ export default function TextInput(props) {
         }
     }
 
-    function handleKeyPress(e) {
+    function handleKeyPress(e: React.KeyboardEvent) {
         if (e.key === "Enter") {
             valueToRevertTo.current = rendererValueRef.current;
 
@@ -174,7 +177,7 @@ export default function TextInput(props) {
         }
     }
 
-    function handleKeyDown(e) {
+    function handleKeyDown(e: React.KeyboardEvent) {
         if (e.key === "Escape") {
             let oldValue = valueToRevertTo.current;
 
@@ -193,11 +196,11 @@ export default function TextInput(props) {
         }
     }
 
-    function handleFocus(e) {
+    function handleFocus() {
         focused.current = true;
     }
 
-    function handleBlur(e) {
+    function handleBlur() {
         focused.current = false;
 
         valueToRevertTo.current = rendererValueRef.current;
@@ -208,7 +211,9 @@ export default function TextInput(props) {
         });
     }
 
-    function onChangeHandler(e) {
+    function onChangeHandler(
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) {
         let newValue = e.target.value;
 
         // console.log(`on change handler for ${id}, desired value: ${newValue}`)
@@ -234,7 +239,7 @@ export default function TextInput(props) {
     }
 
     function createInputJXG() {
-        let jsxInputAttributes = {
+        let jsxInputAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             disabled: SVs.disabled,
@@ -245,7 +250,7 @@ export default function TextInput(props) {
             parse: false,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGObject;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
@@ -283,20 +288,29 @@ export default function TextInput(props) {
         jsxInputAttributes.anchory = anchory;
         anchorRel.current = [anchorx, anchory];
 
-        let newInputJXG = board.create(
+        let newInputJXG: JXGObject = board.create(
             "input",
             [0, 0, rendererValue, SVs.label],
             jsxInputAttributes,
         );
         newInputJXG.isDraggable = !fixLocation.current;
 
-        newInputJXG.rendNodeInput.addEventListener("input", onChangeHandler);
-        newInputJXG.rendNodeInput.addEventListener("keypress", handleKeyPress);
-        newInputJXG.rendNodeInput.addEventListener("keydown", handleKeyDown);
+        newInputJXG.rendNodeInput.addEventListener(
+            "input",
+            onChangeHandler as any,
+        );
+        newInputJXG.rendNodeInput.addEventListener(
+            "keypress",
+            handleKeyPress as any,
+        );
+        newInputJXG.rendNodeInput.addEventListener(
+            "keydown",
+            handleKeyDown as any,
+        );
         newInputJXG.rendNodeInput.addEventListener("blur", handleBlur);
         newInputJXG.rendNodeInput.addEventListener("focus", handleFocus);
 
-        newInputJXG.rendNodeInput.style.width = width;
+        newInputJXG.rendNodeInput.style.width = width!;
         newInputJXG.rendNodeInput.style.color = "var(--canvastext)";
         newInputJXG.rendNodeInput.style.background = "var(--canvas)";
         newInputJXG.rendNodeInput.style.borderColor = "var(--canvastext)";
@@ -345,8 +359,8 @@ export default function TextInput(props) {
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
+                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
             ) {
                 dragged.current = true;
             }
@@ -355,8 +369,8 @@ export default function TextInput(props) {
             let width = newInputJXG.size[0] / board.unitX;
             let height = newInputJXG.size[1] / board.unitY;
 
-            let anchorx = anchorRel.current[0];
-            let anchory = anchorRel.current[1];
+            let anchorx = anchorRel.current?.[0] || 0;
+            let anchory = anchorRel.current?.[1] || 0;
 
             let offsetx = 0;
             if (anchorx === "middle") {
@@ -376,7 +390,7 @@ export default function TextInput(props) {
             let yminAdjusted = ymin + 0.04 * (ymax - ymin) - offsety - height;
             let ymaxAdjusted = ymax - 0.04 * (ymax - ymin) - offsety;
 
-            if (viaPointer) {
+            if (viaPointer && pointAtDown.current && pointerAtDown.current) {
                 // the reason we calculate point position with this algorithm,
                 // rather than using .X() and .Y() directly
                 // is that attributes .X() and .Y() are affected by the
@@ -474,17 +488,20 @@ export default function TextInput(props) {
     }
 
     function deleteInputJXG() {
+        if (!inputJXG.current) {
+            return;
+        }
         inputJXG.current.rendNodeInput.removeEventListener(
             "input",
-            onChangeHandler,
+            onChangeHandler as any,
         );
         inputJXG.current.rendNodeInput.removeEventListener(
             "keypress",
-            handleKeyPress,
+            handleKeyPress as any,
         );
         inputJXG.current.rendNodeInput.removeEventListener(
             "keydown",
-            handleKeyDown,
+            handleKeyDown as any,
         );
         inputJXG.current.rendNodeInput.removeEventListener("blur", handleBlur);
         inputJXG.current.rendNodeInput.removeEventListener(
@@ -518,9 +535,9 @@ export default function TextInput(props) {
 
         if (inputJXG.current === null) {
             createInputJXG();
-        } else {
+        } else if (anchorPointJXG.current) {
             if (inputJXG.current.Value() !== rendererValue) {
-                inputJXG.current.set(rendererValue);
+                (inputJXG.current as any).set(rendererValue);
             }
 
             inputJXG.current.relativeCoords.setCoordinates(
@@ -534,7 +551,7 @@ export default function TextInput(props) {
 
             inputJXG.current.setText(SVs.label);
 
-            inputJXG.current.rendNodeInput.style.width = width;
+            inputJXG.current.rendNodeInput.style.width = width!;
 
             let visible = !SVs.hidden;
 
@@ -586,7 +603,7 @@ export default function TextInput(props) {
             board.updateRenderer();
         }
 
-        return <a name={id} />;
+        return <span id={id} />;
     }
 
     // not in board
@@ -599,11 +616,11 @@ export default function TextInput(props) {
 
     const inputKey = id + "_input";
 
-    let checkWorkStyle = {
+    let checkWorkStyle: React.CSSProperties = {
         cursor: "pointer",
         padding: "1px 6px 1px 6px",
     };
-    let checkWorkTabIndex = "0";
+    let checkWorkTabIndex = 0;
 
     if (disabled) {
         checkWorkStyle.backgroundColor = getComputedStyle(
@@ -611,7 +628,7 @@ export default function TextInput(props) {
         ).getPropertyValue("--mainGray");
         checkWorkStyle.cursor = "not-allowed";
         checkWorkStyle.color = "black";
-        checkWorkTabIndex = "-1";
+        checkWorkTabIndex = -1;
     }
 
     // Assume we don't have a check work button
@@ -750,12 +767,12 @@ export default function TextInput(props) {
                     onKeyDown={handleKeyDown}
                     onBlur={handleBlur}
                     onFocus={handleFocus}
-                    width={width}
-                    height={height}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvastext)",
                         background: "var(--canvas)",
+                        width,
+                        height,
                     }}
                 />
             </label>
@@ -786,16 +803,13 @@ export default function TextInput(props) {
     }
 
     return (
-        <React.Fragment>
-            <a name={id} />
-            <span
-                className="textInputSurroundingBox"
-                id={id}
-                style={{ display: "inline-flex", maxWidth: "100%" }}
-            >
-                {input}
-                {checkWorkButton}
-            </span>
-        </React.Fragment>
+        <span
+            className="textInputSurroundingBox"
+            id={id}
+            style={{ display: "inline-flex", maxWidth: "100%" }}
+        >
+            {input}
+            {checkWorkButton}
+        </span>
     );
 }

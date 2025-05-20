@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { DoenetViewer } from "../../doenetml";
 import { Box, HStack, Button, Tooltip } from "@chakra-ui/react";
@@ -8,7 +10,7 @@ import { WarningTwoIcon } from "@chakra-ui/icons";
 import { RxUpdate } from "react-icons/rx";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
-export default React.memo(function CodeViewer(props) {
+export default React.memo(function CodeViewer(props: UseDoenetRendererProps) {
     let { name, id, SVs, children, actions, callAction } = useDoenetRenderer(
         props,
         false,
