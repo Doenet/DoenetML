@@ -109,7 +109,7 @@ export function DocViewer({
                 actionId,
             }: {
                 coreId: string;
-                componentIdx: string;
+                componentIdx: number;
                 stateValues: Record<string, any>;
                 childrenInstructions?: Record<string, any>[];
                 sourceOfUpdate?: Record<string, any>;
@@ -229,6 +229,7 @@ export function DocViewer({
 
     const rendererClasses = useRef<Record<string, any>>({});
     const coreInfo = useRef<Record<string, any> | null>(null);
+    const loadedInitialState = useRef(false);
     const coreCreated = useRef(false);
     const coreCreationInProgress = useRef(false);
     const coreId = useRef<string>("");
@@ -240,7 +241,7 @@ export function DocViewer({
     const actionsBeforeCoreCreated = useRef<
         {
             actionName: string;
-            componentIdx: string | undefined;
+            componentIdx: number | undefined;
             args: Record<string, any>;
         }[]
     >([]);
@@ -254,10 +255,10 @@ export function DocViewer({
         {},
     );
     const actionTentativelySkipped = useRef<{
-        action: { actionName: string; componentIdx?: string };
+        action: { actionName: string; componentIdx?: number };
         args: Record<string, any>;
         baseVariableValue?: any;
-        componentIdx?: string;
+        componentIdx?: number;
         rendererType?: string;
         promiseResolve?: (value: any) => void;
     } | null>(null);
@@ -384,7 +385,7 @@ export function DocViewer({
                     args,
                 }: {
                     actionName: string;
-                    componentIdx: string;
+                    componentIdx: number;
                     args: Record<string, any>;
                 }) {
                     return await callAction({
@@ -483,10 +484,10 @@ export function DocViewer({
         rendererType,
         promiseResolve,
     }: {
-        action: { actionName: string; componentIdx?: string };
+        action: { actionName: string; componentIdx?: number };
         args: Record<string, any>;
         baseVariableValue?: any;
-        componentIdx?: string;
+        componentIdx?: number;
         rendererType?: string;
         promiseResolve?: (value: any) => void;
     }) {
@@ -616,7 +617,7 @@ export function DocViewer({
 
     async function executeAction(actionArgs: {
         actionName: string;
-        componentIdx: string | undefined;
+        componentIdx: number | undefined;
         args: Record<string, any>;
     }) {
         if (!coreCreated.current) {
@@ -668,11 +669,9 @@ export function DocViewer({
                 for (let childInst of rendererState[componentIdx]
                     .childrenInstructions) {
                     if (childInst.componentType === "solution") {
-                        let solComponentName = childInst.componentIdx;
-                        if (
-                            rendererState[solComponentName].stateValues.hidden
-                        ) {
-                            rendererState[solComponentName].stateValues.hidden =
+                        let solComponentIdx = childInst.componentIdx;
+                        if (rendererState[solComponentIdx].stateValues.hidden) {
+                            rendererState[solComponentIdx].stateValues.hidden =
                                 false;
                         }
                     }
@@ -701,7 +700,7 @@ export function DocViewer({
             for (let componentIdx in args.rendererState) {
                 updateRendererSVsWithRecoil({
                     coreId: coreId.current,
-                    componentIdx,
+                    componentIdx: Number(componentIdx),
                     stateValues: args.rendererState[componentIdx].stateValues,
                     childrenInstructions:
                         args.rendererState[componentIdx].childrenInstructions,
@@ -820,14 +819,14 @@ export function DocViewer({
 
         if (
             init &&
-            coreInfo.current &&
+            loadedInitialState.current &&
             !errorInitializingRenderers.current &&
             !errorInsideRenderers.current &&
             !hidden
         ) {
-            // we don't update renderer state values if already have a coreInfo
+            // we don't update renderer state values if loaded the state before starting core
             // and no errors were encountered
-            // as we must have already gotten the renderer information before core was created.
+            // as we already had the renderer information before core was created.
             // Exception if doc is hidden,
             // then we still update the renderers.
             // This exception is important because, in this case,
@@ -945,6 +944,9 @@ export function DocViewer({
                         args: { doNotIgnore: true },
                     });
                 }
+
+                // Record the fact that we loaded the state before starting core
+                loadedInitialState.current = true;
 
                 initializeRenderers({
                     rendererState,
@@ -1075,6 +1077,9 @@ export function DocViewer({
             });
         }
 
+        // Record the fact that we loaded the state before starting core
+        loadedInitialState.current = true;
+
         initializeRenderers({
             rendererState,
             coreInfo,
@@ -1168,9 +1173,6 @@ export function DocViewer({
                 errorWarnings.current = dastResult.errorWarnings;
                 setErrorsAndWarningsCallback?.(errorWarnings.current);
             }
-
-            (window as any)["componentRangePieces" + docId] =
-                dastResult.componentRangePieces;
         } else {
             setIsInErrorState?.(true);
             setErrMsg(dastResult.errMsg);
@@ -1192,7 +1194,7 @@ export function DocViewer({
         delay,
         animationId,
     }: {
-        action: { actionName: string; componentIdx?: string };
+        action: { actionName: string; componentIdx?: number };
         actionArgs: Record<string, any>;
         delay?: number;
         animationId: string;
@@ -1225,7 +1227,7 @@ export function DocViewer({
         actionArgs,
         animationId,
     }: {
-        action: { actionName: string; componentIdx?: string };
+        action: { actionName: string; componentIdx?: number };
         actionArgs: Record<string, any>;
         animationId: string;
     }) {
@@ -1393,6 +1395,7 @@ export function DocViewer({
         setDocumentRenderer(null);
         coreCreated.current = false;
         coreCreationInProgress.current = false;
+        loadedInitialState.current = false;
 
         setStage("wait");
 
