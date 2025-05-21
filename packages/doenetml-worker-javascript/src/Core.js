@@ -29,7 +29,10 @@ import {
     returnDefaultGetArrayKeysFromVarName,
 } from "./utils/stateVariables";
 import { set as idb_set } from "idb-keyval";
-import { createNewComponentIndices } from "./utils/componentIndices";
+import {
+    createComponentIndicesFromSerializedChildren,
+    createNewComponentIndices,
+} from "./utils/componentIndices";
 
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
@@ -2793,7 +2796,7 @@ export default class Core {
             this._components[component.shadows.componentIdx];
         let compositesExpanded = [];
 
-        // console.log(`shadowedComposite: ${shadowedComposite.componentIdx}`)
+        // console.log(`shadowedComposite: ${shadowedComposite.componentIdx}`);
         // console.log(shadowedComposite.isExpanded);
         if (!shadowedComposite.isExpanded) {
             let result = await this.expandCompositeComponent(shadowedComposite);
@@ -2815,19 +2818,32 @@ export default class Core {
         let nComponents = this._components.length;
         let newNComponents = nComponents;
 
-        for (let repl of shadowedComposite.replacements) {
+        for (let [idx, repl] of shadowedComposite.replacements.entries()) {
             if (typeof repl === "object") {
                 const serializedComponent = await repl.serialize({
                     primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                 });
 
-                const res = createNewComponentIndices(
-                    [serializedComponent],
-                    newNComponents,
-                );
-                newNComponents = res.nComponents;
+                if (
+                    component.constructor.useSerializedChildrenComponentIndices
+                ) {
+                    const res = createComponentIndicesFromSerializedChildren(
+                        [serializedComponent],
+                        [component.serializedChildren[idx]],
+                        newNComponents,
+                    );
+                    newNComponents = res.nComponents;
 
-                serializedReplacements.push(...res.components);
+                    serializedReplacements.push(...res.components);
+                } else {
+                    const res = createNewComponentIndices(
+                        [serializedComponent],
+                        newNComponents,
+                    );
+                    newNComponents = res.nComponents;
+
+                    serializedReplacements.push(...res.components);
+                }
             } else {
                 serializedReplacements.push(repl);
             }
@@ -3076,7 +3092,7 @@ export default class Core {
         }
 
         // console.log(
-        //   `serialized replacements for ${component.componentIdx} who is shadowing ${shadowedComposite.componentIdx}`,
+        //     `serialized replacements for ${component.componentIdx} who is shadowing ${shadowedComposite.componentIdx}`,
         // );
         // console.log(deepClone(serializedReplacements));
 
@@ -9569,35 +9585,61 @@ export default class Core {
                     // then it was in the resolver even before it was created,
                     // so we don't delete it from the resolver when it is removed
                     if (!hadSingleIndexedReplacement) {
-                        // delete the indices of the current replacements from
+                        // Delete the indices of the current replacements from
                         // composite's entry of the name map of the resolver
+                        // Also recurse to any other components that shadow the composite.
 
-                        let componentsToRemove = [];
+                        // The queue for composites from which we'll remove replacements from the resolver
+                        let compositesToRemoveReplacements = [component];
 
-                        let newComponentsToRemove = component.replacements
-                            .slice(firstIndex, firstIndex + numberToDelete)
-                            .filter((comp) => typeof comp !== "string");
+                        while (compositesToRemoveReplacements.length > 0) {
+                            const nextComponent =
+                                compositesToRemoveReplacements.pop();
 
-                        // recurse to all descendants of the replacements,
-                        // including both `definingChildren` and `replacements` of the descendants
-                        while (newComponentsToRemove.length > 0) {
-                            componentsToRemove.push(...newComponentsToRemove);
-                            newComponentsToRemove =
-                                newComponentsToRemove.flatMap((comp) => {
-                                    let newComps = [...comp.definingChildren];
-                                    if (comp.replacements) {
-                                        newComps.push(...comp.replacements);
-                                    }
-                                    return newComps.filter(
-                                        (comp) => typeof comp !== "string",
-                                    );
-                                });
+                            // add any shadows to the queue
+                            if (nextComponent.shadowedBy) {
+                                compositesToRemoveReplacements.push(
+                                    ...nextComponent.shadowedBy,
+                                );
+                            }
+
+                            // Get a list of the replacements that will be removed and their descendants
+                            let componentsToRemove = [];
+
+                            let newComponentsToRemove =
+                                nextComponent.replacements
+                                    .slice(
+                                        firstIndex,
+                                        firstIndex + numberToDelete,
+                                    )
+                                    .filter((comp) => typeof comp !== "string");
+
+                            // recurse to all descendants of the replacements,
+                            // including both `definingChildren` and `replacements` of the descendants
+                            while (newComponentsToRemove.length > 0) {
+                                componentsToRemove.push(
+                                    ...newComponentsToRemove,
+                                );
+                                newComponentsToRemove =
+                                    newComponentsToRemove.flatMap((comp) => {
+                                        let newComps = [
+                                            ...comp.definingChildren,
+                                        ];
+                                        if (comp.replacements) {
+                                            newComps.push(...comp.replacements);
+                                        }
+                                        return newComps.filter(
+                                            (comp) => typeof comp !== "string",
+                                        );
+                                    });
+                            }
+
+                            // Remove the replacements and their descendants from the resolver
+                            this.removeComponentsFromResolver(
+                                componentsToRemove,
+                                nextComponent.componentIdx,
+                            );
                         }
-
-                        this.removeComponentsFromResolver(
-                            componentsToRemove,
-                            component.componentIdx,
-                        );
                     }
 
                     // delete replacements before creating new replacements so that can reuse componentNames

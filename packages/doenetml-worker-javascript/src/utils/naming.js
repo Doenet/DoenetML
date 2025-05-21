@@ -68,8 +68,6 @@ export function createComponentNames({
         let target = doenetAttributes.target;
         // let propName = doenetAttributes.propName;
         // let type = doenetAttributes.type;
-        // let alias = doenetAttributes.alias;
-        // let indexAlias = doenetAttributes.indexAlias;
 
         let mustCreateUniqueName =
             doenetAttributes.isAttributeChildFor ||

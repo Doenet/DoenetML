@@ -1,11 +1,14 @@
+import { Source } from "@doenet/doenetml-worker";
 import {
     UnflattenedComponent,
     UnflattenedIndex,
     UnflattenedPathPart,
 } from "./dast/intermediateTypes";
 import {
+    SerializedAttribute,
     SerializedComponent,
     SerializedPathIndex,
+    SerializedRefResolution,
     SerializedRefResolutionPathPart,
 } from "./dast/types";
 
@@ -63,96 +66,129 @@ function createNewComponentIndicesSub(
         Object.assign(idxMap, childResult.idxMap);
         nComponents = childResult.nComponents;
 
-        newComponent.attributes = { ...component.attributes };
-        for (const attrName in newComponent.attributes) {
-            const attribute = { ...newComponent.attributes[attrName] };
-            newComponent.attributes[attrName] = attribute;
+        const attrResult = newComponentIndicesForAttributes(
+            component.attributes,
+            nComponents,
+            idxMap,
+        );
+        newComponent.attributes = attrResult.attributes;
+        nComponents = attrResult.nComponents;
 
-            if (attribute.type === "component") {
-                const attrResult = createNewComponentIndicesSub(
-                    [attribute.component],
-                    nComponents,
-                );
-                attribute.component = attrResult
-                    .components[0] as SerializedComponent;
-                Object.assign(idxMap, attrResult.idxMap);
-                nComponents = attrResult.nComponents;
-            } else if (attribute.type === "references") {
-                const attrResult = createNewComponentIndicesSub(
-                    attribute.references,
-                    nComponents,
-                );
-                attribute.references =
-                    attrResult.components as SerializedComponent[];
-                Object.assign(idxMap, attrResult.idxMap);
-                nComponents = attrResult.nComponents;
-            } else if (attribute.type === "unresolved") {
-                const attrResult = createNewComponentIndicesUnflattened(
-                    attribute.children,
-                    nComponents,
-                );
-                attribute.children = attrResult.components;
-                Object.assign(idxMap, attrResult.idxMap);
-                nComponents = attrResult.nComponents;
-            } else if (attribute.type === "primitive") {
-                if (
-                    attrName === "createComponentIdx" &&
-                    attribute.primitive.type === "number"
-                ) {
-                    const originalIdx = attribute.primitive.value;
-                    const newIdx = nComponents++;
-                    attribute.primitive = { type: "number", value: newIdx };
-                    idxMap[originalIdx] = newIdx;
-                }
-            } else {
-                console.error("Found invalid attribute", attribute);
-                throw Error("Found invalid attribute");
-            }
-        }
+        if (newComponent.extending) {
+            const extendResult = newComponentIndicesForExtending(
+                newComponent.extending,
+                nComponents,
+                idxMap,
+            );
 
-        const extending = newComponent.extending;
-
-        if (extending) {
-            const refResolution =
-                "Ref" in extending ? extending.Ref : extending.Attribute;
-
-            let unresolvedPath: SerializedRefResolutionPathPart[] | null = null;
-            if (refResolution.unresolvedPath) {
-                unresolvedPath = [];
-                for (const pathPath of refResolution.unresolvedPath) {
-                    const newPathPart = { ...pathPath };
-                    const index: SerializedPathIndex[] = [];
-                    for (const indexPart of newPathPart.index) {
-                        const newIndexPart = { ...indexPart };
-
-                        const indexResult = createNewComponentIndicesSub(
-                            newIndexPart.value,
-                            nComponents,
-                        );
-                        newIndexPart.value = indexResult.components;
-                        Object.assign(idxMap, indexResult.idxMap);
-                        nComponents = indexResult.nComponents;
-                        index.push(newIndexPart);
-                    }
-                    newPathPart.index = index;
-                    unresolvedPath.push(newPathPart);
-                }
-
-                const newRefResolution = { ...refResolution };
-                newRefResolution.unresolvedPath = unresolvedPath;
-
-                if ("Ref" in extending) {
-                    newComponent.extending = { Ref: newRefResolution };
-                } else {
-                    newComponent.extending = { Attribute: newRefResolution };
-                }
-            }
+            newComponent.extending = extendResult.extending;
+            nComponents = extendResult.nComponents;
         }
 
         newComponents.push(newComponent);
     }
 
     return { components: newComponents, idxMap, nComponents };
+}
+
+function newComponentIndicesForExtending(
+    extending: Source<SerializedRefResolution>,
+    nComponents: number,
+    idxMap: Record<number, number>,
+) {
+    let newExtending: Source<SerializedRefResolution> = extending;
+
+    const refResolution =
+        "Ref" in extending ? extending.Ref : extending.Attribute;
+
+    let unresolvedPath: SerializedRefResolutionPathPart[] | null = null;
+    if (refResolution.unresolvedPath) {
+        unresolvedPath = [];
+        for (const pathPath of refResolution.unresolvedPath) {
+            const newPathPart = { ...pathPath };
+            const index: SerializedPathIndex[] = [];
+            for (const indexPart of newPathPart.index) {
+                const newIndexPart = { ...indexPart };
+
+                const indexResult = createNewComponentIndicesSub(
+                    newIndexPart.value,
+                    nComponents,
+                );
+                newIndexPart.value = indexResult.components;
+                Object.assign(idxMap, indexResult.idxMap);
+                nComponents = indexResult.nComponents;
+                index.push(newIndexPart);
+            }
+            newPathPart.index = index;
+            unresolvedPath.push(newPathPart);
+        }
+
+        const newRefResolution = { ...refResolution };
+        newRefResolution.unresolvedPath = unresolvedPath;
+
+        if ("Ref" in extending) {
+            newExtending = { Ref: newRefResolution };
+        } else {
+            newExtending = { Attribute: newRefResolution };
+        }
+    }
+    return { extending: newExtending, nComponents };
+}
+
+function newComponentIndicesForAttributes(
+    attributes: Record<string, SerializedAttribute>,
+    nComponents: number,
+    idxMap: Record<number, number>,
+    setCreateComponentIdx?: number,
+) {
+    const newAttributes: Record<string, SerializedAttribute> = {};
+
+    for (const attrName in attributes) {
+        const attribute = { ...attributes[attrName] };
+        newAttributes[attrName] = attribute;
+
+        if (attribute.type === "component") {
+            const attrResult = createNewComponentIndicesSub(
+                [attribute.component],
+                nComponents,
+            );
+            attribute.component = attrResult
+                .components[0] as SerializedComponent;
+            Object.assign(idxMap, attrResult.idxMap);
+            nComponents = attrResult.nComponents;
+        } else if (attribute.type === "references") {
+            const attrResult = createNewComponentIndicesSub(
+                attribute.references,
+                nComponents,
+            );
+            attribute.references =
+                attrResult.components as SerializedComponent[];
+            Object.assign(idxMap, attrResult.idxMap);
+            nComponents = attrResult.nComponents;
+        } else if (attribute.type === "unresolved") {
+            const attrResult = createNewComponentIndicesUnflattened(
+                attribute.children,
+                nComponents,
+            );
+            attribute.children = attrResult.components;
+            Object.assign(idxMap, attrResult.idxMap);
+            nComponents = attrResult.nComponents;
+        } else if (attribute.type === "primitive") {
+            if (
+                attrName === "createComponentIdx" &&
+                attribute.primitive.type === "number"
+            ) {
+                const originalIdx = attribute.primitive.value;
+                const newIdx = setCreateComponentIdx ?? nComponents++;
+                attribute.primitive = { type: "number", value: newIdx };
+                idxMap[originalIdx] = newIdx;
+            }
+        } else {
+            console.error("Found invalid attribute", attribute);
+            throw Error("Found invalid attribute");
+        }
+    }
+    return { attributes: newAttributes, nComponents };
 }
 
 /**
@@ -391,4 +427,112 @@ function remapUnflattenedRefResolutions(
     }
 
     return { nComponents };
+}
+
+/**
+ * Recurse through all serialized components and update their component indices.
+ * For components and their descendants use the `componentIdx` of the corresponding component in `componentIdxSources`.
+ * (An error will be thrown if `serializedComponents` and `componentIdxSources` don't have the exact same structure.)
+ * Similarly, uses the `createComponentIdx` attribute of the corresponding component in `componentIdxSources`.
+ * For all other components, such as those in attributes and `extending`,
+ * update their component indices to new values, starting with `nComponents`.
+ *
+ * Returns:
+ * - `components`: the components with new indices
+ * - `nComponents`: the new value of `nComponents`, one greater than the last component index assigned
+ */
+export function createComponentIndicesFromSerializedChildren(
+    serializedComponents: (SerializedComponent | string)[],
+    componentIdxSources: (SerializedComponent | string)[],
+    nComponents: number,
+) {
+    const result = createComponentIndicesFromSerializedChildrenSub(
+        serializedComponents,
+        componentIdxSources,
+        nComponents,
+    );
+
+    const newComponents = result.components;
+    const idxMap = result.idxMap;
+    nComponents = result.nComponents;
+
+    const remapResult = remapRefResolutions(newComponents, idxMap, nComponents);
+    nComponents = remapResult.nComponents;
+
+    return { components: newComponents, nComponents };
+}
+
+function createComponentIndicesFromSerializedChildrenSub(
+    serializedComponents: (SerializedComponent | string)[],
+    componentIdxSources: (SerializedComponent | string)[],
+    nComponents: number,
+) {
+    const newComponents: (SerializedComponent | string)[] = [];
+    const idxMap: Record<number, number> = {};
+
+    for (const [idx, component] of serializedComponents.entries()) {
+        if (typeof component === "string") {
+            newComponents.push(component);
+            continue;
+        }
+
+        const newComponent: SerializedComponent = { ...component };
+
+        const idxSource = componentIdxSources[idx];
+        if (typeof idxSource === "string") {
+            console.log({ serializedComponents, componentIdxSources });
+            throw Error("Serialized children don't correspond");
+        }
+
+        newComponent.originalIdx = component.componentIdx;
+        newComponent.componentIdx = idxSource.componentIdx;
+        idxMap[newComponent.originalIdx] = newComponent.componentIdx;
+
+        const childResult = createComponentIndicesFromSerializedChildrenSub(
+            component.children,
+            idxSource.children,
+            nComponents,
+        );
+        newComponent.children = childResult.components;
+        Object.assign(idxMap, childResult.idxMap);
+        nComponents = childResult.nComponents;
+
+        let setCreateComponentIdx: undefined | number = undefined;
+
+        if (idxSource.attributes.createComponentIdx?.type === "primitive") {
+            const createComponentIdx =
+                idxSource.attributes.createComponentIdx.primitive;
+            if (createComponentIdx.type === "number") {
+                setCreateComponentIdx = createComponentIdx.value;
+            }
+        }
+
+        const attrResult = newComponentIndicesForAttributes(
+            component.attributes,
+            nComponents,
+            idxMap,
+            setCreateComponentIdx,
+        );
+        newComponent.attributes = attrResult.attributes;
+        nComponents = attrResult.nComponents;
+
+        const extending = newComponent.extending;
+
+        if (extending) {
+            if (newComponent.extending) {
+                const extendResult = newComponentIndicesForExtending(
+                    newComponent.extending,
+                    nComponents,
+                    idxMap,
+                );
+
+                newComponent.extending = extendResult.extending;
+                nComponents = extendResult.nComponents;
+            }
+        }
+
+        newComponents.push(newComponent);
+    }
+
+    return { components: newComponents, idxMap, nComponents };
 }

@@ -3925,7 +3925,7 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
                     .publicStateVariableInfo[component.componentType]
                     .stateVariableDescriptions[variableName];
 
-            if (stateVarInfo.indexAliases) {
+            if (stateVarInfo?.indexAliases) {
                 const dim = propIndex.length;
                 const aliases = stateVarInfo.indexAliases[dim];
 
@@ -6329,13 +6329,10 @@ class AncestorDependency extends Dependency {
             };
         }
 
-        // XXX: with documentIdx now documentIdx and _components an array,
-        // need to fix this
         if (
-            !(
-                this.dependencyHandler.core.documentIdx in
-                this.dependencyHandler._components
-            )
+            this.dependencyHandler._components[
+                this.dependencyHandler.core.documentIdx
+            ] == undefined
         ) {
             // if document hasn't been created yet, then don't match ancestors
             // until have created document
@@ -6532,14 +6529,16 @@ class AncestorDependency extends Dependency {
     }
 
     deleteFromUpdateTriggers() {
-        for (let ancestorIdx of this.ancestorResults.ancestorsExamined) {
-            let ancestorDeps =
-                this.dependencyHandler.updateTriggers
-                    .ancestorDependenciesByPotentialAncestor[ancestorIdx];
-            if (ancestorDeps) {
-                let ind = ancestorDeps.indexOf(this);
-                if (ind !== -1) {
-                    ancestorDeps.splice(ind, 1);
+        if (this.ancestorResults) {
+            for (let ancestorIdx of this.ancestorResults.ancestorsExamined) {
+                let ancestorDeps =
+                    this.dependencyHandler.updateTriggers
+                        .ancestorDependenciesByPotentialAncestor[ancestorIdx];
+                if (ancestorDeps) {
+                    let ind = ancestorDeps.indexOf(this);
+                    if (ind !== -1) {
+                        ancestorDeps.splice(ind, 1);
+                    }
                 }
             }
         }
@@ -6558,7 +6557,7 @@ class AncestorDependency extends Dependency {
             }
         }
 
-        if (this.ancestorResults && this.ancestorResults.missingComponentName) {
+        if (this.ancestorResults?.missingComponentName) {
             let dependenciesMissingComponent =
                 this.dependencyHandler.updateTriggers
                     .dependenciesMissingComponentBySpecifiedName[
@@ -7117,6 +7116,12 @@ class RefResolutionDependency extends Dependency {
     }
 
     async determineDownstreamComponents({ force = false } = {}) {
+        if (this.compositeIdx === 18) {
+            console.log(
+                `***** determine downstream components for ref resolution of ${this.compositeIdx}`,
+            );
+        }
+
         this.compositeReplacementDependencies = [];
 
         let composite = this.dependencyHandler._components[this.compositeIdx];

@@ -152,14 +152,17 @@ export default class Copy extends CompositeComponent {
                     },
                 };
             },
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    extendIdx: dependencyValues.refResolution.extendIdx,
-                    unresolvedPath:
-                        dependencyValues.refResolution.unresolvedPath,
-                    originalPath: dependencyValues.refResolution.originalPath,
-                },
-            }),
+            definition: ({ dependencyValues }) => {
+                return {
+                    setValue: {
+                        extendIdx: dependencyValues.refResolution.extendIdx,
+                        unresolvedPath:
+                            dependencyValues.refResolution.unresolvedPath,
+                        originalPath:
+                            dependencyValues.refResolution.originalPath,
+                    },
+                };
+            },
         };
 
         stateVariableDefinitions.extendedComponent = {
@@ -1237,8 +1240,12 @@ export default class Copy extends CompositeComponent {
 
                 replacements = [
                     {
+                        type: "serialized",
                         componentType,
+                        componentIdx: nComponents++,
                         attributes,
+                        doenetAttributes: {},
+                        state: {},
                         children,
                     },
                 ];
@@ -2704,9 +2711,13 @@ export async function replacementFromProp({
                         );
 
                         serializedReplacements.push({
+                            type: "serialized",
                             componentType: createComponentOfType,
-                            attributes: attributesForReplacement,
                             componentIdx: nComponents++,
+                            attributes: attributesForReplacement,
+                            doenetAttributes: {},
+                            children: [],
+                            state: {},
                             downstreamDependencies: {
                                 [replacementSource.componentIdx]: [
                                     {
@@ -2805,7 +2816,7 @@ export async function replacementFromProp({
                                             primitive: JSON.parse(
                                                 JSON.stringify(
                                                     target.attributes[attrName]
-                                                        .primitive.value,
+                                                        .primitive,
                                                 ),
                                             ),
                                         };
@@ -2849,12 +2860,15 @@ export async function replacementFromProp({
                         }
 
                         let serializedComponent = {
+                            type: "serialized",
                             componentType: createComponentOfType,
                             componentIdx: nComponents++,
                             attributes: attributesForReplacement,
+                            doenetAttributes: {},
                             state: {
                                 [primaryEssentialStateVariable]: propStateValue,
                             },
+                            children: [],
                         };
 
                         serializedReplacements.push(serializedComponent);
@@ -2863,7 +2877,13 @@ export async function replacementFromProp({
                     // didn't match an array key, so just add an empty component of createComponentOfType
 
                     serializedReplacements.push({
+                        type: "serialized",
                         componentType: createComponentOfType,
+                        componentIdx: nComponents++,
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
+                        state: {},
                     });
                 }
             }
@@ -3030,9 +3050,13 @@ export async function replacementFromProp({
                             }
 
                             pieces.push({
+                                type: "serialized",
                                 componentType: createComponentOfType,
                                 componentIdx: nComponents++,
                                 attributes: attributesForReplacement,
+                                doenetAttributes: {},
+                                children: [],
+                                state: {},
                                 downstreamDependencies: {
                                     [replacementSource.componentIdx]: [
                                         {
@@ -3139,7 +3163,7 @@ export async function replacementFromProp({
                                                         JSON.stringify(
                                                             target.attributes[
                                                                 attrName
-                                                            ].primitive.value,
+                                                            ].primitive,
                                                         ),
                                                     ),
                                                 };
@@ -3180,9 +3204,12 @@ export async function replacementFromProp({
                             }
 
                             let serializedComponent = {
+                                type: "serialized",
                                 componentType: createComponentOfType,
                                 componentIdx: nComponents++,
                                 attributes: attributesForReplacement,
+                                doenetAttributes: {},
+                                children: [],
                                 state: {
                                     [primaryEssentialStateVariable]:
                                         propStateValue,
@@ -3222,10 +3249,13 @@ export async function replacementFromProp({
 
                         pieces = [
                             {
+                                type: "serialized",
                                 componentType: wrapCT,
                                 componentIdx: nComponents++,
                                 children,
                                 attributes,
+                                doenetAttributes: {},
+                                state: {},
                                 skipSugar: true,
                             },
                         ];
@@ -3482,8 +3512,13 @@ export async function replacementFromProp({
                     // just add an empty component of createComponentOfType
 
                     let newReplacement = {
+                        type: "serialized",
                         componentType: createComponentOfType,
                         componentIdx: nComponents++,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
+                        children: [],
                     };
                     if (wrapDoenetAttributes) {
                         newReplacement.doenetAttributes = wrapDoenetAttributes;
@@ -3598,10 +3633,14 @@ export async function replacementFromProp({
                 );
 
                 serializedReplacements.push({
+                    type: "serialized",
                     componentType:
                         stateVarObj.shadowingInstructions.createComponentOfType,
                     componentIdx: nComponents++,
                     attributes: attributesForReplacement,
+                    doenetAttributes: {},
+                    state: {},
+                    children: [],
                     downstreamDependencies: {
                         [target.componentIdx]: [
                             {
@@ -3693,7 +3732,7 @@ export async function replacementFromProp({
                                     primitive: JSON.parse(
                                         JSON.stringify(
                                             target.attributes[attrName]
-                                                .primitive.value,
+                                                .primitive,
                                         ),
                                     ),
                                 };
@@ -3726,10 +3765,13 @@ export async function replacementFromProp({
                 }
 
                 let serializedComponent = {
+                    type: "serialized",
                     componentType:
                         stateVarObj.shadowingInstructions.createComponentOfType,
                     componentIdx: nComponents++,
                     attributes: attributesForReplacement,
+                    doenetAttributes: {},
+                    children: [],
                     state: {
                         [primaryEssentialStateVariable]: stateVarValue,
                     },

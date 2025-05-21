@@ -19,6 +19,8 @@ export default class Group extends CompositeComponent {
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
+    static useSerializedChildrenComponentIndices = true;
+
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];
@@ -183,7 +185,7 @@ export default class Group extends CompositeComponent {
                         )
                     ) {
                         throw Error(
-                            `Invalid componentType ${dependencyValues.typeAttr} of copy.`,
+                            `Invalid componentType ${dependencyValues.typeAttr} of a ${componentClass.componentType}.`,
                         );
                     }
                     if (dependencyValues.numComponentsAttr !== null) {

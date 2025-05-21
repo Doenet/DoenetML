@@ -5,7 +5,6 @@ import {
     returnSequenceValues,
 } from "../utils/sequence";
 import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnRoundingAttributes } from "../utils/rounding";
@@ -293,17 +292,8 @@ export default class SelectFromSequence extends Sequence {
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
         };

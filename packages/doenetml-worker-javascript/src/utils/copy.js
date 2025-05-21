@@ -26,19 +26,6 @@ export function postProcessCopy({
         if (component.originalIdx != undefined) {
             if (unlinkExternalCopies) {
                 componentNamesFound.push(component.originalIdx);
-
-                if (component.attributes) {
-                    if (component.attributes.alias) {
-                        activeAliases.push(
-                            component.attributes.alias.primitive.value,
-                        );
-                    }
-                    if (component.attributes.indexAlias) {
-                        activeAliases.push(
-                            component.attributes.indexAlias.primitive.value,
-                        );
-                    }
-                }
             }
 
             // preserializedNamesFound[component.originalIdx] = component;
@@ -173,7 +160,10 @@ export function postProcessCopy({
                     if (!copyComponent.attributes) {
                         copyComponent.attributes = {};
                     }
-                    copyComponent.attributes.link = { primitive: false };
+                    copyComponent.attributes.link = {
+                        type: "primitive",
+                        primitive: { type: "boolean", value: false },
+                    };
                     copyComponent.doenetAttributes.target =
                         copyComponent.doenetAttributes.targetComponentIdx;
                 }
@@ -298,7 +288,9 @@ export async function verifyReplacementsMatchSpecifiedType({
         replacementTypes.length !== requiredLength ||
         !replacementTypes.every((x) => x === requiredComponentType)
     ) {
-        // console.warn(`Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType and numComponents`);
+        // console.warn(
+        //     `Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType and numComponents`,
+        // );
 
         // if only replacement is a group
         // then give the group the createComponentOfType and numComponentsSpecified
@@ -313,11 +305,53 @@ export async function verifyReplacementsMatchSpecifiedType({
                 replacements[0].attributes = {};
             }
             replacements[0].attributes.createComponentOfType = {
-                primitive: requiredComponentType,
+                type: "primitive",
+                primitive: { type: "string", value: requiredComponentType },
             };
             replacements[0].attributes.numComponents = {
-                primitive: requiredLength,
+                type: "primitive",
+                primitive: { type: "string", value: requiredLength },
             };
+
+            return {
+                replacements,
+                replacementChanges,
+                errors,
+                warnings,
+                nComponents,
+            };
+        } else if (
+            replacementChanges?.length === 1 &&
+            replacementChanges[0].changeType === "add" &&
+            replacementChanges[0].changeTopLevelReplacements &&
+            replacementChanges[0].serializedReplacements.length === 1 &&
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType:
+                    replacementChanges[0].serializedReplacements[0]
+                        .componentType,
+                baseComponentType: "group",
+            }) &&
+            replacementChanges[0].numberReplacementsToReplace >=
+                component.replacements.length
+        ) {
+            // if we are changing replacements so that only replacement is a group
+            // then give the group the createComponentOfType and numComponentsSpecified
+
+            const theReplacement =
+                replacementChanges[0].serializedReplacements[0];
+
+            if (!theReplacement.attributes) {
+                theReplacement.attributes = {};
+            }
+            theReplacement.attributes.createComponentOfType = {
+                type: "primitive",
+                primitive: { type: "string", value: requiredComponentType },
+            };
+            theReplacement.attributes.numComponents = {
+                type: "primitive",
+                primitive: { type: "string", value: requiredLength },
+            };
+
             return {
                 replacements,
                 replacementChanges,
@@ -399,6 +433,9 @@ export async function verifyReplacementsMatchSpecifiedType({
         // via the copy we are now creating.
         // Since we don't see a use case for non-arrays,
         // this is only implemented for arrays
+
+        // XXX: haven't reviewed this for non new namespace regime
+
         if (replacementTypes.length === 0 && requiredLength === 1) {
             let targetInactive = await component.stateValues.targetInactive;
 
@@ -410,69 +447,68 @@ export async function verifyReplacementsMatchSpecifiedType({
                 let replacementSources =
                     await component.stateValues.replacementSourceIdentities;
 
-                if (replacementSources === undefined) {
-                    // check if based on extract
-                    replacementSources =
-                        await component.stateValues.sourceComponents;
-                }
-
                 let replacementSource = replacementSources[0];
 
                 let target = components[replacementSource.componentIdx];
 
-                let propVariable = publicCaseInsensitiveAliasSubstitutions({
-                    stateVariables: [propName],
-                    componentClass: target.constructor,
-                })[0];
+                if (target) {
+                    let propVariable = publicCaseInsensitiveAliasSubstitutions({
+                        stateVariables: [propName],
+                        componentClass: target.constructor,
+                    })[0];
 
-                let stateVarObj = target.state[propVariable];
-                if (stateVarObj?.isArray || stateVarObj?.isArrayEntry) {
-                    let arrayStateVarObj, arrayKeys;
-                    if (stateVarObj.isArray) {
-                        arrayStateVarObj = stateVarObj;
-                        let arraySize = await stateVarObj.arraySize;
-                        arrayKeys = stateVarObj.getAllArrayKeys(arraySize);
+                    let stateVarObj = target.state[propVariable];
+                    if (stateVarObj?.isArray || stateVarObj?.isArrayEntry) {
+                        let arrayStateVarObj, arrayKeys;
+                        if (stateVarObj.isArray) {
+                            arrayStateVarObj = stateVarObj;
+                            let arraySize = await stateVarObj.arraySize;
+                            arrayKeys = stateVarObj.getAllArrayKeys(arraySize);
+                        } else {
+                            arrayStateVarObj =
+                                target.state[stateVarObj.arrayStateVariable];
+                            // use getArrayKeysFromVarName without specifying arraySize
+                            // so that get keys for the entry that might occur
+                            // if the array size were increased
+                            arrayKeys =
+                                arrayStateVarObj.getArrayKeysFromVarName({
+                                    arrayEntryPrefix: stateVarObj.entryPrefix,
+                                    varEnding: stateVarObj.varEnding,
+                                    numDimensions:
+                                        arrayStateVarObj.numDimensions,
+                                });
+                        }
+
+                        // want the prop variable corresponding to just the first entry
+                        // of the array or the array entry
+                        propVariable =
+                            arrayStateVarObj.arrayVarNameFromArrayKey(
+                                arrayKeys[0] ||
+                                    Array(arrayStateVarObj.numDimensions)
+                                        .fill("0")
+                                        .join(","),
+                            );
                     } else {
-                        arrayStateVarObj =
-                            target.state[stateVarObj.arrayStateVariable];
-                        // use getArrayKeysFromVarName without specifying arraySize
-                        // so that get keys for the entry that might occur
-                        // if the array size were increased
-                        arrayKeys = arrayStateVarObj.getArrayKeysFromVarName({
-                            arrayEntryPrefix: stateVarObj.entryPrefix,
-                            varEnding: stateVarObj.varEnding,
-                            numDimensions: arrayStateVarObj.numDimensions,
-                        });
+                        // Since we don't currently see a use case for non-arrays,
+                        // we are setting stateVarObj to undefined
+                        // so that dependencies are not added
+                        stateVarObj = undefined;
                     }
 
-                    // want the prop variable corresponding to just the first entry
-                    // of the array or the array entry
-                    propVariable = arrayStateVarObj.arrayVarNameFromArrayKey(
-                        arrayKeys[0] ||
-                            Array(arrayStateVarObj.numDimensions)
-                                .fill("0")
-                                .join(","),
-                    );
-                } else {
-                    // Since we don't currently see a use case for non-arrays,
-                    // we are setting stateVarObj to undefined
-                    // so that dependencies are not added
-                    stateVarObj = undefined;
-                }
-
-                if (stateVarObj) {
-                    replacements[0].downstreamDependencies = {
-                        [replacementSource.componentIdx]: [
-                            {
-                                dependencyType: "referenceShadow",
-                                compositeIdx: component.componentIdx,
-                                propVariable,
-                                additionalStateVariableShadowing:
-                                    stateVarObj.shadowingInstructions
-                                        .addStateVariablesShadowingStateVariables,
-                            },
-                        ],
-                    };
+                    if (stateVarObj) {
+                        replacements[0].downstreamDependencies = {
+                            [replacementSource.componentIdx]: [
+                                {
+                                    dependencyType: "referenceShadow",
+                                    compositeIdx: component.componentIdx,
+                                    propVariable,
+                                    additionalStateVariableShadowing:
+                                        stateVarObj.shadowingInstructions
+                                            .addStateVariablesShadowingStateVariables,
+                                },
+                            ],
+                        };
+                    }
                 }
             }
         }

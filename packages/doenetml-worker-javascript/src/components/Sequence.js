@@ -295,15 +295,15 @@ export default class Sequence extends CompositeComponent {
                 }
             }
 
-            let prevlength = lrp.length;
+            let prevLength = lrp.length;
             let numReplacementsToAdd = 0;
             let numToModify = 0;
-            let firstToModify = prevlength;
+            let firstToModify = prevLength;
             let newReplacementsToWithhold;
 
             // if have fewer replacements than before
             // mark old replacements as hidden
-            if (length < prevlength) {
+            if (length < prevLength) {
                 newReplacementsToWithhold =
                     component.replacements.length - length;
 
@@ -312,8 +312,8 @@ export default class Sequence extends CompositeComponent {
                     replacementsToWithhold: newReplacementsToWithhold,
                 };
                 replacementChanges.push(replacementInstruction);
-            } else if (length > prevlength) {
-                numReplacementsToAdd = length - prevlength;
+            } else if (length > prevLength) {
+                numReplacementsToAdd = length - prevLength;
 
                 if (component.replacementsToWithhold > 0) {
                     if (
@@ -323,7 +323,7 @@ export default class Sequence extends CompositeComponent {
                             component.replacementsToWithhold -
                             numReplacementsToAdd;
                         numToModify += numReplacementsToAdd;
-                        prevlength += numReplacementsToAdd;
+                        prevLength += numReplacementsToAdd;
                         numReplacementsToAdd = 0;
 
                         let replacementInstruction = {
@@ -335,7 +335,7 @@ export default class Sequence extends CompositeComponent {
                         numReplacementsToAdd -=
                             component.replacementsToWithhold;
                         numToModify += component.replacementsToWithhold;
-                        prevlength += component.replacementsToWithhold;
+                        prevLength += component.replacementsToWithhold;
                         newReplacementsToWithhold = 0;
                         // don't need to send changedReplacementsToWithhold instructions
                         // since will send add instructions,
@@ -345,12 +345,12 @@ export default class Sequence extends CompositeComponent {
             }
 
             if (modifyExistingValues === true) {
-                numToModify = prevlength;
+                numToModify = prevLength;
                 firstToModify = 0;
             }
 
             if (numToModify > 0) {
-                // need to modify values of the first prevlength components
+                // need to modify values of the first prevLength components
 
                 for (
                     let ind = firstToModify;
@@ -391,7 +391,7 @@ export default class Sequence extends CompositeComponent {
                 }
 
                 for (
-                    let ind = prevlength;
+                    let ind = prevLength;
                     ind < (await component.stateValues.length);
                     ind++
                 ) {
@@ -444,7 +444,7 @@ export default class Sequence extends CompositeComponent {
                 let replacementInstruction = {
                     changeType: "add",
                     changeTopLevelReplacements: true,
-                    firstReplacementInd: prevlength,
+                    firstReplacementInd: prevLength,
                     serializedReplacements: newSerializedReplacements,
                     replacementsToWithhold: 0,
                 };

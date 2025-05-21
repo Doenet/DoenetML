@@ -226,6 +226,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                 isAttributeComponent = false,
                 createdFromMacro = false,
                 componentInfoObjects,
+                nComponents,
             }) {
                 let warnings = [];
 
@@ -256,6 +257,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
 
                 let result = groupIntoComponentTypesSeparatedBySpaces({
                     matchedChildren,
+                    nComponents,
                 });
                 result.warnings = warnings;
                 return result;
@@ -419,6 +421,7 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             matchedChildren,
             componentAttributes,
             parentAttributes,
+            nComponents,
         }) {
             let results = breakEmbeddedStringsIntoParensPieces({
                 componentList: matchedChildren,
@@ -446,14 +449,23 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                 type = "number";
             }
 
+            const newChildren = results.pieces.map((x) => ({
+                type: "serialized",
+                componentType: "_componentListWithSelectableType",
+                componentIdx: nComponents++,
+                attributes: {
+                    type: { primitive: { type: "primitive", value: type } },
+                },
+                doenetAttributes: {},
+                children: x,
+                state: {},
+            }));
+
             return {
                 success: true,
-                newChildren: results.pieces.map((x) => ({
-                    componentType: "_componentListWithSelectableType",
-                    attributes: { type: { primitive: type } },
-                    children: x,
-                })),
+                newChildren,
                 warnings,
+                nComponents,
             };
         };
 
