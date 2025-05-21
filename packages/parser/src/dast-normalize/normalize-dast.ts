@@ -175,6 +175,7 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
             }
             switch (node.name) {
                 case "repeat":
+                case "repeatForSequence":
                     repeatSugar(node);
                     break;
                 case "conditionalContent":

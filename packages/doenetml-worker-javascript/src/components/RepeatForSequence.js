@@ -4,10 +4,16 @@ import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
 } from "../utils/variants";
+import {
+    returnSequenceValues,
+    returnStandardSequenceAttributes,
+    returnStandardSequenceStateVariableDefinitions,
+} from "../utils/sequence";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
-export default class Repeat extends CompositeComponent {
-    static componentType = "repeat";
+import { copyStateFromUnlinkedSource, remapExtendIndices } from "./Repeat";
+export default class RepeatForSequence extends CompositeComponent {
+    static componentType = "repeatForSequence";
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
@@ -30,7 +36,10 @@ export default class Repeat extends CompositeComponent {
     static additionalSchemaChildren = ["_base"];
 
     static createAttributesObject() {
-        let attributes = super.createAttributesObject();
+        const attributes = super.createAttributesObject();
+
+        const sequenceAttributes = returnStandardSequenceAttributes();
+        Object.assign(attributes, sequenceAttributes);
 
         attributes.itemName = {
             createPrimitiveOfType: "string",
@@ -48,7 +57,7 @@ export default class Repeat extends CompositeComponent {
             createComponentOfType: "group",
         };
 
-        attributes.type = {
+        attributes.forType = {
             createPrimitiveOfType: "string",
         };
 
@@ -66,63 +75,48 @@ export default class Repeat extends CompositeComponent {
     }
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+        const stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.sourcesComponentIdx = {
+        const sequenceDefs = returnStandardSequenceStateVariableDefinitions();
+        Object.assign(stateVariableDefinitions, sequenceDefs);
+
+        stateVariableDefinitions.forValues = {
+            additionalStateVariablesDefined: ["numIterates"],
             returnDependencies: () => ({
-                forAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "for",
+                type: {
+                    dependencyType: "stateVariable",
+                    variableName: "type",
+                },
+                length: {
+                    dependencyType: "stateVariable",
+                    variableName: "length",
+                },
+                from: {
+                    dependencyType: "stateVariable",
+                    variableName: "from",
+                },
+                step: {
+                    dependencyType: "stateVariable",
+                    variableName: "step",
+                },
+                exclude: {
+                    dependencyType: "stateVariable",
+                    variableName: "exclude",
+                },
+                lowercase: {
+                    dependencyType: "stateVariable",
+                    variableName: "lowercase",
                 },
             }),
             definition({ dependencyValues }) {
-                let sourcesComponentIdx = null;
-                if (dependencyValues.forAttr) {
-                    sourcesComponentIdx = dependencyValues.forAttr.componentIdx;
-                }
-                return { setValue: { sourcesComponentIdx } };
-            },
-        };
+                let forValues = returnSequenceValues(dependencyValues);
 
-        stateVariableDefinitions.numIterates = {
-            additionalStateVariablesDefined: ["sourcesChildIndices"],
-            stateVariablesDeterminingDependencies: ["sourcesComponentIdx"],
-            returnDependencies: ({ stateValues }) => {
-                if (stateValues.sourcesComponentIdx != null) {
-                    return {
-                        sources: {
-                            dependencyType: "replacement",
-                            compositeIdx: stateValues.sourcesComponentIdx,
-                            recursive: true,
-                            recurseNonStandardComposites: true,
-                        },
-                    };
-                } else {
-                    return {};
-                }
-            },
-            definition: function ({ dependencyValues }) {
-                if (dependencyValues.sources) {
-                    const nonBlankSources = dependencyValues.sources.filter(
-                        (s) => typeof s !== "string" || s.trim() !== "",
-                    );
-
-                    let numIterates = nonBlankSources.length;
-                    let sourcesChildIndices = nonBlankSources.map(
-                        (x) => x.componentIdx,
-                    );
-
-                    return {
-                        setValue: {
-                            numIterates,
-                            sourcesChildIndices,
-                        },
-                    };
-                } else {
-                    return {
-                        setValue: { numIterates: 0, sourcesChildIndices: [] },
-                    };
-                }
+                return {
+                    setValue: {
+                        forValues,
+                        numIterates: forValues.length,
+                    },
+                };
             },
         };
 
@@ -283,17 +277,36 @@ export default class Repeat extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        const numIterates = await component.stateValues.numIterates;
+        if (!(await component.stateValues.validSequence)) {
+            workspace.lastReplacementParameters = {
+                from: null,
+                length: null,
+                step: null,
+                type: null,
+                exclude: null,
+            };
+            return { replacements: [], errors, warnings, nComponents };
+        }
+
+        let from = await component.stateValues.from;
+        let length = await component.stateValues.length;
+        let step = await component.stateValues.step;
+        let type = await component.stateValues.type;
+        let exclude = await component.stateValues.exclude;
 
         workspace.lastReplacementParameters = {
-            sourcesChildIndices:
-                await component.stateValues.sourcesChildIndices,
-            numIterates,
-            replacementsToWithhold: 0,
-            withheldSubstitutionChildNames: [],
+            from,
+            length,
+            step,
+            type,
+            exclude,
         };
 
+        const numIterates = await component.stateValues.numIterates;
+
         let replacements = [];
+
+        workspace.valueComponentIndices = [];
 
         for (let iter = 0; iter < numIterates; iter++) {
             const res = await this.replacementForIter({
@@ -307,6 +320,7 @@ export default class Repeat extends CompositeComponent {
             errors.push(...res.errors);
             warnings.push(...res.warnings);
             nComponents = res.nComponents;
+            workspace.valueComponentIndices.push(res.valueComponentIdx);
         }
 
         return { replacements, errors, warnings, nComponents };
@@ -368,6 +382,7 @@ export default class Repeat extends CompositeComponent {
 
         replacements[0] = aliasResult.replacement;
         nComponents = aliasResult.nComponents;
+        const valueComponentIdx = aliasResult.valueComponentIdx;
 
         if (component.unlinkedCopySource && !isUpdate) {
             await copyStateFromUnlinkedSource({
@@ -378,7 +393,13 @@ export default class Repeat extends CompositeComponent {
             });
         }
 
-        return { replacements, errors, warnings, nComponents };
+        return {
+            replacements,
+            errors,
+            warnings,
+            nComponents,
+            valueComponentIdx,
+        };
     }
 
     static async calculateReplacementChanges({
@@ -388,46 +409,52 @@ export default class Repeat extends CompositeComponent {
         componentInfoObjects,
         nComponents,
     }) {
-        // console.log(`calculate replacement changes for ${component.componentIdx}`)
-
         let errors = [];
         let warnings = [];
 
         let replacementChanges = [];
 
         let lrp = workspace.lastReplacementParameters;
-        let recreateReplacements = false;
 
-        let numIterates = await component.stateValues.numIterates;
-        let sourcesChildIndices =
-            await component.stateValues.sourcesChildIndices;
-
-        let allSameChildSubstitutionNames = true;
-
-        if (lrp.numIterates === undefined) {
-            recreateReplacements = true;
-        } else {
-            let currentNIters = numIterates;
-            let prevNIters = lrp.numIterates;
-            if (currentNIters !== prevNIters) {
-                allSameChildSubstitutionNames = false;
+        // if invalid, withhold any previous replacementsreplacements
+        if (!(await component.stateValues.validSequence)) {
+            let currentReplacementsWithheld = component.replacementsToWithhold;
+            if (!currentReplacementsWithheld) {
+                currentReplacementsWithheld = 0;
             }
-            let minNiters = Math.min(currentNIters, prevNIters);
-            for (let ind = 0; ind < minNiters; ind++) {
-                if (sourcesChildIndices[ind] != lrp.sourcesChildIndices[ind]) {
-                    recreateReplacements = true;
-                    allSameChildSubstitutionNames = false;
-                    break;
-                }
+
+            if (
+                component.replacements.length - currentReplacementsWithheld >
+                0
+            ) {
+                let replacementsToWithhold = component.replacements.length;
+                let replacementInstruction = {
+                    changeType: "changeReplacementsToWithhold",
+                    replacementsToWithhold,
+                };
+                replacementChanges.push(replacementInstruction);
             }
+
+            // leave all previous replacement parameters as they were before
+            // except make length zero.
+            // That way, if later restore to previous parameter set,
+            // we can restore the old replacements
+            lrp.length = 0;
+
+            return { replacementChanges };
         }
 
-        if (allSameChildSubstitutionNames) {
-            // if all childSubstitutionNames are unchanged, don't do anything
-            return { replacementChanges: [], nComponents };
-        }
+        let from = await component.stateValues.from;
+        let length = await component.stateValues.length;
+        let step = await component.stateValues.step;
+        let type = await component.stateValues.type;
+        let exclude = await component.stateValues.exclude;
 
-        if (recreateReplacements) {
+        // check if changed type
+        // or have excluded elements
+        // TODO: don't completely recreate if have excluded elements
+        if (lrp.type !== type || lrp.exclude.length > 0 || exclude.length > 0) {
+            // calculate new serialized replacements
             let replacementResults = await this.createSerializedReplacements({
                 component,
                 workspace,
@@ -450,159 +477,141 @@ export default class Repeat extends CompositeComponent {
             };
 
             replacementChanges.push(replacementInstruction);
-
-            workspace.lastReplacementParameters = {
-                sourcesChildIndices,
-                numIterates,
-                replacementsToWithhold: 0,
-                withheldSubstitutionChildNames: [],
-            };
-
-            return { replacementChanges, nComponents };
-        }
-
-        let currentNumIterates = await component.stateValues.numIterates;
-        let prevNumIterates = lrp.numIterates;
-        let newReplacementsToWithhold = 0;
-        let currentReplacementsToWithhold = component.replacementsToWithhold;
-        if (!currentReplacementsToWithhold) {
-            currentReplacementsToWithhold = 0;
-        }
-        let withheldSubstitutionChildNames = lrp.withheldSubstitutionChildNames;
-
-        // Check if any previous substitution child names
-        // or any previously withheld child names
-        // correspond to components that are now deleted
-
-        let foundDeletedSourcesChild = false;
-        if (currentNumIterates < prevNumIterates) {
-            for (let ind = currentNumIterates; ind < prevNumIterates; ind++) {
-                if (components[lrp.sourcesChildIndices[ind]] === undefined) {
-                    foundDeletedSourcesChild = true;
+        } else {
+            let modifyExistingValues = false;
+            if (type === "math") {
+                if (!(from.equals(lrp.from) && step.equals(lrp.step))) {
+                    modifyExistingValues = true;
+                }
+            } else {
+                if (from !== lrp.from || step !== lrp.step) {
+                    modifyExistingValues = true;
                 }
             }
 
-            if (!foundDeletedSourcesChild) {
-                // check if any of the previously withheld substitutionChildNames are deleted
-                for (let name of lrp.withheldSubstitutionChildNames) {
-                    if (components[name] === undefined) {
-                        foundDeletedSourcesChild = true;
-                    }
-                }
-            }
-        }
+            let prevLength = lrp.length;
+            let numReplacementsToAdd = 0;
+            let numToModify = 0;
+            let firstToModify = prevLength;
+            let newReplacementsToWithhold;
 
-        if (foundDeletedSourcesChild) {
-            // delete all the extra replacements
-            let firstReplacementToDelete = Math.min(
-                currentNumIterates,
-                prevNumIterates,
-            );
-            let numberReplacementsToDelete =
-                component.replacements.length - firstReplacementToDelete;
-            let replacementInstruction = {
-                changeType: "delete",
-                changeTopLevelReplacements: true,
-                firstReplacementInd: firstReplacementToDelete,
-                numberReplacementsToDelete,
-                replacementsToWithhold: 0,
-            };
-            replacementChanges.push(replacementInstruction);
-
-            withheldSubstitutionChildNames = [];
-            currentReplacementsToWithhold = 0;
-        }
-
-        // if have fewer iterates than before
-        // mark old replacements as hidden
-        // unless one of the former sources child names does not exist
-        if (currentNumIterates < prevNumIterates) {
-            if (!foundDeletedSourcesChild) {
+            // if have fewer replacements than before
+            // mark old replacements as hidden
+            if (length < prevLength) {
                 newReplacementsToWithhold =
-                    component.replacements.length - currentNumIterates;
+                    component.replacements.length - length;
 
                 let replacementInstruction = {
                     changeType: "changeReplacementsToWithhold",
                     replacementsToWithhold: newReplacementsToWithhold,
                 };
+
                 replacementChanges.push(replacementInstruction);
+            } else if (length > prevLength) {
+                numReplacementsToAdd = length - prevLength;
 
-                let withheldNames = lrp.withheldSubstitutionChildNames;
-                if (withheldNames) {
-                    withheldNames = [...withheldNames];
-                } else {
-                    withheldNames = [];
+                if (component.replacementsToWithhold > 0) {
+                    if (
+                        component.replacementsToWithhold >= numReplacementsToAdd
+                    ) {
+                        newReplacementsToWithhold =
+                            component.replacementsToWithhold -
+                            numReplacementsToAdd;
+                        numToModify += numReplacementsToAdd;
+                        prevLength += numReplacementsToAdd;
+                        numReplacementsToAdd = 0;
+
+                        let replacementInstruction = {
+                            changeType: "changeReplacementsToWithhold",
+                            replacementsToWithhold: newReplacementsToWithhold,
+                        };
+                        replacementChanges.push(replacementInstruction);
+                    } else {
+                        numReplacementsToAdd -=
+                            component.replacementsToWithhold;
+                        numToModify += component.replacementsToWithhold;
+                        prevLength += component.replacementsToWithhold;
+                        newReplacementsToWithhold = 0;
+                        // don't need to send changedReplacementsToWithhold instructions
+                        // since will send add instructions,
+                        // which will also recalculate replacements in parent
+                    }
                 }
-                withheldNames = new Set([
-                    ...lrp.sourcesChildIndices.slice(currentNumIterates),
-                    ...withheldNames,
-                ]);
-
-                withheldSubstitutionChildNames = withheldNames;
             }
-        } else if (currentNumIterates > prevNumIterates) {
-            let numReplacementsToAdd = currentNumIterates - prevNumIterates;
 
-            if (currentReplacementsToWithhold > 0) {
-                if (currentReplacementsToWithhold >= numReplacementsToAdd) {
-                    newReplacementsToWithhold =
-                        currentReplacementsToWithhold - numReplacementsToAdd;
-                    numReplacementsToAdd = 0;
+            if (modifyExistingValues === true) {
+                numToModify = prevLength;
+                firstToModify = 0;
+            }
 
-                    let replacementInstruction = {
-                        changeType: "changeReplacementsToWithhold",
-                        replacementsToWithhold: newReplacementsToWithhold,
-                    };
-                    replacementChanges.push(replacementInstruction);
-                } else {
-                    numReplacementsToAdd -= currentReplacementsToWithhold;
-                    prevNumIterates += currentReplacementsToWithhold;
-                    newReplacementsToWithhold = 0;
-                    // don't need to send changedReplacementsToWithhold instructions
-                    // since will send add instructions,
-                    // which will also recalculate replacements in parent
+            if (numToModify > 0) {
+                // need to modify values of the first prevLength components
+
+                for (
+                    let ind = firstToModify;
+                    ind < firstToModify + numToModify;
+                    ind++
+                ) {
+                    if (workspace.valueComponentIndices[ind] != undefined) {
+                        const componentValue = (
+                            await component.stateValues.forValues
+                        )[ind];
+
+                        const replacementInstruction = {
+                            changeType: "updateStateVariables",
+                            component: {
+                                componentIdx:
+                                    workspace.valueComponentIndices[ind],
+                            },
+                            stateChanges: { value: componentValue },
+                        };
+
+                        replacementChanges.push(replacementInstruction);
+                    }
                 }
             }
 
             if (numReplacementsToAdd > 0) {
-                let replacements = [];
+                // Need to add more replacement components
+
+                let newSerializedReplacements = [];
 
                 for (
-                    let iter = prevNumIterates;
-                    iter < currentNumIterates;
-                    iter++
+                    let ind = prevLength;
+                    ind < (await component.stateValues.length);
+                    ind++
                 ) {
-                    let res = await this.replacementForIter({
+                    const res = await this.replacementForIter({
                         component,
-                        iter,
+                        iter: ind,
                         componentInfoObjects,
                         components,
-                        isUpdate: true,
                         nComponents,
                     });
-                    replacements.push(...res.replacements);
+                    newSerializedReplacements.push(...res.replacements);
                     errors.push(...res.errors);
                     warnings.push(...res.warnings);
                     nComponents = res.nComponents;
+                    workspace.valueComponentIndices[ind] =
+                        res.valueComponentIdx;
                 }
 
                 let replacementInstruction = {
                     changeType: "add",
                     changeTopLevelReplacements: true,
-                    firstReplacementInd: prevNumIterates,
-                    serializedReplacements: replacements,
+                    firstReplacementInd: prevLength,
+                    serializedReplacements: newSerializedReplacements,
                     replacementsToWithhold: 0,
                 };
+
                 replacementChanges.push(replacementInstruction);
             }
         }
-
-        workspace.lastReplacementParameters = {
-            sourcesChildIndices,
-            numIterates,
-            replacementsToWithhold: newReplacementsToWithhold,
-            withheldSubstitutionChildNames,
-        };
+        lrp.type = type;
+        lrp.from = from;
+        lrp.length = length;
+        lrp.step = step;
+        lrp.exclude = exclude;
 
         return { replacementChanges, nComponents };
     }
@@ -710,74 +719,12 @@ export default class Repeat extends CompositeComponent {
     }
 }
 
-// If a map is an unlinked copy of another map,
-// then when its replacements are created,
-// they should be initialized with the current state
-// of the original map's replacements.
-// For example, if the original map has points that were
-// moved before a snapshot was taken, the snapshot should
-// be initialized with the the moved points.
-export async function copyStateFromUnlinkedSource({
-    components,
-    component,
-    iterateNumber,
-    replacement,
-}) {
-    let sourceGroup =
-        components[component.unlinkedCopySource].replacements[iterateNumber];
-
-    if (sourceGroup) {
-        let serializedSourceGroup = await sourceGroup.serialize({
-            copyAll: true,
-            copyVariants: true,
-            copyPrimaryEssential: true,
-            copyEssentialState: true,
-        });
-
-        copyStateFromUnlinkedSourceSub(
-            replacement.children,
-            serializedSourceGroup.children,
-        );
-    }
-}
-
-function copyStateFromUnlinkedSourceSub(replacements, sources) {
-    for (let [i, repl] of replacements.entries()) {
-        let src = sources[i];
-
-        if (
-            typeof repl === "object" &&
-            repl.componentType === src.componentType
-        ) {
-            repl.state = src.state;
-
-            if (repl.children && src.children) {
-                copyStateFromUnlinkedSourceSub(repl.children, src.children);
-            }
-
-            for (let attrName in repl.attributes) {
-                if (
-                    repl.attributes[attrName].component &&
-                    src.attributes[attrName]?.component
-                ) {
-                    copyStateFromUnlinkedSourceSub(
-                        [repl.attributes[attrName].component],
-                        [src.attributes[attrName].component],
-                    );
-                }
-            }
-        }
-    }
-}
-
 async function addAndLinkAliasComponents(
     thisRepl,
     component,
     iter,
     nComponents,
 ) {
-    let sourcesComponentIdx = await component.stateValues.sourcesComponentIdx;
-
     const setupComponent = {
         type: "serialized",
         componentType: "setup",
@@ -793,44 +740,37 @@ async function addAndLinkAliasComponents(
     // a mapping from the dummy or value component indices to the new alias components we're creating
     const extendIdxMapping = {};
 
+    let valueComponentIdx;
+
     if (itemName) {
-        const valueComponentIdx = nComponents++;
+        valueComponentIdx = nComponents++;
         const valueDummyIdx = await component.stateValues.valueDummyIdx;
         if (valueDummyIdx != null) {
             extendIdxMapping[valueDummyIdx] = valueComponentIdx;
         }
 
+        let type = await component.stateValues.type;
+        if (type === "letters") {
+            type = "text";
+        }
+
         // Create reference with name `itemName` that will link to sources
         setupComponent.children.push({
             type: "serialized",
-            componentType: "copy",
-            componentIdx: nComponents++,
+            componentType: type,
+            componentIdx: valueComponentIdx,
             attributes: {
-                createComponentIdx: {
+                name: {
                     type: "primitive",
-                    name: "createComponentIdx",
-                    primitive: { type: "number", value: valueComponentIdx },
-                },
-                createComponentName: {
-                    type: "primitive",
-                    name: "createComponentName",
+                    name: "name",
                     primitive: { type: "string", value: itemName },
                 },
             },
             doenetAttributes: {},
             children: [],
-            state: {},
-            extending: {
-                Ref: {
-                    nodeIdx: sourcesComponentIdx,
-                    originalPath: null,
-                    unresolvedPath: [
-                        // get through the first copy that will be in the attribute
-                        // { name: "", index: [{ value: [`1`] }] },
-                        // get the item from the sources
-                        { name: "", index: [{ value: [`${iter + 1}`] }] },
-                    ],
-                },
+            state: {
+                fixed: true,
+                value: (await component.stateValues.forValues)[iter],
             },
         });
     }
@@ -872,78 +812,5 @@ async function addAndLinkAliasComponents(
 
     newRepl.children.push(setupComponent);
 
-    return { replacement: newRepl, nComponents };
-}
-
-export function remapExtendIndices(components, extendIdxMapping) {
-    const newComponents = [];
-    for (const comp of components) {
-        if (typeof comp === "string") {
-            newComponents.push(comp);
-            continue;
-        }
-
-        let newComponent = { ...comp };
-        const extending = newComponent.extending;
-        if (extending) {
-            const refResolution =
-                "Ref" in extending ? extending.Ref : extending.Attribute;
-
-            const newRefResolution = { ...refResolution };
-
-            const remapIdx = extendIdxMapping[refResolution.nodeIdx];
-            if (remapIdx != undefined) {
-                newRefResolution.nodeIdx = remapIdx;
-            }
-
-            if (refResolution.unresolvedPath) {
-                const unresolvedPath = [];
-                for (const pathPath of refResolution.unresolvedPath) {
-                    const newPathPart = { ...pathPath };
-                    const index = [];
-                    for (const indexPart of newPathPart.index) {
-                        const newIndexPart = { ...indexPart };
-
-                        newIndexPart.value = remapExtendIndices(
-                            newIndexPart.value,
-                            extendIdxMapping,
-                        );
-                        index.push(newIndexPart);
-                    }
-                    newPathPart.index = index;
-                    unresolvedPath.push(newPathPart);
-                }
-
-                newRefResolution.unresolvedPath = unresolvedPath;
-            }
-
-            if ("Ref" in extending) {
-                newComponent.extending = { Ref: newRefResolution };
-            } else {
-                newComponent.extending = { Attribute: newRefResolution };
-            }
-        }
-
-        newComponent.children = remapExtendIndices(
-            newComponent.children,
-            extendIdxMapping,
-        );
-
-        const attributes = { ...newComponent.attributes };
-        for (const attrName in attributes) {
-            const attr = attributes[attrName];
-            if (attr.type === "component") {
-                attr.component = remapExtendIndices(
-                    [attr.component],
-                    extendIdxMapping,
-                )[0];
-            }
-        }
-
-        newComponent.attributes = attributes;
-
-        newComponents.push(newComponent);
-    }
-
-    return newComponents;
+    return { replacement: newRepl, nComponents, valueComponentIdx };
 }

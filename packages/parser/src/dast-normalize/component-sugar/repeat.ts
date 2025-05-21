@@ -25,9 +25,11 @@ import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
  * ```
  */
 export function repeatSugar(node: DastElement) {
-    if (node.name !== "repeat") {
+    if (node.name !== "repeat" && node.name !== "repeatForSequence") {
         // This should be unreachable
-        throw Error("Repeat sugar can only be applied to a `<repeat>`");
+        throw Error(
+            "Repeat sugar can only be applied to a `<repeat>` or a `<repeatForSequence>`",
+        );
     }
 
     let setupChildren: DastElementContent[] = [];
@@ -73,36 +75,6 @@ export function repeatSugar(node: DastElement) {
         }
     }
 
-    let forType = "math";
-    if (node.attributes.forType) {
-        const attrChildren = node.attributes.forType.children;
-        if (attrChildren.length === 1 && attrChildren[0].type === "text") {
-            forType = attrChildren[0].value;
-            if (!["math", "text", "number", "boolean"].includes(forType)) {
-                forType = "math";
-            }
-        }
-    }
-
-    if (node.attributes.for) {
-        const attrChildren = node.attributes.for.children;
-        const groupResult = groupTextAndReferencesBySpacesOutsideParens({
-            children: attrChildren,
-            componentType: forType,
-            wrapSingleNonTextNodes: false,
-        });
-
-        if (groupResult.success) {
-            let newChildren = groupResult.newChildren.map((child) => ({
-                type: "element" as const,
-                name: "option",
-                children: [child],
-                attributes: {},
-            }));
-            node.attributes.for.children = groupResult.newChildren;
-        }
-    }
-
     if (setupChildren.length > 0) {
         node.children.push({
             type: "element",
@@ -110,5 +82,37 @@ export function repeatSugar(node: DastElement) {
             children: setupChildren,
             attributes: {},
         });
+    }
+
+    if (node.name === "repeat") {
+        let type = "math";
+        if (node.attributes.type) {
+            const attrChildren = node.attributes.type.children;
+            if (attrChildren.length === 1 && attrChildren[0].type === "text") {
+                type = attrChildren[0].value;
+                if (!["math", "text", "number", "boolean"].includes(type)) {
+                    type = "math";
+                }
+            }
+        }
+
+        if (node.attributes.for) {
+            const attrChildren = node.attributes.for.children;
+            const groupResult = groupTextAndReferencesBySpacesOutsideParens({
+                children: attrChildren,
+                componentType: type,
+                wrapSingleNonTextNodes: false,
+            });
+
+            if (groupResult.success) {
+                groupResult.newChildren.map((child) => ({
+                    type: "element" as const,
+                    name: "option",
+                    children: [child],
+                    attributes: {},
+                }));
+                node.attributes.for.children = groupResult.newChildren;
+            }
+        }
     }
 }

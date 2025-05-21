@@ -56,7 +56,7 @@ import ControlVectors from "./components/ControlVectors";
 import PointList from "./components/PointList";
 import IntervalListComponent from "./components/abstract/IntervalListComponent";
 import LineListComponent from "./components/abstract/LineListComponent";
-import VectorListComponent from "./components/abstract/VectorListComponent";
+import VectorListComponent from "./components/VectorList";
 import AngleListComponent from "./components/abstract/AngleListComponent";
 import Vector from "./components/Vector";
 import Angle from "./components/Angle";
@@ -77,6 +77,7 @@ import Interval from "./components/Interval";
 import Option from "./components/Option";
 import Sequence from "./components/Sequence";
 import Repeat from "./components/Repeat";
+import RepeatForSequence from "./components/RepeatForSequence";
 import Slider from "./components/Slider";
 import Markers from "./components/Markers";
 import Pegboard from "./components/Pegboard";
@@ -282,6 +283,7 @@ const componentTypeArray = [
     Markers,
     Panel,
     Repeat,
+    RepeatForSequence,
     Pegboard,
     Constraints,
     ConstrainToGrid,
