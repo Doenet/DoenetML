@@ -560,7 +560,7 @@ export function calculateReplacementTypesFromChanges(
     replacementChanges,
 ) {
     let replacementsToWithhold = component.replacementsToWithhold;
-    const replacementTypes = component.replacements.map((x) => x.componentType);
+    let replacementTypes = component.replacements.map((x) => x.componentType);
 
     // apply any replacement changes to replacementTypes and replacementsToWithhold
     for (const change of replacementChanges) {

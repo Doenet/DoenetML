@@ -13,16 +13,16 @@ vi.mock("hyperformula");
 
 describe("Sequence tag tests", async () => {
     it("number sequence, no parameters", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(10);
         for (let i = 0; i < 10; i++) {
             expect(children[i].stateValues.value).eq(i + 1);
@@ -30,16 +30,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, just from", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="-4"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(10);
         for (let i = 0; i < 10; i++) {
             expect(children[i].stateValues.value).eq(i - 4);
@@ -47,16 +47,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, just to", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence to="3"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(3);
         for (let i = 0; i < 3; i++) {
             expect(children[i].stateValues.value).eq(3 + i - 2);
@@ -64,16 +64,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, just step", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence step="-2"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(10);
         for (let i = 0; i < 10; i++) {
             expect(children[i].stateValues.value).eq(1 + i * -2);
@@ -81,16 +81,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, just length", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence length="5"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
             expect(children[i].stateValues.value).eq(1 + i);
@@ -98,16 +98,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from and to", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="-3" to="4"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
             expect(children[i].stateValues.value).eq(-3 + i);
@@ -115,16 +115,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from and to, not matching", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="-3" to="4.1"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
             expect(children[i].stateValues.value).eq(-3 + i);
@@ -132,16 +132,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from and to, adjust for round-off error", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="1" to="(0.1+0.7)*10"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
             expect(children[i].stateValues.value).eq(i + 1);
@@ -149,16 +149,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("math sequence, from and to, adjust for round-off error", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="math" from="1" to="(0.1+0.7)*10"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
             expect(children[i].stateValues.value.tree).eq(i + 1);
@@ -166,16 +166,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from and step", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="2" step="-4"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(10);
         for (let i = 0; i < 10; i++) {
             expect(children[i].stateValues.value).eq(2 + i * -4);
@@ -183,16 +183,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from and length", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="11" length="3"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(3);
         for (let i = 0; i < 3; i++) {
             expect(children[i].stateValues.value).eq(11 + i);
@@ -200,16 +200,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, to and step", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence to="21" step="3"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(7);
         for (let i = 0; i < 7; i++) {
             expect(children[i].stateValues.value).eq(21 + 3 * (i - 6));
@@ -217,16 +217,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, to and step, adjust for round-off error", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence to="1.4" step="0.1"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
             expect(
@@ -236,16 +236,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("math sequence, to and step, adjust for round-off error", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="math" to="1.4" step="0.1"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
             expect(
@@ -255,16 +255,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, to and length", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence to="-8" length="4"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(4);
         for (let i = 0; i < 4; i++) {
             expect(children[i].stateValues.value).eq(-8 + (i - 3));
@@ -272,16 +272,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, step and length", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence step="5" length="6"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(6);
         for (let i = 0; i < 6; i++) {
             expect(children[i].stateValues.value).eq(1 + 5 * i);
@@ -289,16 +289,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from, to, and step", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="9" to="2" step="-2" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(4);
         for (let i = 0; i < 4; i++) {
             expect(children[i].stateValues.value).eq(9 - 2 * i);
@@ -306,7 +306,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from, to, and step, adjust for round-off errors", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="0.2" to="0.5" step="0.1" /></p>
     `,
@@ -315,9 +315,9 @@ describe("Sequence tag tests", async () => {
         let sequence = [0.2, 0.3, 0.4, 0.5];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(4);
         for (let i = 0; i < 4; i++) {
             expect(
@@ -327,7 +327,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("math sequence, from, to, and step, adjust for round-off errors", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="math" from="0.2" to="0.5" step="0.1" /></p>
     `,
@@ -336,9 +336,9 @@ describe("Sequence tag tests", async () => {
         let sequence = [0.2, 0.3, 0.4, 0.5];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(4);
         for (let i = 0; i < 4; i++) {
             expect(
@@ -348,16 +348,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from, to, and length", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="-5" to="5" length="6" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(6);
         for (let i = 0; i < 6; i++) {
             expect(children[i].stateValues.value).eq(-5 + 2 * i);
@@ -365,16 +365,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, from, step, and length", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="8" step="-2" length="5" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
             expect(children[i].stateValues.value).eq(8 - 2 * i);
@@ -382,16 +382,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, to, step, and length", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence to="8" step="-2" length="5" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
             expect(children[i].stateValues.value).eq(8 - 2 * (i - 4));
@@ -399,16 +399,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("letters sequence, lowercase", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="letters" from="c" to="Q" length="5" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         expect(children[0].stateValues.value).eq("c");
         expect(children[1].stateValues.value).eq("f");
@@ -418,16 +418,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("letters sequence, uppercase", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="letters" from="Y" to="f" step="-4" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         expect(children[0].stateValues.value).eq("Y");
         expect(children[1].stateValues.value).eq("U");
@@ -437,16 +437,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("letters sequence, multicharacter", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="letters" from="aZ" step="3" length="4" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(4);
         expect(children[0].stateValues.value).eq("az");
         expect(children[1].stateValues.value).eq("bc");
@@ -455,16 +455,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("letters sequence, stays valid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="letters" to="q" step="3" length="10" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(6);
         expect(children[0].stateValues.value).eq("b");
         expect(children[1].stateValues.value).eq("e");
@@ -475,16 +475,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("letters sequence, no parameters", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="letters"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(10);
         expect(children[0].stateValues.value).eq("a");
         expect(children[1].stateValues.value).eq("b");
@@ -499,16 +499,16 @@ describe("Sequence tag tests", async () => {
     });
 
     it("math sequence, calculate step", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="math" from="3x" to="3y" length="4" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(4);
         expect(children[0].stateValues.value.tree).eqls(["*", 3, "x"]);
         expect(children[1].stateValues.value.tree).eqls([
@@ -525,7 +525,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, excludes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="-1" length="10" exclude="$exclude2  0 6" /></p>
     <p>Also exclude: <mathInput name="exclude2" /></p>
@@ -533,9 +533,9 @@ describe("Sequence tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(8);
         let ind = 0;
         for (let i = 0; i < 10; i++) {
@@ -549,12 +549,12 @@ describe("Sequence tag tests", async () => {
         // also exclude 7
         await updateMathInputValue({
             latex: "7",
-            name: "/exclude2",
+            componentIdx: resolveComponentName("exclude2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
@@ -570,12 +570,12 @@ describe("Sequence tag tests", async () => {
         // also exclude 6 twice
         await updateMathInputValue({
             latex: "6",
-            name: "/exclude2",
+            componentIdx: resolveComponentName("exclude2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -591,12 +591,12 @@ describe("Sequence tag tests", async () => {
         // also exclude 12
         await updateMathInputValue({
             latex: "12",
-            name: "/exclude2",
+            componentIdx: resolveComponentName("exclude2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -612,12 +612,12 @@ describe("Sequence tag tests", async () => {
         // also exclude 3
         await updateMathInputValue({
             latex: "3",
-            name: "/exclude2",
+            componentIdx: resolveComponentName("exclude2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
@@ -633,12 +633,12 @@ describe("Sequence tag tests", async () => {
         // don't exclude anything else
         await updateMathInputValue({
             latex: "",
-            name: "/exclude2",
+            componentIdx: resolveComponentName("exclude2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -653,7 +653,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, excludes, adjust for round-off errors", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from='.1' to=' .8' step=' .1' exclude='.3 .6 .7' /></p>
     `,
@@ -662,9 +662,9 @@ describe("Sequence tag tests", async () => {
         let sequence = [0.1, 0.2, 0.4, 0.5, 0.8];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
             expect(
@@ -674,7 +674,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("letters sequence, excludes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="letters" length="10" exclude="$e  b f" /></p>
     <p>Also exclude: <textInput name="e" /></p>
@@ -682,9 +682,9 @@ describe("Sequence tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(8);
         let ind = 0;
         for (let i = 0; i < 10; i++) {
@@ -698,9 +698,13 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude i
-        await updateTextInputValue({ text: "i", name: "/e", core });
+        await updateTextInputValue({
+            text: "i",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
@@ -716,10 +720,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude f twice
-        await updateTextInputValue({ text: "f", name: "/e", core });
+        await updateTextInputValue({
+            text: "f",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -735,10 +743,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude l
-        await updateTextInputValue({ text: "l", name: "/e", core });
+        await updateTextInputValue({
+            text: "l",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -754,10 +766,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude C
-        await updateTextInputValue({ text: "C", name: "/e", core });
+        await updateTextInputValue({
+            text: "C",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
@@ -773,10 +789,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // don't exclude anything else
-        await updateTextInputValue({ text: "", name: "/e", core });
+        await updateTextInputValue({
+            text: "",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -793,17 +813,17 @@ describe("Sequence tag tests", async () => {
     });
 
     it("math sequence, excludes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="math" length="10" from="x" step="x" exclude="2x 6x  $e" /></p>
-    <p>Also exclude: <mathinput name="e" /></p>
+    <p>Also exclude: <mathInput name="e" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(8);
         let ind = 0;
         for (let i = 0; i < 10; i++) {
@@ -819,10 +839,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude 9x
-        await updateMathInputValue({ latex: "9x", name: "/e", core });
+        await updateMathInputValue({
+            latex: "9x",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
@@ -840,10 +864,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude 6x twice
-        await updateMathInputValue({ latex: "6x", name: "/e", core });
+        await updateMathInputValue({
+            latex: "6x",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -861,10 +889,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude 12x
-        await updateMathInputValue({ latex: "12x", name: "/e", core });
+        await updateMathInputValue({
+            latex: "12x",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -882,10 +914,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude 3x
-        await updateMathInputValue({ latex: "3x", name: "/e", core });
+        await updateMathInputValue({
+            latex: "3x",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(7);
@@ -903,10 +939,14 @@ describe("Sequence tag tests", async () => {
         }
 
         // don't exclude anything else
-        await updateMathInputValue({ latex: "", name: "/e", core });
+        await updateMathInputValue({
+            latex: "",
+            componentIdx: resolveComponentName("e"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(8);
@@ -925,7 +965,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("math sequence, excludes, adjust for round-off errors", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence type="math" from='.1' to=' .8' step=' .1' exclude='.3 .6 .7' /></p>
     `,
@@ -934,9 +974,9 @@ describe("Sequence tag tests", async () => {
         let sequence = [0.1, 0.2, 0.4, 0.5, 0.8];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(5);
         for (let i = 0; i < 5; i++) {
             expect(
@@ -946,7 +986,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("sequence of decimals rounds on display", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence step="0.1" from="0" to="1" /></p>
     `,
@@ -955,9 +995,9 @@ describe("Sequence tag tests", async () => {
         // Round when displaying to show 10ths correctly
         // But, don't round internally
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(11);
 
         for (let i = 0; i < 11; i++) {
@@ -969,7 +1009,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("sequence with number operators", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <math name="n">5</math>
     <number name="m">10</number>
@@ -984,9 +1024,9 @@ describe("Sequence tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(9);
 
         for (let i = 0; i < 9; i++) {
@@ -996,7 +1036,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("initially invalid to", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <mathInput name="n"/>
   <p name="p"><sequence name="seq" from="2" to="$n" /></p>
@@ -1004,38 +1044,50 @@ describe("Sequence tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/seq"].stateValues.validSequence).eq(false);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        expect(
+            stateVariables[resolveComponentName("seq")].stateValues
+                .validSequence,
+        ).eq(false);
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(0);
 
-        await updateMathInputValue({ latex: "2", name: "/n", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        children = stateVariables["/p"].activeChildren.map(
+        children = stateVariables[resolveComponentName("p")].activeChildren.map(
             (x) => stateVariables[x.componentIdx],
         );
         expect(children.length).eq(1);
         expect(stateVariables[children[0].componentIdx].stateValues.value).eq(
             2,
         );
-        expect(stateVariables["/seq"].stateValues.validSequence).eq(true);
+        expect(
+            stateVariables[resolveComponentName("seq")].stateValues
+                .validSequence,
+        ).eq(true);
     });
 
     it("number sequence, excluding every 3 plus another", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence name="every3" hide from="2" to="10" step="3" /><sequence from="1" to="10" exclude="$every3 9" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p"].stateValues.text).eq("1, 3, 4, 6, 7, 10");
+        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
+            "1, 3, 4, 6, 7, 10",
+        );
     });
 
     it("number sequence, excluding from different sources", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathList name="e1">4 6</mathList><numberList name="e2">2 8</numberList><number name="e3">7</number>
     <p name="p"><sequence from="1" to="10" exclude="$e1 $e2 $e3" /></p>
@@ -1043,11 +1095,13 @@ describe("Sequence tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p"].stateValues.text).eq("1, 3, 5, 9, 10");
+        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
+            "1, 3, 5, 9, 10",
+        );
     });
 
     it("sequences hide dynamically", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <booleanInput name='h1' prefill="false" >
       <label>Hide first sequence</label>
@@ -1064,247 +1118,453 @@ describe("Sequence tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/s1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("s1")].stateValues.text).eq(
             "sequence 1: 1, 2, 3, 4",
         );
-        expect(stateVariables["/s2"].stateValues.text).eq("sequence 2: ");
+        expect(stateVariables[resolveComponentName("s2")].stateValues.text).eq(
+            "sequence 2: ",
+        );
 
-        await updateMathInputValue({ latex: "6", name: "/n1", core });
-        await updateMathInputValue({ latex: "6", name: "/n2", core });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: resolveComponentName("n1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: resolveComponentName("n2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/s1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("s1")].stateValues.text).eq(
             "sequence 1: 1, 2, 3, 4, 5, 6",
         );
-        expect(stateVariables["/s2"].stateValues.text).eq("sequence 2: ");
+        expect(stateVariables[resolveComponentName("s2")].stateValues.text).eq(
+            "sequence 2: ",
+        );
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h1",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            name: "/h2",
+            componentIdx: resolveComponentName("h2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/s1"].stateValues.text).eq("sequence 1: ");
-        expect(stateVariables["/s2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("s1")].stateValues.text).eq(
+            "sequence 1: ",
+        );
+        expect(stateVariables[resolveComponentName("s2")].stateValues.text).eq(
             "sequence 2: 1, 2, 3, 4, 5, 6",
         );
 
-        await updateMathInputValue({ latex: "8", name: "/n1", core });
-        await updateMathInputValue({ latex: "8", name: "/n2", core });
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: resolveComponentName("n1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: resolveComponentName("n2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/s1"].stateValues.text).eq("sequence 1: ");
-        expect(stateVariables["/s2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("s1")].stateValues.text).eq(
+            "sequence 1: ",
+        );
+        expect(stateVariables[resolveComponentName("s2")].stateValues.text).eq(
             "sequence 2: 1, 2, 3, 4, 5, 6, 7, 8",
         );
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/h1",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h2",
+            componentIdx: resolveComponentName("h2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/s1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("s1")].stateValues.text).eq(
             "sequence 1: 1, 2, 3, 4, 5, 6, 7, 8",
         );
-        expect(stateVariables["/s2"].stateValues.text).eq("sequence 2: ");
+        expect(stateVariables[resolveComponentName("s2")].stateValues.text).eq(
+            "sequence 2: ",
+        );
 
-        await updateMathInputValue({ latex: "3", name: "/n1", core });
-        await updateMathInputValue({ latex: "3", name: "/n2", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("n1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("n2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/s1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("s1")].stateValues.text).eq(
             "sequence 1: 1, 2, 3",
         );
-        expect(stateVariables["/s2"].stateValues.text).eq("sequence 2: ");
+        expect(stateVariables[resolveComponentName("s2")].stateValues.text).eq(
+            "sequence 2: ",
+        );
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h1",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            name: "/h2",
+            componentIdx: resolveComponentName("h2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/s1"].stateValues.text).eq("sequence 1: ");
-        expect(stateVariables["/s2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("s1")].stateValues.text).eq(
+            "sequence 1: ",
+        );
+        expect(stateVariables[resolveComponentName("s2")].stateValues.text).eq(
             "sequence 2: 1, 2, 3",
         );
 
-        await updateMathInputValue({ latex: "4", name: "/n1", core });
-        await updateMathInputValue({ latex: "4", name: "/n2", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("n1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("n2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/s1"].stateValues.text).eq("sequence 1: ");
-        expect(stateVariables["/s2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("s1")].stateValues.text).eq(
+            "sequence 1: ",
+        );
+        expect(stateVariables[resolveComponentName("s2")].stateValues.text).eq(
             "sequence 2: 1, 2, 3, 4",
         );
     });
 
     it("sequence fixed by default", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>From: <mathInput name="from" prefill="1" /></p>
     <p>Step: <mathInput name="step" prefill="2" /></p>
 
-    <p name="theList"><sequence assignNames="a b" from="$from" step="$step" to="7" /></p>
+    <p name="theList"><sequence name="s" from="$from" step="$step" to="7" /></p>
 
-    <p>Change first: <mathInput name="a2" bindValueTo="$a" /></p>
-    <p>Change second: <mathInput name="b2" bindValueTo="$b" /></p>
+    <p>Change first: <mathInput name="a2" bindValueTo="$s[1]" /></p>
+    <p>Change second: <mathInput name="b2" bindValueTo="$s[2]" /></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(3);
 
-        await updateMathInputValue({ latex: "21", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "21",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(3);
 
-        await updateMathInputValue({ latex: "2", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(3);
 
         await updateMathInputValue({
             latex: "4",
-            name: "/from",
+            componentIdx: resolveComponentName("from"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 6");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(6);
 
-        await updateMathInputValue({ latex: "8", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 6");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(6);
 
-        await updateMathInputValue({ latex: "2", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 6");
 
         await updateMathInputValue({
             latex: "6",
-            name: "/step",
+            componentIdx: resolveComponentName("step"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq("＿");
 
-        await updateMathInputValue({ latex: "9", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq("＿");
 
-        await updateMathInputValue({ latex: "41", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "41",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(41);
     });
 
     it("can override fixed property", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>From: <mathInput name="from" prefill="1" /></p>
     <p>Step: <mathInput name="step" prefill="2" /></p>
     <p>Fixed: <booleanInput name="fx" /></p>
 
-    <p name="theList"><sequence assignNames="a b" from="$from" step="$step" to="7" fixed="$fx" /></p>
+    <p name="theList"><sequence name="s" from="$from" step="$step" to="7" fixed="$fx" /></p>
 
-    <p>Change first: <mathInput name="a2" bindValueTo="$a" /></p>
-    <p>Change second: <mathInput name="b2" bindValueTo="$b" /></p>
+    <p>Change first: <mathInput name="a2" bindValueTo="$s[1]" /></p>
+    <p>Change second: <mathInput name="b2" bindValueTo="$s[2]" /></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("1, 3, 5, 7");
 
-        await updateMathInputValue({ latex: "21", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "21",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("21, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("21, 3, 5, 7");
 
-        await updateMathInputValue({ latex: "0", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("21, 0, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("21, 0, 5, 7");
 
         await updateMathInputValue({
             latex: "4",
-            name: "/from",
+            componentIdx: resolveComponentName("from"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 6");
 
-        await updateMathInputValue({ latex: "8", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("8, 6");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("8, 6");
 
-        await updateMathInputValue({ latex: "2", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("8, 2");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("8, 2");
 
         await updateMathInputValue({
             latex: "6",
-            name: "/step",
+            componentIdx: resolveComponentName("step"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4");
 
-        await updateMathInputValue({ latex: "9", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("9");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("9");
 
-        await updateMathInputValue({ latex: "41", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "41",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("9");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("9");
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/fx",
+            componentIdx: resolveComponentName("fx"),
             core,
         });
 
         await updateMathInputValue({
             latex: "1",
-            name: "/step",
+            componentIdx: resolveComponentName("step"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 5, 6, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 5, 6, 7");
 
-        await updateMathInputValue({ latex: "9", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 5, 6, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 5, 6, 7");
 
-        await updateMathInputValue({ latex: "41", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "41",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 5, 6, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 5, 6, 7");
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/fx",
+            componentIdx: resolveComponentName("fx"),
             core,
         });
 
-        await updateMathInputValue({ latex: "9", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("9, 5, 6, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("9, 5, 6, 7");
 
-        await updateMathInputValue({ latex: "41", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "41",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("9, 41, 6, 7");
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("9, 41, 6, 7");
     });
 
     it('copies with link="false" are not fixed', async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>From: <mathInput name="from" prefill="1" /></p>
     <p>Step: <mathInput name="step" prefill="2" /></p>
@@ -1321,134 +1581,286 @@ describe("Sequence tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(1);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(3);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(1);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(3);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(3);
 
-        await updateMathInputValue({ latex: "21", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "21",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(21);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(3);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(21);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(3);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(3);
 
-        await updateMathInputValue({ latex: "0", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(21);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(0);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(21);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(0);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("1, 3, 5, 7");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(0);
 
         await updateMathInputValue({
             latex: "4",
-            name: "/from",
+            componentIdx: resolveComponentName("from"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(21);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(0);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(21);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(0);
-
-        await updateMathInputValue({ latex: "8", name: "/a2", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(8);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(0);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(8);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(0);
-
-        await updateMathInputValue({
-            latex: "6",
-            name: "/step",
-            core,
-        });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(8);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(0);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(8);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(0);
-
-        await updateMathInputValue({ latex: "9", name: "/a2", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(9);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(0);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(9);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(0);
-
-        await updateMathInputValue({ latex: "2", name: "/b2", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("4");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(9);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(2);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(9);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(2);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 6");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(0);
 
         await updateMathInputValue({
             latex: "8",
-            name: "/from",
+            componentIdx: resolveComponentName("a2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(9);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(2);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(9);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(2);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4, 6");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(8);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(8);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(0);
 
-        await updateMathInputValue({ latex: "3", name: "/a2", core });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: resolveComponentName("step"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(3);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(2);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(3);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(2);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(8);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(8);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(0);
+
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(0);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("4");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(2);
+
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: resolveComponentName("from"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(2);
 
         await updateMathInputValue({
             latex: "3",
-            name: "/step",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(2);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("step"),
             core,
         });
         await updateMathInputValue({
             latex: "0",
-            name: "/from",
+            componentIdx: resolveComponentName("from"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("0, 3, 6");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(3);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(2);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(3);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(2);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("0, 3, 6");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(2);
 
-        await updateMathInputValue({ latex: "8", name: "/a2", core });
-        await updateMathInputValue({ latex: "7", name: "/b2", core });
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: resolveComponentName("a2"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: resolveComponentName("b2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theList"].stateValues.text).eq("0, 3, 6");
-        expect(stateVariables["/a2"].stateValues.value.tree).eq(8);
-        expect(stateVariables["/b2"].stateValues.value.tree).eq(7);
-        expect(stateVariables["/a3"].stateValues.value.tree).eq(8);
-        expect(stateVariables["/b3"].stateValues.value.tree).eq(7);
+        expect(
+            stateVariables[resolveComponentName("theList")].stateValues.text,
+        ).eq("0, 3, 6");
+        expect(
+            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+        ).eq(8);
+        expect(
+            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+        ).eq(8);
+        expect(
+            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+        ).eq(7);
     });
 
     it("number sequence, from and to using strings with operators", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><sequence from="2-5" to="3+1"/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(8);
         for (let i = 0; i < 8; i++) {
             expect(children[i].stateValues.value).eq(-3 + i);
@@ -1456,7 +1868,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("number sequence, excludes with operators from macros", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <number name="n1">2</number>
     <number name="n2">6</number>
@@ -1467,9 +1879,9 @@ describe("Sequence tag tests", async () => {
         let nums = [0, 1, 5, 6, 8];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let children = stateVariables["/p"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx],
-        );
+        let children = stateVariables[
+            resolveComponentName("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect(children.length).eq(nums.length);
         for (let [ind, child] of children.entries()) {
             expect(child.stateValues.value).eq(nums[ind]);
@@ -1477,7 +1889,7 @@ describe("Sequence tag tests", async () => {
     });
 
     it("warnings", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <sequence length="-1"/>
     <sequence step="x"/>
@@ -1502,86 +1914,86 @@ describe("Sequence tag tests", async () => {
             `Invalid length of sequence.  Must be a non-negative integer`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].position.lineEnd).eq(2);
-        expect(errorWarnings.warnings[0].position.charEnd).eq(27);
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.column).eq(28);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid step of sequence.  Must be a number for sequence of type number`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.lineBegin).eq(3);
-        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].position.lineEnd).eq(3);
-        expect(errorWarnings.warnings[1].position.charEnd).eq(24);
+        expect(errorWarnings.warnings[1].position.start.line).eq(3);
+        expect(errorWarnings.warnings[1].position.start.column).eq(5);
+        expect(errorWarnings.warnings[1].position.end.line).eq(3);
+        expect(errorWarnings.warnings[1].position.end.column).eq(25);
 
         expect(errorWarnings.warnings[2].message).contain(
             `Invalid step of sequence.  Must be a number for sequence of type letters`,
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].position.lineBegin).eq(4);
-        expect(errorWarnings.warnings[2].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[2].position.lineEnd).eq(4);
-        expect(errorWarnings.warnings[2].position.charEnd).eq(40);
+        expect(errorWarnings.warnings[2].position.start.line).eq(4);
+        expect(errorWarnings.warnings[2].position.start.column).eq(5);
+        expect(errorWarnings.warnings[2].position.end.line).eq(4);
+        expect(errorWarnings.warnings[2].position.end.column).eq(41);
 
         expect(errorWarnings.warnings[3].message).contain(
             `Invalid "from" of number sequence.  Must be a number`,
         );
         expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].position.lineBegin).eq(5);
-        expect(errorWarnings.warnings[3].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[3].position.lineEnd).eq(5);
-        expect(errorWarnings.warnings[3].position.charEnd).eq(25);
+        expect(errorWarnings.warnings[3].position.start.line).eq(5);
+        expect(errorWarnings.warnings[3].position.start.column).eq(5);
+        expect(errorWarnings.warnings[3].position.end.line).eq(5);
+        expect(errorWarnings.warnings[3].position.end.column).eq(26);
 
         expect(errorWarnings.warnings[4].message).contain(
             `Invalid "from" of letters sequence.  Must be a letter combination`,
         );
         expect(errorWarnings.warnings[4].level).eq(1);
-        expect(errorWarnings.warnings[4].position.lineBegin).eq(6);
-        expect(errorWarnings.warnings[4].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[4].position.lineEnd).eq(6);
-        expect(errorWarnings.warnings[4].position.charEnd).eq(40);
+        expect(errorWarnings.warnings[4].position.start.line).eq(6);
+        expect(errorWarnings.warnings[4].position.start.column).eq(5);
+        expect(errorWarnings.warnings[4].position.end.line).eq(6);
+        expect(errorWarnings.warnings[4].position.end.column).eq(41);
 
         expect(errorWarnings.warnings[5].message).contain(
             `Invalid "from" of sequence`,
         );
         expect(errorWarnings.warnings[5].level).eq(1);
-        expect(errorWarnings.warnings[5].position.lineBegin).eq(7);
-        expect(errorWarnings.warnings[5].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[5].position.lineEnd).eq(7);
-        expect(errorWarnings.warnings[5].position.charEnd).eq(40);
+        expect(errorWarnings.warnings[5].position.start.line).eq(7);
+        expect(errorWarnings.warnings[5].position.start.column).eq(5);
+        expect(errorWarnings.warnings[5].position.end.line).eq(7);
+        expect(errorWarnings.warnings[5].position.end.column).eq(41);
 
         expect(errorWarnings.warnings[6].message).contain(
             `Invalid "to" of number sequence.  Must be a number.`,
         );
         expect(errorWarnings.warnings[6].level).eq(1);
-        expect(errorWarnings.warnings[6].position.lineBegin).eq(8);
-        expect(errorWarnings.warnings[6].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[6].position.lineEnd).eq(8);
-        expect(errorWarnings.warnings[6].position.charEnd).eq(23);
+        expect(errorWarnings.warnings[6].position.start.line).eq(8);
+        expect(errorWarnings.warnings[6].position.start.column).eq(5);
+        expect(errorWarnings.warnings[6].position.end.line).eq(8);
+        expect(errorWarnings.warnings[6].position.end.column).eq(24);
 
         expect(errorWarnings.warnings[7].message).contain(
             `Invalid "to" of letters sequence.  Must be a letter combination`,
         );
         expect(errorWarnings.warnings[7].level).eq(1);
-        expect(errorWarnings.warnings[7].position.lineBegin).eq(9);
-        expect(errorWarnings.warnings[7].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[7].position.lineEnd).eq(9);
-        expect(errorWarnings.warnings[7].position.charEnd).eq(38);
+        expect(errorWarnings.warnings[7].position.start.line).eq(9);
+        expect(errorWarnings.warnings[7].position.start.column).eq(5);
+        expect(errorWarnings.warnings[7].position.end.line).eq(9);
+        expect(errorWarnings.warnings[7].position.end.column).eq(39);
 
         expect(errorWarnings.warnings[8].message).contain(
             `Invalid "to" of sequence`,
         );
         expect(errorWarnings.warnings[8].level).eq(1);
-        expect(errorWarnings.warnings[8].position.lineBegin).eq(10);
-        expect(errorWarnings.warnings[8].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[8].position.lineEnd).eq(10);
-        expect(errorWarnings.warnings[8].position.charEnd).eq(38);
+        expect(errorWarnings.warnings[8].position.start.line).eq(10);
+        expect(errorWarnings.warnings[8].position.start.column).eq(5);
+        expect(errorWarnings.warnings[8].position.end.line).eq(10);
+        expect(errorWarnings.warnings[8].position.end.column).eq(39);
     });
 
     it("sequence displays as list by default", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="pdefault"><sequence name="default" /></p>
     <p name="pnocommas"><sequence asList="false" name="nocommas" /></p>
@@ -1589,90 +2001,99 @@ describe("Sequence tag tests", async () => {
     <p name="pdefault2">$default</p>
     <p name="pnocommas2">$nocommas</p>
     <p name="pwithcommas2">$withcommas</p>
-    <p name="pnocommas3">$default{asList="false"}</p>
-    <p name="pnocommas3a">$withcommas{asList="false"}</p>
-    <p name="pwithcommas3">$nocommas{asList="true"}</p>
-    <p name="pdefault4" copysource="pdefault" />
-    <p name="pnocommas4" copysource="pnocommas" />
-    <p name="pwithcommas4" copysource="pwithcommas" />
-    <p name="pdefault5" copysource="pdefault2" />
-    <p name="pnocommas5" copysource="pnocommas2" />
-    <p name="pwithcommas5" copysource="pwithcommas2" />
-    <p name="pnocommas6" copysource="pnocommas3" />
-    <p name="pnocommas6a" copysource="pnocommas3a" />
-    <p name="pwithcommas6" copysource="pwithcommas3" />
+    <p name="pnocommas3"><sequence extend="$default" asList="false" /></p>
+    <p name="pnocommas3a"><sequence extend="$withcommas" asList="false" /></p>
+    <p name="pwithcommas3"><sequence extend="$nocommas" asList="true" /></p>
+    <p name="pdefault4" extend="$pdefault" />
+    <p name="pnocommas4" extend="$pnocommas" />
+    <p name="pwithcommas4" extend="$pwithcommas" />
+    <p name="pdefault5" extend="$pdefault2" />
+    <p name="pnocommas5" extend="$pnocommas2" />
+    <p name="pwithcommas5" extend="$pwithcommas2" />
+    <p name="pnocommas6" extend="$pnocommas3" />
+    <p name="pnocommas6a" extend="$pnocommas3a" />
+    <p name="pwithcommas6" extend="$pwithcommas3" />
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pdefault"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pdefault2"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pdefault4"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pdefault5"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pnocommas"].stateValues.text).eq("12345678910");
-        expect(stateVariables["/pnocommas2"].stateValues.text).eq(
-            "12345678910",
-        );
-        expect(stateVariables["/pnocommas3"].stateValues.text).eq(
-            "12345678910",
-        );
-        expect(stateVariables["/pnocommas3a"].stateValues.text).eq(
-            "12345678910",
-        );
-        expect(stateVariables["/pnocommas4"].stateValues.text).eq(
-            "12345678910",
-        );
-        expect(stateVariables["/pnocommas5"].stateValues.text).eq(
-            "12345678910",
-        );
-        expect(stateVariables["/pnocommas6"].stateValues.text).eq(
-            "12345678910",
-        );
-        expect(stateVariables["/pnocommas6a"].stateValues.text).eq(
-            "12345678910",
-        );
-        expect(stateVariables["/pwithcommas"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pwithcommas2"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pwithcommas3"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pwithcommas4"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pwithcommas5"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
-        expect(stateVariables["/pwithcommas6"].stateValues.text).eq(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-        );
+        expect(
+            stateVariables[resolveComponentName("pdefault")].stateValues.text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pdefault2")].stateValues.text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pdefault4")].stateValues.text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pdefault5")].stateValues.text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pnocommas")].stateValues.text,
+        ).eq("12345678910");
+        expect(
+            stateVariables[resolveComponentName("pnocommas2")].stateValues.text,
+        ).eq("12345678910");
+        expect(
+            stateVariables[resolveComponentName("pnocommas3")].stateValues.text,
+        ).eq("12345678910");
+        expect(
+            stateVariables[resolveComponentName("pnocommas3a")].stateValues
+                .text,
+        ).eq("12345678910");
+        expect(
+            stateVariables[resolveComponentName("pnocommas4")].stateValues.text,
+        ).eq("12345678910");
+        expect(
+            stateVariables[resolveComponentName("pnocommas5")].stateValues.text,
+        ).eq("12345678910");
+        expect(
+            stateVariables[resolveComponentName("pnocommas6")].stateValues.text,
+        ).eq("12345678910");
+        expect(
+            stateVariables[resolveComponentName("pnocommas6a")].stateValues
+                .text,
+        ).eq("12345678910");
+        expect(
+            stateVariables[resolveComponentName("pwithcommas")].stateValues
+                .text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pwithcommas2")].stateValues
+                .text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pwithcommas3")].stateValues
+                .text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pwithcommas4")].stateValues
+                .text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pwithcommas5")].stateValues
+                .text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+        expect(
+            stateVariables[resolveComponentName("pwithcommas6")].stateValues
+                .text,
+        ).eq("1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
     });
 
     it("rounding", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <text>a</text>
-    <p><sequence assignNames="n1a n1b n1c" from="10.12345" length="3" step="0.03257" displayDigits="10" /></p>
-    <p><sequence assignNames="n2a n2b n2c" from="10.12345" length="3" step="0.03257" displayDigits="3" /></p>
-    <p><sequence assignNames="n3a n3b n3c" from="10.12345" length="3" step="0.03257" displayDecimals="3" /></p>
-    <p><sequence assignNames="n4a n4b n4c" from="10" length="3" displayDigits="3" padZeros /></p>
+    <p><sequence name="s1" from="10.12345" length="3" step="0.03257" displayDigits="10" /></p>
+    <p><sequence name="s2" from="10.12345" length="3" step="0.03257" displayDigits="3" /></p>
+    <p><sequence name="s3" from="10.12345" length="3" step="0.03257" displayDecimals="3" /></p>
+    <p><sequence name="s4" from="10" length="3" displayDigits="3" padZeros /></p>
 
-    <p><number name="n1a1">$n1a</number> <number name="n1b1">$n1b</number> <number name="n1c1">$n1c</number></p>
-    <p><number name="n2a1">$n2a</number> <number name="n2b1">$n2b</number> <number name="n2c1">$n2c</number></p>
-    <p><number name="n3a1">$n3a</number> <number name="n3b1">$n3b</number> <number name="n3c1">$n3c</number></p>
-    <p><number name="n4a1">$n4a</number> <number name="n4b1">$n4b</number> <number name="n4c1">$n4c</number></p>
+    <p><number name="n1a1">$s1[1]</number> <number name="n1b1">$s1[2]</number> <number name="n1c1">$s1[3]</number></p>
+    <p><number name="n2a1">$s2[1]</number> <number name="n2b1">$s2[2]</number> <number name="n2c1">$s2[3]</number></p>
+    <p><number name="n3a1">$s3[1]</number> <number name="n3b1">$s3[2]</number> <number name="n3c1">$s3[3]</number></p>
+    <p><number name="n4a1">$s4[1]</number> <number name="n4b1">$s4[2]</number> <number name="n4c1">$s4[3]</number></p>
 
     `,
         });
@@ -1682,66 +2103,79 @@ describe("Sequence tag tests", async () => {
         let nc = nb + 0.03257;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/n1a"].stateValues.text).eq(
-            String(Math.round(na * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables["/n1b"].stateValues.text).eq(
-            String(Math.round(nb * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables["/n1c"].stateValues.text).eq(
-            String(Math.round(nc * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables["/n2a"].stateValues.text).eq(
-            String(Math.round(na * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables["/n2b"].stateValues.text).eq(
-            String(Math.round(nb * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables["/n2c"].stateValues.text).eq(
-            String(Math.round(nc * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables["/n3a"].stateValues.text).eq(
-            String(Math.round(na * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables["/n3b"].stateValues.text).eq(
-            String(Math.round(nb * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables["/n3c"].stateValues.text).eq(
-            String(Math.round(nc * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables["/n4a"].stateValues.text).eq("10.0");
-        expect(stateVariables["/n4b"].stateValues.text).eq("11.0");
-        expect(stateVariables["/n4c"].stateValues.text).eq("12.0");
 
-        expect(stateVariables["/n1a1"].stateValues.text).eq(
-            String(Math.round(na * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables["/n1b1"].stateValues.text).eq(
-            String(Math.round(nb * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables["/n1c1"].stateValues.text).eq(
-            String(Math.round(nc * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables["/n2a1"].stateValues.text).eq(
-            String(Math.round(na * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables["/n2b1"].stateValues.text).eq(
-            String(Math.round(nb * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables["/n2c1"].stateValues.text).eq(
-            String(Math.round(nc * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables["/n3a1"].stateValues.text).eq(
-            String(Math.round(na * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables["/n3b1"].stateValues.text).eq(
-            String(Math.round(nb * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables["/n3c1"].stateValues.text).eq(
-            String(Math.round(nc * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables["/n4a1"].stateValues.text).eq("10.0");
-        expect(stateVariables["/n4b1"].stateValues.text).eq("11.0");
-        expect(stateVariables["/n4c1"].stateValues.text).eq("12.0");
+        expect(
+            stateVariables[resolveComponentName("s1[1]")].stateValues.text,
+        ).eq(String(Math.round(na * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[resolveComponentName("s1[2]")].stateValues.text,
+        ).eq(String(Math.round(nb * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[resolveComponentName("s1[3]")].stateValues.text,
+        ).eq(String(Math.round(nc * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[resolveComponentName("s2[1]")].stateValues.text,
+        ).eq(String(Math.round(na * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[resolveComponentName("s2[2]")].stateValues.text,
+        ).eq(String(Math.round(nb * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[resolveComponentName("s2[3]")].stateValues.text,
+        ).eq(String(Math.round(nc * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[resolveComponentName("s3[1]")].stateValues.text,
+        ).eq(String(Math.round(na * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[resolveComponentName("s3[2]")].stateValues.text,
+        ).eq(String(Math.round(nb * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[resolveComponentName("s3[3]")].stateValues.text,
+        ).eq(String(Math.round(nc * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[resolveComponentName("s4[1]")].stateValues.text,
+        ).eq("10.0");
+        expect(
+            stateVariables[resolveComponentName("s4[2]")].stateValues.text,
+        ).eq("11.0");
+        expect(
+            stateVariables[resolveComponentName("s4[3]")].stateValues.text,
+        ).eq("12.0");
+
+        expect(
+            stateVariables[resolveComponentName("n1a1")].stateValues.text,
+        ).eq(String(Math.round(na * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[resolveComponentName("n1b1")].stateValues.text,
+        ).eq(String(Math.round(nb * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[resolveComponentName("n1c1")].stateValues.text,
+        ).eq(String(Math.round(nc * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[resolveComponentName("n2a1")].stateValues.text,
+        ).eq(String(Math.round(na * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[resolveComponentName("n2b1")].stateValues.text,
+        ).eq(String(Math.round(nb * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[resolveComponentName("n2c1")].stateValues.text,
+        ).eq(String(Math.round(nc * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[resolveComponentName("n3a1")].stateValues.text,
+        ).eq(String(Math.round(na * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[resolveComponentName("n3b1")].stateValues.text,
+        ).eq(String(Math.round(nb * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[resolveComponentName("n3c1")].stateValues.text,
+        ).eq(String(Math.round(nc * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[resolveComponentName("n4a1")].stateValues.text,
+        ).eq("10.0");
+        expect(
+            stateVariables[resolveComponentName("n4b1")].stateValues.text,
+        ).eq("11.0");
+        expect(
+            stateVariables[resolveComponentName("n4c1")].stateValues.text,
+        ).eq("12.0");
     });
 });

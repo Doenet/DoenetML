@@ -6,7 +6,6 @@ import {
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { assignNamesToComponents } from "../utils/assignNames";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class Sequence extends CompositeComponent {
@@ -37,10 +36,6 @@ export default class Sequence extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
-        };
-
-        attributes.assignNames = {
-            createPrimitiveOfType: "recursiveStringArray",
         };
 
         return attributes;
@@ -163,12 +158,15 @@ export default class Sequence extends CompositeComponent {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite =
-                    convertUnresolvedAttributesForComponentType({
-                        attributes: attributesToConvert,
-                        componentType,
-                        componentInfoObjects,
-                    });
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType,
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                nComponents = res.nComponents;
+                attributesFromComposite = res.attributes;
             }
 
             let serializedComponent = {
@@ -185,17 +183,6 @@ export default class Sequence extends CompositeComponent {
 
         // console.log(`replacements for ${component.componentIdx}`)
         // console.log(replacements)
-
-        if (component.attributes.assignNames) {
-            let processResult = assignNamesToComponents({
-                assignNames: component.attributes.assignNames.primitive.value,
-                serializedComponents: replacements,
-                componentInfoObjects,
-            });
-            warnings.push(...processResult.warnings);
-
-            replacements = processResult.components;
-        }
 
         return {
             replacements,
@@ -221,7 +208,7 @@ export default class Sequence extends CompositeComponent {
 
         let replacementChanges = [];
 
-        // if invalid, withhold any previous replacementsreplacements
+        // if invalid, withhold any previous replacements
         if (!(await component.stateValues.validSequence)) {
             let currentReplacementsWithheld = component.replacementsToWithhold;
             if (!currentReplacementsWithheld) {

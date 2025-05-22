@@ -164,7 +164,11 @@ export async function createTestCore({
 
             const newResolution = resolveAdditionalPath(core, resolution);
 
-            return newResolution.nodeIdx;
+            if (newResolution.unresolvedPath == null) {
+                return newResolution.nodeIdx;
+            } else {
+                return -1;
+            }
         } catch (e) {
             console.log("error when resolving", { path, origin });
             throw e;
@@ -335,7 +339,7 @@ function resolveAdditionalPath(
 
             return {
                 nodeIdx: -1,
-                unresolvedPath: [],
+                unresolvedPath: null,
                 originalPath: resolution.originalPath,
             };
         }
@@ -343,7 +347,7 @@ function resolveAdditionalPath(
 
     return {
         nodeIdx,
-        unresolvedPath,
+        unresolvedPath: null,
         originalPath: resolution.originalPath,
     };
 }
