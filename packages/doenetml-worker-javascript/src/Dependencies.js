@@ -7116,12 +7116,6 @@ class RefResolutionDependency extends Dependency {
     }
 
     async determineDownstreamComponents({ force = false } = {}) {
-        if (this.compositeIdx === 18) {
-            console.log(
-                `***** determine downstream components for ref resolution of ${this.compositeIdx}`,
-            );
-        }
-
         this.compositeReplacementDependencies = [];
 
         let composite = this.dependencyHandler._components[this.compositeIdx];

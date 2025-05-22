@@ -19,15 +19,10 @@ import {
 export default class SelectFromSequence extends Sequence {
     static componentType = "selectFromSequence";
 
-    static assignNamesToReplacements = true;
-
     static createsVariants = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numToSelect = {
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -232,6 +227,7 @@ export default class SelectFromSequence extends Sequence {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -244,12 +240,18 @@ export default class SelectFromSequence extends Sequence {
             return {
                 replacements: [
                     {
+                        type: "serialized",
                         componentType: "_error",
+                        componentIdx: nComponents++,
                         state: { message: errorMessage },
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
                     },
                 ],
                 errors,
                 warnings,
+                nComponents,
             };
         }
 
@@ -274,20 +276,28 @@ export default class SelectFromSequence extends Sequence {
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite =
+            const res = (attributesFromComposite =
                 convertUnresolvedAttributesForComponentType({
                     attributes: attributesToConvert,
                     componentType,
                     componentInfoObjects,
-                });
+                    nComponents,
+                }));
+
+            nComponents = res.nComponents;
+            attributesFromComposite = res.attributes;
         }
 
         let replacements = [];
 
         for (let value of await component.stateValues.selectedValues) {
             replacements.push({
+                type: "serialized",
                 componentType,
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
+                doenetAttributes: {},
+                children: [],
                 state: { value, fixed: true },
             });
         }
@@ -296,11 +306,12 @@ export default class SelectFromSequence extends Sequence {
             replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static calculateReplacementChanges() {
-        return [];
+        return { replacementChanges: [] };
     }
 
     static determineNumberOfUniqueVariants({ serializedComponent }) {

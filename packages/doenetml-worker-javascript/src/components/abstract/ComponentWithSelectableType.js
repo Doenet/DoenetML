@@ -454,7 +454,11 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                 componentType: "_componentListWithSelectableType",
                 componentIdx: nComponents++,
                 attributes: {
-                    type: { primitive: { type: "primitive", value: type } },
+                    type: {
+                        type: "primitive",
+                        name: "type",
+                        primitive: { type: "string", value: type },
+                    },
                 },
                 doenetAttributes: {},
                 children: x,

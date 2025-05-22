@@ -376,6 +376,7 @@ export default class Copy extends CompositeComponent {
                                 recursive: true,
                                 recurseNonStandardComposites:
                                     stateValues.unresolvedPath != null,
+                                includeWithheldReplacements: true,
                             };
                         }
                     }
@@ -1481,6 +1482,19 @@ export default class Copy extends CompositeComponent {
         let replacementSourceComponent =
             components[replacementSource.componentIdx];
 
+        // Don't create any replacement if the source is inactive
+        if (
+            await replacementSourceComponent.stateValues
+                .isInactiveCompositeReplacement
+        ) {
+            return {
+                serializedReplacements: [],
+                errors,
+                warnings,
+                nComponents,
+            };
+        }
+
         // if not linking or removing empty array entries,
         // then replacementSources is resolved,
         // which we need for state variable value
@@ -1899,11 +1913,77 @@ export default class Copy extends CompositeComponent {
             }
 
             let replacementSource = replacementSourceIdentities[sourceNum];
+
+            // check if replacementSource and all remaining replacement sources are withheld replacements
+            if (
+                !recreateRemaining &&
+                (await components[replacementSource?.componentIdx]?.stateValues
+                    .isInactiveCompositeReplacement)
+            ) {
+                let allWithheld = true;
+
+                for (
+                    let otherSourceNum = sourceNum + 1;
+                    otherSourceNum < maxSourceLength;
+                    otherSourceNum++
+                ) {
+                    const otherSource =
+                        replacementSourceIdentities[otherSourceNum];
+                    if (
+                        !(await components[otherSource?.componentIdx]
+                            ?.stateValues.isInactiveCompositeReplacement)
+                    ) {
+                        allWithheld = false;
+                        break;
+                    }
+                }
+
+                if (allWithheld) {
+                    let numberReplacementsLeft =
+                        workspace.numReplacementsBySource
+                            .slice(sourceNum)
+                            .reduce((a, c) => a + c, 0);
+
+                    if (numberReplacementsLeft > 0) {
+                        let replacementInstruction = {
+                            changeType: "changeReplacementsToWithhold",
+                            replacementsToWithhold: numberReplacementsLeft,
+                        };
+
+                        replacementChanges.push(replacementInstruction);
+                    }
+
+                    // Mark bookkeeping variables for all remaining sources to be the same as they were before
+                    // so we can simply stop withholding them if the sources stop being withheld
+                    for (
+                        let otherSourceNum = sourceNum;
+                        otherSourceNum < maxSourceLength;
+                        otherSourceNum++
+                    ) {
+                        numReplacementsBySource[otherSourceNum] =
+                            workspace.numReplacementsBySource[otherSourceNum];
+                        numNonStringReplacementsBySource[otherSourceNum] =
+                            workspace.numNonStringReplacementsBySource[
+                                otherSourceNum
+                            ];
+                        propVariablesCopiedBySource[otherSourceNum] =
+                            workspace.propVariablesCopiedBySource[
+                                otherSourceNum
+                            ];
+                    }
+
+                    break;
+                } else {
+                    // Some later replacement is not withheld.
+                    // Set `replacementSource` to be undefined so it is treated the same as though it were deleted
+                    replacementSource = undefined;
+                }
+            }
+
             if (replacementSource === undefined) {
                 if (workspace.numReplacementsBySource[sourceNum] > 0) {
                     if (!recreateRemaining) {
                         // since deleting replacement will shift the remaining replacements
-                        // and change resulting names,
                         // delete all remaining and mark to be recreated
 
                         let numberReplacementsLeft =
