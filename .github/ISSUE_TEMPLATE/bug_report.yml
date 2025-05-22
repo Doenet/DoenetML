@@ -1,0 +1,39 @@
+name: DoenetML bug report
+description: Report a bug in DoenetML
+title: "[Bug]: "
+type: "Bug"
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for taking the time to report a bug!
+    - type: textarea
+      id: doenetml-code
+      attributes:
+          label: Your DoenetML
+          description: Please copy and paste the DoenetML that caused this bug. Minimal reproductions of the issue are appreciated!
+          render: shell
+      validations:
+          required: true
+    - type: textarea
+      id: what-happened
+      attributes:
+          label: What happened?
+          description: Also tell us, what did you expect to happen?
+      validations:
+          required: true
+    - type: input
+      id: doenetml-version
+      attributes:
+          label: What version of DoenetML are you using?
+          description: If you're using the editor, you can find the version at the bottom of the editor panel.
+    - type: dropdown
+      id: browsers
+      attributes:
+          label: What browsers are you seeing the problem on?
+          multiple: true
+          options:
+              - Chrome
+              - Microsoft Edge
+              - Firefox
+              - Safari
