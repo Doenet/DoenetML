@@ -223,9 +223,6 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                 matchedChildren,
                 componentAttributes,
                 parentAttributes,
-                isAttributeComponent = false,
-                createdFromMacro = false,
-                componentInfoObjects,
                 nComponents,
             }) {
                 let warnings = [];

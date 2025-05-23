@@ -377,15 +377,15 @@ describe("MathList tag tests", async () => {
     <mathList name="ml1">
       <math>p</math>
       <mathList name="ml2">q r</mathList>
-      <math copySource="ml1.math3{obtainPropFromComposite}" name="m4" />
+      <math extend="$ml1.math3{obtainPropFromComposite}" name="m4" />
       <mathList name="ml3">
         <mathList name="ml4">
-          <math name="m2"><math copySource="ml1.math1{obtainPropFromComposite}" /></math>
+          <math name="m2"><math extend="$ml1.math1{obtainPropFromComposite}" /></math>
           <mathList name="ml5">s t</mathList>
         </mathList>
         <mathList name="ml6">
-          <math copySource="ml1.math2{obtainPropFromComposite}" name="m8" />
-          <math copySource="ml1.math5{obtainPropFromComposite}" name="m9" />
+          <math extend="$ml1.math2{obtainPropFromComposite}" name="m8" />
+          <math extend="$ml1.math5{obtainPropFromComposite}" name="m9" />
         </mathList>
       </mathList>
       $ml4.maths{obtainPropFromComposite name="ml7"}
@@ -507,7 +507,8 @@ describe("MathList tag tests", async () => {
         }
     });
 
-    it("copy mathList and overwrite maximum number", async () => {
+    // For now, at least, giving up the feature where you can overwrite maximum number and make it larger
+    it.skip("copy mathList and overwrite maximum number", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><mathList name="ml1">a b c d e</mathList></p>
@@ -572,7 +573,7 @@ describe("MathList tag tests", async () => {
         });
     });
 
-    it("dynamic maximum number", async () => {
+    it.skip("dynamic maximum number, overwrite maximum number", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     
@@ -670,6 +671,77 @@ describe("MathList tag tests", async () => {
             core,
         });
         await check_items(max1, max2);
+    });
+
+    it("dynamic maximum number", async () => {
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+    
+    <p>Maximum number 1: <mathInput name="mn" prefill="2" /></p>
+    <section name="sec">
+        <p name="p1"><mathList name="ml1" maxNumber="$mn" >x y z u v w</mathList></p>
+        <p name="p2"><mathList extend="$ml1" name="ml2" /></p>
+        <p name="p3">$ml2</p>
+    </section>
+    <section name="sec2" extend="$sec" />
+
+      `,
+        });
+
+        let list = ["x", "y", "z", "u", "v", "w"];
+
+        async function check_items(maxNum: number) {
+            for (let pre of ["sec", "sec2"]) {
+                await test_mathList({
+                    resolveComponentName,
+                    core,
+                    name: `${pre}.ml1`,
+                    maths: list.slice(0, maxNum),
+                    pName: `${pre}.p1`,
+                    text: list.slice(0, maxNum).join(", "),
+                });
+                await test_mathList({
+                    resolveComponentName,
+                    core,
+                    name: `${pre}.ml2`,
+                    maths: list.slice(0, maxNum),
+                    pName: `${pre}.p2`,
+                    text: list.slice(0, maxNum).join(", "),
+                });
+                await test_mathList({
+                    resolveComponentName,
+                    core,
+                    maths: list.slice(0, maxNum),
+                    pName: `${pre}.p3`,
+                    text: list.slice(0, maxNum).join(", "),
+                });
+            }
+        }
+
+        let maxNum = 2;
+
+        await check_items(maxNum);
+
+        maxNum = Infinity;
+        const mnIdx = resolveComponentName("mn");
+        await updateMathInputValue({ latex: "", componentIdx: mnIdx, core });
+        await check_items(maxNum);
+
+        maxNum = 4;
+        await updateMathInputValue({
+            latex: maxNum.toString(),
+            componentIdx: mnIdx,
+            core,
+        });
+        await check_items(maxNum);
+
+        maxNum = 1;
+        await updateMathInputValue({
+            latex: maxNum.toString(),
+            componentIdx: mnIdx,
+            core,
+        });
+        await check_items(maxNum);
     });
 
     it("mathList with merge math lists", async () => {

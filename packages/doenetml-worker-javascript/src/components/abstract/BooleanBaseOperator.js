@@ -12,7 +12,10 @@ export default class BooleanOperator extends BooleanComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakStringsIntoBooleansBySpaces = function ({ matchedChildren }) {
+        let breakStringsIntoBooleansBySpaces = function ({
+            matchedChildren,
+            nComponents,
+        }) {
             // break any string by white space and wrap pieces with boolean
 
             let newChildren = matchedChildren.reduce(function (a, c) {
@@ -23,7 +26,12 @@ export default class BooleanOperator extends BooleanComponent {
                             .split(/\s+/)
                             .filter((s) => s)
                             .map((s) => ({
+                                type: "serialized",
                                 componentType: "boolean",
+                                componentIdx: nComponents++,
+                                attributes: {},
+                                doenetAttributes: {},
+                                state: {},
                                 children: [s],
                             })),
                     ];
@@ -35,6 +43,7 @@ export default class BooleanOperator extends BooleanComponent {
             return {
                 success: true,
                 newChildren: newChildren,
+                nComponents,
             };
         };
 

@@ -109,11 +109,6 @@ export function applySugar({
                         }
                     }
 
-                    let createdFromMacro = false;
-                    if (component.doenetAttributes.createdFromMacro) {
-                        createdFromMacro = true;
-                    }
-
                     let sugarResults = sugarInstruction.replacementFunction({
                         matchedChildren,
                         parentParametersFromSugar,
@@ -121,7 +116,6 @@ export function applySugar({
                         componentAttributes,
                         componentInfoObjects,
                         isAttributeComponent,
-                        createdFromMacro,
                         nComponents,
                     });
 

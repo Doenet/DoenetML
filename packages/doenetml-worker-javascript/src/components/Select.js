@@ -69,7 +69,7 @@ export default class Select extends CompositeComponent {
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro,
+                        (child.extending && "Ref" in child.extending),
                 )
             ) {
                 return { success: false };

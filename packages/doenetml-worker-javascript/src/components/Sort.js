@@ -61,7 +61,7 @@ export default class Sort extends CompositeComponent {
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro,
+                        (child.extending && "Ref" in child.extending),
                 )
             ) {
                 return { success: false };

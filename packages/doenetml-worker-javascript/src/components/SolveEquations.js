@@ -51,8 +51,7 @@ export default class SolveEquations extends InlineComponent {
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        (child.doenetAttributes &&
-                            child.doenetAttributes.createdFromMacro),
+                        (child.extending && "Ref" in child.extending),
                 )
             ) {
                 return { success: false };

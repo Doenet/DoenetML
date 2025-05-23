@@ -9603,42 +9603,52 @@ export default class Core {
                                 );
                             }
 
-                            // Get a list of the replacements that will be removed and their descendants
-                            let componentsToRemove = [];
+                            if (nextComponent.replacements) {
+                                // Get a list of the replacements that will be removed and their descendants
+                                let componentsToRemove = [];
 
-                            let newComponentsToRemove =
-                                nextComponent.replacements
-                                    .slice(
-                                        firstIndex,
-                                        firstIndex + numberToDelete,
-                                    )
-                                    .filter((comp) => typeof comp !== "string");
-
-                            // recurse to all descendants of the replacements,
-                            // including both `definingChildren` and `replacements` of the descendants
-                            while (newComponentsToRemove.length > 0) {
-                                componentsToRemove.push(
-                                    ...newComponentsToRemove,
-                                );
-                                newComponentsToRemove =
-                                    newComponentsToRemove.flatMap((comp) => {
-                                        let newComps = [
-                                            ...comp.definingChildren,
-                                        ];
-                                        if (comp.replacements) {
-                                            newComps.push(...comp.replacements);
-                                        }
-                                        return newComps.filter(
+                                let newComponentsToRemove =
+                                    nextComponent.replacements
+                                        .slice(
+                                            firstIndex,
+                                            firstIndex + numberToDelete,
+                                        )
+                                        .filter(
                                             (comp) => typeof comp !== "string",
                                         );
-                                    });
-                            }
 
-                            // Remove the replacements and their descendants from the resolver
-                            this.removeComponentsFromResolver(
-                                componentsToRemove,
-                                nextComponent.componentIdx,
-                            );
+                                // recurse to all descendants of the replacements,
+                                // including both `definingChildren` and `replacements` of the descendants
+                                while (newComponentsToRemove.length > 0) {
+                                    componentsToRemove.push(
+                                        ...newComponentsToRemove,
+                                    );
+                                    newComponentsToRemove =
+                                        newComponentsToRemove.flatMap(
+                                            (comp) => {
+                                                let newComps = [
+                                                    ...comp.definingChildren,
+                                                ];
+                                                if (comp.replacements) {
+                                                    newComps.push(
+                                                        ...comp.replacements,
+                                                    );
+                                                }
+                                                return newComps.filter(
+                                                    (comp) =>
+                                                        typeof comp !==
+                                                        "string",
+                                                );
+                                            },
+                                        );
+                                }
+
+                                // Remove the replacements and their descendants from the resolver
+                                this.removeComponentsFromResolver(
+                                    componentsToRemove,
+                                    nextComponent.componentIdx,
+                                );
+                            }
                         }
                     }
 
