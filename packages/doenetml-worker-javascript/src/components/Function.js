@@ -48,7 +48,8 @@ export default class Function extends InlineComponent {
             createStateVariable: "simplifySpecified",
             defaultValue: "full",
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
         };
         attributes.expand = {
@@ -129,7 +130,7 @@ export default class Function extends InlineComponent {
             createComponentOfType: "extrema",
         };
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.throughSlopes = {
             createComponentOfType: "mathList",

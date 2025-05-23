@@ -15,7 +15,7 @@ export default class BestFitLine extends Line {
         delete attributes.slope;
 
         attributes.data = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
 
         return attributes;

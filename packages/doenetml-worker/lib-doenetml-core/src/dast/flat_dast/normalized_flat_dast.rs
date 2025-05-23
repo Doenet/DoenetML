@@ -9,7 +9,7 @@ use super::{FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent};
 
 /// Objects that can be stored in the main `nodes` array of a `NormalizedRoot`.
 #[derive(Clone, Debug, Serialize)]
-#[serde(tag = "type")]
+#[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum NormalizedNode {
     Element(FlatElement),
@@ -21,6 +21,7 @@ impl Default for NormalizedNode {
         NormalizedNode::Error(FlatError {
             parent: None,
             message: "DEFAULT NODE".to_string(),
+            unresolved_path: None,
             position: None,
             idx: 0,
         })
@@ -80,6 +81,7 @@ impl NormalizedNode {
 /// These references are untagged, so the type of each node may be mutated and the reference remains valid.
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type")]
+#[serde(rename = "normalizedRoot")]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 pub struct NormalizedRoot {

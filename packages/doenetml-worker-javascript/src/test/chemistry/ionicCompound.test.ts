@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("Ionic Compounds tests", async () => {
     it("answer compounds from atom and ions", async () => {
-        const core = await createTestCore({
+        const { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>What is the ionic compound from <atom name="Li" symbol="Li" /> and <atom name="O" symbol="O" />?
     <answer name="ansLiO" splitSymbols="false"><ionicCompound name="LiO">$Li$O</ionicCompound></answer>
@@ -47,22 +47,39 @@ describe("Ionic Compounds tests", async () => {
                 true,
             );
             let mi =
-                stateVariables[`/ans${name}`].stateValues.inputChildren[0]
-                    .componentIdx;
+                stateVariables[resolveComponentName(`ans${name}`)].stateValues
+                    .inputChildren[0].componentIdx;
 
-            expect(stateVariables[`/${name}`].stateValues.latex).eq(latex);
-            expect(stateVariables[`/${name}`].stateValues.text).eq(text);
-            expect(stateVariables[`/${name}`].stateValues.math.tree).eqls(math);
+            expect(
+                stateVariables[resolveComponentName(`${name}`)].stateValues
+                    .latex,
+            ).eq(latex);
+            expect(
+                stateVariables[resolveComponentName(`${name}`)].stateValues
+                    .text,
+            ).eq(text);
+            expect(
+                stateVariables[resolveComponentName(`${name}`)].stateValues.math
+                    .tree,
+            ).eqls(math);
 
             for (let resp in responseCredits) {
-                await updateMathInputValue({ name: mi, latex: resp, core });
-                await submitAnswer({ name: `/ans${name}`, core });
+                await updateMathInputValue({
+                    componentIdx: mi,
+                    latex: resp,
+                    core,
+                });
+                await submitAnswer({
+                    componentIdx: resolveComponentName(`ans${name}`),
+                    core,
+                });
                 stateVariables = await core.returnAllStateVariables(
                     false,
                     true,
                 );
                 expect(
-                    stateVariables[`/ans${name}`].stateValues.creditAchieved,
+                    stateVariables[resolveComponentName(`ans${name}`)]
+                        .stateValues.creditAchieved,
                 ).eq(responseCredits[resp]);
             }
         }
@@ -101,7 +118,7 @@ describe("Ionic Compounds tests", async () => {
     });
 
     it("warnings", async () => {
-        const core = await createTestCore({
+        const { core } = await createTestCore({
             doenetML: `
   <atom name="Li" symbol="Li" /> <atom name="O" symbol="O" /> <atom name="Ca" symbol="Ca" />
 
@@ -119,18 +136,18 @@ describe("Ionic Compounds tests", async () => {
             `Have not implemented ionic compound for anything other than two ions`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.lineBegin).eq(4);
-        expect(errorWarnings.warnings[0].position.charBegin).eq(3);
-        expect(errorWarnings.warnings[0].position.lineEnd).eq(4);
-        expect(errorWarnings.warnings[0].position.charEnd).eq(41);
+        expect(errorWarnings.warnings[0].position.start.line).eq(4);
+        expect(errorWarnings.warnings[0].position.start.column).eq(3);
+        expect(errorWarnings.warnings[0].position.end.line).eq(4);
+        expect(errorWarnings.warnings[0].position.end.column).eq(42);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Ionic compound implemented only for one cation and one anion`,
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.lineBegin).eq(5);
-        expect(errorWarnings.warnings[1].position.charBegin).eq(3);
-        expect(errorWarnings.warnings[1].position.lineEnd).eq(5);
-        expect(errorWarnings.warnings[1].position.charEnd).eq(39);
+        expect(errorWarnings.warnings[1].position.start.line).eq(5);
+        expect(errorWarnings.warnings[1].position.start.column).eq(3);
+        expect(errorWarnings.warnings[1].position.end.line).eq(5);
+        expect(errorWarnings.warnings[1].position.end.column).eq(40);
     });
 });

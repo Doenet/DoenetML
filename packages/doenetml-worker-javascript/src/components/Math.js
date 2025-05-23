@@ -7,6 +7,7 @@ import {
     flattenDeep,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
+    deepCompare,
 } from "@doenet/utils";
 import {
     moveGraphicalObjectWithAnchorAction,
@@ -53,6 +54,7 @@ export default class MathComponent extends InlineComponent {
 
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
+    static variableForIndexAsProp = "vector";
 
     static descendantCompositesMustHaveAReplacement = true;
     static descendantCompositesDefaultReplacementType = "math";
@@ -74,7 +76,8 @@ export default class MathComponent extends InlineComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
         };
         attributes.expand = {
@@ -118,12 +121,13 @@ export default class MathComponent extends InlineComponent {
             fallBackToSourceCompositeStateVariable: "functionSymbols",
         };
 
-        attributes.sourcesAreFunctionSymbols = {
-            createComponentOfType: "textList",
-            createStateVariable: "sourcesAreFunctionSymbols",
+        attributes.referencesAreFunctionSymbols = {
+            createReferences: true,
+            createStateVariable: "referencesAreFunctionSymbols",
             defaultValue: [],
-            fallBackToParentStateVariable: "sourcesAreFunctionSymbols",
-            fallBackToSourceCompositeStateVariable: "sourcesAreFunctionSymbols",
+            fallBackToParentStateVariable: "referencesAreFunctionSymbols",
+            fallBackToSourceCompositeStateVariable:
+                "referencesAreFunctionSymbols",
         };
 
         attributes.splitSymbols = {
@@ -325,9 +329,9 @@ export default class MathComponent extends InlineComponent {
 
         stateVariableDefinitions.mathChildrenFunctionSymbols = {
             returnDependencies: () => ({
-                sourcesAreFunctionSymbols: {
+                referencesAreFunctionSymbols: {
                     dependencyType: "stateVariable",
-                    variableName: "sourcesAreFunctionSymbols",
+                    variableName: "referencesAreFunctionSymbols",
                 },
                 mathChildren: {
                     dependencyType: "child",
@@ -340,8 +344,14 @@ export default class MathComponent extends InlineComponent {
                     for (let compositeInfo of dependencyValues.mathChildren
                         .compositeReplacementRange) {
                         if (
-                            dependencyValues.sourcesAreFunctionSymbols.includes(
-                                compositeInfo.target,
+                            dependencyValues.referencesAreFunctionSymbols.some(
+                                (reference) =>
+                                    reference.componentIdx ===
+                                        compositeInfo.extendIdx &&
+                                    deepCompare(
+                                        reference.unresolvedPath,
+                                        compositeInfo.unresolvedPath,
+                                    ),
                             )
                         ) {
                             for (

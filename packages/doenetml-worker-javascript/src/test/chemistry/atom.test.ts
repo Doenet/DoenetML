@@ -12,7 +12,7 @@ vi.mock("hyperformula");
 
 describe("Atom tests", async () => {
     it("information on atom", async () => {
-        const core = await createTestCore({
+        const { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <title>Information on atom</title>
 
@@ -22,24 +22,24 @@ describe("Atom tests", async () => {
   
   <p>Atomic number: <mathInput name="aNum" prefill="1" /></p>
   
-  <p>Name: $atom.name{assignNames="name"}</p>
-  <p>Symbol: $atom.symbol{assignNames="symbol"}</p>
-  <p>Atomic number: $atom.atomicNumber{assignNames="atomicNumber"}</p>
-  <p>Group: $atom.group{assignNames="group"}</p>
-  <p>Group Name: $atom.groupName{assignNames="groupName"}</p>
-  <p>Atomic mass: $atom.atomicMass{assignNames="atomicMass" displayDigits="10"}</p>
-  <p>Phase at STP: $atom.phaseAtSTP{assignNames="phaseAtSTP" displayDigits="10"}</p>
-  <p>Charge of common ion: $atom.chargeOfCommonIon{assignNames="chargeOfCommonIon" displayDigits="10"}</p>
-  <p>Metal category: $atom.metalCategory{assignNames="metalCategory" displayDigits="10"}</p>
-  <p>Period: $atom.period{assignNames="period" displayDigits="10"}</p>
-  <p>Ionization energy: $atom.ionizationEnergy{assignNames="ionizationEnergy" displayDigits="10"}</p>
-  <p>Melting point: $atom.meltingPoint{assignNames="meltingPoint" displayDigits="10"}</p>
-  <p>Boiling point: $atom.boilingPoint{assignNames="boilingPoint" displayDigits="10"}</p>
-  <p>Atomic radius: $atom.atomicRadius{assignNames="atomicRadius" displayDigits="10"}</p>
-  <p>Density: $atom.density{assignNames="density" displayDigits="10"}</p>
-  <p>Electronegativity: $atom.electronegativity{assignNames="electronegativity" displayDigits="10"}</p>
-  <p>Electron configuration: $atom.electronConfiguration{assignNames="electronConfiguration"}</p>
-  Orbital diagram: $atom.orbitalDiagram{assignNames="orbitalDiagram"}
+  <p>Name: <text extend="$atom.name" name="name" /></p>
+  <p>Symbol: <text extend="$atom.symbol" name="symbol" /></p>
+  <p>Atomic number: <number extend="$atom.atomicNumber" name="atomicNumber" /></p>
+  <p>Group: <integer extend="$atom.group" name="group" /></p>
+  <p>Group Name: <text extend="$atom.groupName" name="groupName" /></p>
+  <p>Atomic mass: <number extend="$atom.atomicMass" name="atomicMass" displayDigits="10" /></p>
+  <p>Phase at STP: <text extend="$atom.phaseAtSTP" name="phaseAtSTP" displayDigits="10" /></p>
+  <p>Charge of common ion: <integer extend="$atom.chargeOfCommonIon" name="chargeOfCommonIon" displayDigits="10" /></p>
+  <p>Metal category: <text extend="$atom.metalCategory" name="metalCategory" displayDigits="10" /></p>
+  <p>Period: <integer extend="$atom.period" name="period" displayDigits="10" /></p>
+  <p>Ionization energy: <number extend="$atom.ionizationEnergy" name="ionizationEnergy" displayDigits="10" /></p>
+  <p>Melting point: <number extend="$atom.meltingPoint" name="meltingPoint" displayDigits="10" /></p>
+  <p>Boiling point: <number extend="$atom.boilingPoint" name="boilingPoint" displayDigits="10" /></p>
+  <p>Atomic radius: <integer extend="$atom.atomicRadius" name="atomicRadius" displayDigits="10" /></p>
+  <p>Density: <number extend="$atom.density" name="density" displayDigits="10" /></p>
+  <p>Electronegativity: <number extend="$atom.electronegativity" name="electronegativity" displayDigits="10" /></p>
+  <p>Electron configuration: <electronConfiguration extend="$atom.electronConfiguration" name="electronConfiguration" /></p>
+  Orbital diagram: <orbitalDiagram extend="$atom.orbitalDiagram" name="orbitalDiagram" />
     `,
         });
 
@@ -53,70 +53,98 @@ describe("Atom tests", async () => {
                 true,
             );
             const symbol = data["Symbol"];
-            expect(stateVariables["/atom"].stateValues.latex).eq(
-                `\\text{${symbol}}`,
-            );
-            expect(stateVariables["/atom"].stateValues.text).eq(symbol);
-            expect(stateVariables["/atom"].stateValues.math.tree).eq(symbol);
+            expect(
+                stateVariables[resolveComponentName("atom")].stateValues.latex,
+            ).eq(`\\text{${symbol}}`);
+            expect(
+                stateVariables[resolveComponentName("atom")].stateValues.text,
+            ).eq(symbol);
+            expect(
+                stateVariables[resolveComponentName("atom")].stateValues.math
+                    .tree,
+            ).eq(symbol);
 
-            expect(stateVariables["/name"].stateValues.value).eq(data["Name"]);
-            expect(stateVariables["/symbol"].stateValues.value).eq(symbol);
-            expect(stateVariables["/atomicNumber"].stateValues.value).eq(
-                atomicNumber,
-            );
-            expect(stateVariables["/group"].stateValues.value).eqls(
-                to_number(data["Group"]),
-            );
-            expect(stateVariables["/groupName"].stateValues.value).eq(
-                data["Group Name"],
-            );
-            expect(stateVariables["/atomicMass"].stateValues.value).eqls(
-                to_number(data["Atomic Mass"]),
-            );
-            expect(stateVariables["/phaseAtSTP"].stateValues.value).eq(
-                data["Phase at STP"],
-            );
-            expect(stateVariables["/chargeOfCommonIon"].stateValues.value).eqls(
-                to_number(data["Charge of Common Ion"]),
-            );
-            expect(stateVariables["/metalCategory"].stateValues.value).eq(
-                data["Metal/Nonmetal/Metalloid"],
-            );
-            expect(stateVariables["/period"].stateValues.value).eqls(
-                to_number(data["Period"]),
-            );
-            expect(stateVariables["/ionizationEnergy"].stateValues.value).eqls(
-                to_number(data["Ionization Energy"]),
-            );
-            expect(stateVariables["/period"].stateValues.value).eqls(
-                to_number(data["Period"]),
-            );
-            expect(stateVariables["/meltingPoint"].stateValues.value).eqls(
-                to_number(data["Melting Point"]),
-            );
-            expect(stateVariables["/boilingPoint"].stateValues.value).eqls(
-                to_number(data["Boiling Point"]),
-            );
-            expect(stateVariables["/atomicRadius"].stateValues.value).eqls(
-                to_number(data["Atomic Radius"]),
-            );
-            expect(stateVariables["/density"].stateValues.value).eqls(
-                to_number(data["Density"]),
-            );
-            expect(stateVariables["/electronegativity"].stateValues.value).eqls(
-                to_number(data["Electronegativity"]),
-            );
+            expect(
+                stateVariables[resolveComponentName("name")].stateValues.value,
+            ).eq(data["Name"]);
+            expect(
+                stateVariables[resolveComponentName("symbol")].stateValues
+                    .value,
+            ).eq(symbol);
+            expect(
+                stateVariables[resolveComponentName("atomicNumber")].stateValues
+                    .value,
+            ).eq(atomicNumber);
+            expect(
+                stateVariables[resolveComponentName("group")].stateValues.value,
+            ).eqls(to_number(data["Group"]));
+            expect(
+                stateVariables[resolveComponentName("groupName")].stateValues
+                    .value,
+            ).eq(data["Group Name"]);
+            expect(
+                stateVariables[resolveComponentName("atomicMass")].stateValues
+                    .value,
+            ).eqls(to_number(data["Atomic Mass"]));
+            expect(
+                stateVariables[resolveComponentName("phaseAtSTP")].stateValues
+                    .value,
+            ).eq(data["Phase at STP"]);
+            expect(
+                stateVariables[resolveComponentName("chargeOfCommonIon")]
+                    .stateValues.value,
+            ).eqls(to_number(data["Charge of Common Ion"]));
+            expect(
+                stateVariables[resolveComponentName("metalCategory")]
+                    .stateValues.value,
+            ).eq(data["Metal/Nonmetal/Metalloid"]);
+            expect(
+                stateVariables[resolveComponentName("period")].stateValues
+                    .value,
+            ).eqls(to_number(data["Period"]));
+            expect(
+                stateVariables[resolveComponentName("ionizationEnergy")]
+                    .stateValues.value,
+            ).eqls(to_number(data["Ionization Energy"]));
+            expect(
+                stateVariables[resolveComponentName("period")].stateValues
+                    .value,
+            ).eqls(to_number(data["Period"]));
+            expect(
+                stateVariables[resolveComponentName("meltingPoint")].stateValues
+                    .value,
+            ).eqls(to_number(data["Melting Point"]));
+            expect(
+                stateVariables[resolveComponentName("boilingPoint")].stateValues
+                    .value,
+            ).eqls(to_number(data["Boiling Point"]));
+            expect(
+                stateVariables[resolveComponentName("atomicRadius")].stateValues
+                    .value,
+            ).eqls(to_number(data["Atomic Radius"]));
+            expect(
+                stateVariables[resolveComponentName("density")].stateValues
+                    .value,
+            ).eqls(to_number(data["Density"]));
+            expect(
+                stateVariables[resolveComponentName("electronegativity")]
+                    .stateValues.value,
+            ).eqls(to_number(data["Electronegativity"]));
             let eConfig = data["Electron Configuration"];
             expect(
-                stateVariables["/electronConfiguration"].stateValues.value.tree,
+                stateVariables[resolveComponentName("electronConfiguration")]
+                    .stateValues.value.tree,
             ).eqls(me.fromText(eConfig).tree);
             expect(
-                stateVariables["/electronConfiguration"].stateValues.latex
+                stateVariables[
+                    resolveComponentName("electronConfiguration")
+                ].stateValues.latex
                     .replaceAll(" ", "")
                     .replaceAll("~", " "),
             ).eq(eConfig.replaceAll(/\^(\d+)/g, "^{$1}"));
             expect(
-                stateVariables["/electronConfiguration"].stateValues.text,
+                stateVariables[resolveComponentName("electronConfiguration")]
+                    .stateValues.text,
             ).eq(superSubscriptsToUnicode(eConfig));
         }
 
@@ -124,20 +152,32 @@ describe("Atom tests", async () => {
         await check_atom(aNum);
 
         aNum = 2;
-        await updateMathInputValue({ latex: `${aNum}`, name: "/aNum", core });
+        await updateMathInputValue({
+            latex: `${aNum}`,
+            componentIdx: resolveComponentName("aNum"),
+            core,
+        });
         await check_atom(aNum);
 
         aNum = 12;
-        await updateMathInputValue({ latex: `${aNum}`, name: "/aNum", core });
+        await updateMathInputValue({
+            latex: `${aNum}`,
+            componentIdx: resolveComponentName("aNum"),
+            core,
+        });
         await check_atom(aNum);
 
         aNum = 52;
-        await updateMathInputValue({ latex: `${aNum}`, name: "/aNum", core });
+        await updateMathInputValue({
+            latex: `${aNum}`,
+            componentIdx: resolveComponentName("aNum"),
+            core,
+        });
         await check_atom(aNum);
     });
 
     it("sort atoms", async () => {
-        const core = await createTestCore({
+        const { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>Originals: <group name="original" asList>
     <atom symbol="C" />
@@ -153,13 +193,13 @@ describe("Atom tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pAn"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("pAn")].stateValues.text).eq(
             "Sort by atomic number: He, C, O, As",
         );
-        expect(stateVariables["/pAr"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("pAr")].stateValues.text).eq(
             "Sort by atomic radius: He, O, C, As",
         );
-        expect(stateVariables["/pIe"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("pIe")].stateValues.text).eq(
             "Sort by ionization energy: As, C, O, He",
         );
     });

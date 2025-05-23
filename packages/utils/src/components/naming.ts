@@ -18,30 +18,3 @@ export function createUniqueName(componentType: string, longNameId: string) {
 
     return "__" + componentType + "_" + hashStringShortened;
 }
-
-export function getUniqueIdentifierFromBase(
-    uniqueIdentifierBase: string,
-    uniqueIdentifiersUsed: string[],
-) {
-    let postfix = 1;
-    let uniqueIdentifier = uniqueIdentifierBase + postfix;
-
-    while (uniqueIdentifiersUsed.includes(uniqueIdentifier)) {
-        postfix += 1;
-        uniqueIdentifier = uniqueIdentifierBase + postfix;
-    }
-
-    uniqueIdentifiersUsed.push(uniqueIdentifier);
-
-    return uniqueIdentifier;
-}
-
-export function getNamespaceFromName(componentIdx: string) {
-    let lastSlash = componentIdx.lastIndexOf("/");
-    if (lastSlash === -1) {
-        throw Error(
-            `Encountered name ${componentIdx} that doesn't include a slash`,
-        );
-    }
-    return componentIdx.slice(0, lastSlash + 1);
-}

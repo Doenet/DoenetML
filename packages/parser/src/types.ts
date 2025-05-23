@@ -36,6 +36,7 @@ import {
 } from "./macros-v6/types";
 
 export type Position = UnistLiteral["position"] & {};
+export type Point = Position["start"];
 
 // ## Interfaces
 
@@ -45,7 +46,7 @@ export type Position = UnistLiteral["position"] & {};
 export interface DastAttribute extends DastAbstractNode {
     type: "attribute";
     name: string;
-    children: (DastText | DastMacro | DastFunctionMacro)[];
+    children: (DastText | DastMacro | DastFunctionMacro | DastElement)[];
 }
 
 /**

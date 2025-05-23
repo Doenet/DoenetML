@@ -4,10 +4,6 @@ import {
     enumerateSelectionCombinations,
     enumerateCombinations,
 } from "@doenet/utils";
-import {
-    processAssignNames,
-    markToCreateAllUniqueNames,
-} from "../utils/naming";
 import { gatherVariantComponents } from "../utils/variants";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 
@@ -15,9 +11,6 @@ export default class Select extends CompositeComponent {
     static componentType = "select";
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
-
-    // static assignNewNamespaceToAllChildrenExcept = Object.keys(this.createAttributesObject()).map(x => x.toLowerCase());
-    static assignNamesToReplacements = true;
 
     static createsVariants = true;
 
@@ -69,13 +62,14 @@ export default class Select extends CompositeComponent {
             matchedChildren,
             componentAttributes,
             componentInfoObjects,
+            nComponents,
         }) {
             // only if all children are strings or macros
             if (
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro,
+                        (child.extending && "Ref" in child.extending),
                 )
             ) {
                 return { success: false };
@@ -106,25 +100,27 @@ export default class Select extends CompositeComponent {
             let result = groupIntoComponentTypesSeparatedBySpaces({
                 matchedChildren,
                 componentInfoObjects,
+                nComponents,
             });
 
             if (result.success) {
-                let newChildren = result.newChildren.map((child) => ({
-                    componentType: "option",
-                    children: [child],
-                }));
+                nComponents = result.nComponents;
 
-                let newAttributes = {
-                    addLevelToAssignNames: {
-                        primitive: true,
-                    },
-                };
+                let newChildren = result.newChildren.map((child) => ({
+                    type: "serialized",
+                    componentType: "option",
+                    componentIdx: nComponents++,
+                    children: [child],
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                }));
 
                 return {
                     success: true,
                     newChildren,
-                    newAttributes,
                     warnings,
+                    nComponents,
                 };
             } else {
                 return { success: false, warnings };
@@ -642,6 +638,7 @@ export default class Select extends CompositeComponent {
         component,
         components,
         componentInfoObjects,
+        nComponents,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
@@ -656,12 +653,18 @@ export default class Select extends CompositeComponent {
             return {
                 replacements: [
                     {
+                        type: "serialized",
                         componentType: "_error",
+                        componentIdx: nComponents++,
                         state: { message: errorMessage },
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
                     },
                 ],
                 errors,
                 warnings,
+                nComponents,
             };
         }
 
@@ -679,8 +682,11 @@ export default class Select extends CompositeComponent {
                 await selectedChild.stateValues.serializedChildren,
             );
             let serializedChild = {
+                type: "serialized",
                 componentType: "option",
+                componentIdx: nComponents++,
                 state: { rendered: true },
+                attributes: {},
                 doenetAttributes: Object.assign(
                     {},
                     selectedChild.doenetAttributes,
@@ -688,12 +694,6 @@ export default class Select extends CompositeComponent {
                 children: serializedGrandchildren,
                 originalIdx: selectedChildComponentIdx,
             };
-
-            if (selectedChild.attributes.newNamespace) {
-                serializedChild.attributes = {
-                    newNamespace: { primitive: true },
-                };
-            }
 
             replacements.push(serializedChild);
         }
@@ -724,45 +724,11 @@ export default class Select extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
-        let assignNames = component.doenetAttributes.assignNames;
-
-        if (
-            assignNames &&
-            (await component.stateValues.addLevelToAssignNames)
-        ) {
-            assignNames = assignNames.map((x) => [x]);
-        }
-
-        for (let rep of replacements) {
-            if (!rep.attributes?.newNamespace?.primitive && rep.children) {
-                markToCreateAllUniqueNames(rep.children);
-            }
-        }
-
-        let newReplacements = [];
-
-        for (let [ind, rep] of replacements.entries()) {
-            let processResult = processAssignNames({
-                assignNames,
-                serializedComponents: [rep],
-                parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
-                componentInfoObjects,
-                indOffset: ind,
-            });
-            errors.push(...processResult.errors);
-            warnings.push(...processResult.warnings);
-
-            newReplacements.push(processResult.serializedComponents[0]);
-        }
-
-        return { replacements: newReplacements, errors, warnings };
+        return { replacements, errors, warnings, nComponents };
     }
 
     static calculateReplacementChanges() {
-        return [];
+        return { replacementChanges: [] };
     }
 
     static determineNumberOfUniqueVariants({

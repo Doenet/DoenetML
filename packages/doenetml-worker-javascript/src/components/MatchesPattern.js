@@ -61,6 +61,7 @@ export default class MatchesPattern extends BooleanComponent {
         let wrapNonMathWithMath = function ({
             matchedChildren,
             componentInfoObjects,
+            nComponents,
         }) {
             // if have no children or a single math, don't do anything
             if (
@@ -78,10 +79,16 @@ export default class MatchesPattern extends BooleanComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType: "math",
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
+                nComponents,
             };
         };
 

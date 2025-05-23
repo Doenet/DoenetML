@@ -338,7 +338,7 @@ export function determineVariantsForSection({
     }
 
     let numVariantsSpecified =
-        variantControlChild?.attributes.numVariants?.primitive;
+        variantControlChild?.attributes.numVariants?.primitive.value;
     if (!Number.isFinite(numVariantsSpecified)) {
         numVariantsSpecified = 100;
     }
@@ -449,7 +449,7 @@ export function determineVariantsForSection({
         variantControlChild?.attributes.uniqueVariants !== undefined;
 
     let uniqueVariants = Boolean(
-        variantControlChild?.attributes.uniqueVariants?.primitive,
+        variantControlChild?.attributes.uniqueVariants?.primitive.value,
     );
 
     let uniqueResult: { success: boolean; numVariants: number } | undefined;

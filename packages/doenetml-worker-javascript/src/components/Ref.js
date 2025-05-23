@@ -11,8 +11,6 @@ export default class Ref extends InlineComponent {
     static componentType = "ref";
     static renderChildren = true;
 
-    static acceptTarget = true;
-
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.textType = {
