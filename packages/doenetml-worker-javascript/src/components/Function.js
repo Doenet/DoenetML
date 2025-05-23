@@ -77,7 +77,7 @@ export default class Function extends InlineComponent {
             createComponentOfType: "integer",
         };
         attributes.domain = {
-            createComponentOfType: "_intervalListComponent",
+            createComponentOfType: "intervalList",
         };
 
         // include attributes of graphical components

@@ -1,14 +1,11 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { LoremIpsum } from "lorem-ipsum";
-import { processAssignNames } from "../utils/naming";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 
 export default class Lorem extends CompositeComponent {
     static componentType = "lorem";
 
     static allowInSchemaAsComponent = ["text", "p"];
-
-    static assignNamesToReplacements = true;
 
     static createsVariants = true;
 
@@ -144,6 +141,7 @@ export default class Lorem extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -170,7 +168,12 @@ export default class Lorem extends CompositeComponent {
                     .split("\n");
 
                 replacements = paragraphs.map((x) => ({
+                    type: "serialized",
                     componentType: "p",
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
                     children: [x],
                 }));
             }
@@ -183,14 +186,24 @@ export default class Lorem extends CompositeComponent {
 
                 for (let sent of sentences.slice(0, sentences.length - 1)) {
                     replacements.push({
+                        type: "serialized",
                         componentType: "text",
+                        componentIdx: nComponents++,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                         children: [sent + "."],
                     });
                     replacements.push(" ");
                 }
 
                 replacements.push({
+                    type: "serialized",
                     componentType: "text",
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
                     children: [sentences[sentences.length - 1]],
                 });
             }
@@ -202,7 +215,12 @@ export default class Lorem extends CompositeComponent {
                     .generateWords(numWords)
                     .split(" ")
                     .map((w) => ({
+                        type: "serialized",
                         componentType: "text",
+                        componentIdx: nComponents++,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                         children: [w],
                     }));
 
@@ -215,25 +233,18 @@ export default class Lorem extends CompositeComponent {
             }
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static async calculateReplacementChanges({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -242,9 +253,11 @@ export default class Lorem extends CompositeComponent {
         let replacementResults = await this.createSerializedReplacements({
             component,
             componentInfoObjects,
+            nComponents,
         });
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
 
         let replacementInstruction = {
             changeType: "add",
@@ -254,7 +267,7 @@ export default class Lorem extends CompositeComponent {
             serializedReplacements: replacementResults.replacements,
         };
 
-        return [replacementInstruction];
+        return { replacementChanges: [replacementInstruction], nComponents };
     }
 
     static setUpVariant({

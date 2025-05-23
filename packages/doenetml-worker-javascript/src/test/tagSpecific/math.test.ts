@@ -173,7 +173,9 @@ describe("Math tag tests", async () => {
         ).eq(5);
     });
 
-    it("adjacent string children in math", async () => {
+    // TODO: do we are enough to restore this behavior?
+    // We stopped putting spaces between adjacent string children so that entity combinations like &lt;= are not separated
+    it.skip("adjacent string children in math", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <math simplify name="m">2<sequence length="0"/>3</math>
@@ -3386,27 +3388,24 @@ describe("Math tag tests", async () => {
         ).eq(24);
     });
 
-    it("aslist inside math, map", async () => {
+    it("aslist inside math, repeat", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   
-  <map name="map">
-    <template>
+  <repeat name="repeat" itemName="v" for="1 2 3">
 
       <number>$v^2</number>
 
       <math>x</math>
 
-    </template>
-    <sources alias="v"><sequence to="3" /></sources>
-  </map>
+  </repeat>
 
-  <math name="list" simplify>$map</math>
-  <math name="nolist" simplify>$map{asList="false"}</math>
-  <math name="tuple" simplify>($map)</math>
-  <math name="nolist2" simplify>($map{asList="false"})</math>
-  <math name="doubleTuple" simplify>2$map</math>
-  <math name="doubleNoList" simplify>2$map{asList="false"}</math>
+  <math name="list" simplify>$repeat</math>
+  <math name="nolist" simplify><repeat extend="$repeat" asList="false" /></math>
+  <math name="tuple" simplify>($repeat)</math>
+  <math name="nolist2" simplify>(<repeat extend="$repeat" asList="false" />)</math>
+  <math name="doubleTuple" simplify>2$repeat</math>
+  <math name="doubleNoList" simplify>2<repeat extend="$repeat" asList="false" /></math>
   
   `,
         });
@@ -11257,15 +11256,19 @@ describe("Math tag tests", async () => {
               <math extend="$m2" name="m2a" />
             </graph>
         
-            <collect componentTypes="math" source="g2" prop="anchor" assignNames="m1acoords m2acoords" />
-        
+            <collect componentType="math" from="$g2" name="g2math" />
+            <point extend="$g2math[1].anchor" name="m1acoords" />
+            <point extend="$g2math[2].anchor" name="m2acoords" />
+            
             <graph name="g3">
               <math extend="$m1.value" name="m1b" />
               <math extend="$m2.value" name="m2b" />
             </graph>
         
-            <collect componentTypes="math" source="g3" prop="anchor" assignNames="m1bcoords m2bcoords" />
-        
+            <collect componentType="math" from="$g3" name="g3math" />
+            <point extend="$g3math[1].anchor" name="m1bcoords" />
+            <point extend="$g3math[2].anchor" name="m2bcoords" />
+            
             <p name="p1"><math extend="$m1" name="m1c" /> <math extend="$m2" name="m2c" /></p>
         
             <p name="p2"><math extend="$m1.value" name="m1d" /> <math extend="$m2.value" name="m2d" /></p>

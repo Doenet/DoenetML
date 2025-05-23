@@ -25,6 +25,8 @@ export class Md extends InlineComponent {
     static componentType = "md";
     static rendererType = "math";
 
+    static canBeInList = false;
+
     // used when creating new component via adapter or copy prop
     static primaryStateVariableForDefinition = "latex";
 
@@ -75,7 +77,7 @@ export class Md extends InlineComponent {
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
-        stateVariableDefinitions.mrowChildNames = {
+        stateVariableDefinitions.mrowChildIndices = {
             forRenderer: true,
             returnDependencies: () => ({
                 mrowChildren: {
@@ -85,7 +87,7 @@ export class Md extends InlineComponent {
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    mrowChildNames: dependencyValues.mrowChildren.map(
+                    mrowChildIndices: dependencyValues.mrowChildren.map(
                         (x) => x.componentIdx,
                     ),
                 },
@@ -263,6 +265,8 @@ export class Mdn extends Md {
 
 export class Mrow extends M {
     static componentType = "mrow";
+
+    static canBeInList = false;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

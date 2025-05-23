@@ -64,7 +64,7 @@ export default React.memo(function Ref(props) {
         edit: SVs.edit,
         hash: SVs.hash,
         givenUri: SVs.uri,
-        targetName: SVs.targetName,
+        targetIdx: SVs.targetIdx,
         linkSettings,
         search,
         id,

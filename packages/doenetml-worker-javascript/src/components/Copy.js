@@ -1190,6 +1190,11 @@ export default class Copy extends CompositeComponent {
             warnings.push(...verificationResult.warnings);
             nComponents = verificationResult.nComponents;
 
+            this.addAttributesToSingleReplacement(
+                verificationResult.replacements,
+                component,
+            );
+
             return {
                 replacements: verificationResult.replacements,
                 errors,
@@ -1272,6 +1277,11 @@ export default class Copy extends CompositeComponent {
             errors.push(...verificationResult.errors);
             warnings.push(...verificationResult.warnings);
             nComponents = verificationResult.nComponents;
+
+            this.addAttributesToSingleReplacement(
+                verificationResult.replacements,
+                component,
+            );
 
             return {
                 replacements: verificationResult.replacements,
@@ -1401,7 +1411,25 @@ export default class Copy extends CompositeComponent {
         nComponents = verificationResult.nComponents;
         replacements = verificationResult.replacements;
 
-        if (replacements.length === 1) {
+        this.addAttributesToSingleReplacement(replacements, component);
+
+        // console.log(`serialized replacements for ${component.componentIdx}`);
+        // console.log(JSON.parse(JSON.stringify(replacements)));
+
+        return {
+            replacements,
+            errors,
+            warnings,
+            nComponents,
+        };
+    }
+
+    /**
+     * If there is a single replacement and the copy has `createComponentName` or `createComponentIdx`,
+     * then add the name or component index to the replacement
+     */
+    static addAttributesToSingleReplacement(replacements, component) {
+        if (replacements.length === 1 && typeof replacements[0] === "object") {
             if (
                 component.attributes.createComponentName?.primitive.value !=
                 undefined
@@ -1424,16 +1452,6 @@ export default class Copy extends CompositeComponent {
                     component.attributes.createComponentIdx.primitive.value;
             }
         }
-
-        // console.log(`serialized replacements for ${component.componentIdx}`);
-        // console.log(JSON.parse(JSON.stringify(replacements)));
-
-        return {
-            replacements,
-            errors,
-            warnings,
-            nComponents,
-        };
     }
 
     static async createReplacementForSource({
@@ -1788,6 +1806,11 @@ export default class Copy extends CompositeComponent {
                 return { replacementChanges: [], nComponents };
             }
 
+            this.addAttributesToSingleReplacementChange(
+                component,
+                verificationResult.replacementChanges,
+            );
+
             return {
                 replacementChanges: verificationResult.replacementChanges,
                 nComponents,
@@ -1824,6 +1847,11 @@ export default class Copy extends CompositeComponent {
 
                 replacementChanges = verificationResult.replacementChanges;
             }
+
+            this.addAttributesToSingleReplacementChange(
+                component,
+                replacementChanges,
+            );
 
             return { replacementChanges, nComponents };
         }
@@ -2345,17 +2373,37 @@ export default class Copy extends CompositeComponent {
             return { replacementChanges: [] };
         }
 
-        // If, after changes, we have a single component that has a componentName and componentIdx
-        // given by the Copy, then assign those to the replacement
-        // We have dealt just with the special case that we arrive at one replacement with a single "add" change.
-        // We could generalize if we need to.
+        this.addAttributesToSingleReplacementChange(
+            component,
+            replacementChanges,
+        );
+
+        // console.log("replacementChanges");
+        // console.log(replacementChanges);
+
+        return {
+            replacementChanges,
+            nComponents,
+        };
+    }
+
+    // If, after changes, we have a single component that has a componentName and componentIdx
+    // given by the Copy, then assign those to the replacement
+    // We have dealt just with the special case that we arrive at one replacement with a single "add" change.
+    // We could generalize if we need to.
+    static addAttributesToSingleReplacementChange(
+        component,
+        replacementChanges,
+    ) {
         const { replacementTypes, replacementsToWithhold } =
             calculateReplacementTypesFromChanges(component, replacementChanges);
         if (replacementTypes.length === 1 && !(replacementsToWithhold > 0)) {
             if (
                 replacementChanges.length === 1 &&
                 replacementChanges[0].changeType === "add" &&
-                replacementChanges[0].serializedReplacements.length === 1
+                replacementChanges[0].serializedReplacements.length === 1 &&
+                typeof replacementChanges[0].serializedReplacements[0] ===
+                    "object"
             ) {
                 const theNewReplacement =
                     replacementChanges[0].serializedReplacements[0];
@@ -2383,14 +2431,6 @@ export default class Copy extends CompositeComponent {
                 }
             }
         }
-
-        // console.log("replacementChanges");
-        // console.log(replacementChanges);
-
-        return {
-            replacementChanges,
-            nComponents,
-        };
     }
 
     static async recreateReplacements({

@@ -54,9 +54,9 @@ import Curve from "./components/Curve";
 import BezierControls from "./components/BezierControls";
 import ControlVectors from "./components/ControlVectors";
 import PointList from "./components/PointList";
-import IntervalListComponent from "./components/abstract/IntervalListComponent";
+import IntervalList from "./components/IntervalList";
 import LineListComponent from "./components/abstract/LineListComponent";
-import VectorListComponent from "./components/VectorList";
+import VectorList from "./components/VectorList";
 import AngleListComponent from "./components/abstract/AngleListComponent";
 import Vector from "./components/Vector";
 import Angle from "./components/Angle";
@@ -372,9 +372,9 @@ const componentTypeArray = [
     Input,
     CompositeComponent,
     PointList,
-    IntervalListComponent,
+    IntervalList,
     LineListComponent,
-    VectorListComponent,
+    VectorList,
     AngleListComponent,
     BooleanBaseOperator,
     BooleanBaseOperatorOfMath,

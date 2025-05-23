@@ -267,6 +267,8 @@ export class M extends InlineComponent {
 export class Me extends M {
     static componentType = "me";
 
+    static canBeInList = false;
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -279,6 +281,8 @@ export class Me extends M {
 
 export class Men extends M {
     static componentType = "men";
+
+    static canBeInList = false;
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();

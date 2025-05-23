@@ -13,6 +13,11 @@ export default class Ref extends InlineComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+
+        attributes.to = {
+            createReferences: true,
+        };
+
         attributes.textType = {
             createComponentOfType: "text",
             createStateVariable: "textType",
@@ -47,17 +52,56 @@ export default class Ref extends InlineComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.targetComponent = {
+        stateVariableDefinitions.targetComponentIdx = {
             returnDependencies: () => ({
-                targetComponent: {
-                    dependencyType: "targetComponent",
+                toAttr: {
+                    dependencyType: "attributeRefResolutions",
+                    attributeName: "to",
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition({ dependencyValues }) {
+                if (dependencyValues.toAttr?.length === 1) {
+                    const toAttr = dependencyValues.toAttr[0];
+
+                    if (toAttr.unresolvedPath === null) {
+                        return {
+                            setValue: {
+                                targetComponentIdx: toAttr.componentIdx,
+                            },
+                        };
+                    }
+                }
+
                 return {
                     setValue: {
-                        targetComponent: dependencyValues.targetComponent,
+                        targetComponentIdx: null,
                     },
+                };
+            },
+        };
+
+        stateVariableDefinitions.targetComponent = {
+            stateVariablesDeterminingDependencies: ["targetComponentIdx"],
+            returnDependencies({ stateValues }) {
+                if (stateValues.targetComponentIdx != null) {
+                    return {
+                        targetComponent: {
+                            dependencyType: "componentIdentity",
+                            componentIdx: stateValues.targetComponentIdx,
+                        },
+                    };
+                } else {
+                    return {};
+                }
+            },
+            definition: function ({ dependencyValues }) {
+                let targetComponent = null;
+                if (dependencyValues.targetComponent) {
+                    targetComponent = dependencyValues.targetComponent;
+                }
+
+                return {
+                    setValue: { targetComponent },
                 };
             },
         };
@@ -89,7 +133,7 @@ export default class Ref extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.targetName = {
+        stateVariableDefinitions.targetIdx = {
             forRenderer: true,
             returnDependencies: () => ({
                 targetComponent: {
@@ -111,24 +155,16 @@ export default class Ref extends InlineComponent {
             }),
             definition: function ({ dependencyValues }) {
                 if (dependencyValues.uri) {
-                    if (dependencyValues.targetAttribute) {
-                        let targetName = dependencyValues.targetAttribute;
-                        if (targetName[0] !== "/") {
-                            targetName = "/" + targetName;
-                        }
-                        return { setValue: { targetName } };
-                    } else {
-                        return { setValue: { targetName: "" } };
-                    }
+                    return { setValue: { targetIdx: -1 } };
                 } else if (
                     dependencyValues.targetComponent === null ||
                     dependencyValues.targetInactive
                 ) {
-                    return { setValue: { targetName: "" } };
+                    return { setValue: { targetIdx: -1 } };
                 } else {
                     return {
                         setValue: {
-                            targetName:
+                            targetIdx:
                                 dependencyValues.targetComponent.componentIdx,
                         },
                     };
@@ -268,7 +304,7 @@ export default class Ref extends InlineComponent {
                 createComponentOfType: "text",
             },
             forRenderer: true,
-            stateVariablesDeterminingDependencies: ["targetName"],
+            stateVariablesDeterminingDependencies: ["targetIdx"],
             returnDependencies({ stateValues }) {
                 let dependencies = {
                     allChildren: {
@@ -287,16 +323,16 @@ export default class Ref extends InlineComponent {
                     },
                 };
 
-                if (stateValues.targetName) {
+                if (stateValues.targetIdx) {
                     dependencies.equationTag = {
                         dependencyType: "stateVariable",
-                        componentIdx: stateValues.targetName,
+                        componentIdx: stateValues.targetIdx,
                         variableName: "equationTag",
                         variablesOptional: true,
                     };
                     dependencies.title = {
                         dependencyType: "stateVariable",
-                        componentIdx: stateValues.targetName,
+                        componentIdx: stateValues.targetIdx,
                         variableName: "title",
                         variablesOptional: true,
                     };
@@ -352,7 +388,7 @@ export default class Ref extends InlineComponent {
         let edit = await this.stateValues.edit;
         let hash = await this.stateValues.hash;
         let uri = await this.stateValues.uri;
-        let targetName = await this.stateValues.targetName;
+        let targetIdx = await this.stateValues.targetIdx;
 
         let effectiveName = this.componentOrAdaptedName;
 
@@ -363,7 +399,7 @@ export default class Ref extends InlineComponent {
             edit,
             hash,
             uri,
-            targetName,
+            targetIdx,
             actionId,
             componentIdx: this.componentIdx,
             effectiveName,
