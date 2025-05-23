@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { atomFamily, useRecoilValue, useSetRecoilState } from "recoil";
+import { atomFamily, useRecoilValue } from "recoil";
 // import { serializedComponentsReviver } from '@doenet/utils';
 import { renderersLoadComponent } from "./DocViewer";
 import { cesc } from "@doenet/utils";
+import { mainSlice, useAppSelector } from "../state";
 
 export const rendererState = atomFamily<
     {
@@ -28,7 +29,7 @@ export const rendererState = atomFamily<
 export type UseDoenetRendererProps = {
     coreId: string;
     componentInstructions: {
-        actions: Record<string, { actionName: string; componentIdx: string }>;
+        actions: Record<string, { actionName: string; componentIdx: number }>;
         componentIdx: number;
         effectiveName: string;
         componentType: string;
@@ -55,6 +56,13 @@ export default function useDoenetRenderer(
     let effectiveName = props.componentInstructions.effectiveName;
     let rendererName = props.coreId + componentIdx;
     let [renderersToLoad, setRenderersToLoad] = useState({});
+    //console.log(
+    //    "Using DoenetRenderer",
+    //    rendererName,
+    //    props,
+    //    renderersToLoad,
+    //    //useAppSelector((state) => state),
+    //);
 
     let {
         stateValues,
@@ -63,6 +71,11 @@ export default function useDoenetRenderer(
         childrenInstructions,
         prefixForIds,
     } = useRecoilValue(rendererState(rendererName));
+    //console.log(
+    //    "   Use recoil value",
+    //    useRecoilValue(rendererState(rendererName)),
+    //    rendererState(rendererName),
+    //);
 
     //TODO: Fix this for graph
     // if (initializeChildrenOnConstruction

@@ -11,7 +11,6 @@ import {
     faPercentage,
 } from "@fortawesome/free-solid-svg-icons";
 import { rendererState } from "../useDoenetRenderer";
-import { useSetRecoilState } from "recoil";
 import { ToggleButton } from "@doenet/ui-components";
 import styled from "styled-components";
 import "./booleanInput.css";
@@ -61,8 +60,6 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let rendererValueRef = useRef(null);
     rendererValueRef.current = rendererValue;
 
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
-
     let valueWhenSetState = useRef(null);
 
     let inputJXG = useRef<JXGObject | null>(null);
@@ -109,12 +106,6 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
 
         setRendererValue(newValue);
         valueWhenSetState.current = SVs.value;
-
-        setRendererState((was) => {
-            let newObj = { ...was };
-            newObj.ignoreUpdate = true;
-            return newObj;
-        });
 
         callAction({
             action: actions.updateBoolean,
