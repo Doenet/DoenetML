@@ -10,8 +10,6 @@ import {
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
 import { MathJax } from "better-react-mathjax";
-import { rendererState } from "../useDoenetRenderer";
-import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import "./choiceInput.css";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
@@ -57,8 +55,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const [rendererSelectedIndices, setRendererSelectedIndices] = useState<
         number[]
     >(SVs.selectedIndices);
-
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let selectedIndicesWhenSetState = useRef(null);
 
@@ -123,12 +119,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         ) {
             setRendererSelectedIndices(newSelectedIndices);
             selectedIndicesWhenSetState.current = SVs.selectedIndices;
-
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
 
             callAction({
                 action: actions.updateSelectedIndices,

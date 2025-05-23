@@ -19,9 +19,10 @@ import {
 } from "@doenet/virtual-keyboard/math-input";
 import { MathJax } from "better-react-mathjax";
 
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
+import { useSetRecoilState } from "../../state/recoil-compat";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -67,8 +68,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const lastKeyboardAccessTime = useRef(0);
     const lastBlurTime = useRef(0);
     const keyboardCausedBlur = useRef(false);
-
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let rendererValue = useRef(SVs.rawRendererValue);
 
@@ -211,12 +210,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 .replace(/\^{(\w)}/g, "^$1")
         ) {
             rendererValue.current = text;
-
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
 
             callAction({
                 action: actions.updateRawValue,

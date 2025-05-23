@@ -12,6 +12,8 @@ import "@doenet/virtual-keyboard/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
+import { Provider } from "react-redux";
+import { store } from "./state";
 
 export const version: string = DOENETML_VERSION;
 
@@ -279,20 +281,22 @@ export function DoenetViewer({
             resetScope=".before-keyboard"
             disableGlobalStyle
         >
-            <RecoilRoot>
-                <MathJaxContext
-                    version={3}
-                    config={mathjaxConfig}
-                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
-                >
-                    <div ref={ref}>
-                        {variantSelector}
-                        {viewer}
-                        <div className="before-keyboard" />
-                        {keyboard}
-                    </div>
-                </MathJaxContext>
-            </RecoilRoot>
+            <Provider store={store}>
+                <RecoilRoot>
+                    <MathJaxContext
+                        version={3}
+                        config={mathjaxConfig}
+                        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                    >
+                        <div ref={ref}>
+                            {variantSelector}
+                            {viewer}
+                            <div className="before-keyboard" />
+                            {keyboard}
+                        </div>
+                    </MathJaxContext>
+                </RecoilRoot>
+            </Provider>
         </ChakraProvider>
     );
 }
@@ -390,17 +394,19 @@ export function DoenetEditor({
             resetScope=".before-keyboard"
             disableGlobalStyle
         >
-            <RecoilRoot>
-                <MathJaxContext
-                    version={3}
-                    config={mathjaxConfig}
-                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
-                >
-                    {editor}
-                    <div className="before-keyboard" />
-                    {keyboard}
-                </MathJaxContext>
-            </RecoilRoot>
+            <Provider store={store}>
+                <RecoilRoot>
+                    <MathJaxContext
+                        version={3}
+                        config={mathjaxConfig}
+                        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                    >
+                        {editor}
+                        <div className="before-keyboard" />
+                        {keyboard}
+                    </MathJaxContext>
+                </RecoilRoot>
+            </Provider>
         </ChakraProvider>
     );
 }

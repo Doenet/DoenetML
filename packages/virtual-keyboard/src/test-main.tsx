@@ -7,7 +7,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { focusedMathField } from "./MathInputSelector";
 import { VirtualKeyboard } from "./virtual-keyboard";
-import { RecoilRoot, useSetRecoilState, useRecoilValue } from "recoil";
+import { RecoilRoot, useSetRecoilState } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { ChakraProvider } from "@chakra-ui/react";
 import { ManagedKeyboard } from "./virtual-keyboard";

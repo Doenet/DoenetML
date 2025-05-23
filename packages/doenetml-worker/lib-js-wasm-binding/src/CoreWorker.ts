@@ -309,7 +309,7 @@ export class CoreWorker {
      */
     async dispatchActionJavascript(actionArgs: {
         actionName: string;
-        componentIdx: string | undefined;
+        componentIdx: number | undefined;
         args: Record<string, any>;
     }) {
         const isProcessingPromise = this.isProcessingPromise;

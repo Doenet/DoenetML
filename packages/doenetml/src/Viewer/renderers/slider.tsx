@@ -8,9 +8,6 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
-
-import { useSetRecoilState } from "recoil";
-import { rendererState } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 
 let round_to_decimals = (x: number, n: number) =>
@@ -392,8 +389,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     // console.log("SVs",SVs);
     // let sorted_points = [...SVs.items].sort((p1, p2) => p1 - p2);
 
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
-
     const [thumbXPos, setThumbXPos] = useState(0);
     // const [thumbValue, setThumbValue] = useState(SVs.firstItem);
     const isMouseDown = useRef(false);
@@ -548,11 +543,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
             // setThumbValue(valindexpair[0]);
             setIndex(valindexpair[1]);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             callAction({
                 action: actions.changeValue,
                 args: { value: valindexpair[0], transient: true },
@@ -565,11 +555,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
             setIndex(i);
             // setThumbValue(SVs.items[i]);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             callAction({
                 action: actions.changeValue,
                 args: { value: SVs.items[i], transient: true },
@@ -614,11 +599,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
 
             setThumbXPos(valindexpair[1] * divisionWidth);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             callAction({
                 action: actions.changeValue,
                 args: { value: valindexpair[0] },
@@ -633,11 +613,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
 
             setThumbXPos(i * divisionWidth);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             callAction({
                 action: actions.changeValue,
                 args: { value: SVs.items[i] },
@@ -662,11 +637,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 // setThumbValue(valindexpair[0]);
                 setIndex(valindexpair[1]);
 
-                setRendererState((was) => {
-                    let newObj = { ...was };
-                    newObj.ignoreUpdate = true;
-                    return newObj;
-                });
                 callAction({
                     action: actions.changeValue,
                     args: {
@@ -681,11 +651,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 setIndex(i);
                 // setThumbValue(SVs.items[i]);
 
-                setRendererState((was) => {
-                    let newObj = { ...was };
-                    newObj.ignoreUpdate = true;
-                    return newObj;
-                });
                 callAction({
                     action: actions.changeValue,
                     args: {
@@ -712,11 +677,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
             val = SVs.items[index + 1];
         }
 
-        setRendererState((was) => {
-            let newObj = { ...was };
-            newObj.ignoreUpdate = true;
-            return newObj;
-        });
         callAction({
             action: actions.changeValue,
             args: { value: val },
@@ -740,11 +700,6 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
             val = SVs.items[index - 1];
         }
 
-        setRendererState((was) => {
-            let newObj = { ...was };
-            newObj.ignoreUpdate = true;
-            return newObj;
-        });
         callAction({
             action: actions.changeValue,
             args: { value: val },

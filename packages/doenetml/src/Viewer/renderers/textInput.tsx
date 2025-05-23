@@ -8,11 +8,9 @@ import {
     faLevelDownAlt,
     faTimes,
     faCloud,
-    faPercentage,
 } from "@fortawesome/free-solid-svg-icons";
 import { sizeToCSS } from "./utils/css";
 import { rendererState } from "../useDoenetRenderer";
-import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
@@ -93,8 +91,6 @@ export default function TextInput(props: UseDoenetRendererProps) {
     // add ref, because event handler called from jsxgraph doesn't get new value
     let rendererValueRef = useRef(null);
     rendererValueRef.current = rendererValue;
-
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let valueToRevertTo = useRef(SVs.immediateValue);
     let focused = useRef<boolean | null>(null);
@@ -220,12 +216,6 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
         if (newValue !== rendererValueRef.current) {
             setRendererValue(newValue);
-
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             immediateValueWhenSetState.current = SVs.immediateValue;
 
             callAction({

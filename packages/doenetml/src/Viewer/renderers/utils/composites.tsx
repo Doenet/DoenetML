@@ -12,6 +12,18 @@ export function addCommasForCompositeRanges({
     startInd,
     endInd,
     removedInd = null,
+}: {
+    compositeReplacementActiveRange: Array<{
+        firstInd: number;
+        lastInd: number;
+        compositeIdx: number;
+        asList: boolean;
+        potentialListComponents?: Array<boolean>;
+    }>;
+    children: React.ReactNode[];
+    startInd: number;
+    endInd: number;
+    removedInd?: number | null;
 }) {
     let result = addCommasForCompositeRangesSub({
         compositeReplacementActiveRange,
@@ -31,7 +43,23 @@ function addCommasForCompositeRangesSub({
     endInd,
     removedInd = null,
     potentialListComponents = null,
-}) {
+}: {
+    compositeReplacementActiveRange: {
+        firstInd: number;
+        lastInd: number;
+        compositeIdx: number;
+        asList: boolean;
+        potentialListComponents?: Array<boolean>;
+    }[];
+    children: React.ReactNode[];
+    startInd: number;
+    endInd: number;
+    removedInd?: number | null;
+    potentialListComponents?: Array<boolean> | null;
+}): {
+    newChildren: React.ReactNode[];
+    newPotentialListComponents: React.ReactNode[];
+} {
     let newChildren = [];
     let newPotentialListComponents = [];
     let lastChildInd = startInd - 1;
@@ -147,13 +175,12 @@ function addCommasForCompositeRangesSub({
             if (childrenInRange.length > 0) {
                 // Whether or not we added commas, we still add a span and a anchor with the id of the composite
                 // so that links to the composite name will scroll to the right location.
-                let compositeId = cesc(range.compositeIdx);
-                childrenInRange = (
+                let compositeId = cesc(String(range.compositeIdx));
+                childrenInRange = [
                     <React.Fragment key={compositeId}>
-                        <a name={compositeId} />
                         <span id={compositeId}>{childrenInRange}</span>
-                    </React.Fragment>
-                );
+                    </React.Fragment>,
+                ];
                 newChildren.push(childrenInRange);
                 if (potentialListComponents) {
                     newPotentialListComponents.push(allListComponents);
@@ -178,9 +205,19 @@ function addCommasForCompositeRangesSub({
     return { newChildren, newPotentialListComponents };
 }
 
-function removeEndingBlankString(component) {
+function removeEndingBlankString(component: React.ReactNode) {
+    if (
+        !component ||
+        typeof component === "boolean" ||
+        typeof component === "number"
+    ) {
+        return component;
+    }
     if (typeof component === "string") {
         return component.trimEnd();
+    }
+    if (!("props" in component)) {
+        return component;
     }
     if (!(component.props?.children?.length > 0)) {
         return component;
