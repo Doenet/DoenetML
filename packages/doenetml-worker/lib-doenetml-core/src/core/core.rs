@@ -56,7 +56,7 @@ impl Core {
     }
 
     pub fn add_nodes_to_resolver(flat_fragment: &FlatFragment, resolver: &mut Resolver) {
-        resolver.add_nodes(&flat_fragment);
+        resolver.add_nodes(flat_fragment);
     }
 
     /// Initialize `structure_graph`, `state_graph`, and other data

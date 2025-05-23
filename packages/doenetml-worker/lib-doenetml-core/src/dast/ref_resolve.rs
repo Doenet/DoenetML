@@ -61,7 +61,7 @@ impl ResolutionAlgorithm {
 
     fn lookup_by_flat_node(node: &FlatNode) -> Self {
         if let FlatNode::Element(element) = node {
-            Self::lookup_by_name(&element.name.as_str())
+            Self::lookup_by_name(element.name.as_str())
         } else {
             ResolutionAlgorithm::Unsearchable
         }
@@ -92,7 +92,7 @@ impl Resolver {
             resolution_algorithm: flat_root
                 .nodes
                 .iter()
-                .map(|node| ResolutionAlgorithm::lookup_by_flat_node(node))
+                .map(ResolutionAlgorithm::lookup_by_flat_node)
                 .collect(),
             name_map: Self::build_name_map(&FlatRootOrFragment::Root(flat_root)),
         }
@@ -204,7 +204,7 @@ impl Resolver {
     ) -> Result<RefResolution, ResolutionError> {
         let path = path.as_ref();
         let mut current_idx = origin;
-        let original_path = path.iter().cloned().collect::<Vec<_>>();
+        let original_path = path.to_vec();
 
         let mut path = path.iter();
 
@@ -376,7 +376,7 @@ impl Resolver {
             for parent_idx in flat_root_or_fragment
                 .parent_iter(element.idx)
                 .map(|parent| parent.idx)
-                .chain(fragment_parent.iter().map(|idx| *idx))
+                .chain(fragment_parent.iter().copied())
             {
                 descendant_names[parent_idx]
                     .get_mut(&name)

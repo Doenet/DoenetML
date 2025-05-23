@@ -345,19 +345,19 @@ impl FlatFragment {
     /// Create a `FlatFragment` from a `DastRoot`
     /// where all indices will be shifted by `idx_to_id_shift`
     /// and the parent of the base children will be `parent_idx` (e.g., from a `FlatRoot`)
-
-    // TODO: this function is unused. If we use it, it needs tests.
     pub fn from_dast_with_id_shift(
         dast: &DastRoot,
         idx_to_id_shift: usize,
         parent_idx: Option<Index>,
     ) -> Self {
+        // TODO: this function is unused. If we use it, it needs tests.
+
         let mut flat_root = FlatRoot::from_dast(dast);
 
         // shift the indices of the children
         for child in flat_root.children.iter_mut() {
             if let UntaggedContent::Ref(idx) = child {
-                *idx = *idx + idx_to_id_shift
+                *idx += idx_to_id_shift
             }
         }
 
@@ -379,7 +379,7 @@ impl FlatFragment {
                 FlatNode::Element(flat_element) => {
                     for child in flat_element.children.iter_mut() {
                         if let UntaggedContent::Ref(idx) = child {
-                            *idx = *idx + idx_to_id_shift
+                            *idx += idx_to_id_shift
                         }
                     }
                     for attribute in flat_element.attributes.iter_mut() {
@@ -390,18 +390,18 @@ impl FlatFragment {
                             .or(parent_idx);
                         for child in attribute.children.iter_mut() {
                             if let UntaggedContent::Ref(idx) = child {
-                                *idx = *idx + idx_to_id_shift
+                                *idx += idx_to_id_shift
                             }
                         }
                     }
-                    flat_element.extending.as_mut().map(|extend| {
+                    if let Some(extend) = flat_element.extending.as_mut() {
                         extend.set_idx(extend.idx() + idx_to_id_shift);
-                    });
+                    }
                 }
                 FlatNode::FunctionRef(flat_function_ref) => {
                     for input in flat_function_ref.input.iter_mut().flatten().flatten() {
                         if let UntaggedContent::Ref(idx) = input {
-                            *idx = *idx + idx_to_id_shift
+                            *idx += idx_to_id_shift
                         }
                     }
                 }
@@ -423,8 +423,7 @@ impl FlatFragment {
     pub fn len(&self) -> usize {
         let n = self
             .idx_map
-            .iter()
-            .map(|(k, _v)| *k)
+            .keys()
             .max_by_key(|x| *x)
             .map(|x| x + 1)
             .unwrap_or_default();
@@ -436,15 +435,19 @@ impl FlatFragment {
         n
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.parent_idx.is_none() && self.idx_map.is_empty()
+    }
+
     pub fn get_node(&self, idx: Index) -> &FlatNode {
         &self.nodes[self.idx_map[&idx]]
     }
 
     pub fn min_idx(&self) -> usize {
         self.idx_map
-            .iter()
-            .map(|(k, _v)| *k)
+            .keys()
             .min_by_key(|x| *x)
+            .copied()
             .unwrap_or_default()
     }
 }
@@ -454,11 +457,18 @@ pub enum FlatRootOrFragment<'a> {
     Fragment(&'a FlatFragment),
 }
 
-impl<'a> FlatRootOrFragment<'a> {
+impl FlatRootOrFragment<'_> {
     pub fn len(&self) -> usize {
         match self {
             FlatRootOrFragment::Root(flat_root) => flat_root.nodes.len(),
             FlatRootOrFragment::Fragment(flat_fragment) => flat_fragment.len(),
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        match self {
+            FlatRootOrFragment::Root(flat_root) => flat_root.nodes.is_empty(),
+            FlatRootOrFragment::Fragment(flat_fragment) => flat_fragment.is_empty(),
         }
     }
 
