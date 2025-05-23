@@ -8,7 +8,7 @@
 top = (Macro / FunctionMacro / Text)*
 
 // Identifiers. Scoped identifiers can only be used inside of `$(..)` notation.
-SimpleIdent = $[a-zA-Z0-9_]+
+SimpleIdent = $([a-zA-Z_] [a-zA-Z0-9_]*)
 
 Ident = $[a-zA-Z0-9_-]+
 

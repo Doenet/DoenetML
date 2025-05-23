@@ -254,4 +254,26 @@ describe("Macro parsing of v0.7 macros", () => {
             { type: "text", value: "(" },
         ]);
     });
+    it("Does not processes numbers immediately following $ as macros", () => {
+        expect(MacroParser.parse("$1")).toMatchObject([
+            { type: "text", value: "$" },
+            { type: "text", value: "1" },
+        ]);
+        expect(MacroParser.parse("$1[1]")).toMatchObject([
+            { type: "text", value: "$" },
+            { type: "text", value: "1[1]" },
+        ]);
+    });
+    it("Does not processes numbers immediately following $$ as macros", () => {
+        expect(MacroParser.parse("$$1")).toMatchObject([
+            { type: "text", value: "$" },
+            { type: "text", value: "$" },
+            { type: "text", value: "1" },
+        ]);
+        expect(MacroParser.parse("$$1(1)")).toMatchObject([
+            { type: "text", value: "$" },
+            { type: "text", value: "$" },
+            { type: "text", value: "1(1)" },
+        ]);
+    });
 });
