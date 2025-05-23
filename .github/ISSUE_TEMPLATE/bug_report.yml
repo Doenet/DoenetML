@@ -12,7 +12,7 @@ body:
       attributes:
           label: Your DoenetML
           description: Please copy and paste the DoenetML that caused this bug. Minimal reproductions of the issue are appreciated!
-          render: shell
+          render: xml
       validations:
           required: true
     - type: textarea
