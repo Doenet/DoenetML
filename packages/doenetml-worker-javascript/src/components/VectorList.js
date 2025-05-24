@@ -521,29 +521,29 @@ export default class VectorListComponent extends CompositeComponent {
             }
         }
 
-        // allow one to override the fixed and isResponse attributes
-        // as well as rounding settings
-        // by specifying it on the list
-        let attributesFromComposite = {};
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            const res = convertUnresolvedAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "text",
-                componentInfoObjects,
-                nComponents,
-            });
-
-            attributesFromComposite = res.attributes;
-            nComponents = res.nComponents;
-        }
-
         let childIndicesByVector =
             await component.stateValues.childIndicesByVector;
 
         let numVectors = await component.stateValues.numVectors;
         let numDimensions = await component.stateValues.numDimensions;
         for (let i = 0; i < numVectors; i++) {
+            // allow one to override the fixed and isResponse attributes
+            // as well as rounding settings
+            // by specifying it on the list
+            let attributesFromComposite = {};
+
+            if (Object.keys(attributesToConvert).length > 0) {
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "text",
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
+
             let childIdx = childIndicesByVector[i];
             let replacementSource = components[childIdx];
 

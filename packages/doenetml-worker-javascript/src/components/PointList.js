@@ -518,29 +518,29 @@ export default class PointList extends CompositeComponent {
             }
         }
 
-        // allow one to override the fixed and isResponse attributes
-        // as well as rounding settings
-        // by specifying it on the list
-        let attributesFromComposite = {};
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            const res = convertUnresolvedAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "text",
-                componentInfoObjects,
-                nComponents,
-            });
-
-            attributesFromComposite = res.attributes;
-            nComponents = res.nComponents;
-        }
-
         let childIndicesByPoint =
             await component.stateValues.childIndicesByPoint;
 
         let numPoints = await component.stateValues.numPoints;
         let numDimensions = await component.stateValues.numDimensions;
         for (let i = 0; i < numPoints; i++) {
+            // allow one to override the fixed and isResponse attributes
+            // as well as rounding settings
+            // by specifying it on the list
+            let attributesFromComposite = {};
+
+            if (Object.keys(attributesToConvert).length > 0) {
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "text",
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
+
             let childIdx = childIndicesByPoint[i];
             let replacementSource = components[childIdx];
 

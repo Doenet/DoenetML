@@ -320,27 +320,27 @@ export default class TextList extends CompositeComponent {
             }
         }
 
-        // allow one to override the fixed and isResponse attributes
-        // by specifying it on the sequence
-        let attributesFromComposite = {};
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            const res = convertUnresolvedAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "text",
-                componentInfoObjects,
-                nComponents,
-            });
-
-            attributesFromComposite = res.attributes;
-            nComponents = res.nComponents;
-        }
-
         let childNameByComponent =
             await component.stateValues.childNameByComponent;
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
+            // allow one to override the fixed and isResponse attributes
+            // by specifying it on the sequence
+            let attributesFromComposite = {};
+
+            if (Object.keys(attributesToConvert).length > 0) {
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "text",
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
+
             let childIdx = childNameByComponent[i];
             let replacementSource = components[childIdx];
 

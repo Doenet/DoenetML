@@ -577,28 +577,28 @@ export default class NumberList extends CompositeComponent {
             }
         }
 
-        // allow one to override the fixed and isResponse attributes
-        // as well as rounding settings
-        // by specifying it on the list
-        let attributesFromComposite = {};
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            const res = convertUnresolvedAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "number",
-                componentInfoObjects,
-                nComponents,
-            });
-
-            attributesFromComposite = res.attributes;
-            nComponents = res.nComponents;
-        }
-
         let childInfoByComponent =
             await component.stateValues.childInfoByComponent;
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
+            // allow one to override the fixed and isResponse attributes
+            // as well as rounding settings
+            // by specifying it on the list
+            let attributesFromComposite = {};
+
+            if (Object.keys(attributesToConvert).length > 0) {
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "number",
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
+
             let childInfo = childInfoByComponent[i];
             if (childInfo) {
                 let replacementSource = components[childInfo.childIdx];

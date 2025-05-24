@@ -396,28 +396,28 @@ export default class IntervalList extends CompositeComponent {
             }
         }
 
-        // allow one to override the fixed and isResponse attributes
-        // as well as rounding settings
-        // by specifying it on the list
-        let attributesFromComposite = {};
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            const res = convertUnresolvedAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "text",
-                componentInfoObjects,
-                nComponents,
-            });
-
-            attributesFromComposite = res.attributes;
-            nComponents = res.nComponents;
-        }
-
         let childIndicesByInterval =
             await component.stateValues.childIndicesByInterval;
 
         let numIntervals = await component.stateValues.numIntervals;
         for (let i = 0; i < numIntervals; i++) {
+            // allow one to override the fixed and isResponse attributes
+            // as well as rounding settings
+            // by specifying it on the list
+            let attributesFromComposite = {};
+
+            if (Object.keys(attributesToConvert).length > 0) {
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "text",
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
+
             let childIdx = childIndicesByInterval[i];
             let replacementSource = components[childIdx];
 
