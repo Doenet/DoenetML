@@ -1,4 +1,4 @@
-import React, { useRef, useState, FocusEventHandler } from "react";
+import React, { useRef, useState, FocusEventHandler, useContext } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -12,16 +12,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { addStyles, EditableMathField, MathField } from "react-mathquill";
 addStyles(); // Styling for react-mathquill input field
-import {
-    focusedMathField,
-    focusedMathFieldReturn,
-    palletRef,
-} from "@doenet/virtual-keyboard/math-input";
 import { MathJax } from "better-react-mathjax";
 
-import { useRecoilState, useSetRecoilState } from "recoil";
-import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
+import { FocusedMathInputContext } from "../../doenetml";
+import { useAppSelector } from "../../state";
+import { keyboardSlice } from "../../state/slices/keyboard";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -60,7 +56,15 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
 
+    const virtualKeyboardEvents = useAppSelector(
+        keyboardSlice.selectors.keyboardInput,
+    );
+    const focusedMathInput = useContext(FocusedMathInputContext);
     const [mathField, setMathField] = useState<MathField | null>(null);
+    // The handles.enter of `EditableMathField` callback for some reason does not get updated when it changes.
+    // To work around this, we safe the current mathField in a ref and use that in the callback.
+    const mathFieldRef = useRef<MathField | null>(null);
+    mathFieldRef.current = mathField;
     const [focused, setFocused] = useState<boolean | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null); // Ref to keep track of the mathInput's disabled state
 
@@ -68,13 +72,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const lastBlurTime = useRef(0);
     const keyboardCausedBlur = useRef(false);
 
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
-
-    let rendererValue = useRef(SVs.rawRendererValue);
+    const rendererValue = useRef(SVs.rawRendererValue);
 
     // Need to use ref for includeCheckWork
     // or handlePressEnter doesn't get the new value when the SV changes
-    let includeCheckWork = useRef(
+    const includeCheckWork = useRef(
         SVs.includeCheckWork && !SVs.suppressCheckwork,
     );
     includeCheckWork.current = SVs.includeCheckWork && !SVs.suppressCheckwork;
@@ -89,10 +91,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         "unvalidated" | "correct" | "incorrect" | "partialcorrect" | null
     >(null);
 
-    const setFocusedField = useSetRecoilState(focusedMathField);
-    const setFocusedFieldReturn = useSetRecoilState(focusedMathFieldReturn);
     // A global reference to the currently active MathInput
-    const [containerRef, setContainerRef] = useRecoilState(palletRef);
 
     const updateValidationState = () => {
         validationState.current = "unvalidated";
@@ -107,50 +106,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
     };
 
-    const handleVirtualKeyboardClick = ({
-        type,
-        command,
-        timestamp,
-    }: {
-        type: "accessed" | "cmd" | "write" | "keystroke" | "type";
-        command: string;
-        timestamp: number;
-    }) => {
-        if (type == "accessed") {
-            // record the time the keyboard was accessed
-            lastKeyboardAccessTime.current = timestamp;
-
-            // If there was a blur immediately preceding the keyboard access,
-            // we conclude that the blur was caused by the keyboard access.
-            // If not, we don't make any conclusions as there can be many subsequent keyboard accesses
-            // after the initial blur.
-            if (
-                Math.abs(
-                    lastKeyboardAccessTime.current - lastBlurTime.current,
-                ) < 100
-            ) {
-                keyboardCausedBlur.current = true;
-            }
+    const handlePressEnter = React.useCallback(() => {
+        if (!mathFieldRef.current) {
             return;
         }
-
-        if (!mathField || !keyboardCausedBlur.current) {
-            return;
-        }
-        mathField.focus();
-
-        if (type == "cmd") {
-            mathField.cmd(command);
-        } else if (type == "write") {
-            mathField.write(command);
-        } else if (type == "keystroke") {
-            mathField.keystroke(command);
-        } else if (type == "type") {
-            mathField.typedText(command);
-        }
-    };
-
-    const handlePressEnter = () => {
+        // The "Enter" key was pressed
         callAction({
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
@@ -164,32 +124,87 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 action: actions.submitAnswer,
             });
         }
-    };
+    }, [callAction, mathField]);
 
     React.useEffect(() => {
-        // XXX: typescript doesn't like this. I am not sure what the desired behavior is
-        if (!mathField || mathField.el() !== containerRef) {
+        if (!mathField || focusedMathInput.current !== mathField.el()) {
+            // If we aren't the focused math input, ignore the events
             return;
         }
-        setFocusedField(() => handleVirtualKeyboardClick);
-    }, [mathField, containerRef]);
+        for (const event of virtualKeyboardEvents) {
+            if (event.type === "keystroke" && event.command === "Enter") {
+                // The "Enter" key was pressed
+                callAction({
+                    action: actions.updateValue,
+                    baseVariableValue: rendererValue.current,
+                });
+
+                if (
+                    includeCheckWork.current &&
+                    validationState.current === "unvalidated"
+                ) {
+                    callAction({
+                        action: actions.submitAnswer,
+                    });
+                }
+                continue;
+            }
+            if (event.type === "accessed") {
+                // record the time the keyboard was accessed
+                lastKeyboardAccessTime.current = event.timestamp || 0;
+
+                // If there was a blur immediately preceding the keyboard access,
+                // we conclude that the blur was caused by the keyboard access.
+                // If not, we don't make any conclusions as there can be many subsequent keyboard accesses
+                // after the initial blur.
+                if (
+                    Math.abs(
+                        lastKeyboardAccessTime.current - lastBlurTime.current,
+                    ) < 100
+                ) {
+                    keyboardCausedBlur.current = true;
+                }
+            }
+            if (keyboardCausedBlur.current) {
+                switch (event.type) {
+                    case "accessed":
+                        // Already handled
+                        break;
+                    case "cmd":
+                        mathField.cmd(event.command);
+                        break;
+                    case "write":
+                        mathField.write(event.command);
+                        break;
+                    case "keystroke":
+                        mathField.keystroke(event.command);
+                        break;
+                    case "type":
+                        mathField.typedText(event.command);
+                        break;
+                    default:
+                        console.warn(
+                            `Unknown event type: ${event.type} in MathInput`,
+                            event,
+                        );
+                        break;
+                }
+            }
+        }
+        if (keyboardCausedBlur.current) {
+            // If the keyboard caused the blur, return focus to the mathField
+            mathField.focus();
+        }
+    }, [virtualKeyboardEvents]);
 
     const handleFocus = (e: React.FocusEvent) => {
         if (mathField) {
-            // XXX: typescript doesn't like this. I am not sure what the desired behavior is
-            setContainerRef(mathField.el());
+            focusedMathInput.current = mathField.el();
         }
-        setFocusedFieldReturn(() => handlePressEnter);
         setFocused(true);
     };
 
     const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
-        callAction({
-            action: actions.updateValue,
-            baseVariableValue: rendererValue.current,
-        });
-        setFocused(false);
-
         lastBlurTime.current = +new Date();
 
         // If the blur was immediately preceded by a keyboard access,
@@ -199,6 +214,14 @@ export default function MathInput(props: UseDoenetRendererProps) {
         keyboardCausedBlur.current =
             Math.abs(lastKeyboardAccessTime.current - lastBlurTime.current) <
             100;
+
+        if (!keyboardCausedBlur.current) {
+            callAction({
+                action: actions.updateValue,
+                baseVariableValue: rendererValue.current,
+            });
+            setFocused(false);
+        }
     };
 
     const onChangeHandler = (text: string) => {
@@ -211,12 +234,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 .replace(/\^{(\w)}/g, "^$1")
         ) {
             rendererValue.current = text;
-
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
 
             callAction({
                 action: actions.updateRawValue,
@@ -255,6 +272,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         minWidth: `${SVs.minWidth > 0 ? SVs.minWidth : 0}px`,
     };
 
+    // XXX: should be done in CSS
     if (focused) {
         mathInputStyle.outlineStyle = "solid";
     }

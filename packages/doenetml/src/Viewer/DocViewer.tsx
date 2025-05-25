@@ -18,19 +18,13 @@ import {
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
-import { rendererState } from "./useDoenetRenderer";
-import { atomFamily, useRecoilCallback } from "recoil";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Icon } from "@chakra-ui/react";
 import { Remote } from "comlink";
-
-const rendererUpdatesToIgnore = atomFamily({
-    key: "rendererUpdatesToIgnore",
-    default: {},
-});
+import { mainThunks, useAppDispatch } from "../state";
 
 export const DocContext = createContext<{
     linkSettings?: { viewURL: string; editURL: string };
@@ -97,109 +91,11 @@ export function DocViewer({
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
 }) {
-    const updateRendererSVsWithRecoil = useRecoilCallback(
-        ({ snapshot, set }) =>
-            async ({
-                coreId,
-                componentIdx,
-                stateValues,
-                childrenInstructions,
-                sourceOfUpdate,
-                baseStateVariable,
-                actionId,
-            }: {
-                coreId: string;
-                componentIdx: number;
-                stateValues: Record<string, any>;
-                childrenInstructions?: Record<string, any>[];
-                sourceOfUpdate?: Record<string, any>;
-                baseStateVariable?: string;
-                actionId?: string;
-            }) => {
-                let ignoreUpdate = false;
-
-                let rendererName = coreId + componentIdx;
-
-                if (baseStateVariable) {
-                    let updatesToIgnore = snapshot.getLoadable(
-                        rendererUpdatesToIgnore(rendererName),
-                    ).contents;
-
-                    if (Object.keys(updatesToIgnore).length > 0) {
-                        let valueFromRenderer = updatesToIgnore[actionId || ""];
-                        let valueFromCore = stateValues[baseStateVariable];
-                        if (
-                            valueFromRenderer === valueFromCore ||
-                            (Array.isArray(valueFromRenderer) &&
-                                Array.isArray(valueFromCore) &&
-                                valueFromRenderer.length ==
-                                    valueFromCore.length &&
-                                valueFromRenderer.every(
-                                    (v, i) => valueFromCore[i] === v,
-                                ))
-                        ) {
-                            // console.log(`ignoring update of ${componentIdx} to ${valueFromCore}`)
-                            ignoreUpdate = true;
-                            set(
-                                rendererUpdatesToIgnore(rendererName),
-                                (was: Record<string, any>) => {
-                                    let newUpdatesToIgnore = { ...was };
-                                    if (actionId) {
-                                        delete newUpdatesToIgnore[actionId];
-                                    }
-                                    return newUpdatesToIgnore;
-                                },
-                            );
-                        } else {
-                            // since value was changed from the time the update was created
-                            // don't ignore the remaining pending changes in updatesToIgnore
-                            // as we changed the state used to determine they could be ignored
-                            set(rendererUpdatesToIgnore(rendererName), {});
-                        }
-                    }
-                }
-
-                let childrenInstructions2: Record<string, any>[];
-
-                if (childrenInstructions === undefined) {
-                    let previousRendererState = snapshot.getLoadable(
-                        rendererState(rendererName),
-                    ).contents;
-                    childrenInstructions2 =
-                        previousRendererState.childrenInstructions;
-                } else {
-                    childrenInstructions2 = childrenInstructions;
-                }
-
-                let newRendererState = {
-                    stateValues,
-                    childrenInstructions: childrenInstructions2,
-                    sourceOfUpdate,
-                    ignoreUpdate,
-                    prefixForIds,
-                };
-
-                set(rendererState(rendererName), newRendererState);
-            },
-    );
-    const updateRendererUpdatesToIgnore = useRecoilCallback(
-        ({ snapshot, set }) =>
-            async ({ coreId, componentIdx, baseVariableValue, actionId }) => {
-                let rendererName = coreId + componentIdx;
-
-                // add to updates to ignore so don't apply change again
-                // if it comes back from core without any changes
-                // (possibly after a delay)
-                set(
-                    rendererUpdatesToIgnore(rendererName),
-                    (was: Record<string, any>) => {
-                        let newUpdatesToIgnore = { ...was };
-                        newUpdatesToIgnore[actionId] = baseVariableValue;
-                        return newUpdatesToIgnore;
-                    },
-                );
-            },
-    );
+    // Sometimes components eagerly update before waiting for core to determine their exact state
+    // This map from event ids to event values helps keep track of the updates that need to be ignored
+    // so we don't clobber the component's state.
+    const updatesToIgnoreRef = useRef<Map<string, string>>(new Map());
+    const dispatch = useAppDispatch();
 
     const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -581,15 +477,10 @@ export function DocViewer({
         args = { ...args };
         args.actionId = actionId;
 
-        if (baseVariableValue !== undefined && componentIdx) {
+        if (baseVariableValue !== undefined && componentIdx != null) {
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
-            updateRendererUpdatesToIgnore({
-                coreId: coreId.current,
-                componentIdx,
-                baseVariableValue,
-                actionId,
-            });
+            updatesToIgnoreRef.current.set(actionId, baseVariableValue);
         }
 
         let actionArgs = {
@@ -698,13 +589,19 @@ export function DocViewer({
                 });
             }
             for (let componentIdx in args.rendererState) {
-                updateRendererSVsWithRecoil({
-                    coreId: coreId.current,
-                    componentIdx: Number(componentIdx),
-                    stateValues: args.rendererState[componentIdx].stateValues,
-                    childrenInstructions:
-                        args.rendererState[componentIdx].childrenInstructions,
-                });
+                dispatch(
+                    mainThunks.updateRendererSVs({
+                        coreId: coreId.current,
+                        componentIdx: componentIdx,
+                        stateValues:
+                            args.rendererState[componentIdx].stateValues,
+                        childrenInstructions:
+                            args.rendererState[componentIdx]
+                                .childrenInstructions,
+                        updatesToIgnoreRef: updatesToIgnoreRef,
+                        prefixForIds,
+                    }),
+                );
             }
         }
 
@@ -846,22 +743,26 @@ export function DocViewer({
                     rendererType,
                     childrenInstructions,
                 } of instruction.rendererStatesToUpdate) {
-                    updateRendererSVsWithRecoil({
-                        coreId: coreId.current,
-                        componentIdx,
-                        stateValues,
-                        childrenInstructions,
-                        sourceOfUpdate: instruction.sourceOfUpdate,
-                        // Note: the reason we check both the renderer class and .type
-                        // is that if the renderer was memoized, then the renderer class itself is on .type,
-                        // Otherwise, the renderer class is the value of the rendererClasses entry.
-                        baseStateVariable:
-                            rendererClasses.current[rendererType]
-                                ?.baseStateVariable ||
-                            rendererClasses.current[rendererType]?.type
-                                ?.baseStateVariable,
-                        actionId,
-                    });
+                    dispatch(
+                        mainThunks.updateRendererSVs({
+                            coreId: coreId.current,
+                            componentIdx,
+                            stateValues,
+                            childrenInstructions,
+                            sourceOfUpdate: instruction.sourceOfUpdate,
+                            // Note: the reason we check both the renderer class and .type
+                            // is that if the renderer was memoized, then the renderer class itself is on .type,
+                            // Otherwise, the renderer class is the value of the rendererClasses entry.
+                            baseStateVariable:
+                                rendererClasses.current[rendererType]
+                                    ?.baseStateVariable ||
+                                rendererClasses.current[rendererType]?.type
+                                    ?.baseStateVariable,
+                            actionId,
+                            prefixForIds,
+                            updatesToIgnoreRef,
+                        }),
+                    );
                 }
             }
         }
@@ -1279,7 +1180,7 @@ export function DocViewer({
      * Return a promise that will resolve to an object with key:
      * allowView: whether or not the solution can be viewed
      */
-    function requestSolutionView(componentIdx: string) {
+    function requestSolutionView(componentIdx: number) {
         let messageId = nanoid();
         let requestSolutionPromiseResolve: (value: {
                 allowView: boolean;

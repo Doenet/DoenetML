@@ -1,5 +1,16 @@
 Hello this is: <m>\cancel{x}</m>!
+<point name="p">
+  <constraints>
+    <constrainToGrid />
+  </constraints>
+</point>
+
+<textInput>$p.x</textInput>
+
+<mathInput>x</mathInput>
+<mathInput>y</mathInput>
 
 <graph>
     <point x="3" y="1" />
+    $p
 </graph>
