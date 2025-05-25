@@ -12,8 +12,9 @@ import "@doenet/virtual-keyboard/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
-import { Provider } from "react-redux";
-import { store } from "./state";
+import { Provider as ReduxProvider } from "react-redux";
+import { store, useAppDispatch } from "./state";
+import { keyboardSlice } from "./state/keyboardSlice";
 
 export const version: string = DOENETML_VERSION;
 
@@ -48,6 +49,14 @@ export const defaultFlags: DoenetMLFlags = {
     allowSaveEvents: false,
     autoSubmit: false,
 };
+
+/**
+ * A context that is used to keep track of the currently focused math input. This is used
+ * for processing events from the virtual keyboard.
+ */
+export const FocusedMathInputContext = React.createContext<
+    React.MutableRefObject<HTMLElement | null>
+>({ current: null });
 
 const rngClass = seedrandom.alea;
 
@@ -237,12 +246,6 @@ export function DoenetViewer({
         }
     }
 
-    const keyboard = addVirtualKeyboard ? (
-        <VirtualKeyboard
-            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
-        />
-    ) : null;
-
     const viewer = (
         <DocViewer
             doenetML={doenetML}
@@ -281,7 +284,7 @@ export function DoenetViewer({
             resetScope=".before-keyboard"
             disableGlobalStyle
         >
-            <Provider store={store}>
+            <ReduxProvider store={store}>
                 <RecoilRoot>
                     <MathJaxContext
                         version={3}
@@ -289,14 +292,19 @@ export function DoenetViewer({
                         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
                     >
                         <div ref={ref}>
-                            {variantSelector}
-                            {viewer}
-                            <div className="before-keyboard" />
-                            {keyboard}
+                            <WrapWithKeyboard
+                                addVirtualKeyboard={addVirtualKeyboard}
+                                externalVirtualKeyboardProvided={
+                                    externalVirtualKeyboardProvided
+                                }
+                            >
+                                {variantSelector}
+                                {viewer}
+                            </WrapWithKeyboard>
                         </div>
                     </MathJaxContext>
                 </RecoilRoot>
-            </Provider>
+            </ReduxProvider>
         </ChakraProvider>
     );
 }
@@ -354,12 +362,6 @@ export function DoenetEditor({
     initialErrors?: ErrorDescription[];
     initialWarnings?: WarningDescription[];
 }) {
-    const keyboard = addVirtualKeyboard ? (
-        <VirtualKeyboard
-            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
-        />
-    ) : null;
-
     const editor = (
         <EditorViewer
             doenetML={doenetML}
@@ -394,19 +396,55 @@ export function DoenetEditor({
             resetScope=".before-keyboard"
             disableGlobalStyle
         >
-            <Provider store={store}>
+            <ReduxProvider store={store}>
                 <RecoilRoot>
                     <MathJaxContext
                         version={3}
                         config={mathjaxConfig}
                         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
                     >
-                        {editor}
-                        <div className="before-keyboard" />
-                        {keyboard}
+                        <WrapWithKeyboard
+                            addVirtualKeyboard={addVirtualKeyboard}
+                            externalVirtualKeyboardProvided={
+                                externalVirtualKeyboardProvided
+                            }
+                        >
+                            {editor}
+                        </WrapWithKeyboard>
                     </MathJaxContext>
                 </RecoilRoot>
-            </Provider>
+            </ReduxProvider>
         </ChakraProvider>
+    );
+}
+
+/**
+ * Component that wraps its children and provides a VirtualKeyboard
+ */
+function WrapWithKeyboard({
+    addVirtualKeyboard,
+    externalVirtualKeyboardProvided,
+    children,
+}: React.PropsWithChildren<{
+    addVirtualKeyboard: boolean;
+    externalVirtualKeyboardProvided: boolean;
+}>) {
+    const dispatch = useAppDispatch();
+    const focusedMathInput = useRef<HTMLElement | null>(null);
+    const keyboard = addVirtualKeyboard ? (
+        <VirtualKeyboard
+            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+            onClick={(keyCommands) => {
+                dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
+            }}
+        />
+    ) : null;
+
+    return (
+        <FocusedMathInputContext.Provider value={focusedMathInput}>
+            {children}
+            <div className="before-keyboard" />
+            {keyboard}
+        </FocusedMathInputContext.Provider>
     );
 }

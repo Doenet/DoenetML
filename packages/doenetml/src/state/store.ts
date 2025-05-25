@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { mainSlice } from "./mainSlice";
+import { keyboardSlice } from "./keyboardSlice";
 // ...
 
 export const store = configureStore({
     reducer: {
         main: mainSlice.reducer,
+        keyboard: keyboardSlice.reducer,
     },
 });
 

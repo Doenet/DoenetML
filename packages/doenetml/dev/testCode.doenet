@@ -7,6 +7,9 @@ Hello this is: <m>\cancel{x}</m>!
 
 <textInput>$p.x</textInput>
 
+<mathInput>x</mathInput>
+<mathInput>y</mathInput>
+
 <graph>
     <point x="3" y="1" />
     $p
