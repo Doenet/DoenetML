@@ -2,10 +2,8 @@ import React, { ReactElement, useEffect, useRef } from "react";
 import {
     Box,
     CloseButton,
-    Flex,
     Heading,
     List,
-    ListItem,
     Spacer,
     Table,
     Tabs,
@@ -81,98 +79,105 @@ export default function ErrorWarningResponseTabs({
     }, [submittedResponses]);
 
     return (
-        <>
-            <Tabs.Root height="100%" onChange={scrollToBottom}>
-                <Tabs.List height="30px">
-                    {showErrorsWarnings ? (
-                        <Tabs.Trigger
-                            value="warnings"
-                            data-test="Warnings Tab"
-                            backgroundColor={
-                                warnings.length == 0
-                                    ? "doenet.mainGray"
-                                    : "rgb(254, 252, 191)"
-                            }
-                            color={
-                                warnings.length === 0
-                                    ? "inherit"
-                                    : "rgb(116, 66, 16)"
-                            }
-                            cursor={isOpen ? "inherit" : "pointer"}
-                            onClick={() => {
-                                setIsOpen(true);
-                            }}
-                            py="2px"
-                            border={isOpen ? "inherit" : "none"}
-                            _selected={isOpen ? { fontWeight: "bold" } : {}}
-                        >
-                            {warnings.length} Warning
-                            {warnings.length != 1 && "s"}
-                        </Tabs.Trigger>
-                    ) : null}
-                    {showErrorsWarnings ? (
-                        <Tabs.Trigger
-                            value="errors"
-                            data-test="Errors Tab"
-                            backgroundColor={
-                                errors.length == 0
-                                    ? "doenet.mainGray"
-                                    : "rgb(254, 215, 215)"
-                            }
-                            color={
-                                errors.length === 0
-                                    ? "inherit"
-                                    : "rgb(130, 39, 39)"
-                            }
-                            cursor={isOpen ? "inherit" : "pointer"}
-                            onClick={() => {
-                                setIsOpen(true);
-                            }}
-                            py="2px"
-                            border={isOpen ? "inherit" : "none"}
-                            _selected={isOpen ? { fontWeight: "bold" } : {}}
-                        >
-                            {errors.length} Error
-                            {errors.length != 1 && "s"}
-                        </Tabs.Trigger>
-                    ) : null}
-                    {showResponses ? (
-                        <Tabs.Trigger
-                            value="responses"
-                            data-test="Submissions Tab"
-                            backgroundColor={
-                                submittedResponses.length == 0
-                                    ? "doenet.mainGray"
-                                    : "rgb(198, 246, 213)"
-                            }
-                            color={
-                                submittedResponses.length === 0
-                                    ? "inherit"
-                                    : "rgb(34, 84, 61)"
-                            }
-                            cursor={isOpen ? "inherit" : "pointer"}
-                            onClick={() => {
-                                setIsOpen(true);
-                            }}
-                            py="2px"
-                            border={isOpen ? "inherit" : "none"}
-                            _selected={isOpen ? { fontWeight: "bold" } : {}}
-                        >
-                            {submittedResponses.length} Submitted response
-                            {submittedResponses.length != 1 && "s"}
-                        </Tabs.Trigger>
-                    ) : null}
-                </Tabs.List>
+        <Tabs.Root
+            onChange={scrollToBottom}
+            variant="plain"
+            backgroundColor={"doenet.mainGray"}
+        >
+            <Tabs.List width="100%">
+                {showErrorsWarnings ? (
+                    <Tabs.Trigger
+                        value="warnings"
+                        data-test="Warnings Tab"
+                        backgroundColor={
+                            warnings.length == 0
+                                ? "doenet.mainGray"
+                                : "rgb(254, 252, 191)"
+                        }
+                        color={
+                            warnings.length === 0
+                                ? "inherit"
+                                : "rgb(116, 66, 16)"
+                        }
+                        cursor={isOpen ? "inherit" : "pointer"}
+                        onClick={() => {
+                            setIsOpen(true);
+                        }}
+                        py="2px"
+                        border={isOpen ? "inherit" : "none"}
+                        _selected={isOpen ? { fontWeight: "bold" } : {}}
+                    >
+                        {warnings.length} Warning
+                        {warnings.length != 1 && "s"}
+                    </Tabs.Trigger>
+                ) : null}
+                {showErrorsWarnings ? (
+                    <Tabs.Trigger
+                        value="errors"
+                        data-test="Errors Tab"
+                        backgroundColor={
+                            errors.length == 0
+                                ? "doenet.mainGray"
+                                : "rgb(254, 215, 215)"
+                        }
+                        color={
+                            errors.length === 0 ? "inherit" : "rgb(130, 39, 39)"
+                        }
+                        cursor={isOpen ? "inherit" : "pointer"}
+                        onClick={() => {
+                            setIsOpen(true);
+                        }}
+                        py="2px"
+                        border={isOpen ? "inherit" : "none"}
+                        _selected={isOpen ? { fontWeight: "bold" } : {}}
+                    >
+                        {errors.length} Error
+                        {errors.length != 1 && "s"}
+                    </Tabs.Trigger>
+                ) : null}
+                {showResponses ? (
+                    <Tabs.Trigger
+                        value="responses"
+                        data-test="Submissions Tab"
+                        backgroundColor={
+                            submittedResponses.length == 0
+                                ? "doenet.mainGray"
+                                : "rgb(198, 246, 213)"
+                        }
+                        color={
+                            submittedResponses.length === 0
+                                ? "inherit"
+                                : "rgb(34, 84, 61)"
+                        }
+                        cursor={isOpen ? "inherit" : "pointer"}
+                        onClick={() => {
+                            setIsOpen(true);
+                        }}
+                        py="2px"
+                        border={isOpen ? "inherit" : "none"}
+                        _selected={isOpen ? { fontWeight: "bold" } : {}}
+                    >
+                        {submittedResponses.length} Submitted response
+                        {submittedResponses.length != 1 && "s"}
+                    </Tabs.Trigger>
+                ) : null}
                 <Spacer />
-                <CloseButton
-                    hidden={!isOpen}
-                    margin="4px"
-                    onClick={() => {
-                        setIsOpen(false);
-                    }}
-                    size="sm"
-                    border="none"
-                />
+                {isOpen ? (
+                    <CloseButton
+                        margin="4px"
+                        onClick={() => {
+                            setIsOpen(false);
+                        }}
+                        size="xs"
+                        border="none"
+                    />
+                ) : null}
+            </Tabs.List>
+            <Box
+                backgroundColor={"doenet.canvas"}
+                height="100%"
+                overflowY="auto"
+            >
                 {showErrorsWarnings ? (
                     <Tabs.Content value="warnings">
                         {warnings.length == 0 ? (
@@ -313,7 +318,7 @@ export default function ErrorWarningResponseTabs({
                         )}
                     </Tabs.Content>
                 ) : null}
-            </Tabs.Root>
-        </>
+            </Box>
+        </Tabs.Root>
     );
 }

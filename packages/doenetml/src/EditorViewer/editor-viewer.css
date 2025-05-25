@@ -1,0 +1,27 @@
+.editor-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.editor-panel .editor-and-collapsible-panel {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.viewer-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.viewer-panel .viewer-controls {
+    display: flex;
+    align-items: center;
+    padding: 0.1rem 0.5rem;
+    background-color: var(--chakra-colors-doenet-light-gray);
+    border-bottom: 1px solid var(--chakra-colors-doenet-medium-gray);
+}
+.viewer-panel .viewer {
+    flex-grow: 1;
+    overflow: auto;
+    background-color: var(--canvas);
+}

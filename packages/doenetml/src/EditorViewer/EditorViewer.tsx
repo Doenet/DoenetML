@@ -2,10 +2,8 @@ import {
     Box,
     Button,
     Flex,
-    Grid,
-    GridItem,
-    HStack,
     Switch,
+    Icon,
 } from "@chakra-ui/react";
 import React, {
     ReactElement,
@@ -32,6 +30,7 @@ import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "./ResizableCollapsiblePanelPair";
 import { BsExclamationTriangleFill } from "react-icons/bs";
 import { Tooltip } from "../components/tooltip";
+import "./editor-viewer.css";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -311,10 +310,12 @@ export function EditorViewer({
             pt="1px"
             alignItems="center"
             justify="end"
+            spaceX={2}
+            px={2}
         >
             {showFormatter ? (
                 <>
-                    <Box>
+                    <Box minWidth={"12em"}>
                         <Switch.Root
                             title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
                             checked={formatAsDoenetML}
@@ -404,39 +405,12 @@ export function EditorViewer({
     );
 
     const editorPanel = (
-        <Grid
-            width="100%"
-            height="100%"
-            templateAreas={`"editor"
-                            "formatter"`}
-            gridTemplateRows={`1fr 32px`}
-            gridTemplateColumns={`1fr`}
-            boxSizing="border-box"
-            background="doenet.canvas"
-            overflowY="hidden"
-            border="solid 1px"
-            borderColor="doenet.mediumGray"
-            id={id}
-        >
-            <GridItem
-                area="editor"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-            >
+        <div className="editor-panel" id={id}>
+            <div className="editor-and-collapsible-panel">
                 {editorAndCollapsiblePanel}
-            </GridItem>
-            <GridItem
-                area="formatter"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-            >
-                {formatterAndVersion}
-            </GridItem>
-        </Grid>
+            </div>
+            <div className="formatter-and-version">{formatterAndVersion}</div>
+        </div>
     );
 
     if (!showViewer) {
@@ -456,166 +430,130 @@ export function EditorViewer({
         !readOnly || variants.numVariants > 1 ? "32px" : "0px";
 
     const viewerPanel = (
-        <Grid
-            width="100%"
-            height="100%"
-            templateAreas={`"controls"
-                            "viewer"`}
-            gridTemplateRows={`${controlHeight} 1fr`}
-            gridTemplateColumns={`1fr`}
-            overflowY="hidden"
-        >
-            <GridItem
-                area="controls"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-                id={id + "-viewer-controls"}
-            >
-                <HStack w="100%" h="32px" bg={backgroundColor}>
-                    {!readOnly && (
-                        <Box>
-                            <Tooltip
-                                showArrow
-                                content={
-                                    platform == "Mac"
-                                        ? "Updates Viewer cmd+s"
-                                        : "Updates Viewer ctrl+s"
-                                }
-                            >
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    data-test="Viewer Update Button"
-                                    bg="doenet.canvas"
-                                    disabled={!codeChanged}
-                                    onClick={() => {
-                                        setViewerDoenetML(
-                                            editorDoenetMLRef.current,
-                                        );
-                                        window.clearTimeout(
-                                            updateValueTimer.current ??
-                                                undefined,
-                                        );
-                                        if (
-                                            lastReportedDoenetML.current !==
-                                            editorDoenetMLRef.current
-                                        ) {
-                                            lastReportedDoenetML.current =
-                                                editorDoenetMLRef.current;
-                                            if (!showViewer) {
-                                                doenetmlChangeCallback?.(
-                                                    editorDoenetMLRef.current,
-                                                );
-                                            }
-                                        }
-                                        setCodeChanged(false);
-                                        updateValueTimer.current = null;
-                                        setResponses([]);
-                                    }}
-                                >
-                                    <RxUpdate /> Update{" "}
-                                    {codeChanged ? (
-                                        <BsExclamationTriangleFill
-                                            color="doenet.mainBlue"
-                                            fontSize="18px"
-                                        />
-                                    ) : undefined}
-                                </Button>
-                            </Tooltip>
-                        </Box>
-                    )}
-                    {variants.numVariants > 1 && (
-                        <Box bg={backgroundColor} h="32px" width="100%">
-                            <VariantSelect
-                                size="sm"
-                                menuWidth="140px"
-                                array={variants.allPossibleVariants}
-                                syncIndex={variants.index}
-                                onChange={(index: number) =>
-                                    setVariants((prev) => {
-                                        let next = { ...prev };
-                                        next.index = index + 1;
-                                        return next;
-                                    })
-                                }
-                            />
-                        </Box>
-                    )}
-                </HStack>
-            </GridItem>
-            <GridItem
-                area="viewer"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-            >
-                <Box
-                    height="100%"
-                    width="100%"
-                    background="var(--canvas)"
-                    borderWidth="1px"
-                    borderStyle="solid"
-                    borderColor="doenet.mediumGray"
-                    overflow="scroll"
-                    id={id + "-viewer"}
-                    ref={scrollableContainer}
-                >
-                    {/* @ts-ignore */}
-                    <DocViewer
-                        doenetML={viewerDoenetML}
-                        flags={{
-                            showCorrectness: true,
-                            solutionDisplayMode: "button",
-                            showFeedback: true,
-                            showHints: true,
-                            autoSubmit: false,
-                            allowLoadState: false,
-                            allowSaveState: false,
-                            allowLocalState: false,
-                            allowSaveEvents: showResponses,
-                            readOnly: false,
-                        }}
-                        activityId={activityId}
-                        prefixForIds={prefixForIds}
-                        attemptNumber={1}
-                        generatedVariantCallback={(x: any) => {
-                            const allPossibleVariants = x.allPossibleVariants;
-                            if (Array.isArray(allPossibleVariants)) {
-                                const numVariants = allPossibleVariants.length;
-                                if (
-                                    typeof x.variantInfo === "object" &&
-                                    typeof x.variantInfo.index === "number"
-                                ) {
-                                    const index = x.variantInfo.index;
-                                    setVariants({
-                                        index,
-                                        numVariants,
-                                        allPossibleVariants,
-                                    });
-                                }
+        <div className="viewer-panel" id={id + "-viewer"}>
+            <div className="viewer-controls" id={id + "-viewer-controls"}>
+                {!readOnly && (
+                    <Box>
+                        <Tooltip
+                            showArrow
+                            content={
+                                platform == "Mac"
+                                    ? "Updates Viewer cmd+s"
+                                    : "Updates Viewer ctrl+s"
                             }
-                        }}
-                        requestedVariantIndex={variants.index}
-                        setErrorsAndWarningsCallback={
-                            setErrorsAndWarningsCallback
+                        >
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                data-test="Viewer Update Button"
+                                bg="doenet.canvas"
+                                disabled={!codeChanged}
+                                onClick={() => {
+                                    setViewerDoenetML(
+                                        editorDoenetMLRef.current,
+                                    );
+                                    window.clearTimeout(
+                                        updateValueTimer.current ?? undefined,
+                                    );
+                                    if (
+                                        lastReportedDoenetML.current !==
+                                        editorDoenetMLRef.current
+                                    ) {
+                                        lastReportedDoenetML.current =
+                                            editorDoenetMLRef.current;
+                                        if (!showViewer) {
+                                            doenetmlChangeCallback?.(
+                                                editorDoenetMLRef.current,
+                                            );
+                                        }
+                                    }
+                                    setCodeChanged(false);
+                                    updateValueTimer.current = null;
+                                    setResponses([]);
+                                }}
+                            >
+                                <RxUpdate /> Update{" "}
+                                {codeChanged ? (
+                                    <Icon color="doenet.mainBlue">
+                                        <BsExclamationTriangleFill fontSize="18px" />
+                                    </Icon>
+                                ) : undefined}
+                            </Button>
+                        </Tooltip>
+                    </Box>
+                )}
+                {variants.numVariants > 1 && (
+                    <Box bg={backgroundColor} h="32px" width="100%">
+                        <VariantSelect
+                            size="sm"
+                            menuWidth="140px"
+                            array={variants.allPossibleVariants}
+                            syncIndex={variants.index}
+                            onChange={(index: number) =>
+                                setVariants((prev) => {
+                                    let next = { ...prev };
+                                    next.index = index + 1;
+                                    return next;
+                                })
+                            }
+                        />
+                    </Box>
+                )}
+            </div>
+            <div
+                className="viewer"
+                id={id + "-viewer"}
+                ref={scrollableContainer}
+            >
+                <DocViewer
+                    doenetML={viewerDoenetML}
+                    flags={{
+                        showCorrectness: true,
+                        solutionDisplayMode: "button",
+                        showFeedback: true,
+                        showHints: true,
+                        autoSubmit: false,
+                        allowLoadState: false,
+                        allowSaveState: false,
+                        allowLocalState: false,
+                        allowSaveEvents: showResponses,
+                        readOnly: false,
+                    }}
+                    activityId={activityId}
+                    prefixForIds={prefixForIds}
+                    attemptNumber={1}
+                    generatedVariantCallback={(x: any) => {
+                        const allPossibleVariants = x.allPossibleVariants;
+                        if (Array.isArray(allPossibleVariants)) {
+                            const numVariants = allPossibleVariants.length;
+                            if (
+                                typeof x.variantInfo === "object" &&
+                                typeof x.variantInfo.index === "number"
+                            ) {
+                                const index = x.variantInfo.index;
+                                setVariants({
+                                    index,
+                                    numVariants,
+                                    allPossibleVariants,
+                                });
+                            }
                         }
-                        documentStructureCallback={
-                            documentStructureThenChangeCallback
-                        }
-                        linkSettings={linkSettings}
-                        scrollableContainer={
-                            scrollableContainer.current ?? undefined
-                        }
-                        darkMode={darkMode}
-                        showAnswerResponseMenu={showAnswerResponseMenu}
-                        answerResponseCounts={answerResponseCounts}
-                    />
-                </Box>
-            </GridItem>
-        </Grid>
+                    }}
+                    requestedVariantIndex={variants.index}
+                    setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
+                    documentStructureCallback={
+                        documentStructureThenChangeCallback
+                    }
+                    linkSettings={linkSettings}
+                    scrollableContainer={
+                        scrollableContainer.current ?? undefined
+                    }
+                    darkMode={darkMode}
+                    showAnswerResponseMenu={showAnswerResponseMenu}
+                    answerResponseCounts={answerResponseCounts}
+                />
+            </div>
+        </div>
     );
 
     const viewerFirst = viewerLocation === "left" || viewerLocation === "top";
