@@ -8,7 +8,7 @@ import { createLoggingAsyncThunk } from "../hooks";
 import React from "react";
 
 export type ComponentInfo = {
-    stateValues: Record<string, unknown>;
+    stateValues: Record<string, any>;
     sourceOfUpdate?: {
         local?: boolean;
         sourceInformation?: Record<string, unknown>;

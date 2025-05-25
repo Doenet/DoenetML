@@ -18,7 +18,6 @@ import "./mathInput.css";
 import { FocusedMathInputContext } from "../../doenetml";
 import { useAppSelector } from "../../state";
 import { keyboardSlice } from "../../state/slices/keyboard";
-import { KeyCommand } from "@doenet/virtual-keyboard";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -62,6 +61,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
     );
     const focusedMathInput = useContext(FocusedMathInputContext);
     const [mathField, setMathField] = useState<MathField | null>(null);
+    // The handles.enter of `EditableMathField` callback for some reason does not get updated when it changes.
+    // To work around this, we safe the current mathField in a ref and use that in the callback.
+    const mathFieldRef = useRef<MathField | null>(null);
+    mathFieldRef.current = mathField;
     const [focused, setFocused] = useState<boolean | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null); // Ref to keep track of the mathInput's disabled state
 
@@ -103,47 +106,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
     };
 
-    const handleVirtualKeyboardClick = ({
-        type,
-        command,
-        timestamp,
-    }: KeyCommand) => {
-        if (type == "accessed") {
-            // record the time the keyboard was accessed
-            lastKeyboardAccessTime.current = timestamp || 0;
-
-            // If there was a blur immediately preceding the keyboard access,
-            // we conclude that the blur was caused by the keyboard access.
-            // If not, we don't make any conclusions as there can be many subsequent keyboard accesses
-            // after the initial blur.
-            if (
-                Math.abs(
-                    lastKeyboardAccessTime.current - lastBlurTime.current,
-                ) < 100
-            ) {
-                keyboardCausedBlur.current = true;
-            }
-            return;
-        }
-
-        if (!mathField || !keyboardCausedBlur.current) {
-            return;
-        }
-        mathField.focus();
-
-        if (type == "cmd") {
-            mathField.cmd(command);
-        } else if (type == "write") {
-            mathField.write(command);
-        } else if (type == "keystroke") {
-            mathField.keystroke(command);
-        } else if (type == "type") {
-            mathField.typedText(command);
-        }
-    };
-
     const handlePressEnter = React.useCallback(() => {
-        if (!mathField) {
+        if (!mathFieldRef.current) {
             return;
         }
         // The "Enter" key was pressed
