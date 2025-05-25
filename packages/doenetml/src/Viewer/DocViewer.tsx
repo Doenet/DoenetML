@@ -19,7 +19,6 @@ import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
 import { rendererState } from "./useDoenetRenderer";
-import { atomFamily } from "recoil";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import type { CoreWorker } from "@doenet/doenetml-worker";
@@ -27,11 +26,6 @@ import { DoenetMLFlags } from "../doenetml";
 import { Icon } from "@chakra-ui/react";
 import { Remote } from "comlink";
 import { useRecoilCallback } from "../state/recoil-compat";
-
-const rendererUpdatesToIgnore = atomFamily({
-    key: "rendererUpdatesToIgnore",
-    default: {},
-});
 
 export const DocContext = createContext<{
     linkSettings?: { viewURL: string; editURL: string };
@@ -122,6 +116,7 @@ export function DocViewer({
                 baseStateVariable?: string;
                 actionId?: string;
             }) => {
+                console.log("updates to ignore", updatesToIgnoreRef.current);
                 let ignoreUpdate = false;
 
                 let rendererName = coreId + componentIdx;
@@ -146,21 +141,14 @@ export function DocViewer({
                         ) {
                             // console.log(`ignoring update of ${componentIdx} to ${valueFromCore}`)
                             ignoreUpdate = true;
-                            set(
-                                rendererUpdatesToIgnore(rendererName),
-                                (was: Record<string, any>) => {
-                                    let newUpdatesToIgnore = { ...was };
-                                    if (actionId) {
-                                        delete newUpdatesToIgnore[actionId];
-                                    }
-                                    return newUpdatesToIgnore;
-                                },
-                            );
+                            // We've decided to ignore the update. Every update has a unique id,
+                            // so we should safely be able to remove it from the ignore map.
+                            updatesToIgnore.delete(actionId || "");
                         } else {
                             // since value was changed from the time the update was created
                             // don't ignore the remaining pending changes in updatesToIgnore
                             // as we changed the state used to determine they could be ignored
-                            set(rendererUpdatesToIgnore(rendererName), {});
+                            updatesToIgnore.clear();
                         }
                     }
                 }

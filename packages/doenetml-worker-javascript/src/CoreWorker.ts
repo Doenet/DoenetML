@@ -235,7 +235,7 @@ export class PublicDoenetMLCore {
 
         try {
             // XXX: temporary to slow things down for testing
-            // await new Promise((resolve) => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             return await this.core.requestAction(actionArgs);
         } catch (e) {
             return {

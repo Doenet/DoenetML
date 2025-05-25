@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { atomFamily, useRecoilValue } from "recoil";
-// import { serializedComponentsReviver } from '@doenet/utils';
 import { renderersLoadComponent } from "./DocViewer";
 import { cesc } from "@doenet/utils";
 import { mainSlice, useAppSelector } from "../state";
