@@ -344,7 +344,7 @@ export function EditorViewer({
             <div className="formatter-and-version">
                 {showFormatter ? (
                     <>
-                        <Box minWidth={"12em"}>
+                        <Box>
                             <Switch.Root
                                 title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
                                 checked={formatAsDoenetML}
@@ -358,7 +358,40 @@ export function EditorViewer({
                                 </Switch.Control>
                                 <Switch.Label>
                                     Format as{" "}
-                                    {formatAsDoenetML ? "DoenetML" : "XML"}
+                                    <span
+                                        style={{
+                                            display: "inline-block",
+                                            position: "relative",
+                                            //width: "fit-content",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                visibility: formatAsDoenetML
+                                                    ? "visible"
+                                                    : "hidden",
+                                                display: "inline-block",
+                                            }}
+                                            aria-disabled={!formatAsDoenetML}
+                                        >
+                                            DoenetML
+                                        </span>
+                                        <span
+                                            style={{
+                                                visibility: formatAsDoenetML
+                                                    ? "hidden"
+                                                    : "visible",
+                                                display: "inline-block",
+                                                // Since "DoenetML" is a longer string than "XML", we position "XML" absolutely
+                                                position: "absolute",
+                                                left: "0",
+                                            }}
+                                            aria-disabled={formatAsDoenetML}
+                                        >
+                                            XML
+                                        </span>
+                                    </span>
+                                    {/* {formatAsDoenetML ? "DoenetML" : "XML"} */}
                                 </Switch.Label>
                             </Switch.Root>
                         </Box>
@@ -381,9 +414,10 @@ export function EditorViewer({
                         </Button>
                     </>
                 ) : null}
-                <Box alignSelf="center" fontSize="smaller" mr="10px">
-                    Version: {DOENETML_VERSION}
-                </Box>
+                <div
+                    className="doenetml-version"
+                    title="DoenetML version"
+                >Version: {DOENETML_VERSION}</div>
             </div>
         </div>
     );
@@ -400,9 +434,6 @@ export function EditorViewer({
             </Box>
         );
     }
-
-    const controlHeight =
-        !readOnly || variants.numVariants > 1 ? "32px" : "0px";
 
     const viewerPanel = (
         <div className="viewer-panel" id={id + "-viewer"}>

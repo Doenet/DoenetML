@@ -3,6 +3,7 @@
     flex-direction: column;
     height: 100%;
 }
+
 .editor-panel .editor-and-collapsible-panel {
     flex-grow: 1;
     overflow: hidden;
@@ -15,6 +16,16 @@
     padding: 0.1rem 1rem;
     gap: 0.5rem;
     background-color: var(--chakra-colors-doenet-main-gray);
+}
+
+.editor-panel .doenetml-version {
+    font-size: 0.8rem;
+}
+
+.editor-panel .error-warning-response-tabs {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .viewer-panel {

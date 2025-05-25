@@ -83,8 +83,9 @@ export default function ErrorWarningResponseTabs({
             onChange={scrollToBottom}
             variant="plain"
             backgroundColor={"doenet.mainGray"}
+            className="error-warning-response-tabs"
         >
-            <Tabs.List width="100%">
+            <Tabs.List>
                 {showErrorsWarnings ? (
                     <Tabs.Trigger
                         value="warnings"
