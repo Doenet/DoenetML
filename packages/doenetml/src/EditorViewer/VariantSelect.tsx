@@ -1,17 +1,7 @@
-import {
-    Box,
-    Button,
-    HStack,
-    Icon,
-    IconButton,
-    Input,
-    Menu,
-    MenuItem,
-    Portal,
-} from "@chakra-ui/react";
-import React, { useEffect, useRef, useState } from "react";
-import { Tooltip } from "../components/tooltip";
-import { BsCaretDownFill, BsCaretUpFill, BsChevronDown } from "react-icons/bs";
+import * as Ariakit from "@ariakit/react";
+import React, { useEffect, useState } from "react";
+import { BsCaretDownFill, BsCaretUpFill } from "react-icons/bs";
+import "./variant-select.css";
 
 export default function VariantSelect({
     size = "sm",
@@ -29,7 +19,6 @@ export default function VariantSelect({
     const [index, setIndex] = useState(0);
     const [value, setValue] = useState(array[index]);
     const [inputValue, setInputValue] = useState("");
-    const inputRef = useRef<HTMLInputElement>(null);
 
     const [showTooltip, setShowTooltip] = useState(false);
     const [menuIsOpen, setMenuIsOpen] = useState(false);
@@ -44,135 +33,92 @@ export default function VariantSelect({
     const filteredArray = array.filter((string) =>
         inputValue === "" ? true : string.includes(inputValue),
     );
+    const matches = filteredArray.length > 0 ? filteredArray : array;
     return (
-        <>
-            <HStack m={0} borderRadius="lg">
-                <Menu.Root
-                    onOpenChange={(details) => {
-                        if (details.open) {
-                            setShowTooltip(false);
-                            setMenuIsOpen(true);
-                        } else {
-                            setShowTooltip(false);
-                            setMenuIsOpen(false);
-                        }
+        <div className="variant-select">
+            <div className="wrapper">
+                <Ariakit.ComboboxProvider
+                    resetValueOnHide
+                    setValue={(value) => {
+                        React.startTransition(() => {
+                            setInputValue(value);
+                        });
                     }}
                 >
-                    <Menu.Trigger>
-                        <Tooltip showArrow content="Variant" open={showTooltip}>
-                            <Button
-                                data-test="Variant Select Menu Button"
-                                borderBottomRightRadius={0}
-                                borderTopRightRadius={0}
-                                size={size}
-                                as={Button}
-                                width={menuWidth ? menuWidth : undefined}
-                                borderWidth={1}
-                                onMouseEnter={() => {
-                                    !menuIsOpen ? setShowTooltip(true) : null;
-                                }}
-                                onMouseLeave={() => {
-                                    setShowTooltip(false);
-                                }}
-                                aria-label="Select variant menu button"
-                            >
-                                <Icon>
-                                    <BsChevronDown />
-                                </Icon>
-                                {value}
-                            </Button>
-                        </Tooltip>
-                    </Menu.Trigger>
-                    <Portal>
-                        <Menu.Content>
-                            <Menu.Item value="">
-                                <Box>hi</Box>
-                            </Menu.Item>
-                        </Menu.Content>
-                    </Portal>
-                </Menu.Root>
-                {/* <Menu>
-                    <MenuList pt={0} maxHeight="400px" overflowY="auto">
-                        <Input
-                            m={0}
-                            ref={inputRef}
-                            data-test="Variant Select Filter Input"
-                            placeholder="Filter"
-                            value={inputValue}
-                            onChange={(e) => {
-                                setInputValue(e.target.value);
-                                inputRef.current!.focus();
-                            }}
+                    <Ariakit.SelectProvider
+                        defaultValue={value}
+                        setValue={(val) => {
+                            const index = array.indexOf(val);
+                            setIndex(index);
+                            setValue(val);
+                            setInputValue("");
+                            onChange(index);
+                        }}
+                    >
+                        <Ariakit.Select
+                            className="button select-button"
+                            title="Variant"
                         />
-                        {filteredArray.map((val, index) => {
-                            return (
-                                <MenuItem
-                                    key={`mi${index}`}
-                                    data-test={`Variant Select Menu Item ${index}`}
-                                    borderWidth={1}
-                                    onClick={() => {
-                                        const index = array.indexOf(val);
-                                        setIndex(index);
-                                        setValue(val);
-                                        setInputValue("");
-                                        onChange(index);
-                                    }}
-                                >
-                                    {val}
-                                </MenuItem>
-                            );
-                        })}
-                    </MenuList>
-                </Menu> */}
-
-                <Tooltip showArrow content="Next variant">
-                    <IconButton
-                        disabled={index == array.length - 1}
-                        data-test="Variant Select Down Button"
-                        borderRadius={0}
-                        size={size}
-                        m={0}
-                        aria-label="Select next variant button"
-                        borderWidth={1}
-                        onClick={() => {
-                            if (index == array.length - 1) {
-                                return;
-                            }
-                            const nextIndex = index + 1;
-                            setIndex(nextIndex);
-                            setValue(array[nextIndex]);
-                            setInputValue("");
-                            onChange(nextIndex);
-                        }}
-                    >
-                        <BsCaretDownFill />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip showArrow content="Previous variant">
-                    <IconButton
-                        disabled={index < 1}
-                        data-test="Variant Select Up Button"
-                        size={size}
-                        borderBottomLeftRadius={0}
-                        borderTopLeftRadius={0}
-                        m={0}
-                        aria-label="Select previous variant button"
-                        borderWidth={1}
-                        onClick={() => {
-                            if (index < 1) {
-                                return;
-                            }
-                            const nextIndex = index - 1;
-                            setIndex(nextIndex);
-                            setValue(array[nextIndex]);
-                            setInputValue("");
-                            onChange(nextIndex);
-                        }}
-                    >
-                        <BsCaretUpFill />
-                    </IconButton>
-                </Tooltip>
-            </HStack>
-        </>
+                        <Ariakit.SelectPopover
+                            gutter={4}
+                            sameWidth
+                            className="popover"
+                        >
+                            <div className="combobox-wrapper">
+                                <Ariakit.Combobox
+                                    autoSelect
+                                    placeholder="Filter..."
+                                    className="combobox"
+                                />
+                            </div>
+                            <Ariakit.ComboboxList>
+                                {matches.map((value) => (
+                                    <Ariakit.SelectItem
+                                        key={value}
+                                        value={value}
+                                        className="select-item"
+                                        render={<Ariakit.ComboboxItem />}
+                                    />
+                                ))}
+                            </Ariakit.ComboboxList>
+                        </Ariakit.SelectPopover>
+                    </Ariakit.SelectProvider>
+                </Ariakit.ComboboxProvider>
+            </div>
+            <Ariakit.Button
+                title="Select next variant"
+                className="button prev-next-button"
+                disabled={index == array.length - 1}
+                onClick={() => {
+                    if (index == array.length - 1) {
+                        return;
+                    }
+                    const nextIndex = index + 1;
+                    setIndex(nextIndex);
+                    setValue(array[nextIndex]);
+                    setInputValue("");
+                    onChange(nextIndex);
+                }}
+            >
+                <BsCaretDownFill />
+            </Ariakit.Button>
+            <Ariakit.Button
+                title="Select previous variant"
+                className="button prev-next-button"
+                disabled={index < 1}
+                onClick={() => {
+                    if (index < 1) {
+                        return;
+                    }
+                    const nextIndex = index - 1;
+                    setIndex(nextIndex);
+                    setValue(array[nextIndex]);
+                    setInputValue("");
+                    onChange(nextIndex);
+                }}
+            >
+                <BsCaretUpFill />
+            </Ariakit.Button>
+        </div>
     );
 }

@@ -414,10 +414,9 @@ export function EditorViewer({
                         </Button>
                     </>
                 ) : null}
-                <div
-                    className="doenetml-version"
-                    title="DoenetML version"
-                >Version: {DOENETML_VERSION}</div>
+                <div className="doenetml-version" title="DoenetML version">
+                    Version: {DOENETML_VERSION}
+                </div>
             </div>
         </div>
     );
@@ -489,21 +488,19 @@ export function EditorViewer({
                     </Box>
                 )}
                 {variants.numVariants > 1 && (
-                    <Box bg={backgroundColor} h="32px" width="100%">
-                        <VariantSelect
-                            size="sm"
-                            menuWidth="140px"
-                            array={variants.allPossibleVariants}
-                            syncIndex={variants.index}
-                            onChange={(index: number) =>
-                                setVariants((prev) => {
-                                    let next = { ...prev };
-                                    next.index = index + 1;
-                                    return next;
-                                })
-                            }
-                        />
-                    </Box>
+                    <VariantSelect
+                        size="sm"
+                        menuWidth="140px"
+                        array={variants.allPossibleVariants}
+                        syncIndex={variants.index}
+                        onChange={(index: number) =>
+                            setVariants((prev) => {
+                                let next = { ...prev };
+                                next.index = index + 1;
+                                return next;
+                            })
+                        }
+                    />
                 )}
             </div>
             <div

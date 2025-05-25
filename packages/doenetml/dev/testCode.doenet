@@ -1,3 +1,4 @@
+<selectFromSequence />
 Hello this is: <m>\cancel{x}</m>!
 <point name="p">
   <constraints>

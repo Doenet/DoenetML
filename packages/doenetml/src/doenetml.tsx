@@ -209,21 +209,19 @@ export function DoenetViewer({
 
         if (variants.numVariants > 1) {
             variantSelector = (
-                <Box bg="doenet.mainGray" h="32px" width="100%">
-                    <VariantSelect
-                        size="sm"
-                        menuWidth="140px"
-                        array={variants.allPossibleVariants}
-                        syncIndex={variants.index}
-                        onChange={(index: number) =>
-                            setVariants((prev) => {
-                                let next = { ...prev };
-                                next.index = index + 1;
-                                return next;
-                            })
-                        }
-                    />
-                </Box>
+                <VariantSelect
+                    size="sm"
+                    menuWidth="140px"
+                    array={variants.allPossibleVariants}
+                    syncIndex={variants.index}
+                    onChange={(index: number) =>
+                        setVariants((prev) => {
+                            let next = { ...prev };
+                            next.index = index + 1;
+                            return next;
+                        })
+                    }
+                />
             );
         }
     } else {
