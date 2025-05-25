@@ -4,7 +4,6 @@
 
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { RootState } from "./store";
 
 export type ComponentInfo = {
     stateValues: Record<string, unknown>;
@@ -52,5 +51,3 @@ export const mainSlice = createSlice({
         componentInfo: (state) => state.componentInfo,
     },
 });
-
-mainSlice.actions;

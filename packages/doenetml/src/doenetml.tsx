@@ -14,7 +14,7 @@ import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
 import { store, useAppDispatch } from "./state";
-import { keyboardSlice } from "./state/keyboardSlice";
+import { keyboardSlice } from "./state/slices/keyboard";
 
 export const version: string = DOENETML_VERSION;
 

@@ -17,7 +17,7 @@ import { MathJax } from "better-react-mathjax";
 import "./mathInput.css";
 import { FocusedMathInputContext } from "../../doenetml";
 import { useAppSelector } from "../../state";
-import { keyboardSlice } from "../../state/keyboardSlice";
+import { keyboardSlice } from "../../state/slices/keyboard";
 import { KeyCommand } from "@doenet/virtual-keyboard";
 
 // Moved most of checkWorkStyle styling into Button

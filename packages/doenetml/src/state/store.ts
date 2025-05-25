@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { mainSlice } from "./mainSlice";
-import { keyboardSlice } from "./keyboardSlice";
+import { mainSlice } from "./slices/main";
+import { keyboardSlice } from "./slices/keyboard";
 // ...
 
 export const store = configureStore({
