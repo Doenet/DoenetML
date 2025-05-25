@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useRef } from "react";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 // @ts-ignore
 import me from "math-expressions";
@@ -10,7 +12,9 @@ import { cesc } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
-export default React.memo(function MathComponent(props) {
+export default React.memo(function MathComponent(
+    props: UseDoenetRendererProps,
+) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 

@@ -18,19 +18,13 @@ import {
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
-import { rendererState } from "./useDoenetRenderer";
-import { atomFamily, useRecoilCallback } from "recoil";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Icon } from "@chakra-ui/react";
 import { Remote } from "comlink";
-
-const rendererUpdatesToIgnore = atomFamily({
-    key: "rendererUpdatesToIgnore",
-    default: {},
-});
+import { mainThunks, useAppDispatch } from "../state";
 
 export const DocContext = createContext<{
     linkSettings?: { viewURL: string; editURL: string };
@@ -97,109 +91,11 @@ export function DocViewer({
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
 }) {
-    const updateRendererSVsWithRecoil = useRecoilCallback(
-        ({ snapshot, set }) =>
-            async ({
-                coreId,
-                componentIdx,
-                stateValues,
-                childrenInstructions,
-                sourceOfUpdate,
-                baseStateVariable,
-                actionId,
-            }: {
-                coreId: string;
-                componentIdx: string;
-                stateValues: Record<string, any>;
-                childrenInstructions?: Record<string, any>[];
-                sourceOfUpdate?: Record<string, any>;
-                baseStateVariable?: string;
-                actionId?: string;
-            }) => {
-                let ignoreUpdate = false;
-
-                let rendererName = coreId + componentIdx;
-
-                if (baseStateVariable) {
-                    let updatesToIgnore = snapshot.getLoadable(
-                        rendererUpdatesToIgnore(rendererName),
-                    ).contents;
-
-                    if (Object.keys(updatesToIgnore).length > 0) {
-                        let valueFromRenderer = updatesToIgnore[actionId || ""];
-                        let valueFromCore = stateValues[baseStateVariable];
-                        if (
-                            valueFromRenderer === valueFromCore ||
-                            (Array.isArray(valueFromRenderer) &&
-                                Array.isArray(valueFromCore) &&
-                                valueFromRenderer.length ==
-                                    valueFromCore.length &&
-                                valueFromRenderer.every(
-                                    (v, i) => valueFromCore[i] === v,
-                                ))
-                        ) {
-                            // console.log(`ignoring update of ${componentIdx} to ${valueFromCore}`)
-                            ignoreUpdate = true;
-                            set(
-                                rendererUpdatesToIgnore(rendererName),
-                                (was: Record<string, any>) => {
-                                    let newUpdatesToIgnore = { ...was };
-                                    if (actionId) {
-                                        delete newUpdatesToIgnore[actionId];
-                                    }
-                                    return newUpdatesToIgnore;
-                                },
-                            );
-                        } else {
-                            // since value was changed from the time the update was created
-                            // don't ignore the remaining pending changes in updatesToIgnore
-                            // as we changed the state used to determine they could be ignored
-                            set(rendererUpdatesToIgnore(rendererName), {});
-                        }
-                    }
-                }
-
-                let childrenInstructions2: Record<string, any>[];
-
-                if (childrenInstructions === undefined) {
-                    let previousRendererState = snapshot.getLoadable(
-                        rendererState(rendererName),
-                    ).contents;
-                    childrenInstructions2 =
-                        previousRendererState.childrenInstructions;
-                } else {
-                    childrenInstructions2 = childrenInstructions;
-                }
-
-                let newRendererState = {
-                    stateValues,
-                    childrenInstructions: childrenInstructions2,
-                    sourceOfUpdate,
-                    ignoreUpdate,
-                    prefixForIds,
-                };
-
-                set(rendererState(rendererName), newRendererState);
-            },
-    );
-    const updateRendererUpdatesToIgnore = useRecoilCallback(
-        ({ snapshot, set }) =>
-            async ({ coreId, componentIdx, baseVariableValue, actionId }) => {
-                let rendererName = coreId + componentIdx;
-
-                // add to updates to ignore so don't apply change again
-                // if it comes back from core without any changes
-                // (possibly after a delay)
-                set(
-                    rendererUpdatesToIgnore(rendererName),
-                    (was: Record<string, any>) => {
-                        let newUpdatesToIgnore = { ...was };
-                        newUpdatesToIgnore[actionId] = baseVariableValue;
-                        return newUpdatesToIgnore;
-                    },
-                );
-            },
-    );
+    // Sometimes components eagerly update before waiting for core to determine their exact state
+    // This map from event ids to event values helps keep track of the updates that need to be ignored
+    // so we don't clobber the component's state.
+    const updatesToIgnoreRef = useRef<Map<string, string>>(new Map());
+    const dispatch = useAppDispatch();
 
     const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -229,6 +125,7 @@ export function DocViewer({
 
     const rendererClasses = useRef<Record<string, any>>({});
     const coreInfo = useRef<Record<string, any> | null>(null);
+    const loadedInitialState = useRef(false);
     const coreCreated = useRef(false);
     const coreCreationInProgress = useRef(false);
     const coreId = useRef<string>("");
@@ -240,7 +137,7 @@ export function DocViewer({
     const actionsBeforeCoreCreated = useRef<
         {
             actionName: string;
-            componentIdx: string | undefined;
+            componentIdx: number | undefined;
             args: Record<string, any>;
         }[]
     >([]);
@@ -254,10 +151,10 @@ export function DocViewer({
         {},
     );
     const actionTentativelySkipped = useRef<{
-        action: { actionName: string; componentIdx?: string };
+        action: { actionName: string; componentIdx?: number };
         args: Record<string, any>;
         baseVariableValue?: any;
-        componentIdx?: string;
+        componentIdx?: number;
         rendererType?: string;
         promiseResolve?: (value: any) => void;
     } | null>(null);
@@ -384,7 +281,7 @@ export function DocViewer({
                     args,
                 }: {
                     actionName: string;
-                    componentIdx: string;
+                    componentIdx: number;
                     args: Record<string, any>;
                 }) {
                     return await callAction({
@@ -483,10 +380,10 @@ export function DocViewer({
         rendererType,
         promiseResolve,
     }: {
-        action: { actionName: string; componentIdx?: string };
+        action: { actionName: string; componentIdx?: number };
         args: Record<string, any>;
         baseVariableValue?: any;
-        componentIdx?: string;
+        componentIdx?: number;
         rendererType?: string;
         promiseResolve?: (value: any) => void;
     }) {
@@ -580,15 +477,10 @@ export function DocViewer({
         args = { ...args };
         args.actionId = actionId;
 
-        if (baseVariableValue !== undefined && componentIdx) {
+        if (baseVariableValue !== undefined && componentIdx != null) {
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
-            updateRendererUpdatesToIgnore({
-                coreId: coreId.current,
-                componentIdx,
-                baseVariableValue,
-                actionId,
-            });
+            updatesToIgnoreRef.current.set(actionId, baseVariableValue);
         }
 
         let actionArgs = {
@@ -616,7 +508,7 @@ export function DocViewer({
 
     async function executeAction(actionArgs: {
         actionName: string;
-        componentIdx: string | undefined;
+        componentIdx: number | undefined;
         args: Record<string, any>;
     }) {
         if (!coreCreated.current) {
@@ -668,11 +560,9 @@ export function DocViewer({
                 for (let childInst of rendererState[componentIdx]
                     .childrenInstructions) {
                     if (childInst.componentType === "solution") {
-                        let solComponentName = childInst.componentIdx;
-                        if (
-                            rendererState[solComponentName].stateValues.hidden
-                        ) {
-                            rendererState[solComponentName].stateValues.hidden =
+                        let solComponentIdx = childInst.componentIdx;
+                        if (rendererState[solComponentIdx].stateValues.hidden) {
+                            rendererState[solComponentIdx].stateValues.hidden =
                                 false;
                         }
                     }
@@ -699,13 +589,19 @@ export function DocViewer({
                 });
             }
             for (let componentIdx in args.rendererState) {
-                updateRendererSVsWithRecoil({
-                    coreId: coreId.current,
-                    componentIdx,
-                    stateValues: args.rendererState[componentIdx].stateValues,
-                    childrenInstructions:
-                        args.rendererState[componentIdx].childrenInstructions,
-                });
+                dispatch(
+                    mainThunks.updateRendererSVs({
+                        coreId: coreId.current,
+                        componentIdx: componentIdx,
+                        stateValues:
+                            args.rendererState[componentIdx].stateValues,
+                        childrenInstructions:
+                            args.rendererState[componentIdx]
+                                .childrenInstructions,
+                        updatesToIgnoreRef: updatesToIgnoreRef,
+                        prefixForIds,
+                    }),
+                );
             }
         }
 
@@ -756,6 +652,9 @@ export function DocViewer({
                 "containerInline",
                 "contentPicker",
                 "curve",
+                "mathInput",
+                "textInput",
+                "slider",
             ]);
             if (CONVERTED_TO_TSX.has(rendererClassName)) {
                 extension = "tsx";
@@ -820,14 +719,14 @@ export function DocViewer({
 
         if (
             init &&
-            coreInfo.current &&
+            loadedInitialState.current &&
             !errorInitializingRenderers.current &&
             !errorInsideRenderers.current &&
             !hidden
         ) {
-            // we don't update renderer state values if already have a coreInfo
+            // we don't update renderer state values if loaded the state before starting core
             // and no errors were encountered
-            // as we must have already gotten the renderer information before core was created.
+            // as we already had the renderer information before core was created.
             // Exception if doc is hidden,
             // then we still update the renderers.
             // This exception is important because, in this case,
@@ -844,22 +743,26 @@ export function DocViewer({
                     rendererType,
                     childrenInstructions,
                 } of instruction.rendererStatesToUpdate) {
-                    updateRendererSVsWithRecoil({
-                        coreId: coreId.current,
-                        componentIdx,
-                        stateValues,
-                        childrenInstructions,
-                        sourceOfUpdate: instruction.sourceOfUpdate,
-                        // Note: the reason we check both the renderer class and .type
-                        // is that if the renderer was memoized, then the renderer class itself is on .type,
-                        // Otherwise, the renderer class is the value of the rendererClasses entry.
-                        baseStateVariable:
-                            rendererClasses.current[rendererType]
-                                ?.baseStateVariable ||
-                            rendererClasses.current[rendererType]?.type
-                                ?.baseStateVariable,
-                        actionId,
-                    });
+                    dispatch(
+                        mainThunks.updateRendererSVs({
+                            coreId: coreId.current,
+                            componentIdx,
+                            stateValues,
+                            childrenInstructions,
+                            sourceOfUpdate: instruction.sourceOfUpdate,
+                            // Note: the reason we check both the renderer class and .type
+                            // is that if the renderer was memoized, then the renderer class itself is on .type,
+                            // Otherwise, the renderer class is the value of the rendererClasses entry.
+                            baseStateVariable:
+                                rendererClasses.current[rendererType]
+                                    ?.baseStateVariable ||
+                                rendererClasses.current[rendererType]?.type
+                                    ?.baseStateVariable,
+                            actionId,
+                            prefixForIds,
+                            updatesToIgnoreRef,
+                        }),
+                    );
                 }
             }
         }
@@ -945,6 +848,9 @@ export function DocViewer({
                         args: { doNotIgnore: true },
                     });
                 }
+
+                // Record the fact that we loaded the state before starting core
+                loadedInitialState.current = true;
 
                 initializeRenderers({
                     rendererState,
@@ -1075,6 +981,9 @@ export function DocViewer({
             });
         }
 
+        // Record the fact that we loaded the state before starting core
+        loadedInitialState.current = true;
+
         initializeRenderers({
             rendererState,
             coreInfo,
@@ -1168,9 +1077,6 @@ export function DocViewer({
                 errorWarnings.current = dastResult.errorWarnings;
                 setErrorsAndWarningsCallback?.(errorWarnings.current);
             }
-
-            (window as any)["componentRangePieces" + docId] =
-                dastResult.componentRangePieces;
         } else {
             setIsInErrorState?.(true);
             setErrMsg(dastResult.errMsg);
@@ -1192,7 +1098,7 @@ export function DocViewer({
         delay,
         animationId,
     }: {
-        action: { actionName: string; componentIdx?: string };
+        action: { actionName: string; componentIdx?: number };
         actionArgs: Record<string, any>;
         delay?: number;
         animationId: string;
@@ -1225,7 +1131,7 @@ export function DocViewer({
         actionArgs,
         animationId,
     }: {
-        action: { actionName: string; componentIdx?: string };
+        action: { actionName: string; componentIdx?: number };
         actionArgs: Record<string, any>;
         animationId: string;
     }) {
@@ -1274,7 +1180,7 @@ export function DocViewer({
      * Return a promise that will resolve to an object with key:
      * allowView: whether or not the solution can be viewed
      */
-    function requestSolutionView(componentIdx: string) {
+    function requestSolutionView(componentIdx: number) {
         let messageId = nanoid();
         let requestSolutionPromiseResolve: (value: {
                 allowView: boolean;
@@ -1393,6 +1299,7 @@ export function DocViewer({
         setDocumentRenderer(null);
         coreCreated.current = false;
         coreCreationInProgress.current = false;
+        loadedInitialState.current = false;
 
         setStage("wait");
 

@@ -1,18 +1,19 @@
 import React, { useRef, useState, useEffect } from "react";
+// @ts-ignore
 import me from "math-expressions";
 import styled from "styled-components";
 // import { Spring } from '@react-spring/web';
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
-
-import { useSetRecoilState } from "recoil";
-import { rendererState } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 
-let round_to_decimals = (x, n) => me.round_numbers_to_decimals(x, n).tree;
+let round_to_decimals = (x: number, n: number) =>
+    me.round_numbers_to_decimals(x, n).tree as number;
 
-const SliderContainer = styled.div`
+const SliderContainer = styled.div<{ labeled: boolean; noTicked: boolean }>`
     width: fit-content;
     height: ${(props) =>
         props.labeled && props.noTicked
@@ -33,7 +34,7 @@ const SubContainer2 = styled.div`
     height: 50px;
 `;
 
-const StyledSlider = styled.div`
+const StyledSlider = styled.div<{ width: string }>`
     position: relative;
     border-radius: 3px;
     background-color: var(--canvastext);
@@ -47,7 +48,7 @@ const StyledValueLabel = styled.p`
     user-select: none;
 `;
 
-const StyledThumb = styled.div`
+const StyledThumb = styled.div<{ disabled?: boolean }>`
     width: 10px;
     height: 10px;
     border-radius: 5px;
@@ -61,7 +62,7 @@ const StyledThumb = styled.div`
     cursor: pointer;
 `;
 
-const Tick = styled.div`
+const Tick = styled.div<{ x: string }>`
     position: absolute;
     border-left: 2px solid var(--mainGray);
     height: 10px;
@@ -71,7 +72,7 @@ const Tick = styled.div`
     user-select: none;
 `;
 
-const Label = styled.p`
+const Label = styled.p<{ x: string }>`
     position: absolute;
     left: ${(props) => props.x};
     color: var(--canvastext);
@@ -80,7 +81,12 @@ const Label = styled.p`
     user-select: none;
 `;
 
-function generateNumericLabels(points, div_width, point_start_val, SVs) {
+function generateNumericLabels(
+    points: number[],
+    div_width: number,
+    point_start_val: number,
+    SVs: any,
+) {
     let maxValueWidth;
     let maxAbs = Math.max(Math.abs(SVs.firstItem), Math.abs(SVs.lastItem));
     let magnitudeOfMaxAbs = Math.round(Math.log(maxAbs) / Math.log(10));
@@ -182,7 +188,7 @@ function generateNumericLabels(points, div_width, point_start_val, SVs) {
             }),
         ];
     } else if (SVs.width.size < maxValueWidth * numItems) {
-        let tickIndices, tickValues;
+        let tickIndices: number[], tickValues: number[];
         if (points.length === 0) {
             let desiredNumberOfTicks = Math.floor(
                 SVs.width.size / maxValueWidth,
@@ -269,14 +275,14 @@ function generateNumericLabels(points, div_width, point_start_val, SVs) {
     }
 }
 
-function findMaxValueWidth(points) {
+function findMaxValueWidth(points: number[]) {
     let currWidth = points.reduce(function (a, b) {
-        return a > b.toString().length ? a : b.toString().length;
+        return +a > b.toString().length ? +a : b.toString().length;
     });
-    return currWidth * 12;
+    return +currWidth * 12;
 }
 
-function generateTextLabels(points, div_width, SVs) {
+function generateTextLabels(points: number[], div_width: number, SVs) {
     let maxValueWidth = findMaxValueWidth(points);
     const length = Object.keys(points).length;
 
@@ -348,11 +354,11 @@ function generateTextLabels(points, div_width, SVs) {
     }
 }
 
-function xPositionToValue(ref, div_width, start_val) {
+function xPositionToValue(ref: number, div_width: number, start_val: number) {
     return start_val + ref / div_width;
 }
 
-function nearestValue(refval, points, SVs) {
+function nearestValue(refval: number, points: number[], SVs) {
     let index = Math.max(
         0,
         Math.min(SVs.numItems - 1, Math.round(refval - SVs.firstItem)),
@@ -370,19 +376,18 @@ function nearestValue(refval, points, SVs) {
     return [val, index];
 }
 
-export default React.memo(function Slider(props) {
+export default React.memo(function Slider(props: UseDoenetRendererProps) {
     let { name, id, SVs, actions, ignoreUpdate, rendererName, callAction } =
         useDoenetRenderer(props);
     // console.log("name: ", name, " value: ", SVs.value, " index: ", SVs.index, "ignoreUpdate", ignoreUpdate);
     // console.log(SVs)
 
+    // @ts-ignore
     Slider.baseStateVariable = "index";
 
-    const containerRef = useRef(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     // console.log("SVs",SVs);
     // let sorted_points = [...SVs.items].sort((p1, p2) => p1 - p2);
-
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     const [thumbXPos, setThumbXPos] = useState(0);
     // const [thumbValue, setThumbValue] = useState(SVs.firstItem);
@@ -420,19 +425,19 @@ export default React.memo(function Slider(props) {
     }
 
     if (SVs.disabled) {
-        let controls = "";
+        let controls: React.ReactNode = "";
 
         if (SVs.showControls) {
             controls = (
                 <ActionButtonGroup style={{ marginBottom: "12px" }}>
                     <ActionButton
                         value="Prev"
-                        onClick={(e) => handlePrevious(e)}
+                        onClick={(e: KeyboardEvent) => handlePrevious(e)}
                         disabled
                     />
                     <ActionButton
                         value="Next"
-                        onClick={(e) => handleNext(e)}
+                        onClick={(e: KeyboardEvent) => handleNext(e)}
                         disabled
                     />
                 </ActionButtonGroup>
@@ -440,7 +445,7 @@ export default React.memo(function Slider(props) {
         } else {
             controls = null;
         }
-        let labels = "";
+        let labels: React.ReactNode = "";
         if (SVs.type === "text") {
             labels = generateTextLabels(SVs.items, divisionWidth, SVs);
         } else {
@@ -451,7 +456,7 @@ export default React.memo(function Slider(props) {
                 SVs,
             );
         }
-        let ticksAndLabels = "";
+        let ticksAndLabels: React.ReactNode = "";
         if (SVs.showTicks === false) {
             ticksAndLabels = null;
         } else {
@@ -518,7 +523,7 @@ export default React.memo(function Slider(props) {
         );
     }
 
-    function handleDragEnter(e) {
+    function handleDragEnter(e: React.MouseEvent) {
         isMouseDown.current = true;
 
         document.addEventListener("mousemove", handleDragThrough);
@@ -538,11 +543,6 @@ export default React.memo(function Slider(props) {
             // setThumbValue(valindexpair[0]);
             setIndex(valindexpair[1]);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             callAction({
                 action: actions.changeValue,
                 args: { value: valindexpair[0], transient: true },
@@ -555,11 +555,6 @@ export default React.memo(function Slider(props) {
             setIndex(i);
             // setThumbValue(SVs.items[i]);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             callAction({
                 action: actions.changeValue,
                 args: { value: SVs.items[i], transient: true },
@@ -568,7 +563,7 @@ export default React.memo(function Slider(props) {
         }
     }
 
-    function handleDragExit(e) {
+    function handleDragExit(e: MouseEvent) {
         document.removeEventListener("mousemove", handleDragThrough);
         document.removeEventListener("mouseup", handleDragExit);
 
@@ -589,7 +584,11 @@ export default React.memo(function Slider(props) {
                 startValue,
             );
 
-            function xPositionToValue(ref, div_width, start_val) {
+            function xPositionToValue(
+                ref: number,
+                div_width: number,
+                start_val: number,
+            ) {
                 return start_val + ref / div_width;
             }
 
@@ -600,11 +599,6 @@ export default React.memo(function Slider(props) {
 
             setThumbXPos(valindexpair[1] * divisionWidth);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             callAction({
                 action: actions.changeValue,
                 args: { value: valindexpair[0] },
@@ -619,11 +613,6 @@ export default React.memo(function Slider(props) {
 
             setThumbXPos(i * divisionWidth);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
             callAction({
                 action: actions.changeValue,
                 args: { value: SVs.items[i] },
@@ -632,7 +621,7 @@ export default React.memo(function Slider(props) {
         }
     }
 
-    function handleDragThrough(e) {
+    function handleDragThrough(e: MouseEvent) {
         if (isMouseDown.current) {
             setThumbXPos(
                 Math.max(0, Math.min(SVs.width.size, e.clientX - offsetLeft)),
@@ -648,11 +637,6 @@ export default React.memo(function Slider(props) {
                 // setThumbValue(valindexpair[0]);
                 setIndex(valindexpair[1]);
 
-                setRendererState((was) => {
-                    let newObj = { ...was };
-                    newObj.ignoreUpdate = true;
-                    return newObj;
-                });
                 callAction({
                     action: actions.changeValue,
                     args: {
@@ -667,11 +651,6 @@ export default React.memo(function Slider(props) {
                 setIndex(i);
                 // setThumbValue(SVs.items[i]);
 
-                setRendererState((was) => {
-                    let newObj = { ...was };
-                    newObj.ignoreUpdate = true;
-                    return newObj;
-                });
                 callAction({
                     action: actions.changeValue,
                     args: {
@@ -685,7 +664,7 @@ export default React.memo(function Slider(props) {
         }
     }
 
-    function handleNext(e) {
+    function handleNext(e: KeyboardEvent) {
         if (index === SVs.numItems - 1) {
             return;
         }
@@ -698,11 +677,6 @@ export default React.memo(function Slider(props) {
             val = SVs.items[index + 1];
         }
 
-        setRendererState((was) => {
-            let newObj = { ...was };
-            newObj.ignoreUpdate = true;
-            return newObj;
-        });
         callAction({
             action: actions.changeValue,
             args: { value: val },
@@ -713,7 +687,7 @@ export default React.memo(function Slider(props) {
         setIndex(index + 1);
     }
 
-    function handlePrevious(e) {
+    function handlePrevious(e: KeyboardEvent) {
         if (index === 0) {
             return;
         }
@@ -726,11 +700,6 @@ export default React.memo(function Slider(props) {
             val = SVs.items[index - 1];
         }
 
-        setRendererState((was) => {
-            let newObj = { ...was };
-            newObj.ignoreUpdate = true;
-            return newObj;
-        });
         callAction({
             action: actions.changeValue,
             args: { value: val },
@@ -741,7 +710,7 @@ export default React.memo(function Slider(props) {
         setIndex(index - 1);
     }
 
-    function handleKeyDown(e) {
+    function handleKeyDown(e: KeyboardEvent) {
         if (e.key === "ArrowLeft") {
             return handlePrevious(e);
         } else if (e.key === "ArrowRight") {
@@ -749,7 +718,7 @@ export default React.memo(function Slider(props) {
         }
     }
 
-    let labels = "";
+    let labels: React.ReactNode = "";
     if (SVs.type === "text") {
         labels = generateTextLabels(SVs.items, divisionWidth, SVs);
     } else {
@@ -760,25 +729,25 @@ export default React.memo(function Slider(props) {
             SVs,
         );
     }
-    let ticksAndLabels = "";
+    let ticksAndLabels: React.ReactNode = "";
     if (SVs.showTicks === false) {
         ticksAndLabels = null;
     } else {
         ticksAndLabels = labels;
     }
 
-    let controls = "";
+    let controls: React.ReactNode = "";
     if (SVs.showControls) {
         controls = (
             <ActionButtonGroup style={{ marginBottom: "12px" }}>
                 <ActionButton
                     value="Prev"
-                    onClick={(e) => handlePrevious(e)}
+                    onClick={(e: KeyboardEvent) => handlePrevious(e)}
                     id={`${id}-prevbutton`}
                 ></ActionButton>
                 <ActionButton
                     value="Next"
-                    onClick={(e) => handleNext(e)}
+                    onClick={(e: KeyboardEvent) => handleNext(e)}
                     id={`${id}-nextbutton`}
                 ></ActionButton>
             </ActionButtonGroup>
@@ -828,8 +797,8 @@ export default React.memo(function Slider(props) {
             ref={containerRef}
             labeled={SVs.showControls || SVs.label}
             noTicked={SVs.showTicks === false}
-            onKeyDown={handleKeyDown}
-            tabIndex="0"
+            onKeyDown={handleKeyDown as any}
+            tabIndex={0}
         >
             <div
                 id={`${id}-label`}

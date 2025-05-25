@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import useDoenetRenderer, { rendererState } from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 // @ts-ignore
 import { sizeToCSS } from "./utils/css";
 import { useInView } from "framer-motion";
-import { useSetRecoilState } from "recoil";
 import { EditorViewer } from "../../EditorViewer/EditorViewer";
 
-export default React.memo(function CodeEditor(props) {
+export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
     let {
         name,
         id,
@@ -20,8 +21,6 @@ export default React.memo(function CodeEditor(props) {
 
     // @ts-ignore
     CodeEditor.baseStateVariable = "immediateValue";
-
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     const [currentValue, setCurrentValue] = useState(SVs.immediateValue);
     const currentValueRef = useRef(currentValue);
@@ -41,19 +40,13 @@ export default React.memo(function CodeEditor(props) {
         (value: string) => {
             setCurrentValue(value);
 
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
-
             callAction({
                 action: actions.updateImmediateValue,
                 args: { text: value },
                 baseVariableValue: value,
             });
         },
-        [actions.updateImmediateValue, callAction, setRendererState],
+        [actions.updateImmediateValue, callAction],
     );
 
     const doenetmlChangeCallback = React.useCallback(

@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -9,7 +11,6 @@ import {
     faPercentage,
 } from "@fortawesome/free-solid-svg-icons";
 import { rendererState } from "../useDoenetRenderer";
-import { useSetRecoilState } from "recoil";
 import { ToggleButton } from "@doenet/ui-components";
 import styled from "styled-components";
 import "./booleanInput.css";
@@ -43,7 +44,7 @@ const Button = styled.button`
     }
 `;
 
-export default React.memo(function BooleanInput(props) {
+export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { name, id, SVs, actions, ignoreUpdate, rendererName, callAction } =
         useDoenetRenderer(props);
 
@@ -58,8 +59,6 @@ export default React.memo(function BooleanInput(props) {
     // add ref, because event handler called from jsxgraph doesn't get new value
     let rendererValueRef = useRef(null);
     rendererValueRef.current = rendererValue;
-
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let valueWhenSetState = useRef(null);
 
@@ -107,12 +106,6 @@ export default React.memo(function BooleanInput(props) {
 
         setRendererValue(newValue);
         valueWhenSetState.current = SVs.value;
-
-        setRendererState((was) => {
-            let newObj = { ...was };
-            newObj.ignoreUpdate = true;
-            return newObj;
-        });
 
         callAction({
             action: actions.updateBoolean,

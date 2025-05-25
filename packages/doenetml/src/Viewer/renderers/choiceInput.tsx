@@ -1,5 +1,7 @@
 import React, { useContext, useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -8,8 +10,6 @@ import {
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
 import { MathJax } from "better-react-mathjax";
-import { rendererState } from "../useDoenetRenderer";
-import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import "./choiceInput.css";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
@@ -36,7 +36,7 @@ const Button = styled.button`
     }
 `;
 
-export default React.memo(function ChoiceInput(props) {
+export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let {
         name,
         id,
@@ -55,8 +55,6 @@ export default React.memo(function ChoiceInput(props) {
     const [rendererSelectedIndices, setRendererSelectedIndices] = useState<
         number[]
     >(SVs.selectedIndices);
-
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let selectedIndicesWhenSetState = useRef(null);
 
@@ -121,12 +119,6 @@ export default React.memo(function ChoiceInput(props) {
         ) {
             setRendererSelectedIndices(newSelectedIndices);
             selectedIndicesWhenSetState.current = SVs.selectedIndices;
-
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
 
             callAction({
                 action: actions.updateSelectedIndices,

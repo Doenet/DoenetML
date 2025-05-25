@@ -1,5 +1,7 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import React, { useRef, useState, FocusEventHandler, useContext } from "react";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
 import {
@@ -8,19 +10,14 @@ import {
     faTimes,
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
-import { addStyles, EditableMathField } from "react-mathquill";
+import { addStyles, EditableMathField, MathField } from "react-mathquill";
 addStyles(); // Styling for react-mathquill input field
-import {
-    focusedMathField,
-    focusedMathFieldReturn,
-    palletRef,
-    handleRef,
-} from "@doenet/virtual-keyboard/math-input";
 import { MathJax } from "better-react-mathjax";
 
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
+import { FocusedMathInputContext } from "../../doenetml";
+import { useAppSelector } from "../../state";
+import { keyboardSlice } from "../../state/slices/keyboard";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -44,7 +41,7 @@ const Button = styled.button`
     }
 `;
 
-export default function MathInput(props) {
+export default function MathInput(props: UseDoenetRendererProps) {
     let {
         name,
         id,
@@ -56,23 +53,30 @@ export default function MathInput(props) {
         callAction,
     } = useDoenetRenderer(props);
 
+    // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
 
-    const [mathField, setMathField] = useState(null);
-    const [focused, setFocused] = useState(null);
-    const textareaRef = useRef(null); // Ref to keep track of the mathInput's disabled state
+    const virtualKeyboardEvents = useAppSelector(
+        keyboardSlice.selectors.keyboardInput,
+    );
+    const focusedMathInput = useContext(FocusedMathInputContext);
+    const [mathField, setMathField] = useState<MathField | null>(null);
+    // The handles.enter of `EditableMathField` callback for some reason does not get updated when it changes.
+    // To work around this, we safe the current mathField in a ref and use that in the callback.
+    const mathFieldRef = useRef<MathField | null>(null);
+    mathFieldRef.current = mathField;
+    const [focused, setFocused] = useState<boolean | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null); // Ref to keep track of the mathInput's disabled state
 
     const lastKeyboardAccessTime = useRef(0);
     const lastBlurTime = useRef(0);
     const keyboardCausedBlur = useRef(false);
 
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
-
-    let rendererValue = useRef(SVs.rawRendererValue);
+    const rendererValue = useRef(SVs.rawRendererValue);
 
     // Need to use ref for includeCheckWork
     // or handlePressEnter doesn't get the new value when the SV changes
-    let includeCheckWork = useRef(
+    const includeCheckWork = useRef(
         SVs.includeCheckWork && !SVs.suppressCheckwork,
     );
     includeCheckWork.current = SVs.includeCheckWork && !SVs.suppressCheckwork;
@@ -83,12 +87,11 @@ export default function MathInput(props) {
 
     // need to use a ref for validation state as handlePressEnter
     // does not update to current values
-    let validationState = useRef(null);
+    let validationState = useRef<
+        "unvalidated" | "correct" | "incorrect" | "partialcorrect" | null
+    >(null);
 
-    const setFocusedField = useSetRecoilState(focusedMathField);
-    const setFocusedFieldReturn = useSetRecoilState(focusedMathFieldReturn);
     // A global reference to the currently active MathInput
-    const [containerRef, setContainerRef] = useRecoilState(palletRef);
 
     const updateValidationState = () => {
         validationState.current = "unvalidated";
@@ -103,42 +106,11 @@ export default function MathInput(props) {
         }
     };
 
-    const handleVirtualKeyboardClick = ({ type, command, timestamp }) => {
-        if (type == "accessed") {
-            // record the time the keyboard was accessed
-            lastKeyboardAccessTime.current = timestamp;
-
-            // If there was a blur immediately preceding the keyboard access,
-            // we conclude that the blur was caused by the keyboard access.
-            // If not, we don't make any conclusions as there can be many subsequent keyboard accesses
-            // after the initial blur.
-            if (
-                Math.abs(
-                    lastKeyboardAccessTime.current - lastBlurTime.current,
-                ) < 100
-            ) {
-                keyboardCausedBlur.current = true;
-            }
+    const handlePressEnter = React.useCallback(() => {
+        if (!mathFieldRef.current) {
             return;
         }
-
-        if (!mathField || !keyboardCausedBlur.current) {
-            return;
-        }
-        mathField.focus();
-
-        if (type == "cmd") {
-            mathField.cmd(command);
-        } else if (type == "write") {
-            mathField.write(command);
-        } else if (type == "keystroke") {
-            mathField.keystroke(command);
-        } else if (type == "type") {
-            mathField.typedText(command);
-        }
-    };
-
-    const handlePressEnter = (e) => {
+        // The "Enter" key was pressed
         callAction({
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
@@ -152,30 +124,87 @@ export default function MathInput(props) {
                 action: actions.submitAnswer,
             });
         }
-    };
+    }, [callAction, mathField]);
 
     React.useEffect(() => {
-        if (!mathField || mathField.el() !== containerRef) {
+        if (!mathField || focusedMathInput.current !== mathField.el()) {
+            // If we aren't the focused math input, ignore the events
             return;
         }
-        setFocusedField(() => handleVirtualKeyboardClick);
-    }, [mathField, containerRef]);
+        for (const event of virtualKeyboardEvents) {
+            if (event.type === "keystroke" && event.command === "Enter") {
+                // The "Enter" key was pressed
+                callAction({
+                    action: actions.updateValue,
+                    baseVariableValue: rendererValue.current,
+                });
 
-    const handleFocus = (e) => {
-        if (mathField) {
-            setContainerRef(mathField.el());
+                if (
+                    includeCheckWork.current &&
+                    validationState.current === "unvalidated"
+                ) {
+                    callAction({
+                        action: actions.submitAnswer,
+                    });
+                }
+                continue;
+            }
+            if (event.type === "accessed") {
+                // record the time the keyboard was accessed
+                lastKeyboardAccessTime.current = event.timestamp || 0;
+
+                // If there was a blur immediately preceding the keyboard access,
+                // we conclude that the blur was caused by the keyboard access.
+                // If not, we don't make any conclusions as there can be many subsequent keyboard accesses
+                // after the initial blur.
+                if (
+                    Math.abs(
+                        lastKeyboardAccessTime.current - lastBlurTime.current,
+                    ) < 100
+                ) {
+                    keyboardCausedBlur.current = true;
+                }
+            }
+            if (keyboardCausedBlur.current) {
+                switch (event.type) {
+                    case "accessed":
+                        // Already handled
+                        break;
+                    case "cmd":
+                        mathField.cmd(event.command);
+                        break;
+                    case "write":
+                        mathField.write(event.command);
+                        break;
+                    case "keystroke":
+                        mathField.keystroke(event.command);
+                        break;
+                    case "type":
+                        mathField.typedText(event.command);
+                        break;
+                    default:
+                        console.warn(
+                            `Unknown event type: ${event.type} in MathInput`,
+                            event,
+                        );
+                        break;
+                }
+            }
         }
-        setFocusedFieldReturn(() => handlePressEnter);
+        if (keyboardCausedBlur.current) {
+            // If the keyboard caused the blur, return focus to the mathField
+            mathField.focus();
+        }
+    }, [virtualKeyboardEvents]);
+
+    const handleFocus = (e: React.FocusEvent) => {
+        if (mathField) {
+            focusedMathInput.current = mathField.el();
+        }
         setFocused(true);
     };
 
-    const handleBlur = (e) => {
-        callAction({
-            action: actions.updateValue,
-            baseVariableValue: rendererValue.current,
-        });
-        setFocused(false);
-
+    const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
         lastBlurTime.current = +new Date();
 
         // If the blur was immediately preceded by a keyboard access,
@@ -185,9 +214,17 @@ export default function MathInput(props) {
         keyboardCausedBlur.current =
             Math.abs(lastKeyboardAccessTime.current - lastBlurTime.current) <
             100;
+
+        if (!keyboardCausedBlur.current) {
+            callAction({
+                action: actions.updateValue,
+                baseVariableValue: rendererValue.current,
+            });
+            setFocused(false);
+        }
     };
 
-    const onChangeHandler = (text) => {
+    const onChangeHandler = (text: string) => {
         // whitespace differences and whether or not a single character exponent has braces
         // do not count as a difference for changing raw renderer value
         if (
@@ -197,12 +234,6 @@ export default function MathInput(props) {
                 .replace(/\^{(\w)}/g, "^$1")
         ) {
             rendererValue.current = text;
-
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
 
             callAction({
                 action: actions.updateRawValue,
@@ -222,12 +253,12 @@ export default function MathInput(props) {
 
     // const inputKey = this.componentIdx + '_input';
 
-    let checkWorkStyle = {
+    let checkWorkStyle: React.CSSProperties = {
         cursor: "pointer",
         padding: "1px 6px 1px 6px",
     };
 
-    let mathInputStyle = {
+    let mathInputStyle: React.CSSProperties = {
         /* Set each border attribute separately since the borderColor is updated during rerender (checking mathInput's disabled state)
     Currently does not work with border: "var(--mainBorder)" */
         borderColor: "var(--canvastext)",
@@ -241,12 +272,13 @@ export default function MathInput(props) {
         minWidth: `${SVs.minWidth > 0 ? SVs.minWidth : 0}px`,
     };
 
+    // XXX: should be done in CSS
     if (focused) {
         mathInputStyle.outlineStyle = "solid";
     }
 
     let mathInputWrapperCursor = "allowed";
-    let checkWorkTabIndex = "0";
+    let checkWorkTabIndex = 0;
     if (SVs.disabled) {
         // Disable the checkWorkButton
         checkWorkStyle.backgroundColor = getComputedStyle(
@@ -254,7 +286,7 @@ export default function MathInput(props) {
         ).getPropertyValue("--mainGray");
         checkWorkStyle.color = "black";
         checkWorkStyle.cursor = "not-allowed";
-        checkWorkTabIndex = "-1";
+        checkWorkTabIndex = -1;
 
         // Disable the mathInput
         mathInputStyle.borderColor = getComputedStyle(
@@ -389,8 +421,6 @@ export default function MathInput(props) {
     }
     return (
         <React.Fragment>
-            <a name={id} />
-
             <span id={id}>
                 <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}
@@ -433,7 +463,7 @@ export default function MathInput(props) {
                             onBlur={handleBlur}
                             onFocus={handleFocus}
                             mathquillDidMount={(mf) => {
-                                //console.log(">>> MathQuilMounted")
+                                //console.log(">>> MathQuillMounted")
                                 setMathField(mf);
                             }}
                         />

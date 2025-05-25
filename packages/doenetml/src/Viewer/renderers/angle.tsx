@@ -1,12 +1,14 @@
 import React, { useEffect, useContext, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 // @ts-ignore
 import me from "math-expressions";
 import { MathJax } from "better-react-mathjax";
 import { JXGObject } from "./jsxgraph-distrib/types";
 
-export default React.memo(function Angle(props) {
+export default React.memo(function Angle(props: UseDoenetRendererProps) {
     let { name, id, SVs } = useDoenetRenderer(props);
 
     const board = useContext(BoardContext);

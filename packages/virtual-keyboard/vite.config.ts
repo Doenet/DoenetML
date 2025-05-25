@@ -12,7 +12,6 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/virtual-keyboard/index.ts",
-                "math-input": "./src/MathInputSelector.tsx",
             },
             formats: ["es"],
         },
@@ -22,7 +21,6 @@ export default defineConfig({
                 "react-dom",
                 "react-dom/client",
                 "styled-components",
-                "recoil",
                 "@chakra-ui/react",
                 "@fortawesome/free-solid-svg-icons",
                 "@fortawesome/react-fontawesome",
