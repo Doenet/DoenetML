@@ -3,10 +3,11 @@ import {
     retrieveTextFileForCid,
     deepClone,
     returnDeprecationMessage,
-    convertToErrorComponent,
     createUniqueName,
 } from "@doenet/utils";
+import { convertToErrorComponent } from "./dast/errors";
 
+// XXX: this should be obsolete when we're done
 export async function expandDoenetMLsToFullSerializedComponents({
     doenetMLs,
     componentInfoObjects,
@@ -202,11 +203,6 @@ export async function expandDoenetMLsToFullSerializedComponents({
                             originalCopyWithUri.doenetAttributes = {};
                         }
 
-                        originalCopyWithUri.doenetAttributes.keptNewNamespaceOfLastChild =
-                            Boolean(comp.attributes.newNamespace?.primitive);
-
-                        comp.attributes.newNamespace = { primitive: true };
-
                         originalCopyWithUri.children = [
                             comp,
                             ...originalCopyWithUri.children,
@@ -218,12 +214,12 @@ export async function expandDoenetMLsToFullSerializedComponents({
                         originalCopyWithUri.doenetAttributes.nameFirstChildIndependently = true;
                     }
                 } else {
+                    // XXX: fix copying external content without using namespaces
                     let extContent = {
                         componentType: "externalContent",
                         children: JSON.parse(
                             JSON.stringify(serializedComponentsForCid),
                         ),
-                        attributes: { newNamespace: { primitive: true } },
                         doenetAttributes: { createUniqueName: true },
                     };
 
@@ -244,6 +240,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
     };
 }
 
+/// XXX: should be obsoleted by Position
 function addDoenetMLIdToRange(serializedComponents, doenetMLId) {
     for (let component of serializedComponents) {
         if (component.position) {
@@ -322,6 +319,7 @@ export function removeBlankStringChildren(
     }
 }
 
+// XXX: delete, should be obsolete
 function removeComments(serializedComponents) {
     let filteredComponents = serializedComponents.filter(
         (x) => x.componentType !== "_comment",
@@ -382,6 +380,7 @@ function findContentCopies({ serializedComponents }) {
     return { cidComponents };
 }
 
+// XXX: delete, should be obsolete
 export function addDocumentIfItsMissing(serializedComponents) {
     if (
         serializedComponents.length !== 1 ||
@@ -396,6 +395,7 @@ export function addDocumentIfItsMissing(serializedComponents) {
     return serializedComponents;
 }
 
+// XXX: need a way to add back this functionality
 function substituteAttributeDeprecations(serializedComponents) {
     // Note: attributes are XML attributes
     // (which are called props at this point due to parser but will be renamed attributes later)
@@ -431,7 +431,7 @@ function substituteAttributeDeprecations(serializedComponents) {
         },
         updatewithtarget: { substitute: "updateWith", removeInVersion: 0.7 },
         targetsarefunctionsymbols: {
-            substitute: "sourcesAreFunctionSymbols",
+            substitute: "referencesAreFunctionSymbols",
             removeInVersion: 0.7,
         },
         selectforvariantnames: {
@@ -642,6 +642,7 @@ function substituteAttributeDeprecations(serializedComponents) {
     return { warnings };
 }
 
+// XXX: need a way to add back this functionality
 export const deprecatedPropertySubstitutions = {
     maximumNumberOfAttempts: {
         substitute: "maxNumAttempts",
@@ -746,6 +747,7 @@ Object.keys(deprecatedPropertySubstitutions).forEach(
             deprecatedPropertySubstitutions[key]),
 );
 
+// XXX: need a way to add back this functionality
 function substitutePropertyDeprecations(serializedComponents) {
     let warnings = [];
 
@@ -803,6 +805,7 @@ function substitutePropertyDeprecations(serializedComponents) {
     return { warnings };
 }
 
+// XXX: delete
 function temporarilyRenameSourceBackToTarget(serializedComponents) {
     // Note: use lower case for keys
     let backwardsDeprecatedAttributeSubstitutions = {
@@ -874,6 +877,7 @@ function temporarilyRenameSourceBackToTarget(serializedComponents) {
     }
 }
 
+// XXX: delete -- check does the new system do this. Do we want it?
 function cleanIfHaveJustDocument(serializedComponents) {
     let componentsWithoutBlankStrings = serializedComponents.filter(
         (x) => typeof x !== "string" || x.trim() !== "",
@@ -889,6 +893,8 @@ function cleanIfHaveJustDocument(serializedComponents) {
     }
 }
 
+// XXX: what to do about mis-capitalized component types?
+// With the new system, they are no longer recognized
 function correctComponentTypeCapitalization(
     serializedComponents,
     componentInfoObjects,
@@ -939,6 +945,7 @@ function correctComponentTypeCapitalization(
     return { errors, warnings };
 }
 
+// XXX: what to do about copies from URIs?
 function copyTargetOrFromURIAttributeCreatesCopyComponent(
     serializedComponents,
     isCompositeComponent,
@@ -1080,6 +1087,7 @@ function copyTargetOrFromURIAttributeCreatesCopyComponent(
     return { errors, warnings };
 }
 
+// XXX: delete
 function breakUpTargetIntoPropsAndIndices(
     serializedComponents,
     componentInfoObjects,
@@ -1100,7 +1108,7 @@ function breakUpTargetIntoPropsAndIndices(
             ) {
                 let targetPropName;
                 let sourceName;
-                let componentIndex;
+                let sourceIndex;
                 let componentAttributes;
                 let propArray;
                 let subNames;
@@ -1144,7 +1152,7 @@ function breakUpTargetIntoPropsAndIndices(
                                 originalSource.length
                         ) {
                             sourceName = sourcePiecesResult.sourceName;
-                            componentIndex = sourcePiecesResult.componentIndex;
+                            sourceIndex = sourcePiecesResult.sourceIndex;
                             componentAttributes =
                                 sourcePiecesResult.componentAttributes;
                             propArray = sourcePiecesResult.propArray;
@@ -1155,7 +1163,7 @@ function breakUpTargetIntoPropsAndIndices(
 
                 if (targetPropName && sourceName) {
                     if (
-                        componentIndex ||
+                        sourceIndex ||
                         componentAttributes ||
                         propArray.length > 0
                     ) {
@@ -1172,16 +1180,16 @@ function breakUpTargetIntoPropsAndIndices(
                                 `Cannot combine the propIndex attribute with an extended source attribute.`,
                             );
                         }
-                        if (component.attributes.componentIndex) {
+                        if (component.attributes.sourceIndex) {
                             throw Error(
-                                `Cannot combine the componentIndex attribute with an extended source attribute.`,
+                                `Cannot combine the sourceIndex attribute with an extended source attribute.`,
                             );
                         }
 
                         let componentResult = createComponentFromExtendedSource(
                             {
                                 sourceName,
-                                componentIndex,
+                                sourceIndex,
                                 subNames,
                                 componentAttributes,
                                 propArray,
@@ -1223,8 +1231,7 @@ function breakUpTargetIntoPropsAndIndices(
                                         ...component.attributes,
                                     };
                                     delete reducedAttributes.createComponentOfType;
-                                    delete reducedAttributes.componentIndex;
-                                    delete reducedAttributes.sourceSubnames;
+                                    delete reducedAttributes.sourceIndex;
                                     if (
                                         Object.keys(reducedAttributes)
                                             .length === 0
@@ -1250,22 +1257,6 @@ function breakUpTargetIntoPropsAndIndices(
                                         component.attributes,
                                         newComponent.attributes,
                                     );
-                                    // rename attributes to refer to target rather than source
-                                    if (component.attributes.sourceSubnames) {
-                                        component.attributes.targetSubnames =
-                                            component.attributes.sourceSubnames;
-                                        delete component.attributes
-                                            .sourceSubnames;
-                                    }
-                                    if (
-                                        component.attributes
-                                            .sourceSubnamesComponentIndex
-                                    ) {
-                                        component.attributes.targetSubnamesComponentIndex =
-                                            component.attributes.sourceSubnamesComponentIndex;
-                                        delete component.attributes
-                                            .sourceSubnamesComponentIndex;
-                                    }
 
                                     if (!component.doenetAttributes) {
                                         component.doenetAttributes = {};
@@ -1330,8 +1321,7 @@ function breakUpTargetIntoPropsAndIndices(
                         if (component.componentType === "copy") {
                             let reducedAttributes = { ...component.attributes };
                             delete reducedAttributes.createComponentOfType;
-                            delete reducedAttributes.componentIndex;
-                            delete reducedAttributes.sourceSubnames;
+                            delete reducedAttributes.sourceIndex;
                             if (Object.keys(reducedAttributes).length === 0) {
                                 if (!component.doenetAttributes) {
                                     component.doenetAttributes = {};
@@ -1364,6 +1354,7 @@ function breakUpTargetIntoPropsAndIndices(
     return { errors, warnings };
 }
 
+// XXX: delete
 function createAttributesFromProps(
     serializedComponents,
     componentInfoObjects,
@@ -1493,6 +1484,7 @@ function createAttributesFromProps(
     return { errors, warnings };
 }
 
+// XXX: delete
 export function componentFromAttribute({
     attrObj,
     value,
@@ -1637,8 +1629,8 @@ export function componentFromAttribute({
             newPrimitive = value.rawString;
         }
 
-        if (attrObj.validationFunction) {
-            newPrimitive = attrObj.validationFunction(newPrimitive);
+        if (attrObj.validatePrimitives) {
+            newPrimitive = attrObj.validatePrimitives(newPrimitive);
         }
         return { attribute: { primitive: newPrimitive }, errors, warnings };
     } else if (attrObj?.createTargetComponentNames) {
@@ -1673,29 +1665,6 @@ export function componentFromAttribute({
         }
         return { attribute: value, errors, warnings };
     }
-}
-
-function findPreSugarIndsAndMarkFromSugar(components) {
-    let preSugarIndsFound = [];
-    for (let component of components) {
-        if (typeof component !== "object") {
-            continue;
-        }
-        if (component.preSugarInd !== undefined) {
-            preSugarIndsFound.push(component.preSugarInd);
-        } else {
-            if (!component.doenetAttributes) {
-                component.doenetAttributes = {};
-            }
-            component.doenetAttributes.createdFromSugar = true;
-            if (component.children) {
-                let inds = findPreSugarIndsAndMarkFromSugar(component.children);
-                preSugarIndsFound.push(...inds);
-            }
-        }
-    }
-
-    return preSugarIndsFound;
 }
 
 export function applyMacros(
@@ -1805,7 +1774,7 @@ function substituteMacros(
 
                 let componentResult = createComponentFromExtendedSource({
                     sourceName: result.sourceName,
-                    componentIndex: result.componentIndex,
+                    sourceIndex: result.sourceIndex,
                     subNames: result.subNames,
                     componentAttributes: result.componentAttributes,
                     propArray: result.propArray,
@@ -1849,8 +1818,7 @@ function substituteMacros(
                 if (result.propArray.length === 0) {
                     let reducedAttributes = { ...newComponent.attributes };
                     delete reducedAttributes.createComponentOfType;
-                    delete reducedAttributes.componentIndex;
-                    delete reducedAttributes.sourceSubnames;
+                    delete reducedAttributes.sourceIndex;
                     if (Object.keys(reducedAttributes).length === 0) {
                         newComponent.doenetAttributes.noAttributesOrProp = true;
                     }
@@ -2020,7 +1988,7 @@ function substituteMacros(
 
 function createComponentFromExtendedSource({
     sourceName,
-    componentIndex,
+    sourceIndex,
     componentAttributes,
     propArray,
     subNames,
@@ -2036,8 +2004,8 @@ function createComponentFromExtendedSource({
         props: {},
     };
 
-    if (componentIndex) {
-        let childrenForAttribute = [componentIndex];
+    if (sourceIndex) {
+        let childrenForAttribute = [sourceIndex];
         let res = applyMacros(childrenForAttribute, componentInfoObjects);
         errors.push(...res.errors);
         warnings.push(...res.warnings);
@@ -2045,57 +2013,12 @@ function createComponentFromExtendedSource({
             return { success: false, errors, warnings };
         }
 
-        newComponent.attributes.componentIndex = {
+        newComponent.attributes.sourceIndex = {
             component: {
                 componentType: "integer",
                 children: childrenForAttribute,
             },
         };
-    }
-
-    if (subNames?.length > 0) {
-        let sourceSubnames = [];
-        let sourceSubnamesComponentIndex = [];
-
-        for (let subNameObj of subNames) {
-            sourceSubnames.push(subNameObj.subName);
-            if (subNameObj.subNameComponentIndex !== undefined) {
-                if (sourceSubnamesComponentIndex.length < sourceSubnames - 1) {
-                    // TODO: NaN will presumably make it not return anything
-                    // When we enable recursing to composites, we'll need a strategy to skip subname component index
-                    sourceSubnamesComponentIndex.push(
-                        ...Array[
-                            sourceSubnames -
-                                1 -
-                                sourceSubnamesComponentIndex.length
-                        ].fill(NaN),
-                    );
-                }
-                sourceSubnamesComponentIndex.push(
-                    subNameObj.subNameComponentIndex,
-                );
-            }
-        }
-
-        newComponent.attributes.sourceSubnames = {
-            primitive: sourceSubnames,
-        };
-        if (sourceSubnamesComponentIndex.length > 0) {
-            let childrenForAttribute = [sourceSubnamesComponentIndex.join(" ")];
-            let res = applyMacros(childrenForAttribute, componentInfoObjects);
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
-            if (errors.length > 0) {
-                return { success: false, errors, warnings };
-            }
-
-            newComponent.attributes.sourceSubnamesComponentIndex = {
-                component: {
-                    componentType: "numberList",
-                    children: childrenForAttribute,
-                },
-            };
-        }
     }
 
     let propsAddExtract = false;
@@ -2228,11 +2151,11 @@ function createAttributesFromString(componentAttributes, componentInfoObjects) {
     if (
         newAttributes.prop ||
         newAttributes.propIndex ||
-        newAttributes.componentIndex
+        newAttributes.sourceIndex
     ) {
         errors.push({
             message:
-                "Error in macro: macro cannot directly add attributes prop, propIndex, or componentIndex.",
+                "Error in macro: macro cannot directly add attributes prop, propIndex, or sourceIndex.",
         });
         return { success: false, errors, warnings };
     }
@@ -2349,7 +2272,7 @@ function buildSourcePieces(str, extendedWordCharacters) {
     findResult = findWordOrDelimitedGroup(str, extendedWordCharacters);
 
     if (findResult.startDelim === "[") {
-        result.componentIndex = findResult.group;
+        result.sourceIndex = findResult.group;
         matchLength += findResult.matchLength;
         str = str.substring(findResult.matchLength);
         findResult = findWordOrDelimitedGroup(str, extendedWordCharacters);
@@ -2357,7 +2280,7 @@ function buildSourcePieces(str, extendedWordCharacters) {
 
     let subNames = [];
     while (findResult.withSlash) {
-        // check for additional subname piece of /name[componentIndex]
+        // check for additional subname piece of /name[sourceIndex]
 
         let subnameObj = { subName: findResult.word };
         matchLength += findResult.matchLength;

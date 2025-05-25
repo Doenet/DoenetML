@@ -87,8 +87,6 @@ export default class CustomAttribute extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         if (!component.attributes.componentType) {
             warnings.push({
                 message: `<customAttribute> must contain a componentType attribute.`,
@@ -99,14 +97,14 @@ export default class CustomAttribute extends CompositeComponent {
 
         let componentType =
             componentInfoObjects.componentTypeLowerCaseMapping[
-                component.attributes.componentType.primitive.toLowerCase()
+                component.attributes.componentType.primitive.value.toLowerCase()
             ];
         let componentClass =
             componentInfoObjects.allComponentClasses[componentType];
 
         if (!componentClass) {
             warnings.push({
-                message: `<customAttribute> contains an invalid component type: <${component.attributes.componentType.primitive}>.`,
+                message: `<customAttribute> contains an invalid component type: <${component.attributes.componentType.primitive.value}>.`,
                 level: 1,
             });
             return { replacements: [], errors, warnings };
@@ -178,17 +176,6 @@ export default class CustomAttribute extends CompositeComponent {
 
         if (serializedComponent.children) {
             applyMacros(serializedComponent.children, componentInfoObjects);
-            if (newNamespace) {
-                // modify targets to go back one namespace
-                for (let child of serializedComponent.children) {
-                    if (child.componentType === "copy") {
-                        let target = child.doenetAttributes.target;
-                        if (/[a-zA-Z_]/.test(target[0])) {
-                            child.doenetAttributes.target = "../" + target;
-                        }
-                    }
-                }
-            }
         }
 
         applySugar({
@@ -203,7 +190,6 @@ export default class CustomAttribute extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: [serializedComponent],
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

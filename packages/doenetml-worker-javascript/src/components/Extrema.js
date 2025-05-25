@@ -257,6 +257,8 @@ export class Extrema extends BaseComponent {
 
     static excludeFromSchema = true;
 
+    static variableForIndexAsProp = "extrema";
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
         let extremaClass = this;

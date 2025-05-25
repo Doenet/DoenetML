@@ -26,11 +26,12 @@ export class ComponentWithSelectableType extends BaseComponent {
             matchedChildren,
             componentAttributes,
             parentAttributes,
+            nComponents,
         }) {
             let warnings = [];
-            let type = componentAttributes.type;
+            let type = componentAttributes.type?.value;
             if (!type) {
-                type = parentAttributes.type;
+                type = parentAttributes.type?.value;
             }
             if (!type) {
                 type = "number";
@@ -57,11 +58,17 @@ export class ComponentWithSelectableType extends BaseComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType,
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
                 warnings,
+                nComponents,
             };
         }
 
@@ -216,15 +223,13 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                 matchedChildren,
                 componentAttributes,
                 parentAttributes,
-                isAttributeComponent = false,
-                createdFromMacro = false,
-                componentInfoObjects,
+                nComponents,
             }) {
                 let warnings = [];
 
-                let type = componentAttributes.type;
+                let type = componentAttributes.type?.value;
                 if (!type) {
-                    type = parentAttributes.type;
+                    type = parentAttributes.type?.value;
                 }
                 if (!type) {
                     type = "number";
@@ -249,6 +254,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
 
                 let result = groupIntoComponentTypesSeparatedBySpaces({
                     matchedChildren,
+                    nComponents,
                 });
                 result.warnings = warnings;
                 return result;
@@ -412,6 +418,7 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             matchedChildren,
             componentAttributes,
             parentAttributes,
+            nComponents,
         }) {
             let results = breakEmbeddedStringsIntoParensPieces({
                 componentList: matchedChildren,
@@ -423,9 +430,9 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             }
 
             let warnings = [];
-            let type = componentAttributes.type;
+            let type = componentAttributes.type?.value;
             if (!type) {
-                type = parentAttributes.type;
+                type = parentAttributes.type?.value;
             }
             if (!type) {
                 type = "number";
@@ -439,14 +446,27 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                 type = "number";
             }
 
+            const newChildren = results.pieces.map((x) => ({
+                type: "serialized",
+                componentType: "_componentListWithSelectableType",
+                componentIdx: nComponents++,
+                attributes: {
+                    type: {
+                        type: "primitive",
+                        name: "type",
+                        primitive: { type: "string", value: type },
+                    },
+                },
+                doenetAttributes: {},
+                children: x,
+                state: {},
+            }));
+
             return {
                 success: true,
-                newChildren: results.pieces.map((x) => ({
-                    componentType: "_componentListWithSelectableType",
-                    attributes: { type: { primitive: type } },
-                    children: x,
-                })),
+                newChildren,
                 warnings,
+                nComponents,
             };
         };
 

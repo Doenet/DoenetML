@@ -48,7 +48,7 @@ export default class Angle extends GraphicalComponent {
             createComponentOfType: "math",
         };
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.betweenLines = {
             createComponentOfType: "_lineListComponent",

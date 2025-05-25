@@ -1,8 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { convertAttributesForComponentType } from "../utils/copy";
 import me from "math-expressions";
 import { processAssignNames } from "../utils/naming";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Intersection extends CompositeComponent {
     static componentType = "intersection";
 
@@ -207,8 +206,6 @@ export default class Intersection extends CompositeComponent {
             },
         }));
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let attributesToConvert = {};
         if (component.attributes.styleNumber) {
             attributesToConvert.styleNumber = component.attributes.styleNumber;
@@ -216,14 +213,12 @@ export default class Intersection extends CompositeComponent {
 
         if (Object.keys(attributesToConvert).length > 0) {
             for (let repl of serializedReplacements) {
-                let attributesFromComposite = convertAttributesForComponentType(
-                    {
+                let attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
                         attributes: attributesToConvert,
                         componentType: repl.componentType,
                         componentInfoObjects,
-                        compositeCreatesNewNamespace: newNamespace,
-                    },
-                );
+                    });
 
                 if (!repl.attributes) {
                     repl.attributes = {};
@@ -236,7 +231,6 @@ export default class Intersection extends CompositeComponent {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: serializedReplacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

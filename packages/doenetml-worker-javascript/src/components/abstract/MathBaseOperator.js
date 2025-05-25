@@ -34,7 +34,10 @@ export default class MathOperator extends MathComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakStringsIntoMathsBySpaces = function ({ matchedChildren }) {
+        let breakStringsIntoMathsBySpaces = function ({
+            matchedChildren,
+            nComponents,
+        }) {
             // break any string by white space and wrap pieces with math or number
 
             let newChildren = matchedChildren.reduce(function (a, c) {
@@ -45,10 +48,15 @@ export default class MathOperator extends MathComponent {
                             .split(/\s+/)
                             .filter((s) => s)
                             .map((s) => ({
+                                type: "serialized",
                                 componentType: Number.isFinite(Number(s))
                                     ? "number"
                                     : "math",
+                                componentIdx: nComponents++,
                                 children: [s],
+                                attributes: {},
+                                doenetAttributes: {},
+                                state: {},
                             })),
                     ];
                 } else {
@@ -59,6 +67,7 @@ export default class MathOperator extends MathComponent {
             return {
                 success: true,
                 newChildren: newChildren,
+                nComponents,
             };
         };
 

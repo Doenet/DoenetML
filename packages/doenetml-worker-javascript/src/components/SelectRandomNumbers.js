@@ -1,9 +1,8 @@
-import { convertAttributesForComponentType } from "../utils/copy";
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
 import { processAssignNames } from "../utils/naming";
 import SampleRandomNumbers from "./SampleRandomNumbers";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     static componentType = "selectRandomNumbers";
 
@@ -192,8 +191,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         let errors = [];
         let warnings = [];
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let attributesToConvert = {};
         for (let attr of Object.keys(returnRoundingAttributes())) {
             if (attr in component.attributes) {
@@ -207,12 +204,12 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite = convertAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "number",
-                    componentInfoObjects,
-                    compositeCreatesNewNamespace: newNamespace,
-                });
+                attributesFromComposite =
+                    convertUnresolvedAttributesForComponentType({
+                        attributes: attributesToConvert,
+                        componentType: "number",
+                        componentInfoObjects,
+                    });
             }
 
             replacements.push({
@@ -226,7 +223,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: replacements,
             parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
         errors.push(...processResult.errors);

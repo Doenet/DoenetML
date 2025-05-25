@@ -36,7 +36,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         attributes.endpoints = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
 
         attributes.showCoordsWhenDragging = {

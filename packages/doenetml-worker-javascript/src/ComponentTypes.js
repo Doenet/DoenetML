@@ -36,7 +36,6 @@ import BooleanComponent from "./components/Boolean";
 import BooleanList from "./components/BooleanList";
 import MathComponent from "./components/Math";
 import Copy from "./components/Copy";
-import Extract from "./components/Extract";
 import Collect from "./components/Collect";
 import Ref from "./components/Ref";
 import Point from "./components/Point";
@@ -54,10 +53,10 @@ import Parabola from "./components/Parabola";
 import Curve from "./components/Curve";
 import BezierControls from "./components/BezierControls";
 import ControlVectors from "./components/ControlVectors";
-import PointListComponent from "./components/abstract/PointListComponent";
+import PointList from "./components/PointList";
 import IntervalListComponent from "./components/abstract/IntervalListComponent";
 import LineListComponent from "./components/abstract/LineListComponent";
-import VectorListComponent from "./components/abstract/VectorListComponent";
+import VectorListComponent from "./components/VectorList";
 import AngleListComponent from "./components/abstract/AngleListComponent";
 import Vector from "./components/Vector";
 import Angle from "./components/Angle";
@@ -75,11 +74,10 @@ import Graph from "./components/Graph";
 import Function from "./components/Function";
 import PiecewiseFunction from "./components/PiecewiseFunction";
 import Interval from "./components/Interval";
-import Template from "./components/Template";
 import Option from "./components/Option";
 import Sequence from "./components/Sequence";
-import Map from "./components/Map";
-import Sources from "./components/Sources";
+import Repeat from "./components/Repeat";
+import RepeatForSequence from "./components/RepeatForSequence";
 import Slider from "./components/Slider";
 import Markers from "./components/Markers";
 import Pegboard from "./components/Pegboard";
@@ -236,7 +234,6 @@ const componentTypeArray = [
     TupleList,
     NumberList,
     Copy,
-    Extract,
     Collect,
     Ref,
     Point,
@@ -270,7 +267,6 @@ const componentTypeArray = [
     Function,
     PiecewiseFunction,
     Interval,
-    Template,
     Option,
     Sequence,
     Slider,
@@ -286,8 +282,8 @@ const componentTypeArray = [
     Figure,
     Markers,
     Panel,
-    Map,
-    Sources,
+    Repeat,
+    RepeatForSequence,
     Pegboard,
     Constraints,
     ConstrainToGrid,
@@ -375,7 +371,7 @@ const componentTypeArray = [
     SegmentConstraintComponent,
     Input,
     CompositeComponent,
-    PointListComponent,
+    PointList,
     IntervalListComponent,
     LineListComponent,
     VectorListComponent,

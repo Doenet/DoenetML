@@ -5,9 +5,8 @@ import {
     returnSequenceValues,
 } from "../utils/sequence";
 import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 
-import { convertAttributesForComponentType } from "../utils/copy";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnRoundingAttributes } from "../utils/rounding";
 import { textToMathFactory } from "../utils/math";
 import {
@@ -20,15 +19,10 @@ import {
 export default class SelectFromSequence extends Sequence {
     static componentType = "selectFromSequence";
 
-    static assignNamesToReplacements = true;
-
     static createsVariants = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numToSelect = {
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -233,6 +227,7 @@ export default class SelectFromSequence extends Sequence {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -245,12 +240,18 @@ export default class SelectFromSequence extends Sequence {
             return {
                 replacements: [
                     {
+                        type: "serialized",
                         componentType: "_error",
+                        componentIdx: nComponents++,
                         state: { message: errorMessage },
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
                     },
                 ],
                 errors,
                 warnings,
+                nComponents,
             };
         }
 
@@ -258,8 +259,6 @@ export default class SelectFromSequence extends Sequence {
         if (componentType === "letters") {
             componentType = "text";
         }
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let attributesToConvert = {};
         for (let attr of [
@@ -277,50 +276,49 @@ export default class SelectFromSequence extends Sequence {
         let attributesFromComposite = {};
 
         if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite = convertAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType,
-                componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
-            });
+            const res = (attributesFromComposite =
+                convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType,
+                    componentInfoObjects,
+                    nComponents,
+                }));
+
+            nComponents = res.nComponents;
+            attributesFromComposite = res.attributes;
         }
 
         let replacements = [];
 
         for (let value of await component.stateValues.selectedValues) {
             replacements.push({
+                type: "serialized",
                 componentType,
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
+                doenetAttributes: {},
+                children: [],
                 state: { value, fixed: true },
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static calculateReplacementChanges() {
-        return [];
+        return { replacementChanges: [] };
     }
 
     static determineNumberOfUniqueVariants({ serializedComponent }) {
         let numToSelect = 1,
             withReplacement = false;
 
-        let sequenceType = serializedComponent.attributes.type.primitive;
+        let sequenceType = serializedComponent.attributes.type.primitive.value;
 
         let numToSelectComponent =
             serializedComponent.attributes.numToSelect?.component;

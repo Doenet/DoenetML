@@ -25,7 +25,7 @@ export default class Circle extends Curve {
         let attributes = super.createAttributesObject();
 
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.center = {
             createComponentOfType: "point",

@@ -4,7 +4,7 @@ use anyhow::anyhow;
 
 use super::{
     flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent},
-    ref_resolve::{RefResolution, Resolver},
+    ref_resolve::{RefResolution, ResolutionError, Resolver},
     DastElement, DastElementContent, DastError,
 };
 
@@ -45,7 +45,7 @@ impl Expander {
                     // Expanding a ref is can be done with a single replacement.
 
                     //flat_root.nodes[idx] = resolved
-                    match resolver.resolve(&ref_.path, ref_.idx) {
+                    match resolver.resolve(&ref_.path, ref_.idx, false) {
                         Ok(ref_resolution) => {
                             // Get the tag name of the referent
                             let name = match &flat_root.nodes[ref_resolution.node_idx] {
@@ -59,6 +59,7 @@ impl Expander {
                                 children: Vec::new(),
                                 name,
                                 position: ref_.position.clone(),
+                                children_position: None,
                                 extending: Some(Source::Ref(ref_resolution)),
                             })
                         }
@@ -66,6 +67,11 @@ impl Expander {
                             idx: ref_.idx,
                             parent: ref_.parent,
                             message: format!("Ref resolution error: {}", err),
+                            unresolved_path: if let ResolutionError::NoReferent = err {
+                                Some(ref_.path.clone())
+                            } else {
+                                None
+                            },
                             position: ref_.position.clone(),
                         }),
                     }
@@ -73,71 +79,81 @@ impl Expander {
                 FlatNode::FunctionRef(function_ref) => {
                     // A function ref `$$f(x)` becomes `<evaluate extend="f"><ol><li>x</li></ol></evaluate>`
                     // This involves creating multiple new nodes and setting them as children of the `evaluate` node.
-                    let resolved = match resolver.resolve(&function_ref.path, function_ref.idx) {
-                        Ok(ref_resolution) => {
-                            let mut evaluate_node = FlatElement {
-                                idx: function_ref.idx,
-                                parent: function_ref.parent,
-                                attributes: Vec::new(),
-                                children: Vec::new(),
-                                name: "evaluate".to_string(),
-                                position: function_ref.position.clone(),
-                                extending: Some(Source::Ref(ref_resolution)),
-                            };
-                            // An `<evaluate />` node's children are the inputs to the function.
-                            // They take the form of an ordered list of `<li />` nodes.
-                            if let Some(inputs) = &function_ref.input {
-                                // We create the children of `evaluate_node` in two steps. First we create the `<ol />` node
-                                // with the correct number of `<li />` children. Then we set the `<li />` children to be the
-                                // inputs to the function.
-                                let dast_ol = DastElement {
-                                    name: "ol".to_string(),
-                                    attributes: HashMap::new(),
-                                    children: inputs
-                                        .iter()
-                                        .map(|_| DastElementContent::element_with_name("li"))
-                                        .collect(),
+                    let resolved =
+                        match resolver.resolve(&function_ref.path, function_ref.idx, false) {
+                            Ok(ref_resolution) => {
+                                let mut evaluate_node = FlatElement {
+                                    idx: function_ref.idx,
+                                    parent: function_ref.parent,
+                                    attributes: Vec::new(),
+                                    children: Vec::new(),
+                                    name: "evaluate".to_string(),
                                     position: function_ref.position.clone(),
-                                    data: None,
+                                    children_position: None,
+                                    extending: Some(Source::Ref(ref_resolution)),
                                 };
-                                // Insert the `ol` into `flat_root`
-                                let ol = flat_root.merge_content(
-                                    &DastElementContent::Element(dast_ol),
-                                    Some(idx),
-                                );
-                                // The `<li>` tags are the exclusive children of the `<ol>` tag.
-                                // We created the same number of `<li>` tags as there are `inputs`.
-                                let li_node_indices =
-                                    match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
-                                        FlatNode::Element(e) => e,
-                                        _ => panic!("Expected an element"),
-                                    }
-                                    .children
-                                    .iter()
-                                    .map(lookup_idx)
-                                    .collect::<Vec<_>>();
+                                // An `<evaluate />` node's children are the inputs to the function.
+                                // They take the form of an ordered list of `<li />` nodes.
+                                if let Some(inputs) = &function_ref.input {
+                                    // We create the children of `evaluate_node` in two steps. First we create the `<ol />` node
+                                    // with the correct number of `<li />` children. Then we set the `<li />` children to be the
+                                    // inputs to the function.
+                                    let dast_ol = DastElement {
+                                        name: "ol".to_string(),
+                                        attributes: HashMap::new(),
+                                        children: inputs
+                                            .iter()
+                                            .map(|_| DastElementContent::element_with_name("li"))
+                                            .collect(),
+                                        position: function_ref.position.clone(),
+                                        data: None,
+                                    };
+                                    // Insert the `ol` into `flat_root`
+                                    let ol = flat_root.merge_content(
+                                        &DastElementContent::Element(dast_ol),
+                                        Some(idx),
+                                    );
+                                    // The `<li>` tags are the exclusive children of the `<ol>` tag.
+                                    // We created the same number of `<li>` tags as there are `inputs`.
+                                    let li_node_indices =
+                                        match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
+                                            FlatNode::Element(e) => e,
+                                            _ => panic!("Expected an element"),
+                                        }
+                                        .children
+                                        .iter()
+                                        .map(lookup_idx)
+                                        .collect::<Vec<_>>();
 
-                                // Set the inputs as children of the `li` nodes.
-                                for (input_content, li_idx) in inputs.iter().zip(li_node_indices) {
-                                    // `input_content` (the argument to the function) have already been inserted into flat_root.nodes
-                                    // so we can safely clone `input_content` and set it as children. All references contained
-                                    // within should be valid.
-                                    flat_root.set_children(li_idx.unwrap(), input_content.clone());
+                                    // Set the inputs as children of the `li` nodes.
+                                    for (input_content, li_idx) in
+                                        inputs.iter().zip(li_node_indices)
+                                    {
+                                        // `input_content` (the argument to the function) have already been inserted into flat_root.nodes
+                                        // so we can safely clone `input_content` and set it as children. All references contained
+                                        // within should be valid.
+                                        flat_root
+                                            .set_children(li_idx.unwrap(), input_content.clone());
+                                    }
+
+                                    // Set the `ol` as a child of the `evaluate` node.
+                                    evaluate_node.children.push(ol);
                                 }
 
-                                // Set the `ol` as a child of the `evaluate` node.
-                                evaluate_node.children.push(ol);
+                                FlatNode::Element(evaluate_node)
                             }
-
-                            FlatNode::Element(evaluate_node)
-                        }
-                        Err(err) => FlatNode::Error(FlatError {
-                            idx: function_ref.idx,
-                            parent: function_ref.parent,
-                            message: format!("Ref resolution error: {}", err),
-                            position: function_ref.position.clone(),
-                        }),
-                    };
+                            Err(err) => FlatNode::Error(FlatError {
+                                idx: function_ref.idx,
+                                parent: function_ref.parent,
+                                message: format!("Ref resolution error: {}", err),
+                                unresolved_path: if let ResolutionError::NoReferent = err {
+                                    Some(function_ref.path.clone())
+                                } else {
+                                    None
+                                },
+                                position: function_ref.position.clone(),
+                            }),
+                        };
 
                     resolved
                 }

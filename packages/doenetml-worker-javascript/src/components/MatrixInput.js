@@ -154,14 +154,21 @@ export class MatrixInput extends Input {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let addMatrixInputGrid = function ({ matchedChildren }) {
+        let addMatrixInputGrid = function ({ matchedChildren, nComponents }) {
             let matrixInputGrid = {
+                type: "serialized",
                 componentType: "_matrixInputGrid",
+                componentIdx: nComponents++,
+                attributes: {},
+                doenetAttributes: {},
+                children: [],
+                state: {},
             };
 
             return {
                 success: true,
                 newChildren: [matrixInputGrid, ...matchedChildren],
+                nComponents,
             };
         };
         sugarInstructions.push({
@@ -2953,6 +2960,7 @@ export class MatrixInputGrid extends CompositeComponent {
         componentInfoObjects,
         flags,
         workspace,
+        nComponents,
     }) {
         let serializedComponents = [];
 
@@ -2962,13 +2970,22 @@ export class MatrixInputGrid extends CompositeComponent {
 
         for (let rowInd = 0; rowInd < numRows; rowInd++) {
             serializedComponents.push({
+                type: "serialized",
                 componentType: "_matrixInputRow",
+                componentIdx: nComponents++,
                 state: { rowInd },
-                uniqueIdentifier: rowInd,
+                attributes: {},
+                doenetAttributes: {},
+                children: [],
             });
         }
 
-        return { replacements: serializedComponents, errors: [], warnings: [] };
+        return {
+            replacements: serializedComponents,
+            errors: [],
+            warnings: [],
+            nComponents,
+        };
     }
 
     static async calculateReplacementChanges({
@@ -2977,6 +2994,7 @@ export class MatrixInputGrid extends CompositeComponent {
         componentInfoObjects,
         flags,
         workspace,
+        nComponents,
     }) {
         let replacementChanges = [];
 
@@ -3030,9 +3048,13 @@ export class MatrixInputGrid extends CompositeComponent {
 
             for (let rowInd = previousNumRows; rowInd < numRows; rowInd++) {
                 newSerializedReplacements.push({
+                    type: "serialized",
                     componentType: "_matrixInputRow",
+                    componentIdx: nComponents++,
                     state: { rowInd },
-                    uniqueIdentifier: rowInd,
+                    attributes: {},
+                    doenetAttributes: {},
+                    children: [],
                 });
             }
 
@@ -3042,14 +3064,13 @@ export class MatrixInputGrid extends CompositeComponent {
                 firstReplacementInd: previousNumRows,
                 serializedReplacements: newSerializedReplacements,
                 replacementsToWithhold: 0,
-                assignNamesOffset: previousNumRows,
             };
             replacementChanges.push(replacementInstruction);
         }
 
         workspace.previousNumRows = numRows;
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 }
 
@@ -3111,6 +3132,7 @@ export class MatrixInputRow extends CompositeComponent {
         componentInfoObjects,
         flags,
         workspace,
+        nComponents,
     }) {
         let serializedComponents = [];
 
@@ -3121,20 +3143,30 @@ export class MatrixInputRow extends CompositeComponent {
 
         for (let colInd = 0; colInd < numColumns; colInd++) {
             serializedComponents.push({
+                type: "serialized",
                 componentType: "_matrixComponentInput",
+                componentIdx: nComponents++,
                 state: {
                     rowInd,
                     colInd,
                 },
-                uniqueIdentifier: colInd,
+                attributes: {},
+                doenetAttributes: {},
+                children: [],
             });
         }
 
-        return { replacements: serializedComponents, errors: [], warnings: [] };
+        return {
+            replacements: serializedComponents,
+            errors: [],
+            warnings: [],
+            nComponents,
+        };
     }
 
     static async calculateReplacementChanges({
         component,
+        nComponents,
         componentChanges,
         componentInfoObjects,
         flags,
@@ -3198,12 +3230,16 @@ export class MatrixInputRow extends CompositeComponent {
                 colInd++
             ) {
                 newSerializedReplacements.push({
+                    type: "serialized",
                     componentType: "_matrixComponentInput",
+                    componentIdx: nComponents++,
                     state: {
                         rowInd,
                         colInd,
                     },
-                    uniqueIdentifier: colInd,
+                    attributes: {},
+                    doenetAttributes: {},
+                    children: [],
                 });
             }
 
@@ -3213,14 +3249,13 @@ export class MatrixInputRow extends CompositeComponent {
                 firstReplacementInd: previousNumColumns,
                 serializedReplacements: newSerializedReplacements,
                 replacementsToWithhold: 0,
-                assignNamesOffset: previousNumColumns,
             };
             replacementChanges.push(replacementInstruction);
         }
 
         workspace.previousNumColumns = numColumns;
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 }
 

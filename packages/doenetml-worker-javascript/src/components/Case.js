@@ -1,7 +1,12 @@
-import Template from "./Template";
+import Group from "./Group";
 
-export default class Case extends Template {
+export default class Case extends Group {
     static componentType = "case";
+
+    static inSchemaOnlyInheritAs = [];
+    static allowInSchemaAsComponent = undefined;
+
+    static renderedDefault = false;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -44,14 +49,19 @@ export default class Case extends Template {
         return stateVariableDefinitions;
     }
 
-    static createSerializedReplacements({ component, componentInfoObjects }) {
+    static createSerializedReplacements({
+        component,
+        componentInfoObjects,
+        nComponents,
+    }) {
         if (!component.stateValues.conditionSatisfied) {
-            return { replacements: [], errors: [], warnings: [] };
+            return { replacements: [], errors: [], warnings: [], nComponents };
         }
 
         return super.createSerializedReplacements({
             component,
             componentInfoObjects,
+            nComponents,
         });
     }
 }
