@@ -1,10 +1,4 @@
-import {
-    Box,
-    Button,
-    Flex,
-    Switch,
-    Icon,
-} from "@chakra-ui/react";
+import { Box, Button, Switch, Icon } from "@chakra-ui/react";
 import React, {
     ReactElement,
     useCallback,
@@ -299,68 +293,6 @@ export function EditorViewer({
         };
     }, []);
 
-    let formatterAndVersion: React.ReactNode = null;
-
-    formatterAndVersion = (
-        <Flex
-            ml="0px"
-            h="32px"
-            bg="doenet.mainGray"
-            pl="10px"
-            pt="1px"
-            alignItems="center"
-            justify="end"
-            spaceX={2}
-            px={2}
-        >
-            {showFormatter ? (
-                <>
-                    <Box minWidth={"12em"}>
-                        <Switch.Root
-                            title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
-                            checked={formatAsDoenetML}
-                            onCheckedChange={(e) => {
-                                setFormatAsDoenetML(e.checked);
-                            }}
-                        >
-                            <Switch.HiddenInput />
-                            <Switch.Control>
-                                <Switch.Thumb />
-                            </Switch.Control>
-                            <Switch.Label>
-                                Format as{" "}
-                                {formatAsDoenetML ? "DoenetML" : "XML"}
-                            </Switch.Label>
-                        </Switch.Root>
-                    </Box>
-                    <Box>
-                        <Button
-                            size="xs"
-                            px="4"
-                            mr="10px"
-                            title="Format your source code"
-                            onClick={async () => {
-                                const printed = await prettyPrint(
-                                    editorDoenetMLRef.current,
-                                    {
-                                        doenetSyntax: formatAsDoenetML,
-                                        tabWidth: 2,
-                                    },
-                                );
-                                onEditorChange(printed);
-                            }}
-                        >
-                            Format
-                        </Button>
-                    </Box>
-                </>
-            ) : null}
-            <Box alignSelf="center" fontSize="smaller" mr="10px">
-                Version: {DOENETML_VERSION}
-            </Box>
-        </Flex>
-    );
-
     const errorsWarningsResponses =
         showErrorsWarnings || showResponses ? (
             <ErrorWarningResponseTabs
@@ -409,7 +341,50 @@ export function EditorViewer({
             <div className="editor-and-collapsible-panel">
                 {editorAndCollapsiblePanel}
             </div>
-            <div className="formatter-and-version">{formatterAndVersion}</div>
+            <div className="formatter-and-version">
+                {showFormatter ? (
+                    <>
+                        <Box minWidth={"12em"}>
+                            <Switch.Root
+                                title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
+                                checked={formatAsDoenetML}
+                                onCheckedChange={(e) => {
+                                    setFormatAsDoenetML(e.checked);
+                                }}
+                            >
+                                <Switch.HiddenInput />
+                                <Switch.Control>
+                                    <Switch.Thumb />
+                                </Switch.Control>
+                                <Switch.Label>
+                                    Format as{" "}
+                                    {formatAsDoenetML ? "DoenetML" : "XML"}
+                                </Switch.Label>
+                            </Switch.Root>
+                        </Box>
+                        <Button
+                            size="xs"
+                            px="4"
+                            title="Format your source code"
+                            onClick={async () => {
+                                const printed = await prettyPrint(
+                                    editorDoenetMLRef.current,
+                                    {
+                                        doenetSyntax: formatAsDoenetML,
+                                        tabWidth: 2,
+                                    },
+                                );
+                                onEditorChange(printed);
+                            }}
+                        >
+                            Format
+                        </Button>
+                    </>
+                ) : null}
+                <Box alignSelf="center" fontSize="smaller" mr="10px">
+                    Version: {DOENETML_VERSION}
+                </Box>
+            </div>
         </div>
     );
 

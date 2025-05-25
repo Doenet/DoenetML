@@ -8,6 +8,15 @@
     overflow: hidden;
 }
 
+.editor-panel .formatter-and-version {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.1rem 1rem;
+    gap: 0.5rem;
+    background-color: var(--chakra-colors-doenet-main-gray);
+}
+
 .viewer-panel {
     display: flex;
     flex-direction: column;
@@ -17,7 +26,7 @@
     display: flex;
     align-items: center;
     padding: 0.1rem 0.5rem;
-    background-color: var(--chakra-colors-doenet-light-gray);
+    background-color: var(--chakra-colors-doenet-main-gray);
     border-bottom: 1px solid var(--chakra-colors-doenet-medium-gray);
 }
 .viewer-panel .viewer {
