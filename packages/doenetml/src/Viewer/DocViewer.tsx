@@ -592,7 +592,7 @@ export function DocViewer({
                 dispatch(
                     mainThunks.updateRendererSVs({
                         coreId: coreId.current,
-                        componentIdx: Number(componentIdx),
+                        componentIdx: componentIdx,
                         stateValues:
                             args.rendererState[componentIdx].stateValues,
                         childrenInstructions:
