@@ -277,9 +277,7 @@ export function DoenetViewer({
     );
 
     return (
-        <ChakraProvider
-            value={system}
-        >
+        <ChakraProvider value={system}>
             <ReduxProvider store={store}>
                 <MathJaxContext
                     version={3}
@@ -385,9 +383,7 @@ export function DoenetEditor({
     );
 
     return (
-        <ChakraProvider
-            value={system}
-        >
+        <ChakraProvider value={system}>
             <ReduxProvider store={store}>
                 <MathJaxContext
                     version={3}
