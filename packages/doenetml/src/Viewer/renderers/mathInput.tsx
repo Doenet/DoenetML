@@ -205,12 +205,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
     };
 
     const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
-        callAction({
-            action: actions.updateValue,
-            baseVariableValue: rendererValue.current,
-        });
-        setFocused(false);
-
         lastBlurTime.current = +new Date();
 
         // If the blur was immediately preceded by a keyboard access,
@@ -220,6 +214,14 @@ export default function MathInput(props: UseDoenetRendererProps) {
         keyboardCausedBlur.current =
             Math.abs(lastKeyboardAccessTime.current - lastBlurTime.current) <
             100;
+
+        if (!keyboardCausedBlur.current) {
+            callAction({
+                action: actions.updateValue,
+                baseVariableValue: rendererValue.current,
+            });
+            setFocused(false);
+        }
     };
 
     const onChangeHandler = (text: string) => {
