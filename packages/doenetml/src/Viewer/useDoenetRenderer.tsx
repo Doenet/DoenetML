@@ -1,29 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { atomFamily, useRecoilValue } from "recoil";
 import { renderersLoadComponent } from "./DocViewer";
 import { cesc } from "@doenet/utils";
 import { mainSlice, useAppSelector } from "../state";
-
-export const rendererState = atomFamily<
-    {
-        stateValues: Record<string, any>;
-        sourceOfUpdate?: Record<string, any>;
-        ignoreUpdate: boolean;
-        childrenInstructions: Record<string, any>[];
-        prefixForIds: string;
-    },
-    string
->({
-    key: "rendererState",
-    default: {
-        stateValues: {},
-        sourceOfUpdate: {},
-        ignoreUpdate: false,
-        childrenInstructions: [],
-        prefixForIds: "",
-    },
-    // dangerouslyAllowMutability: true,
-});
 
 export type UseDoenetRendererProps = {
     coreId: string;
@@ -50,31 +28,21 @@ export default function useDoenetRenderer(
     props: UseDoenetRendererProps,
     initializeChildrenOnConstruction = true,
 ) {
-    let actions = props.componentInstructions.actions;
-    let componentIdx = props.componentInstructions.componentIdx;
-    let effectiveName = props.componentInstructions.effectiveName;
-    let rendererName = props.coreId + componentIdx;
-    let [renderersToLoad, setRenderersToLoad] = useState({});
-    //console.log(
-    //    "Using DoenetRenderer",
-    //    rendererName,
-    //    props,
-    //    renderersToLoad,
-    //    //useAppSelector((state) => state),
-    //);
+    const actions = props.componentInstructions.actions;
+    const componentIdx = props.componentInstructions.componentIdx;
+    const effectiveName = props.componentInstructions.effectiveName;
+    const rendererName = props.coreId + componentIdx;
+    const [renderersToLoad, setRenderersToLoad] = useState({});
 
-    let {
+    const {
         stateValues,
         sourceOfUpdate = {},
         ignoreUpdate,
         childrenInstructions,
         prefixForIds,
-    } = useRecoilValue(rendererState(rendererName));
-    //console.log(
-    //    "   Use recoil value",
-    //    useRecoilValue(rendererState(rendererName)),
-    //    rendererState(rendererName),
-    //);
+    } = useAppSelector(
+        (state) => mainSlice.selectors.componentInfo(state)[rendererName],
+    );
 
     //TODO: Fix this for graph
     // if (initializeChildrenOnConstruction

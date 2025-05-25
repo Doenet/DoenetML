@@ -12,7 +12,7 @@ export type IframeMessage = {
 };
 
 /**
- * Virtual keyboard that is connected via Recoil to math elements.
+ * Virtual keyboard that is connected via `<mathInput>` elements.
  */
 export function ExternalVirtualKeyboard() {
     return (

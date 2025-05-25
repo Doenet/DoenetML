@@ -2,7 +2,6 @@ import "./DoenetML.css";
 import seedrandom from "seedrandom";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
-import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
 import type { ErrorDescription, WarningDescription } from "@doenet/utils";
@@ -285,25 +284,23 @@ export function DoenetViewer({
             disableGlobalStyle
         >
             <ReduxProvider store={store}>
-                <RecoilRoot>
-                    <MathJaxContext
-                        version={3}
-                        config={mathjaxConfig}
-                        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
-                    >
-                        <div ref={ref}>
-                            <WrapWithKeyboard
-                                addVirtualKeyboard={addVirtualKeyboard}
-                                externalVirtualKeyboardProvided={
-                                    externalVirtualKeyboardProvided
-                                }
-                            >
-                                {variantSelector}
-                                {viewer}
-                            </WrapWithKeyboard>
-                        </div>
-                    </MathJaxContext>
-                </RecoilRoot>
+                <MathJaxContext
+                    version={3}
+                    config={mathjaxConfig}
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                >
+                    <div ref={ref}>
+                        <WrapWithKeyboard
+                            addVirtualKeyboard={addVirtualKeyboard}
+                            externalVirtualKeyboardProvided={
+                                externalVirtualKeyboardProvided
+                            }
+                        >
+                            {variantSelector}
+                            {viewer}
+                        </WrapWithKeyboard>
+                    </div>
+                </MathJaxContext>
             </ReduxProvider>
         </ChakraProvider>
     );
@@ -397,22 +394,20 @@ export function DoenetEditor({
             disableGlobalStyle
         >
             <ReduxProvider store={store}>
-                <RecoilRoot>
-                    <MathJaxContext
-                        version={3}
-                        config={mathjaxConfig}
-                        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                <MathJaxContext
+                    version={3}
+                    config={mathjaxConfig}
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                >
+                    <WrapWithKeyboard
+                        addVirtualKeyboard={addVirtualKeyboard}
+                        externalVirtualKeyboardProvided={
+                            externalVirtualKeyboardProvided
+                        }
                     >
-                        <WrapWithKeyboard
-                            addVirtualKeyboard={addVirtualKeyboard}
-                            externalVirtualKeyboardProvided={
-                                externalVirtualKeyboardProvided
-                            }
-                        >
-                            {editor}
-                        </WrapWithKeyboard>
-                    </MathJaxContext>
-                </RecoilRoot>
+                        {editor}
+                    </WrapWithKeyboard>
+                </MathJaxContext>
             </ReduxProvider>
         </ChakraProvider>
     );

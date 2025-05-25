@@ -136,7 +136,6 @@
         "react-redux": "^9.2.0",
         "react-resizable-panels": "^3.0.1",
         "react18-json-view": "^0.2.9",
-        "recoil": "^0.7.7",
         "rollup-plugin-polyfill-node": "^0.13.0",
         "rollup-plugin-visualizer": "^5.14.0",
         "seedrandom": "^3.0.5",
