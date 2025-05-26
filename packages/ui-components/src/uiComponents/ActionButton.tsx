@@ -1,7 +1,10 @@
 import React from "react";
 import styled from "styled-components";
 
-const Button = styled.button`
+const Button = styled.button<{
+    width?: string;
+    alert?: boolean;
+}>`
     margin: ${(props) => props.theme.margin};
     height: 24px;
     width: ${(props) => props.width};
@@ -37,7 +40,10 @@ Button.defaultProps = {
     },
 };
 
-const Label = styled.p`
+const Label = styled.p<{
+    labelVisible: string;
+    align?: string;
+}>`
     font-size: 14px;
     display: ${(props) => props.labelVisible};
     margin-right: 5px;
@@ -45,20 +51,38 @@ const Label = styled.p`
     margin-bottom: ${(props) => (props.align == "flex" ? "none" : "2px")};
 `;
 
-const Container = styled.div`
+const Container = styled.div<{
+    align?: string;
+}>`
     display: ${(props) => props.align};
     /* width: 100%; */
     min-width: 0;
     align-items: center;
 `;
 
-export function ActionButton(props) {
-    const alert = props.alert ? props.alert : null;
+export function ActionButton(props: {
+    id?: string;
+    dataTest?: string;
+    width?: string;
+    label?: string;
+    value?: string;
+    icon?: React.ReactNode;
+    vertical?: boolean;
+    num?: "first" | "last" | "first_vert" | "last_vert";
+    disabled?: boolean;
+    overflow?: "no_overflow";
+    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    alert?: boolean;
+}) {
+    const alert = props.alert ? props.alert : false;
     //Assume small
 
-    var container = {};
+    var container: React.CSSProperties = {};
     var align = "flex";
-    var actionButton = {
+    var actionButton: React.CSSProperties & {
+        value: string;
+        whitespace?: string;
+    } = {
         value: "Action Button",
     };
 
@@ -83,7 +107,7 @@ export function ActionButton(props) {
         }
     }
 
-    var icon = "";
+    var icon: React.ReactNode = "";
     if (props.value || props.icon) {
         if (props.value && props.icon) {
             icon = props.icon;
@@ -124,34 +148,30 @@ export function ActionButton(props) {
         actionButton.whitespace = "nowrap";
     }
 
-    function handleClick(e) {
-        if (props.onClick) props.onClick(e);
-    }
-
     return (
-        <>
-            <Container style={container} align={align}>
-                <Label labelVisible={labelVisible} align={align}>
-                    {label}
-                </Label>
-                <Button
-                    aria-labelledby={label}
-                    aria-label={actionButton.value}
-                    aria-disabled={props.disabled}
-                    id={props.id}
-                    data-test={props.dataTest}
-                    style={actionButton}
-                    alert={alert}
-                    disabled={props.disabled}
-                    onClick={(e) => {
-                        if (props.disabled !== true) {
-                            handleClick(e);
+        <Container style={container} align={align}>
+            <Label labelVisible={labelVisible} align={align}>
+                {label}
+            </Label>
+            <Button
+                aria-labelledby={label}
+                aria-label={actionButton.value}
+                aria-disabled={props.disabled}
+                id={props.id}
+                data-test={props.dataTest}
+                style={actionButton}
+                alert={alert}
+                disabled={props.disabled}
+                onClick={(e) => {
+                    if (props.disabled !== true) {
+                        if (props.onClick) {
+                            props.onClick(e);
                         }
-                    }}
-                >
-                    {icon} {actionButton.value}
-                </Button>
-            </Container>
-        </>
+                    }
+                }}
+            >
+                {icon} {actionButton.value}
+            </Button>
+        </Container>
     );
 }
