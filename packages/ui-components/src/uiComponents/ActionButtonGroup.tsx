@@ -45,12 +45,14 @@ const verticalActionGroup = {
     outlineOffset: "-6px",
 };
 
-export const ActionButtonGroup = (props: React.PropsWithChildren<{
-    vertical?: boolean;
-    width?: "menu" | string;
-    label?: string;
-    verticalLabel?: boolean;
-}>) => {
+export const ActionButtonGroup = (
+    props: React.PropsWithChildren<{
+        vertical?: boolean;
+        width?: "menu" | string;
+        label?: string;
+        verticalLabel?: boolean;
+    }>,
+) => {
     let first_prop = props.vertical ? "first_vert" : "first";
     let last_prop = props.vertical ? "last_vert" : "last";
     let overflow_prop = props.width ? "no_overflow" : "overflow";
