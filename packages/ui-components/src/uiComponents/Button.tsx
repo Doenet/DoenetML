@@ -68,6 +68,8 @@ const Container = styled.div<{ align?: string }>`
 `;
 
 export function Button(props: {
+    id?: string;
+    fillColor?: string;
     width?: string;
     label?: string;
     value?: string;
