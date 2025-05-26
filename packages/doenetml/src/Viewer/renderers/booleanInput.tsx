@@ -8,9 +8,7 @@ import {
     faLevelDownAlt,
     faTimes,
     faCloud,
-    faPercentage,
 } from "@fortawesome/free-solid-svg-icons";
-import { rendererState } from "../useDoenetRenderer";
 import { ToggleButton } from "@doenet/ui-components";
 import styled from "styled-components";
 import "./booleanInput.css";
