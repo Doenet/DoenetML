@@ -33,6 +33,9 @@ export default function useDoenetRenderer(
     const effectiveName = props.componentInstructions.effectiveName;
     const rendererName = props.coreId + componentIdx;
     const [renderersToLoad, setRenderersToLoad] = useState({});
+    const componentInfo = useAppSelector(
+        (state) => mainSlice.selectors.componentInfo(state)[rendererName],
+    );
 
     const {
         stateValues,
@@ -40,16 +43,13 @@ export default function useDoenetRenderer(
         ignoreUpdate,
         childrenInstructions,
         prefixForIds,
-    }: ComponentInfo = useAppSelector(
-        (state) =>
-            mainSlice.selectors.componentInfo(state)[rendererName] || {
-                stateValues: {},
-                sourceOfUpdate: {},
-                ignoreUpdate: false,
-                childrenInstructions: [],
-                prefixForIds: "",
-            },
-    );
+    }: ComponentInfo = componentInfo || {
+        stateValues: {},
+        sourceOfUpdate: {},
+        ignoreUpdate: false,
+        childrenInstructions: [],
+        prefixForIds: "",
+    };
 
     //TODO: Fix this for graph
     // if (initializeChildrenOnConstruction
