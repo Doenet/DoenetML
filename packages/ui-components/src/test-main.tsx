@@ -5,11 +5,11 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Button } from "./uiComponents/Button";
-import { ActionButton } from "./uiComponents/ActionButton";
-import { ActionButtonGroup } from "./uiComponents/ActionButtonGroup";
-import { ToggleButton } from "./uiComponents/ToggleButton";
-import { ToggleButtonGroup } from "./uiComponents/ToggleButtonGroup";
+import { Button } from "./components/Button";
+import { ActionButton } from "./components/ActionButton";
+import { ActionButtonGroup } from "./components/ActionButtonGroup";
+import { ToggleButton } from "./components/ToggleButton";
+import { ToggleButtonGroup } from "./components/ToggleButtonGroup";
 import { MathJaxContext } from "better-react-mathjax";
 import "@doenet/doenetml/style.css";
 
