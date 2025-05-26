@@ -175,26 +175,24 @@ export function ToggleButton(props: {
     }
 
     return (
-        <>
-            <div style={container}>
-                <p id="toggle-button-label" style={label}>
-                    {label.value}
-                </p>
-                <Button
-                    aria-labelledby="toggle-button-label"
-                    aria-pressed={props.isSelected}
-                    aria-disabled={props.disabled ? true : false}
-                    id={props.id}
-                    style={toggleButton}
-                    disabled={disabled}
-                    alert={alert}
-                    onClick={() => {
-                        handleClick();
-                    }}
-                >
-                    {icon} {toggleButton.value}
-                </Button>
-            </div>
-        </>
+        <div style={container}>
+            <p id="toggle-button-label" style={label}>
+                {label.value}
+            </p>
+            <Button
+                aria-labelledby="toggle-button-label"
+                aria-pressed={props.isSelected}
+                aria-disabled={props.disabled ? true : false}
+                id={props.id}
+                style={toggleButton}
+                disabled={disabled}
+                alert={alert}
+                onClick={() => {
+                    handleClick();
+                }}
+            >
+                {icon} {toggleButton.value}
+            </Button>
+        </div>
     );
 }

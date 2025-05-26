@@ -93,25 +93,21 @@ export const ActionButtonGroup = (
     }
 
     return (
-        <>
-            <LabelContainer
-                align={align}
-                alignItems={alignItems}
-                width={props.width}
-            >
-                <Label labelVisible={labelVisible} align={align}>
-                    {label}
-                </Label>
-                <Container vertical={props.vertical}>
-                    <ThemeProvider
-                        theme={
-                            props.vertical ? verticalActionGroup : actionGroup
-                        }
-                    >
-                        {elem}
-                    </ThemeProvider>
-                </Container>
-            </LabelContainer>
-        </>
+        <LabelContainer
+            align={align}
+            alignItems={alignItems}
+            width={props.width}
+        >
+            <Label labelVisible={labelVisible} align={align}>
+                {label}
+            </Label>
+            <Container vertical={props.vertical}>
+                <ThemeProvider
+                    theme={props.vertical ? verticalActionGroup : actionGroup}
+                >
+                    {elem}
+                </ThemeProvider>
+            </Container>
+        </LabelContainer>
     );
 };
