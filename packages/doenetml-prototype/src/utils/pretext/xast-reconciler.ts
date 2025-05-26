@@ -130,34 +130,6 @@ const HOST_CONFIG: HostConfig<
         return false;
     },
 
-    //commitUpdate(instance, type, prevProps, nextProps, internalHandle) {
-    //
-    //},
-
-    //prepareUpdate(
-    //    instance,
-    //    type,
-    //    oldProps,
-    //    newProps,
-    //    rootContainerInstance,
-    //    hostContext,
-    //) {
-    //    const { children, ...rest } = newProps;
-    //    // We don't need to be efficient and calculate a diff. Just update all the props each time.
-    //    return rest;
-    //},
-
-    //commitUpdate(
-    //    instance,
-    //    updatePayload: Xast.Attributes,
-    //    type,
-    //    oldProps,
-    //    newProps,
-    //    internalInstanceHandle,
-    //) {
-    //    instance.attributes = { ...instance.attributes, ...updatePayload };
-    //},
-
     commitTextUpdate(textInstance, oldText, newText) {
         textInstance.value = newText;
     },
