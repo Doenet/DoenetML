@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { renderersLoadComponent } from "./DocViewer";
 import { cesc } from "@doenet/utils";
-import { mainSlice, useAppSelector } from "../state";
+import { ComponentInfo, mainSlice, useAppSelector } from "../state";
 
 export type UseDoenetRendererProps = {
     coreId: string;
@@ -40,8 +40,15 @@ export default function useDoenetRenderer(
         ignoreUpdate,
         childrenInstructions,
         prefixForIds,
-    } = useAppSelector(
-        (state) => mainSlice.selectors.componentInfo(state)[rendererName],
+    }: ComponentInfo = useAppSelector(
+        (state) =>
+            mainSlice.selectors.componentInfo(state)[rendererName] || {
+                stateValues: {},
+                sourceOfUpdate: {},
+                ignoreUpdate: false,
+                childrenInstructions: [],
+                prefixForIds: "",
+            },
     );
 
     //TODO: Fix this for graph
@@ -98,6 +105,8 @@ export default function useDoenetRenderer(
                 setRenderersToLoad((old: Promise<any>[]) => {
                     let rendererPromises = { ...old };
                     if (!(childInstructions.rendererType in rendererPromises)) {
+                        // XXX: these import file extensions aren't correct for components that have been converted to .tsx
+                        // but this shouldn't really be used right now. It should be cleaned up at some point.
                         rendererPromises[childInstructions.rendererType] =
                             import(
                                 `./renderers/${childInstructions.rendererType}.jsx`
