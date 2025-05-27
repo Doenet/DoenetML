@@ -5,12 +5,14 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
+import "."
 import { Button } from "./components/Button";
 import { ActionButton } from "./components/ActionButton";
 import { ActionButtonGroup } from "./components/ActionButtonGroup";
 import { ToggleButton } from "./components/ToggleButton";
 import { ToggleButtonGroup } from "./components/ToggleButtonGroup";
 import { MathJaxContext } from "better-react-mathjax";
+import { BsChevronBarContract } from "react-icons/bs";
 import "@doenet/doenetml/style.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -48,7 +50,47 @@ function App() {
                 disabled={false}
                 value={"$\\frac{2}{2}$"}
                 valueHasLatex={true}
+                label={"Hi there"}
                 //fillColor="#888"
+            />
+            <Button
+                id="test-button"
+                onClick={() => console.log("Button clicked!")}
+                disabled={false}
+                value={"$\\frac{2}{2}$"}
+                valueHasLatex={true}
+                label={"Hi there"}
+                vertical={true}
+
+                fillColor="#888"
+            />
+            <Button
+                id="test-button"
+                onClick={() => console.log("Button clicked!")}
+                disabled={false}
+                value={"$\\frac{2}{2}$"}
+                valueHasLatex={true}
+                icon={<BsChevronBarContract />}
+                //fillColor="#888"
+            />
+            <Button
+                id="test-button"
+                onClick={() => console.log("Button clicked!")}
+                disabled={false}
+                value={"Alert button"}
+                alert={true}
+            />
+            <Button
+                id="test-button"
+                onClick={() => console.log("Button clicked!")}
+                disabled={false}
+                icon={<BsChevronBarContract />}
+            />
+            <Button
+                id="test-button"
+                onClick={() => console.log("Button clicked!")}
+                disabled={true}
+                icon={<BsChevronBarContract />}
             />
             <h3>ActionButton</h3>
             <ActionButton
@@ -69,7 +111,7 @@ function App() {
                     id="action-button-2"
                     onClick={() => console.log("ActionButton 2 clicked!")}
                     disabled={false}
-                    value={"Next"}
+                    value={"Next one"}
                 />
             </ActionButtonGroup>
             <ActionButtonGroup vertical={false}>
@@ -79,11 +121,12 @@ function App() {
                     disabled={false}
                     value={"Prev"}
                 />
+                <ActionButton>Middle<br/>Tall</ActionButton>
                 <ActionButton
                     id="action-button-2"
                     onClick={() => console.log("ActionButton 2 clicked!")}
                     disabled={false}
-                    value={"Next"}
+                    value={"Next one"}
                 />
             </ActionButtonGroup>
             <h3>ToggleButton</h3>
@@ -100,6 +143,14 @@ function App() {
             <h3>ToggleButtonGroup</h3>
             <ToggleButtonGroup
                 onClick={(e) => console.log("ToggleButtonGroup clicked!", e)}
+            >
+                <ToggleButton value="Add/Remove points"></ToggleButton>
+                <ToggleButton value="Toggle points and intervals"></ToggleButton>
+                <ToggleButton value="Move Points"></ToggleButton>
+            </ToggleButtonGroup>
+            <ToggleButtonGroup
+                onClick={(e) => console.log("ToggleButtonGroup clicked!", e)}
+                vertical={true}
             >
                 <ToggleButton value="Add/Remove points"></ToggleButton>
                 <ToggleButton value="Toggle points and intervals"></ToggleButton>

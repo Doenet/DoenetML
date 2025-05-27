@@ -8,6 +8,7 @@ import type { ErrorDescription, WarningDescription } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import { Box, ChakraProvider, extendTheme } from "@chakra-ui/react";
 import "@doenet/virtual-keyboard/style.css";
+import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";

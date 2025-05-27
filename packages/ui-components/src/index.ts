@@ -1,3 +1,4 @@
+import "./components/style.css";
 export { ActionButton } from "./components/ActionButton";
 export { ActionButtonGroup } from "./components/ActionButtonGroup";
 export { Button } from "./components/Button";

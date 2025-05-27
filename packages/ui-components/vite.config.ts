@@ -16,6 +16,8 @@ export default defineConfig({
         },
         rollupOptions: {
             external: [
+                "ariakit",
+                "classnames",
                 "react",
                 "react-dom",
                 "styled-components",
