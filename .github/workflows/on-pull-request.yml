@@ -79,7 +79,7 @@ jobs:
             - name: Build (cached)
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
-                  npm run build && npm run build:all
+                  npm run build
               env:
                   WIREIT_CACHE: "local"
 
