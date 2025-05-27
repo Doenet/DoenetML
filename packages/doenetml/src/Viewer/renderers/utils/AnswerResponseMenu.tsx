@@ -18,7 +18,7 @@ export function AnswerResponseMenu({
             <Menu.Trigger asChild>
                 <Button
                     as={Button}
-                    size="xs"
+                    size="2xs"
                     paddingLeft="2px"
                     paddingRight="2px"
                     cursor="pointer"
