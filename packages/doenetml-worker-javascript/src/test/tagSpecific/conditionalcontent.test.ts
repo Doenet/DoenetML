@@ -1274,14 +1274,18 @@ describe("Conditional content tag tests", async () => {
                 stateVariables[resolveComponentName("pe1")].stateValues.text,
             ).eq("e1: ");
 
-            expect(stateVariables[resolveComponentName("b1")]).eq(undefined);
+            expect(
+                stateVariables[resolveComponentName("b1")].stateValues.text,
+            ).eq("");
             expect(
                 stateVariables[resolveComponentName("c1")].stateValues.text,
             ).eq(animal);
             expect(
                 stateVariables[resolveComponentName("d1")].stateValues.text,
             ).eq(verb);
-            expect(stateVariables[resolveComponentName("e1")]).eq(undefined);
+            expect(
+                stateVariables[resolveComponentName("e1")].stateValues.text,
+            ).eq("");
         }
 
         await check_items("elephant", "trumpets");

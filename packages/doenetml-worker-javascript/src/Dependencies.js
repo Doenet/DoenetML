@@ -2955,7 +2955,7 @@ class Dependency {
                             this.dependencyHandler.core.checkIfArrayEntry({
                                 stateVariable: downVar,
                                 component: downComponent,
-                            }),
+                            }).isArrayEntry,
                     );
                 }
 
@@ -3932,6 +3932,43 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
                 const aliasIdx = aliases.indexOf(nextPart.name);
                 if (aliasIdx !== -1) {
                     propIndex.push(aliasIdx + 1);
+                }
+            } else {
+                const arrayEntryCheck =
+                    this.dependencyHandler.core.checkIfArrayEntry({
+                        stateVariable: variableName,
+                        component,
+                    });
+
+                if (arrayEntryCheck.isArrayEntry) {
+                    const arrayVariableName = arrayEntryCheck.arrayVariableName;
+                    const arrayEntryPrefix = arrayEntryCheck.arrayEntryPrefix;
+
+                    const arrayStateVarObj = component.state[arrayVariableName];
+
+                    if (arrayStateVarObj.indexAliases) {
+                        const arrayDimensions = arrayStateVarObj.numDimensions;
+                        const entryDimensions =
+                            arrayStateVarObj.returnEntryDimensions(
+                                arrayEntryPrefix,
+                            );
+
+                        // If we have a 3D array and a 1D entry, that means we've used up 2 dimensions to get to the entry,
+                        // and we have to skip two dimensions of the array to get to the dimension corresponding to the entries components.
+                        const dimensionInArray =
+                            arrayDimensions - entryDimensions;
+
+                        const dim = propIndex.length;
+                        const aliases =
+                            arrayStateVarObj.indexAliases[
+                                dim + dimensionInArray
+                            ];
+
+                        const aliasIdx = aliases.indexOf(nextPart.name);
+                        if (aliasIdx !== -1) {
+                            propIndex.push(aliasIdx + 1);
+                        }
+                    }
                 }
             }
         }
@@ -6510,7 +6547,7 @@ class AncestorDependency extends Dependency {
                         this.dependencyHandler.core.checkIfArrayEntry({
                             stateVariable: vName,
                             component: ancestorComponent,
-                        })
+                        }).isArrayEntry
                     )
                 ) {
                     foundAllVarNames = false;

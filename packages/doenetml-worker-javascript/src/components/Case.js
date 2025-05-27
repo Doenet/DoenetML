@@ -1,12 +1,23 @@
-import Group from "./Group";
+import BaseComponent from "./abstract/BaseComponent";
 
-export default class Case extends Group {
+export default class Case extends BaseComponent {
     static componentType = "case";
+    static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
     static allowInSchemaAsComponent = undefined;
+    static includeBlankStringChildren = true;
 
-    static renderedDefault = false;
+    static keepChildrenSerialized({ serializedComponent }) {
+        if (serializedComponent.children === undefined) {
+            return [];
+        } else {
+            return Object.keys(serializedComponent.children);
+        }
+    }
+
+    // since don't have child groups, tell schema about children here
+    static additionalSchemaChildren = ["_base"];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -20,6 +31,22 @@ export default class Case extends Group {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.serializedChildren = {
+            returnDependencies: () => ({
+                serializedChildren: {
+                    dependencyType: "serializedChildren",
+                    doNotProxy: true,
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                return {
+                    setValue: {
+                        serializedChildren: dependencyValues.serializedChildren,
+                    },
+                };
+            },
+        };
 
         stateVariableDefinitions.conditionSatisfied = {
             public: true,
@@ -49,19 +76,19 @@ export default class Case extends Group {
         return stateVariableDefinitions;
     }
 
-    static createSerializedReplacements({
-        component,
-        componentInfoObjects,
-        nComponents,
-    }) {
-        if (!component.stateValues.conditionSatisfied) {
-            return { replacements: [], errors: [], warnings: [], nComponents };
+    get allPotentialRendererTypes() {
+        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+
+        let additionalRendererTypes =
+            this.potentialRendererTypesFromSerializedComponents(
+                this.serializedChildren,
+            );
+        for (let rendererType of additionalRendererTypes) {
+            if (!allPotentialRendererTypes.includes(rendererType)) {
+                allPotentialRendererTypes.push(rendererType);
+            }
         }
 
-        return super.createSerializedReplacements({
-            component,
-            componentInfoObjects,
-            nComponents,
-        });
+        return allPotentialRendererTypes;
     }
 }

@@ -6,6 +6,7 @@ import {
     FlatFragment,
     NormalizedRoot,
     PathToCheck,
+    NodeList,
     RefResolution,
     Resolver,
 } from "@doenet/doenetml-worker";
@@ -69,6 +70,10 @@ export class PublicDoenetMLCore {
         resolver: Resolver,
         flat_fragment: FlatFragment,
     ) => Resolver;
+    deleteNodesFromResolver?: (
+        resolver: Resolver,
+        node_list: NodeList,
+    ) => Resolver;
     resolvePath?: (
         resolver: Resolver,
         path: PathToCheck,
@@ -96,6 +101,7 @@ export class PublicDoenetMLCore {
         normalizedRoot,
         resolver,
         addNodesToResolver,
+        deleteNodesFromResolver,
         resolvePath,
     }: {
         activityId: string;
@@ -108,6 +114,10 @@ export class PublicDoenetMLCore {
             resolver: Resolver,
             flat_fragment: FlatFragment,
         ) => Resolver;
+        deleteNodesFromResolver?: (
+            resolver: Resolver,
+            node_list: NodeList,
+        ) => Resolver;
         resolvePath: (
             resolver: Resolver,
             path: PathToCheck,
@@ -117,6 +127,7 @@ export class PublicDoenetMLCore {
     }) {
         this.initialResolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
+        this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
 
         let componentInfoObjects = createComponentInfoObjects();
@@ -203,6 +214,7 @@ export class PublicDoenetMLCore {
             ...args,
             resolver: this.initialResolver,
             addNodesToResolver: this.addNodesToResolver,
+            deleteNodesFromResolver: this.deleteNodesFromResolver,
             resolvePath: this.resolvePath,
             updateRenderersCallback,
             reportScoreAndStateCallback,

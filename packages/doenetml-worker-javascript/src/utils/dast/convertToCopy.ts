@@ -103,6 +103,9 @@ export function convertRefsToCopies({
                     componentType: "copy",
                     componentIdx: nComponents++,
                     attributes: {},
+                    doenetAttributes: {
+                        forList: wrappingComponent.componentIdx,
+                    },
                     state: {},
                     children: [],
                     extending: wrappingComponent.extending,
@@ -136,7 +139,7 @@ export function convertRefsToCopies({
         if (unresolvedPath === null) {
             // a copy with no props
             if (wrappingComponent) {
-                wrappingComponent.children.push(newComponent);
+                wrappingComponent.children.splice(0, 0, newComponent);
                 newComponents.push(wrappingComponent);
             } else {
                 newComponent.attributes = outerAttributes;
@@ -225,7 +228,7 @@ export function convertRefsToCopies({
         refResolution.unresolvedPath = converted_unresolvedPath;
 
         if (wrappingComponent) {
-            wrappingComponent.children.push(newComponent);
+            wrappingComponent.children.splice(0, 0, newComponent);
             newComponents.push(wrappingComponent);
         } else {
             newComponent.attributes = {
