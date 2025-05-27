@@ -47,8 +47,11 @@ jobs:
               with:
                   name: build-artifacts
                   include-hidden-files: true
+                  # Include package.json from the root so the file tree matches the full file tree of the repo
+                  # (otherwise everything is normalized to the closest common ancestor folder)
                   path: |
                       ./packages/*/.wireit/**/*
+                      ./package.json
 
     test:
         name: Test
