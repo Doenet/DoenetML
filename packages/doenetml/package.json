@@ -42,6 +42,7 @@
             "output": [
                 "dist/**/*.js",
                 "dist/**/*.d.ts",
+                "dist/**/*.css",
                 "dist/**/*.json"
             ],
             "dependencies": [
