@@ -254,7 +254,7 @@ export default function ErrorWarningResponseTabs({
                     </Tabs.Content>
                 ) : null}
                 {showResponses ? (
-                    <Tabs.Content value="messages" minWidth="fit-content">
+                    <Tabs.Content value="responses" minWidth="fit-content">
                         {submittedResponses.length == 0 ? (
                             <Heading as="h3" size="sm">
                                 No submitted responses yet
