@@ -36,7 +36,7 @@ jobs:
               with:
                   name: build-artifacts
                   path: |
-                      packages/**/.wireit/**
+                      ./packages/*/.wireit/**
 
     test:
         name: Test
