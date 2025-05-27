@@ -5,7 +5,7 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "."
+import ".";
 import { Button } from "./components/Button";
 import { ActionButton } from "./components/ActionButton";
 import { ActionButtonGroup } from "./components/ActionButtonGroup";
@@ -61,7 +61,6 @@ function App() {
                 valueHasLatex={true}
                 label={"Hi there"}
                 vertical={true}
-
                 fillColor="#888"
             />
             <Button
@@ -121,7 +120,11 @@ function App() {
                     disabled={false}
                     value={"Prev"}
                 />
-                <ActionButton>Middle<br/>Tall</ActionButton>
+                <ActionButton>
+                    Middle
+                    <br />
+                    Tall
+                </ActionButton>
                 <ActionButton
                     id="action-button-2"
                     onClick={() => console.log("ActionButton 2 clicked!")}

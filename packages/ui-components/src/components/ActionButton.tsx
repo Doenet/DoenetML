@@ -13,5 +13,9 @@ export function ActionButton(
         alert?: boolean;
     }>,
 ) {
-    return <Button {...props} className="action-button">{props.children}</Button>;
+    return (
+        <Button {...props} className="action-button">
+            {props.children}
+        </Button>
+    );
 }
