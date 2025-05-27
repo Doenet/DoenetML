@@ -43,7 +43,8 @@
                 "dist/**/*.js",
                 "dist/**/*.d.ts",
                 "dist/**/*.css",
-                "dist/**/*.json"
+                "dist/**/*.json",
+                "dist/fonts/**/*"
             ],
             "dependencies": [
                 "../doenetml-worker:build",
