@@ -1,12 +1,12 @@
 import React from "react";
-import reconciler, * as ReactReconciler from "react-reconciler";
+import reconciler, { HostConfig, FiberRoot } from "react-reconciler";
 import { DefaultEventPriority } from "react-reconciler/constants";
 import type * as Xast from "xast";
 import type { DastAttribute } from "@doenet/doenetml-worker";
 import { denormalizeAttrs } from "./normalize-attrs";
 
 type RootContainer = Xast.Root & {
-    _rootContainer?: ReactReconciler.FiberRoot;
+    _rootContainer?: FiberRoot;
 };
 
 type Type = string;
@@ -27,12 +27,13 @@ function isDastAttribute(node: any): node is DastAttribute {
 /**
  * The config object used by `react-reconciler` to render React elements to Xast.
  */
-const HOST_CONFIG: ReactReconciler.HostConfig<
+const HOST_CONFIG: HostConfig<
     Type,
     Props,
     RootContainer,
     Instance,
     TextInstance,
+    unknown,
     unknown,
     unknown,
     unknown,
@@ -47,6 +48,22 @@ const HOST_CONFIG: ReactReconciler.HostConfig<
     supportsPersistence: false,
     supportsHydration: false,
     noTimeout: -1,
+    // NotPendingTransition and HostTransitionContext are supposed to be supplied.
+    // I'm not sure what they do, so I copied default values from the React source code.
+    NotPendingTransition: {
+        pending: false,
+        data: null,
+        method: null,
+        action: null,
+    },
+    HostTransitionContext: {
+        $$typeof: 0,
+        Consumer: null as any,
+        Provider: null as any,
+        _currentValue: null,
+        _currentValue2: null,
+        _threadCount: 0,
+    },
 
     // Define other methods as needed
     createInstance(
@@ -113,30 +130,6 @@ const HOST_CONFIG: ReactReconciler.HostConfig<
         return false;
     },
 
-    prepareUpdate(
-        instance,
-        type,
-        oldProps,
-        newProps,
-        rootContainerInstance,
-        hostContext,
-    ) {
-        const { children, ...rest } = newProps;
-        // We don't need to be efficient and calculate a diff. Just update all the props each time.
-        return rest;
-    },
-
-    commitUpdate(
-        instance,
-        updatePayload: Xast.Attributes,
-        type,
-        oldProps,
-        newProps,
-        internalInstanceHandle,
-    ) {
-        instance.attributes = { ...instance.attributes, ...updatePayload };
-    },
-
     commitTextUpdate(textInstance, oldText, newText) {
         textInstance.value = newText;
     },
@@ -155,9 +148,37 @@ const HOST_CONFIG: ReactReconciler.HostConfig<
     beforeActiveInstanceBlur() {},
     cancelTimeout(id) {},
     detachDeletedInstance(node) {},
-    getCurrentEventPriority() {
+    resolveUpdatePriority() {
         return DefaultEventPriority;
     },
+    getCurrentUpdatePriority() {
+        return DefaultEventPriority;
+    },
+    setCurrentUpdatePriority(newPriority) {},
+    maySuspendCommit(type, props) {
+        return false;
+    },
+    preloadInstance(type, props) {
+        return false;
+    },
+    requestPostPaintCallback(callback) {},
+    resetFormInstance(form) {},
+    resolveEventTimeStamp() {
+        return 1;
+    },
+    resolveEventType() {
+        return null;
+    },
+    shouldAttemptEagerTransition() {
+        return false;
+    },
+    startSuspendingCommit() {},
+    suspendInstance(type, props) {},
+    trackSchedulerEvent() {},
+    waitForCommitToBeReady() {
+        return null;
+    },
+
     getInstanceFromNode(node) {
         return null;
     },
@@ -195,8 +216,13 @@ export function renderReactToXast(element: React.ReactNode): Xast.Root {
         null,
     );
 
-    renderer.updateContainer(element, container);
-    renderer.flushSync(() => {});
+    // Used to be `updateContainer` and `flushSync`, but those methods don't seem
+    // to work with newer `react-reconciler` versions.
+    // 2025-05-25 TS errors due to the types on `react-reconciler` being wrong?
+    // @ts-ignore
+    renderer.updateContainerSync(element, container);
+    // @ts-ignore
+    renderer.flushSyncWork(); //(() => {});
     // Save our return XAST before we clear the container
     const ret = structuredClone(xastRoot);
 

@@ -8,11 +8,12 @@ on:
 
 jobs:
     build:
+        name: Build
         runs-on: ubuntu-latest
 
         strategy:
             matrix:
-                node-version: [18.x]
+                node-version: [20.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -28,6 +29,59 @@ jobs:
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
                   npm run build && npm run build:all
+              # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+                  du -sh ./packages/*/.wireit/*/
+
+            # upload all the .wireit directories so that the test job can use them.
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: build-artifacts
+                  include-hidden-files: true
+                  # Include package.json from the root so the file tree matches the full file tree of the repo
+                  # (otherwise everything is normalized to the closest common ancestor folder)
+                  path: |
+                      ./packages/*/.wireit/**/*
+                      ./package.json
+
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        needs: build
+        strategy:
+            matrix:
+                node-version: [20.x]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-artifacts
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+
+            # with the wireit cache saved, this build step should be fast.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=4096"
+                  npm run build
+              env:
+                  WIREIT_CACHE: "local"
 
             - name: Test
               run: npm test
@@ -55,8 +109,11 @@ jobs:
             - name: Cargo clippy
               working-directory: ./packages/doenetml-worker
               run: cargo clippy -- -D warnings
+
     build-docs:
         runs-on: ubuntu-latest
+        needs: build
+        name: Build Docs
 
         strategy:
             matrix:
@@ -72,6 +129,13 @@ jobs:
                   cache: "npm"
             - run: npm ci
 
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-artifacts
+                  path: ./
+
+            # with the wireit cache saved, this build step should be fast.
             - name: Build Docs
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
@@ -79,6 +143,8 @@ jobs:
                   npm run build
                   cd ../docs-nextra
                   npm run build
+              env:
+                  WIREIT_CACHE: "local"
 
     lint-ts:
         name: Lint Typescript Code
@@ -86,7 +152,7 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [18.x]
+                node-version: [20.x]
 
         steps:
             - name: Checkout sources
