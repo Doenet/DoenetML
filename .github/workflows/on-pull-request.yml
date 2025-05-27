@@ -28,18 +28,15 @@ jobs:
             - name: Build
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
-                  cd packages/parser
-                  npm run build
+                  npm run build && npm run build:all
               # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
               env:
                   WIREIT_CACHE: "local"
-              #npm run build && npm run build:all
 
             - name: Debug Build Artifacts
               run: |
-                  ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
-                  ls -la ./packages/parser/.wireit/*/
-                  du -sh ./packages/parser/.wireit/*/
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+                  du -sh ./packages/*/.wireit/*/
 
             # upload all the .wireit directories so that the test job can use them.
             - name: Upload build artifacts
@@ -76,8 +73,7 @@ jobs:
 
             - name: Debug Build Artifacts
               run: |
-                  ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
-                  ls -la ./
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
 
             # with the wireit cache saved, this build step should be fast.
             - name: Build (cached)
