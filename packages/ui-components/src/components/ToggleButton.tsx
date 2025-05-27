@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
 
-const Button = styled.button`
+const Button = styled.button<{
+    alert?: boolean;
+    disabled?: boolean;
+}>`
     margin: ${(props) => props.theme.margin};
     height: 24px;
     border: ${(props) =>
@@ -56,36 +59,37 @@ Button.defaultProps = {
     },
 };
 
-// const Label = styled.p`
-//   font-size: 12px;
-//   display: ${props => props.labelVisible};
-//   margin-right: 5px;
-//   margin-bottom: ${props => props.align == 'flex' ? 'none' : '2px'};
-// `
-// const Container = styled.div`
-//   display: ${props => props.align};
-//   width: auto;
-//   align-items: center;
-// `
-
-export function ToggleButton(props) {
-    const [isSelected, setSelected] = useState(
-        props.isSelected ? props.isSelected : false,
-    );
+export function ToggleButton(props: {
+    onClick?: (index?: number | null) => void;
+    id?: string;
+    index?: number;
+    value?: string;
+    valueHasLatex?: boolean;
+    icon?: React.ReactNode;
+    label?: string;
+    switch_value?: string;
+    isSelected?: boolean;
+    vertical?: boolean;
+    alert?: boolean;
+    disabled?: boolean;
+    num?: "first" | "last" | "first_vert" | "last_vert";
+    width?: "menu" | string;
+}) {
+    const [isSelected, setSelected] = useState(!!props.isSelected);
     const labelVisible = props.label ? "static" : "none";
     const align = props.vertical ? "static" : "flex";
-    const alert = props.alert ? props.alert : null;
-    const disabled = props.disabled ? props.disabled : null;
+    const alert = !!props.alert;
+    const disabled = !!props.disabled;
 
     useEffect(() => {
-        setSelected(props.isSelected);
+        setSelected(!!props.isSelected);
     }, [props.isSelected]);
     //Assume small
-    var toggleButton = {
+    var toggleButton: React.CSSProperties & { value: string } = {
         value: "Toggle Button",
     };
 
-    var icon = "";
+    var icon: React.ReactNode = "";
     var label = {
         value: "Label:",
         fontSize: "14px",
@@ -94,7 +98,7 @@ export function ToggleButton(props) {
         marginBottom: `${align == "flex" ? "none" : "2px"}`,
     };
 
-    var container = {
+    var container: React.CSSProperties = {
         display: `${align}`,
         // width: 'auto',
         alignItems: "center",
@@ -115,7 +119,7 @@ export function ToggleButton(props) {
                 <MathJax hideUntilTypeset={"first"} inline dynamic>
                     {toggleButton.value}
                 </MathJax>
-            );
+            ) as any as string;
         }
     }
 
@@ -171,26 +175,24 @@ export function ToggleButton(props) {
     }
 
     return (
-        <>
-            <div style={container}>
-                <p id="toggle-button-label" style={label}>
-                    {label.value}
-                </p>
-                <Button
-                    aria-labelledby="toggle-button-label"
-                    aria-pressed={props.isSelected}
-                    aria-disabled={props.disabled ? true : false}
-                    id={props.id}
-                    style={toggleButton}
-                    disabled={disabled}
-                    alert={alert}
-                    onClick={() => {
-                        handleClick();
-                    }}
-                >
-                    {icon} {toggleButton.value}
-                </Button>
-            </div>
-        </>
+        <div style={container}>
+            <p id="toggle-button-label" style={label}>
+                {label.value}
+            </p>
+            <Button
+                aria-labelledby="toggle-button-label"
+                aria-pressed={props.isSelected}
+                aria-disabled={props.disabled ? true : false}
+                id={props.id}
+                style={toggleButton}
+                disabled={disabled}
+                alert={alert}
+                onClick={() => {
+                    handleClick();
+                }}
+            >
+                {icon} {toggleButton.value}
+            </Button>
+        </div>
     );
 }

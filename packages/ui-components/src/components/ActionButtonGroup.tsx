@@ -1,7 +1,7 @@
 import React from "react";
 import styled, { ThemeProvider } from "styled-components";
 
-const Container = styled.div`
+const Container = styled.div<{ vertical?: boolean; width?: "menu" | string }>`
     /* margin-left: 3px; */
     display: ${(props) => (props.vertical ? "static" : "flex")};
     overflow: auto;
@@ -9,13 +9,20 @@ const Container = styled.div`
     /* flex-wrap: wrap; */
 `;
 
-const LabelContainer = styled.div`
+const LabelContainer = styled.div<{
+    align?: string;
+    alignItems?: string;
+    width?: "menu" | string;
+}>`
     display: ${(props) => props.align};
     width: ${(props) => (props.width == "menu" ? "var(--menuWidth)" : "")};
     align-items: ${(props) => props.alignItems};
 `;
 
-const Label = styled.p`
+const Label = styled.p<{
+    labelVisible: string;
+    align?: string;
+}>`
     font-size: 14px;
     display: ${(props) => props.labelVisible};
     margin-right: 5px;
@@ -38,12 +45,20 @@ const verticalActionGroup = {
     outlineOffset: "-6px",
 };
 
-export const ActionButtonGroup = (props) => {
+export const ActionButtonGroup = (
+    props: React.PropsWithChildren<{
+        vertical?: boolean;
+        width?: "menu" | string;
+        label?: string;
+        verticalLabel?: boolean;
+    }>,
+) => {
     let first_prop = props.vertical ? "first_vert" : "first";
     let last_prop = props.vertical ? "last_vert" : "last";
     let overflow_prop = props.width ? "no_overflow" : "overflow";
     let elem = React.Children.toArray(props.children);
-    if (elem.length > 1) {
+    if (elem.length > 1 && React.isValidElement(elem[0])) {
+        // XXX: I don't know what this is trying to accomplish...
         elem = [
             React.cloneElement(elem[0], {
                 num: first_prop,
@@ -78,25 +93,21 @@ export const ActionButtonGroup = (props) => {
     }
 
     return (
-        <>
-            <LabelContainer
-                align={align}
-                alignItems={alignItems}
-                width={props.width}
-            >
-                <Label labelVisible={labelVisible} align={align}>
-                    {label}
-                </Label>
-                <Container vertical={props.vertical}>
-                    <ThemeProvider
-                        theme={
-                            props.vertical ? verticalActionGroup : actionGroup
-                        }
-                    >
-                        {elem}
-                    </ThemeProvider>
-                </Container>
-            </LabelContainer>
-        </>
+        <LabelContainer
+            align={align}
+            alignItems={alignItems}
+            width={props.width}
+        >
+            <Label labelVisible={labelVisible} align={align}>
+                {label}
+            </Label>
+            <Container vertical={props.vertical}>
+                <ThemeProvider
+                    theme={props.vertical ? verticalActionGroup : actionGroup}
+                >
+                    {elem}
+                </ThemeProvider>
+            </Container>
+        </LabelContainer>
     );
 };

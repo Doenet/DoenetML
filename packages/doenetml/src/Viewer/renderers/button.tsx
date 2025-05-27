@@ -46,7 +46,7 @@ export default React.memo(function ButtonComponent(
 
     let label = SVs.label ? SVs.label : "Button";
 
-    let fillColor = SVs.selectedStyle.fillColor;
+    let fillColor: string = SVs.selectedStyle.fillColor;
 
     useEffect(() => {
         //On unmount
@@ -420,7 +420,7 @@ export default React.memo(function ButtonComponent(
                 onClick={() => callAction({ action: actions[SVs.clickAction] })}
                 disabled={SVs.disabled}
                 value={label}
-                valueHasLatex={SVs.labelHasLatex}
+                valueHasLatex={SVs.labelHasLatex as boolean}
                 fillColor={fillColor}
             />
         </div>

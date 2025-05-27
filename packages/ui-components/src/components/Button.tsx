@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
 
-const ButtonStyling = styled.button`
+const ButtonStyling = styled.button<{
+    width?: string;
+    alert?: boolean;
+    fillColor?: string;
+}>`
     margin: ${(props) => props.theme.margin};
     height: 24px;
     width: ${(props) => props.width};
@@ -50,39 +54,38 @@ ButtonStyling.defaultProps = {
     },
 };
 
-const Label = styled.p`
+const Label = styled.p<{ labelVisible: string; align: string }>`
     font-size: 14px;
     display: ${(props) => props.labelVisible};
     margin-right: 5px;
     margin-bottom: ${(props) => (props.align == "flex" ? "none" : "2px")};
 `;
 
-const Container = styled.div`
+const Container = styled.div<{ align?: string }>`
     display: ${(props) => (props.align ? props.align : "inline-block")};
     width: auto;
     align-items: center;
 `;
 
-export function Button(props) {
+export function Button(props: {
+    id?: string;
+    fillColor?: string;
+    width?: string;
+    label?: string;
+    value?: string;
+    icon?: React.ReactNode;
+    vertical?: boolean;
+    valueHasLatex?: boolean;
+    disabled?: boolean;
+    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    dataTest?: string;
+}) {
     //Assume small
-    var container = {};
+    var container: React.CSSProperties = {};
     var align = "flex";
-    var button = {
+    var button: React.CSSProperties & { value: React.ReactNode } = {
         value: "Button",
     };
-    // var button = {
-    //       margin: '0px',
-    //       height: '24px',
-    //       border: `hidden`,
-    //       backgroundColor: `${doenetComponentForegroundActive}`,
-    //       fontFamily: 'Arial',
-    //       color: '#FFFFFF',
-    //       borderRadius: '20px',
-    //       value: 'Button',
-    //       padding: '0px 10px 0px 10px',
-    //       cursor: 'pointer',
-    //       fontSize: '12px'
-    //     };
     if (props.width) {
         if (props.width === "menu") {
             button.width = "var(--menuWidth)";
@@ -102,7 +105,7 @@ export function Button(props) {
         }
     }
 
-    var icon = "";
+    var icon: React.ReactNode = "";
     if (props.value || props.icon) {
         if (props.value && props.icon) {
             icon = props.icon;
@@ -122,45 +125,33 @@ export function Button(props) {
         }
     }
 
-    // if (props.alert) {
-    //   button.backgroundColor = 'var(--mainRed)'
-    // }
-
     if (props.disabled) {
         button.backgroundColor = "var(--mainGray)";
         button.color = "var(--canvastext)";
         button.cursor = "not-allowed";
     }
 
-    // if (props.value) {
-    //     button.value = props.value;
-    // };
-
-    function handleClick(e) {
-        if (props.onClick) props.onClick(e);
-    }
-
     return (
-        <>
-            <Container style={container} align={align}>
-                <Label labelVisible={labelVisible} align={align}>
-                    {label}
-                </Label>
-                <ButtonStyling
-                    disabled={props.disabled}
-                    aria-disabled={props.disabled}
-                    aria-labelledby={label}
-                    aria-label={button.value}
-                    data-test={props.dataTest}
-                    style={button}
-                    {...props}
-                    onClick={(e) => {
-                        handleClick(e);
-                    }}
-                >
-                    {icon} {button.value}
-                </ButtonStyling>
-            </Container>
-        </>
+        <Container style={container} align={align}>
+            <Label labelVisible={labelVisible} align={align}>
+                {label}
+            </Label>
+            <ButtonStyling
+                disabled={props.disabled}
+                aria-disabled={props.disabled}
+                aria-labelledby={label}
+                aria-label={String(button.value)}
+                data-test={props.dataTest}
+                style={button}
+                {...props}
+                onClick={(e) => {
+                    if (props.onClick) {
+                        props.onClick(e);
+                    }
+                }}
+            >
+                {icon} {button.value}
+            </ButtonStyling>
+        </Container>
     );
 }

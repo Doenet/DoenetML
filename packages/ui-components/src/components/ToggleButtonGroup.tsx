@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import styled, { ThemeProvider } from "styled-components";
 
-const Container = styled.div`
+const Container = styled.div<{
+    vertical?: boolean;
+    width?: "menu" | string;
+}>`
     display: ${(props) => (props.vertical ? "static" : "flex")};
     width: ${(props) => (props.width == "menu" ? "var(--menuWidth)" : "")};
     // height: 'fit-content';
@@ -22,17 +25,16 @@ const verticalToggleGroup = {
     padding: "0px 10px 0px 10px",
 };
 
-export const ToggleButtonGroup = (props) => {
-    // if (props.width) {
-    //   if (props.width === "menu") {
-    //     actionGroup.width = '235px'
-    //   } else {
-    //     actionGroup.width = props.width
-    //   }
-    // }
+export const ToggleButtonGroup = (
+    props: React.PropsWithChildren<{
+        onClick?: (index: number) => void;
+        vertical?: boolean;
+        width?: "menu" | string;
+    }>,
+) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
 
-    const handleClick = (index) => {
+    const handleClick = (index: number) => {
         setSelectedIndex(index);
         if (props.onClick) {
             props.onClick(index);
@@ -45,12 +47,16 @@ export const ToggleButtonGroup = (props) => {
     let elem = React.Children.toArray(props.children);
 
     let modElem = elem.map((element, index) => {
+        if (!React.isValidElement(element)) {
+            return element; // Skip non-element children
+        }
         let props = {
             index,
             isSelected: index === selectedIndex,
             onClick: handleClick,
         };
 
+        // XXX: What is this? Why is `props` being mutated??
         if (index === 0) {
             props["num"] = first_prop;
         } else if (index === elem.length - 1) {
