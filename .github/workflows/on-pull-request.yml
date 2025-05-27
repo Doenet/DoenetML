@@ -33,7 +33,10 @@ jobs:
               #npm run build && npm run build:all
 
             - name: Debug Build Artifacts
-              run: ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
+              run: |
+                  ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
+                  ls -la ./packages/parser/.wireit/*/
+                  du -sh ./packages/parser/.wireit/*/
 
             # upload all the .wireit directories so that the test job can use them.
             - name: Upload build artifacts
@@ -70,7 +73,6 @@ jobs:
               run: |
                   ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
                   ls -la ./
-
 
             # with the wireit cache saved, this build step should be fast.
             - name: Build (cached)
