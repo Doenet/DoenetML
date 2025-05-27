@@ -12,7 +12,7 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [18.x]
+                node-version: [20.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -25,6 +25,42 @@ jobs:
             - run: npm ci
 
             - name: Build
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=4096"
+                  npm run build && npm run build:all
+
+            # upload all the .wireit directories so that the test job can use them.
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: build-artifacts
+                  path: |
+                      packages/**/.wireit/**
+
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        needs: build
+        strategy:
+            matrix:
+                node-version: [20.x]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v3
+              with:
+                  name: build-artifacts
+                  path: ./
+
+            # with the wireit cache saved, this build step should be fast.
+            - name: Build (cached)
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
                   npm run build && npm run build:all
@@ -55,8 +91,11 @@ jobs:
             - name: Cargo clippy
               working-directory: ./packages/doenetml-worker
               run: cargo clippy -- -D warnings
+
     build-docs:
         runs-on: ubuntu-latest
+        needs: build
+        name: Build Docs
 
         strategy:
             matrix:
@@ -72,6 +111,13 @@ jobs:
                   cache: "npm"
             - run: npm ci
 
+            - name: Download build artifacts
+              uses: actions/download-artifact@v3
+              with:
+                  name: build-artifacts
+                  path: ./
+
+            # with the wireit cache saved, this build step should be fast.
             - name: Build Docs
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
