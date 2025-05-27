@@ -42,7 +42,7 @@ jobs:
                   name: build-artifacts
                   include-hidden-files: true
                   path: |
-                      ./packages/*/.wireit/**
+                      ./packages/*/.wireit/**/*
 
     test:
         name: Test
@@ -67,7 +67,10 @@ jobs:
                   path: ./
 
             - name: Debug Build Artifacts
-              run: ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
+              run: |
+                  ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
+                  ls -la ./
+
 
             # with the wireit cache saved, this build step should be fast.
             - name: Build (cached)
