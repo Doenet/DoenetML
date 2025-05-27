@@ -28,7 +28,9 @@ jobs:
             - name: Build
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
-                  npm run build && npm run build:all
+                  cd packages/parser
+                  npm run build
+              #npm run build && npm run build:all
 
             - name: Debug Build Artifacts
               run: ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
@@ -63,6 +65,9 @@ jobs:
               with:
                   name: build-artifacts
                   path: ./
+
+            - name: Debug Build Artifacts
+              run: ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
 
             # with the wireit cache saved, this build step should be fast.
             - name: Build (cached)
