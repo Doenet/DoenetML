@@ -31,11 +31,13 @@
                 "src/**/*.js",
                 "src/**/*.tsx",
                 "src/**/*.jsx",
+                "dist/**/*.css",
                 "tsconfig.json"
             ],
             "output": [
                 "dist/**/*.js",
                 "dist/**/*.d.ts",
+                "dist/**/*.css",
                 "dist/**/*.json"
             ]
         }

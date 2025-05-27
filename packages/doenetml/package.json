@@ -42,7 +42,9 @@
             "output": [
                 "dist/**/*.js",
                 "dist/**/*.d.ts",
-                "dist/**/*.json"
+                "dist/**/*.css",
+                "dist/**/*.json",
+                "dist/fonts/**/*"
             ],
             "dependencies": [
                 "../doenetml-worker:build",
