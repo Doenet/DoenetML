@@ -30,6 +30,9 @@ jobs:
                   export NODE_OPTIONS="--max_old_space_size=4096"
                   cd packages/parser
                   npm run build
+              # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
+              env:
+                  WIREIT_CACHE: "local"
               #npm run build && npm run build:all
 
             - name: Debug Build Artifacts
@@ -79,6 +82,8 @@ jobs:
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
                   npm run build && npm run build:all
+              env:
+                  WIREIT_CACHE: "local"
 
             - name: Test
               run: npm test
@@ -140,6 +145,8 @@ jobs:
                   npm run build
                   cd ../docs-nextra
                   npm run build
+              env:
+                  WIREIT_CACHE: "local"
 
     lint-ts:
         name: Lint Typescript Code
