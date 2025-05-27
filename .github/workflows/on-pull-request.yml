@@ -28,7 +28,9 @@ jobs:
             - name: Build
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
-                  npm run build && npm run build:all
+                  cd packages/parser
+                  npm run build
+              #npm run build && npm run build:all
 
             # upload all the .wireit directories so that the test job can use them.
             - name: Upload build artifacts
@@ -36,6 +38,7 @@ jobs:
               with:
                   name: build-artifacts
                   path: |
+                      ./packages/parser/.wireit/
                       ./packages/*/.wireit/**
 
     test:
