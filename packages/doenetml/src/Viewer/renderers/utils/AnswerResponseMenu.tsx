@@ -22,6 +22,9 @@ export function AnswerResponseMenu({
                     paddingLeft="2px"
                     paddingRight="2px"
                     cursor="pointer"
+                    style={{
+                        backgroundColor: "#aaa",
+                    }}
                 >
                     {numResponses}
                 </Button>
