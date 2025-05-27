@@ -1,7 +1,7 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::dast::{
-    flat_dast::{FlatFragment, FlatRoot, NormalizedRoot},
+    flat_dast::{FlatFragment, FlatNode, FlatRoot, NormalizedRoot},
     ref_expand::Expander,
     ref_resolve::Resolver,
     DastRoot, FlatDastRoot,
@@ -57,6 +57,10 @@ impl Core {
 
     pub fn add_nodes_to_resolver(flat_fragment: &FlatFragment, resolver: &mut Resolver) {
         resolver.add_nodes(flat_fragment);
+    }
+
+    pub fn delete_nodes_from_resolver(nodes: &[FlatNode], resolver: &mut Resolver) {
+        resolver.delete_nodes(nodes);
     }
 
     /// Initialize `structure_graph`, `state_graph`, and other data

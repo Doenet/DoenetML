@@ -383,10 +383,9 @@ impl FlatFragment {
                         }
                     }
                     for attribute in flat_element.attributes.iter_mut() {
-                        attribute
+                        attribute.parent = attribute
                             .parent
-                            .as_mut()
-                            .map(|idx| *idx + idx_to_id_shift)
+                            .map(|idx| idx + idx_to_id_shift)
                             .or(parent_idx);
                         for child in attribute.children.iter_mut() {
                             if let UntaggedContent::Ref(idx) = child {

@@ -12,7 +12,7 @@ use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
     core::core::Core,
     dast::{
-        flat_dast::{FlatFragment, FlatPathPart, FlatRoot, Index, NormalizedRoot},
+        flat_dast::{FlatFragment, FlatNode, FlatPathPart, FlatRoot, Index, NormalizedRoot},
         ref_resolve::{RefResolution, ResolutionError, Resolver},
         DastRoot, FlatDastElementUpdate, FlatDastRoot,
     },
@@ -60,6 +60,12 @@ pub struct AddNodesResult {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct PathToCheck {
     path: Vec<FlatPathPart>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct NodeList {
+    nodes: Vec<FlatNode>,
 }
 
 // For some reason, wasm-bindgen won't always correctly see that a module is being used
@@ -118,6 +124,13 @@ impl PublicDoenetMLCore {
     pub fn add_nodes_to_resolver(resolver: Resolver, flat_fragment: FlatFragment) -> Resolver {
         let mut resolver2 = resolver;
         Core::add_nodes_to_resolver(&flat_fragment, &mut resolver2);
+
+        resolver2
+    }
+
+    pub fn delete_nodes_from_resolver(resolver: Resolver, node_list: NodeList) -> Resolver {
+        let mut resolver2 = resolver;
+        Core::delete_nodes_from_resolver(&node_list.nodes, &mut resolver2);
 
         resolver2
     }

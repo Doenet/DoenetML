@@ -238,6 +238,8 @@ export class CoreWorker {
                     resolver,
                     addNodesToResolver:
                         PublicDoenetMLCore.add_nodes_to_resolver,
+                    deleteNodesFromResolver:
+                        PublicDoenetMLCore.delete_nodes_from_resolver,
                     resolvePath: PublicDoenetMLCore.resolve_path,
                 });
             this.javascript_initialized = true;

@@ -8,7 +8,9 @@ use std::{collections::HashMap, iter, mem};
 
 use crate::dast::flat_dast::{FlatNode, UntaggedContent};
 
-use super::flat_dast::{FlatFragment, FlatPathPart, FlatRoot, FlatRootOrFragment, Index};
+use super::flat_dast::{
+    FlatElement, FlatFragment, FlatPathPart, FlatRoot, FlatRootOrFragment, Index,
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tsify_next::Tsify;
@@ -165,6 +167,56 @@ impl Resolver {
             let names = mem::take(&mut subtree_name_map[node.idx()]);
             for (key, ref_) in names.into_iter() {
                 self.name_map[node.idx()].insert(key, ref_);
+            }
+        }
+    }
+
+    /// Delete `nodes` from the resolver
+    pub fn delete_nodes(&mut self, nodes: &[FlatNode]) {
+        for node in nodes.iter() {
+            if let FlatNode::Element(element) = node {
+                if let Some(name) = get_element_name(element) {
+                    let mut parent_option = self.node_parent[node.idx()];
+
+                    while let Some(parent_idx) = parent_option {
+                        let name_map = &mut self.name_map[parent_idx];
+
+                        let references = name_map.remove(&name);
+
+                        match references {
+                            Some(Ref::Unique(idx)) => {
+                                // if the index doesn't match the deleted node, add it back to the name map
+                                if idx != node.idx() {
+                                    name_map.insert(name.clone(), Ref::Unique(idx));
+                                }
+                            }
+                            Some(Ref::Ambiguous(indices)) => {
+                                // remove the node from the ambiguous list, setting the result to unique if there is only one reference left
+                                let new_indices = indices
+                                    .into_iter()
+                                    .filter(|idx| *idx != node.idx())
+                                    .collect::<Vec<_>>();
+                                if new_indices.len() == 1 {
+                                    name_map.insert(name.clone(), Ref::Unique(new_indices[0]));
+                                } else {
+                                    name_map.insert(name.clone(), Ref::Ambiguous(new_indices));
+                                }
+                            }
+                            None => {}
+                        }
+
+                        // recurse to grandparent
+                        parent_option = self.node_parent[parent_idx]
+                    }
+                }
+            }
+        }
+
+        // Now that we have finished recursing through parents of all nodes,
+        // remove nodes from node_parent structure
+        for node in nodes.iter() {
+            if node.idx() < self.node_parent.len() {
+                self.node_parent[node.idx()] = None;
             }
         }
     }
@@ -350,22 +402,7 @@ impl Resolver {
                 _ => None,
             })
         {
-            // XXX: we need to enforce restrictions on valid names. Is this the right place?
-            let name = element
-                .attributes
-                .iter()
-                .find(|attr| {
-                    attr.name == "name"
-                        && attr.children.len() == 1
-                        && matches!(attr.children[0], UntaggedContent::Text(_))
-                })
-                .and_then(|attr| {
-                    match (attr.children.len(), attr.children.first()) {
-                        // A name attribute should have exactly one text child. Otherwise it is considered invalid.
-                        (1, Some(UntaggedContent::Text(name))) => Some(name.clone()),
-                        _ => None,
-                    }
-                });
+            let name = get_element_name(element);
             if name.is_none() {
                 continue;
             }
@@ -459,6 +496,29 @@ impl Resolver {
             .collect();
         self.name_map = new_name_map;
     }
+}
+
+/// Get the name of `element` from its `name` attribute,
+/// where the `name` attribute must have exactly one text child to be considered valid.
+fn get_element_name(element: &FlatElement) -> Option<String> {
+    // XXX: we need to enforce restrictions on valid names. Is this the right place?
+
+    let name = element
+        .attributes
+        .iter()
+        .find(|attr| {
+            attr.name == "name"
+                && attr.children.len() == 1
+                && matches!(attr.children[0], UntaggedContent::Text(_))
+        })
+        .and_then(|attr| {
+            match (attr.children.len(), attr.children.first()) {
+                // A name attribute should have exactly one text child. Otherwise it is considered invalid.
+                (1, Some(UntaggedContent::Text(name))) => Some(name.clone()),
+                _ => None,
+            }
+        });
+    name
 }
 
 #[cfg(test)]
