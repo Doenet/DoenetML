@@ -28,9 +28,7 @@ jobs:
             - name: Build
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
-                  cd packages/parser
-                  npm run build
-              #npm run build && npm run build:all
+                  npm run build && npm run build:all
 
             - name: Debug Build Artifacts
               run: ls -la ./packages/parser/.wireit/ || echo "No .wireit directory in parser"
@@ -42,7 +40,6 @@ jobs:
                   name: build-artifacts
                   include-hidden-files: true
                   path: |
-                      ./packages/parser/.wireit/**
                       ./packages/*/.wireit/**
 
     test:
