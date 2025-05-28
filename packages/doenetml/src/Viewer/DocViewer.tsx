@@ -22,7 +22,6 @@ import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
-import { Icon } from "@chakra-ui/react";
 import { Remote } from "comlink";
 import { mainThunks, useAppDispatch } from "../state";
 
@@ -1309,15 +1308,6 @@ export function DocViewer({
     }
 
     if (errMsg !== null) {
-        let errorIcon = (
-            <Icon
-                fontSize="24pt"
-                color="red.800"
-                as={MdError}
-                verticalAlign="middle"
-                marginRight="5px"
-            />
-        );
         return (
             <div
                 style={{
@@ -1326,7 +1316,7 @@ export function DocViewer({
                     marginTop: "20px",
                 }}
             >
-                {errorIcon} {errMsg}
+                <MdError color="red" fontSize={"24pt"} /> {errMsg}
             </div>
         );
     }

@@ -23,7 +23,6 @@ import { prettyPrint } from "@doenet/parser";
 import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
 import { BsExclamationTriangleFill } from "react-icons/bs";
-import { Tooltip } from "../components/tooltip";
 import "./editor-viewer.css";
 
 export function EditorViewer({
@@ -439,52 +438,47 @@ export function EditorViewer({
             <div className="viewer-controls" id={id + "-viewer-controls"}>
                 {!readOnly && (
                     <Box>
-                        <Tooltip
-                            showArrow
-                            content={
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            data-test="Viewer Update Button"
+                            bg="doenet.canvas"
+                            disabled={!codeChanged}
+                            title={
                                 platform == "Mac"
                                     ? "Updates Viewer cmd+s"
                                     : "Updates Viewer ctrl+s"
                             }
-                        >
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                data-test="Viewer Update Button"
-                                bg="doenet.canvas"
-                                disabled={!codeChanged}
-                                onClick={() => {
-                                    setViewerDoenetML(
-                                        editorDoenetMLRef.current,
-                                    );
-                                    window.clearTimeout(
-                                        updateValueTimer.current ?? undefined,
-                                    );
-                                    if (
-                                        lastReportedDoenetML.current !==
-                                        editorDoenetMLRef.current
-                                    ) {
-                                        lastReportedDoenetML.current =
-                                            editorDoenetMLRef.current;
-                                        if (!showViewer) {
-                                            doenetmlChangeCallback?.(
-                                                editorDoenetMLRef.current,
-                                            );
-                                        }
+                            onClick={() => {
+                                setViewerDoenetML(editorDoenetMLRef.current);
+                                window.clearTimeout(
+                                    updateValueTimer.current ?? undefined,
+                                );
+                                if (
+                                    lastReportedDoenetML.current !==
+                                    editorDoenetMLRef.current
+                                ) {
+                                    lastReportedDoenetML.current =
+                                        editorDoenetMLRef.current;
+                                    if (!showViewer) {
+                                        doenetmlChangeCallback?.(
+                                            editorDoenetMLRef.current,
+                                        );
                                     }
-                                    setCodeChanged(false);
-                                    updateValueTimer.current = null;
-                                    setResponses([]);
-                                }}
-                            >
-                                <RxUpdate /> Update{" "}
-                                {codeChanged ? (
-                                    <Icon color="doenet.mainBlue">
-                                        <BsExclamationTriangleFill fontSize="18px" />
-                                    </Icon>
-                                ) : undefined}
-                            </Button>
-                        </Tooltip>
+                                }
+                                setCodeChanged(false);
+                                updateValueTimer.current = null;
+                                setResponses([]);
+                            }}
+                        >
+                            <RxUpdate /> Update{" "}
+                            {codeChanged ? (
+                                <BsExclamationTriangleFill
+                                    fontSize="18px"
+                                    color="var(--mainBlue)"
+                                />
+                            ) : undefined}
+                        </Button>
                     </Box>
                 )}
                 {variants.numVariants > 1 && (

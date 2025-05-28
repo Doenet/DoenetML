@@ -1,13 +1,5 @@
 import React, { ReactElement, useEffect, useRef } from "react";
-import {
-    Box,
-    CloseButton,
-    Heading,
-    List,
-    Spacer,
-    Table,
-    Tabs,
-} from "@chakra-ui/react";
+import { CloseButton, Tabs } from "@chakra-ui/react";
 import { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { BsExclamationTriangleFill } from "react-icons/bs";
 
@@ -163,7 +155,11 @@ export default function ErrorWarningResponseTabs({
                         {submittedResponses.length != 1 && "s"}
                     </Tabs.Trigger>
                 ) : null}
-                <Spacer />
+                <div
+                    style={{
+                        flexGrow: 1,
+                    }}
+                />
                 {isOpen ? (
                     <CloseButton
                         margin="4px"
@@ -176,159 +172,137 @@ export default function ErrorWarningResponseTabs({
                 ) : null}
             </Tabs.List>
             {isOpen && (
-                <Box
-                    backgroundColor={"doenet.canvas"}
-                    height="100%"
-                    overflowY="auto"
+                <div
+                    style={{
+                        display: "flex",
+                        height: "100%",
+                        backgroundColor: "var(--canvas)",
+                        overflowY: "hidden",
+                    }}
                 >
                     {showErrorsWarnings ? (
                         <Tabs.Content value="warnings">
                             {warnings.length == 0 ? (
-                                <Heading as="h3" size="sm">
-                                    No Warnings
-                                </Heading>
+                                <h3>No Warnings</h3>
                             ) : (
-                                <Box>
-                                    <List.Root margin="0px" padding="0px">
-                                        {warnings.map((warningObj, i) => {
-                                            return (
-                                                <List.Item
-                                                    key={i}
-                                                    data-test={`Warning ${i}`}
-                                                >
-                                                    <List.Indicator
-                                                        as={
-                                                            BsExclamationTriangleFill
-                                                        }
-                                                        color="yellow.400"
-                                                        marginBottom="2px"
-                                                    />
-                                                    {warningObj.position
-                                                        ?.lineBegin
-                                                        ? `Line #${
-                                                              warningObj
-                                                                  .position
-                                                                  ?.lineBegin
-                                                          }`
-                                                        : null}{" "}
-                                                    {warningObj.message}
-                                                </List.Item>
-                                            );
-                                        })}
-                                    </List.Root>
-                                </Box>
+                                <ul
+                                    style={{
+                                        listStyleType: "none",
+                                    }}
+                                >
+                                    {warnings.map((warningObj, i) => {
+                                        return (
+                                            <li
+                                                key={i}
+                                                data-test={`Warning ${i}`}
+                                            >
+                                                <BsExclamationTriangleFill
+                                                    style={{
+                                                        color: "yellow",
+                                                        marginRight: 4,
+                                                        marginBottom: -2,
+                                                    }}
+                                                />
+                                                {warningObj.position?.lineBegin
+                                                    ? `Line #${
+                                                          warningObj.position
+                                                              ?.lineBegin
+                                                      }`
+                                                    : null}{" "}
+                                                {warningObj.message}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
                             )}
                         </Tabs.Content>
                     ) : null}
                     {showErrorsWarnings ? (
                         <Tabs.Content value="errors">
                             {errors.length == 0 ? (
-                                <Heading as="h3" size="sm">
-                                    No Errors
-                                </Heading>
+                                <h3>No Errors</h3>
                             ) : (
-                                <Box>
-                                    <List.Root margin="0px" padding="0px">
-                                        {errors.map((errorObj, i) => {
-                                            return (
-                                                <List.Item
-                                                    key={i}
-                                                    data-test={`Error ${i}`}
-                                                >
-                                                    <List.Indicator
-                                                        as={
-                                                            BsExclamationTriangleFill
-                                                        }
-                                                        color="red.500"
-                                                        marginBottom="2px"
-                                                    />
-                                                    {errorObj.position
-                                                        ?.lineBegin
-                                                        ? `Line #${
-                                                              errorObj.position
-                                                                  ?.lineBegin
-                                                          }`
-                                                        : null}{" "}
-                                                    {errorObj.message}
-                                                </List.Item>
-                                            );
-                                        })}
-                                    </List.Root>
-                                </Box>
+                                <ul
+                                    style={{
+                                        listStyleType: "none",
+                                    }}
+                                >
+                                    {errors.map((errorObj, i) => {
+                                        return (
+                                            <li
+                                                key={i}
+                                                data-test={`Error ${i}`}
+                                            >
+                                                <BsExclamationTriangleFill
+                                                    color="red"
+                                                    style={{
+                                                        marginRight: 4,
+                                                        marginBottom: -2,
+                                                    }}
+                                                />
+                                                {errorObj.position?.lineBegin
+                                                    ? `Line #${
+                                                          errorObj.position
+                                                              ?.lineBegin
+                                                      }`
+                                                    : null}{" "}
+                                                {errorObj.message}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
                             )}
                         </Tabs.Content>
                     ) : null}
                     {showResponses ? (
                         <Tabs.Content value="responses" minWidth="fit-content">
                             {submittedResponses.length == 0 ? (
-                                <Heading as="h3" size="sm">
-                                    No submitted responses yet
-                                </Heading>
+                                <h3>No submitted responses yet</h3>
                             ) : (
-                                <Box minWidth="fit-content">
-                                    <Table.Root marginTop="10px" size="sm">
-                                        <Table.Header>
-                                            <Table.Row>
-                                                <Table.ColumnHeader
-                                                    textTransform={"none"}
-                                                    fontSize="medium"
-                                                >
-                                                    Answer Id
-                                                </Table.ColumnHeader>
-                                                <Table.ColumnHeader
-                                                    textTransform={"none"}
-                                                    fontSize="medium"
-                                                >
-                                                    Response
-                                                </Table.ColumnHeader>
-                                                <Table.ColumnHeader
-                                                    textTransform={"none"}
-                                                    fontSize="medium"
-                                                >
-                                                    Credit
-                                                </Table.ColumnHeader>
-                                                <Table.ColumnHeader
-                                                    textTransform={"none"}
-                                                    fontSize="medium"
-                                                >
-                                                    Submitted
-                                                </Table.ColumnHeader>
-                                            </Table.Row>
-                                        </Table.Header>
-                                        <Table.Body>
+                                <div style={{ minWidth: "fit-content" }}>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <td>Answer Id</td>
+                                                <td>Response</td>
+                                                <td>Credit</td>
+                                                <td>Submitted</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
                                             {submittedResponses.map(
                                                 (resp, i) => {
                                                     return (
-                                                        <Table.Row key={i}>
-                                                            <Table.Cell>
+                                                        <tr key={i}>
+                                                            <td>
                                                                 {resp.answerId}
-                                                            </Table.Cell>
-                                                            <Table.Cell>
+                                                            </td>
+                                                            <td>
                                                                 {resp.response}
-                                                            </Table.Cell>
-                                                            <Table.Cell>
+                                                            </td>
+                                                            <td>
                                                                 {Math.round(
                                                                     resp.creditAchieved *
                                                                         1000,
                                                                 ) / 10}
                                                                 %
-                                                            </Table.Cell>
-                                                            <Table.Cell>
+                                                            </td>
+                                                            <td>
                                                                 {
                                                                     resp.submittedAt
                                                                 }
-                                                            </Table.Cell>
-                                                        </Table.Row>
+                                                            </td>
+                                                        </tr>
                                                     );
                                                 },
                                             )}
-                                        </Table.Body>
-                                    </Table.Root>
-                                </Box>
+                                        </tbody>
+                                    </table>
+                                </div>
                             )}
                         </Tabs.Content>
                     ) : null}
-                </Box>
+                </div>
             )}
         </Tabs.Root>
     );

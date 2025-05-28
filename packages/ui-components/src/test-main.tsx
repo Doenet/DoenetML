@@ -14,45 +14,9 @@ import { ToggleButtonGroup } from "./components/ToggleButtonGroup";
 import { MathJaxContext } from "better-react-mathjax";
 import { BsChevronBarContract } from "react-icons/bs";
 import "@doenet/doenetml/style.css";
-import { ResizablePanelPairChakra } from "./components/ResizablePanelPairChakra";
-import { ChakraProvider, createSystem, defaultConfig } from "@chakra-ui/react";
 import "./test-main.css";
 import { ResizablePanelPair } from "./components/ResizablePanelPair";
-import { ResizableCollapsiblePanelPairChakra } from "./components/ResizableCollapsiblePanelPairChakra";
 import { ResizableCollapsiblePanelPair } from "./components/ResizableCollapsiblePanelPair";
-
-const system = createSystem(defaultConfig, {
-    preflight: false,
-    theme: {
-        tokens: {
-            fonts: {
-                body: { value: "Jost" },
-            },
-            colors: {
-                doenet: {
-                    mainBlue: { value: "#1a5a99" },
-                    lightBlue: { value: "#b8d2ea" },
-                    solidLightBlue: { value: "#8fb8de" },
-                    mainGray: { value: "#e3e3e3" },
-                    mediumGray: { value: "#949494" },
-                    lightGray: { value: "#e7e7e7" },
-                    donutBody: { value: "#eea177" },
-                    donutTopping: { value: "#6d4445" },
-                    mainRed: { value: "#c1292e" },
-                    lightRed: { value: "#eab8b8" },
-                    mainGreen: { value: "#459152" },
-                    canvas: { value: "#ffffff" },
-                    canvastext: { value: "#000000" },
-                    lightGreen: { value: "#a6f19f" },
-                    lightYellow: { value: "#f5ed85" },
-                    whiteBlankLink: { value: "#6d4445" },
-                    mainYellow: { value: "#94610a" },
-                    mainPurple: { value: "#4a03d9" },
-                },
-            },
-        },
-    },
-});
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <MathJaxContext
@@ -203,31 +167,6 @@ function App() {
 
             <h3>Resizable Pair</h3>
 
-            <ChakraProvider value={system}>
-                <ResizablePanelPairChakra
-                    panelA={
-                        <div>
-                            Hi there
-                            <br />
-                            More stuff
-                        </div>
-                    }
-                    panelB={<div>And here</div>}
-                />
-                <div style={{ height: "200px", width: "100%" }}>
-                    <ResizableCollapsiblePanelPairChakra
-                        mainPanel={<div>I'm the main panel</div>}
-                        subPanel={<div>I'm the sub panel</div>}
-                        setIsOpen={(isOpen) =>
-                            console.log(
-                                "Sub panel is now",
-                                isOpen ? "open" : "closed",
-                            )
-                        }
-                        isOpen={true}
-                    />
-                </div>
-            </ChakraProvider>
             <div style={{ height: "100px", width: "100%" }}>
                 <ResizablePanelPair
                     panelA={
