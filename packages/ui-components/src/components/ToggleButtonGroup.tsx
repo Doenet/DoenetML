@@ -1,83 +1,80 @@
+import classNames from "classnames";
 import React, { useState } from "react";
-import styled, { ThemeProvider } from "styled-components";
+import { ToggleButton } from "./ToggleButton";
+import { RadioGroup, RadioProvider } from "@ariakit/react";
 
-const Container = styled.div<{
+type ToggleButtonNode = React.ReactElement<typeof ToggleButton>;
+
+function isToggleButton(node: React.ReactNode): node is ToggleButtonNode {
+    return React.isValidElement(node) && node.type === ToggleButton;
+}
+
+export const ToggleButtonGroup = (props: {
+    onClick?: (index: number) => void;
     vertical?: boolean;
-    width?: "menu" | string;
-}>`
-    display: ${(props) => (props.vertical ? "static" : "flex")};
-    width: ${(props) => (props.width == "menu" ? "var(--menuWidth)" : "")};
-    // height: 'fit-content';
-    // margin: 2px 0px 2px 0px ;
-    /* flex-wrap: wrap; */
-    overflow: clip;
-`;
-
-const toggleGroup = {
-    margin: "0px -2px 0px -2px",
-    borderRadius: "0",
-    padding: "0px 12px 0px 10px",
-};
-
-const verticalToggleGroup = {
-    margin: "-2px 4px -2px 4px",
-    borderRadius: "0",
-    padding: "0px 10px 0px 10px",
-};
-
-export const ToggleButtonGroup = (
-    props: React.PropsWithChildren<{
-        onClick?: (index: number) => void;
-        vertical?: boolean;
-        width?: "menu" | string;
-    }>,
-) => {
+    children: React.ReactElement<typeof ToggleButton>[];
+}) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const containerRef = React.useRef<HTMLDivElement>(null);
 
-    const handleClick = (index: number) => {
-        setSelectedIndex(index);
-        if (props.onClick) {
-            props.onClick(index);
+    const onClick = React.useCallback(
+        (e: React.MouseEvent | React.KeyboardEvent) => {
+            if ("key" in e && e.key !== "Enter") {
+                return; // Only handle Enter key for keyboard events
+            }
+            const target = e.target as HTMLElement;
+            const button =
+                target.querySelector(".doenet-toggle-button") ||
+                target.closest(".doenet-toggle-button");
+            if (!button || !containerRef.current) {
+                return;
+            }
+            const allToggleButtons = Array.from(
+                containerRef.current?.querySelectorAll(
+                    ".doenet-toggle-button",
+                ) || [],
+            );
+            const index = allToggleButtons.indexOf(button);
+            if (index === -1) {
+                return;
+            }
+            setSelectedIndex(index);
+            if (props.onClick) {
+                props.onClick(index);
+            }
+        },
+        [props.onClick],
+    );
+
+    const handleClick = (index: number) => {};
+
+    // We override the `props` on our children so that they become controlled components.
+    const children = React.Children.map(props.children, (child, index) => {
+        if (!isToggleButton(child)) {
+            console.warn(
+                "ToggleButtonGroup was passed a child that is not a ToggleButton.",
+            );
+            return child; // If not a valid element, return as is
         }
-    };
-
-    let first_prop = props.vertical ? "first_vert" : "first";
-    let last_prop = props.vertical ? "last_vert" : "last";
-
-    let elem = React.Children.toArray(props.children);
-
-    let modElem = elem.map((element, index) => {
-        if (!React.isValidElement(element)) {
-            return element; // Skip non-element children
-        }
-        let props = {
-            index,
+        return React.cloneElement(child, {
             isSelected: index === selectedIndex,
-            onClick: handleClick,
-        };
-
-        // XXX: What is this? Why is `props` being mutated??
-        if (index === 0) {
-            props["num"] = first_prop;
-        } else if (index === elem.length - 1) {
-            props["num"] = last_prop;
-        }
-
-        return React.cloneElement(element, props);
+            index,
+            inputType: "radio", // Always use radio for ToggleButtonGroup
+        } as React.ComponentProps<typeof ToggleButton>);
     });
 
     return (
-        <Container
-            style={{ height: "fit-content" }}
-            vertical={props.vertical}
-            width={props.width}
-            role="group"
-        >
-            <ThemeProvider
-                theme={props.vertical ? verticalToggleGroup : toggleGroup}
+        <RadioProvider>
+            <RadioGroup
+                className={classNames("doenet-button-group", {
+                    vertical: props.vertical,
+                })}
+                ref={containerRef}
+                onClick={onClick}
+                onKeyDown={onClick}
             >
-                {modElem}
-            </ThemeProvider>
-        </Container>
+                {children}
+            </RadioGroup>
+        </RadioProvider>
     );
 };
