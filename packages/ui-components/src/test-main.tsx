@@ -5,7 +5,6 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import ".";
 import { Button } from "./components/Button";
 import { ActionButton } from "./components/ActionButton";
 import { ActionButtonGroup } from "./components/ActionButtonGroup";
@@ -17,6 +16,10 @@ import "@doenet/doenetml/style.css";
 import "./test-main.css";
 import { ResizablePanelPair } from "./components/ResizablePanelPair";
 import { ResizableCollapsiblePanelPair } from "./components/ResizableCollapsiblePanelPair";
+import { UiButton } from "./components/UiButton";
+
+// For the CSS
+import ".";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <MathJaxContext
@@ -48,6 +51,10 @@ function App() {
                 boxSizing: "border-box",
             }}
         >
+            <h3>UiButton</h3>
+            <UiButton onClick={() => console.log("UiButton clicked!")}>
+                The UI Button
+            </UiButton>
             <h3>Button</h3>
             <Button
                 id="test-button"

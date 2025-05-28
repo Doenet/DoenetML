@@ -1,4 +1,4 @@
-import { Box, Button, Switch, Icon } from "@chakra-ui/react";
+import { Switch } from "@chakra-ui/react";
 import React, {
     ReactElement,
     useCallback,
@@ -6,7 +6,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { ResizablePanelPair } from "@doenet/ui-components";
+import { ResizablePanelPair, UiButton } from "@doenet/ui-components";
 import { RxUpdate } from "react-icons/rx";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
@@ -35,7 +35,7 @@ export function EditorViewer({
     answerResponseCounts = {},
     width = "100%",
     height = "500px",
-    backgroundColor = "doenet.mainGray",
+    backgroundColor = "var(--mainGray)",
     showViewer = true,
     viewerLocation = "right",
     doenetmlChangeCallback,
@@ -343,7 +343,7 @@ export function EditorViewer({
             <div className="formatter-and-version">
                 {showFormatter ? (
                     <>
-                        <Box>
+                        <div>
                             <Switch.Root
                                 title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
                                 checked={formatAsDoenetML}
@@ -390,13 +390,10 @@ export function EditorViewer({
                                             XML
                                         </span>
                                     </span>
-                                    {/* {formatAsDoenetML ? "DoenetML" : "XML"} */}
                                 </Switch.Label>
                             </Switch.Root>
-                        </Box>
-                        <Button
-                            size="xs"
-                            px="4"
+                        </div>
+                        <UiButton
                             title="Format your source code"
                             onClick={async () => {
                                 const printed = await prettyPrint(
@@ -410,7 +407,7 @@ export function EditorViewer({
                             }}
                         >
                             Format
-                        </Button>
+                        </UiButton>
                     </>
                 ) : null}
                 <div className="doenetml-version" title="DoenetML version">
@@ -422,14 +419,17 @@ export function EditorViewer({
 
     if (!showViewer) {
         return (
-            <Box
-                width={width}
-                height={height}
-                border={border}
-                boxSizing="border-box"
+            <div
+                style={{
+                    display: "flex",
+                    width: width,
+                    height: height,
+                    border: border,
+                    boxSizing: "border-box",
+                }}
             >
                 {editorPanel}
-            </Box>
+            </div>
         );
     }
 
@@ -437,49 +437,44 @@ export function EditorViewer({
         <div className="viewer-panel" id={id + "-viewer"}>
             <div className="viewer-controls" id={id + "-viewer-controls"}>
                 {!readOnly && (
-                    <Box>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            data-test="Viewer Update Button"
-                            bg="doenet.canvas"
-                            disabled={!codeChanged}
-                            title={
-                                platform == "Mac"
-                                    ? "Updates Viewer cmd+s"
-                                    : "Updates Viewer ctrl+s"
-                            }
-                            onClick={() => {
-                                setViewerDoenetML(editorDoenetMLRef.current);
-                                window.clearTimeout(
-                                    updateValueTimer.current ?? undefined,
-                                );
-                                if (
-                                    lastReportedDoenetML.current !==
-                                    editorDoenetMLRef.current
-                                ) {
-                                    lastReportedDoenetML.current =
-                                        editorDoenetMLRef.current;
-                                    if (!showViewer) {
-                                        doenetmlChangeCallback?.(
-                                            editorDoenetMLRef.current,
-                                        );
-                                    }
+                    <UiButton
+                        data-test="Viewer Update Button"
+                        disabled={!codeChanged}
+                        title={
+                            platform == "Mac"
+                                ? "Updates Viewer cmd+s"
+                                : "Updates Viewer ctrl+s"
+                        }
+                        onClick={() => {
+                            setViewerDoenetML(editorDoenetMLRef.current);
+                            window.clearTimeout(
+                                updateValueTimer.current ?? undefined,
+                            );
+                            if (
+                                lastReportedDoenetML.current !==
+                                editorDoenetMLRef.current
+                            ) {
+                                lastReportedDoenetML.current =
+                                    editorDoenetMLRef.current;
+                                if (!showViewer) {
+                                    doenetmlChangeCallback?.(
+                                        editorDoenetMLRef.current,
+                                    );
                                 }
-                                setCodeChanged(false);
-                                updateValueTimer.current = null;
-                                setResponses([]);
-                            }}
-                        >
-                            <RxUpdate /> Update{" "}
-                            {codeChanged ? (
-                                <BsExclamationTriangleFill
-                                    fontSize="18px"
-                                    color="var(--mainBlue)"
-                                />
-                            ) : undefined}
-                        </Button>
-                    </Box>
+                            }
+                            setCodeChanged(false);
+                            updateValueTimer.current = null;
+                            setResponses([]);
+                        }}
+                    >
+                        <RxUpdate /> Update{" "}
+                        {codeChanged ? (
+                            <BsExclamationTriangleFill
+                                fontSize="18px"
+                                color="var(--mainBlue)"
+                            />
+                        ) : undefined}
+                    </UiButton>
                 )}
                 {variants.numVariants > 1 && (
                     <VariantSelect

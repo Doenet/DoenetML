@@ -6,3 +6,4 @@ export { ToggleButton } from "./components/ToggleButton";
 export { ToggleButtonGroup } from "./components/ToggleButtonGroup";
 export { ResizablePanelPair } from "./components/ResizablePanelPair";
 export { ResizableCollapsiblePanelPair } from "./components/ResizableCollapsiblePanelPair";
+export { UiButton } from "./components/UiButton";
