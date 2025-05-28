@@ -6,7 +6,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { ResizablePanelPair } from "./ResizablePanelPair";
+import { ResizablePanelPair } from "@doenet/ui-components";
 import { RxUpdate } from "react-icons/rx";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
@@ -21,7 +21,7 @@ import {
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 import { formatResponse } from "../utils/responses";
-import { ResizableCollapsiblePanelPair } from "./ResizableCollapsiblePanelPair";
+import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
 import { BsExclamationTriangleFill } from "react-icons/bs";
 import { Tooltip } from "../components/tooltip";
 import "./editor-viewer.css";

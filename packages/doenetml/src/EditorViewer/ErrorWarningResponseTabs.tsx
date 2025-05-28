@@ -84,6 +84,7 @@ export default function ErrorWarningResponseTabs({
             variant="plain"
             backgroundColor={"doenet.mainGray"}
             className="error-warning-response-tabs"
+            height={isOpen ? "100%" : "fit-content"}
         >
             <Tabs.List>
                 {showErrorsWarnings ? (
@@ -174,152 +175,161 @@ export default function ErrorWarningResponseTabs({
                     />
                 ) : null}
             </Tabs.List>
-            <Box
-                backgroundColor={"doenet.canvas"}
-                height="100%"
-                overflowY="auto"
-            >
-                {showErrorsWarnings ? (
-                    <Tabs.Content value="warnings">
-                        {warnings.length == 0 ? (
-                            <Heading as="h3" size="sm">
-                                No Warnings
-                            </Heading>
-                        ) : (
-                            <Box>
-                                <List.Root margin="0px" padding="0px">
-                                    {warnings.map((warningObj, i) => {
-                                        return (
-                                            <List.Item
-                                                key={i}
-                                                data-test={`Warning ${i}`}
-                                            >
-                                                <List.Indicator
-                                                    as={
-                                                        BsExclamationTriangleFill
-                                                    }
-                                                    color="yellow.400"
-                                                    marginBottom="2px"
-                                                />
-                                                {warningObj.position?.lineBegin
-                                                    ? `Line #${
-                                                          warningObj.position
-                                                              ?.lineBegin
-                                                      }`
-                                                    : null}{" "}
-                                                {warningObj.message}
-                                            </List.Item>
-                                        );
-                                    })}
-                                </List.Root>
-                            </Box>
-                        )}
-                    </Tabs.Content>
-                ) : null}
-                {showErrorsWarnings ? (
-                    <Tabs.Content value="errors">
-                        {errors.length == 0 ? (
-                            <Heading as="h3" size="sm">
-                                No Errors
-                            </Heading>
-                        ) : (
-                            <Box>
-                                <List.Root margin="0px" padding="0px">
-                                    {errors.map((errorObj, i) => {
-                                        return (
-                                            <List.Item
-                                                key={i}
-                                                data-test={`Error ${i}`}
-                                            >
-                                                <List.Indicator
-                                                    as={
-                                                        BsExclamationTriangleFill
-                                                    }
-                                                    color="red.500"
-                                                    marginBottom="2px"
-                                                />
-                                                {errorObj.position?.lineBegin
-                                                    ? `Line #${
-                                                          errorObj.position
-                                                              ?.lineBegin
-                                                      }`
-                                                    : null}{" "}
-                                                {errorObj.message}
-                                            </List.Item>
-                                        );
-                                    })}
-                                </List.Root>
-                            </Box>
-                        )}
-                    </Tabs.Content>
-                ) : null}
-                {showResponses ? (
-                    <Tabs.Content value="responses" minWidth="fit-content">
-                        {submittedResponses.length == 0 ? (
-                            <Heading as="h3" size="sm">
-                                No submitted responses yet
-                            </Heading>
-                        ) : (
-                            <Box minWidth="fit-content">
-                                <Table.Root marginTop="10px" size="sm">
-                                    <Table.Header>
-                                        <Table.Row>
-                                            <Table.ColumnHeader
-                                                textTransform={"none"}
-                                                fontSize="medium"
-                                            >
-                                                Answer Id
-                                            </Table.ColumnHeader>
-                                            <Table.ColumnHeader
-                                                textTransform={"none"}
-                                                fontSize="medium"
-                                            >
-                                                Response
-                                            </Table.ColumnHeader>
-                                            <Table.ColumnHeader
-                                                textTransform={"none"}
-                                                fontSize="medium"
-                                            >
-                                                Credit
-                                            </Table.ColumnHeader>
-                                            <Table.ColumnHeader
-                                                textTransform={"none"}
-                                                fontSize="medium"
-                                            >
-                                                Submitted
-                                            </Table.ColumnHeader>
-                                        </Table.Row>
-                                    </Table.Header>
-                                    <Table.Body>
-                                        {submittedResponses.map((resp, i) => {
+            {isOpen && (
+                <Box
+                    backgroundColor={"doenet.canvas"}
+                    height="100%"
+                    overflowY="auto"
+                >
+                    {showErrorsWarnings ? (
+                        <Tabs.Content value="warnings">
+                            {warnings.length == 0 ? (
+                                <Heading as="h3" size="sm">
+                                    No Warnings
+                                </Heading>
+                            ) : (
+                                <Box>
+                                    <List.Root margin="0px" padding="0px">
+                                        {warnings.map((warningObj, i) => {
                                             return (
-                                                <Table.Row key={i}>
-                                                    <Table.Cell>
-                                                        {resp.answerId}
-                                                    </Table.Cell>
-                                                    <Table.Cell>
-                                                        {resp.response}
-                                                    </Table.Cell>
-                                                    <Table.Cell>
-                                                        {Math.round(
-                                                            resp.creditAchieved *
-                                                                1000,
-                                                        ) / 10}
-                                                        %
-                                                    </Table.Cell>
-                                                    <Table.Cell>
-                                                        {resp.submittedAt}
-                                                    </Table.Cell>
-                                                </Table.Row>
+                                                <List.Item
+                                                    key={i}
+                                                    data-test={`Warning ${i}`}
+                                                >
+                                                    <List.Indicator
+                                                        as={
+                                                            BsExclamationTriangleFill
+                                                        }
+                                                        color="yellow.400"
+                                                        marginBottom="2px"
+                                                    />
+                                                    {warningObj.position
+                                                        ?.lineBegin
+                                                        ? `Line #${
+                                                              warningObj
+                                                                  .position
+                                                                  ?.lineBegin
+                                                          }`
+                                                        : null}{" "}
+                                                    {warningObj.message}
+                                                </List.Item>
                                             );
                                         })}
-                                    </Table.Body>
-                                </Table.Root>
-                            </Box>
-                        )}
-                    </Tabs.Content>
-                ) : null}
-            </Box>
+                                    </List.Root>
+                                </Box>
+                            )}
+                        </Tabs.Content>
+                    ) : null}
+                    {showErrorsWarnings ? (
+                        <Tabs.Content value="errors">
+                            {errors.length == 0 ? (
+                                <Heading as="h3" size="sm">
+                                    No Errors
+                                </Heading>
+                            ) : (
+                                <Box>
+                                    <List.Root margin="0px" padding="0px">
+                                        {errors.map((errorObj, i) => {
+                                            return (
+                                                <List.Item
+                                                    key={i}
+                                                    data-test={`Error ${i}`}
+                                                >
+                                                    <List.Indicator
+                                                        as={
+                                                            BsExclamationTriangleFill
+                                                        }
+                                                        color="red.500"
+                                                        marginBottom="2px"
+                                                    />
+                                                    {errorObj.position
+                                                        ?.lineBegin
+                                                        ? `Line #${
+                                                              errorObj.position
+                                                                  ?.lineBegin
+                                                          }`
+                                                        : null}{" "}
+                                                    {errorObj.message}
+                                                </List.Item>
+                                            );
+                                        })}
+                                    </List.Root>
+                                </Box>
+                            )}
+                        </Tabs.Content>
+                    ) : null}
+                    {showResponses ? (
+                        <Tabs.Content value="responses" minWidth="fit-content">
+                            {submittedResponses.length == 0 ? (
+                                <Heading as="h3" size="sm">
+                                    No submitted responses yet
+                                </Heading>
+                            ) : (
+                                <Box minWidth="fit-content">
+                                    <Table.Root marginTop="10px" size="sm">
+                                        <Table.Header>
+                                            <Table.Row>
+                                                <Table.ColumnHeader
+                                                    textTransform={"none"}
+                                                    fontSize="medium"
+                                                >
+                                                    Answer Id
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader
+                                                    textTransform={"none"}
+                                                    fontSize="medium"
+                                                >
+                                                    Response
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader
+                                                    textTransform={"none"}
+                                                    fontSize="medium"
+                                                >
+                                                    Credit
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader
+                                                    textTransform={"none"}
+                                                    fontSize="medium"
+                                                >
+                                                    Submitted
+                                                </Table.ColumnHeader>
+                                            </Table.Row>
+                                        </Table.Header>
+                                        <Table.Body>
+                                            {submittedResponses.map(
+                                                (resp, i) => {
+                                                    return (
+                                                        <Table.Row key={i}>
+                                                            <Table.Cell>
+                                                                {resp.answerId}
+                                                            </Table.Cell>
+                                                            <Table.Cell>
+                                                                {resp.response}
+                                                            </Table.Cell>
+                                                            <Table.Cell>
+                                                                {Math.round(
+                                                                    resp.creditAchieved *
+                                                                        1000,
+                                                                ) / 10}
+                                                                %
+                                                            </Table.Cell>
+                                                            <Table.Cell>
+                                                                {
+                                                                    resp.submittedAt
+                                                                }
+                                                            </Table.Cell>
+                                                        </Table.Row>
+                                                    );
+                                                },
+                                            )}
+                                        </Table.Body>
+                                    </Table.Root>
+                                </Box>
+                            )}
+                        </Tabs.Content>
+                    ) : null}
+                </Box>
+            )}
         </Tabs.Root>
     );
 }
