@@ -1,4 +1,3 @@
-import { Switch } from "@chakra-ui/react";
 import React, {
     ReactElement,
     useCallback,
@@ -24,6 +23,12 @@ import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
 import { BsExclamationTriangleFill } from "react-icons/bs";
 import "./editor-viewer.css";
+import {
+    Select,
+    SelectItem,
+    SelectPopover,
+    SelectProvider,
+} from "@ariakit/react";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -35,7 +40,6 @@ export function EditorViewer({
     answerResponseCounts = {},
     width = "100%",
     height = "500px",
-    backgroundColor = "var(--mainGray)",
     showViewer = true,
     viewerLocation = "right",
     doenetmlChangeCallback,
@@ -59,7 +63,6 @@ export function EditorViewer({
     answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
-    backgroundColor?: string;
     showViewer?: boolean;
     viewerLocation?: "left" | "right" | "top" | "bottom";
     doenetmlChangeCallback?: Function;
@@ -343,55 +346,33 @@ export function EditorViewer({
             <div className="formatter-and-version">
                 {showFormatter ? (
                     <>
-                        <div>
-                            <Switch.Root
-                                title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
-                                checked={formatAsDoenetML}
-                                onCheckedChange={(e) => {
-                                    setFormatAsDoenetML(e.checked);
+                        <div className="label">Format as</div>
+                        <div className="wrapper">
+                            <SelectProvider
+                                defaultValue={"DoenetML"}
+                                setValue={(e) => {
+                                    setFormatAsDoenetML(e === "DoenetML");
                                 }}
                             >
-                                <Switch.HiddenInput />
-                                <Switch.Control>
-                                    <Switch.Thumb />
-                                </Switch.Control>
-                                <Switch.Label>
-                                    Format as{" "}
-                                    <span
-                                        style={{
-                                            display: "inline-block",
-                                            position: "relative",
-                                            //width: "fit-content",
-                                        }}
-                                    >
-                                        <span
-                                            style={{
-                                                visibility: formatAsDoenetML
-                                                    ? "visible"
-                                                    : "hidden",
-                                                display: "inline-block",
-                                            }}
-                                            aria-disabled={!formatAsDoenetML}
-                                        >
-                                            DoenetML
-                                        </span>
-                                        <span
-                                            style={{
-                                                visibility: formatAsDoenetML
-                                                    ? "hidden"
-                                                    : "visible",
-                                                display: "inline-block",
-                                                // Since "DoenetML" is a longer string than "XML", we position "XML" absolutely
-                                                position: "absolute",
-                                                left: "0",
-                                            }}
-                                            aria-disabled={formatAsDoenetML}
-                                        >
-                                            XML
-                                        </span>
-                                    </span>
-                                </Switch.Label>
-                            </Switch.Root>
+                                <Select className="button" />
+                                <SelectPopover
+                                    sameWidth
+                                    gutter={2}
+                                    className="popover"
+                                >
+                                    <SelectItem
+                                        className="select-item"
+                                        value="DoenetML"
+                                        onSelect={(e) =>
+                                            console.log("changed ", e)
+                                        }
+                                    />
+                                    <SelectItem
+                                        className="select-item"
+                                        value="XML"
+                                    />
+                                </SelectPopover>
+                            </SelectProvider>
                         </div>
                         <UiButton
                             title="Format your source code"
