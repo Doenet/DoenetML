@@ -46,6 +46,7 @@ export default function VariantSelect({
                     }}
                 >
                     <Ariakit.SelectProvider
+                        value={value}
                         defaultValue={value}
                         setValue={(val) => {
                             const index = array.indexOf(val);
