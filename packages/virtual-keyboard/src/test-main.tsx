@@ -7,15 +7,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { VirtualKeyboard } from "./virtual-keyboard";
 import { MathJaxContext } from "better-react-mathjax";
-import { ChakraProvider } from "@chakra-ui/react";
 import { ManagedKeyboard } from "./virtual-keyboard";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.Fragment>
         <ManagedKeyboard onClick={(e) => console.log("keyboard event", e)} />
-        <ChakraProvider>
-            <App />
-        </ChakraProvider>
+        <App />
     </React.Fragment>,
 );
 

@@ -174,7 +174,13 @@ function App() {
 
             <h3>Resizable Pair</h3>
 
-            <div style={{ height: "100px", width: "100%" }}>
+            <div
+                style={{
+                    height: "100px",
+                    width: "100%",
+                    boxSizing: "border-box",
+                }}
+            >
                 <ResizablePanelPair
                     panelA={
                         <div>

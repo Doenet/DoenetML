@@ -54,6 +54,7 @@ export function ResizablePanelPair({
                 width: width,
                 height: height,
                 border: border,
+                boxSizing: "border-box",
             }}
         >
             <PanelGroup direction={direction}>
