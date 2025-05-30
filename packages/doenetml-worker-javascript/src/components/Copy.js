@@ -1430,6 +1430,15 @@ export default class Copy extends CompositeComponent {
      */
     static addAttributesToSingleReplacement(replacements, component) {
         if (replacements.length === 1 && typeof replacements[0] === "object") {
+            // If the replacement is a group that was created by verify replacements
+            // where it received the `createComponentIdx` attribute from the copy already,
+            // then don't also give it the name and index
+            if (replacements[0].componentType === "group") {
+                if (replacements[0].attributes?.createComponentIdx != null) {
+                    return;
+                }
+            }
+
             if (
                 component.attributes.createComponentName?.primitive.value !=
                 undefined
@@ -2407,6 +2416,17 @@ export default class Copy extends CompositeComponent {
             ) {
                 const theNewReplacement =
                     replacementChanges[0].serializedReplacements[0];
+
+                // If the replacement is a group that was created by verify replacements
+                // where it received the `createComponentIdx` attribute from the copy already,
+                // then don't also give it the name and index
+                if (theNewReplacement.componentType === "group") {
+                    if (
+                        theNewReplacement.attributes?.createComponentIdx != null
+                    ) {
+                        return;
+                    }
+                }
 
                 if (
                     component.attributes.createComponentName?.primitive.value !=

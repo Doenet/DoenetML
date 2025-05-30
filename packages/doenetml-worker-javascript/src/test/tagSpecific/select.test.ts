@@ -13,55 +13,105 @@ vi.mock("hyperformula");
 describe("Select tag tests", async () => {
     async function test_values_separately({
         doenetML,
-        componentNames,
-        selectName,
-        valid_values,
+        select_name,
+        num_to_select,
+        num_option_children,
+        option_child_names,
+        valid_values_by_option_child,
         num_samples,
         must_be_distinct = false,
         is_math = false,
     }: {
         doenetML: string;
-        componentNames: string[];
-        selectName?: string;
-        valid_values: any[][];
+        select_name: string;
+        num_to_select: number;
+        num_option_children: number;
+        option_child_names?: string[];
+        valid_values_by_option_child: any[][];
         num_samples: number;
         must_be_distinct?: boolean;
         is_math?: boolean;
     }) {
         for (let i = 0; i < num_samples; i++) {
-            let core = await createTestCore({
+            const { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: i,
             });
+
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            const s = stateVariables[selectName ?? ""];
-            for (let [ind, name] of componentNames.entries()) {
-                let value = name
-                    ? stateVariables[name].stateValues.value
-                    : stateVariables[
-                          stateVariables[s.replacements![ind].componentIdx]
-                              .replacements![0].componentIdx
-                      ].stateValues.value;
-                expect(
-                    is_math
-                        ? valid_values[ind].some((v) => v.equals(value))
-                        : valid_values[ind].includes(value),
-                ).eq(true, `Expected ${value} to be in ${valid_values[ind]}`);
+            for (let select_num = 0; select_num < num_to_select; select_num++) {
+                for (
+                    let option_num = 0;
+                    option_num < num_option_children;
+                    option_num++
+                ) {
+                    const child_idx = resolveComponentName(
+                        `${select_name}[${select_num + 1}][${option_num + 1}]`,
+                    );
+                    const value = stateVariables[child_idx].stateValues.value;
+
+                    expect(
+                        is_math
+                            ? valid_values_by_option_child[option_num].some(
+                                  (v) => v.equals(value),
+                              )
+                            : valid_values_by_option_child[option_num].includes(
+                                  value,
+                              ),
+                    ).eq(
+                        true,
+                        `Expected ${value} to be in ${valid_values_by_option_child[option_num]}`,
+                    );
+
+                    let option_child_idx = option_child_names
+                        ? resolveComponentName(
+                              `${select_name}[${select_num + 1}].${option_child_names[option_num]}`,
+                          )
+                        : null;
+
+                    if (option_child_idx != null) {
+                        expect(option_child_idx).eq(child_idx);
+                    }
+                }
             }
 
             if (must_be_distinct) {
-                for (let name1 of componentNames) {
-                    let val1 = stateVariables[name1].stateValues.value;
-                    for (let name2 of componentNames) {
-                        if (name2 !== name1) {
-                            let val2 = stateVariables[name2].stateValues.value;
-                            if (is_math) {
-                                expect(val2.equals(val1)).eq(false);
-                            } else {
-                                expect(val2).not.eq(val1);
+                for (
+                    let option_num = 0;
+                    option_num < num_option_children;
+                    option_num++
+                ) {
+                    for (
+                        let select_num1 = 0;
+                        select_num1 < num_to_select;
+                        select_num1++
+                    ) {
+                        const val1 =
+                            stateVariables[
+                                resolveComponentName(
+                                    `${select_name}[${select_num1 + 1}][${option_num + 1}]`,
+                                )
+                            ].stateValues.value;
+                        for (
+                            let select_num2 = 0;
+                            select_num2 < num_to_select;
+                            select_num2++
+                        ) {
+                            if (select_num2 !== select_num1) {
+                                const val2 =
+                                    stateVariables[
+                                        resolveComponentName(
+                                            `${select_name}[${select_num2 + 1}][${option_num + 1}]`,
+                                        )
+                                    ].stateValues.value;
+                                if (is_math) {
+                                    expect(val2.equals(val1)).eq(false);
+                                } else {
+                                    expect(val2).not.eq(val1);
+                                }
                             }
                         }
                     }
@@ -72,65 +122,96 @@ describe("Select tag tests", async () => {
 
     async function test_combined_values({
         doenetML,
-        componentNames,
+        select_name,
+        num_to_select,
+        num_option_children,
+        option_child_names,
         valid_combinations,
         num_samples,
         is_math = false,
     }: {
         doenetML: string;
-        componentNames: string[];
+        select_name: string;
+        num_to_select: number;
+        num_option_children: number;
+        option_child_names?: string[];
         valid_combinations: any[][];
         num_samples: number;
         is_math?: boolean;
     }) {
         for (let i = 0; i < num_samples; i++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: i,
             });
+
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            let values = componentNames.map(
-                (name) => stateVariables[name].stateValues.value,
-            );
 
-            expect(
-                valid_combinations.some((comb) =>
-                    comb.every((v, i) =>
-                        is_math ? v.equals(values[i]) : v === values[i],
+            for (let select_num = 0; select_num < num_to_select; select_num++) {
+                const values: any[] = [];
+
+                for (
+                    let option_num = 0;
+                    option_num < num_option_children;
+                    option_num++
+                ) {
+                    const child_idx = resolveComponentName(
+                        `${select_name}[${select_num + 1}][${option_num + 1}]`,
+                    );
+                    values.push(stateVariables[child_idx].stateValues.value);
+
+                    let option_child_idx = option_child_names
+                        ? resolveComponentName(
+                              `${select_name}[${select_num + 1}].${option_child_names[option_num]}`,
+                          )
+                        : null;
+
+                    if (option_child_idx != null) {
+                        expect(option_child_idx).eq(child_idx);
+                    }
+                }
+
+                expect(
+                    valid_combinations.some((comb) =>
+                        comb.every((v, i) =>
+                            is_math ? v.equals(values[i]) : v === values[i],
+                        ),
                     ),
-                ),
-            ).eq(
-                true,
-                `Expected (${values}) to be in ${valid_combinations.map((comb) => `(${comb})`)}`,
-            );
+                ).eq(
+                    true,
+                    `Expected (${values}) to be in ${valid_combinations.map((comb) => `(${comb})`)}`,
+                );
+            }
         }
     }
 
     it("no parameters, select doesn't do anything", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><select/></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p"].activeChildren.length).eq(0);
+        expect(
+            stateVariables[resolveComponentName("p")].activeChildren.length,
+        ).eq(0);
     });
 
     it("select single math", async () => {
         const doenetML = `
-    <select assignNames="(res)">
-      <option><math>u</math></option>
-      <option><math>v</math></option>
-      <option><math>w</math></option>
-      <option><math>x</math></option>
-      <option><math>y</math></option>
-      <option><math>z</math></option>
+    <select name="sel">
+      <option><math name="x">u</math></option>
+      <option><math name="x">v</math></option>
+      <option><math name="x">w</math></option>
+      <option><math name="x">x</math></option>
+      <option><math name="x">y</math></option>
+      <option><math name="x">z</math></option>
     </select>`;
-        const valid_values = [
+        const valid_values_by_option_child = [
             [
                 me.fromText("u"),
                 me.fromText("v"),
@@ -140,12 +221,14 @@ describe("Select tag tests", async () => {
                 me.fromText("z"),
             ],
         ];
-        const componentNames = ["/res"];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            valid_values_by_option_child,
+            select_name: "sel",
+            num_to_select: 1,
+            num_option_children: 1,
+            option_child_names: ["x"],
             num_samples: 10,
             is_math: true,
         });
@@ -153,30 +236,33 @@ describe("Select tag tests", async () => {
 
     it("select multiple maths", async () => {
         const doenetML = `
-    <select assignNames="(res1) (res2) (res3)" numToSelect="3">
-      <option><math>u</math></option>
-      <option><math>v</math></option>
-      <option><math>w</math></option>
-      <option><math>x</math></option>
-      <option><math>y</math></option>
-      <option><math>z</math></option>
+    <select name="sel" numToSelect="3">
+      <option><math name="x">u</math></option>
+      <option><math name="x">v</math></option>
+      <option><math name="x">w</math></option>
+      <option><math name="x">x</math></option>
+      <option><math name="x">y</math></option>
+      <option><math name="x">z</math></option>
     </select>`;
 
-        const vals = [
-            me.fromText("u"),
-            me.fromText("v"),
-            me.fromText("w"),
-            me.fromText("x"),
-            me.fromText("y"),
-            me.fromText("z"),
+        const valid_values_by_option_child = [
+            [
+                me.fromText("u"),
+                me.fromText("v"),
+                me.fromText("w"),
+                me.fromText("x"),
+                me.fromText("y"),
+                me.fromText("z"),
+            ],
         ];
-        const valid_values = Array(3).fill(vals);
-        const componentNames = ["/res1", "/res2", "/res3"];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            valid_values_by_option_child,
+            select_name: "sel",
+            num_to_select: 3,
+            num_option_children: 1,
+            option_child_names: ["x"],
             num_samples: 10,
             is_math: true,
             must_be_distinct: true,
@@ -185,7 +271,7 @@ describe("Select tag tests", async () => {
 
     it("select multiple maths, initially unresolved", async () => {
         const doenetML = `
-    <select assignNames="(res1) (res2) (res3)" numToSelect="$n">
+    <select name="sel" numToSelect="$n">
       <option><math>u</math></option>
       <option><math>v</math></option>
       <option><math>w</math></option>
@@ -194,29 +280,14 @@ describe("Select tag tests", async () => {
       <option><math>z</math></option>
     </select>
 
-    $n3{name="n2"}
-    $num1{name="n"}
-    <math name="num1" simplify>$n2+$num2</math>
-    <math name="num2" simplify>$n3+$num3</math>
-    $num3{name="n3"}
+    <number extend="$n3" name="n2" />
+    <math extend="$num1" name="n" />
+    <math name="num1">$n2+$num2</math>
+    <math name="num2">$n3+$num3</math>
+    <number extend="$num3" name="n3" />
     <number name="num3">1</number>`;
-        const valid_values = [
-            [
-                me.fromText("u"),
-                me.fromText("v"),
-                me.fromText("w"),
-                me.fromText("x"),
-                me.fromText("y"),
-                me.fromText("z"),
-            ],
-            [
-                me.fromText("u"),
-                me.fromText("v"),
-                me.fromText("w"),
-                me.fromText("x"),
-                me.fromText("y"),
-                me.fromText("z"),
-            ],
+
+        const valid_values_by_option_child = [
             [
                 me.fromText("u"),
                 me.fromText("v"),
@@ -226,43 +297,13 @@ describe("Select tag tests", async () => {
                 me.fromText("z"),
             ],
         ];
-        const componentNames = ["/res1", "/res2", "/res3"];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
-            num_samples: 10,
-            is_math: true,
-            must_be_distinct: true,
-        });
-    });
-
-    it("select multiple maths with namespace", async () => {
-        const doenetML = `
-    <select name="s" assignNames="(res1) (res2) (res3)" numToSelect="3" newNameSpace>
-      <option><math>u</math></option>
-      <option><math>v</math></option>
-      <option><math>w</math></option>
-      <option><math>x</math></option>
-      <option><math>y</math></option>
-      <option><math>z</math></option>
-    </select>`;
-        const vals = [
-            me.fromText("u"),
-            me.fromText("v"),
-            me.fromText("w"),
-            me.fromText("x"),
-            me.fromText("y"),
-            me.fromText("z"),
-        ];
-        const valid_values = Array(3).fill(vals);
-        const componentNames = ["/s/res1", "/s/res2", "/s/res3"];
-
-        await test_values_separately({
-            doenetML,
-            valid_values,
-            componentNames,
+            valid_values_by_option_child,
+            select_name: "sel",
+            num_to_select: 3,
+            num_option_children: 1,
             num_samples: 10,
             is_math: true,
             must_be_distinct: true,
@@ -271,7 +312,7 @@ describe("Select tag tests", async () => {
 
     it("select multiple maths, with replacement", async () => {
         const doenetML = `
-    <select name="s" assignNames="(res1) (res2) (res3)" numToSelect="5" withReplacement>
+    <select name="s" numToSelect="5" withReplacement>
       <option><math>u</math></option>
       <option><math>v</math></option>
       <option><math>w</math></option>
@@ -279,32 +320,34 @@ describe("Select tag tests", async () => {
       <option><math>y</math></option>
       <option><math>z</math></option>
     </select>`;
-        const vals = [
-            me.fromText("u"),
-            me.fromText("v"),
-            me.fromText("w"),
-            me.fromText("x"),
-            me.fromText("y"),
-            me.fromText("z"),
+
+        const valid_values_by_option_child = [
+            [
+                me.fromText("u"),
+                me.fromText("v"),
+                me.fromText("w"),
+                me.fromText("x"),
+                me.fromText("y"),
+                me.fromText("z"),
+            ],
         ];
-        const valid_values = Array(5).fill(vals);
-        const componentNames = ["/res1", "/res2", "/res3", "", ""];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
-            selectName: "/s",
+            valid_values_by_option_child,
+            select_name: "s",
+            num_option_children: 1,
+            num_to_select: 5,
             num_samples: 10,
             is_math: true,
         });
     });
 
     it("asList", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p name="p1"><select name="s" assignNames="u v w x y" numToSelect="5" type="number">175 176 177 178 179 180 181</select></p>
-    <p name="p2"><select copySource="s" name="s2" asList="false" /></p>
+    <p name="p1"><select name="s" numToSelect="5" type="number">175 176 177 178 179 180 181</select></p>
+    <p name="p2"><select extend="$s" name="s2" asList="false" /></p>
 
     `,
         });
@@ -313,101 +356,109 @@ describe("Select tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        results.push(stateVariables["/u"].stateValues.value);
-        results.push(stateVariables["/v"].stateValues.value);
-        results.push(stateVariables["/w"].stateValues.value);
-        results.push(stateVariables["/x"].stateValues.value);
-        results.push(stateVariables["/y"].stateValues.value);
+        results.push(
+            stateVariables[resolveComponentName("s[1][1]")].stateValues.value,
+        );
+        results.push(
+            stateVariables[resolveComponentName("s[2][1]")].stateValues.value,
+        );
+        results.push(
+            stateVariables[resolveComponentName("s[3][1]")].stateValues.value,
+        );
+        results.push(
+            stateVariables[resolveComponentName("s[4][1]")].stateValues.value,
+        );
+        results.push(
+            stateVariables[resolveComponentName("s[5][1]")].stateValues.value,
+        );
 
         for (let num of results) {
             expect([175, 176, 177, 178, 179, 180, 181].includes(num)).eq(true);
         }
-        expect(stateVariables["/p1"].stateValues.text).eq(results.join(", "));
-        expect(stateVariables["/p2"].stateValues.text).eq(results.join(""));
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            results.join(", "),
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            results.join(""),
+        );
     });
 
     it("copies don't resample", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1">
-    <select name="sample1" assignNames="n1" type="number">1 2 3 4 5 6 7</select>
-    <select name="sample2" assignNames="n2" type="number">1 2 3 4 5 6 7</select>
+    <select name="sample1" type="number">1 2 3 4 5 6 7</select>
+    <select name="sample2" type="number">1 2 3 4 5 6 7</select>
     </p>
 
     <p>
-    $sample1{name="noresample1"}
-    $sample2{name="noresample2"}
-    $noresample1{name="noreresample1"}
-    $noresample2{name="noreresample2"}
+        <select extend="$sample1" name="noresample1" />
+        <select extend="$sample2" name="noresample2" />
+        <select extend="$noresample1" name="noreresample1" />
+        <select extend="$noresample2" name="noreresample2" />
     </p>
 
-    <p copySource="p1" name="noresamplep"/>
+    <p extend="$p1" name="noresamplep"/>
 
-    <p copySource="noresamplep" name="noreresamplep"/>
+    <p extend="$noresamplep" name="noreresamplep"/>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let num1 = stateVariables["/n1"].stateValues.value;
-        let num2 = stateVariables["/n2"].stateValues.value;
+        let num1 =
+            stateVariables[resolveComponentName("sample1[1][1]")].stateValues
+                .value;
+        let num2 =
+            stateVariables[resolveComponentName("sample2[1][1]")].stateValues
+                .value;
         expect(Number.isInteger(num1) && num1 >= 1 && num1 <= 7).eq(true);
         expect(Number.isInteger(num2) && num2 >= 1 && num2 <= 7).eq(true);
         expect(
-            stateVariables[
-                stateVariables[
-                    stateVariables["/noresample1"].replacements![0].componentIdx
-                ].replacements![0].componentIdx
-            ].stateValues.value,
+            stateVariables[resolveComponentName("noresample1[1][1]")]
+                .stateValues.value,
         ).eq(num1);
         expect(
-            stateVariables[
-                stateVariables[
-                    stateVariables["/noresample2"].replacements![0].componentIdx
-                ].replacements![0].componentIdx
-            ].stateValues.value,
+            stateVariables[resolveComponentName("noresample2[1][1]")]
+                .stateValues.value,
         ).eq(num2);
         expect(
-            stateVariables[
-                stateVariables[
-                    stateVariables["/noreresample1"].replacements![0]
-                        .componentIdx
-                ].replacements![0].componentIdx
-            ].stateValues.value,
+            stateVariables[resolveComponentName("noreresample1[1][1]")]
+                .stateValues.value,
         ).eq(num1);
         expect(
-            stateVariables[
-                stateVariables[
-                    stateVariables["/noreresample2"].replacements![0]
-                        .componentIdx
-                ].replacements![0].componentIdx
-            ].stateValues.value,
+            stateVariables[resolveComponentName("noreresample2[1][1]")]
+                .stateValues.value,
         ).eq(num2);
 
         expect(
             stateVariables[
-                stateVariables["/noresamplep"].activeChildren[1].componentIdx
+                stateVariables[resolveComponentName("noresamplep")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables["/noresamplep"].activeChildren[3].componentIdx
+                stateVariables[resolveComponentName("noresamplep")]
+                    .activeChildren[3].componentIdx
             ].stateValues.value,
         ).eq(num2);
         expect(
             stateVariables[
-                stateVariables["/noreresamplep"].activeChildren[1].componentIdx
+                stateVariables[resolveComponentName("noreresamplep")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables["/noreresamplep"].activeChildren[3].componentIdx
+                stateVariables[resolveComponentName("noreresamplep")]
+                    .activeChildren[3].componentIdx
             ].stateValues.value,
         ).eq(num2);
     });
 
     it("select doesn't change dynamically", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathInput prefill="5" name="numToSelect"/>
     <mathInput prefill="a" name="x"/>
@@ -424,7 +475,8 @@ describe("Select tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let sampleReplacements = stateVariables["/sample1"].replacements!;
+        let sampleReplacements =
+            stateVariables[resolveComponentName("sample1")].replacements!;
         expect(sampleReplacements.length).eq(5);
 
         let sampleMaths = sampleReplacements.map(
@@ -444,12 +496,13 @@ describe("Select tag tests", async () => {
         // Nothing changes when change number to select
         await updateMathInputValue({
             latex: "7",
-            name: "/numToSelect",
+            componentIdx: resolveComponentName("numToSelect"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        sampleReplacements = stateVariables["/sample1"].replacements!;
+        sampleReplacements =
+            stateVariables[resolveComponentName("sample1")].replacements!;
 
         expect(
             sampleReplacements.map(
@@ -472,22 +525,23 @@ describe("Select tag tests", async () => {
         };
         await updateMathInputValue({
             latex: newValues.a,
-            name: "/x",
+            componentIdx: resolveComponentName("x"),
             core,
         });
         await updateMathInputValue({
             latex: newValues.b,
-            name: "/y",
+            componentIdx: resolveComponentName("y"),
             core,
         });
         await updateMathInputValue({
             latex: newValues.c,
-            name: "/z",
+            componentIdx: resolveComponentName("z"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        sampleReplacements = stateVariables["/sample1"].replacements!;
+        sampleReplacements =
+            stateVariables[resolveComponentName("sample1")].replacements!;
 
         let sampleMaths2 = sampleReplacements.map(
             (x) =>
@@ -502,24 +556,22 @@ describe("Select tag tests", async () => {
         expect(sampleMaths2).eqls(sampleMaths.map((x) => newValues[x]));
     });
 
-    it("select doesn't resample in dynamic map", async () => {
-        let core = await createTestCore({
+    it("select doesn't resample in dynamic repeat", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     How many numbers do you want? <mathInput name="mi1" />
-    <p name="p1"><map assignNames="a b c d e f" name="map1">
-      <template newNamespace><select assignNames="n" type="number">1 2 3 4 5 6 7 8 9 10 11 12</select></template>
-      <sources>
-          <sequence length="$mi1" />
-      </sources>
-    </map></p>
+    <setup><sequence length="$mi1" name="s" /></setup>
+    <p name="p1"><repeat name="repeat1" for="$s">
+     <select name="n" type="number">1 2 3 4 5 6 7 8 9 10 11 12</select>
+    </repeat></p>
     
-    <p name="p2">$map1</p>
+    <p name="p2">$repeat1</p>
 
-    $p1{name="p3"}
-    $p2{name="p4"}
+    <p extend="$p1" name="p3" />
+    <p extend="$p2" name="p4" />
 
-    $p3{name="p5"}
-    $p4{name="p6"}
+    <p extend="$p3" name="p5" />
+    <p extend="$p4" name="p6" />
     `,
         });
 
@@ -530,42 +582,42 @@ describe("Select tag tests", async () => {
             );
 
             expect(
-                stateVariables["/p1"].activeChildren.map(
+                stateVariables[resolveComponentName("p1")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p2"].activeChildren.map(
+                stateVariables[resolveComponentName("p2")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p3"].activeChildren.map(
+                stateVariables[resolveComponentName("p3")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p4"].activeChildren.map(
+                stateVariables[resolveComponentName("p4")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p5"].activeChildren.map(
+                stateVariables[resolveComponentName("p5")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p6"].activeChildren.map(
+                stateVariables[resolveComponentName("p6")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
@@ -578,50 +630,99 @@ describe("Select tag tests", async () => {
         await check_sampled_numbers([]);
 
         // sample one variable
-        await updateMathInputValue({ latex: "1", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
+        sampledNumbers.push(
+            stateVariables[resolveComponentName("repeat1[1].n[1][1]")]
+                .stateValues.value,
+        );
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers([]);
 
         // get same number back
-        await updateMathInputValue({ latex: "1", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers(sampledNumbers);
 
         // get two more samples
-        await updateMathInputValue({ latex: "3", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 = stateVariables["/a/n"].stateValues.value;
-        let n2 = stateVariables["/b/n"].stateValues.value;
-        let n3 = stateVariables["/c/n"].stateValues.value;
+        let n1 =
+            stateVariables[resolveComponentName("repeat1[1].n[1][1]")]
+                .stateValues.value;
+        let n2 =
+            stateVariables[resolveComponentName("repeat1[2].n[1][1]")]
+                .stateValues.value;
+        let n3 =
+            stateVariables[resolveComponentName("repeat1[3].n[1][1]")]
+                .stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers([]);
 
         // get first two numbers back
-        await updateMathInputValue({ latex: "2", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers(sampledNumbers.slice(0, 2));
 
         // get six total samples
-        await updateMathInputValue({ latex: "6", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        n1 = stateVariables["/a/n"].stateValues.value;
-        n2 = stateVariables["/b/n"].stateValues.value;
-        n3 = stateVariables["/c/n"].stateValues.value;
-        let n4 = stateVariables["/d/n"].stateValues.value;
-        let n5 = stateVariables["/e/n"].stateValues.value;
-        let n6 = stateVariables["/f/n"].stateValues.value;
+        n1 =
+            stateVariables[resolveComponentName("repeat1[1].n[1][1]")]
+                .stateValues.value;
+        n2 =
+            stateVariables[resolveComponentName("repeat1[2].n[1][1]")]
+                .stateValues.value;
+        n3 =
+            stateVariables[resolveComponentName("repeat1[3].n[1][1]")]
+                .stateValues.value;
+        let n4 =
+            stateVariables[resolveComponentName("repeat1[4].n[1][1]")]
+                .stateValues.value;
+        let n5 =
+            stateVariables[resolveComponentName("repeat1[5].n[1][1]")]
+                .stateValues.value;
+        let n6 =
+            stateVariables[resolveComponentName("repeat1[6].n[1][1]")]
+                .stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -631,21 +732,29 @@ describe("Select tag tests", async () => {
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers([]);
 
         // get all six back
-        await updateMathInputValue({ latex: "6", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers(sampledNumbers);
     });
 
-    it("select single group of maths, assign names to grandchildren", async () => {
+    it("select single group of maths", async () => {
         const doenetML = `
-    <select assignNames="(res1 res2 res3)">
-        <option><math>u</math><math>v</math><math>w</math></option>
-        <option><math>x</math><math>y</math><math>z</math></option>
-        <option><math>a</math><math>b</math><math>c</math></option>
-        <option><math>q</math><math>r</math><math>s</math></option>
+    <select name="sel">
+        <option><math name="res1">u</math><math name="res2">v</math><math name="res3">w</math></option>
+        <option><math name="res1">x</math><math name="res2">y</math><math name="res3">z</math></option>
+        <option><math name="res1">a</math><math name="res2">b</math><math name="res3">c</math></option>
+        <option><math name="res1">q</math><math name="res2">r</math><math name="res3">s</math></option>
     </select>`;
 
         const valid_combinations = [
@@ -654,24 +763,26 @@ describe("Select tag tests", async () => {
             ["a", "b", "c"].map((x) => me.fromText(x)),
             ["q", "r", "s"].map((x) => me.fromText(x)),
         ];
-        const componentNames = ["/res1", "/res2", "/res3"];
 
         await test_combined_values({
             doenetML,
+            select_name: "sel",
+            num_to_select: 1,
+            num_option_children: 3,
+            option_child_names: ["res1", "res2", "res3"],
             valid_combinations,
-            componentNames,
             num_samples: 5,
             is_math: true,
         });
     });
 
-    it("select single group of maths, assign names with namespace to grandchildren", async () => {
+    it("select multiple groups of math", async () => {
         const doenetML = `
-    <select assignNames="(res1 res2 res3)" name="s" newNamespace>
-        <option><math>u</math><math>v</math><math>w</math></option>
-        <option><math>x</math><math>y</math><math>z</math></option>
-        <option><math>a</math><math>b</math><math>c</math></option>
-        <option><math>q</math><math>r</math><math>s</math></option>
+    <select name="sel" numToSelect="3">
+        <option><math name="res1">u</math><math name="res2">v</math><math name="res3">w</math></option>
+        <option><math name="res1">x</math><math name="res2">y</math><math name="res3">z</math></option>
+        <option><math name="res1">a</math><math name="res2">b</math><math name="res3">c</math></option>
+        <option><math name="res1">q</math><math name="res2">r</math><math name="res3">s</math></option>
     </select>`;
 
         const valid_combinations = [
@@ -680,139 +791,27 @@ describe("Select tag tests", async () => {
             ["a", "b", "c"].map((x) => me.fromText(x)),
             ["q", "r", "s"].map((x) => me.fromText(x)),
         ];
-        const componentNames = ["/s/res1", "/s/res2", "/s/res3"];
 
         await test_combined_values({
             doenetML,
+            select_name: "sel",
+            num_to_select: 3,
+            num_option_children: 3,
+            option_child_names: ["res1", "res2", "res3"],
             valid_combinations,
-            componentNames,
-            num_samples: 5,
+            num_samples: 4,
             is_math: true,
         });
-    });
-
-    it("select multiple group of maths, assign names to grandchildren", async () => {
-        const doenetML = `
-    <select assignNames="(x1 y1 z1) (x2 y2 z2) (x3 y3 z3)" numToSelect="3">
-        <option><math>u</math><math>v</math><math>w</math></option>
-        <option><math>x</math><math>y</math><math>z</math></option>
-        <option><math>a</math><math>b</math><math>c</math></option>
-        <option><math>q</math><math>r</math><math>s</math></option>
-    </select>`;
-
-        const valid_combinations = [
-            ["x", "y", "z"].map((x) => me.fromText(x)),
-            ["u", "v", "w"].map((x) => me.fromText(x)),
-            ["a", "b", "c"].map((x) => me.fromText(x)),
-            ["q", "r", "s"].map((x) => me.fromText(x)),
-        ];
-
-        const allNames = [
-            ["/x1", "/y1", "/z1"],
-            ["/x2", "/y2", "/z2"],
-            ["/x3", "/y3", "/z3"],
-        ];
-
-        for (let componentNames of allNames) {
-            await test_combined_values({
-                doenetML,
-                valid_combinations,
-                componentNames,
-                num_samples: 4,
-                is_math: true,
-            });
-        }
     });
 
     it("references to outside components", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <math hide name="x1">x</math>
     <math hide name="x2">y</math>
     <math hide name="x3">z</math>
 
-    <select assignnames="q r s t u" numToSelect="5" withreplacement>
-      <option newNamespace><p>Option 1: <math>3$(../x1)$(../y1)</math></p></option>
-      <option><p name="h" newnamespace>Option 2: <math>4$(../x2)$(../y2)</math></p></option>
-      <option newNamespace><p name="l">Option 3: <math>5$(../x3)$(../y3)</math></p></option>
-    </select>
-
-    <math hide name="y1">a</math>
-    <math hide name="y2">b</math>
-    <math hide name="y3">c</math>
-
-    <p>Selected options repeated</p>
-    $q{name="q2"}
-    $r{name="r2"}
-    $s{name="s2"}
-    $t{name="t2"}
-    $u{name="u2"}
-
-    `,
-        });
-
-        let option = {
-            "Option 1: ": me.fromText("3xa"),
-            "Option 2: ": me.fromText("4yb"),
-            "Option 3: ": me.fromText("5zc"),
-        };
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-
-        let q2 =
-            stateVariables[stateVariables["/q2"].replacements![0].componentIdx]
-                .activeChildren;
-        let q2string = q2[0];
-        let q2math = me.fromAst(
-            stateVariables[q2[1].componentIdx].stateValues.value,
-        );
-        expect(q2math.equals(option[q2string])).eq(true);
-
-        let r2 =
-            stateVariables[stateVariables["/r2"].replacements![0].componentIdx]
-                .activeChildren;
-        let r2string = r2[0];
-        let r2math = me.fromAst(
-            stateVariables[r2[1].componentIdx].stateValues.value,
-        );
-        expect(r2math.equals(option[r2string])).eq(true);
-
-        let s2 =
-            stateVariables[stateVariables["/s2"].replacements![0].componentIdx]
-                .activeChildren;
-        let s2string = s2[0];
-        let s2math = me.fromAst(
-            stateVariables[s2[1].componentIdx].stateValues.value,
-        );
-        expect(s2math.equals(option[s2string])).eq(true);
-
-        let t2 =
-            stateVariables[stateVariables["/t2"].replacements![0].componentIdx]
-                .activeChildren;
-        let t2string = t2[0];
-        let t2math = me.fromAst(
-            stateVariables[t2[1].componentIdx].stateValues.value,
-        );
-        expect(t2math.equals(option[t2string])).eq(true);
-
-        let u2 =
-            stateVariables[stateVariables["/u2"].replacements![0].componentIdx]
-                .activeChildren;
-        let u2string = u2[0];
-        let u2math = me.fromAst(
-            stateVariables[u2[1].componentIdx].stateValues.value,
-        );
-        expect(u2math.equals(option[u2string])).eq(true);
-    });
-
-    it("references to outside components, no new namespace", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <math hide name="x1">x</math>
-    <math hide name="x2">y</math>
-    <math hide name="x3">z</math>
-
-    <select assignnames="q r s t u" numToSelect="5" withreplacement>
+    <select name="sel" numToSelect="5" withreplacement>
       <option><p>Option 1: <math>3$x1$y1</math></p></option>
       <option><p name="h">Option 2: <math>4$x2$y2</math></p></option>
       <option><p name="l">Option 3: <math>5$x3$y3</math></p></option>
@@ -823,11 +822,11 @@ describe("Select tag tests", async () => {
     <math hide name="y3">c</math>
 
     <p>Selected options repeated</p>
-    $q{name="q2"}
-    $r{name="r2"}
-    $s{name="s2"}
-    $t{name="t2"}
-    $u{name="u2"}
+    <p extend="$sel[1]" name="q2" />
+    <p extend="$sel[2]" name="r2" />
+    <p extend="$sel[3]" name="s2" />
+    <p extend="$sel[4]" name="t2" />
+    <p extend="$sel[5]" name="u2" />
 
     `,
         });
@@ -840,45 +839,35 @@ describe("Select tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let q2 =
-            stateVariables[stateVariables["/q2"].replacements![0].componentIdx]
-                .activeChildren;
+        let q2 = stateVariables[resolveComponentName("q2")].activeChildren;
         let q2string = q2[0];
         let q2math = me.fromAst(
             stateVariables[q2[1].componentIdx].stateValues.value,
         );
         expect(q2math.equals(option[q2string])).eq(true);
 
-        let r2 =
-            stateVariables[stateVariables["/r2"].replacements![0].componentIdx]
-                .activeChildren;
+        let r2 = stateVariables[resolveComponentName("r2")].activeChildren;
         let r2string = r2[0];
         let r2math = me.fromAst(
             stateVariables[r2[1].componentIdx].stateValues.value,
         );
         expect(r2math.equals(option[r2string])).eq(true);
 
-        let s2 =
-            stateVariables[stateVariables["/s2"].replacements![0].componentIdx]
-                .activeChildren;
+        let s2 = stateVariables[resolveComponentName("s2")].activeChildren;
         let s2string = s2[0];
         let s2math = me.fromAst(
             stateVariables[s2[1].componentIdx].stateValues.value,
         );
         expect(s2math.equals(option[s2string])).eq(true);
 
-        let t2 =
-            stateVariables[stateVariables["/t2"].replacements![0].componentIdx]
-                .activeChildren;
+        let t2 = stateVariables[resolveComponentName("t2")].activeChildren;
         let t2string = t2[0];
         let t2math = me.fromAst(
             stateVariables[t2[1].componentIdx].stateValues.value,
         );
         expect(t2math.equals(option[t2string])).eq(true);
 
-        let u2 =
-            stateVariables[stateVariables["/u2"].replacements![0].componentIdx]
-                .activeChildren;
+        let u2 = stateVariables[resolveComponentName("u2")].activeChildren;
         let u2string = u2[0];
         let u2math = me.fromAst(
             stateVariables[u2[1].componentIdx].stateValues.value,
@@ -887,27 +876,27 @@ describe("Select tag tests", async () => {
     });
 
     it("internal references", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <select name="s1" assignnames="q r s t u" numToSelect="5" withreplacement>
-      <option newNamespace><p>Option 1: <math>3<math name="x">x</math> + <math name="z1">a</math> + $x^2$z1^3</math></p></option>
-      <option newNamespace><p>Option 2: <math>4<math name="x">y</math> + <math name="z2">b</math> + $x^2$z2^3</math></p></option>
-      <option newNamespace><p>Option 3: <math>5<math name="x">z</math> + <math name="z3">c</math> + $x^2$z3^3</math></p></option>
+    <select name="s1" numToSelect="5" withreplacement>
+      <option><p>Option 1: <math>3<math name="x">x</math> + <math name="z1">a</math> + $x^2$z1^3</math></p></option>
+      <option><p>Option 2: <math>4<math name="x">y</math> + <math name="z2">b</math> + $x^2$z2^3</math></p></option>
+      <option><p>Option 3: <math>5<math name="x">z</math> + <math name="z3">c</math> + $x^2$z3^3</math></p></option>
     </select>
 
     <p>Selected options repeated</p>
-    $q{name="q2"}
-    $r{name="r2"}
-    $s{name="s2"}
-    $t{name="t2"}
-    $u{name="u2"}
+    <p extend="$s1[1]" name="q2" />
+    <p extend="$s1[2]" name="r2" />
+    <p extend="$s1[3]" name="s2" />
+    <p extend="$s1[4]" name="t2" />
+    <p extend="$s1[5]" name="u2" />
 
     <p>Copy x from within selection options</p>
-    <p>$(q/x{name="qx"})</p>
-    <p>$(r/x{name="rx"})</p>
-    <p>$(s/x{name="sx"})</p>
-    <p>$(t/x{name="tx"})</p>
-    <p>$(u/x{name="ux"})</p>
+    <p><math extend="$s1[1].x" name="qx" /></p>
+    <p><math extend="$s1[2].x" name="rx" /></p>
+    <p><math extend="$s1[3].x" name="sx" /></p>
+    <p><math extend="$s1[4].x" name="tx" /></p>
+    <p><math extend="$s1[5].x" name="ux" /></p>
 
     <p>Copy select itself</p>
     <section name="repeat">$s1</section>
@@ -929,201 +918,94 @@ describe("Select tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let q2 =
-            stateVariables[stateVariables["/q2"].replacements![0].componentIdx]
-                .activeChildren;
+        let q2 = stateVariables[resolveComponentName("q2")].activeChildren;
         let q2string = q2[0];
         let q2math = stateVariables[q2[1].componentIdx].stateValues.value;
         expect(q2math.equals(option[q2string])).eq(true);
-        let qx = stateVariables["/qx"].stateValues.value.tree;
+        let qx =
+            stateVariables[resolveComponentName("qx")].stateValues.value.tree;
         expect(qx).eq(xoption[q2string]);
         let repeatqmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[0].componentIdx
+                    stateVariables[resolveComponentName("repeat")]
+                        .activeChildren[0].componentIdx
                 ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatqmath.equals(option[q2string])).eq(true);
 
-        let r2 =
-            stateVariables[stateVariables["/r2"].replacements![0].componentIdx]
-                .activeChildren;
+        let r2 = stateVariables[resolveComponentName("r2")].activeChildren;
         let r2string = r2[0];
         let r2math = stateVariables[r2[1].componentIdx].stateValues.value;
         expect(r2math.equals(option[r2string])).eq(true);
-        let rx = stateVariables["/rx"].stateValues.value.tree;
+        let rx =
+            stateVariables[resolveComponentName("rx")].stateValues.value.tree;
         expect(rx).eq(xoption[r2string]);
         let repeatrmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[1].componentIdx
+                    stateVariables[resolveComponentName("repeat")]
+                        .activeChildren[1].componentIdx
                 ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatrmath.equals(option[r2string])).eq(true);
 
-        let s2 =
-            stateVariables[stateVariables["/s2"].replacements![0].componentIdx]
-                .activeChildren;
+        let s2 = stateVariables[resolveComponentName("s2")].activeChildren;
         let s2string = s2[0];
         let s2math = stateVariables[s2[1].componentIdx].stateValues.value;
         expect(s2math.equals(option[s2string])).eq(true);
-        let sx = stateVariables["/sx"].stateValues.value.tree;
+        let sx =
+            stateVariables[resolveComponentName("sx")].stateValues.value.tree;
         expect(sx).eq(xoption[s2string]);
         let repeatsmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[2].componentIdx
+                    stateVariables[resolveComponentName("repeat")]
+                        .activeChildren[2].componentIdx
                 ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatsmath.equals(option[s2string])).eq(true);
 
-        let t2 =
-            stateVariables[stateVariables["/t2"].replacements![0].componentIdx]
-                .activeChildren;
+        let t2 = stateVariables[resolveComponentName("t2")].activeChildren;
         let t2string = t2[0];
         let t2math = stateVariables[t2[1].componentIdx].stateValues.value;
         expect(t2math.equals(option[t2string])).eq(true);
-        let tx = stateVariables["/tx"].stateValues.value.tree;
+        let tx =
+            stateVariables[resolveComponentName("tx")].stateValues.value.tree;
         expect(tx).eq(xoption[t2string]);
         let repeattmath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[3].componentIdx
+                    stateVariables[resolveComponentName("repeat")]
+                        .activeChildren[3].componentIdx
                 ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeattmath.equals(option[t2string])).eq(true);
 
-        let u2 =
-            stateVariables[stateVariables["/u2"].replacements![0].componentIdx]
-                .activeChildren;
+        let u2 = stateVariables[resolveComponentName("u2")].activeChildren;
         let u2string = u2[0];
         let u2math = stateVariables[u2[1].componentIdx].stateValues.value;
         expect(u2math.equals(option[u2string])).eq(true);
-        let ux = stateVariables["/ux"].stateValues.value.tree;
+        let ux =
+            stateVariables[resolveComponentName("ux")].stateValues.value.tree;
         expect(ux).eq(xoption[u2string]);
         let repeatumath =
             stateVariables[
                 stateVariables[
-                    stateVariables["/repeat"].activeChildren[4].componentIdx
-                ].activeChildren[1].componentIdx
-            ].stateValues.value;
-        expect(repeatumath.equals(option[u2string])).eq(true);
-    });
-
-    it("internal references with no new namespace", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <select name="s1" assignnames="q r s t u" numToSelect="5" withreplacement>
-      <option><p>Option 1: <math>3<math name="x">x</math> + <math name="z1">a</math> + $x^2$z1^3</math></p></option>
-      <option><p>Option 2: <math>4<math name="y">y</math> + <math name="z2">b</math> + $y^2$z2^3</math></p></option>
-      <option><p>Option 3: <math>5<math name="z">z</math> + <math name="z3">c</math> + $z^2$z3^3</math></p></option>
-    </select>
-
-    <p>Selected options repeated</p>
-    $q{name="q2"}
-    $r{name="r2"}
-    $s{name="s2"}
-    $t{name="t2"}
-    $u{name="u2"}
-
-    <p>Copy select itself</p>
-    <section name="repeat">$s1</section>
-
-    `,
-        });
-
-        let option = {
-            "Option 1: ": me.fromText("3x+a+x^2a^3"),
-            "Option 2: ": me.fromText("4y+b+y^2b^3"),
-            "Option 3: ": me.fromText("5z+c+z^2c^3"),
-        };
-
-        let xoption = {
-            "Option 1: ": "x",
-            "Option 2: ": "y",
-            "Option 3: ": "z",
-        };
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-
-        let q2 =
-            stateVariables[stateVariables["/q2"].replacements![0].componentIdx]
-                .activeChildren;
-        let q2string = q2[0];
-        let q2math = stateVariables[q2[1].componentIdx].stateValues.value;
-        expect(q2math.equals(option[q2string])).eq(true);
-        let repeatqmath =
-            stateVariables[
-                stateVariables[
-                    stateVariables["/repeat"].activeChildren[0].componentIdx
-                ].activeChildren[1].componentIdx
-            ].stateValues.value;
-        expect(repeatqmath.equals(option[q2string])).eq(true);
-
-        let r2 =
-            stateVariables[stateVariables["/r2"].replacements![0].componentIdx]
-                .activeChildren;
-        let r2string = r2[0];
-        let r2math = stateVariables[r2[1].componentIdx].stateValues.value;
-        expect(r2math.equals(option[r2string])).eq(true);
-        let repeatrmath =
-            stateVariables[
-                stateVariables[
-                    stateVariables["/repeat"].activeChildren[1].componentIdx
-                ].activeChildren[1].componentIdx
-            ].stateValues.value;
-        expect(repeatrmath.equals(option[r2string])).eq(true);
-
-        let s2 =
-            stateVariables[stateVariables["/s2"].replacements![0].componentIdx]
-                .activeChildren;
-        let s2string = s2[0];
-        let s2math = stateVariables[s2[1].componentIdx].stateValues.value;
-        expect(s2math.equals(option[s2string])).eq(true);
-        let repeatsmath =
-            stateVariables[
-                stateVariables[
-                    stateVariables["/repeat"].activeChildren[2].componentIdx
-                ].activeChildren[1].componentIdx
-            ].stateValues.value;
-        expect(repeatsmath.equals(option[s2string])).eq(true);
-
-        let t2 =
-            stateVariables[stateVariables["/t2"].replacements![0].componentIdx]
-                .activeChildren;
-        let t2string = t2[0];
-        let t2math = stateVariables[t2[1].componentIdx].stateValues.value;
-        expect(t2math.equals(option[t2string])).eq(true);
-        let repeattmath =
-            stateVariables[
-                stateVariables[
-                    stateVariables["/repeat"].activeChildren[3].componentIdx
-                ].activeChildren[1].componentIdx
-            ].stateValues.value;
-        expect(repeattmath.equals(option[t2string])).eq(true);
-
-        let u2 =
-            stateVariables[stateVariables["/u2"].replacements![0].componentIdx]
-                .activeChildren;
-        let u2string = u2[0];
-        let u2math = stateVariables[u2[1].componentIdx].stateValues.value;
-        expect(u2math.equals(option[u2string])).eq(true);
-        let repeatumath =
-            stateVariables[
-                stateVariables[
-                    stateVariables["/repeat"].activeChildren[4].componentIdx
+                    stateVariables[resolveComponentName("repeat")]
+                        .activeChildren[4].componentIdx
                 ].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatumath.equals(option[u2string])).eq(true);
     });
 
     it("variant names specified, select single", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <variantControl numVariants="5" variantNames="aVocado  broCColi   carrot  Dill eggplanT"/>
 
     <p>Selected variable:
-    <select name="s1" assignnames="(x)">
+    <select name="s1">
       <option selectForVariants="dill"><math>d</math></option>
       <option selectForVariants="Carrot"><math>c</math></option>
       <option selectForVariants="eggPlant"><math>e</math></option>
@@ -1132,49 +1014,54 @@ describe("Select tag tests", async () => {
     </select>
     </p>
 
-    <p>Selected variable repeated: $x{name="x2"}</p>
-    <p>Selected variable repeated again: $s1{name="x3"}</p>
+    <p>Selected variable repeated: <math extend="$s1" name="x2" /></p>
+    <p>Selected variable repeated again: <select extend="$s1" name="s3" /></p>
     `,
             requestedVariantIndex: 2,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        // let variantName = stateVariables['/x'].sharedParameters.variantName;
+        // let variantName = stateVariables[0].sharedParameters.variantName;
         // let expectedx = variantName.substring(0, 1);
         let expectedx = "b";
 
-        let x = stateVariables["/x"].stateValues.value.tree;
+        let x =
+            stateVariables[resolveComponentName("s1[1][1]")].stateValues.value
+                .tree;
 
         expect(x).eq(expectedx);
 
         let xorig =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s1"].replacements![0].componentIdx
+                    stateVariables[resolveComponentName("s1")].replacements![0]
+                        .componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(xorig).eq(expectedx);
 
-        let x2 = stateVariables["/x2"].stateValues.value.tree;
+        let x2 =
+            stateVariables[resolveComponentName("x2")].stateValues.value.tree;
         expect(x2).eq(expectedx);
 
-        let x3 =
+        let s3 =
             stateVariables[
                 stateVariables[
-                    stateVariables["/x3"].replacements![0].componentIdx
+                    stateVariables[resolveComponentName("s3")].replacements![0]
+                        .componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value.tree;
-        expect(x3).eq(expectedx);
+        expect(s3).eq(expectedx);
     });
 
     it("variant names specified, select multiple", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <variantControl numVariants="5" variantNames="avocado  brOccoli   carrot  dill    eggPlant  "/>
 
     <p>Selected variables:
-    <select name="s1" assignnames="(x)  (y)  (z)" numToSelect="3">
+    <select name="s1" numToSelect="3">
       <option selectForVariants="dill  carrot  avocado"><math>d</math></option>
       <option selectForVariants="cArrOt eggplant eggplant"><math>c</math></option>
       <option selectForVariants="eggplant  broccoli  dilL"><math>e</math></option>
@@ -1183,10 +1070,10 @@ describe("Select tag tests", async () => {
     </select>
     </p>
 
-    <p>Selected first variable: $x{name="x2"}</p>
-    <p>Selected second variable: $y{name="y2"}</p>
-    <p>Selected third variable: $z{name="z2"}</p>
-    <p>Selected variables repeated: $s1{name="s2"}</p>
+    <p>Selected first variable: <math extend="$s1[1]" name="x2" /></p>
+    <p>Selected second variable: <math extend="$s1[2]" name="y2" /></p>
+    <p>Selected third variable: <math extend="$s1[3]" name="z2" /></p>
+    <p>Selected variables repeated: <select extend="$s1" name="s2" /></p>
 
     `,
             requestedVariantIndex: 3,
@@ -1202,69 +1089,84 @@ describe("Select tag tests", async () => {
             eggplant: ["c", "c", "e"],
         };
 
-        // let variantName = stateVariables['/x'].sharedParameters.variantName;
+        // let variantName = stateVariables[0].sharedParameters.variantName;
         let variantName = "carrot";
         let variantVars = variantMap[variantName];
 
-        let x = stateVariables["/x"].stateValues.value.tree;
+        let x =
+            stateVariables[resolveComponentName("s1[1][1]")].stateValues.value
+                .tree;
 
         expect(variantVars.includes(x)).eq(true);
         variantVars.splice(variantVars.indexOf(x), 1);
 
-        let y = stateVariables["/y"].stateValues.value.tree;
+        let y =
+            stateVariables[resolveComponentName("s1[2][1]")].stateValues.value
+                .tree;
         expect(variantVars.includes(y)).eq(true);
         variantVars.splice(variantVars.indexOf(y), 1);
 
-        let z = stateVariables["/z"].stateValues.value.tree;
+        let z =
+            stateVariables[resolveComponentName("s1[3][1]")].stateValues.value
+                .tree;
         expect(z).eq(variantVars[0]);
 
         let xorig =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s1"].replacements![0].componentIdx
+                    stateVariables[resolveComponentName("s1")].replacements![0]
+                        .componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(xorig).eq(x);
         let yorig =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s1"].replacements![1].componentIdx
+                    stateVariables[resolveComponentName("s1")].replacements![1]
+                        .componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(yorig).eq(y);
         let zorig =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s1"].replacements![2].componentIdx
+                    stateVariables[resolveComponentName("s1")].replacements![2]
+                        .componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(zorig).eq(z);
 
-        let x2 = stateVariables["/x2"].stateValues.value.tree;
+        let x2 =
+            stateVariables[resolveComponentName("x2")].stateValues.value.tree;
         expect(x2).eq(x);
-        let y2 = stateVariables["/y2"].stateValues.value.tree;
+        let y2 =
+            stateVariables[resolveComponentName("y2")].stateValues.value.tree;
         expect(y2).eq(y);
-        let z2 = stateVariables["/z2"].stateValues.value.tree;
+        let z2 =
+            stateVariables[resolveComponentName("z2")].stateValues.value.tree;
         expect(z2).eq(z);
 
         let x3 =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s2"].replacements![0].componentIdx
+                    stateVariables[resolveComponentName("s2")].replacements![0]
+                        .componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(x3).eq(x);
         let y3 =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s2"].replacements![1].componentIdx
+                    stateVariables[resolveComponentName("s2")].replacements![1]
+                        .componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(y3).eq(y);
         let z3 =
             stateVariables[
                 stateVariables[
-                    stateVariables["/s2"].replacements![2].componentIdx
+                    stateVariables[resolveComponentName("s2")].replacements![2]
+                        .componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value.tree;
         expect(z3).eq(z);
@@ -1272,21 +1174,22 @@ describe("Select tag tests", async () => {
 
     it("select math as sugared string", async () => {
         const doenetML = `
-    <select type="math" assignnames="m1 m2 m3 m4 m5" numToSelect="5">
+    <select type="math" numToSelect="5" name="sel">
       x^2  x/y  u  a  b-c  s+t  mn  -1
     </select>`;
 
-        const vals = ["x^2", "x/y", "u", "a", "b-c", "s+t", "mn", "-1"].map(
-            (x) => me.fromText(x),
-        );
-
-        const valid_values = Array(5).fill(vals);
-        const componentNames = ["/m1", "/m2", "/m3", "/m4", "/m5"];
+        const valid_values_by_option_child = [
+            ["x^2", "x/y", "u", "a", "b-c", "s+t", "mn", "-1"].map((x) =>
+                me.fromText(x),
+            ),
+        ];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 5,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 2,
             is_math: true,
             must_be_distinct: true,
@@ -1295,21 +1198,22 @@ describe("Select tag tests", async () => {
 
     it("select math as sugared string, no type specified", async () => {
         const doenetML = `
-    <select assignnames="m1 m2 m3 m4 m5" numToSelect="5">
+    <select numToSelect="5" name="sel">
       x^2  x/y  u  a  b-c  s+t  mn  -1
     </select>`;
 
-        const vals = ["x^2", "x/y", "u", "a", "b-c", "s+t", "mn", "-1"].map(
-            (x) => me.fromText(x),
-        );
-
-        const valid_values = Array(5).fill(vals);
-        const componentNames = ["/m1", "/m2", "/m3", "/m4", "/m5"];
+        const valid_values_by_option_child = [
+            ["x^2", "x/y", "u", "a", "b-c", "s+t", "mn", "-1"].map((x) =>
+                me.fromText(x),
+            ),
+        ];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 5,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 2,
             is_math: true,
             must_be_distinct: true,
@@ -1324,21 +1228,22 @@ describe("Select tag tests", async () => {
       <number name="a">7</number>
       <math name="b">-3</math>
     </setup>
-    <select assignnames="m1 m2 m3 m4 m5 m6" numToSelect="6">
-      $a$var1^2  $b$var1/$var2  u-$b  $a  $var1-c $(var2{createComponentOfType="math"})
+    <select numToSelect="6" name="sel">
+      $a$var1^2  $b$var1/$var2  u-$b  $a  $var1-c $var2
     </select>`;
 
-        const vals = ["7x^2", "(-3)x/y", "u-(-3)", "7", "x-c", "y"].map((x) =>
-            me.fromText(x),
-        );
-
-        const valid_values = Array(6).fill(vals);
-        const componentNames = ["/m1", "/m2", "/m3", "/m4", "/m5", "/m6"];
+        const valid_values_by_option_child = [
+            ["7x^2", "(-3)x/y", "u-(-3)", "7", "x-c", "y"].map((x) =>
+                me.fromText(x),
+            ),
+        ];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 6,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 2,
             is_math: true,
             must_be_distinct: true,
@@ -1347,28 +1252,29 @@ describe("Select tag tests", async () => {
 
     it("select text as sugared string", async () => {
         const doenetML = `
-    <select type="text" assignnames="w1 w2 w3 w4 w5" numToSelect="5">
+    <select type="text" numToSelect="5" name="sel">
       Lorem  ipsum  dolor  sit  amet  consectetur  adipiscing  elit
     </select>`;
 
-        const vals = [
-            "Lorem",
-            "ipsum",
-            "dolor",
-            "sit",
-            "amet",
-            "consectetur",
-            "adipiscing",
-            "elit",
+        const valid_values_by_option_child = [
+            [
+                "Lorem",
+                "ipsum",
+                "dolor",
+                "sit",
+                "amet",
+                "consectetur",
+                "adipiscing",
+                "elit",
+            ],
         ];
-
-        const valid_values = Array(5).fill(vals);
-        const componentNames = ["/w1", "/w2", "/w3", "/w4", "/w5"];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 5,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 2,
             must_be_distinct: true,
         });
@@ -1381,25 +1287,20 @@ describe("Select tag tests", async () => {
       <text name="cSpace">consectetur </text>
       <text name="spaceD"> dolor</text>
     </setup>
-    <select type="text" assignnames="w1 w2 w3 w4 w5" numToSelect="5">
-      Lorem  ipsum$spaceD  sit  $(a{createComponentOfType="text"})  $(cSpace)adipiscing
+    <select type="text" name="sel" numToSelect="5">
+      Lorem  ipsum$spaceD  sit  $a  $cSpace
     </select>`;
 
-        const vals = [
-            "Lorem",
-            "ipsum dolor",
-            "sit",
-            "amet",
-            "consectetur adipiscing",
+        const valid_values_by_option_child = [
+            ["Lorem", "ipsum dolor", "sit", "amet", "consectetur "],
         ];
-
-        const valid_values = Array(5).fill(vals);
-        const componentNames = ["/w1", "/w2", "/w3", "/w4", "/w5"];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 5,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 2,
             must_be_distinct: true,
         });
@@ -1407,30 +1308,18 @@ describe("Select tag tests", async () => {
 
     it("select number as sugared string", async () => {
         const doenetML = `
-    <select type="number" assignnames="n1 n2 n3 n4 n5 n6 n7 n8 n9 n10" numToSelect="10" withReplacement>
+    <select type="number" name="sel" numToSelect="10" withReplacement>
       2 3 5 7 11 13 17 19
     </select>`;
 
-        const vals = [2, 3, 5, 7, 11, 13, 17, 19];
-        const valid_values = Array(10).fill(vals);
-
-        const componentNames = [
-            "/n1",
-            "/n2",
-            "/n3",
-            "/n4",
-            "/n5",
-            "/n6",
-            "/n7",
-            "/n8",
-            "/n9",
-            "/n10",
-        ];
+        const valid_values_by_option_child = [[2, 3, 5, 7, 11, 13, 17, 19]];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 10,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 2,
         });
     });
@@ -1442,19 +1331,18 @@ describe("Select tag tests", async () => {
       <math name="b">-7</math>
       <math name="c">6+2</math>
     </setup>
-    <select type="number" assignnames="n1 n2 n3 n4 n5 n6" numToSelect="6">
-      2 $a+$b 3-$c $(a{createComponentOfType="number"}) $b-1 $c
+    <select type="number" name="sel" numToSelect="6">
+      2 $a+$b 3-$c $a $b-1 $c
     </select>`;
 
-        const vals = [2, -2, -5, 5, -8, 8];
-        const valid_values = Array(6).fill(vals);
-
-        const componentNames = ["/n1", "/n2", "/n3", "/n4", "/n5", "/n6"];
+        const valid_values_by_option_child = [[2, -2, -5, 5, -8, 8]];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 6,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 2,
             must_be_distinct: true,
         });
@@ -1462,30 +1350,18 @@ describe("Select tag tests", async () => {
 
     it("select boolean as sugared string", async () => {
         const doenetML = `
-    <select type="boolean" assignnames="b1 b2 b3 b4 b5 b6 b7 b8 b9 b10" numToSelect="10" withReplacement>
+    <select type="boolean" name="sel" numToSelect="10" withReplacement>
       true false
     </select>`;
 
-        const vals = [true, false];
-        const valid_values = Array(10).fill(vals);
-
-        const componentNames = [
-            "/b1",
-            "/b2",
-            "/b3",
-            "/b4",
-            "/b5",
-            "/b6",
-            "/b7",
-            "/b8",
-            "/b9",
-            "/b10",
-        ];
+        const valid_values_by_option_child = [[true, false]];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 10,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 1,
         });
     });
@@ -1496,57 +1372,46 @@ describe("Select tag tests", async () => {
       <boolean name="t">true</boolean>
       <boolean name="f">false</boolean>
     </setup>
-    <select type="boolean" assignnames="b1 b2 b3 b4 b5 b6 b7 b8 b9 b10" numToSelect="10" withReplacement>
-       true false $t $f $(t{createComponentOfType="boolean"}) $(f{createComponentOfType="boolean"})
+    <select type="boolean" name="sel" numToSelect="10" withReplacement>
+       true false $t $f
     </select>`;
 
-        const vals = [true, false];
-        const valid_values = Array(10).fill(vals);
-
-        const componentNames = [
-            "/b1",
-            "/b2",
-            "/b3",
-            "/b4",
-            "/b5",
-            "/b6",
-            "/b7",
-            "/b8",
-            "/b9",
-            "/b10",
-        ];
+        const valid_values_by_option_child = [[true, false]];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 10,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 1,
         });
     });
 
     it("select invalid type with sugared string, becomes math with warning", async () => {
         const doenetML = `
-    <select type="nothing" assignnames="m1 m2 m3 m4 m5" numToSelect="5">
+    <select type="nothing" name="sel" numToSelect="5">
       x^2  x/y  u  a  b-c  s+t  mn  -1
     </select>`;
 
-        const vals = ["x^2", "x/y", "u", "a", "b-c", "s+t", "mn", "-1"].map(
-            (x) => me.fromText(x),
-        );
-
-        const valid_values = Array(5).fill(vals);
-        const componentNames = ["/m1", "/m2", "/m3", "/m4", "/m5"];
+        const valid_values_by_option_child = [
+            ["x^2", "x/y", "u", "a", "b-c", "s+t", "mn", "-1"].map((x) =>
+                me.fromText(x),
+            ),
+        ];
 
         await test_values_separately({
             doenetML,
-            valid_values,
-            componentNames,
+            select_name: "sel",
+            num_to_select: 5,
+            num_option_children: 1,
+            valid_values_by_option_child,
             num_samples: 2,
             is_math: true,
             must_be_distinct: true,
         });
 
-        let core = await createTestCore({ doenetML });
+        let { core } = await createTestCore({ doenetML });
 
         let errorWarnings = core.core!.errorWarnings;
 
@@ -1557,10 +1422,10 @@ describe("Select tag tests", async () => {
             "Invalid type for select: nothing",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].position.lineEnd).eq(4);
-        expect(errorWarnings.warnings[0].position.charEnd).eq(13);
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.end.line).eq(4);
+        expect(errorWarnings.warnings[0].position.end.column).eq(13);
     });
 
     it("select weighted", async () => {
@@ -1568,18 +1433,16 @@ describe("Select tag tests", async () => {
         // even though it should fail less than 0.1% of the time
         // Is there a flaw?
 
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-        <map>
-          <template>
+        <setup><sequence length="200" name="s" /></setup>
+        <repeat for="$s" name="repeat1">
           <select>
             <option selectweight="0.2"><text>x</text></option>
             <option><text>y</text></option>
             <option selectweight="5"><text>z</text></option>
-            </select>
-          </template>
-          <sources><sequence length="200" /></sources>
-        </map>
+          </select>
+        </repeat>
         `,
         });
 
@@ -1591,14 +1454,7 @@ describe("Select tag tests", async () => {
         for (let ind = 0; ind < 200; ind++) {
             let theText =
                 stateVariables[
-                    stateVariables[
-                        stateVariables[
-                            stateVariables[
-                                stateVariables["/_map1"].replacements![ind]
-                                    .componentIdx
-                            ].replacements![1].componentIdx
-                        ].replacements![0].componentIdx
-                    ].replacements![0].componentIdx
+                    resolveComponentName(`repeat1[${ind + 1}][1][1][1]`)
                 ];
             let x = theText.stateValues.value;
             if (x === "z") {
@@ -1618,9 +1474,9 @@ describe("Select tag tests", async () => {
     });
 
     it("select weighted with replacement", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <select numToSelect="200" withreplacement>
+    <select numToSelect="200" withreplacement name="sel">
       <option selectweight="0.2"><text>x</text></option>
       <option><text>y</text></option>
       <option selectweight="5"><text>z</text></option>
@@ -1633,13 +1489,10 @@ describe("Select tag tests", async () => {
         let numX = 0,
             numY = 0,
             numZ = 0;
-        let selectReplacements = stateVariables["/_select1"].replacements!;
         for (let ind = 0; ind < 200; ind++) {
             let x =
-                stateVariables[
-                    stateVariables[selectReplacements[ind].componentIdx]
-                        .replacements![0].componentIdx
-                ].stateValues.value;
+                stateVariables[resolveComponentName(`sel[${ind + 1}][1]`)]
+                    .stateValues.value;
             if (x === "x") {
                 numX++;
             } else if (x === "y") {
@@ -1656,10 +1509,10 @@ describe("Select tag tests", async () => {
     });
 
     it("select weighted without replacement", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-        <map>
-          <template>
+        <setup><sequence length="200" name="s" /></setup>
+        <repeat for="$s" name="repeat1">
           <select numToSelect="2">
             <option selectweight="0.1"><text>u</text></option>
             <option selectweight="0.1"><text>v</text></option>
@@ -1668,9 +1521,7 @@ describe("Select tag tests", async () => {
             <option><text>y</text></option>
             <option selectweight="10"><text>z</text></option>
           </select>
-          </template>
-          <sources><sequence length="200" /></sources>
-        </map>
+        </repeat>
         `,
         });
 
@@ -1682,17 +1533,11 @@ describe("Select tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let ind = 0; ind < 200; ind++) {
-            let theSelect =
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/_map1"].replacements![ind].componentIdx
-                    ].replacements![1].componentIdx
-                ];
             let theText1 =
                 stateVariables[
-                    stateVariables[theSelect.replacements![0].componentIdx]
-                        .replacements![0].componentIdx
+                    resolveComponentName(`repeat1[${ind + 1}][1][1][1]`)
                 ];
+
             let x = theText1.stateValues.value;
 
             if (x === "z") {
@@ -1706,9 +1551,9 @@ describe("Select tag tests", async () => {
             }
             let theText2 =
                 stateVariables[
-                    stateVariables[theSelect.replacements![1].componentIdx]
-                        .replacements![0].componentIdx
+                    resolveComponentName(`repeat1[${ind + 1}][1][2][1]`)
                 ];
+
             let y = theText2.stateValues.value;
             if (y === "z") {
                 numZ++;
@@ -1729,414 +1574,188 @@ describe("Select tag tests", async () => {
         expect(numZ).greaterThan(170);
     });
 
-    it("references to internal assignnames", async () => {
-        let core = await createTestCore({
+    it("references to internal components", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <select name="original" assignnames="(q) (r) (s) (t) (u) (v) (w)" numToSelect="7" withreplacement>
-      <option><p newNamespace><select assignnames="q r" numToSelect="2">a e i o u</select>$q{name="q2"}$r{name="r2"}</p></option>
-      <option><p newNamespace><selectfromsequence type="letters" assignnames="q r" numToSelect="2" from="a" to="z" />$q{name="q2"}$r{name="r2"}</p></option>
-      <option><p newNamespace><text name="q">z</text><selectfromsequence type="letters" assignnames="r" numToSelect="1" from="u" to="z" />$q{name="q2"}$r{name="r2"}</p></option>
-      <option><p newNamespace><text name="q">q</text><text name="r">r</text>$q{name="q2"}$r{name="r2"}</p></option>
+    <select name="o" numToSelect="7" withreplacement>
+      <option><p><setup><select name="s" type="text" numToSelect="2">a e i o u</select></setup><text extend="$s[1]" name="q" /><text extend="$s[2]" name="r" /><text extend="$q" name="q2" /><text extend="$r" name="r2" /></p></option>
+      <option><p><setup><selectFromSequence type="letters" name="s" numToSelect="2" from="a" to="z" /></setup><text extend="$s[1]" name="q" /><text extend="$s[2]" name="r" /><text extend="$q" name="q2" /><text extend="$r" name="r2" /></p></option>
+      <option><p><text name="q">z</text><selectFromSequence type="letters" name="r" numToSelect="1" from="u" to="z" /><text extend="$q" name="q2" /><text extend="$r" name="r2" /></p></option>
+      <option><p><text name="q">q</text><text name="r">r</text><text extend="$q" name="q2" /><text extend="$r" name="r2" /></p></option>
     </select>
 
     <p>Selected options repeated</p>
-    $q{name="q2"}
-    $r{name="r2"}
-    $s{name="s2"}
-    $t{name="t2"}
-    $u{name="u2"}
-    $v{name="v2"}
-    $w{name="w2"}
+    <p extend="$o[1]" name="q2" />
+    <p extend="$o[2]" name="r2" />
+    <p extend="$o[3]" name="s2" />
+    <p extend="$o[4]" name="t2" />
+    <p extend="$o[5]" name="u2" />
+    <p extend="$o[6]" name="v2" />
+    <p extend="$o[7]" name="w2" />
 
     <p>Copy q and r and their copies from within selected options</p>
-    <p>$(q/q{name="qq"})$(q/r{name="qr"})$(q/q2{name="qq2"})$(q/r2{name="qr2"})</p>
-    <p>$(r/q{name="rq"})$(r/r{name="rr"})$(r/q2{name="rq2"})$(r/r2{name="rr2"})</p>
-    <p>$(s/q{name="sq"})$(s/r{name="sr"})$(s/q2{name="sq2"})$(s/r2{name="sr2"})</p>
-    <p>$(t/q{name="tq"})$(t/r{name="tr"})$(t/q2{name="tq2"})$(t/r2{name="tr2"})</p>
-    <p>$(u/q{name="uq"})$(u/r{name="ur"})$(u/q2{name="uq2"})$(u/r2{name="ur2"})</p>
-    <p>$(v/q{name="vq"})$(v/r{name="vr"})$(v/q2{name="vq2"})$(v/r2{name="vr2"})</p>
-    <p>$(w/q{name="wq"})$(w/r{name="wr"})$(w/q2{name="wq2"})$(w/r2{name="wr2"})</p>
+    <p><text extend="$o[1].q" name="qq"/><text extend="$o[1].r" name="qr"/><text extend="$o[1].q2" name="qq2"/><text extend="$o[1].r2" name="qr2"/></p>
+    <p><text extend="$o[2].q" name="rq"/><text extend="$o[2].r" name="rr"/><text extend="$o[2].q2" name="rq2"/><text extend="$o[2].r2" name="rr2"/></p>
+    <p><text extend="$o[3].q" name="sq"/><text extend="$o[3].r" name="sr"/><text extend="$o[3].q2" name="sq2"/><text extend="$o[3].r2" name="sr2"/></p>
+    <p><text extend="$o[4].q" name="tq"/><text extend="$o[4].r" name="tr"/><text extend="$o[4].q2" name="tq2"/><text extend="$o[4].r2" name="tr2"/></p>
+    <p><text extend="$o[5].q" name="uq"/><text extend="$o[5].r" name="ur"/><text extend="$o[5].q2" name="uq2"/><text extend="$o[5].r2" name="ur2"/></p>
+    <p><text extend="$o[6].q" name="vq"/><text extend="$o[6].r" name="vr"/><text extend="$o[6].q2" name="vq2"/><text extend="$o[6].r2" name="vr2"/></p>
+    <p><text extend="$o[7].q" name="wq"/><text extend="$o[7].r" name="wr"/><text extend="$o[7].q2" name="wq2"/><text extend="$o[7].r2" name="wr2"/></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let qs = stateVariables["/q"].activeChildren.map(
+        let qs = stateVariables[
+            resolveComponentName("o[1][1]")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let rs = stateVariables["/r"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let ss = stateVariables["/s"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let ts = stateVariables["/t"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let us = stateVariables["/u"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let vs = stateVariables["/v"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let ws = stateVariables["/w"].activeChildren.map(
+        console.log({ qs });
+        let rs = stateVariables[
+            resolveComponentName("o[2][1]")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
-        let q2s = stateVariables["/q2"].activeChildren.map(
+        console.log({ rs });
+        let ss = stateVariables[
+            resolveComponentName("o[3][1]")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let r2s = stateVariables["/r2"].activeChildren.map(
+        let ts = stateVariables[
+            resolveComponentName("o[4][1]")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let s2s = stateVariables["/s2"].activeChildren.map(
+        let us = stateVariables[
+            resolveComponentName("o[5][1]")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let t2s = stateVariables["/t2"].activeChildren.map(
+        let vs = stateVariables[
+            resolveComponentName("o[6][1]")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let u2s = stateVariables["/u2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let v2s = stateVariables["/v2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let w2s = stateVariables["/w2"].activeChildren.map(
+        let ws = stateVariables[
+            resolveComponentName("o[7][1]")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
-        const getTree = (x) => x.tree ?? x;
+        let q2s = stateVariables[resolveComponentName("q2")].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let r2s = stateVariables[resolveComponentName("r2")].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let s2s = stateVariables[resolveComponentName("s2")].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let t2s = stateVariables[resolveComponentName("t2")].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let u2s = stateVariables[resolveComponentName("u2")].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let v2s = stateVariables[resolveComponentName("v2")].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let w2s = stateVariables[resolveComponentName("w2")].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
 
-        expect(q2s.map(getTree)).eqls(qs.map(getTree));
-        expect(r2s.map(getTree)).eqls(rs.map(getTree));
-        expect(s2s.map(getTree)).eqls(ss.map(getTree));
-        expect(t2s.map(getTree)).eqls(ts.map(getTree));
-        expect(u2s.map(getTree)).eqls(us.map(getTree));
-        expect(v2s.map(getTree)).eqls(vs.map(getTree));
-        expect(w2s.map(getTree)).eqls(ws.map(getTree));
+        expect(q2s).eqls(qs);
+        expect(r2s).eqls(rs);
+        expect(s2s).eqls(ss);
+        expect(t2s).eqls(ts);
+        expect(u2s).eqls(us);
+        expect(v2s).eqls(vs);
+        expect(w2s).eqls(ws);
 
         let q3s = [
-            stateVariables["/qq"].stateValues.value,
-            stateVariables["/qr"].stateValues.value,
-            stateVariables["/qq2"].stateValues.value,
-            stateVariables["/qr2"].stateValues.value,
+            stateVariables[resolveComponentName("qq")].stateValues.value,
+            stateVariables[resolveComponentName("qr")].stateValues.value,
+            stateVariables[resolveComponentName("qq2")].stateValues.value,
+            stateVariables[resolveComponentName("qr2")].stateValues.value,
         ];
         let r3s = [
-            stateVariables["/rq"].stateValues.value,
-            stateVariables["/rr"].stateValues.value,
-            stateVariables["/rq2"].stateValues.value,
-            stateVariables["/rr2"].stateValues.value,
+            stateVariables[resolveComponentName("rq")].stateValues.value,
+            stateVariables[resolveComponentName("rr")].stateValues.value,
+            stateVariables[resolveComponentName("rq2")].stateValues.value,
+            stateVariables[resolveComponentName("rr2")].stateValues.value,
         ];
         let s3s = [
-            stateVariables["/sq"].stateValues.value,
-            stateVariables["/sr"].stateValues.value,
-            stateVariables["/sq2"].stateValues.value,
-            stateVariables["/sr2"].stateValues.value,
+            stateVariables[resolveComponentName("sq")].stateValues.value,
+            stateVariables[resolveComponentName("sr")].stateValues.value,
+            stateVariables[resolveComponentName("sq2")].stateValues.value,
+            stateVariables[resolveComponentName("sr2")].stateValues.value,
         ];
         let t3s = [
-            stateVariables["/tq"].stateValues.value,
-            stateVariables["/tr"].stateValues.value,
-            stateVariables["/tq2"].stateValues.value,
-            stateVariables["/tr2"].stateValues.value,
+            stateVariables[resolveComponentName("tq")].stateValues.value,
+            stateVariables[resolveComponentName("tr")].stateValues.value,
+            stateVariables[resolveComponentName("tq2")].stateValues.value,
+            stateVariables[resolveComponentName("tr2")].stateValues.value,
         ];
         let u3s = [
-            stateVariables["/uq"].stateValues.value,
-            stateVariables["/ur"].stateValues.value,
-            stateVariables["/uq2"].stateValues.value,
-            stateVariables["/ur2"].stateValues.value,
+            stateVariables[resolveComponentName("uq")].stateValues.value,
+            stateVariables[resolveComponentName("ur")].stateValues.value,
+            stateVariables[resolveComponentName("uq2")].stateValues.value,
+            stateVariables[resolveComponentName("ur2")].stateValues.value,
         ];
         let v3s = [
-            stateVariables["/vq"].stateValues.value,
-            stateVariables["/vr"].stateValues.value,
-            stateVariables["/vq2"].stateValues.value,
-            stateVariables["/vr2"].stateValues.value,
+            stateVariables[resolveComponentName("vq")].stateValues.value,
+            stateVariables[resolveComponentName("vr")].stateValues.value,
+            stateVariables[resolveComponentName("vq2")].stateValues.value,
+            stateVariables[resolveComponentName("vr2")].stateValues.value,
         ];
         let w3s = [
-            stateVariables["/wq"].stateValues.value,
-            stateVariables["/wr"].stateValues.value,
-            stateVariables["/wq2"].stateValues.value,
-            stateVariables["/wr2"].stateValues.value,
+            stateVariables[resolveComponentName("wq")].stateValues.value,
+            stateVariables[resolveComponentName("wr")].stateValues.value,
+            stateVariables[resolveComponentName("wq2")].stateValues.value,
+            stateVariables[resolveComponentName("wr2")].stateValues.value,
         ];
 
-        expect(q3s.map(getTree)).eqls(qs.map(getTree));
-        expect(r3s.map(getTree)).eqls(rs.map(getTree));
-        expect(s3s.map(getTree)).eqls(ss.map(getTree));
-        expect(t3s.map(getTree)).eqls(ts.map(getTree));
-        expect(u3s.map(getTree)).eqls(us.map(getTree));
-        expect(v3s.map(getTree)).eqls(vs.map(getTree));
-        expect(w3s.map(getTree)).eqls(ws.map(getTree));
-    });
-
-    it("references to internal assignnames, newnamespaces", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <select name="original" assignnames="(q) (r) (s) (t) (u) (v) (w)" numToSelect="7" withreplacement>
-      <option><p newNamespace><select name="s" newnamespace assignnames="q r" numToSelect="2">a e i o u</select>$(s/q{name="q2"})$(s/r{name="r2"})</p></option>
-      <option><p newNamespace><selectfromsequence type="letters" name="s" newnamespace assignnames="q r" numToSelect="2" from="a" to="z" />$(s/q{name="q2"})$(s/r{name="r2"})</p></option>
-      <option><p newNamespace><selectfromsequence type="letters" name="s" newnamespace assignnames="q r" numToSelect="2" withreplacement from="u" to="z" />$(s/q{name="q2"})$(s/r{name="r2"})</p></option>
-    </select>
-
-    <p>Selected options repeated</p>
-    $q{name="q2"}
-    $r{name="r2"}
-    $s{name="s2"}
-    $t{name="t2"}
-    $u{name="u2"}
-    $v{name="v2"}
-    $w{name="w2"}
-
-    <p>Selected options repeated, no p</p>
-    <p>$(q/s{name="q3"})</p>
-    <p>$(r/s{name="r3"})</p>
-    <p>$(s/s{name="s3"})</p>
-    <p>$(t/s{name="t3"})</p>
-    <p>$(u/s{name="u3"})</p>
-    <p>$(v/s{name="v3"})</p>
-    <p>$(w/s{name="w3"})</p>
-
-    <p>Copy q and r from within selected options</p>
-    <p>$(q/s/q{name="qq"})$(q/s/r{name="qr"})$(q/q2{name="qq2"})$(q/r2{name="qr2"})</p>
-    <p>$(r/s/q{name="rq"})$(r/s/r{name="rr"})$(r/q2{name="rq2"})$(r/r2{name="rr2"})</p>
-    <p>$(s/s/q{name="sq"})$(s/s/r{name="sr"})$(s/q2{name="sq2"})$(s/r2{name="sr2"})</p>
-    <p>$(t/s/q{name="tq"})$(t/s/r{name="tr"})$(t/q2{name="tq2"})$(t/r2{name="tr2"})</p>
-    <p>$(u/s/q{name="uq"})$(u/s/r{name="ur"})$(u/q2{name="uq2"})$(u/r2{name="ur2"})</p>
-    <p>$(v/s/q{name="vq"})$(v/s/r{name="vr"})$(v/q2{name="vq2"})$(v/r2{name="vr2"})</p>
-    <p>$(w/s/q{name="wq"})$(w/s/r{name="wr"})$(w/q2{name="wq2"})$(w/r2{name="wr2"})</p>
-
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let qs = stateVariables["/q"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let rs = stateVariables["/r"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let ss = stateVariables["/s"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let ts = stateVariables["/t"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let us = stateVariables["/u"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let vs = stateVariables["/v"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let ws = stateVariables["/w"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-
-        let q2s = stateVariables["/q2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let r2s = stateVariables["/r2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let s2s = stateVariables["/s2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let t2s = stateVariables["/t2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let u2s = stateVariables["/u2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let v2s = stateVariables["/v2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let w2s = stateVariables["/w2"].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-
-        const getTree = (x) => x.tree ?? x;
-
-        expect(q2s.map(getTree)).eqls(qs.map(getTree));
-        expect(r2s.map(getTree)).eqls(rs.map(getTree));
-        expect(s2s.map(getTree)).eqls(ss.map(getTree));
-        expect(t2s.map(getTree)).eqls(ts.map(getTree));
-        expect(u2s.map(getTree)).eqls(us.map(getTree));
-        expect(v2s.map(getTree)).eqls(vs.map(getTree));
-        expect(w2s.map(getTree)).eqls(ws.map(getTree));
-
-        let q3s = stateVariables["/q3"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let r3s = stateVariables["/r3"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let s3s = stateVariables["/s3"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let t3s = stateVariables["/t3"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let u3s = stateVariables["/u3"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let v3s = stateVariables["/v3"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let w3s = stateVariables["/w3"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-
-        expect(q3s.map(getTree)).eqls(qs.slice(0, 2).map(getTree));
-        expect(r3s.map(getTree)).eqls(rs.slice(0, 2).map(getTree));
-        expect(s3s.map(getTree)).eqls(ss.slice(0, 2).map(getTree));
-        expect(t3s.map(getTree)).eqls(ts.slice(0, 2).map(getTree));
-        expect(u3s.map(getTree)).eqls(us.slice(0, 2).map(getTree));
-        expect(v3s.map(getTree)).eqls(vs.slice(0, 2).map(getTree));
-        expect(w3s.map(getTree)).eqls(ws.slice(0, 2).map(getTree));
-
-        let q4s = [
-            stateVariables["/qq"].stateValues.value,
-            stateVariables["/qr"].stateValues.value,
-            stateVariables["/qq2"].stateValues.value,
-            stateVariables["/qr2"].stateValues.value,
-        ];
-        let r4s = [
-            stateVariables["/rq"].stateValues.value,
-            stateVariables["/rr"].stateValues.value,
-            stateVariables["/rq2"].stateValues.value,
-            stateVariables["/rr2"].stateValues.value,
-        ];
-        let s4s = [
-            stateVariables["/sq"].stateValues.value,
-            stateVariables["/sr"].stateValues.value,
-            stateVariables["/sq2"].stateValues.value,
-            stateVariables["/sr2"].stateValues.value,
-        ];
-        let t4s = [
-            stateVariables["/tq"].stateValues.value,
-            stateVariables["/tr"].stateValues.value,
-            stateVariables["/tq2"].stateValues.value,
-            stateVariables["/tr2"].stateValues.value,
-        ];
-        let u4s = [
-            stateVariables["/uq"].stateValues.value,
-            stateVariables["/ur"].stateValues.value,
-            stateVariables["/uq2"].stateValues.value,
-            stateVariables["/ur2"].stateValues.value,
-        ];
-        let v4s = [
-            stateVariables["/vq"].stateValues.value,
-            stateVariables["/vr"].stateValues.value,
-            stateVariables["/vq2"].stateValues.value,
-            stateVariables["/vr2"].stateValues.value,
-        ];
-        let w4s = [
-            stateVariables["/wq"].stateValues.value,
-            stateVariables["/wr"].stateValues.value,
-            stateVariables["/wq2"].stateValues.value,
-            stateVariables["/wr2"].stateValues.value,
-        ];
-
-        expect(q4s.map(getTree)).eqls(qs.map(getTree));
-        expect(r4s.map(getTree)).eqls(rs.map(getTree));
-        expect(s4s.map(getTree)).eqls(ss.map(getTree));
-        expect(t4s.map(getTree)).eqls(ts.map(getTree));
-        expect(u4s.map(getTree)).eqls(us.map(getTree));
-        expect(v4s.map(getTree)).eqls(vs.map(getTree));
-        expect(w4s.map(getTree)).eqls(ws.map(getTree));
+        expect(q3s).eqls(qs);
+        expect(r3s).eqls(rs);
+        expect(s3s).eqls(ss);
+        expect(t3s).eqls(ts);
+        expect(u3s).eqls(us);
+        expect(v3s).eqls(vs);
+        expect(w3s).eqls(ws);
     });
 
     it("references to select of selects", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <select name="original" assignnames="(q) (r) (s) (t) (u)" numToSelect="5" withreplacement>
-      <option><select newNamespace assignnames="q r" numToSelect="2">a e i o u</select></option>
-      <option><selectfromsequence type="letters" newNamespace assignnames="q r" numToSelect="2" from="a" to="z" /></option>
+    <select name="o" numToSelect="5" withreplacement>
+      <option><select name="s" numToSelect="2" type="text">a e i o u</select></option>
+      <option><selectFromSequence type="letters" name="s" numToSelect="2" from="a" to="z" /></option>
     </select>
 
     <p>Selected options repeated</p>
-    <p>$q{name="q2"}</p>
-    <p>$r{name="r2"}</p>
-    <p>$s{name="s2"}</p>
-    <p>$t{name="t2"}</p>
-    <p>$u{name="u2"}</p>
+    <group extend="$o[1]" name="q2" />
+    <group extend="$o[2]" name="r2" />
+    <group extend="$o[3]" name="s2" />
+    <group extend="$o[4]" name="t2" />
+    <group extend="$o[5]" name="u2" />
 
     <p>Copy x/q and x/r</p>
-    <p>$(q/q{name="qq"})$(q/r{name="qr"})</p>
-    <p>$(r/q{name="rq"})$(r/r{name="rr"})</p>
-    <p>$(s/q{name="sq"})$(s/r{name="sr"})</p>
-    <p>$(t/q{name="tq"})$(t/r{name="tr"})</p>
-    <p>$(u/q{name="uq"})$(u/r{name="ur"})</p>
+    <p><text extend="$o[1].s[1]" name="qq" /><text extend="$o[1].s[2]" name="qr" /></p>
+    <p><text extend="$o[2].s[1]" name="rq" /><text extend="$o[2].s[2]" name="rr" /></p>
+    <p><text extend="$o[3].s[1]" name="sq" /><text extend="$o[3].s[2]" name="sr" /></p>
+    <p><text extend="$o[4].s[1]" name="tq" /><text extend="$o[4].s[2]" name="tr" /></p>
+    <p><text extend="$o[5].s[1]" name="uq" /><text extend="$o[5].s[2]" name="ur" /></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let qs = stateVariables["/q"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let rs = stateVariables["/r"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let ss = stateVariables["/s"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let ts = stateVariables["/t"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let us = stateVariables["/u"]
+
+        console.log("o[1][1] idx", resolveComponentName("o[1][1]"));
+        let qs = stateVariables[resolveComponentName("o[1][1]")]
             .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
@@ -2145,7 +1764,7 @@ describe("Select tag tests", async () => {
                     : x.stateValues.value,
             );
 
-        let q2s = stateVariables["/q2"]
+        let rs = stateVariables[resolveComponentName("o[2][1]")]
             .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
@@ -2153,7 +1772,7 @@ describe("Select tag tests", async () => {
                           .value
                     : x.stateValues.value,
             );
-        let r2s = stateVariables["/r2"]
+        let ss = stateVariables[resolveComponentName("o[3][1]")]
             .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
@@ -2161,7 +1780,7 @@ describe("Select tag tests", async () => {
                           .value
                     : x.stateValues.value,
             );
-        let s2s = stateVariables["/s2"]
+        let ts = stateVariables[resolveComponentName("o[4][1]")]
             .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
@@ -2169,15 +1788,7 @@ describe("Select tag tests", async () => {
                           .value
                     : x.stateValues.value,
             );
-        let t2s = stateVariables["/t2"]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let u2s = stateVariables["/u2"]
+        let us = stateVariables[resolveComponentName("o[5][1]")]
             .replacements!.map((x) => stateVariables[x.componentIdx])
             .map((x) =>
                 x.replacements
@@ -2186,281 +1797,246 @@ describe("Select tag tests", async () => {
                     : x.stateValues.value,
             );
 
-        const getTree = (x) => x.tree ?? x;
+        let q2s = stateVariables[resolveComponentName("q2[1]")]
+            .replacements!.map((x) => stateVariables[x.componentIdx])
+            .map((x) =>
+                x.replacements
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
+                    : x.stateValues.value,
+            );
+        let r2s = stateVariables[resolveComponentName("r2[1]")]
+            .replacements!.map((x) => stateVariables[x.componentIdx])
+            .map((x) =>
+                x.replacements
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
+                    : x.stateValues.value,
+            );
+        let s2s = stateVariables[resolveComponentName("s2[1]")]
+            .replacements!.map((x) => stateVariables[x.componentIdx])
+            .map((x) =>
+                x.replacements
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
+                    : x.stateValues.value,
+            );
+        let t2s = stateVariables[resolveComponentName("t2[1]")]
+            .replacements!.map((x) => stateVariables[x.componentIdx])
+            .map((x) =>
+                x.replacements
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
+                    : x.stateValues.value,
+            );
+        let u2s = stateVariables[resolveComponentName("u2[1]")]
+            .replacements!.map((x) => stateVariables[x.componentIdx])
+            .map((x) =>
+                x.replacements
+                    ? stateVariables[x.replacements[0].componentIdx].stateValues
+                          .value
+                    : x.stateValues.value,
+            );
 
-        expect(q2s.map(getTree)).eqls(qs.map(getTree));
-        expect(r2s.map(getTree)).eqls(rs.map(getTree));
-        expect(s2s.map(getTree)).eqls(ss.map(getTree));
-        expect(t2s.map(getTree)).eqls(ts.map(getTree));
-        expect(u2s.map(getTree)).eqls(us.map(getTree));
+        expect(q2s).eqls(qs);
+        expect(r2s).eqls(rs);
+        expect(s2s).eqls(ss);
+        expect(t2s).eqls(ts);
+        expect(u2s).eqls(us);
 
         let q3s = [
-            stateVariables["/qq"].stateValues.value,
-            stateVariables["/qr"].stateValues.value,
+            stateVariables[resolveComponentName("qq")].stateValues.value,
+            stateVariables[resolveComponentName("qr")].stateValues.value,
         ];
         let r3s = [
-            stateVariables["/rq"].stateValues.value,
-            stateVariables["/rr"].stateValues.value,
+            stateVariables[resolveComponentName("rq")].stateValues.value,
+            stateVariables[resolveComponentName("rr")].stateValues.value,
         ];
         let s3s = [
-            stateVariables["/sq"].stateValues.value,
-            stateVariables["/sr"].stateValues.value,
+            stateVariables[resolveComponentName("sq")].stateValues.value,
+            stateVariables[resolveComponentName("sr")].stateValues.value,
         ];
         let t3s = [
-            stateVariables["/tq"].stateValues.value,
-            stateVariables["/tr"].stateValues.value,
+            stateVariables[resolveComponentName("tq")].stateValues.value,
+            stateVariables[resolveComponentName("tr")].stateValues.value,
         ];
         let u3s = [
-            stateVariables["/uq"].stateValues.value,
-            stateVariables["/ur"].stateValues.value,
+            stateVariables[resolveComponentName("uq")].stateValues.value,
+            stateVariables[resolveComponentName("ur")].stateValues.value,
         ];
 
-        expect(q3s.map(getTree)).eqls(qs.map(getTree));
-        expect(r3s.map(getTree)).eqls(rs.map(getTree));
-        expect(s3s.map(getTree)).eqls(ss.map(getTree));
-        expect(t3s.map(getTree)).eqls(ts.map(getTree));
-        expect(u3s.map(getTree)).eqls(us.map(getTree));
+        expect(q3s).eqls(qs);
+        expect(r3s).eqls(rs);
+        expect(s3s).eqls(ss);
+        expect(t3s).eqls(ts);
+        expect(u3s).eqls(us);
     });
 
     it("references to select of selects of selects", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <select assignnames="q r s" numToSelect="3" withreplacement>
-      <option newNamespace><select assignnames="q r s" numToSelect="3" withreplacement>
-        <option newNamespace><select type="text" assignnames="q r" numToSelect="2">a e i o u</select></option>
-        <option newNamespace><selectfromsequence type="letters" assignnames="q r" numToSelect="2" from="a" to="j" /></option>
+    <select name="o" numToSelect="3" withreplacement>
+      <option><select name="p" numToSelect="3" withreplacement>
+        <option><select type="text" name="s" numToSelect="2">a e i o u</select></option>
+        <option><selectFromSequence type="letters" name="s" numToSelect="2" from="a" to="j" /></option>
       </select></option>
-      <option newNamespace><select assignnames="q r s" numToSelect="3">
-        <option newNamespace><select type="text" assignnames="q r" numToSelect="2">v w x y z</select></option>
-        <option newNamespace><selectfromsequence type="letters" assignnames="q r" numToSelect="2" from="k" to="n" /></option>
-        <option newNamespace><selectfromsequence type="letters" assignnames="q r" numToSelect="2" from="x" to="z" /></option>
-        <option newNamespace><select type="text" assignnames="q r" numToSelect="2">p d q</select></option>
+      <option><select name="p" numToSelect="3">
+        <option><select type="text" name="s" numToSelect="2">v w x y z</select></option>
+        <option><selectFromSequence type="letters" name="s" numToSelect="2" from="k" to="n" /></option>
+        <option><selectFromSequence type="letters" name="s" numToSelect="2" from="x" to="z" /></option>
+        <option><select type="text" name="s" numToSelect="2">p d q</select></option>
       </select></option>
     </select>
 
     <p>Selected options repeated</p>
-    <p name="pq2">$q{name="q2"}</p>
-    <p name="pr2">$r{name="r2"}</p>
-    <p name="ps2">$s{name="s2"}</p>
+    <p name="pq2"><group extend="$o[1]" name="q2" /></p>
+    <p name="pr2"><group extend="$o[2]" name="r2" /></p>
+    <p name="ps2"><group extend="$o[3]" name="s2" /></p>
 
     <p>Copy x/q, x/r, x/s</p>
-    <p name="pq3">$(q/q{name="qq"})$(q/r{name="qr"})$(q/s{name="qs"})</p>
-    <p name="pr3">$(r/q{name="rq"})$(r/r{name="rr"})$(r/s{name="rs"})</p>
-    <p name="ps3">$(s/q{name="sq"})$(s/r{name="sr"})$(s/s{name="ss"})</p>
+    <p name="pq3"><group extend="$o[1].p[1]" name="qq" /><group extend="$o[1].p[2]" name="qr" /><group extend="$o[1].p[3]" name="qs" /></p>
+    <p name="pr3"><group extend="$o[2].p[1]" name="rq" /><group extend="$o[2].p[2]" name="rr" /><group extend="$o[2].p[3]" name="rs" /></p>
+    <p name="ps3"><group extend="$o[3].p[1]" name="sq" /><group extend="$o[3].p[2]" name="sr" /><group extend="$o[3].p[3]" name="ss" /></p>
 
     <p>Copy x/x/q, x/x/r</p>
-    <p name="pq4">$(q/q/q{name="qqq"})$(q/q/r{name="qqr"})$(q/r/q{name="qrq"})$(q/r/r{name="qrr"})$(q/s/q{name="qsq"})$(q/s/r{name="qsr"})</p>
-    <p name="pr4">$(r/q/q{name="rqq"})$(r/q/r{name="rqr"})$(r/r/q{name="rrq"})$(r/r/r{name="rrr"})$(r/s/q{name="rsq"})$(r/s/r{name="rsr"})</p>
-    <p name="ps4">$(s/q/q{name="sqq"})$(s/q/r{name="sqr"})$(s/r/q{name="srq"})$(s/r/r{name="srr"})$(s/s/q{name="ssq"})$(s/s/r{name="ssr"})</p>
+    <p name="pq4"><text extend="$o[1].p[1].s[1]" name="qqq" /><text extend="$o[1].p[1].s[2]" name="qqr" /><text extend="$o[1].p[2].s[1]" name="qrq" /><text extend="$o[1].p[2].s[2]" name="qrr" /><text extend="$o[1].p[3].s[1]" name="qsq" /><text extend="$o[1].p[3].s[2]" name="qsr" /></p>
+    <p name="pr4"><text extend="$o[2].p[1].s[1]" name="rqq" /><text extend="$o[2].p[1].s[2]" name="rqr" /><text extend="$o[2].p[2].s[1]" name="rrq" /><text extend="$o[2].p[2].s[2]" name="rrr" /><text extend="$o[2].p[3].s[1]" name="rsq" /><text extend="$o[2].p[3].s[2]" name="rsr" /></p>
+    <p name="ps4"><text extend="$o[3].p[1].s[1]" name="sqq" /><text extend="$o[3].p[1].s[2]" name="sqr" /><text extend="$o[3].p[2].s[1]" name="srq" /><text extend="$o[3].p[2].s[2]" name="srr" /><text extend="$o[3].p[3].s[1]" name="ssq" /><text extend="$o[3].p[3].s[2]" name="ssr" /></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let qs = [
-            "/q/q/q",
-            "/q/q/r",
-            "/q/r/q",
-            "/q/r/r",
-            "/q/s/q",
-            "/q/s/r",
-        ].map((x) =>
-            stateVariables[x].replacements
-                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
-                      .stateValues.value
-                : stateVariables[x].stateValues.value,
-        );
+            "o[1].p[1].s[1]",
+            "o[1].p[1].s[2]",
+            "o[1].p[2].s[1]",
+            "o[1].p[2].s[2]",
+            "o[1].p[3].s[1]",
+            "o[1].p[3].s[2]",
+        ]
+            .map(resolveComponentName)
+            .map((x) =>
+                stateVariables[x].replacements
+                    ? stateVariables[
+                          stateVariables[x].replacements[0].componentIdx
+                      ].stateValues.value
+                    : stateVariables[x].stateValues.value,
+            );
+
         let rs = [
-            "/r/q/q",
-            "/r/q/r",
-            "/r/r/q",
-            "/r/r/r",
-            "/r/s/q",
-            "/r/s/r",
-        ].map((x) =>
-            stateVariables[x].replacements
-                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
-                      .stateValues.value
-                : stateVariables[x].stateValues.value,
-        );
+            "o[2].p[1].s[1]",
+            "o[2].p[1].s[2]",
+            "o[2].p[2].s[1]",
+            "o[2].p[2].s[2]",
+            "o[2].p[3].s[1]",
+            "o[2].p[3].s[2]",
+        ]
+            .map(resolveComponentName)
+            .map((x) =>
+                stateVariables[x].replacements
+                    ? stateVariables[
+                          stateVariables[x].replacements[0].componentIdx
+                      ].stateValues.value
+                    : stateVariables[x].stateValues.value,
+            );
         let ss = [
-            "/s/q/q",
-            "/s/q/r",
-            "/s/r/q",
-            "/s/r/r",
-            "/s/s/q",
-            "/s/s/r",
-        ].map((x) =>
-            stateVariables[x].replacements
-                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
-                      .stateValues.value
-                : stateVariables[x].stateValues.value,
-        );
+            "o[3].p[1].s[1]",
+            "o[3].p[1].s[2]",
+            "o[3].p[2].s[1]",
+            "o[3].p[2].s[2]",
+            "o[3].p[3].s[1]",
+            "o[3].p[3].s[2]",
+        ]
+            .map(resolveComponentName)
+            .map((x) =>
+                stateVariables[x].replacements
+                    ? stateVariables[
+                          stateVariables[x].replacements[0].componentIdx
+                      ].stateValues.value
+                    : stateVariables[x].stateValues.value,
+            );
 
-        expect(stateVariables["/pq2"].stateValues.text.replace(/, /g, "")).eq(
-            qs.join(""),
-        );
-        expect(stateVariables["/pr2"].stateValues.text.replace(/, /g, "")).eq(
-            rs.join(""),
-        );
-        expect(stateVariables["/ps2"].stateValues.text.replace(/, /g, "")).eq(
-            ss.join(""),
-        );
+        expect(
+            stateVariables[
+                resolveComponentName("pq2")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(qs.join(""));
+        expect(
+            stateVariables[
+                resolveComponentName("pr2")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(rs.join(""));
+        expect(
+            stateVariables[
+                resolveComponentName("ps2")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(ss.join(""));
 
-        expect(stateVariables["/pq3"].stateValues.text.replace(/, /g, "")).eq(
-            qs.join(""),
-        );
-        expect(stateVariables["/pr3"].stateValues.text.replace(/, /g, "")).eq(
-            rs.join(""),
-        );
-        expect(stateVariables["/ps3"].stateValues.text.replace(/, /g, "")).eq(
-            ss.join(""),
-        );
+        expect(
+            stateVariables[
+                resolveComponentName("pq3")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(qs.join(""));
+        expect(
+            stateVariables[
+                resolveComponentName("pr3")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(rs.join(""));
+        expect(
+            stateVariables[
+                resolveComponentName("ps3")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(ss.join(""));
 
-        expect(stateVariables["/pq4"].stateValues.text.replace(/, /g, "")).eq(
-            qs.join(""),
-        );
-        expect(stateVariables["/pr4"].stateValues.text.replace(/, /g, "")).eq(
-            rs.join(""),
-        );
-        expect(stateVariables["/ps4"].stateValues.text.replace(/, /g, "")).eq(
-            ss.join(""),
-        );
-    });
-
-    it("references to select of selects of selects, newnamespaces", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <select name="a" newnamespace assignnames="(q) (r) (s)" numToSelect="3" withreplacement>
-      <option><select name="b" newnamespace assignnames="(q) (r) (s)" numToSelect="3" withreplacement>
-        <option><select name="c" newnamespace type="text" assignnames="q r" numToSelect="2">a e i o u</select></option>
-        <option><selectfromsequence type="letters" name="d" newnamespace assignnames="q r" numToSelect="2" from="a" to="j" /></option>
-      </select></option>
-      <option><select name="e" newnamespace assignnames="(q) (r) (s)" numToSelect="3">
-        <option><select name="f" newnamespace type="text" assignnames="q r" numToSelect="2">v w x y z</select></option>
-        <option><selectfromsequence type="letters" name="g" newnamespace assignnames="q r" numToSelect="2" from="k" to="n" /></option>
-        <option><selectfromsequence type="letters" name="h" newnamespace assignnames="q r" numToSelect="2" from="x" to="z" /></option>
-        <option><select name="i" newnamespace type="text" assignnames="q r" numToSelect="2">p d q</select></option>
-      </select></option>
-    </select>
-
-    <p>Selected options repeated</p>
-    <p name="pq2">$(a/q{name="q2"})</p>
-    <p name="pr2">$(a/r{name="r2"})</p>
-    <p name="ps2">$(a/s{name="s2"})</p>
-
-    <p>Copy x/q, x/r, x/s</p>
-    <p name="pq3">$(a/q/q{name="qq"})$(a/q/r{name="qr"})$(a/q/s{name="qs"})</p>
-    <p name="pr3">$(a/r/q{name="rq"})$(a/r/r{name="rr"})$(a/r/s{name="rs"})</p>
-    <p name="ps3">$(a/s/q{name="sq"})$(a/s/r{name="sr"})$(a/s/s{name="ss"})</p>
-
-    <p>Copy x/x/q, x/x/r</p>
-    <p name="pq4">$(a/q/q/q{name="qqq"})$(a/q/q/r{name="qqr"})$(a/q/r/q{name="qrq"})$(a/q/r/r{name="qrr"})$(a/q/s/q{name="qsq"})$(a/q/s/r{name="qsr"})</p>
-    <p name="pr4">$(a/r/q/q{name="rqq"})$(a/r/q/r{name="rqr"})$(a/r/r/q{name="rrq"})$(a/r/r/r{name="rrr"})$(a/r/s/q{name="rsq"})$(a/r/s/r{name="rsr"})</p>
-    <p name="ps4">$(a/s/q/q{name="sqq"})$(a/s/q/r{name="sqr"})$(a/s/r/q{name="srq"})$(a/s/r/r{name="srr"})$(a/s/s/q{name="ssq"})$(a/s/s/r{name="ssr"})</p>
-
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let qs = [
-            "/a/q/q/q",
-            "/a/q/q/r",
-            "/a/q/r/q",
-            "/a/q/r/r",
-            "/a/q/s/q",
-            "/a/q/s/r",
-        ].map((x) =>
-            stateVariables[x].replacements
-                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
-                      .stateValues.value
-                : stateVariables[x].stateValues.value,
-        );
-        let rs = [
-            "/a/r/q/q",
-            "/a/r/q/r",
-            "/a/r/r/q",
-            "/a/r/r/r",
-            "/a/r/s/q",
-            "/a/r/s/r",
-        ].map((x) =>
-            stateVariables[x].replacements
-                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
-                      .stateValues.value
-                : stateVariables[x].stateValues.value,
-        );
-        let ss = [
-            "/a/s/q/q",
-            "/a/s/q/r",
-            "/a/s/r/q",
-            "/a/s/r/r",
-            "/a/s/s/q",
-            "/a/s/s/r",
-        ].map((x) =>
-            stateVariables[x].replacements
-                ? stateVariables[stateVariables[x].replacements[0].componentIdx]
-                      .stateValues.value
-                : stateVariables[x].stateValues.value,
-        );
-
-        expect(stateVariables["/pq2"].stateValues.text.replace(/, /g, "")).eq(
-            qs.join(""),
-        );
-        expect(stateVariables["/pr2"].stateValues.text.replace(/, /g, "")).eq(
-            rs.join(""),
-        );
-        expect(stateVariables["/ps2"].stateValues.text.replace(/, /g, "")).eq(
-            ss.join(""),
-        );
-
-        expect(stateVariables["/pq3"].stateValues.text.replace(/, /g, "")).eq(
-            qs.join(""),
-        );
-        expect(stateVariables["/pr3"].stateValues.text.replace(/, /g, "")).eq(
-            rs.join(""),
-        );
-        expect(stateVariables["/ps3"].stateValues.text.replace(/, /g, "")).eq(
-            ss.join(""),
-        );
-
-        expect(stateVariables["/pq4"].stateValues.text.replace(/, /g, "")).eq(
-            qs.join(""),
-        );
-        expect(stateVariables["/pr4"].stateValues.text.replace(/, /g, "")).eq(
-            rs.join(""),
-        );
-        expect(stateVariables["/ps4"].stateValues.text.replace(/, /g, "")).eq(
-            ss.join(""),
-        );
+        expect(
+            stateVariables[
+                resolveComponentName("pq4")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(qs.join(""));
+        expect(
+            stateVariables[
+                resolveComponentName("pr4")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(rs.join(""));
+        expect(
+            stateVariables[
+                resolveComponentName("ps4")
+            ].stateValues.text.replace(/, /g, ""),
+        ).eq(ss.join(""));
     });
 
     it("references to named grandchildren's children", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <select assignnames="(a b c d)">
+    <select name="o">
     <option>
-      <math name="h1" newNamespace><math name="w">x</math><math>y</math></math>
-      <math simplify newNamespace><math name="q">z</math> + 2$q{name="v"}</math>
-      $(a/w)
-      $(b/q)
+      <math name="h1"><math name="w">x</math><math>y</math></math>
+      <math simplify><math name="q">z</math> + 2<math extend="$q" name="v"/></math>
+      $o.w
+      $o.q
     </option>
     <option>
-      <math name="h2" newNamespace><math name="w">u</math><math>v</math></math>
-      <math simplify newNamespace><math name="q">t</math> + 2$q{name="v"}</math>
-      $(a/w)
-      $(b/q)
+      <math name="h2"><math name="w">u</math><math>v</math></math>
+      <math simplify><math name="q">t</math> + 2<math extend="$q" name="v"/></math>
+      $o.w
+      $o.q
     </option>
     </select>
     
     <p>Copy grandchidren</p>
-    <p>$a{name="a2"}</p>
-    <p>$b{name="b2"}</p>
-    <p>$c{name="c2"}</p>
-    <p>$d{name="d2"}</p>
+    <p><math extend="$o[1][1]" name="a2" /></p>
+    <p><math extend="$o[1][2]" name="b2" /></p>
+    <p><math extend="$o[1][3]" name="c2" /></p>
+    <p><math extend="$o[1][4]" name="d2" /></p>
     
     <p>Copy named children of grandchild</p>
-    <p>$(a/w{name="w2"})</p>
-    <p>$(b/v{name="v2"})</p>
+    <p><math extend="$o.w" name="w2" /></p>
+    <p><math extend="$o.v" name="v2" /></p>
+    <p><math extend="$o[1].w" name="w3" /></p>
+    <p><math extend="$o[1].v" name="v3" /></p>
+    <p><math extend="$o[1][1].w" name="w4" /></p>
+    <p><math extend="$o[1][2].v" name="v4" /></p>
     
     `,
         });
@@ -2486,17 +2062,17 @@ describe("Select tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let chosenChildren = stateVariables[
-            stateVariables["/_select1"].replacements![0].componentIdx
-        ]
+        let chosenChildren = stateVariables[resolveComponentName("o[1]")]
             .replacements!.filter((x) => typeof x !== "string")
             .map((x) => stateVariables[x.componentIdx])
             .map((v, i) =>
                 i < 2 ? v : stateVariables[v.replacements![0].componentIdx],
             );
+
         let option =
             options[
-                stateVariables["/_select1"].stateValues.selectedIndices[0] - 1
+                stateVariables[resolveComponentName("o")].stateValues
+                    .selectedIndices[0] - 1
             ];
 
         expect(me.fromAst(chosenChildren[0].stateValues.value).toString()).eq(
@@ -2512,87 +2088,115 @@ describe("Select tag tests", async () => {
             option.d,
         );
 
-        let a2 = me.fromAst(stateVariables["/a2"].stateValues.value).toString();
-        let b2 = me.fromAst(stateVariables["/b2"].stateValues.value).toString();
-        let c2 = me.fromAst(stateVariables["/c2"].stateValues.value).toString();
-        let d2 = me.fromAst(stateVariables["/d2"].stateValues.value).toString();
-        let v2 = me.fromAst(stateVariables["/v2"].stateValues.value).toString();
-        let w2 = me.fromAst(stateVariables["/w2"].stateValues.value).toString();
+        let a2 = me
+            .fromAst(
+                stateVariables[resolveComponentName("a2")].stateValues.value,
+            )
+            .toString();
+        let b2 = me
+            .fromAst(
+                stateVariables[resolveComponentName("b2")].stateValues.value,
+            )
+            .toString();
+        let c2 = me
+            .fromAst(
+                stateVariables[resolveComponentName("c2")].stateValues.value,
+            )
+            .toString();
+        let d2 = me
+            .fromAst(
+                stateVariables[resolveComponentName("d2")].stateValues.value,
+            )
+            .toString();
 
         expect(a2).eq(option.a);
         expect(b2).eq(option.b);
         expect(c2).eq(option.c);
         expect(d2).eq(option.d);
-        expect(v2).eq(option.v);
-        expect(w2).eq(option.w);
+
+        for (let i = 2; i <= 4; i++) {
+            let v2 = me
+                .fromAst(
+                    stateVariables[resolveComponentName(`v${i}`)].stateValues
+                        .value,
+                )
+                .toString();
+            let w2 = me
+                .fromAst(
+                    stateVariables[resolveComponentName(`w${i}`)].stateValues
+                        .value,
+                )
+                .toString();
+            expect(v2).eq(option.v);
+            expect(w2).eq(option.w);
+        }
     });
 
-    it("select of a map of a select, with references", async () => {
-        let core = await createTestCore({
+    it("select of a repeat of a select, with references", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p><aslist name="list1">
-    <select assignnames="(j) (k) (l)" numToSelect="3" withreplacement>
-    <option><map assignnames="a b" newNamespace>
-      <template newNamespace>
-        <select assignnames="(p q) (r s)" numToSelect="2">
-          <option><math>$x^2</math><math>$x^6</math></option>
-          <option><math>$x^3</math><math>$x^7</math></option>
-          <option><math>$x^4</math><math>$x^8</math></option>
-          <option><math>$x^5</math><math>$x^9</math></option>
+    <p><asList name="list1">
+    <select name="o" numToSelect="3" withReplacement>
+    <option><repeat name="r" for="x y" itemName="x">
+        <select numToSelect="2" name="s">
+          <option><math name="p">$x^2</math><math name="q">$x^6</math></option>
+          <option><math name="p">$x^3</math><math name="q">$x^7</math></option>
+          <option><math name="p">$x^4</math><math name="q">$x^8</math></option>
+          <option><math name="p">$x^5</math><math name="q">$x^9</math></option>
         </select>
-      </template>
-      <sources alias="x">
-        <math>x</math><math>y</math>
-      </sources>
-    </map></option>
-    <option><map assignnames="a b" newNamespace>
-      <template newNamespace>
-        <select assignnames="(p q) (r s)" numToSelect="2">
-          <option><math>$x 2</math><math>$x 6</math></option>
-          <option><math>$x 3</math><math>$x 7</math></option>
-          <option><math>$x 4</math><math>$x 8</math></option>
-          <option><math>$x 5</math><math>$x 9</math></option>
+    </repeat></option>
+    <option><repeat name="r" for="u v" itemName="x">
+        <select numToSelect="2" name="s">
+          <option><math name="p">$x 2</math><math name="q">$x 6</math></option>
+          <option><math name="p">$x 3</math><math name="q">$x 7</math></option>
+          <option><math name="p">$x 4</math><math name="q">$x 8</math></option>
+          <option><math name="p">$x 5</math><math name="q">$x 9</math></option>
         </select>
-      </template>
-      <sources alias="x">
-        <math>u</math><math>v</math>
-      </sources>
-    </map></option>
+    </repeat></option>
     </select>
-    </aslist></p>
+    </asList></p>
 
     <p>Copy whole select again</p>
-    <p><aslist name="list2">$_select1{name="s2"}</aslist></p>
+    <p><asList name="list2"><select extend="$o" name="o2" /></asList></p>
 
     <p>Copy individual selections</p>
-    <p><aslist name="list3">
-    $j{name="j2"}
-    $k{name="k2"}
-    $l{name="l2"}
-    </aslist></p>
+    <p><asList name="list3">
+    <repeat extend="$o[1].r" name="j2" />
+    <repeat extend="$o[2].r" name="k2" />
+    <repeat extend="$o[3].r" name="l2" />
+    </asList></p>
 
     <p>Copy individual pieces</p>
-    <p><aslist name="list4">
-    $(j/a/p{name="p1"})$(j/a/q{name="p2"})$(j/a/r{name="p3"})$(j/a/s{name="p4"})$(j/b/p{name="p5"})$(j/b/q{name="p6"})$(j/b/r{name="p7"})$(j/b/s{name="p8"})
-    $(k/a/p{name="p9"})$(k/a/q{name="p10"})$(k/a/r{name="p11"})$(k/a/s{name="p12"})$(k/b/p{name="p13"})$(k/b/q{name="p14"})$(k/b/r{name="p15"})$(k/b/s{name="p16"})
-    $(l/a/p{name="p17"})$(l/a/q{name="p18"})$(l/a/r{name="p19"})$(l/a/s{name="p20"})$(l/b/p{name="p21"})$(l/b/q{name="p22"})$(l/b/r{name="p23"})$(l/b/s{name="p24"})
-    </aslist></p>
+    <p><asList name="list4">
+    <math extend="$o[1].r[1].s[1].p" name="p1" /><math extend="$o[1].r[1].s[1].q" name="p2" /><math extend="$o[1].r[1].s[2].p" name="p3" /><math extend="$o[1].r[1].s[2].q" name="p4" />
+    <math extend="$o[1].r[2].s[1].p" name="p5" /><math extend="$o[1].r[2].s[1].q" name="p6" /><math extend="$o[1].r[2].s[2].p" name="p7" /><math extend="$o[1].r[2].s[2].q" name="p8" />
+    <math extend="$o[2].r[1].s[1].p" name="p9" /><math extend="$o[2].r[1].s[1].q" name="p10" /><math extend="$o[2].r[1].s[2].p" name="p11" /><math extend="$o[2].r[1].s[2].q" name="p12" />
+    <math extend="$o[2].r[2].s[1].p" name="p13" /><math extend="$o[2].r[2].s[1].q" name="p14" /><math extend="$o[2].r[2].s[2].p" name="p15" /><math extend="$o[2].r[2].s[2].q" name="p16" />
+    <math extend="$o[3].r[1].s[1].p" name="p17" /><math extend="$o[3].r[1].s[1].q" name="p18" /><math extend="$o[3].r[1].s[2].p" name="p19" /><math extend="$o[3].r[1].s[2].q" name="p20" />
+    <math extend="$o[3].r[2].s[1].p" name="p21" /><math extend="$o[3].r[2].s[1].q" name="p22" /><math extend="$o[3].r[2].s[2].p" name="p23" /><math extend="$o[3].r[2].s[2].q" name="p24" />
+    </asList></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let theList1 = stateVariables["/list1"].activeChildren.map((x) =>
+        let theList1 = stateVariables[
+            resolveComponentName("list1")
+        ].activeChildren.map((x) =>
             me
                 .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
         );
-        let theList2 = stateVariables["/list2"].activeChildren.map((x) =>
+        let theList2 = stateVariables[
+            resolveComponentName("list2")
+        ].activeChildren.map((x) =>
             me
                 .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
         );
-        let theList3 = stateVariables["/list3"].activeChildren.map((x) =>
+        let theList3 = stateVariables[
+            resolveComponentName("list3")
+        ].activeChildren.map((x) =>
             me
                 .fromAst(stateVariables[x.componentIdx].stateValues.value)
                 .toString(),
@@ -2603,90 +2207,10 @@ describe("Select tag tests", async () => {
 
         let theList4 = [...Array(24).keys()].map((i) =>
             me
-                .fromAst(stateVariables["/p" + (i + 1)].stateValues.value)
-                .toString(),
-        );
-
-        expect(theList4).eqls(theList1);
-    });
-
-    it("select of a map of a select, new namespaces", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <p><aslist name="list1">
-    <select name="s" newnamespace assignnames="(j) (k) (l)" numToSelect="3" withreplacement>
-    <option><map name="m" newnamespace assignnames="a b">
-      <template newnamespace>
-        <select name="v" newnamespace assignnames="(p q) (r s)" numToSelect="2">
-          <option><math>$x^2</math><math>$x^6</math></option>
-          <option><math>$x^3</math><math>$x^7</math></option>
-          <option><math>$x^4</math><math>$x^8</math></option>
-          <option><math>$x^5</math><math>$x^9</math></option>
-        </select>
-      </template>
-      <sources alias="x">
-        <math>x</math><math>y</math>
-      </sources>
-    </map></option>
-    <option><map name="n" newnamespace assignnames="a b">
-      <template newnamespace>
-        <select name="v" newnamespace assignnames="(p q) (r s)" numToSelect="2">
-          <option><math>$x 2</math><math>$x 6</math></option>
-          <option><math>$x 3</math><math>$x 7</math></option>
-          <option><math>$x 4</math><math>$x 8</math></option>
-          <option><math>$x 5</math><math>$x 9</math></option>
-        </select>
-      </template>
-      <sources alias="x">
-        <math>u</math><math>v</math>
-      </sources>
-    </map></option>
-    </select>
-    </aslist></p>
-
-    <p>Copy whole select again</p>
-    <p><aslist name="list2">$s{name="s2"}</aslist></p>
-
-    <p>Copy individual selections</p>
-    <p><aslist name="list3">
-    $(s/j{name="j2"})
-    $(s/k{name="k2"})
-    $(s/l{name="l2"})
-    </aslist></p>
-
-    <p>Copy individual pieces</p>
-    <p><aslist name="list4">
-    $(s/j/a/v/p{name="p1"})$(s/j/a/v/q{name="p2"})$(s/j/a/v/r{name="p3"})$(s/j/a/v/s{name="p4"})$(s/j/b/v/p{name="p5"})$(s/j/b/v/q{name="p6"})$(s/j/b/v/r{name="p7"})$(s/j/b/v/s{name="p8"})
-    $(s/k/a/v/p{name="p9"})$(s/k/a/v/q{name="p10"})$(s/k/a/v/r{name="p11"})$(s/k/a/v/s{name="p12"})$(s/k/b/v/p{name="p13"})$(s/k/b/v/q{name="p14"})$(s/k/b/v/r{name="p15"})$(s/k/b/v/s{name="p16"})
-    $(s/l/a/v/p{name="p17"})$(s/l/a/v/q{name="p18"})$(s/l/a/v/r{name="p19"})$(s/l/a/v/s{name="p20"})$(s/l/b/v/p{name="p21"})$(s/l/b/v/q{name="p22"})$(s/l/b/v/r{name="p23"})$(s/l/b/v/s{name="p24"})
-    </aslist></p>
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-
-        let theList1 = stateVariables["/list1"].activeChildren.map((x) =>
-            me
-                .fromAst(stateVariables[x.componentIdx].stateValues.value)
-                .toString(),
-        );
-        let theList2 = stateVariables["/list2"].activeChildren.map((x) =>
-            me
-                .fromAst(stateVariables[x.componentIdx].stateValues.value)
-                .toString(),
-        );
-        let theList3 = stateVariables["/list3"].activeChildren.map((x) =>
-            me
-                .fromAst(stateVariables[x.componentIdx].stateValues.value)
-                .toString(),
-        );
-
-        expect(theList2).eqls(theList1);
-        expect(theList3).eqls(theList1);
-
-        let theList4 = [...Array(24).keys()].map((i) =>
-            me
-                .fromAst(stateVariables["/p" + (i + 1)].stateValues.value)
+                .fromAst(
+                    stateVariables[resolveComponentName("p" + (i + 1))]
+                        .stateValues.value,
+                )
                 .toString(),
         );
 
@@ -2697,44 +2221,52 @@ describe("Select tag tests", async () => {
     // When this issue is resolved, change this test to make sure the references
     // are hidden when the select is hidden
     it("select with hide will hide replacements but not copies", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
       <p>Selects and hide</p>
-      <p name="p1"><select assignnames="(c)">
+      <p name="p1"><select name="s1">
         <option><text>a</text></option>
         <option><text>b</text></option>
         <option><text>c</text></option>
         <option><text>d</text></option>
         <option><text>e</text></option>
-      </select>, <select assignnames="(d)" hide>
+      </select>, <select name="s2" hide>
         <option><text>a</text></option>
         <option><text>b</text></option>
         <option><text>c</text></option>
         <option><text>d</text></option>
         <option><text>e</text></option>
       </select></p>
-      <p name="p2">$c, $d</p>
+      <p name="p2">$s1, $s2</p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let c = await stateVariables["/c"].stateValues.value;
-        let d = await stateVariables["/d"].stateValues.value;
+        let c =
+            await stateVariables[resolveComponentName("s1[1][1]")].stateValues
+                .value;
+        let d =
+            await stateVariables[resolveComponentName("s2[1][1]")].stateValues
+                .value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
-        expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
-        expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `${c}, `,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            `${c}, ${d}`,
+        );
     });
 
     // Note: this test encodes undesired behavior (see issue #246)
     // When this issue is resolved, change this test to make sure the references
     // are hidden when the select is hidden
     it("select with hide will hide named grandchildren replacements but not copies", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
       <p>Selects and hide</p>
-      <p name="p1"><asList><select assignnames="(a b c)">
+      <p name="p1"><asList><select name="s1">
         <option>
           <text>a</text>
           <text>b</text>
@@ -2745,7 +2277,7 @@ describe("Select tag tests", async () => {
           <text>e</text>
           <text>f</text>
         </option>
-      </select><select assignnames="(d e)" hide>
+      </select><select name="s2" hide>
         <option>
           <text>a</text>
           <text>b</text>
@@ -2759,24 +2291,31 @@ describe("Select tag tests", async () => {
           <text>f</text>
         </option>
       </select></asList></p>
-      <p name="p2">$a, <copy hide="true" target="b" />, $c, <copy hide="false" target="d" />, $e</p>
+      <p name="p2">$s1[1][1], <text extend="$s1[1][2]" hide="true" />, $s1[1][3], <text extend="$s2[1][1]" hide="false" />, $s2[1][2]</p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let a = stateVariables["/a"].stateValues.value;
-        let b = stateVariables["/b"].stateValues.value;
-        let c = stateVariables["/c"].stateValues.value;
-        let d = stateVariables["/d"].stateValues.value;
-        let e = stateVariables["/e"].stateValues.value;
+        let a =
+            stateVariables[resolveComponentName("s1[1][1]")].stateValues.value;
+        let b =
+            stateVariables[resolveComponentName("s1[1][2]")].stateValues.value;
+        let c =
+            stateVariables[resolveComponentName("s1[1][3]")].stateValues.value;
+        let d =
+            stateVariables[resolveComponentName("s2[1][1]")].stateValues.value;
+        let e =
+            stateVariables[resolveComponentName("s2[1][2]")].stateValues.value;
         expect(["a", "d"].includes(a)).eq(true);
         expect(["b", "e"].includes(b)).eq(true);
         expect(["c", "f"].includes(c)).eq(true);
         expect(["a", "c", "e"].includes(d)).eq(true);
         expect(["b", "d", "f"].includes(e)).eq(true);
 
-        expect(stateVariables["/p1"].stateValues.text).eq(`${a}, ${b}, ${c}`);
-        expect(stateVariables["/p2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `${a}, ${b}, ${c}`,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
             `${a}, , ${c}, ${d}, ${e}`,
         );
     });
@@ -2785,10 +2324,10 @@ describe("Select tag tests", async () => {
     // When this issue is resolved, change this test to make sure the references
     // are hidden when the select is hidden
     it("select with hide will hide named grandchildren replacements but not copies", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
       <p>Selects and hide</p>
-      <p name="p1"><aslist><select assignnames="(a b c)">
+      <p name="p1"><asList><select name="s1">
         <option>
           <text>a</text>
           <text>b</text>
@@ -2799,7 +2338,7 @@ describe("Select tag tests", async () => {
           <text>e</text>
           <text>f</text>
         </option>
-      </select><select assignnames="(d e)" hide>
+      </select><select name="s2" hide>
         <option>
           <text>a</text>
           <text>b</text>
@@ -2812,25 +2351,32 @@ describe("Select tag tests", async () => {
           <text>e</text>
           <text>f</text>
         </option>
-      </select></aslist></p>
-      <p name="p2">$a, <copy hide="true" target="b" />, $c, <copy hide="false" target="d" />, $e</p>
+      </select></asList></p>
+      <p name="p2">$s1[1][1], <text extend="$s1[1][2]" hide="true" />, $s1[1][3], <text extend="$s2[1][1]" hide="false" />, $s2[1][2]</p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let a = stateVariables["/a"].stateValues.value;
-        let b = stateVariables["/b"].stateValues.value;
-        let c = stateVariables["/c"].stateValues.value;
-        let d = stateVariables["/d"].stateValues.value;
-        let e = stateVariables["/e"].stateValues.value;
+        let a =
+            stateVariables[resolveComponentName("s1[1][1]")].stateValues.value;
+        let b =
+            stateVariables[resolveComponentName("s1[1][2]")].stateValues.value;
+        let c =
+            stateVariables[resolveComponentName("s1[1][3]")].stateValues.value;
+        let d =
+            stateVariables[resolveComponentName("s2[1][1]")].stateValues.value;
+        let e =
+            stateVariables[resolveComponentName("s2[1][2]")].stateValues.value;
         expect(["a", "d"].includes(a)).eq(true);
         expect(["b", "e"].includes(b)).eq(true);
         expect(["c", "f"].includes(c)).eq(true);
         expect(["a", "c", "e"].includes(d)).eq(true);
         expect(["b", "d", "f"].includes(e)).eq(true);
 
-        expect(stateVariables["/p1"].stateValues.text).eq(`${a}, ${b}, ${c}`);
-        expect(stateVariables["/p2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `${a}, ${b}, ${c}`,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
             `${a}, , ${c}, ${d}, ${e}`,
         );
     });
@@ -2839,7 +2385,7 @@ describe("Select tag tests", async () => {
     // When this issue is resolved, change this test to make sure the references
     // are hidden when the select is hidden
     it("selects hide dynamically", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <booleanInput name='h1' prefill="false" >
       <label>Hide first select</label>
@@ -2847,13 +2393,13 @@ describe("Select tag tests", async () => {
     <booleanInput name='h2' prefill="true" >
       <label>Hide second select</label>
     </booleanInput>
-    <p name="p1"><select assignnames="(c)" hide="$h1">
+    <p name="p1"><select name="c" hide="$h1">
       <option><text>a</text></option>
       <option><text>b</text></option>
       <option><text>c</text></option>
       <option><text>d</text></option>
       <option><text>e</text></option>
-    </select>, <select assignnames="(d)" hide="$h2">
+    </select>, <select name="d" hide="$h2">
       <option><text>a</text></option>
       <option><text>b</text></option>
       <option><text>c</text></option>
@@ -2865,67 +2411,81 @@ describe("Select tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let c = await stateVariables["/c"].stateValues.value;
-        let d = await stateVariables["/d"].stateValues.value;
+        let c =
+            await stateVariables[resolveComponentName("c[1][1]")].stateValues
+                .value;
+        let d =
+            await stateVariables[resolveComponentName("d[1][1]")].stateValues
+                .value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
-        expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `${c}, `,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            `${c}, ${d}`,
+        );
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h1",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            name: "/h2",
+            componentIdx: resolveComponentName("h2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq(`, ${d}`);
-        expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `, ${d}`,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            `${c}, ${d}`,
+        );
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/h1",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h2",
+            componentIdx: resolveComponentName("h2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
-        expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `${c}, `,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            `${c}, ${d}`,
+        );
     });
 
     it("string and blank strings in options", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <setup>
       <text name="animal1">fox</text><text name="verb1">jumps</text>
       <text name="animal2">elephant</text><text name="verb2">trumpets</text>
     </setup>
 
-    <p name="pa">a: <select assignnames="a">
+    <p name="pa">a: <select name="a">
       <option>The $animal1 $verb1.</option>
       <option>The $animal2 $verb2.</option>
     </select></p>
 
-    <p name="pa1">a1: $a{assignNames="a11 a12 a13 a14"}</p>
+    <p name="pa1">a1: <group extend="$a" name="a1" /></p>
 
-    <p name="ppieces" >pieces: <select copySource="_select1" assignNames="(b c d e)" /></p>
-  
-    <p name="pb1">b1: $b{name="b1"}</p>
-    <p name="pc1">c1: $c{name="c1"}</p>
-    <p name="pd1">d1: $d{name="d1"}</p>
-    <p name="pe1">e1: $e{name="e1"}</p>
+    <p name="pb1">b1: <text extend="$a1[1]" name="b1" /></p>
+    <p name="pc1">c1: <text extend="$a1[2]" name="c1" /></p>
+    <p name="pd1">d1: <text extend="$a1[3]" name="d1" /></p>
+    <p name="pe1">e1: <text extend="$a1[4]" name="e1" /></p>
   
     
     `,
@@ -2946,51 +2506,57 @@ describe("Select tag tests", async () => {
 
         let option =
             options[
-                stateVariables["/_select1"].stateValues.selectedIndices[0] - 1
+                stateVariables[resolveComponentName("a")].stateValues
+                    .selectedIndices[0] - 1
             ];
 
-        expect(stateVariables["/pa"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("pa")].stateValues.text).eq(
             `a: The ${option.animal} ${option.verb}.`,
         );
-        expect(stateVariables["/pa1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("pa1")].stateValues.text).eq(
             `a1: The ${option.animal} ${option.verb}.`,
         );
-        expect(stateVariables["/ppieces"].stateValues.text).eq(
-            `pieces: The ${option.animal} ${option.verb}.`,
-        );
 
-        expect(stateVariables["/pb1"].stateValues.text).eq(`b1: `);
-        expect(stateVariables["/pc1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("pb1")].stateValues.text).eq(
+            `b1: `,
+        );
+        expect(stateVariables[resolveComponentName("pc1")].stateValues.text).eq(
             `c1: ${option.animal}`,
         );
-        expect(stateVariables["/pd1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("pd1")].stateValues.text).eq(
             `d1: ${option.verb}`,
         );
-        expect(stateVariables["/pe1"].stateValues.text).eq(`e1: `);
+        expect(stateVariables[resolveComponentName("pe1")].stateValues.text).eq(
+            `e1: `,
+        );
 
-        expect(stateVariables["/a11"]).eq(undefined);
-        expect(stateVariables["/a12"].stateValues.text).eq(`${option.animal}`);
-        expect(stateVariables["/a13"].stateValues.text).eq(`${option.verb}`);
-        expect(stateVariables["/a14"]).eq(undefined);
-        expect(stateVariables["/b1"]).eq(undefined);
-        expect(stateVariables["/c1"].stateValues.text).eq(`${option.animal}`);
-        expect(stateVariables["/d1"].stateValues.text).eq(`${option.verb}`);
-        expect(stateVariables["/e1"]).eq(undefined);
+        expect(stateVariables[resolveComponentName("b1")].stateValues.text).eq(
+            "",
+        );
+        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
+            `${option.animal}`,
+        );
+        expect(stateVariables[resolveComponentName("d1")].stateValues.text).eq(
+            `${option.verb}`,
+        );
+        expect(stateVariables[resolveComponentName("e1")].stateValues.text).eq(
+            "",
+        );
     });
 
-    it("correctly rename assignNames of multiple levels", async () => {
-        let core = await createTestCore({
+    it("correctly reference select inside another select", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <select name="select1">
       <option>
     
-        <p>q,r = <select assignNames='(q  r)'>
+        <p>q,r = <select name="s">
           <option><text>a</text><text>b</text></option>
         </select></p>
     
     
-        <p>q2 = $q</p>
-        <p>r2 = $r</p>
+        <p>q2 = $s[1][1]</p>
+        <p>r2 = $s[1][2]</p>
       </option>
     </select>
     
@@ -3001,7 +2567,8 @@ describe("Select tag tests", async () => {
 
         let replacements =
             stateVariables[
-                stateVariables["/select1"].replacements![0].componentIdx
+                stateVariables[resolveComponentName("select1")].replacements![0]
+                    .componentIdx
             ].replacements!;
 
         let p1 = replacements[1].componentIdx;
@@ -3014,7 +2581,7 @@ describe("Select tag tests", async () => {
     });
 
     it("display error when miss a name in selectForVariants, inside text", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
     <variantControl variantNames="apple banana cherry" numVariants="3" />
     
@@ -3033,14 +2600,14 @@ describe("Select tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Some variants are specified for select but no options are specified for possible variant name: banana",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].position.charBegin).eq(24);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(7);
-        expect(errorWarnings.errors[0].position.charEnd).eq(13);
+        expect(errorWarnings.errors[0].position.start.line).eq(4);
+        expect(errorWarnings.errors[0].position.start.column).eq(24);
+        expect(errorWarnings.errors[0].position.end.line).eq(7);
+        expect(errorWarnings.errors[0].position.end.column).eq(14);
     });
 
     it("display error when repeat name in selectForVariants more times than numToSelect, inside p", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
     <variantControl variantNames="apple banana cherry" numVariants="3" />
     
@@ -3059,14 +2626,14 @@ describe("Select tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Invalid variant name for select.  Variant name apple appears in 2 options but number to select is 1",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].position.charBegin).eq(18);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(7);
-        expect(errorWarnings.errors[0].position.charEnd).eq(13);
+        expect(errorWarnings.errors[0].position.start.line).eq(4);
+        expect(errorWarnings.errors[0].position.start.column).eq(18);
+        expect(errorWarnings.errors[0].position.end.line).eq(7);
+        expect(errorWarnings.errors[0].position.end.column).eq(14);
     });
 
     it("display error when repeat name in selectForVariants more times than numToSelect, inside document", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
     <variantControl variantNames="apple banana" numVariants="2" />
     
@@ -3086,14 +2653,14 @@ describe("Select tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Variant name donut that is specified for select is not a possible variant name",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].position.charBegin).eq(15);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(8);
-        expect(errorWarnings.errors[0].position.charEnd).eq(13);
+        expect(errorWarnings.errors[0].position.start.line).eq(4);
+        expect(errorWarnings.errors[0].position.start.column).eq(15);
+        expect(errorWarnings.errors[0].position.end.line).eq(8);
+        expect(errorWarnings.errors[0].position.end.column).eq(14);
     });
 
     it("display error when numToSelect is larger than number of options, inside graph", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
     <p>No points for graph!</p>
 
@@ -3112,69 +2679,84 @@ describe("Select tag tests", async () => {
         expect(errorWarnings.errors[0].message).contain(
             "Cannot select 3 components from only 2",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].position.charBegin).eq(12);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(7);
-        expect(errorWarnings.errors[0].position.charEnd).eq(13);
+        expect(errorWarnings.errors[0].position.start.line).eq(4);
+        expect(errorWarnings.errors[0].position.start.column).eq(12);
+        expect(errorWarnings.errors[0].position.end.line).eq(7);
+        expect(errorWarnings.errors[0].position.end.column).eq(14);
     });
 
     it("numToSelect from selectFromSequence", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>n1 = <selectFromSequence from="1" to="5" assignNames="n1" /></p>
-    <p>vars = <select type="text" name="vars1" numToSelect="$n1" assignNames="a1 b1 c1 d1 e1">u v w x y z</select></p>
-    <p name="p1">a1=$a1, b1=$b1, c1=$c1, d1=$d1, e1=$e1</p>
+    <p>n1 = <selectFromSequence from="1" to="5" name="n1" /></p>
+    <p>vars = <select type="text" name="vars1" numToSelect="$n1">u v w x y z</select></p>
+    <p name="p1">a1=$vars1[1], b1=$vars1[2], c1=$vars1[3], d1=$vars1[4], e1=$vars1[5]</p>
 
-    <p>n2 = <selectFromSequence from="1" to="5" assignNames="n2" /></p>
-    <p>vars = <select type="text" name="vars2" numToSelect="$n2" assignNames="a2 b2 c2 d2 e2">u v w x y z</select></p>
-    <p name="p2">a2=$a2, b2=$b2, c2=$c2, d2=$d2, e2=$e2</p>
+    <p>n2 = <selectFromSequence from="1" to="5" name="n2" /></p>
+    <p>vars = <select type="text" name="vars2" numToSelect="$n2">u v w x y z</select></p>
+    <p name="p2">a2=$vars2[1], b2=$vars2[2], c2=$vars2[3], d2=$vars2[4], e2=$vars2[5]</p>
 
-    <p>n3 = <selectFromSequence from="1" to="5" assignNames="n3" /></p>
-    <p>vars = <select type="text" name="vars3" numToSelect="$n3" assignNames="a3 b3 c3 d3 e3">u v w x y z</select></p>
-    <p name="p3">a3=$a3, b3=$b3, c3=$c3, d3=$d3, e3=$e3</p>
+    <p>n3 = <selectFromSequence from="1" to="5" name="n3" /></p>
+    <p>vars = <select type="text" name="vars3" numToSelect="$n3">u v w x y z</select></p>
+    <p name="p3">a3=$vars3[1], b3=$vars3[2], c3=$vars3[3], d3=$vars3[4], e3=$vars3[5]</p>
 
-    <p>n4 = <selectFromSequence from="1" to="5" assignNames="n4" /></p>
-    <p>vars = <select type="text" name="vars4" numToSelect="$n4" assignNames="a4 b4 c4 d4 e4">u v w x y z</select></p>
-    <p name="p4">a4=$a4, b4=$b4, c4=$c4, d4=$d4, e4=$e4</p>
+    <p>n4 = <selectFromSequence from="1" to="5" name="n4" /></p>
+    <p>vars = <select type="text" name="vars4" numToSelect="$n4">u v w x y z</select></p>
+    <p name="p4">a4=$vars4[1], b4=$vars4[2], c4=$vars4[3], d4=$vars4[4], e4=$vars4[5]</p>
 
-    <p>n5 = <selectFromSequence from="1" to="5" assignNames="n5" /></p>
-    <p>vars = <select type="text" name="vars5" numToSelect="$n5" assignNames="a5 b5 c5 d5 e5">u v w x y z</select></p>
-    <p name="p5">a5=$a5, b5=$b5, c5=$c5, d5=$d5, e5=$e5</p>
+    <p>n5 = <selectFromSequence from="1" to="5" name="n5" /></p>
+    <p>vars = <select type="text" name="vars5" numToSelect="$n5">u v w x y z</select></p>
+    <p name="p5">a5=$vars5[1], b5=$vars5[2], c5=$vars5[3], d5=$vars5[4], e5=$vars5[5]</p>
       `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 = stateVariables["/n1"].stateValues.value;
-        let n2 = stateVariables["/n2"].stateValues.value;
-        let n3 = stateVariables["/n3"].stateValues.value;
-        let n4 = stateVariables["/n4"].stateValues.value;
-        let n5 = stateVariables["/n5"].stateValues.value;
+        let n1 =
+            stateVariables[resolveComponentName("n1[1]")].stateValues.value;
+        let n2 =
+            stateVariables[resolveComponentName("n2[1]")].stateValues.value;
+        let n3 =
+            stateVariables[resolveComponentName("n3[1]")].stateValues.value;
+        let n4 =
+            stateVariables[resolveComponentName("n4[1]")].stateValues.value;
+        let n5 =
+            stateVariables[resolveComponentName("n5[1]")].stateValues.value;
 
-        let vars1 = stateVariables["/vars1"].replacements!.map(
+        let vars1 = stateVariables[
+            resolveComponentName("vars1")
+        ].replacements!.map(
             (x) =>
                 stateVariables[
                     stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
-        let vars2 = stateVariables["/vars2"].replacements!.map(
+        let vars2 = stateVariables[
+            resolveComponentName("vars2")
+        ].replacements!.map(
             (x) =>
                 stateVariables[
                     stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
-        let vars3 = stateVariables["/vars3"].replacements!.map(
+        let vars3 = stateVariables[
+            resolveComponentName("vars3")
+        ].replacements!.map(
             (x) =>
                 stateVariables[
                     stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
-        let vars4 = stateVariables["/vars4"].replacements!.map(
+        let vars4 = stateVariables[
+            resolveComponentName("vars4")
+        ].replacements!.map(
             (x) =>
                 stateVariables[
                     stateVariables[x.componentIdx].replacements![0].componentIdx
                 ].stateValues.value,
         );
-        let vars5 = stateVariables["/vars5"].replacements!.map(
+        let vars5 = stateVariables[
+            resolveComponentName("vars5")
+        ].replacements!.map(
             (x) =>
                 stateVariables[
                     stateVariables[x.componentIdx].replacements![0].componentIdx
@@ -3201,73 +2783,20 @@ describe("Select tag tests", async () => {
 
         let l = ["a", "b", "c", "d", "e"];
 
-        expect(stateVariables["/p1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
             vars1.map((v, i) => `${l[i]}1=${v}`).join(", "),
         );
-        expect(stateVariables["/p2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
             vars2.map((v, i) => `${l[i]}2=${v}`).join(", "),
         );
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             vars3.map((v, i) => `${l[i]}3=${v}`).join(", "),
         );
-        expect(stateVariables["/p4"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
             vars4.map((v, i) => `${l[i]}4=${v}`).join(", "),
         );
-        expect(stateVariables["/p5"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
             vars5.map((v, i) => `${l[i]}5=${v}`).join(", "),
         );
-    });
-
-    it("add level to assign names even in shadow", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <p name="p1"><select name="s" assignnames="q">a b</select></p>
-    <copy target="p1" name="c" newNamespace />
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-
-        let q = stateVariables["/q"].stateValues.value.tree;
-
-        expect(stateVariables["/c/q"].stateValues.value.tree).eq(q);
-    });
-
-    it("ensure unique names", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <select numToSelect="3" withReplacement>
-      <option><p>What is <text>this</text>?</p></option>
-    </select>
-    
-    <select numToSelect="3" withReplacement assignNames="A B C">
-      <option><p>What is <text>this</text>?</p></option>
-    </select>
-    
-    <select numToSelect="3" withReplacement assignNames="(D) (E) (F)">
-      <option><p>What is <text>this</text>?</p></option>
-    </select>
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-
-        let pNames1 = stateVariables["/_select1"].replacements!.map(
-            (x) => stateVariables[x.componentIdx].replacements![0].componentIdx,
-        );
-        for (let pn of pNames1) {
-            expect(stateVariables[pn].stateValues.text).eq("What is this?");
-        }
-
-        let pNames2 = ["/A", "/B", "/C"].map(
-            (x) => stateVariables[x].replacements![0].componentIdx,
-        );
-        for (let pn of pNames2) {
-            expect(stateVariables[pn].stateValues.text).eq("What is this?");
-        }
-
-        for (let pn of ["/D", "/E", "/F"]) {
-            expect(stateVariables[pn].stateValues.text).eq("What is this?");
-        }
     });
 });

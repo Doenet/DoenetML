@@ -1,8 +1,13 @@
 import BaseComponent from "./abstract/BaseComponent";
+import { setUpVariantSeedAndRng } from "../utils/variants";
 
 export default class Option extends BaseComponent {
     static componentType = "option";
     static rendererType = undefined;
+
+    static includeBlankStringChildren = true;
+
+    static createsVariants = true;
 
     static inSchemaOnlyInheritAs = [];
     static allowInSchemaAsComponent = undefined;
@@ -54,7 +59,80 @@ export default class Option extends BaseComponent {
             },
         };
 
+        stateVariableDefinitions.isVariantComponent = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { isVariantComponent: true } }),
+        };
+
+        stateVariableDefinitions.generatedVariantInfo = {
+            returnDependencies: ({
+                sharedParameters,
+                componentInfoObjects,
+            }) => ({
+                variantSeed: {
+                    dependencyType: "value",
+                    value: sharedParameters.variantSeed,
+                },
+                variantDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: Object.keys(
+                        componentInfoObjects.componentTypesCreatingVariants,
+                    ),
+                    variableNames: [
+                        "isVariantComponent",
+                        "generatedVariantInfo",
+                    ],
+                    useReplacementsForComposites: true,
+                    recurseToMatchedChildren: false,
+                    variablesOptional: true,
+                    includeNonActiveChildren: true,
+                    ignoreReplacementsOfEncounteredComposites: true,
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                let generatedVariantInfo = {
+                    seed: dependencyValues.variantSeed,
+                    meta: {
+                        createdBy: componentIdx,
+                    },
+                };
+
+                let subvariants = (generatedVariantInfo.subvariants = []);
+                for (let descendant of dependencyValues.variantDescendants) {
+                    if (descendant.stateValues.isVariantComponent) {
+                        subvariants.push(
+                            descendant.stateValues.generatedVariantInfo,
+                        );
+                    } else if (descendant.stateValues.generatedVariantInfo) {
+                        subvariants.push(
+                            ...descendant.stateValues.generatedVariantInfo
+                                .subvariants,
+                        );
+                    }
+                }
+
+                return {
+                    setValue: {
+                        generatedVariantInfo,
+                    },
+                };
+            },
+        };
+
         return stateVariableDefinitions;
+    }
+
+    static setUpVariant({
+        serializedComponent,
+        sharedParameters,
+        descendantVariantComponents,
+    }) {
+        setUpVariantSeedAndRng({
+            serializedComponent,
+            sharedParameters,
+            descendantVariantComponents,
+            useSubpartVariantRng: true,
+        });
     }
 
     get allPotentialRendererTypes() {

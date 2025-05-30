@@ -296,6 +296,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         // then give the group the createComponentOfType and numComponentsSpecified
         if (
             replacements?.length === 1 &&
+            requiredLength === 1 &&
             componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType: replacements[0].componentType,
                 baseComponentType: "group",
@@ -312,6 +313,19 @@ export async function verifyReplacementsMatchSpecifiedType({
                 type: "primitive",
                 primitive: { type: "string", value: requiredLength },
             };
+
+            if (component.attributes.createComponentName?.primitive) {
+                replacements[0].attributes.createComponentName = JSON.parse(
+                    JSON.stringify(component.attributes.createComponentName),
+                );
+                delete replacements[0].attributes.name;
+            }
+            if (component.attributes.createComponentIdx?.primitive) {
+                replacements[0].attributes.createComponentIdx = JSON.parse(
+                    JSON.stringify(component.attributes.createComponentIdx),
+                );
+                replacements[0].componentIdx = nComponents++;
+            }
 
             return {
                 replacements,
@@ -331,6 +345,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                         .componentType,
                 baseComponentType: "group",
             }) &&
+            requiredLength === 1 &&
             replacementChanges[0].numberReplacementsToReplace >=
                 component.replacements.length
         ) {
@@ -351,6 +366,19 @@ export async function verifyReplacementsMatchSpecifiedType({
                 type: "primitive",
                 primitive: { type: "string", value: requiredLength },
             };
+
+            if (component.attributes.createComponentName?.primitive) {
+                theReplacement.attributes.createComponentName = JSON.parse(
+                    JSON.stringify(component.attributes.createComponentName),
+                );
+                delete theReplacement.attributes.name;
+            }
+            if (component.attributes.createComponentIdx?.primitive) {
+                theReplacement.attributes.createComponentIdx = JSON.parse(
+                    JSON.stringify(component.attributes.createComponentIdx),
+                );
+                theReplacement.componentIdx = nComponents++;
+            }
 
             return {
                 replacements,

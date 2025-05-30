@@ -5,7 +5,7 @@ import {
     enumerateCombinations,
 } from "@doenet/utils";
 import { gatherVariantComponents } from "../utils/variants";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import { createNewComponentIndices } from "../utils/componentIndices";
 
 export default class Select extends CompositeComponent {
     static componentType = "select";
@@ -19,9 +19,6 @@ export default class Select extends CompositeComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numToSelect = {
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -37,11 +34,6 @@ export default class Select extends CompositeComponent {
         attributes.type = {
             createPrimitiveOfType: "string",
         };
-        attributes.addLevelToAssignNames = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "addLevelToAssignNames",
-            defaultValue: false,
-        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -54,85 +46,6 @@ export default class Select extends CompositeComponent {
 
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["string"];
-
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        function breakStringsMacrosIntoOptionsBySpaces({
-            matchedChildren,
-            componentAttributes,
-            componentInfoObjects,
-            nComponents,
-        }) {
-            // only if all children are strings or macros
-            if (
-                !matchedChildren.every(
-                    (child) =>
-                        typeof child === "string" ||
-                        (child.extending && "Ref" in child.extending),
-                )
-            ) {
-                return { success: false };
-            }
-
-            let type;
-            let warnings = [];
-            if (componentAttributes.type) {
-                type = componentAttributes.type;
-            } else {
-                type = "math";
-            }
-
-            if (!["math", "text", "number", "boolean"].includes(type)) {
-                warnings.push({
-                    message: `Invalid type for select: ${type}.`,
-                    level: 1,
-                });
-                type = "math";
-            }
-
-            // break any string by white space and wrap pieces with option and type
-            let groupIntoComponentTypesSeparatedBySpaces =
-                returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                    componentType: type,
-                    forceComponentType: true,
-                });
-            let result = groupIntoComponentTypesSeparatedBySpaces({
-                matchedChildren,
-                componentInfoObjects,
-                nComponents,
-            });
-
-            if (result.success) {
-                nComponents = result.nComponents;
-
-                let newChildren = result.newChildren.map((child) => ({
-                    type: "serialized",
-                    componentType: "option",
-                    componentIdx: nComponents++,
-                    children: [child],
-                    attributes: {},
-                    doenetAttributes: {},
-                    state: {},
-                }));
-
-                return {
-                    success: true,
-                    newChildren,
-                    warnings,
-                    nComponents,
-                };
-            } else {
-                return { success: false, warnings };
-            }
-        }
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsMacrosIntoOptionsBySpaces,
-        });
-
-        return sugarInstructions;
-    }
 
     static returnChildGroups() {
         return [
@@ -352,7 +265,7 @@ export default class Select extends CompositeComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // console.log(`definition of selected Indices`)
+                // console.log(`definition of selected Indices`);
                 // console.log(dependencyValues);
 
                 if (dependencyValues.errorMessageVariants) {
@@ -379,7 +292,7 @@ export default class Select extends CompositeComponent {
                     };
                 }
 
-                // if desiredIndices is specfied, use those
+                // if desiredIndices is specified, use those
                 if (
                     dependencyValues.variants &&
                     dependencyValues.variants.desiredVariant !== undefined
@@ -681,11 +594,18 @@ export default class Select extends CompositeComponent {
             let serializedGrandchildren = deepClone(
                 await selectedChild.stateValues.serializedChildren,
             );
+
+            const idxResult = createNewComponentIndices(
+                serializedGrandchildren,
+                nComponents,
+            );
+            serializedGrandchildren = idxResult.components;
+            nComponents = idxResult.nComponents;
+
             let serializedChild = {
                 type: "serialized",
-                componentType: "option",
+                componentType: "group",
                 componentIdx: nComponents++,
-                state: { rendered: true },
                 attributes: {},
                 doenetAttributes: Object.assign(
                     {},
