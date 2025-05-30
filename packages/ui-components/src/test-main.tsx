@@ -202,6 +202,11 @@ function App() {
                 <ResizableCollapsiblePanelPair
                     mainPanel={<div>I'm the main panel</div>}
                     subPanel={<div>I'm the sub panel</div>}
+                    alwaysVisiblePanel={
+                        <div style={{ backgroundColor: "#ddd" }}>
+                            I'm always visible
+                        </div>
+                    }
                     setIsOpen={setPanelOpenState}
                     isOpen={panelOpenState}
                 />

@@ -11,12 +11,14 @@ import {
 export function ResizableCollapsiblePanelPair({
     mainPanel,
     subPanel,
+    alwaysVisiblePanel,
     collapsedSize = 15,
     isOpen,
     setIsOpen,
 }: {
-    mainPanel: React.JSX.Element;
-    subPanel: React.JSX.Element;
+    mainPanel: React.ReactNode;
+    subPanel: React.ReactNode;
+    alwaysVisiblePanel?: React.ReactNode;
     isOpen: boolean;
     setIsOpen: (arg: boolean) => void;
     collapsedSize?: number;
@@ -49,10 +51,11 @@ export function ResizableCollapsiblePanelPair({
                 >
                     {isOpen && <BsGripHorizontal />}
                 </PanelResizeHandle>
+                {alwaysVisiblePanel}
                 <Panel
                     ref={collapsablePanelRef}
                     collapsible={true}
-                    collapsedSize={5}
+                    collapsedSize={0}
                     minSize={collapsedSize}
                     onCollapse={() => {
                         setIsOpen(false);

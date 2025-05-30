@@ -11,7 +11,10 @@ import { RxUpdate } from "react-icons/rx";
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
 import { DocViewer } from "../Viewer/DocViewer";
-import ErrorWarningResponseTabs from "./ErrorWarningResponseTabs";
+import {
+    ErrorWarningResponseTabContents,
+    ErrorWarningResponseTabstrip,
+} from "./ErrorWarningResponseTabs";
 import {
     type WarningDescription,
     type ErrorDescription,
@@ -28,6 +31,7 @@ import {
     SelectItem,
     SelectPopover,
     SelectProvider,
+    useTabStore,
 } from "@ariakit/react";
 
 export function EditorViewer({
@@ -295,19 +299,7 @@ export function EditorViewer({
         };
     }, []);
 
-    const errorsWarningsResponses =
-        showErrorsWarnings || showResponses ? (
-            <ErrorWarningResponseTabs
-                warnings={warningsObjs}
-                errors={errorsObjs}
-                submittedResponses={responses}
-                isOpen={infoPanelIsOpen}
-                setIsOpen={setInfoPanelIsOpen}
-                showErrorsWarnings={showErrorsWarnings}
-                showResponses={showResponses}
-            />
-        ) : null;
-
+    const tabStore = useTabStore();
     const codeMirror = (
         <CodeMirror
             value={editorDoenetML}
@@ -327,16 +319,40 @@ export function EditorViewer({
         />
     );
 
-    const editorAndCollapsiblePanel = errorsWarningsResponses ? (
-        <ResizableCollapsiblePanelPair
-            mainPanel={codeMirror}
-            subPanel={errorsWarningsResponses}
-            isOpen={infoPanelIsOpen}
-            setIsOpen={setInfoPanelIsOpen}
-        />
-    ) : (
-        codeMirror
-    );
+    const editorAndCollapsiblePanel =
+        showErrorsWarnings || showResponses ? (
+            <ResizableCollapsiblePanelPair
+                mainPanel={codeMirror}
+                subPanel={
+                    <ErrorWarningResponseTabContents
+                        store={tabStore}
+                        warnings={warningsObjs}
+                        errors={errorsObjs}
+                        submittedResponses={responses}
+                        isOpen={infoPanelIsOpen}
+                        setIsOpen={setInfoPanelIsOpen}
+                        showErrorsWarnings={showErrorsWarnings}
+                        showResponses={showResponses}
+                    />
+                }
+                alwaysVisiblePanel={
+                    <ErrorWarningResponseTabstrip
+                        store={tabStore}
+                        warnings={warningsObjs}
+                        errors={errorsObjs}
+                        submittedResponses={responses}
+                        isOpen={infoPanelIsOpen}
+                        setIsOpen={setInfoPanelIsOpen}
+                        showErrorsWarnings={showErrorsWarnings}
+                        showResponses={showResponses}
+                    />
+                }
+                isOpen={infoPanelIsOpen}
+                setIsOpen={setInfoPanelIsOpen}
+            />
+        ) : (
+            codeMirror
+        );
 
     const editorPanel = (
         <div className="editor-panel" id={id}>
