@@ -126,14 +126,12 @@ impl Resolver {
 
         // add placeholders for missing nodes as well as new nodes to be added
         if new_len > num_prev_nodes {
-            self.node_parent
-                .extend(iter::repeat_n(None, new_len - num_prev_nodes));
-            self.resolution_algorithm.extend(iter::repeat_n(
-                ResolutionAlgorithm::SearchChildren,
-                new_len - num_prev_nodes,
-            ));
+            let padding = new_len - num_prev_nodes;
+            self.node_parent.extend(iter::repeat_n(None, padding));
+            self.resolution_algorithm
+                .extend(iter::repeat_n(ResolutionAlgorithm::SearchChildren, padding));
             self.name_map
-                .extend(iter::repeat_with(HashMap::new).take(new_len - num_prev_nodes));
+                .extend(iter::repeat_with(HashMap::new).take(padding));
         }
 
         // Add parents and stop_propagation for new nodes
@@ -154,11 +152,7 @@ impl Resolver {
         let new_parent_map = mem::take(&mut subtree_name_map[parent_idx]);
 
         for (key, ref_) in new_parent_map.into_iter() {
-            if parent_map.contains_key(&key) {
-                // since parent already includes key, we will ignore new items found
-                continue;
-            }
-            parent_map.insert(key, ref_);
+            parent_map.entry(key).or_insert(ref_);
         }
 
         // Add new items to `name_map`.
@@ -179,7 +173,7 @@ impl Resolver {
                     return Some((name, node.idx()));
                 }
             }
-            return None;
+            None
         }) {
             let mut prev_parent_idx = node_idx;
 
