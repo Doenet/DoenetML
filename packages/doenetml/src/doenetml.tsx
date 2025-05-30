@@ -6,7 +6,6 @@ import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
 import type { ErrorDescription, WarningDescription } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
-import { ChakraProvider, createSystem, defaultConfig } from "@chakra-ui/react";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
@@ -65,39 +64,6 @@ const rngClass = seedrandom.alea;
  * error: global is not defined
  */
 window.global = window.global || window;
-
-const system = createSystem(defaultConfig, {
-    preflight: false,
-    theme: {
-        tokens: {
-            fonts: {
-                body: { value: "Jost" },
-            },
-            colors: {
-                doenet: {
-                    mainBlue: { value: "#1a5a99" },
-                    lightBlue: { value: "#b8d2ea" },
-                    solidLightBlue: { value: "#8fb8de" },
-                    mainGray: { value: "#e3e3e3" },
-                    mediumGray: { value: "#949494" },
-                    lightGray: { value: "#e7e7e7" },
-                    donutBody: { value: "#eea177" },
-                    donutTopping: { value: "#6d4445" },
-                    mainRed: { value: "#c1292e" },
-                    lightRed: { value: "#eab8b8" },
-                    mainGreen: { value: "#459152" },
-                    canvas: { value: "#ffffff" },
-                    canvastext: { value: "#000000" },
-                    lightGreen: { value: "#a6f19f" },
-                    lightYellow: { value: "#f5ed85" },
-                    whiteBlankLink: { value: "#6d4445" },
-                    mainYellow: { value: "#94610a" },
-                    mainPurple: { value: "#4a03d9" },
-                },
-            },
-        },
-    },
-});
 
 export function DoenetViewer({
     doenetML,
@@ -271,27 +237,25 @@ export function DoenetViewer({
     );
 
     return (
-        <ChakraProvider value={system}>
-            <ReduxProvider store={store}>
-                <MathJaxContext
-                    version={3}
-                    config={mathjaxConfig}
-                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
-                >
-                    <div ref={ref}>
-                        <WrapWithKeyboard
-                            addVirtualKeyboard={addVirtualKeyboard}
-                            externalVirtualKeyboardProvided={
-                                externalVirtualKeyboardProvided
-                            }
-                        >
-                            {variantSelector}
-                            {viewer}
-                        </WrapWithKeyboard>
-                    </div>
-                </MathJaxContext>
-            </ReduxProvider>
-        </ChakraProvider>
+        <ReduxProvider store={store}>
+            <MathJaxContext
+                version={3}
+                config={mathjaxConfig}
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+            >
+                <div ref={ref}>
+                    <WrapWithKeyboard
+                        addVirtualKeyboard={addVirtualKeyboard}
+                        externalVirtualKeyboardProvided={
+                            externalVirtualKeyboardProvided
+                        }
+                    >
+                        {variantSelector}
+                        {viewer}
+                    </WrapWithKeyboard>
+                </div>
+            </MathJaxContext>
+        </ReduxProvider>
     );
 }
 
@@ -360,7 +324,6 @@ export function DoenetEditor({
             width={width}
             height={height}
             viewerLocation={viewerLocation}
-            backgroundColor={backgroundColor}
             showViewer={showViewer}
             doenetmlChangeCallback={doenetmlChangeCallback}
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
@@ -377,24 +340,22 @@ export function DoenetEditor({
     );
 
     return (
-        <ChakraProvider value={system}>
-            <ReduxProvider store={store}>
-                <MathJaxContext
-                    version={3}
-                    config={mathjaxConfig}
-                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+        <ReduxProvider store={store}>
+            <MathJaxContext
+                version={3}
+                config={mathjaxConfig}
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+            >
+                <WrapWithKeyboard
+                    addVirtualKeyboard={addVirtualKeyboard}
+                    externalVirtualKeyboardProvided={
+                        externalVirtualKeyboardProvided
+                    }
                 >
-                    <WrapWithKeyboard
-                        addVirtualKeyboard={addVirtualKeyboard}
-                        externalVirtualKeyboardProvided={
-                            externalVirtualKeyboardProvided
-                        }
-                    >
-                        {editor}
-                    </WrapWithKeyboard>
-                </MathJaxContext>
-            </ReduxProvider>
-        </ChakraProvider>
+                    {editor}
+                </WrapWithKeyboard>
+            </MathJaxContext>
+        </ReduxProvider>
     );
 }
 

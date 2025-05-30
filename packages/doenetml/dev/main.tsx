@@ -9,5 +9,11 @@ const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
 function App() {
-    return <DoenetEditor doenetML={doenetMLstring} height="100%" />;
+    return (
+        <DoenetEditor
+            doenetML={doenetMLstring}
+            showAnswerResponseMenu
+            height="100%"
+        />
+    );
 }

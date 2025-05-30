@@ -1,5 +1,6 @@
 import React from "react";
-import { Button, Menu, Portal } from "@chakra-ui/react";
+import { MenuProvider, Menu, MenuItem, MenuButton } from "@ariakit/react";
+import "./AnswerResponseMenu.css";
 
 export function AnswerResponseMenu({
     answerId,
@@ -14,42 +15,26 @@ export function AnswerResponseMenu({
 }) {
     const modifiedId = answerId[0] === "/" ? answerId.substring(1) : answerId;
     return (
-        <Menu.Root>
-            <Menu.Trigger asChild>
-                <Button
-                    as={Button}
-                    size="2xs"
-                    paddingLeft="2px"
-                    paddingRight="2px"
-                    cursor="pointer"
-                    style={{
-                        backgroundColor: "#aaa",
+        <MenuProvider>
+            <MenuButton className="doenet-button action-button answer-response-menu-trigger">
+                {numResponses}
+            </MenuButton>
+            <Menu className="answer-response-menu">
+                <MenuItem
+                    className="answer-response-menu-item"
+                    onClick={() => {
+                        window.postMessage({
+                            subject: "requestAnswerResponses",
+                            answerId,
+                            activityId,
+                            docId,
+                        });
                     }}
                 >
-                    {numResponses}
-                </Button>
-            </Menu.Trigger>
-            <Portal>
-                <Menu.Positioner>
-                    <Menu.Content>
-                        <Menu.Item
-                            cursor="pointer"
-                            value="showResponses"
-                            onClick={() => {
-                                window.postMessage({
-                                    subject: "requestAnswerResponses",
-                                    answerId,
-                                    activityId,
-                                    docId,
-                                });
-                            }}
-                        >
-                            Show {numResponses} response
-                            {numResponses === 1 ? "" : "s"} to {modifiedId}
-                        </Menu.Item>
-                    </Menu.Content>
-                </Menu.Positioner>
-            </Portal>
-        </Menu.Root>
+                    Show {numResponses} response
+                    {numResponses === 1 ? "" : "s"} to {modifiedId}
+                </MenuItem>
+            </Menu>
+        </MenuProvider>
     );
 }
