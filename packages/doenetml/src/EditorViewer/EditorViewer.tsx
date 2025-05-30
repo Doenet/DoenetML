@@ -1,4 +1,3 @@
-import { Box, Button, Switch, Icon } from "@chakra-ui/react";
 import React, {
     ReactElement,
     useCallback,
@@ -6,7 +5,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { ResizablePanelPair } from "./ResizablePanelPair";
+import { ResizablePanelPair, UiButton } from "@doenet/ui-components";
 import { RxUpdate } from "react-icons/rx";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
@@ -21,10 +20,15 @@ import {
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 import { formatResponse } from "../utils/responses";
-import { ResizableCollapsiblePanelPair } from "./ResizableCollapsiblePanelPair";
+import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
 import { BsExclamationTriangleFill } from "react-icons/bs";
-import { Tooltip } from "../components/tooltip";
 import "./editor-viewer.css";
+import {
+    Select,
+    SelectItem,
+    SelectPopover,
+    SelectProvider,
+} from "@ariakit/react";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -36,7 +40,6 @@ export function EditorViewer({
     answerResponseCounts = {},
     width = "100%",
     height = "500px",
-    backgroundColor = "doenet.mainGray",
     showViewer = true,
     viewerLocation = "right",
     doenetmlChangeCallback,
@@ -60,7 +63,6 @@ export function EditorViewer({
     answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
-    backgroundColor?: string;
     showViewer?: boolean;
     viewerLocation?: "left" | "right" | "top" | "bottom";
     doenetmlChangeCallback?: Function;
@@ -344,60 +346,35 @@ export function EditorViewer({
             <div className="formatter-and-version">
                 {showFormatter ? (
                     <>
-                        <Box>
-                            <Switch.Root
-                                title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
-                                checked={formatAsDoenetML}
-                                onCheckedChange={(e) => {
-                                    setFormatAsDoenetML(e.checked);
+                        <div className="label">Format as</div>
+                        <div className="wrapper">
+                            <SelectProvider
+                                defaultValue={"DoenetML"}
+                                setValue={(e) => {
+                                    setFormatAsDoenetML(e === "DoenetML");
                                 }}
                             >
-                                <Switch.HiddenInput />
-                                <Switch.Control>
-                                    <Switch.Thumb />
-                                </Switch.Control>
-                                <Switch.Label>
-                                    Format as{" "}
-                                    <span
-                                        style={{
-                                            display: "inline-block",
-                                            position: "relative",
-                                            //width: "fit-content",
-                                        }}
-                                    >
-                                        <span
-                                            style={{
-                                                visibility: formatAsDoenetML
-                                                    ? "visible"
-                                                    : "hidden",
-                                                display: "inline-block",
-                                            }}
-                                            aria-disabled={!formatAsDoenetML}
-                                        >
-                                            DoenetML
-                                        </span>
-                                        <span
-                                            style={{
-                                                visibility: formatAsDoenetML
-                                                    ? "hidden"
-                                                    : "visible",
-                                                display: "inline-block",
-                                                // Since "DoenetML" is a longer string than "XML", we position "XML" absolutely
-                                                position: "absolute",
-                                                left: "0",
-                                            }}
-                                            aria-disabled={formatAsDoenetML}
-                                        >
-                                            XML
-                                        </span>
-                                    </span>
-                                    {/* {formatAsDoenetML ? "DoenetML" : "XML"} */}
-                                </Switch.Label>
-                            </Switch.Root>
-                        </Box>
-                        <Button
-                            size="xs"
-                            px="4"
+                                <Select className="button" />
+                                <SelectPopover
+                                    sameWidth
+                                    gutter={2}
+                                    className="popover"
+                                >
+                                    <SelectItem
+                                        className="select-item"
+                                        value="DoenetML"
+                                        onSelect={(e) =>
+                                            console.log("changed ", e)
+                                        }
+                                    />
+                                    <SelectItem
+                                        className="select-item"
+                                        value="XML"
+                                    />
+                                </SelectPopover>
+                            </SelectProvider>
+                        </div>
+                        <UiButton
                             title="Format your source code"
                             onClick={async () => {
                                 const printed = await prettyPrint(
@@ -411,7 +388,7 @@ export function EditorViewer({
                             }}
                         >
                             Format
-                        </Button>
+                        </UiButton>
                     </>
                 ) : null}
                 <div className="doenetml-version" title="DoenetML version">
@@ -423,14 +400,17 @@ export function EditorViewer({
 
     if (!showViewer) {
         return (
-            <Box
-                width={width}
-                height={height}
-                border={border}
-                boxSizing="border-box"
+            <div
+                style={{
+                    display: "flex",
+                    width: width,
+                    height: height,
+                    border: border,
+                    boxSizing: "border-box",
+                }}
             >
                 {editorPanel}
-            </Box>
+            </div>
         );
     }
 
@@ -438,54 +418,44 @@ export function EditorViewer({
         <div className="viewer-panel" id={id + "-viewer"}>
             <div className="viewer-controls" id={id + "-viewer-controls"}>
                 {!readOnly && (
-                    <Box>
-                        <Tooltip
-                            showArrow
-                            content={
-                                platform == "Mac"
-                                    ? "Updates Viewer cmd+s"
-                                    : "Updates Viewer ctrl+s"
-                            }
-                        >
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                data-test="Viewer Update Button"
-                                bg="doenet.canvas"
-                                disabled={!codeChanged}
-                                onClick={() => {
-                                    setViewerDoenetML(
+                    <UiButton
+                        data-test="Viewer Update Button"
+                        disabled={!codeChanged}
+                        title={
+                            platform == "Mac"
+                                ? "Updates Viewer cmd+s"
+                                : "Updates Viewer ctrl+s"
+                        }
+                        onClick={() => {
+                            setViewerDoenetML(editorDoenetMLRef.current);
+                            window.clearTimeout(
+                                updateValueTimer.current ?? undefined,
+                            );
+                            if (
+                                lastReportedDoenetML.current !==
+                                editorDoenetMLRef.current
+                            ) {
+                                lastReportedDoenetML.current =
+                                    editorDoenetMLRef.current;
+                                if (!showViewer) {
+                                    doenetmlChangeCallback?.(
                                         editorDoenetMLRef.current,
                                     );
-                                    window.clearTimeout(
-                                        updateValueTimer.current ?? undefined,
-                                    );
-                                    if (
-                                        lastReportedDoenetML.current !==
-                                        editorDoenetMLRef.current
-                                    ) {
-                                        lastReportedDoenetML.current =
-                                            editorDoenetMLRef.current;
-                                        if (!showViewer) {
-                                            doenetmlChangeCallback?.(
-                                                editorDoenetMLRef.current,
-                                            );
-                                        }
-                                    }
-                                    setCodeChanged(false);
-                                    updateValueTimer.current = null;
-                                    setResponses([]);
-                                }}
-                            >
-                                <RxUpdate /> Update{" "}
-                                {codeChanged ? (
-                                    <Icon color="doenet.mainBlue">
-                                        <BsExclamationTriangleFill fontSize="18px" />
-                                    </Icon>
-                                ) : undefined}
-                            </Button>
-                        </Tooltip>
-                    </Box>
+                                }
+                            }
+                            setCodeChanged(false);
+                            updateValueTimer.current = null;
+                            setResponses([]);
+                        }}
+                    >
+                        <RxUpdate /> Update{" "}
+                        {codeChanged ? (
+                            <BsExclamationTriangleFill
+                                fontSize="18px"
+                                color="var(--mainBlue)"
+                            />
+                        ) : undefined}
+                    </UiButton>
                 )}
                 {variants.numVariants > 1 && (
                     <VariantSelect

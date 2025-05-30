@@ -148,3 +148,112 @@
         outline-offset: -4px;
     }
 }
+
+/* Resizable Panel */
+.doenet-resizable-panel-handle {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 10px;
+    background-color: var(--mainGray);
+    border: 1px solid oklch(from var(--mainGray) calc(l * 0.8) calc(c * 0.5) h);
+
+    svg {
+        flex-shrink: 0;
+        margin-left: 1px;
+    }
+
+    &.vertical {
+        width: 100%;
+        height: 10px;
+        svg {
+            margin-left: 0;
+            margin-top: 0.5px;
+        }
+    }
+    &.collapsible:not(.isOpen) {
+        height: 5px;
+    }
+}
+
+/* UI Components */
+
+.doenet-ui-button {
+    --outline-offset: -1px;
+    --background: white;
+    --border: rgb(0 0 0 / 13%);
+    --light: rgb(255 255 255 / 20%);
+    --shadow: rgb(0 0 0 / 10%);
+    --text: black;
+
+    &:where(.dark, .dark *) {
+        --background: rgb(255 255 255 / 5%);
+        --border: rgb(255 255 255 / 10%);
+        --light: rgb(255 255 255 / 5%);
+        --shadow: rgb(0 0 0 / 25%);
+        --text: white;
+        box-shadow:
+            inset 0 0 0 1px var(--border),
+            inset 0 -1px 0 1px var(--shadow),
+            inset 0 1px 0 var(--light);
+    }
+
+    &:not(:active):hover {
+        --border: rgb(0 0 0 / 33%);
+    }
+    &:where(.dark, .dark *):not(:active):hover {
+        --border: rgb(255 255 255 / 25%);
+    }
+    @layer theme {
+        &[aria-disabled="true"] {
+            opacity: 0.5;
+        }
+    }
+    &:active,
+    &[data-active] {
+        box-shadow:
+            inset 0 0 0 1px var(--border),
+            inset 0 2px 0 var(--border);
+    }
+    &:active:where(.dark, .dark *),
+    &[data-active]:where(.dark, .dark *) {
+        box-shadow:
+            inset 0 0 0 1px var(--border),
+            inset 0 1px 1px 1px var(--shadow);
+    }
+
+    cursor: pointer;
+    --size: 2rem;
+    display: flex;
+    max-width: 100%;
+    height: var(--size);
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-inline: 1rem;
+    text-decoration-line: none;
+    background-color: var(--background);
+    color: var(--text, currentColor);
+    border-style: none;
+    scroll-margin: var(--padding, 0px);
+    border-radius: calc(var(--rounded, 0.5rem) - var(--padding, 0px));
+    font-size: 1rem;
+    line-height: 1.5rem;
+    box-shadow:
+        inset 0 0 0 1px var(--border),
+        inset 0 2px 0 var(--light),
+        inset 0 -1px 0 var(--shadow),
+        0 1px 1px var(--shadow);
+    --outline-offset: 0;
+    --outline: var(--color-primary);
+    --depth: 1px;
+    --padding-block: var(--depth);
+    outline-width: 2px;
+    outline-color: var(--outline);
+    outline-offset: var(--outline-offset);
+    user-select: none;
+    white-space: nowrap;
+    padding-block: var(--padding-block-start, var(--padding-block))
+        var(--padding-block-end, var(--padding-block));
+}

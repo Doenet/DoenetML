@@ -148,7 +148,7 @@
         "react-measure": "^2.5.2",
         "react-reconciler": "^0.32.0",
         "react-redux": "^9.2.0",
-        "react-resizable-panels": "^3.0.1",
+        "react-resizable-panels": "^3.0.2",
         "react18-json-view": "^0.2.9",
         "rollup-plugin-polyfill-node": "^0.13.0",
         "rollup-plugin-visualizer": "^5.14.0",

@@ -5,7 +5,6 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import ".";
 import { Button } from "./components/Button";
 import { ActionButton } from "./components/ActionButton";
 import { ActionButtonGroup } from "./components/ActionButtonGroup";
@@ -14,6 +13,13 @@ import { ToggleButtonGroup } from "./components/ToggleButtonGroup";
 import { MathJaxContext } from "better-react-mathjax";
 import { BsChevronBarContract } from "react-icons/bs";
 import "@doenet/doenetml/style.css";
+import "./test-main.css";
+import { ResizablePanelPair } from "./components/ResizablePanelPair";
+import { ResizableCollapsiblePanelPair } from "./components/ResizableCollapsiblePanelPair";
+import { UiButton } from "./components/UiButton";
+
+// For the CSS
+import ".";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <MathJaxContext
@@ -33,6 +39,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 
 function App() {
     const [toggleState, setToggleState] = React.useState(false);
+    const [panelOpenState, setPanelOpenState] = React.useState(false);
 
     return (
         <div
@@ -41,8 +48,13 @@ function App() {
                 width: "100%",
                 height: "100%",
                 backgroundColor: "#f0f0f0",
+                boxSizing: "border-box",
             }}
         >
+            <h3>UiButton</h3>
+            <UiButton onClick={() => console.log("UiButton clicked!")}>
+                The UI Button
+            </UiButton>
             <h3>Button</h3>
             <Button
                 id="test-button"
@@ -159,6 +171,44 @@ function App() {
                 <ToggleButton value="Toggle points and intervals"></ToggleButton>
                 <ToggleButton value="Move Points"></ToggleButton>
             </ToggleButtonGroup>
+
+            <h3>Resizable Pair</h3>
+
+            <div
+                style={{
+                    height: "100px",
+                    width: "100%",
+                    boxSizing: "border-box",
+                }}
+            >
+                <ResizablePanelPair
+                    panelA={
+                        <div>
+                            Hi there
+                            <br />
+                            More stuff
+                        </div>
+                    }
+                    panelB={<div>And here</div>}
+                />
+            </div>
+            <div
+                style={{
+                    height: "200px",
+                    width: "100%",
+                    border: "1px dashed black",
+                }}
+            >
+                <ResizableCollapsiblePanelPair
+                    mainPanel={<div>I'm the main panel</div>}
+                    subPanel={<div>I'm the sub panel</div>}
+                    setIsOpen={setPanelOpenState}
+                    isOpen={panelOpenState}
+                />
+                <button onClick={() => setPanelOpenState(!panelOpenState)}>
+                    Toggle Open State ({"" + panelOpenState})
+                </button>
+            </div>
         </div>
     );
 }
