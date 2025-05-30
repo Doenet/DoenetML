@@ -210,7 +210,8 @@ impl ComponentBuilder {
         // because the children were already copied to the component if it came from an attribute,
         // but not if it came from a direct ref.
         let from_direct_ref = match ref_source {
-            Source::Attribute(..) => false,
+            Source::ExtendAttribute(..) => false,
+            Source::CopyAttribute(..) => false,
             Source::Ref(..) => true,
         };
 

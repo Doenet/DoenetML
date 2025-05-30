@@ -29,7 +29,7 @@ impl Expander {
     pub fn expand(flat_root: &mut FlatRoot) -> Resolver {
         let resolver = Resolver::from_flat_root(flat_root);
         Expander::expand_refs(flat_root, &resolver);
-        Expander::consume_extend_attributes(flat_root);
+        Expander::consume_extend_copy_attributes(flat_root);
         resolver
     }
 
@@ -162,10 +162,11 @@ impl Expander {
         }
     }
 
-    /// Remove any `extend` attributes from nodes,
-    /// and instead set each node's `extending` to a `Source::Attribute` containing the extend's referent.
+    /// Remove any `extend` or `copy` attributes from nodes,
+    /// and instead set each node's `extending` to either a
+    /// `Source::ExtendAttribute` or `Source::CopyAttribute` containing the extend's referent.
     /// This should be called _after_ all refs have been expanded into element form.
-    fn consume_extend_attributes(flat_root: &mut FlatRoot) {
+    fn consume_extend_copy_attributes(flat_root: &mut FlatRoot) {
         for i in 0..flat_root.nodes.len() {
             // Skip any cases we don't need to consider.
             if let FlatNode::Element(e) = &flat_root.nodes[i] {
@@ -174,11 +175,10 @@ impl Expander {
                     // nothing to do.
                     continue;
                 }
-                if !e
-                    .attributes
-                    .iter()
-                    .any(|attr| attr.name.eq_ignore_ascii_case("extend"))
-                {
+                if !e.attributes.iter().any(|attr| {
+                    attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy")
+                }) {
                     continue;
                 }
             } else {
@@ -193,15 +193,43 @@ impl Expander {
                 // Should be safe because we already verified we're an element.
                 _ => unreachable!(),
             };
-            let extend = element
+
+            if element
                 .attributes
                 .iter()
-                .find(|attr| attr.name.eq_ignore_ascii_case("extend"))
-                // Should be safe because we already verified we have an `extend` attribute
+                .filter(|attr| {
+                    attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy")
+                })
+                .count()
+                > 1
+            {
+                // We have more than one `extend` or `copy` attribute.
+                // Push an error message as a child of `node`.
+                element.children.push(flat_root.merge_content(
+                    &DastElementContent::Error(DastError {
+                        message: "Duplicate `extend` or `copy` attributes".to_string(),
+                        position: element.position.clone(),
+                    }),
+                    Some(element.idx),
+                ));
+
+                // We took this memory earlier, so we need to put it back.
+                flat_root.nodes[i] = node;
+                continue;
+            }
+            let extend_or_copy = element
+                .attributes
+                .iter()
+                .find(|attr| {
+                    attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy")
+                })
+                // Should be safe because we already verified we have an `extend` or `copy` attribute
                 .unwrap();
 
             // All refs should be expanded by now, so we look for a unique child with `extending`
-            // This would arise because `extend="$f"` is replaced with `<foo _extending="f" />` where `_extending`
+            // This would arise because `"$f"` is replaced with `<foo _extending="f" />` where `_extending`
             // is a special, internal attribute.
 
             // There are various bail conditions.
@@ -210,7 +238,7 @@ impl Expander {
             //  3. Multiple elements are present
             let mut is_invalid_attr = false;
             let mut num_element_children = 0;
-            let extend_referent: Option<Source<RefResolution>> = extend
+            let extend_referent: Option<Source<RefResolution>> = extend_or_copy
                 .children
                 .iter()
                 .flat_map(|child| match child {
@@ -237,9 +265,9 @@ impl Expander {
                 element.children.push(flat_root.merge_content(
                     &DastElementContent::Error(DastError {
                         message: "Invalid `extend` attribute".to_string(),
-                        position: extend.position.clone(),
+                        position: extend_or_copy.position.clone(),
                     }),
-                    extend.parent,
+                    extend_or_copy.parent,
                 ));
 
                 // We took this memory earlier, so we need to put it back.
@@ -247,16 +275,21 @@ impl Expander {
                 continue;
             }
 
-            // Since this reference was inside an `extend` attribute,
+            // Since this reference was inside an `extend` or `copy` attribute,
             // we must mark it as such
             // (which indicates that we shouldn't change the component type
             // from the one specified in the element)
-            element.extending = extend_referent.map(|source| source.as_attribute());
+            if extend_or_copy.name == "copy" {
+                element.extending = extend_referent.map(|source| source.as_copy_attribute());
+            } else {
+                element.extending = extend_referent.map(|source| source.as_extend_attribute());
+            }
 
-            // We successfully consumed the `extend` attribute, so remove the `extend` attribute.
-            element
-                .attributes
-                .retain(|attr| !attr.name.eq_ignore_ascii_case("extend"));
+            // We successfully consumed the `extend` or `copy` attribute, so remove the `extend` or `copy` attribute.
+            element.attributes.retain(|attr| {
+                !(attr.name.eq_ignore_ascii_case("extend")
+                    || attr.name.eq_ignore_ascii_case("copy"))
+            });
 
             // Put ourselves back into `flat_root` (we took the memory earlier)
             flat_root.nodes[i] = node;

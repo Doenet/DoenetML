@@ -364,7 +364,72 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
                 "attributes": [{ "type": "attribute", "name": "foo", "parent": 2, "children": ["bar"] }],
                 "idx": 2,
                 "extending": {
-                  "Attribute": {
+                  "ExtendAttribute": {
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                  }
+                }
+              },
+              // Note, this element is left over from the original `$p` ref. However, it is
+              // no longer referenced anywhere.
+              {
+                "type": "element",
+                "name": "point",
+                "parent": 2,
+                "children": [],
+                "attributes": [],
+                "idx": 3,
+                "extending": {
+                  "Ref": {
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                  }
+                }
+              }
+            ]
+          }
+        )
+    );
+}
+
+#[test]
+fn can_expand_a_copy_attribute_to_a_node_ref() {
+    let dast_root = dast_root_no_position(r#"<point name="p"/><point copy="$p" foo="bar" />"#);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "flatRoot",
+            "children": [0],
+            "nodes": [
+              {
+                "type": "element",
+                "name": "document",
+                "children": [1, 2],
+                "attributes": [],
+                "idx": 0
+              },
+              {
+                "type": "element",
+                "name": "point",
+                "parent": 0,
+                "children": [],
+                "attributes": [{ "type": "attribute", "name": "name", "parent": 1, "children": ["p"] }],
+                "idx": 1
+              },
+              {
+                "type": "element",
+                "name": "point",
+                "parent": 0,
+                "children": [],
+                "attributes": [{ "type": "attribute", "name": "foo", "parent": 2, "children": ["bar"] }],
+                "idx": 2,
+                "extending": {
+                  "CopyAttribute": {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]

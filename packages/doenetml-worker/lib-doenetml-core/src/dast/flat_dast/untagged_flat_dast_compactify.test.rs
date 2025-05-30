@@ -144,7 +144,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "attributes": [],
                 "idx": 2,
                 "extending": {
-                  "Attribute": {
+                  "ExtendAttribute": {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "t", "index": [] }]
@@ -189,7 +189,156 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 ],
                 "idx": 5,
                 "extending": {
-                  "Attribute": {
+                  "ExtendAttribute": {
+                    "nodeIdx": 3,
+                    "unresolvedPath": [
+                      {
+                        "type": "flatPathPart",
+                        "name": "immediateValue",
+                        "index": []
+                      }
+                    ],
+                    "originalPath": [
+                      { "type": "flatPathPart", "name": "ti", "index": [] },
+                      { "type": "flatPathPart", "name": "immediateValue", "index": [] },
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        )
+    );
+
+    assert_json_eq!(
+        serde_json::to_value(&resolver).unwrap(),
+        json!({
+          "node_parent": [
+            null,
+            0,
+            0,
+            0,
+            0,
+            4
+          ],
+          "resolution_algorithm": [
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren"
+          ],
+          "name_map": [
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {},
+            {},
+            {},
+            {
+              "tiv": { "Unique": 5 }
+            },
+            {},
+          ]
+        })
+    );
+}
+
+#[test]
+fn compactify_adjusts_copying_refs_attributes_and_resolver() {
+    let dast_root = dast_root_no_position(
+        r#"<text name="t">hello</text><text copy="$t"> world</text><textInput name="ti" /><p><text name="tiv" copy="$ti.immediateValue"> world</text></p>"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let mut resolver = Expander::expand(&mut flat_root);
+    flat_root.compactify(Some(&mut resolver));
+
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "flatRoot",
+            "children": [0],
+            "nodes": [
+              {
+                "type": "element",
+                "name": "document",
+                "children": [1, 2, 3, 4],
+                "attributes": [],
+                "idx": 0
+              },
+              {
+                "type": "element",
+                "name": "text",
+                "parent": 0,
+                "children": ["hello"],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 1,
+                    "children": ["t"]
+                  }
+                ],
+                "idx": 1
+              },
+              {
+                "type": "element",
+                "name": "text",
+                "parent": 0,
+                "children": [" world"],
+                "attributes": [],
+                "idx": 2,
+                "extending": {
+                  "CopyAttribute": {
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "t", "index": [] }]
+                  }
+                }
+              },
+              {
+                "type": "element",
+                "name": "textInput",
+                "parent": 0,
+                "children": [],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 3,
+                    "children": ["ti"]
+                  }
+                ],
+                "idx": 3
+              },
+              {
+                "type": "element",
+                "name": "p",
+                "parent": 0,
+                "children": [5],
+                "attributes": [],
+                "idx": 4
+              },
+              {
+                "type": "element",
+                "name": "text",
+                "parent": 4,
+                "children": [" world"],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 5,
+                    "children": ["tiv"]
+                  }
+                ],
+                "idx": 5,
+                "extending": {
+                  "CopyAttribute": {
                     "nodeIdx": 3,
                     "unresolvedPath": [
                       {
@@ -404,7 +553,7 @@ fn compactify_shifts_refs_in_path_parts() {
                 "attributes": [],
                 "idx": 3,
                 "extending": {
-                  "Attribute": {
+                  "ExtendAttribute": {
                     "nodeIdx": 2,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]

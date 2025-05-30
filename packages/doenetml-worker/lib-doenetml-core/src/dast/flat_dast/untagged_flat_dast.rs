@@ -34,21 +34,35 @@ pub enum UntaggedContent {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum Source<T> {
-    Attribute(T),
+    ExtendAttribute(T),
+    CopyAttribute(T),
     Ref(T),
 }
 
 impl<T> Source<T> {
-    /// Recast `self` as `Self::Attribute`, indicating that it came from inside the `extend` attribute.
-    pub fn as_attribute(self) -> Self {
+    /// Recast `self` as `Self::ExtendAttribute`, indicating that it came from inside the `extend` attribute.
+    pub fn as_extend_attribute(self) -> Self {
         match self {
-            Source::Attribute(_) => self,
-            Source::Ref(m) => Source::Attribute(m),
+            Source::ExtendAttribute(_) => self,
+            Source::Ref(m) => Source::ExtendAttribute(m),
+            Source::CopyAttribute(m) => Source::ExtendAttribute(m),
         }
     }
-    /// Returns whether `self` is an `Attribute` variant.
-    pub fn is_attribute(&self) -> bool {
-        matches!(self, Source::Attribute(_))
+    /// Recast `self` as `Self::CopyAttribute`, indicating that it came from inside the `copy` attribute.
+    pub fn as_copy_attribute(self) -> Self {
+        match self {
+            Source::CopyAttribute(_) => self,
+            Source::Ref(m) => Source::CopyAttribute(m),
+            Source::ExtendAttribute(m) => Source::CopyAttribute(m),
+        }
+    }
+    /// Returns whether `self` is an `ExtendAttribute` variant.
+    pub fn is_extend_attribute(&self) -> bool {
+        matches!(self, Source::ExtendAttribute(_))
+    }
+    /// Returns whether `self` is an `CopyAttribute` variant.
+    pub fn is_copy_attribute(&self) -> bool {
+        matches!(self, Source::CopyAttribute(_))
     }
     /// Returns whether `self` is a `Ref` variant.
     pub fn is_ref(&self) -> bool {
@@ -59,7 +73,8 @@ impl<T> Source<T> {
 impl Source<RefResolution> {
     pub fn idx(&self) -> Index {
         match self {
-            Source::Attribute(a) => a.node_idx,
+            Source::ExtendAttribute(a) => a.node_idx,
+            Source::CopyAttribute(a) => a.node_idx,
             Source::Ref(m) => m.node_idx,
         }
     }
@@ -67,7 +82,8 @@ impl Source<RefResolution> {
     /// Set the `node_idx` of the wrapped `RefResolution`.
     pub fn set_idx(&mut self, idx: Index) {
         match self {
-            Source::Attribute(a) => a.node_idx = idx,
+            Source::ExtendAttribute(a) => a.node_idx = idx,
+            Source::CopyAttribute(a) => a.node_idx = idx,
             Source::Ref(m) => m.node_idx = idx,
         }
     }
@@ -75,7 +91,8 @@ impl Source<RefResolution> {
     /// Unwraps the `RefResolution` from `self`.
     pub fn get_resolution(&self) -> &RefResolution {
         match self {
-            Source::Attribute(a) => a,
+            Source::ExtendAttribute(a) => a,
+            Source::CopyAttribute(a) => a,
             Source::Ref(m) => m,
         }
     }
@@ -83,7 +100,8 @@ impl Source<RefResolution> {
     /// Unwraps the `RefResolution` from `self` and returns a mutable reference.
     pub fn get_resolution_mut(&mut self) -> &mut RefResolution {
         match self {
-            Source::Attribute(a) => a,
+            Source::ExtendAttribute(a) => a,
+            Source::CopyAttribute(a) => a,
             Source::Ref(m) => m,
         }
     }
@@ -91,7 +109,8 @@ impl Source<RefResolution> {
     /// Similar to `get_resolution`, but consumes `self` and returns the `RefResolution`.
     pub fn take_resolution(self) -> RefResolution {
         match self {
-            Source::Attribute(a) => a,
+            Source::ExtendAttribute(a) => a,
+            Source::CopyAttribute(a) => a,
             Source::Ref(m) => m,
         }
     }
