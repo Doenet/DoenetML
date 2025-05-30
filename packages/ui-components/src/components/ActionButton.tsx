@@ -16,10 +16,6 @@ export function ActionButton(
         fillColor?: string;
     }>,
 ) {
-    console.log(
-        { cn: props.className },
-        classNames("action-button", props.className),
-    );
     return (
         <Button
             {...props}
