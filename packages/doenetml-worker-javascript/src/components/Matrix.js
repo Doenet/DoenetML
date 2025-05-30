@@ -111,7 +111,7 @@ export default class Matrix extends MathComponent {
                         {
                             type: "serialized",
                             componentType: "math",
-                            idx: nComponents++,
+                            componentIdx: nComponents++,
                             children: matchedChildren,
                             attributes: {},
                             doenetAttributes: {},

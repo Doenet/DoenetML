@@ -510,10 +510,6 @@ export default class Copy extends CompositeComponent {
                         dependencyType: "attributePrimitive",
                         attributeName: "createComponentOfType",
                     };
-                    dependencies.noAttribuattributePrimitivetesOrProp = {
-                        dependencyType: "doenetAttribute",
-                        attributeName: "noAttributesOrProp",
-                    };
                 }
 
                 return dependencies;
@@ -551,15 +547,14 @@ export default class Copy extends CompositeComponent {
                         ];
 
                     // if createComponentOfType matches the source's componentType,
-                    // we'll allow implicit prop only if implicitPropReturnsSameType is set
+                    // we won't allow an implicit prop
+                    // We could alternatively check to make sure that no attributes were added
+                    // (so that we know state variables won't have to be recalculated)
+                    // and that no name was specified,
+                    // (so that we know it can't be extended and expected to have children)
+                    // and make an exception in those cases.
                     if (componentTypeFromAttr === source.componentType) {
-                        if (
-                            !componentInfoObjects.allComponentClasses[
-                                source.componentType
-                            ].implicitPropReturnsSameType
-                        ) {
-                            return { setValue: { implicitProp: null } };
-                        }
+                        return { setValue: { implicitProp: null } };
                     }
 
                     let varInfo =
@@ -576,30 +571,6 @@ export default class Copy extends CompositeComponent {
                 }
 
                 // We have a variableForImplicitProp and no typeAttr
-
-                let implicitPropReturnsSameType =
-                    componentInfoObjects.allComponentClasses[
-                        source.componentType
-                    ].implicitPropReturnsSameType;
-
-                // if the plain copy is returning the same type,
-                // then we shouldn't take the shortcut of using the implicit prop
-                // if the copy has attributes.
-                // If true, then the state variables could
-                // need to be recalculated from the children using new attributes
-                // so we should include the children in the copy
-                // (i.e., not use an implicitProp)
-
-                // XXX: implicitProp used to be turned off if source had a new namespace
-                // because then a component could reference a replacement by name.
-                // In the new approach, should we always turn off implicitProp
-                // because it is always possible a replacement could be referenced?
-                if (
-                    implicitPropReturnsSameType &&
-                    !dependencyValues.noAttributesOrProp
-                ) {
-                    return { setValue: { implicitProp: null } };
-                }
 
                 return { setValue: { implicitProp: variableForImplicitProp } };
             },

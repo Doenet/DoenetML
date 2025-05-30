@@ -42,14 +42,12 @@ describe("Matrix tag tests", async () => {
     }) {
         let doenetML = `
     ${matrixML}
-    <p>Copy 1: <matrix name="A1" copySource="A" /></p>
-    <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
-    <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
-    <p>Copy 5: <matrix name="A5">$A</matrix></p>
-    <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
-    <p>Copy 7: <matrix name="A7"><matrix copySource="A1" /></matrix></p>
-    <p>Copy 8: <matrix name="A8"><matrix copySource="A1.value" /></matrix></p>
+    <p>Copy 1: <matrix name="A1" extend="$A" /></p>
+    <p>Copy 2: <matrix name="A2" extend="$A.value" /></p>
+    <p>Copy 3: <matrix name="A3">$A</matrix></p>
+    <p>Copy 4: <matrix name="A4">$A.value</matrix></p>
+    <p>Copy 5: <matrix name="A5"><matrix extend="$A1" /></matrix></p>
+    <p>Copy 6: <matrix name="A6"><matrix extend="$A1.value" /></matrix></p>
     <p>Modify: <matrixInput bindValueTo="$A" name="mi" /></p>
     <p>Modify copy 1: <matrixInput bindValueTo="$A1" name="mi1" /></p>
     <p>Modify copy 2: <matrixInput bindValueTo="$A2" name="mi2" /></p>
@@ -57,47 +55,37 @@ describe("Matrix tag tests", async () => {
     <p>Modify copy 4: <matrixInput bindValueTo="$A4" name="mi4" /></p>
     <p>Modify copy 5: <matrixInput bindValueTo="$A5" name="mi5" /></p>
     <p>Modify copy 6: <matrixInput bindValueTo="$A6" name="mi6" /></p>
-    <p>Modify copy 7: <matrixInput bindValueTo="$A7" name="mi7" /></p>
-    <p>Modify copy 8: <matrixInput bindValueTo="$A8" name="mi8" /></p>
-    <p>Size: <numberList copySource="A.matrixSize" name="matrixSize" />, 
-      numRows: <integer copySource="A.numRows" name="numRows" />,
-      numColumns: <integer copySource="A.numColumns" name="numColumns" />
+    <p>Size: <numberList extend="$A.matrixSize" name="matrixSize" />, 
+      numRows: <integer extend="$A.numRows" name="numRows" />,
+      numColumns: <integer extend="$A.numColumns" name="numColumns" />
     </p>
-    <p>Size 1: <numberList copySource="A1.matrixSize" name="matrixSize1" />, 
-      numRows 1: <integer copySource="A1.numRows" name="numRows1" />,
-      numColumns 1: <integer copySource="A1.numColumns" name="numColumns1" />
+    <p>Size 1: <numberList extend="$A1.matrixSize" name="matrixSize1" />, 
+      numRows 1: <integer extend="$A1.numRows" name="numRows1" />,
+      numColumns 1: <integer extend="$A1.numColumns" name="numColumns1" />
     </p>
-    <p>Size 2: <numberList copySource="A2.matrixSize" name="matrixSize2" />, 
-      numRows 2: <integer copySource="A2.numRows" name="numRows2" />,
-      numColumns 2: <integer copySource="A2.numColumns" name="numColumns2" />
+    <p>Size 2: <numberList extend="$A2.matrixSize" name="matrixSize2" />, 
+      numRows 2: <integer extend="$A2.numRows" name="numRows2" />,
+      numColumns 2: <integer extend="$A2.numColumns" name="numColumns2" />
     </p>
-    <p>Size 3: <numberList copySource="A3.matrixSize" name="matrixSize3" />, 
-      numRows 3: <integer copySource="A3.numRows" name="numRows3" />,
-      numColumns 3: <integer copySource="A3.numColumns" name="numColumns3" />
+    <p>Size 3: <numberList extend="$A3.matrixSize" name="matrixSize3" />, 
+      numRows 3: <integer extend="$A3.numRows" name="numRows3" />,
+      numColumns 3: <integer extend="$A3.numColumns" name="numColumns3" />
     </p>
-    <p>Size 4: <numberList copySource="A4.matrixSize" name="matrixSize4" />, 
-      numRows 4: <integer copySource="A4.numRows" name="numRows4" />,
-      numColumns 4: <integer copySource="A4.numColumns" name="numColumns4" />
+    <p>Size 4: <numberList extend="$A4.matrixSize" name="matrixSize4" />, 
+      numRows 4: <integer extend="$A4.numRows" name="numRows4" />,
+      numColumns 4: <integer extend="$A4.numColumns" name="numColumns4" />
     </p>
-    <p>Size 5: <numberList copySource="A5.matrixSize" name="matrixSize5" />, 
-      numRows 5: <integer copySource="A5.numRows" name="numRows5" />,
-      numColumns 5: <integer copySource="A5.numColumns" name="numColumns5" />
+    <p>Size 5: <numberList extend="$A5.matrixSize" name="matrixSize5" />, 
+      numRows 5: <integer extend="$A5.numRows" name="numRows5" />,
+      numColumns 5: <integer extend="$A5.numColumns" name="numColumns5" />
     </p>
-    <p>Size 6: <numberList copySource="A6.matrixSize" name="matrixSize6" />, 
-      numRows 6: <integer copySource="A6.numRows" name="numRows6" />,
-      numColumns 6: <integer copySource="A6.numColumns" name="numColumns6" />
-    </p>
-    <p>Size 7: <numberList copySource="A7.matrixSize" name="matrixSize7" />, 
-      numRows 7: <integer copySource="A7.numRows" name="numRows7" />,
-      numColumns 7: <integer copySource="A7.numColumns" name="numColumns7" />
-    </p>
-    <p>Size 8: <numberList copySource="A8.matrixSize" name="matrixSize8" />, 
-      numRows 8: <integer copySource="A8.numRows" name="numRows8" />,
-      numColumns 8: <integer copySource="A8.numColumns" name="numColumns8" />
+    <p>Size 6: <numberList extend="$A6.matrixSize" name="matrixSize6" />, 
+      numRows 6: <integer extend="$A6.numRows" name="numRows6" />,
+      numColumns 6: <integer extend="$A6.numColumns" name="numColumns6" />
     </p>
     `;
 
-        let core = await createTestCore({ doenetML });
+        let { core, resolveComponentName } = await createTestCore({ doenetML });
 
         async function check_items(
             matrixValue: (number | string | (number | string)[])[][],
@@ -116,32 +104,37 @@ describe("Matrix tag tests", async () => {
                 true,
             );
 
-            expect(stateVariables["/A"].stateValues.matrixSize).eqls([
-                numRows,
-                numColumns,
-            ]);
+            expect(
+                stateVariables[resolveComponentName("A")].stateValues
+                    .matrixSize,
+            ).eqls([numRows, numColumns]);
 
-            for (let i of ["", 1, 2, 3, 4, 5, 6, 7, 8]) {
-                expect(stateVariables[`/A${i}`].stateValues.value.tree).eqls(
-                    matrixAst,
-                );
+            for (let i of ["", 1, 2, 3, 4, 5, 6]) {
                 expect(
-                    stateVariables[`/A${i}`].stateValues.matrix.map((row) =>
-                        row.map((v) => v.tree),
-                    ),
+                    stateVariables[resolveComponentName(`A${i}`)].stateValues
+                        .value.tree,
+                ).eqls(matrixAst);
+                expect(
+                    stateVariables[
+                        resolveComponentName(`A${i}`)
+                    ].stateValues.matrix.map((row) => row.map((v) => v.tree)),
                 ).eqls(matrixValue);
-                expect(stateVariables[`/mi${i}`].stateValues.value.tree).eqls(
-                    matrixAst,
-                );
                 expect(
-                    stateVariables[`/matrixSize${i}`].stateValues.numbers,
+                    stateVariables[resolveComponentName(`mi${i}`)].stateValues
+                        .value.tree,
+                ).eqls(matrixAst);
+                expect(
+                    stateVariables[resolveComponentName(`matrixSize${i}`)]
+                        .stateValues.numbers,
                 ).eqls([numRows, numColumns]);
-                expect(stateVariables[`/numRows${i}`].stateValues.value).eq(
-                    numRows,
-                );
-                expect(stateVariables[`/numColumns${i}`].stateValues.value).eq(
-                    numColumns,
-                );
+                expect(
+                    stateVariables[resolveComponentName(`numRows${i}`)]
+                        .stateValues.value,
+                ).eq(numRows);
+                expect(
+                    stateVariables[resolveComponentName(`numColumns${i}`)]
+                        .stateValues.value,
+                ).eq(numColumns);
             }
         }
 
@@ -189,7 +182,7 @@ describe("Matrix tag tests", async () => {
             defaultEntry = "k";
             await updateMathInputValue({
                 latex: defaultEntry,
-                name: defaultEntryName,
+                componentIdx: resolveComponentName(defaultEntryName),
                 core,
             });
             await check_items(
@@ -200,7 +193,7 @@ describe("Matrix tag tests", async () => {
             values[0][0] = "y";
             await updateMatrixInputValue({
                 latex: "y",
-                name: "/mi",
+                componentIdx: resolveComponentName("mi"),
                 rowInd: 0,
                 colInd: 0,
                 core,
@@ -223,7 +216,7 @@ describe("Matrix tag tests", async () => {
             defaultEntry = "j";
             await updateMathInputValue({
                 latex: defaultEntry,
-                name: defaultEntryName,
+                componentIdx: resolveComponentName(defaultEntryName),
                 core,
             });
             await check_items(
@@ -247,15 +240,15 @@ describe("Matrix tag tests", async () => {
                 defaultEntry,
                 false,
             );
-            while (ind < 9) {
+            while (ind < 7) {
                 for (let i = 0; i < numRows; i++) {
                     for (let j = 0; j < numColumns; j++) {
                         ind++;
-                        let miInd = ind % 9 || "";
+                        let miInd = ind % 7 || "";
                         values[i][j] = ind;
                         await updateMatrixInputValue({
                             latex: ind.toString(),
-                            name: `/mi${miInd}`,
+                            componentIdx: resolveComponentName(`mi${miInd}`),
                             rowInd: i,
                             colInd: j,
                             core,
@@ -271,15 +264,15 @@ describe("Matrix tag tests", async () => {
         }
 
         // cannot change number of rows or columns directly
-        for (let i = 0; i < 9; i++) {
+        for (let i = 0; i < 7; i++) {
             await updateMatrixInputNumRows({
                 numRows: numRows + i + 1,
-                name: `/mi${i || ""}`,
+                componentIdx: resolveComponentName(`mi${i || ""}`),
                 core,
             });
             await updateMatrixInputNumColumns({
                 numColumns: numColumns + i + 1,
-                name: `/mi${i || ""}`,
+                componentIdx: resolveComponentName(`mi${i || ""}`),
                 core,
             });
         }
@@ -293,13 +286,13 @@ describe("Matrix tag tests", async () => {
             numRows++;
             await updateMathInputValue({
                 latex: numRows.toString(),
-                name: numRowsName,
+                componentIdx: resolveComponentName(numRowsName),
                 core,
             });
             numColumns++;
             await updateMathInputValue({
                 latex: numColumns.toString(),
-                name: numColumnsName,
+                componentIdx: resolveComponentName(numColumnsName),
                 core,
             });
             await check_items(
@@ -319,7 +312,7 @@ describe("Matrix tag tests", async () => {
             values[numRows - 1][numColumns - 1] = "z";
             await updateMatrixInputValue({
                 latex: "z",
-                name: "/mi",
+                componentIdx: resolveComponentName("mi"),
                 rowInd: numRows - 1,
                 colInd: numColumns - 1,
                 core,
@@ -332,13 +325,13 @@ describe("Matrix tag tests", async () => {
             numRows -= 2;
             await updateMathInputValue({
                 latex: numRows.toString(),
-                name: numRowsName,
+                componentIdx: resolveComponentName(numRowsName),
                 core,
             });
             numColumns -= 2;
             await updateMathInputValue({
                 latex: numColumns.toString(),
-                name: numColumnsName,
+                componentIdx: resolveComponentName(numColumnsName),
                 core,
             });
             await check_items(
@@ -429,8 +422,8 @@ describe("Matrix tag tests", async () => {
             initialValues,
             initialNumRows: 3,
             initialNumColumns: 2,
-            numRowsName: "/mi_nRows",
-            numColumnsName: "/mi_nColumns",
+            numRowsName: "mi_nRows",
+            numColumnsName: "mi_nColumns",
         });
     });
 
@@ -454,8 +447,8 @@ describe("Matrix tag tests", async () => {
             initialValues,
             initialNumRows: 3,
             initialNumColumns: 2,
-            numRowsName: "/mi_nRows",
-            numColumnsName: "/mi_nColumns",
+            numRowsName: "mi_nRows",
+            numColumnsName: "mi_nColumns",
         });
     });
 
@@ -479,10 +472,10 @@ describe("Matrix tag tests", async () => {
             initialValues,
             initialNumRows: 3,
             initialNumColumns: 2,
-            numRowsName: "/mi_nRows",
-            numColumnsName: "/mi_nColumns",
+            numRowsName: "mi_nRows",
+            numColumnsName: "mi_nColumns",
             initialDefaultEntry: "q",
-            defaultEntryName: "/de",
+            defaultEntryName: "de",
         });
     });
 
@@ -507,15 +500,15 @@ describe("Matrix tag tests", async () => {
             initialValues,
             initialNumRows: 3,
             initialNumColumns: 2,
-            numRowsName: "/mi_nRows",
-            numColumnsName: "/mi_nColumns",
+            numRowsName: "mi_nRows",
+            numColumnsName: "mi_nColumns",
             initialDefaultEntry: "q",
-            defaultEntryName: "/de",
+            defaultEntryName: "de",
         });
     });
 
     it("functionSymbols", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p><matrix name="Adef">
       <row>f(x) g(x)</row>
@@ -588,20 +581,24 @@ describe("Matrix tag tests", async () => {
                 ["tuple", ["apply", "a", "x"], ["apply", "b", "x"]],
             ],
         ];
-        expect(stateVariables["/Adef"].stateValues.value.tree).eqls(
-            matrixdefAst,
-        );
-        expect(stateVariables["/Ah"].stateValues.value.tree).eqls(matrixhAst);
-        expect(stateVariables["/Amixedbyrow"].stateValues.value.tree).eqls(
-            matrixmixedbyrowAst,
-        );
-        expect(stateVariables["/Amixedbycolumn"].stateValues.value.tree).eqls(
-            matrixmixedbycolumnAst,
-        );
+        expect(
+            stateVariables[resolveComponentName("Adef")].stateValues.value.tree,
+        ).eqls(matrixdefAst);
+        expect(
+            stateVariables[resolveComponentName("Ah")].stateValues.value.tree,
+        ).eqls(matrixhAst);
+        expect(
+            stateVariables[resolveComponentName("Amixedbyrow")].stateValues
+                .value.tree,
+        ).eqls(matrixmixedbyrowAst);
+        expect(
+            stateVariables[resolveComponentName("Amixedbycolumn")].stateValues
+                .value.tree,
+        ).eqls(matrixmixedbycolumnAst);
     });
 
     it("referencesAreFunctionSymbols", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <setup>
       <math name="fun1">f</math>
@@ -615,19 +612,19 @@ describe("Matrix tag tests", async () => {
       <row>$fun3(x) $fun4(x)</row>
     </matrix>
     </p>
-    <p><matrix name="Ah" referencesAreFunctionSymbols="fun1 fun4">
+    <p><matrix name="Ah" referencesAreFunctionSymbols="$fun1 $fun4">
       <row>$fun1(x) $fun2(x)</row>
       <row>$fun3(x) $fun4(x)</row>
     </matrix>
     </p>
-    <p><matrix name="Amixedbyrow" referencesAreFunctionSymbols="fun3 fun4">
-      <row><math referencesAreFunctionSymbols="fun2">$fun3(x)</math> <math referencesAreFunctionSymbols="fun2">$fun2(x)</math> $fun4(x)</row>
-      <row referencesAreFunctionSymbols="fun3">$fun3(x) $fun4(x) <math referencesAreFunctionSymbols="fun5">$fun5(x)</math></row>
+    <p><matrix name="Amixedbyrow" referencesAreFunctionSymbols="$fun3 $fun4">
+      <row><math referencesAreFunctionSymbols="$fun2">$fun3(x)</math> <math referencesAreFunctionSymbols="$fun2">$fun2(x)</math> $fun4(x)</row>
+      <row referencesAreFunctionSymbols="$fun3">$fun3(x) $fun4(x) <math referencesAreFunctionSymbols="$fun5">$fun5(x)</math></row>
     </matrix>
     </p>
-    <p><matrix name="Amixedbycolumn" referencesAreFunctionSymbols="fun3 fun4">
-      <column><math referencesAreFunctionSymbols="fun2">h(x)</math> <math referencesAreFunctionSymbols="fun2">$fun2(x)</math> $fun4(x)</column>
-      <column referencesAreFunctionSymbols="fun3">$fun3(x) $fun4(x) <math referencesAreFunctionSymbols="fun5">$fun5(x)</math></column>
+    <p><matrix name="Amixedbycolumn" referencesAreFunctionSymbols="$fun3 $fun4">
+      <column><math referencesAreFunctionSymbols="$fun2">h(x)</math> <math referencesAreFunctionSymbols="$fun2">$fun2(x)</math> $fun4(x)</column>
+      <column referencesAreFunctionSymbols="$fun3">$fun3(x) $fun4(x) <math referencesAreFunctionSymbols="$fun5">$fun5(x)</math></column>
     </matrix>
     </p>
     `,
@@ -681,20 +678,24 @@ describe("Matrix tag tests", async () => {
                 ["tuple", ["apply", "a", "x"], ["apply", "b", "x"]],
             ],
         ];
-        expect(stateVariables["/Adef"].stateValues.value.tree).eqls(
-            matrixdefAst,
-        );
-        expect(stateVariables["/Ah"].stateValues.value.tree).eqls(matrixhAst);
-        expect(stateVariables["/Amixedbyrow"].stateValues.value.tree).eqls(
-            matrixmixedbyrowAst,
-        );
-        expect(stateVariables["/Amixedbycolumn"].stateValues.value.tree).eqls(
-            matrixmixedbycolumnAst,
-        );
+        expect(
+            stateVariables[resolveComponentName("Adef")].stateValues.value.tree,
+        ).eqls(matrixdefAst);
+        expect(
+            stateVariables[resolveComponentName("Ah")].stateValues.value.tree,
+        ).eqls(matrixhAst);
+        expect(
+            stateVariables[resolveComponentName("Amixedbyrow")].stateValues
+                .value.tree,
+        ).eqls(matrixmixedbyrowAst);
+        expect(
+            stateVariables[resolveComponentName("Amixedbycolumn")].stateValues
+                .value.tree,
+        ).eqls(matrixmixedbycolumnAst);
     });
 
     it("splitsymbols", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p><matrix name="Adef">
       <row>xy yz</row>
@@ -753,20 +754,24 @@ describe("Matrix tag tests", async () => {
                 ["tuple", "zx", ["*", "c", "a"]],
             ],
         ];
-        expect(stateVariables["/Adef"].stateValues.value.tree).eqls(
-            matrixdefAst,
-        );
-        expect(stateVariables["/Ah"].stateValues.value.tree).eqls(matrixnAst);
-        expect(stateVariables["/Amixedbyrow"].stateValues.value.tree).eqls(
-            matrixmixedbyrowAst,
-        );
-        expect(stateVariables["/Amixedbycolumn"].stateValues.value.tree).eqls(
-            matrixmixedbycolumnAst,
-        );
+        expect(
+            stateVariables[resolveComponentName("Adef")].stateValues.value.tree,
+        ).eqls(matrixdefAst);
+        expect(
+            stateVariables[resolveComponentName("Ah")].stateValues.value.tree,
+        ).eqls(matrixnAst);
+        expect(
+            stateVariables[resolveComponentName("Amixedbyrow")].stateValues
+                .value.tree,
+        ).eqls(matrixmixedbyrowAst);
+        expect(
+            stateVariables[resolveComponentName("Amixedbycolumn")].stateValues
+                .value.tree,
+        ).eqls(matrixmixedbycolumnAst);
     });
 
     it("displayBlanks", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p><matrix name="Adef">
       <row>x_ y_</row>
@@ -783,11 +788,11 @@ describe("Matrix tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/Adef"].stateValues.text).eqls(
-            "[ [ x_＿, y_＿ ], [ a_＿, b_＿ ] ]",
-        );
-        expect(stateVariables["/Ah"].stateValues.text).eqls(
-            "[ [ x_, y_ ], [ a_, b_ ] ]",
-        );
+        expect(
+            stateVariables[resolveComponentName("Adef")].stateValues.text,
+        ).eqls("[ [ x_＿, y_＿ ], [ a_＿, b_＿ ] ]");
+        expect(
+            stateVariables[resolveComponentName("Ah")].stateValues.text,
+        ).eqls("[ [ x_, y_ ], [ a_, b_ ] ]");
     });
 });
