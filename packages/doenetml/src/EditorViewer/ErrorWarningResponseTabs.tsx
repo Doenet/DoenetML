@@ -6,11 +6,92 @@ import {
     TabList,
     TabPanel,
     useTabStore,
+    TabStore,
 } from "@ariakit/react";
 import { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { BsExclamationTriangleFill, BsX } from "react-icons/bs";
+import classNames from "classnames";
 
-export default function ErrorWarningResponseTabs({
+/**
+ * The tabstrip to control the display of the errors and warnings tabs.
+ */
+export function ErrorWarningResponseTabstrip({
+    store,
+    isOpen,
+    showErrorsWarnings,
+    warnings,
+    errors,
+    submittedResponses,
+    setIsOpen,
+    showResponses,
+}: {
+    store: TabStore;
+
+    warnings: WarningDescription[];
+    errors: ErrorDescription[];
+    submittedResponses: {
+        answerId: string;
+        response: ReactElement;
+        creditAchieved: number;
+        submittedAt: string;
+    }[];
+    isOpen: boolean;
+    setIsOpen: (arg: boolean) => void;
+    showErrorsWarnings?: boolean;
+    showResponses?: boolean;
+}) {
+    return (
+        <TabProvider store={store}>
+            <TabList
+                onClick={(e) => {
+                    if (!isOpen) {
+                        setIsOpen(true);
+                    }
+                }}
+                className="error-warning-response-tabs"
+                store={store}
+            >
+                {showErrorsWarnings && (
+                    <Tab>
+                        {warnings.length} Warning
+                        {warnings.length != 1 && "s"}
+                    </Tab>
+                )}
+                {showErrorsWarnings && (
+                    <Tab>
+                        {errors.length} Error
+                        {errors.length != 1 && "s"}
+                    </Tab>
+                )}
+                {showResponses && (
+                    <Tab>
+                        {submittedResponses.length} Submitted response
+                        {submittedResponses.length != 1 && "s"}
+                    </Tab>
+                )}
+                <div
+                    style={{
+                        flexGrow: 1,
+                    }}
+                />
+                {isOpen ? (
+                    <Button
+                        title="Close panel"
+                        className="close-button"
+                        onClick={() => {
+                            setIsOpen(false);
+                        }}
+                    >
+                        <BsX />
+                    </Button>
+                ) : null}
+            </TabList>
+        </TabProvider>
+    );
+}
+
+export function ErrorWarningResponseTabContents({
+    store,
     warnings,
     errors,
     submittedResponses,
@@ -19,6 +100,7 @@ export default function ErrorWarningResponseTabs({
     showErrorsWarnings = true,
     showResponses = true,
 }: {
+    store: TabStore;
     warnings: WarningDescription[];
     errors: ErrorDescription[];
     submittedResponses: {
@@ -34,7 +116,6 @@ export default function ErrorWarningResponseTabs({
 }) {
     const panels = useRef<HTMLDivElement>(null);
     const lastScrolledToBottom = useRef(true);
-    const store = useTabStore();
 
     function scrollToBottom() {
         if (panels.current) {
@@ -79,52 +160,12 @@ export default function ErrorWarningResponseTabs({
     }, [submittedResponses]);
 
     return (
-        <div className="error-warning-response-tabs-container">
+        <div
+            className={classNames("error-warning-response-tabs-container", {
+                "is-open": isOpen,
+            })}
+        >
             <TabProvider store={store}>
-                <TabList
-                    onClick={(e) => {
-                        if (!isOpen) {
-                            setIsOpen(true);
-                        }
-                    }}
-                    className="error-warning-response-tabs"
-                    store={store}
-                >
-                    {showErrorsWarnings && (
-                        <Tab>
-                            {warnings.length} Warning
-                            {warnings.length != 1 && "s"}
-                        </Tab>
-                    )}
-                    {showErrorsWarnings && (
-                        <Tab>
-                            {errors.length} Error
-                            {errors.length != 1 && "s"}
-                        </Tab>
-                    )}
-                    {showResponses && (
-                        <Tab>
-                            {submittedResponses.length} Submitted response
-                            {submittedResponses.length != 1 && "s"}
-                        </Tab>
-                    )}
-                    <div
-                        style={{
-                            flexGrow: 1,
-                        }}
-                    />
-                    {isOpen ? (
-                        <Button
-                            title="Close panel"
-                            className="close-button"
-                            onClick={() => {
-                                setIsOpen(false);
-                            }}
-                        >
-                            <BsX />
-                        </Button>
-                    ) : null}
-                </TabList>
                 {isOpen && (
                     <div
                         ref={panels}

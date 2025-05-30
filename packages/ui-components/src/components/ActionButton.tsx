@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "./Button";
+import classNames from "classnames";
 
 export function ActionButton(
     props: React.PropsWithChildren<{
@@ -11,10 +12,15 @@ export function ActionButton(
         disabled?: boolean;
         onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
         alert?: boolean;
+        className?: string;
+        fillColor?: string;
     }>,
 ) {
     return (
-        <Button {...props} className="action-button">
+        <Button
+            {...props}
+            className={classNames("action-button", props.className)}
+        >
             {props.children}
         </Button>
     );

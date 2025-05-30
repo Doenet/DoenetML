@@ -21,7 +21,6 @@ export default defineConfig({
                 "react",
                 "react-dom",
                 "styled-components",
-                "@chakra-ui/react",
                 "@fortawesome/free-solid-svg-icons",
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",

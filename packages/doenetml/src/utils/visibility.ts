@@ -44,7 +44,7 @@ export function useRecordVisibilityChanges(
  *
  * Used to approximately detect if the element is not hidden.
  */
-export function useIsOnPage(ref: RefObject<HTMLElement>) {
+export function useIsOnPage(ref: RefObject<HTMLElement | null>) {
     const [isIntersecting, setIntersecting] = useState(false);
 
     useEffect(() => {
