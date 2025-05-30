@@ -173,41 +173,48 @@ impl Resolver {
 
     /// Delete `nodes` from the resolver
     pub fn delete_nodes(&mut self, nodes: &[FlatNode]) {
-        for node in nodes.iter() {
+        for (name, node_idx) in nodes.iter().filter_map(|node| {
             if let FlatNode::Element(element) = node {
                 if let Some(name) = get_element_name(element) {
-                    let mut parent_option = self.node_parent[node.idx()];
+                    return Some((name, node.idx()));
+                }
+            }
+            return None;
+        }) {
+            let mut prev_parent_idx = node_idx;
 
-                    while let Some(parent_idx) = parent_option {
-                        let name_map = &mut self.name_map[parent_idx];
+            while let Some(parent_idx) = self.node_parent[prev_parent_idx] {
+                prev_parent_idx = parent_idx;
 
-                        let references = name_map.remove(&name);
+                let name_map = &mut self.name_map[parent_idx];
 
-                        match references {
-                            Some(Ref::Unique(idx)) => {
-                                // if the index doesn't match the deleted node, add it back to the name map
-                                if idx != node.idx() {
-                                    name_map.insert(name.clone(), Ref::Unique(idx));
-                                }
-                            }
-                            Some(Ref::Ambiguous(indices)) => {
-                                // remove the node from the ambiguous list, setting the result to unique if there is only one reference left
-                                let new_indices = indices
-                                    .into_iter()
-                                    .filter(|idx| *idx != node.idx())
-                                    .collect::<Vec<_>>();
-                                if new_indices.len() == 1 {
-                                    name_map.insert(name.clone(), Ref::Unique(new_indices[0]));
-                                } else {
-                                    name_map.insert(name.clone(), Ref::Ambiguous(new_indices));
-                                }
-                            }
-                            None => {}
+                let references = name_map.remove(&name);
+
+                match references {
+                    Some(Ref::Unique(idx)) => {
+                        // Note is is possible that `parent_idx` does not have an entry in the name map
+                        // its descendant `node_idx`. This could happen if either
+                        // 1. one of its descendants had a `DontSearchChildren` `ResolutionAlgorithm`, or
+                        // 2. one of its descendants was added later by `add_nodes`.
+                        // In this case, the unique index found might not match the deleted node `node_idx`,
+                        // add we add the name back to the name map
+                        if idx != node_idx {
+                            name_map.insert(name.clone(), Ref::Unique(idx));
                         }
-
-                        // recurse to grandparent
-                        parent_option = self.node_parent[parent_idx]
                     }
+                    Some(Ref::Ambiguous(indices)) => {
+                        // remove the deleted node `node_idx` from the ambiguous list, setting the result to unique if there is only one reference left
+                        let new_indices = indices
+                            .into_iter()
+                            .filter(|idx| *idx != node_idx)
+                            .collect::<Vec<_>>();
+                        if new_indices.len() == 1 {
+                            name_map.insert(name.clone(), Ref::Unique(new_indices[0]));
+                        } else {
+                            name_map.insert(name.clone(), Ref::Ambiguous(new_indices));
+                        }
+                    }
+                    None => {}
                 }
             }
         }
@@ -501,16 +508,10 @@ impl Resolver {
 /// Get the name of `element` from its `name` attribute,
 /// where the `name` attribute must have exactly one text child to be considered valid.
 fn get_element_name(element: &FlatElement) -> Option<String> {
-    // XXX: we need to enforce restrictions on valid names. Is this the right place?
-
     let name = element
         .attributes
         .iter()
-        .find(|attr| {
-            attr.name == "name"
-                && attr.children.len() == 1
-                && matches!(attr.children[0], UntaggedContent::Text(_))
-        })
+        .find(|attr| attr.name == "name")
         .and_then(|attr| {
             match (attr.children.len(), attr.children.first()) {
                 // A name attribute should have exactly one text child. Otherwise it is considered invalid.

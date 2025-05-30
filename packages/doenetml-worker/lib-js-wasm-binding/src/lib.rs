@@ -121,18 +121,16 @@ impl PublicDoenetMLCore {
         })
     }
 
-    pub fn add_nodes_to_resolver(resolver: Resolver, flat_fragment: FlatFragment) -> Resolver {
-        let mut resolver2 = resolver;
-        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver2);
+    pub fn add_nodes_to_resolver(mut resolver: Resolver, flat_fragment: FlatFragment) -> Resolver {
+        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver);
 
-        resolver2
+        resolver
     }
 
-    pub fn delete_nodes_from_resolver(resolver: Resolver, node_list: NodeList) -> Resolver {
-        let mut resolver2 = resolver;
-        Core::delete_nodes_from_resolver(&node_list.nodes, &mut resolver2);
+    pub fn delete_nodes_from_resolver(mut resolver: Resolver, node_list: NodeList) -> Resolver {
+        Core::delete_nodes_from_resolver(&node_list.nodes, &mut resolver);
 
-        resolver2
+        resolver
     }
 
     pub fn resolve_path(
