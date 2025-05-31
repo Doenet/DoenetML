@@ -28,7 +28,6 @@ import { convertToErrorComponent } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
-import { breakStringInPiecesBySpacesOrParens } from "../assignNames";
 
 /**
  * Transform the normalized dast into the serialized components used
@@ -917,17 +916,6 @@ function createPrimitiveFromAttribute({
                 return {
                     type: "stringArray",
                     value: firstChild.trim().split(/\s+/),
-                };
-            } else if (
-                attrDef.createPrimitiveOfType === "recursiveStringArray"
-            ) {
-                const result = breakStringInPiecesBySpacesOrParens(firstChild);
-                if (!result.success) {
-                    throw Error("Invalid format for assignNames");
-                }
-                return {
-                    type: "recursiveStringArray",
-                    value: result.pieces,
                 };
             } else {
                 // else assume string

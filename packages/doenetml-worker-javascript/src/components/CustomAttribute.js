@@ -1,5 +1,4 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames, setTNamesToAbsolute } from "../utils/naming";
 import {
     applyMacros,
     applySugar,
@@ -10,8 +9,6 @@ export default class CustomAttribute extends CompositeComponent {
     static componentType = "customAttribute";
 
     static inSchemaOnlyInheritAs = [];
-
-    static assignNamesToReplacements = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -151,7 +148,7 @@ export default class CustomAttribute extends CompositeComponent {
         let containerAttrNames = Object.keys(
             containerClass.createAttributesObject(),
         ).map((x) => x.toLowerCase());
-        containerAttrNames.push("name", "target", "assignnames");
+        containerAttrNames.push("name", "target");
         if (containerAttrNames.includes(SVattributeName.toLowerCase())) {
             warnings.push({
                 message: `Cannot add attribute "${SVattributeName}" to a <${containerClass.componentType}> because the <${containerClass.componentType}> component type already has a "${SVattributeName}" attribute defined.`,
@@ -184,19 +181,11 @@ export default class CustomAttribute extends CompositeComponent {
             componentInfoObjects,
         });
 
-        setTNamesToAbsolute([serializedComponent]);
-
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: [serializedComponent],
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
+        // XXX: what is the replacement for this?
+        // setTNamesToAbsolute([serializedComponent]);
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements: [serializedComponent],
             errors,
             warnings,
         };

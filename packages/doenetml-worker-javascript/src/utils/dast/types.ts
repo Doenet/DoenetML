@@ -68,25 +68,13 @@ export interface SerializedPathIndex {
     position?: Position;
 }
 
-export type RecursiveStringArray = (string | RecursiveStringArray)[];
-
-function isRecursiveStringArray(obj: unknown): obj is RecursiveStringArray {
-    return (
-        Array.isArray(obj) &&
-        obj.every(
-            (val) => typeof val === "string" || isRecursiveStringArray(val),
-        )
-    );
-}
-
 /** The allowable data types for primitive attributes */
 export type PrimitiveAttributeValue =
     | { type: "string"; value: string }
     | { type: "boolean"; value: boolean }
     | { type: "number"; value: number }
     | { type: "numberArray"; value: number[] }
-    | { type: "stringArray"; value: string[] }
-    | { type: "recursiveStringArray"; value: RecursiveStringArray };
+    | { type: "stringArray"; value: string[] };
 
 export function isPrimitiveAttributeValue(
     obj: unknown,
@@ -105,9 +93,7 @@ export function isPrimitiveAttributeValue(
                 typedObj.value.every((val) => typeof val === "number")) ||
             (typedObj.type === "stringArray" &&
                 Array.isArray(typedObj.value) &&
-                typedObj.value.every((val) => typeof val === "string")) ||
-            (typedObj.type === "recursiveStringArray" &&
-                isRecursiveStringArray(typedObj.value)))
+                typedObj.value.every((val) => typeof val === "string")))
     );
 }
 

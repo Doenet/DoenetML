@@ -32,7 +32,6 @@ type ComponentClass = {
     getAdapterComponentType: (...args: any[]) => string;
     numAdapters: number;
     additionalSchemaChildren?: string[];
-    assignNamesToReplacements: boolean;
 };
 
 interface ComponentInfoObjects
@@ -167,17 +166,6 @@ export function getSchema() {
         let attributes = [{ name: "name" }, { name: "copySource" }];
 
         let cClass = componentClasses[type];
-
-        // a composite with assignNamesToReplacements has the assignNames attribute
-        if (
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: type,
-                baseComponentType: "_composite",
-            }) &&
-            cClass.assignNamesToReplacements
-        ) {
-            attributes.push({ name: "assignNames" });
-        }
 
         let attrObj = cClass.createAttributesObject();
 

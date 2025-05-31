@@ -13,7 +13,6 @@ import {
 } from "@doenet/utils";
 import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
-import { deprecatedPropertySubstitutions } from "./utils/expandDoenetML";
 import {
     removeFunctionsMathExpressionClass,
     preprocessMathInverseDefinition,
@@ -124,17 +123,7 @@ export default class Core {
                   serializedComponentsReviver,
               )
             : {};
-        for (let cIdxStr in stateVariableChanges) {
-            let componentSVChanges = stateVariableChanges[cIdxStr];
-            for (let varName in componentSVChanges) {
-                if (varName in deprecatedPropertySubstitutions) {
-                    componentSVChanges[
-                        deprecatedPropertySubstitutions[varName]
-                    ] = componentSVChanges[varName];
-                    delete componentSVChanges[varName];
-                }
-            }
-        }
+
         this.receivedStateVariableChanges = Boolean(stateVariableChangesString);
 
         this.coreFunctions = {

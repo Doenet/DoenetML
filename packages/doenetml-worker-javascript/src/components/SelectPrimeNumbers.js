@@ -1,5 +1,4 @@
 import { enumerateSelectionCombinations } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -14,8 +13,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     static componentType = "selectPrimeNumbers";
 
     static allowInSchemaAsComponent = ["integer"];
-
-    static assignNamesToReplacements = true;
 
     static createsVariants = true;
 
@@ -42,9 +39,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             public: true,
         };
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numToSelect = {
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -277,17 +271,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
         };

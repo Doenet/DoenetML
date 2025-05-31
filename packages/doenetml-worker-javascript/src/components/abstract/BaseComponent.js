@@ -1378,9 +1378,6 @@ export default class BaseComponent {
 
         // delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
-        delete serializedComponent.doenetAttributes.assignNames;
-        delete serializedComponent.doenetAttributes
-            .assignNamesForCompositeReplacement;
 
         return serializedComponent;
     }
@@ -1423,7 +1420,6 @@ export default class BaseComponent {
                 serializedComponent.attributes,
             );
             delete serializedCopy.doenetAttributes.prescribedName;
-            delete serializedCopy.doenetAttributes.assignNames;
         }
 
         if (serializedComponent.position !== undefined) {

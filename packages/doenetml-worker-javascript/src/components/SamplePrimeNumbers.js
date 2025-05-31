@@ -1,6 +1,5 @@
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
-import { processAssignNames } from "../utils/naming";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 
@@ -16,8 +15,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["integer"];
 
-    static assignNamesToReplacements = true;
-
     static createsVariants = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -28,9 +25,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numSamples = {
             createComponentOfType: "number",
             createStateVariable: "numSamples",
@@ -244,18 +238,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            indOffset: startNum,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
         };

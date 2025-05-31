@@ -1,6 +1,5 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { processAssignNames } from "../utils/naming";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
@@ -16,9 +15,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         delete attributes.numSamples;
         delete attributes.variantDeterminesSeed;
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numToSelect = {
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -219,17 +215,8 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
         };

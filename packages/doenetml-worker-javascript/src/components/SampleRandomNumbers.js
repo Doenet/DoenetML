@@ -1,6 +1,5 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { processAssignNames } from "../utils/naming";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
@@ -16,8 +15,6 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["number"];
 
-    static assignNamesToReplacements = true;
-
     static createsVariants = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -28,9 +25,6 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numSamples = {
             createComponentOfType: "number",
             createStateVariable: "numSamples",
@@ -659,18 +653,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            indOffset: startNum,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
         };

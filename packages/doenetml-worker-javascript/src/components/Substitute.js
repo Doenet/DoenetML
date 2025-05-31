@@ -1,6 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { normalizeMathExpression } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
@@ -11,17 +10,12 @@ export default class Substitute extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["math", "text"];
 
-    static assignNamesToReplacements = true;
-
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.type = {
             createPrimitiveOfType: "string",
             createStateVariable: "type",
@@ -502,17 +496,8 @@ export default class Substitute extends CompositeComponent {
             serializedReplacement.attributes = attributes;
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: [serializedReplacement],
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements: [serializedReplacement],
             errors,
             warnings,
         };

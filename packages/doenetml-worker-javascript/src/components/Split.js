@@ -1,22 +1,15 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames } from "../utils/naming";
 
 export default class Split extends CompositeComponent {
     static componentType = "split";
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
-    static assignNamesToReplacements = true;
-
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
 
         // TODO: other types than text or eliminate type attribute
         attributes.type = {
@@ -202,17 +195,8 @@ export default class Split extends CompositeComponent {
             },
         };
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: [serializedReplacement],
-            parentIdx: component.componentIdx,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements: [serializedReplacement],
             errors,
             warnings,
         };
