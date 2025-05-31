@@ -22,7 +22,10 @@ import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
 } from "./utils/copy";
-import { convertUnresolvedAttributesForComponentType } from "./utils/dast/convertNormalizedDast";
+import {
+    convertUnresolvedAttributesForComponentType,
+    unwrapSource,
+} from "./utils/dast/convertNormalizedDast";
 import { DependencyHandler } from "./Dependencies";
 import {
     returnDefaultArrayVarNameFromPropIndex,
@@ -32,6 +35,7 @@ import { set as idb_set } from "idb-keyval";
 import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
+    extractCreateComponentIdxMapping,
 } from "./utils/componentIndices";
 
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
@@ -80,6 +84,7 @@ export default class Core {
         this.allDoenetMLs = allDoenetMLs;
         this.serializedDocument = serializedDocument;
         this.nComponentsInit = nComponentsInit;
+        this.createComponentIdxMapping = {};
 
         this.resolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
@@ -1288,6 +1293,12 @@ export default class Core {
 
         let lastErrorMessage = "";
 
+        const res = extractCreateComponentIdxMapping(serializedComponents);
+        Object.assign(
+            this.createComponentIdxMapping,
+            res.createComponentIdxMapping,
+        );
+
         for (let [
             componentInd,
             serializedComponent,
@@ -1635,18 +1646,9 @@ export default class Core {
         // then create components for all the indices of the unresolved path.
         let refResolution = null;
         if (serializedComponent.extending) {
-            refResolution =
-                "Ref" in serializedComponent.extending
-                    ? serializedComponent.extending.Ref
-                    : serializedComponent.extending.Attribute;
+            refResolution = unwrapSource(serializedComponent.extending);
 
             if (refResolution.unresolvedPath !== null) {
-                // console.log(
-                //     "found unresolved path",
-                //     serializedComponent,
-                //     refResolution,
-                //     refResolution.unresolvedPath,
-                // );
                 let nodeIdx = refResolution.nodeIdx;
                 let unresolvedPath = [];
                 for (const pathPart of refResolution.unresolvedPath) {
@@ -3327,15 +3329,17 @@ export default class Core {
                 // - in renderers to determined if they should add commas
                 // - in child dependencies, where they will be translated for matched children
                 //   and used in some components to determine if those children can be formed into a list
-                parent.compositeReplacementActiveRange.push({
-                    compositeIdx: child.componentIdx,
-                    extendIdx: await child.stateValues.extendIdx,
-                    unresolvedPath: await child.stateValues.unresolvedPath,
-                    firstInd: childInd,
-                    lastInd: childInd + replacements.length - 1,
-                    asList: await child.stateValues.asList,
-                    potentialListComponents: replacementsCanBeInList,
-                });
+                if (child.isExpanded) {
+                    parent.compositeReplacementActiveRange.push({
+                        compositeIdx: child.componentIdx,
+                        extendIdx: await child.stateValues.extendIdx,
+                        unresolvedPath: await child.stateValues.unresolvedPath,
+                        firstInd: childInd,
+                        lastInd: childInd + replacements.length - 1,
+                        asList: await child.stateValues.asList,
+                        potentialListComponents: replacementsCanBeInList,
+                    });
+                }
 
                 parent.activeChildren.splice(childInd, 1, ...replacements);
 
@@ -8990,13 +8994,23 @@ export default class Core {
 
         let newChildrenResult = await this.processNewDefiningChildren({
             parent,
+            expandComposites: true,
         });
 
         let addedComponents = {};
         let deletedComponents = {};
 
         if (!newChildrenResult.success) {
-            return newChildrenResult;
+            // try again, this time force expanding composites before giving up
+            newChildrenResult = await this.processNewDefiningChildren({
+                parent,
+                expandComposites: true,
+                forceExpandComposites: true,
+            });
+
+            if (!newChildrenResult.success) {
+                return newChildrenResult;
+            }
         }
 
         for (let child of newChildren) {
@@ -9089,11 +9103,16 @@ export default class Core {
         };
     }
 
-    async processNewDefiningChildren({ parent, expandComposites = true }) {
+    async processNewDefiningChildren({
+        parent,
+        expandComposites = true,
+        forceExpandComposites = false,
+    }) {
         this.parameterStack.push(parent.sharedParameters, false);
         let childResult = await this.deriveChildResultsFromDefiningChildren({
             parent,
             expandComposites,
+            forceExpandComposites,
         });
         this.parameterStack.pop();
 

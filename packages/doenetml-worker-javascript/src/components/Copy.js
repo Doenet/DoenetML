@@ -168,7 +168,9 @@ export default class Copy extends CompositeComponent {
         stateVariableDefinitions.extendedComponent = {
             shadowVariable: true,
             stateVariablesDeterminingDependencies: ["extendIdx"],
-            determineDependenciesImmediately: true,
+            // TODO: if it turns out we don't need `determineDependenciesImmediately`,
+            // then remove the relevant code from `Dependencies`
+            // determineDependenciesImmediately: true,
             returnDependencies({ stateValues }) {
                 if (stateValues.extendIdx != undefined) {
                     return {
@@ -335,7 +337,12 @@ export default class Copy extends CompositeComponent {
                 stateValues,
                 componentInfoObjects,
             }) {
-                let dependencies = {};
+                let dependencies = {
+                    numComponentsSpecified: {
+                        dependencyType: "stateVariable",
+                        variableName: "numComponentsSpecified",
+                    },
+                };
 
                 let useReplacements = false;
 
@@ -396,7 +403,7 @@ export default class Copy extends CompositeComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentIdx }) {
                 let replacementSourceIdentities = null;
                 if (dependencyValues.targets) {
                     replacementSourceIdentities = dependencyValues.targets;
@@ -404,6 +411,36 @@ export default class Copy extends CompositeComponent {
                         replacementSourceIdentities = [
                             replacementSourceIdentities,
                         ];
+                    }
+
+                    // If need to have only one component and there are more than 1 replacement source,
+                    // trim off any blank strings from the ends.
+                    // We do this so we get a linked point in this example:
+                    // <group name="g"> <point>(1,2)</point> </group>  <point extend="$g" />
+                    if (
+                        dependencyValues.numComponentsSpecified === 1 &&
+                        replacementSourceIdentities.length > 1
+                    ) {
+                        // trim off blank strings
+                        const firstNonBlankIdx =
+                            replacementSourceIdentities.findIndex(
+                                (repl) =>
+                                    typeof repl !== "string" ||
+                                    repl.trim() !== "",
+                            );
+                        const lastNonBlankIdx =
+                            replacementSourceIdentities.findLastIndex(
+                                (repl) =>
+                                    typeof repl !== "string" ||
+                                    repl.trim() !== "",
+                            );
+                        if (firstNonBlankIdx !== -1 && lastNonBlankIdx !== -1) {
+                            replacementSourceIdentities =
+                                replacementSourceIdentities.slice(
+                                    firstNonBlankIdx,
+                                    lastNonBlankIdx + 1,
+                                );
+                        }
                     }
                 }
 
@@ -599,6 +636,10 @@ export default class Copy extends CompositeComponent {
                         ind,
                         source,
                     ] of stateValues.replacementSourceIdentities.entries()) {
+                        if (typeof source === "string") {
+                            continue;
+                        }
+
                         let thisUnresolvedPath = stateValues.unresolvedPath;
 
                         if (stateValues.implicitProp) {
@@ -672,8 +713,21 @@ export default class Copy extends CompositeComponent {
                             }
                             effectivePropNameBySource.push(propName);
                         } else {
-                            // Target not found. Create an invalid effective prop name so that get no replacement
-                            effectivePropNameBySource.push("__no_target_found");
+                            const replSource =
+                                dependencyValues.replacementSourceIdentities[
+                                    ind
+                                ];
+
+                            if (typeof replSource === "string") {
+                                replacementSources.push(replSource);
+                                effectivePropNameBySource.push(undefined);
+                            } else {
+                                // Target not found. Create an invalid effective prop name so that get no replacement
+                                replacementSources.push(undefined);
+                                effectivePropNameBySource.push(
+                                    "__no_target_found",
+                                );
+                            }
                         }
                     }
                 }
@@ -776,6 +830,40 @@ export default class Copy extends CompositeComponent {
             },
         };
 
+        // For unlinked copies, we create a dependency to gather descendants
+        // just to make sure any composite descendants are expanded.
+        // This variable will be a dependency of `readyToExpandWhenResolved`
+        stateVariableDefinitions.unlinkedDescendants = {
+            stateVariablesDeterminingDependencies: ["extendIdx", "link"],
+            returnDependencies({ stateValues }) {
+                let dependencies = {};
+                if (!stateValues.link) {
+                    dependencies.targetDescendants = {
+                        dependencyType: "descendant",
+                        ancestorIdx: stateValues.extendIdx,
+                        componentTypes: ["_composite"],
+                    };
+                } else {
+                    dependencies.targetItself = {
+                        dependencyType: "componentIdentity",
+                        componentIdx: stateValues.extendIdx,
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues, componentIdx }) {
+                return {
+                    setValue: {
+                        unlinkedDescendants: true,
+                    },
+                };
+            },
+        };
+
+        // For unlinked copies, we create a dependency on target replacements
+        // just to make sure any composite target is expanded.
+        // This variable will be a dependency of `readyToExpandWhenResolved`
         stateVariableDefinitions.unlinkedTargetsExpanded = {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
@@ -843,6 +931,10 @@ export default class Copy extends CompositeComponent {
                     unlinkedTargetsExpanded: {
                         dependencyType: "stateVariable",
                         variableName: "unlinkedTargetsExpanded",
+                    },
+                    unlinkedDescendants: {
+                        dependencyType: "stateVariable",
+                        variableName: "unlinkedDescendants",
                     },
                 };
                 if (
@@ -1571,7 +1663,7 @@ export default class Copy extends CompositeComponent {
         let serializedReplacements;
         try {
             serializedReplacements = [
-                await replacementSourceComponent.serialize(nComponents, {
+                await replacementSourceComponent.serialize({
                     copyAll: !link,
                     componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,
@@ -1614,8 +1706,11 @@ export default class Copy extends CompositeComponent {
 
         // when copying with link=false, ignore fixed if from essential state
         // so that, for example, a copy from a sequence with link=false is not fixed
-        if (!link && serializedReplacements[0].state?.fixed !== undefined) {
+        // TODO: also now removing the `fixed` attribute. Is that the right choice?
+        if (!link && serializedReplacements[0].state) {
             delete serializedReplacements[0].state.fixed;
+            delete serializedReplacements[0].state.fixedPreliminary;
+            delete serializedReplacements[0].attributes.fixed;
         }
 
         // console.log(`serializedReplacements for ${component.componentIdx}`);
@@ -3766,6 +3861,7 @@ export async function replacementFromProp({
                     },
                 });
             } else {
+                // no link
                 let attributesForReplacement = {};
 
                 if (
@@ -3795,8 +3891,11 @@ export async function replacementFromProp({
                                 let attributeValue =
                                     await target.state[vName].value;
                                 if (!target.state[vName].usedDefault) {
-                                    additionalAttributes[attrName] =
-                                        attributeValue;
+                                    additionalAttributes[attrName] = {
+                                        type: "unresolved",
+                                        name: attrName,
+                                        children: [attributeValue.toString()],
+                                    };
                                 }
                             }
                         }
@@ -3833,6 +3932,8 @@ export async function replacementFromProp({
                                 nComponents = res.nComponents;
 
                                 attributesFromComponent[attrName] = {
+                                    type: "component",
+                                    name: attrName,
                                     component: res.components[0],
                                 };
                             } else if (
@@ -3840,6 +3941,8 @@ export async function replacementFromProp({
                                 undefined
                             ) {
                                 attributesFromComponent[attrName] = {
+                                    type: "primitive",
+                                    name: attrName,
                                     primitive: JSON.parse(
                                         JSON.stringify(
                                             target.attributes[attrName]

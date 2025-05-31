@@ -57,6 +57,10 @@ export default class CallAction extends InlineComponent {
         // attributes.width = {default: 300};
         // attributes.height = {default: 50};
 
+        attributes.target = {
+            createReferences: true,
+        };
+
         attributes.actionName = {
             createComponentOfType: "text",
             createStateVariable: "actionName",
@@ -127,51 +131,33 @@ export default class CallAction extends InlineComponent {
             definition: () => ({ setValue: { clickAction: "callAction" } }),
         };
 
-        stateVariableDefinitions.target = {
+        stateVariableDefinitions.targetComponentIdx = {
+            additionalStateVariablesDefined: ["unresolvedPath"],
             returnDependencies: () => ({
                 target: {
-                    dependencyType: "doenetAttribute",
+                    dependencyType: "attributeRefResolutions",
                     attributeName: "target",
                 },
             }),
-            definition: ({ dependencyValues }) => ({
-                setValue: { target: dependencyValues.target },
-            }),
-        };
+            definition({ dependencyValues }) {
+                if (dependencyValues.target?.length === 1) {
+                    const target = dependencyValues.target[0];
 
-        stateVariableDefinitions.targetComponent = {
-            returnDependencies() {
+                    if (target.unresolvedPath == null) {
+                        return {
+                            setValue: {
+                                targetComponentIdx: target.componentIdx,
+                                unresolvedPath: target.unresolvedPath,
+                            },
+                        };
+                    }
+                }
                 return {
-                    targetComponent: {
-                        dependencyType: "targetComponent",
+                    setValue: {
+                        targetComponentIdx: null,
+                        unresolvedPath: null,
                     },
                 };
-            },
-            definition: function ({ dependencyValues }) {
-                let targetComponent = null;
-                if (dependencyValues.targetComponent) {
-                    targetComponent = dependencyValues.targetComponent;
-                }
-
-                return {
-                    setValue: { targetComponent },
-                };
-            },
-        };
-
-        stateVariableDefinitions.targetName = {
-            returnDependencies: () => ({
-                targetComponent: {
-                    dependencyType: "stateVariable",
-                    variableName: "targetComponent",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let targetName = null;
-                if (dependencyValues.targetComponent) {
-                    targetName = dependencyValues.targetComponent.componentIdx;
-                }
-                return { setValue: { targetName } };
             },
         };
 
@@ -183,9 +169,9 @@ export default class CallAction extends InlineComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let targetName = await this.stateValues.targetName;
+        let targetIdx = await this.stateValues.targetComponentIdx;
         let actionName = await this.stateValues.actionName;
-        if (targetName !== null && actionName !== null) {
+        if (targetIdx != null && actionName != null) {
             let args = { sourceInformation, skipRendererUpdate: true };
             if (this.serializedChildren.length > 0) {
                 args.serializedComponents = deepClone(this.serializedChildren);
@@ -204,7 +190,7 @@ export default class CallAction extends InlineComponent {
             }
 
             await this.coreFunctions.performAction({
-                componentIdx: targetName,
+                componentIdx: targetIdx,
                 actionName,
                 args,
                 event: {

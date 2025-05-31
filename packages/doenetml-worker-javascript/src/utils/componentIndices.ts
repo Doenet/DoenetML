@@ -11,6 +11,7 @@ import {
     SerializedRefResolution,
     SerializedRefResolutionPathPart,
 } from "./dast/types";
+import { addSource, unwrapSource } from "./dast/convertNormalizedDast";
 
 /**
  * Recurse through all serialized components and update their component indices
@@ -98,8 +99,7 @@ function newComponentIndicesForExtending(
 ) {
     let newExtending: Source<SerializedRefResolution> = extending;
 
-    const refResolution =
-        "Ref" in extending ? extending.Ref : extending.Attribute;
+    const refResolution = unwrapSource(extending);
 
     let unresolvedPath: SerializedRefResolutionPathPart[] | null = null;
     if (refResolution.unresolvedPath) {
@@ -126,11 +126,7 @@ function newComponentIndicesForExtending(
         const newRefResolution = { ...refResolution };
         newRefResolution.unresolvedPath = unresolvedPath;
 
-        if ("Ref" in extending) {
-            newExtending = { Ref: newRefResolution };
-        } else {
-            newExtending = { Attribute: newRefResolution };
-        }
+        newExtending = addSource(newRefResolution, extending);
     }
     return { extending: newExtending, nComponents };
 }
@@ -256,8 +252,7 @@ function createNewComponentIndicesUnflattened(
         const extending = newComponent.extending;
 
         if (extending) {
-            const refResolution =
-                "Ref" in extending ? extending.Ref : extending.Attribute;
+            const refResolution = unwrapSource(extending);
 
             let unresolvedPath: UnflattenedPathPart[] | null = null;
             if (refResolution.unresolvedPath) {
@@ -285,11 +280,7 @@ function createNewComponentIndicesUnflattened(
                 const newRefResolution = { ...refResolution };
                 newRefResolution.unresolvedPath = unresolvedPath;
 
-                if ("Ref" in extending) {
-                    newComponent.extending = { Ref: newRefResolution };
-                } else {
-                    newComponent.extending = { Attribute: newRefResolution };
-                }
+                newComponent.extending = addSource(newRefResolution, extending);
             }
         }
 
@@ -312,8 +303,7 @@ function remapRefResolutions(
         const extending = component.extending;
 
         if (extending) {
-            const refResolution =
-                "Ref" in extending ? extending.Ref : extending.Attribute;
+            const refResolution = unwrapSource(extending);
 
             const newNodeIdx = idxMap[refResolution.nodeIdx];
             if (newNodeIdx != undefined) {
@@ -385,8 +375,7 @@ function remapUnflattenedRefResolutions(
         const extending = component.extending;
 
         if (extending) {
-            const refResolution =
-                "Ref" in extending ? extending.Ref : extending.Attribute;
+            const refResolution = unwrapSource(extending);
 
             const newNodeIdx = idxMap[refResolution.nodeIdx];
             if (newNodeIdx != undefined) {
@@ -535,4 +524,57 @@ function createComponentIndicesFromSerializedChildrenSub(
     }
 
     return { components: newComponents, idxMap, nComponents };
+}
+
+/**
+ * Create a map from a component's index to the index of the copy
+ * with a `createComponentIdx` attribute that created the component.
+ *
+ * Currently, we use copies to create components that have
+ * an `extend` or `copy` attribute. If another component depends
+ * on such a component via its `componentIdx`, we use this
+ * mapping to determine which `copy` would need to be expanded
+ * in order to create that dependency.
+ *
+ * This extra step is required because the resolve algorithm may have
+ * already resolved references to a `componentIdx` that does not yet
+ * exist because it was replaced with the copy.
+ */
+export function extractCreateComponentIdxMapping(
+    serializedComponents: (SerializedComponent | string)[],
+) {
+    const createComponentIdxMapping: Record<number, number> = {};
+
+    for (const component of serializedComponents) {
+        if (typeof component === "string") {
+            continue;
+        }
+
+        if (component.attributes?.createComponentIdx?.type === "primitive") {
+            const primitive = component.attributes.createComponentIdx.primitive;
+            if (primitive.type === "number") {
+                const createComponentIdx = primitive.value;
+                createComponentIdxMapping[createComponentIdx] =
+                    component.componentIdx;
+            }
+        }
+
+        const res = extractCreateComponentIdxMapping(component.children);
+        Object.assign(createComponentIdxMapping, res.createComponentIdxMapping);
+
+        for (const attrName in component.attributes) {
+            const attribute = component.attributes[attrName];
+            if (attribute.type === "component") {
+                const res = extractCreateComponentIdxMapping([
+                    attribute.component,
+                ]);
+                Object.assign(
+                    createComponentIdxMapping,
+                    res.createComponentIdxMapping,
+                );
+            }
+        }
+    }
+
+    return { createComponentIdxMapping };
 }

@@ -2129,38 +2129,40 @@ export class DependencyHandler {
         }
 
         for (let varName of stateVariables) {
-            let stateVarObj = component.state[varName];
+            // TODO: remove this commented out code if it turns out we don't need `determineDependenciesImmediately`
 
-            if (stateVarObj && stateVarObj.determineDependenciesImmediately) {
-                let neededForItem = this.getNeededToResolve({
-                    componentIdx,
-                    type: "stateVariable",
-                    stateVariable: varName,
-                });
+            // let stateVarObj = component.state[varName];
 
-                let determineDepsBlockers = neededForItem.determineDependencies;
-                if (determineDepsBlockers) {
-                    for (let blockerCode of determineDepsBlockers) {
-                        let [
-                            blockerComponentIdx,
-                            blockerStateVariable,
-                            blockerDependency,
-                        ] =
-                            typeof blockerCode === "string"
-                                ? blockerCode.split("|")
-                                : [blockerCode];
+            // if (stateVarObj && stateVarObj.determineDependenciesImmediately) {
+            //     let neededForItem = this.getNeededToResolve({
+            //         componentIdx,
+            //         type: "stateVariable",
+            //         stateVariable: varName,
+            //     });
 
-                        await this.resolveIfReady({
-                            componentIdx: blockerComponentIdx,
-                            type: "determineDependencies",
-                            stateVariable: blockerStateVariable,
-                            dependency: blockerDependency,
-                            expandComposites: true, // TODO: why is this true?
-                            // recurseUpstream: true
-                        });
-                    }
-                }
-            }
+            //     let determineDepsBlockers = neededForItem.determineDependencies;
+            //     if (determineDepsBlockers) {
+            //         for (let blockerCode of determineDepsBlockers) {
+            //             let [
+            //                 blockerComponentIdx,
+            //                 blockerStateVariable,
+            //                 blockerDependency,
+            //             ] =
+            //                 typeof blockerCode === "string"
+            //                     ? blockerCode.split("|")
+            //                     : [blockerCode];
+
+            //             await this.resolveIfReady({
+            //                 componentIdx: blockerComponentIdx,
+            //                 type: "determineDependencies",
+            //                 stateVariable: blockerStateVariable,
+            //                 dependency: blockerDependency,
+            //                 expandComposites: true, // TODO: why is this true?
+            //                 // recurseUpstream: true
+            //             });
+            //         }
+            //     }
+            // }
             await this.resolveIfReady({
                 componentIdx,
                 type: "stateVariable",
@@ -7101,6 +7103,10 @@ class RefResolutionIndexDependencies extends Dependency {
 
         result.value = this.componentList;
 
+        // since value was not determined using actual `downstreamComponentIndices`
+        // we need to manually mark it as changed each time it is computed.
+        result.changes.componentIdentitiesChanged = true;
+
         return result;
     }
 
@@ -7170,6 +7176,49 @@ class RefResolutionDependency extends Dependency {
 
         let nodeIdx = composite.refResolution.nodeIdx;
         this.originalPath = composite.refResolution.originalPath;
+
+        // If `nodeIdx` is a component that was created via an `extend` or `copy` attribute,
+        // then it was (or will be) created from a copy that has a `createComponentIdx` attribute
+        // set to `nodeIdx`. In this case, we find that copy using the `createComponentIdxMapping`
+        // and create blockers/triggers to potentially postpone creating this dependency
+        // and update it when `nodeIdx` is created or updated.
+        const componentCreatingExtendIdx =
+            this.dependencyHandler.core.createComponentIdxMapping[nodeIdx];
+
+        if (componentCreatingExtendIdx != null) {
+            const compositeCreating =
+                this.dependencyHandler._components[componentCreatingExtendIdx];
+
+            if (!compositeCreating) {
+                this.addUpdateTriggerForMissingComponent(
+                    componentCreatingExtendIdx,
+                );
+                this.missingComponentBlockers.push(componentCreatingExtendIdx);
+
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
+            if (!compositeCreating.isExpanded) {
+                this.addBlockerForUnexpandedComposite(compositeCreating);
+
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
+            this.compositeReplacementDependencies.push(
+                compositeCreating.componentIdx,
+            );
+            this.addUpdateTriggersForCompositeReplacements([
+                compositeCreating.componentIdx,
+            ]);
+        }
 
         if (composite.refResolution.unresolvedPath == null) {
             this.extendIdx = nodeIdx;

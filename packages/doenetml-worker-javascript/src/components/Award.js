@@ -6,6 +6,7 @@ import {
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
 import { deepCompare } from "@doenet/utils";
+import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -828,10 +829,7 @@ function addResponsesToDescendantsWithReference(components, reference) {
     for (let component of components) {
         if (component.type === "serialized") {
             if (component.extending) {
-                const refResolution =
-                    "Ref" in component.extending
-                        ? component.extending.Ref
-                        : component.extending.Attribute;
+                const refResolution = unwrapSource(component.extending);
 
                 if (
                     refResolution.nodeIdx === reference.nodeIdx &&

@@ -1369,7 +1369,7 @@ export default class BaseComponent {
         serializedComponent.originalAttributes = deepClone(
             serializedComponent.attributes,
         );
-        // XXX: lost whether this was a Ref or an Attribute
+        // XXX: lost whether this was a Ref, an ExtendAttribute or a CopyAttribute
         if (this.refResolution) {
             serializedComponent.extending = {
                 Ref: deepClone(this.refResolution),

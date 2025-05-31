@@ -4,7 +4,11 @@ import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
 } from "../utils/variants";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import {
+    addSource,
+    convertUnresolvedAttributesForComponentType,
+    unwrapSource,
+} from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
@@ -369,6 +373,9 @@ export default class Repeat extends CompositeComponent {
         replacements[0] = aliasResult.replacement;
         nComponents = aliasResult.nComponents;
 
+        // XXX: is this code still relevant?
+        // If so, it probably needs to be updated.
+        // If not, delete it.
         if (component.unlinkedCopySource && !isUpdate) {
             await copyStateFromUnlinkedSource({
                 components,
@@ -886,8 +893,7 @@ export function remapExtendIndices(components, extendIdxMapping) {
         let newComponent = { ...comp };
         const extending = newComponent.extending;
         if (extending) {
-            const refResolution =
-                "Ref" in extending ? extending.Ref : extending.Attribute;
+            const refResolution = unwrapSource(extending);
 
             const newRefResolution = { ...refResolution };
 
@@ -897,31 +903,20 @@ export function remapExtendIndices(components, extendIdxMapping) {
             }
 
             if (refResolution.unresolvedPath) {
-                const unresolvedPath = [];
-                for (const pathPath of refResolution.unresolvedPath) {
-                    const newPathPart = { ...pathPath };
-                    const index = [];
-                    for (const indexPart of newPathPart.index) {
-                        const newIndexPart = { ...indexPart };
-
-                        newIndexPart.value = remapExtendIndices(
-                            newIndexPart.value,
-                            extendIdxMapping,
-                        );
-                        index.push(newIndexPart);
-                    }
-                    newPathPart.index = index;
-                    unresolvedPath.push(newPathPart);
-                }
-
-                newRefResolution.unresolvedPath = unresolvedPath;
+                newRefResolution.unresolvedPath = remapExtendIndicesInPath(
+                    refResolution.unresolvedPath,
+                    extendIdxMapping,
+                );
             }
 
-            if ("Ref" in extending) {
-                newComponent.extending = { Ref: newRefResolution };
-            } else {
-                newComponent.extending = { Attribute: newRefResolution };
+            if (refResolution.originalPath) {
+                newRefResolution.originalPath = remapExtendIndicesInPath(
+                    refResolution.originalPath,
+                    extendIdxMapping,
+                );
             }
+
+            newComponent.extending = addSource(newRefResolution, extending);
         }
 
         newComponent.children = remapExtendIndices(
@@ -946,4 +941,23 @@ export function remapExtendIndices(components, extendIdxMapping) {
     }
 
     return newComponents;
+}
+function remapExtendIndicesInPath(path, extendIdxMapping) {
+    const unresolvedPath = [];
+    for (const pathPath of path) {
+        const newPathPart = { ...pathPath };
+        const index = [];
+        for (const indexPart of newPathPart.index) {
+            const newIndexPart = { ...indexPart };
+
+            newIndexPart.value = remapExtendIndices(
+                newIndexPart.value,
+                extendIdxMapping,
+            );
+            index.push(newIndexPart);
+        }
+        newPathPart.index = index;
+        unresolvedPath.push(newPathPart);
+    }
+    return unresolvedPath;
 }

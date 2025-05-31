@@ -105,8 +105,7 @@ export async function normalizedDastToSerializedComponents(
     function unFlattenExtending(
         extending: Source<RefResolution>,
     ): Source<UnflattenedRefResolution> {
-        const refResolution =
-            "Ref" in extending ? extending.Ref : extending.Attribute;
+        const refResolution = unwrapSource(extending);
 
         let unresolvedPath: UnflattenedPathPart[] | null = null;
 
@@ -122,9 +121,7 @@ export async function normalizedDastToSerializedComponents(
             originalPath,
         };
 
-        return "Ref" in extending
-            ? { Ref: unflattenedRefResolution }
-            : { Attribute: unflattenedRefResolution };
+        return addSource(unflattenedRefResolution, extending);
     }
 
     function unflattenPath(path: FlatPathPart[]) {
@@ -282,10 +279,9 @@ export function expandUnflattenedToSerializedComponents({
                 undefined;
 
             if (component.extending) {
-                const unflattenedRefResolution =
-                    "Ref" in component.extending
-                        ? component.extending.Ref
-                        : component.extending.Attribute;
+                const unflattenedRefResolution = unwrapSource(
+                    component.extending,
+                );
                 const refResolutionResult = expandUnflattenedRefResolution({
                     unflattenedRefResolution,
                     componentInfoObjects,
@@ -294,10 +290,7 @@ export function expandUnflattenedToSerializedComponents({
                 });
 
                 const refResolution = refResolutionResult.refResolution;
-                extending =
-                    "Ref" in component.extending
-                        ? { Ref: refResolution }
-                        : { Attribute: refResolution };
+                extending = addSource(refResolution, component.extending);
 
                 errors.push(...refResolutionResult.errors);
                 nComponents = refResolutionResult.nComponents;
@@ -1030,4 +1023,33 @@ export function convertUnresolvedAttributesForComponentType({
     }
 
     return { attributes: newAttributes, nComponents };
+}
+
+/**
+ * Unwrap an `extending` attribute to its underlying `refResolution`.
+ */
+export function unwrapSource<T>(extending: Source<T>): T {
+    if ("Ref" in extending) {
+        return extending.Ref;
+    } else if ("ExtendAttribute" in extending) {
+        return extending.ExtendAttribute;
+    } else {
+        return extending.CopyAttribute;
+    }
+}
+
+/**
+ * Wrap `refResolution` with the type of `Source` that `extending` has.
+ */
+export function addSource<T, U>(
+    refResolution: T,
+    extending: Source<U>,
+): Source<T> {
+    if ("Ref" in extending) {
+        return { Ref: refResolution };
+    } else if ("ExtendAttribute" in extending) {
+        return { ExtendAttribute: refResolution };
+    } else {
+        return { CopyAttribute: refResolution };
+    }
 }

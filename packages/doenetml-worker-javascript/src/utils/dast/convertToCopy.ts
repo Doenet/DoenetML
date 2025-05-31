@@ -7,6 +7,7 @@ import {
     UnflattenedPathPart,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
+import { unwrapSource } from "./convertNormalizedDast";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -63,8 +64,7 @@ export function convertRefsToCopies({
 
         const extending = newComponent.extending;
 
-        const refResolution =
-            "Ref" in extending ? extending.Ref : extending.Attribute;
+        const refResolution = unwrapSource(extending);
         const unresolvedPath =
             refResolution.unresolvedPath === null
                 ? null
@@ -90,11 +90,11 @@ export function convertRefsToCopies({
 
         let wrappingComponent: UnflattenedComponent | null = null;
 
-        // If the reference was is an Attribute
+        // If the reference was is an ExtendAttribute or CopyAttribute
         // then we know the resulting componentType
         // and we make the name and componentIdx the component be assigned to the eventual replacement
 
-        if ("Attribute" in extending) {
+        if ("ExtendAttribute" in extending || "CopyAttribute" in extending) {
             if (newComponent.componentType.endsWith("List")) {
                 wrappingComponent = newComponent;
                 wrappingComponent.attributes = outerAttributes;
@@ -110,6 +110,13 @@ export function convertRefsToCopies({
                     children: [],
                     extending: wrappingComponent.extending,
                 };
+
+                if ("CopyAttribute" in extending) {
+                    newComponent.attributes.link = {
+                        name: "link",
+                        children: ["false"],
+                    };
+                }
                 delete wrappingComponent.extending;
             } else {
                 outerAttributes.createComponentOfType = {
@@ -131,6 +138,13 @@ export function convertRefsToCopies({
                     name: "copyInChildren",
                     children: ["true"],
                 };
+
+                if ("CopyAttribute" in extending) {
+                    outerAttributes.link = {
+                        name: "link",
+                        children: ["false"],
+                    };
+                }
             }
         }
 
@@ -139,7 +153,7 @@ export function convertRefsToCopies({
         if (unresolvedPath === null) {
             // a copy with no props
             if (wrappingComponent) {
-                wrappingComponent.children.splice(0, 0, newComponent);
+                wrappingComponent.children.unshift(newComponent);
                 newComponents.push(wrappingComponent);
             } else {
                 newComponent.attributes = outerAttributes;

@@ -1,4 +1,7 @@
-import { convertUnresolvedAttributesForComponentType } from "./dast/convertNormalizedDast";
+import {
+    convertUnresolvedAttributesForComponentType,
+    unwrapSource,
+} from "./dast/convertNormalizedDast";
 
 export function postProcessCopy({
     serializedComponents,
@@ -7,9 +10,8 @@ export function postProcessCopy({
     markAsPrimaryShadow = false,
     identifierPrefix = "",
     unlinkExternalCopies = false,
-    copiesByTargetComponentName = {},
-    componentNamesFound = [],
-    activeAliases = [],
+    copiesByExtendIdx: copiesByRefIdx = {},
+    componentIndicesFound = [],
     init = true,
 }) {
     // recurse through serializedComponents
@@ -25,7 +27,7 @@ export function postProcessCopy({
 
         if (component.originalIdx != undefined) {
             if (unlinkExternalCopies) {
-                componentNamesFound.push(component.originalIdx);
+                componentIndicesFound.push(component.originalIdx);
             }
 
             // preserializedNamesFound[component.originalIdx] = component;
@@ -61,34 +63,17 @@ export function postProcessCopy({
         }
 
         if (component.componentType === "copy" && unlinkExternalCopies) {
-            let targetComponentIdx =
-                component.doenetAttributes.targetComponentIdx;
-            if (!targetComponentIdx) {
+            const refResolution = unwrapSource(component.extending);
+            const nodeIdx = refResolution.nodeIdx;
+            if (nodeIdx == null) {
                 if (!component.attributes.uri) {
-                    throw Error(
-                        "we need to create a targetComponentIdx here, then.",
-                    );
+                    throw Error("we need to create a nodeIdx here, then.");
                 }
             } else {
-                if (activeAliases.includes(component.doenetAttributes.target)) {
-                    // TODO: is the this right thing to do?
-                    // Not clear if following the same rules for when a match would override an alias
-                    // Setting targetComponentIdx to a relative name presumably prevents the targetComponentIdx
-                    // from ever matching anything.  Is that what we want?
-                    component.doenetAttributes.targetComponentIdx =
-                        component.doenetAttributes.target;
-                } else {
-                    // don't create if matches an alias
-                    if (
-                        copiesByTargetComponentName[targetComponentIdx] ===
-                        undefined
-                    ) {
-                        copiesByTargetComponentName[targetComponentIdx] = [];
-                    }
-                    copiesByTargetComponentName[targetComponentIdx].push(
-                        component,
-                    );
+                if (copiesByRefIdx[nodeIdx] === undefined) {
+                    copiesByRefIdx[nodeIdx] = [];
                 }
+                copiesByRefIdx[nodeIdx].push(component);
             }
         }
     }
@@ -109,9 +94,8 @@ export function postProcessCopy({
             markAsPrimaryShadow,
             identifierPrefix,
             unlinkExternalCopies,
-            copiesByTargetComponentName,
-            componentNamesFound,
-            activeAliases: [...activeAliases], // don't add values from children
+            copiesByExtendIdx: copiesByRefIdx,
+            componentIndicesFound,
             init: false,
         });
 
@@ -125,9 +109,8 @@ export function postProcessCopy({
                     markAsPrimaryShadow,
                     identifierPrefix,
                     unlinkExternalCopies,
-                    copiesByTargetComponentName,
-                    componentNamesFound,
-                    activeAliases: [...activeAliases], // don't add values from children
+                    copiesByExtendIdx: copiesByRefIdx,
+                    componentIndicesFound,
                     init: false,
                 })[0];
             }
@@ -141,22 +124,17 @@ export function postProcessCopy({
                 markAsPrimaryShadow,
                 identifierPrefix,
                 unlinkExternalCopies,
-                copiesByTargetComponentName,
-                componentNamesFound,
-                activeAliases: [...activeAliases], // don't add values from children
+                copiesByExtendIdx: copiesByRefIdx,
+                componentIndicesFound,
                 init: false,
             });
         }
     }
 
-    // XXX: this doesn't work anymore with removing namespaces.
-    // Determine what this is supposed to accomplish and recreate functionality
     if (init && unlinkExternalCopies) {
-        for (let targetComponentIdxStr in copiesByTargetComponentName) {
-            if (!componentNamesFound.includes(targetComponentIdxStr)) {
-                for (let copyComponent of copiesByTargetComponentName[
-                    targetComponentIdxStr
-                ]) {
+        for (let extendIdxStr in copiesByRefIdx) {
+            if (!componentIndicesFound.includes(Number(extendIdxStr))) {
+                for (let copyComponent of copiesByRefIdx[extendIdxStr]) {
                     if (!copyComponent.attributes) {
                         copyComponent.attributes = {};
                     }
@@ -164,8 +142,6 @@ export function postProcessCopy({
                         type: "primitive",
                         primitive: { type: "boolean", value: false },
                     };
-                    copyComponent.doenetAttributes.target =
-                        copyComponent.doenetAttributes.targetComponentIdx;
                 }
             }
         }
