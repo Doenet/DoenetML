@@ -2562,7 +2562,7 @@ export default class Core {
         }
 
         let position = this.components[component.componentIdx].position;
-        let overwriteDoenetMLRange = component.componentType === "copy";
+        let overwriteDoenetMLRange = component.componentType === "_copy";
 
         this.gatherErrorsAndAssignDoenetMLRange({
             components: result.replacements,
@@ -9705,7 +9705,7 @@ export default class Core {
                     let position =
                         this.components[component.componentIdx].position;
                     let overwriteDoenetMLRange =
-                        component.componentType === "copy";
+                        component.componentType === "_copy";
 
                     this.gatherErrorsAndAssignDoenetMLRange({
                         components: serializedReplacements,

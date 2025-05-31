@@ -62,7 +62,7 @@ export function postProcessCopy({
             }
         }
 
-        if (component.componentType === "copy" && unlinkExternalCopies) {
+        if (component.componentType === "_copy" && unlinkExternalCopies) {
             const refResolution = unwrapSource(component.extending);
             const nodeIdx = refResolution.nodeIdx;
             if (nodeIdx == null) {
@@ -743,7 +743,7 @@ export function restrictTNamesToNamespace({
                 components: component.children,
                 namespace: adjustedNamespace,
                 parentNamespace: namespaceForChildren,
-                parentIsCopy: component.componentType === "copy",
+                parentIsCopy: component.componentType === "_copy",
                 invalidateReferencesToBaseNamespace,
             });
         }

@@ -100,7 +100,7 @@ export function convertRefsToCopies({
                 wrappingComponent.attributes = outerAttributes;
                 newComponent = {
                     type: "unflattened",
-                    componentType: "copy",
+                    componentType: "_copy",
                     componentIdx: nComponents++,
                     attributes: {},
                     doenetAttributes: {
@@ -148,7 +148,7 @@ export function convertRefsToCopies({
             }
         }
 
-        newComponent.componentType = "copy";
+        newComponent.componentType = "_copy";
 
         if (unresolvedPath === null) {
             // a copy with no props
@@ -199,7 +199,7 @@ export function convertRefsToCopies({
                                     position: index.position,
                                 };
                             } else if (
-                                comp.componentType === "copy" &&
+                                comp.componentType === "_copy" &&
                                 !comp.attributes.createComponentOfType
                             ) {
                                 comp.attributes.createComponentOfType = {
@@ -275,7 +275,7 @@ function convertEvaluate({
         children: [
             {
                 type: "unflattened",
-                componentType: "copy",
+                componentType: "_copy",
                 componentIdx: nComponents++,
                 children: [],
                 attributes: {},

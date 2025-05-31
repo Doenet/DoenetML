@@ -168,7 +168,7 @@ export default class Award extends BaseComponent {
                 .filter(
                     (child) =>
                         child.type === "unflattened" &&
-                        child.componentType === "copy",
+                        child.componentType === "_copy",
                 )
                 .map((child) => child.extending.Ref);
 

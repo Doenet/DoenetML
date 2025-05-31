@@ -1,16 +1,16 @@
-import CompositeComponent from "./abstract/CompositeComponent";
+import CompositeComponent from "./CompositeComponent";
 import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
     restrictTNamesToNamespace,
     calculateReplacementTypesFromChanges,
-} from "../utils/copy";
+} from "../../utils/copy";
 import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
-import { createNewComponentIndices } from "../utils/componentIndices";
+import { convertUnresolvedAttributesForComponentType } from "../../utils/dast/convertNormalizedDast";
+import { createNewComponentIndices } from "../../utils/componentIndices";
 
 export default class Copy extends CompositeComponent {
-    static componentType = "copy";
+    static componentType = "_copy";
 
     static excludeFromSchema = true;
 
@@ -349,7 +349,7 @@ export default class Copy extends CompositeComponent {
                 if (stateValues.extendedComponent !== null) {
                     if (
                         stateValues.extendedComponent.componentType ===
-                            "copy" ||
+                            "_copy" ||
                         (componentInfoObjects.isCompositeComponent({
                             componentType:
                                 stateValues.extendedComponent.componentType,
@@ -1777,7 +1777,7 @@ export default class Copy extends CompositeComponent {
         // Test this as a way to avoid having to deal with copyInChildren in the shadowing composites code.
         if (
             serializedReplacements.length === 1 &&
-            serializedReplacements[0].componentType === "copy"
+            serializedReplacements[0].componentType === "_copy"
             // componentInfoObjects.isCompositeComponent({
             //     componentType: serializedReplacements[0].componentType,
             //     includeNonStandard: true,

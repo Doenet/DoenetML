@@ -7366,7 +7366,7 @@ class RefResolutionDependency extends Dependency {
             let elt = nonBlankStringReplacements.pop();
 
             while (elt) {
-                if (elt.componentType === "copy") {
+                if (elt.componentType === "_copy") {
                     // make sure that the copy is expanded
                     if (!elt.isExpanded) {
                         this.addBlockerForUnexpandedComposite(elt);

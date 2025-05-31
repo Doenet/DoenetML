@@ -111,7 +111,7 @@ export function gatherDescendants({
             ) {
                 // we explicitly will not ignore replacements of copies of external content
                 checkChildForReplacements = !(
-                    child.componentType === "copy" &&
+                    child.componentType === "_copy" &&
                     child.doenetAttributes.copiedURI
                 );
             }

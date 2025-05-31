@@ -810,7 +810,7 @@ async function addAndLinkAliasComponents(
         // Create reference with name `itemName` that will link to sources
         setupComponent.children.push({
             type: "serialized",
-            componentType: "copy",
+            componentType: "_copy",
             componentIdx: nComponents++,
             attributes: {
                 createComponentIdx: {
