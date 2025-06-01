@@ -1,9 +1,10 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import {
-    applyMacros,
-    applySugar,
-    componentFromAttribute,
-} from "../utils/expandDoenetML";
+// XXX: we need to use the replacement functions for these
+// import {
+//     applyMacros,
+//     applySugar,
+//     componentFromAttribute,
+// } from "../utils/expandDoenetML";
 
 export default class CustomAttribute extends CompositeComponent {
     static componentType = "customAttribute";

@@ -18,6 +18,7 @@ import {
     preprocessMathInverseDefinition,
 } from "./utils/math";
 import {
+    addAttributesToSingleReplacement,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
 } from "./utils/copy";
@@ -3038,6 +3039,12 @@ export default class Core {
             newNComponents = verificationResult.nComponents;
 
             serializedReplacements = verificationResult.replacements;
+
+            addAttributesToSingleReplacement(
+                serializedReplacements,
+                component,
+                this.componentInfoObjects,
+            );
         }
 
         // console.log(

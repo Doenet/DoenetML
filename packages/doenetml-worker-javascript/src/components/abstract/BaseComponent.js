@@ -1406,20 +1406,27 @@ export default class BaseComponent {
             attributes: {},
         };
 
-        if (serializedComponent.doenetAttributes !== undefined) {
+        if (serializedComponent.doenetAttributes != undefined) {
             serializedCopy.originalDoenetAttributes = deepClone(
                 serializedComponent.doenetAttributes,
             );
             serializedCopy.doenetAttributes = deepClone(
                 serializedComponent.doenetAttributes,
             );
-            serializedCopy.originalAttributes = deepClone(
-                serializedComponent.attributes,
-            );
+            delete serializedCopy.doenetAttributes.prescribedName;
+        }
+
+        if (serializedComponent.attributes != undefined) {
             serializedCopy.attributes = deepClone(
                 serializedComponent.attributes,
             );
-            delete serializedCopy.doenetAttributes.prescribedName;
+            serializedCopy.originalAttributes = deepClone(
+                serializedComponent.attributes,
+            );
+        }
+
+        if (serializedComponent.extending != undefined) {
+            serializedCopy.extending = deepClone(serializedComponent.extending);
         }
 
         if (serializedComponent.position !== undefined) {

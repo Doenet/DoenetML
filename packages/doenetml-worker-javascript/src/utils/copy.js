@@ -10,7 +10,7 @@ export function postProcessCopy({
     markAsPrimaryShadow = false,
     identifierPrefix = "",
     unlinkExternalCopies = false,
-    copiesByExtendIdx: copiesByRefIdx = {},
+    copiesByRefIdx = {},
     componentIndicesFound = [],
     init = true,
 }) {
@@ -25,11 +25,11 @@ export function postProcessCopy({
             continue;
         }
 
-        if (component.originalIdx != undefined) {
-            if (unlinkExternalCopies) {
-                componentIndicesFound.push(component.originalIdx);
-            }
+        if (unlinkExternalCopies) {
+            componentIndicesFound.push(component.componentIdx);
+        }
 
+        if (component.originalIdx != undefined) {
             // preserializedNamesFound[component.originalIdx] = component;
 
             if (!component.originalNameFromSerializedComponent) {
@@ -94,7 +94,7 @@ export function postProcessCopy({
             markAsPrimaryShadow,
             identifierPrefix,
             unlinkExternalCopies,
-            copiesByExtendIdx: copiesByRefIdx,
+            copiesByRefIdx,
             componentIndicesFound,
             init: false,
         });
@@ -109,7 +109,7 @@ export function postProcessCopy({
                     markAsPrimaryShadow,
                     identifierPrefix,
                     unlinkExternalCopies,
-                    copiesByExtendIdx: copiesByRefIdx,
+                    copiesByRefIdx,
                     componentIndicesFound,
                     init: false,
                 })[0];
@@ -124,7 +124,7 @@ export function postProcessCopy({
                 markAsPrimaryShadow,
                 identifierPrefix,
                 unlinkExternalCopies,
-                copiesByExtendIdx: copiesByRefIdx,
+                copiesByRefIdx,
                 componentIndicesFound,
                 init: false,
             });
@@ -268,15 +268,16 @@ export async function verifyReplacementsMatchSpecifiedType({
         //     `Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType and numComponents`,
         // );
 
-        // if only replacement is a group
-        // then give the group the createComponentOfType and numComponentsSpecified
+        // if only replacement is a group or a _copy
+        // then give the group/_copy the createComponentOfType and numComponentsSpecified
         if (
             replacements?.length === 1 &&
             requiredLength === 1 &&
-            componentInfoObjects.isInheritedComponentType({
+            (componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType: replacements[0].componentType,
                 baseComponentType: "group",
-            })
+            }) ||
+                replacements[0].componentType === "_copy")
         ) {
             if (!replacements[0].attributes) {
                 replacements[0].attributes = {};
@@ -315,18 +316,20 @@ export async function verifyReplacementsMatchSpecifiedType({
             replacementChanges[0].changeType === "add" &&
             replacementChanges[0].changeTopLevelReplacements &&
             replacementChanges[0].serializedReplacements.length === 1 &&
-            componentInfoObjects.isInheritedComponentType({
+            (componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType:
                     replacementChanges[0].serializedReplacements[0]
                         .componentType,
                 baseComponentType: "group",
-            }) &&
+            }) ||
+                replacementChanges[0].serializedReplacements[0]
+                    .componentType === "_copy") &&
             requiredLength === 1 &&
             replacementChanges[0].numberReplacementsToReplace >=
                 component.replacements.length
         ) {
-            // if we are changing replacements so that only replacement is a group
-            // then give the group the createComponentOfType and numComponentsSpecified
+            // if we are changing replacements so that only replacement is a group/_copy
+            // then give the group/_copy the createComponentOfType and numComponentsSpecified
 
             const theReplacement =
                 replacementChanges[0].serializedReplacements[0];
@@ -765,6 +768,117 @@ export function restrictTNamesToNamespace({
                         invalidateReferencesToBaseNamespace,
                     });
                 }
+            }
+        }
+    }
+}
+
+/**
+ * If there is a single replacement and the copy has `createComponentName` or `createComponentIdx`,
+ * then add the name or component index to the replacement
+ */
+export function addAttributesToSingleReplacement(
+    replacements,
+    component,
+    componentInfoObjects,
+) {
+    if (replacements.length === 1 && typeof replacements[0] === "object") {
+        // If the replacement is a group or copy that was created by verify replacements
+        // where it received the `createComponentIdx` attribute from the copy already,
+        // then don't also give it the name and index
+        if (
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: replacements[0].componentType,
+                baseComponentType: "group",
+            }) ||
+            replacements[0].componentType === "_copy"
+        ) {
+            if (replacements[0].attributes?.createComponentIdx != null) {
+                return;
+            }
+        }
+
+        if (
+            component.attributes.createComponentName?.primitive.value !=
+            undefined
+        ) {
+            replacements[0].attributes.name = {
+                type: "primitive",
+                name: "name",
+                primitive: {
+                    type: "string",
+                    value: component.attributes.createComponentName.primitive
+                        .value,
+                },
+            };
+        }
+        if (
+            component.attributes.createComponentIdx?.primitive.value !=
+            undefined
+        ) {
+            replacements[0].componentIdx =
+                component.attributes.createComponentIdx.primitive.value;
+        }
+    }
+}
+
+/** If, after changes, we have a single component that has a componentName and componentIdx
+ * given by the Copy, then assign those to the replacement
+ * We have dealt just with the special case that we arrive at one replacement with a single "add" change.
+ * We could generalize if we need to.
+ */
+export function addAttributesToSingleReplacementChange(
+    component,
+    replacementChanges,
+    componentInfoObjects,
+) {
+    const { replacementTypes, replacementsToWithhold } =
+        calculateReplacementTypesFromChanges(component, replacementChanges);
+    if (replacementTypes.length === 1 && !(replacementsToWithhold > 0)) {
+        if (
+            replacementChanges.length === 1 &&
+            replacementChanges[0].changeType === "add" &&
+            replacementChanges[0].serializedReplacements.length === 1 &&
+            typeof replacementChanges[0].serializedReplacements[0] === "object"
+        ) {
+            const theNewReplacement =
+                replacementChanges[0].serializedReplacements[0];
+
+            // If the replacement is a group/_copy that was created by verify replacements
+            // where it received the `createComponentIdx` attribute from the copy already,
+            // then don't also give it the name and index
+            if (
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: theNewReplacement.componentType,
+                    baseComponentType: "group",
+                }) ||
+                theNewReplacement.componentType === "_copy"
+            ) {
+                if (theNewReplacement.attributes?.createComponentIdx != null) {
+                    return;
+                }
+            }
+
+            if (
+                component.attributes.createComponentName?.primitive.value !=
+                undefined
+            ) {
+                theNewReplacement.attributes.name = {
+                    type: "primitive",
+                    name: "name",
+                    primitive: {
+                        type: "string",
+                        value: component.attributes.createComponentName
+                            .primitive.value,
+                    },
+                };
+            }
+            if (
+                component.attributes.createComponentIdx?.primitive.value !=
+                undefined
+            ) {
+                theNewReplacement.componentIdx =
+                    component.attributes.createComponentIdx.primitive.value;
             }
         }
     }

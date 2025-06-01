@@ -291,13 +291,17 @@ function convertEvaluate({
     // The child of the evaluate is a list of the form `<ol><li></li><li></li></ol>""
     // The grandchildren become children of the input attribute,
     // after converting to math components.
-    const listChildren = {
-        ...(evaluateComponent.children[0] as UnflattenedComponent),
-    }.children.map((child) => {
-        const mathChild = child as UnflattenedComponent;
-        mathChild.componentType = "math";
-        return mathChild;
-    });
+    let listChildren: UnflattenedComponent[] = [];
+
+    if (evaluateComponent.children.length > 0) {
+        listChildren = {
+            ...(evaluateComponent.children[0] as UnflattenedComponent),
+        }.children.map((child) => {
+            const mathChild = child as UnflattenedComponent;
+            mathChild.componentType = "math";
+            return mathChild;
+        });
+    }
     evaluateComponent.attributes.input = {
         name: "input",
         children: listChildren,

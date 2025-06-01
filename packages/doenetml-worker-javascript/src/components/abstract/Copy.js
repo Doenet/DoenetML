@@ -3,7 +3,8 @@ import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
     restrictTNamesToNamespace,
-    calculateReplacementTypesFromChanges,
+    addAttributesToSingleReplacement,
+    addAttributesToSingleReplacementChange,
 } from "../../utils/copy";
 import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
 import { convertUnresolvedAttributesForComponentType } from "../../utils/dast/convertNormalizedDast";
@@ -289,25 +290,6 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.linkAttrForDetermineDeps = {
-            returnDependencies: () => ({
-                linkAttr: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "link",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let linkAttrForDetermineDeps;
-                if (dependencyValues.linkAttr === null) {
-                    linkAttrForDetermineDeps = true;
-                } else {
-                    linkAttrForDetermineDeps = dependencyValues.linkAttr;
-                }
-
-                return { setValue: { linkAttrForDetermineDeps } };
-            },
-        };
-
         stateVariableDefinitions.createComponentOfType = {
             returnDependencies: () => ({
                 typeAttr: {
@@ -329,7 +311,6 @@ export default class Copy extends CompositeComponent {
                 "extendedComponent",
                 "unresolvedPath",
                 "obtainPropFromComposite",
-                "linkAttrForDetermineDeps",
                 "createComponentOfType",
             ],
             additionalStateVariablesDefined: ["usedReplacements"],
@@ -361,31 +342,25 @@ export default class Copy extends CompositeComponent {
                                 stateValues.createComponentOfType)
                     ) {
                         // If the target is a copy or extract (no matter what),
-                        // then we'll use replacements (if link attribute is not set to false),
+                        // then we'll use replacements),
                         // which means we cannot obtainPropFromComposite for a copy.
-                        // For any other composite, we'll use replacements (if link attribute is not set to false)
+                        // For any other composite, we'll use replacements)
                         // only if we're are getting a prop that is not from the composite
                         // and we're not extending the component (where createComponentOfType == componentType)
-                        // TODO: the behavior of unlinked needs more investigation and documentation,
-                        // including why linkAttrForDetermineDeps,
-                        // which is used only here, is different from the link state variable
-                        // that is adjusted for modules/external content, below
 
-                        if (stateValues.linkAttrForDetermineDeps) {
-                            useReplacements = true;
+                        useReplacements = true;
 
-                            // Note: it is possible that we have more than one target
-                            // for the case where we have a prop and a composite target
-                            dependencies.targets = {
-                                dependencyType: "replacement",
-                                compositeIdx:
-                                    stateValues.extendedComponent.componentIdx,
-                                recursive: true,
-                                recurseNonStandardComposites:
-                                    stateValues.unresolvedPath != null,
-                                includeWithheldReplacements: true,
-                            };
-                        }
+                        // Note: it is possible that we have more than one target
+                        // for the case where we have a prop and a composite target
+                        dependencies.targets = {
+                            dependencyType: "replacement",
+                            compositeIdx:
+                                stateValues.extendedComponent.componentIdx,
+                            recursive: true,
+                            recurseNonStandardComposites:
+                                stateValues.unresolvedPath != null,
+                            includeWithheldReplacements: true,
+                        };
                     }
 
                     if (!useReplacements) {
@@ -403,7 +378,7 @@ export default class Copy extends CompositeComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues, componentIdx }) {
+            definition({ dependencyValues }) {
                 let replacementSourceIdentities = null;
                 if (dependencyValues.targets) {
                     replacementSourceIdentities = dependencyValues.targets;
@@ -1253,9 +1228,10 @@ export default class Copy extends CompositeComponent {
             warnings.push(...verificationResult.warnings);
             nComponents = verificationResult.nComponents;
 
-            this.addAttributesToSingleReplacement(
+            addAttributesToSingleReplacement(
                 verificationResult.replacements,
                 component,
+                componentInfoObjects,
             );
 
             return {
@@ -1341,9 +1317,10 @@ export default class Copy extends CompositeComponent {
             warnings.push(...verificationResult.warnings);
             nComponents = verificationResult.nComponents;
 
-            this.addAttributesToSingleReplacement(
+            addAttributesToSingleReplacement(
                 verificationResult.replacements,
                 component,
+                componentInfoObjects,
             );
 
             return {
@@ -1474,7 +1451,11 @@ export default class Copy extends CompositeComponent {
         nComponents = verificationResult.nComponents;
         replacements = verificationResult.replacements;
 
-        this.addAttributesToSingleReplacement(replacements, component);
+        addAttributesToSingleReplacement(
+            replacements,
+            component,
+            componentInfoObjects,
+        );
 
         // console.log(`serialized replacements for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(replacements)));
@@ -1485,45 +1466,6 @@ export default class Copy extends CompositeComponent {
             warnings,
             nComponents,
         };
-    }
-
-    /**
-     * If there is a single replacement and the copy has `createComponentName` or `createComponentIdx`,
-     * then add the name or component index to the replacement
-     */
-    static addAttributesToSingleReplacement(replacements, component) {
-        if (replacements.length === 1 && typeof replacements[0] === "object") {
-            // If the replacement is a group that was created by verify replacements
-            // where it received the `createComponentIdx` attribute from the copy already,
-            // then don't also give it the name and index
-            if (replacements[0].componentType === "group") {
-                if (replacements[0].attributes?.createComponentIdx != null) {
-                    return;
-                }
-            }
-
-            if (
-                component.attributes.createComponentName?.primitive.value !=
-                undefined
-            ) {
-                replacements[0].attributes.name = {
-                    type: "primitive",
-                    name: "name",
-                    primitive: {
-                        type: "string",
-                        value: component.attributes.createComponentName
-                            .primitive.value,
-                    },
-                };
-            }
-            if (
-                component.attributes.createComponentIdx?.primitive.value !=
-                undefined
-            ) {
-                replacements[0].componentIdx =
-                    component.attributes.createComponentIdx.primitive.value;
-            }
-        }
     }
 
     static async createReplacementForSource({
@@ -1881,9 +1823,10 @@ export default class Copy extends CompositeComponent {
                 return { replacementChanges: [], nComponents };
             }
 
-            this.addAttributesToSingleReplacementChange(
+            addAttributesToSingleReplacementChange(
                 component,
                 verificationResult.replacementChanges,
+                componentInfoObjects,
             );
 
             return {
@@ -1923,9 +1866,10 @@ export default class Copy extends CompositeComponent {
                 replacementChanges = verificationResult.replacementChanges;
             }
 
-            this.addAttributesToSingleReplacementChange(
+            addAttributesToSingleReplacementChange(
                 component,
                 replacementChanges,
+                componentInfoObjects,
             );
 
             return { replacementChanges, nComponents };
@@ -2448,9 +2392,10 @@ export default class Copy extends CompositeComponent {
             return { replacementChanges: [] };
         }
 
-        this.addAttributesToSingleReplacementChange(
+        addAttributesToSingleReplacementChange(
             component,
             replacementChanges,
+            componentInfoObjects,
         );
 
         // console.log("replacementChanges");
@@ -2460,63 +2405,6 @@ export default class Copy extends CompositeComponent {
             replacementChanges,
             nComponents,
         };
-    }
-
-    // If, after changes, we have a single component that has a componentName and componentIdx
-    // given by the Copy, then assign those to the replacement
-    // We have dealt just with the special case that we arrive at one replacement with a single "add" change.
-    // We could generalize if we need to.
-    static addAttributesToSingleReplacementChange(
-        component,
-        replacementChanges,
-    ) {
-        const { replacementTypes, replacementsToWithhold } =
-            calculateReplacementTypesFromChanges(component, replacementChanges);
-        if (replacementTypes.length === 1 && !(replacementsToWithhold > 0)) {
-            if (
-                replacementChanges.length === 1 &&
-                replacementChanges[0].changeType === "add" &&
-                replacementChanges[0].serializedReplacements.length === 1 &&
-                typeof replacementChanges[0].serializedReplacements[0] ===
-                    "object"
-            ) {
-                const theNewReplacement =
-                    replacementChanges[0].serializedReplacements[0];
-
-                // If the replacement is a group that was created by verify replacements
-                // where it received the `createComponentIdx` attribute from the copy already,
-                // then don't also give it the name and index
-                if (theNewReplacement.componentType === "group") {
-                    if (
-                        theNewReplacement.attributes?.createComponentIdx != null
-                    ) {
-                        return;
-                    }
-                }
-
-                if (
-                    component.attributes.createComponentName?.primitive.value !=
-                    undefined
-                ) {
-                    theNewReplacement.attributes.name = {
-                        type: "primitive",
-                        name: "name",
-                        primitive: {
-                            type: "string",
-                            value: component.attributes.createComponentName
-                                .primitive.value,
-                        },
-                    };
-                }
-                if (
-                    component.attributes.createComponentIdx?.primitive.value !=
-                    undefined
-                ) {
-                    theNewReplacement.componentIdx =
-                        component.attributes.createComponentIdx.primitive.value;
-                }
-            }
-        }
     }
 
     static async recreateReplacements({
