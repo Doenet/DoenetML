@@ -62,7 +62,7 @@ export async function createTestCore({
     flags?: DoenetMLFlagsSubset;
     theme?: "dark" | "light";
     initializeCounters?: Record<string, number>;
-    requestSolutionView?: (componentIdx: string) => Promise<{
+    requestSolutionView?: (componentIdx: number) => Promise<{
         allowView: boolean;
     }>;
 }) {

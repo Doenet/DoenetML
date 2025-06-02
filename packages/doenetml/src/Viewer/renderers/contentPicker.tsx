@@ -2,8 +2,6 @@ import React, { useRef, useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { rendererState } from "../useDoenetRenderer";
-import { useSetRecoilState } from "recoil";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
@@ -27,8 +25,6 @@ export default React.memo(function ContentPicker(
     const [rendererSelectedIndices, setRendererSelectedIndices] = useState(
         SVs.selectedIndices,
     );
-
-    const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let selectedIndicesWhenSetState = useRef(null);
 
@@ -62,12 +58,6 @@ export default React.memo(function ContentPicker(
         ) {
             setRendererSelectedIndices(newSelectedIndices);
             selectedIndicesWhenSetState.current = SVs.selectedIndices;
-
-            setRendererState((was) => {
-                let newObj = { ...was };
-                newObj.ignoreUpdate = true;
-                return newObj;
-            });
 
             callAction({
                 action: actions.updateSelectedIndices,

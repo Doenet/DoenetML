@@ -85,7 +85,7 @@ describe("BooleanInput Tag Tests", function () {
         });
 
         cy.log("turn off via toggle button");
-        cy.get(cesc("#\\/bi_input")).click();
+        cy.get(cesc("#\\/bi_input")).click({ force: true });
 
         cy.log("Test values displayed in browser");
         cy.get(cesc("#\\/atb_input")).should("be.checked");
@@ -104,7 +104,7 @@ describe("BooleanInput Tag Tests", function () {
         });
 
         cy.log("turn on via toggle button");
-        cy.get(cesc("#\\/bi_input")).click();
+        cy.get(cesc("#\\/bi_input")).click({ force: true });
 
         cy.log("Test values displayed in browser");
         cy.get(cesc("#\\/atb_input")).should("be.checked");

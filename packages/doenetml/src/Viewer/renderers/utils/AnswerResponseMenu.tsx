@@ -1,5 +1,6 @@
 import React from "react";
-import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import { MenuProvider, Menu, MenuItem, MenuButton } from "@ariakit/react";
+import "./AnswerResponseMenu.css";
 
 export function AnswerResponseMenu({
     answerId,
@@ -14,19 +15,13 @@ export function AnswerResponseMenu({
 }) {
     const modifiedId = answerId[0] === "/" ? answerId.substring(1) : answerId;
     return (
-        <Menu>
-            <MenuButton
-                as={Button}
-                size="xs"
-                paddingLeft="2px"
-                paddingRight="2px"
-                cursor="pointer"
-            >
+        <MenuProvider>
+            <MenuButton className="doenet-button action-button answer-response-menu-trigger">
                 {numResponses}
             </MenuButton>
-            <MenuList>
+            <Menu className="answer-response-menu">
                 <MenuItem
-                    cursor="pointer"
+                    className="answer-response-menu-item"
                     onClick={() => {
                         window.postMessage({
                             subject: "requestAnswerResponses",
@@ -36,10 +31,10 @@ export function AnswerResponseMenu({
                         });
                     }}
                 >
-                    Show {numResponses} response{numResponses === 1 ? "" : "s"}{" "}
-                    to {modifiedId}
+                    Show {numResponses} response
+                    {numResponses === 1 ? "" : "s"} to {modifiedId}
                 </MenuItem>
-            </MenuList>
-        </Menu>
+            </Menu>
+        </MenuProvider>
     );
 }

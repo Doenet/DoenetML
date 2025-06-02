@@ -1,16 +1,3 @@
-import {
-    Box,
-    Button,
-    Flex,
-    FormControl,
-    FormLabel,
-    Grid,
-    GridItem,
-    HStack,
-    Spacer,
-    Switch,
-    Tooltip,
-} from "@chakra-ui/react";
 import React, {
     ReactElement,
     useCallback,
@@ -18,14 +5,16 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { ResizablePanelPair } from "./ResizablePanelPair";
+import { ResizablePanelPair, UiButton } from "@doenet/ui-components";
 import { RxUpdate } from "react-icons/rx";
-import { WarningTwoIcon } from "@chakra-ui/icons";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
 import { DocViewer } from "../Viewer/DocViewer";
-import ErrorWarningResponseTabs from "./ErrorWarningResponseTabs";
+import {
+    ErrorWarningResponseTabContents,
+    ErrorWarningResponseTabstrip,
+} from "./ErrorWarningResponseTabs";
 import {
     type WarningDescription,
     type ErrorDescription,
@@ -34,7 +23,16 @@ import {
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 import { formatResponse } from "../utils/responses";
-import { ResizableCollapsiblePanelPair } from "./ResizableCollapsiblePanelPair";
+import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
+import { BsExclamationTriangleFill } from "react-icons/bs";
+import "./editor-viewer.css";
+import {
+    Select,
+    SelectItem,
+    SelectPopover,
+    SelectProvider,
+    useTabStore,
+} from "@ariakit/react";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -46,7 +44,6 @@ export function EditorViewer({
     answerResponseCounts = {},
     width = "100%",
     height = "500px",
-    backgroundColor = "doenet.mainGray",
     showViewer = true,
     viewerLocation = "right",
     doenetmlChangeCallback,
@@ -70,7 +67,6 @@ export function EditorViewer({
     answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
-    backgroundColor?: string;
     showViewer?: boolean;
     viewerLocation?: "left" | "right" | "top" | "bottom";
     doenetmlChangeCallback?: Function;
@@ -303,87 +299,11 @@ export function EditorViewer({
         };
     }, []);
 
-    let formatterAndVersion: React.ReactNode = null;
-
-    formatterAndVersion = (
-        <Flex
-            ml="0px"
-            h="32px"
-            bg="doenet.mainGray"
-            pl="10px"
-            pt="1px"
-            alignItems="center"
-            justify="end"
-        >
-            {showFormatter ? (
-                <>
-                    <Box>
-                        <FormControl display="flex" alignItems="center">
-                            <Switch
-                                id="asXml"
-                                isChecked={formatAsDoenetML}
-                                onChange={(e) => {
-                                    setFormatAsDoenetML(e.target.checked);
-                                }}
-                                title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
-                            />
-                            <FormLabel
-                                htmlFor="asXml"
-                                mb="0"
-                                ml="2"
-                                width="9.8em"
-                                mr="10px"
-                            >
-                                Format as{" "}
-                                {formatAsDoenetML ? "DoenetML" : "XML"}
-                            </FormLabel>
-                        </FormControl>
-                    </Box>
-                    <Box>
-                        <Button
-                            size="xs"
-                            px="4"
-                            mr="10px"
-                            title="Format your source code"
-                            onClick={async () => {
-                                const printed = await prettyPrint(
-                                    editorDoenetMLRef.current,
-                                    {
-                                        doenetSyntax: formatAsDoenetML,
-                                        tabWidth: 2,
-                                    },
-                                );
-                                onEditorChange(printed);
-                            }}
-                        >
-                            Format
-                        </Button>
-                    </Box>
-                </>
-            ) : null}
-            <Box alignSelf="center" fontSize="smaller" mr="10px">
-                Version: {DOENETML_VERSION}
-            </Box>
-        </Flex>
-    );
-
-    const errorsWarningsResponses =
-        showErrorsWarnings || showResponses ? (
-            <ErrorWarningResponseTabs
-                warnings={warningsObjs}
-                errors={errorsObjs}
-                submittedResponses={responses}
-                isOpen={infoPanelIsOpen}
-                setIsOpen={setInfoPanelIsOpen}
-                showErrorsWarnings={showErrorsWarnings}
-                showResponses={showResponses}
-            />
-        ) : null;
-
+    const tabStore = useTabStore();
     const codeMirror = (
         <CodeMirror
             value={editorDoenetML}
-            //TODO: read only isn't working <codeeditor disabled />
+            // TODO: read only isn't working <codeEditor disabled />
             readOnly={readOnly}
             onBlur={() => {
                 window.clearTimeout(updateValueTimer.current ?? undefined);
@@ -399,233 +319,230 @@ export function EditorViewer({
         />
     );
 
-    const editorAndCollapsiblePanel = errorsWarningsResponses ? (
-        <ResizableCollapsiblePanelPair
-            mainPanel={codeMirror}
-            subPanel={errorsWarningsResponses}
-            isOpen={infoPanelIsOpen}
-            setIsOpen={setInfoPanelIsOpen}
-        />
-    ) : (
-        codeMirror
-    );
+    const editorAndCollapsiblePanel =
+        showErrorsWarnings || showResponses ? (
+            <ResizableCollapsiblePanelPair
+                mainPanel={codeMirror}
+                subPanel={
+                    <ErrorWarningResponseTabContents
+                        store={tabStore}
+                        warnings={warningsObjs}
+                        errors={errorsObjs}
+                        submittedResponses={responses}
+                        isOpen={infoPanelIsOpen}
+                        setIsOpen={setInfoPanelIsOpen}
+                        showErrorsWarnings={showErrorsWarnings}
+                        showResponses={showResponses}
+                    />
+                }
+                alwaysVisiblePanel={
+                    <ErrorWarningResponseTabstrip
+                        store={tabStore}
+                        warnings={warningsObjs}
+                        errors={errorsObjs}
+                        submittedResponses={responses}
+                        isOpen={infoPanelIsOpen}
+                        setIsOpen={setInfoPanelIsOpen}
+                        showErrorsWarnings={showErrorsWarnings}
+                        showResponses={showResponses}
+                    />
+                }
+                isOpen={infoPanelIsOpen}
+                setIsOpen={setInfoPanelIsOpen}
+            />
+        ) : (
+            codeMirror
+        );
 
     const editorPanel = (
-        <Grid
-            width="100%"
-            height="100%"
-            templateAreas={`"editor"
-                            "formatter"`}
-            gridTemplateRows={`1fr 32px`}
-            gridTemplateColumns={`1fr`}
-            boxSizing="border-box"
-            background="doenet.canvas"
-            overflowY="hidden"
-            border="solid 1px"
-            borderColor="doenet.mediumGray"
-            id={id}
-        >
-            <GridItem
-                area="editor"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-            >
+        <div className="editor-panel" id={id}>
+            <div className="editor-and-collapsible-panel">
                 {editorAndCollapsiblePanel}
-            </GridItem>
-            <GridItem
-                area="formatter"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-            >
-                {formatterAndVersion}
-            </GridItem>
-        </Grid>
+            </div>
+            <div className="formatter-and-version">
+                {showFormatter ? (
+                    <>
+                        <div className="label">Format as</div>
+                        <div className="wrapper">
+                            <SelectProvider
+                                defaultValue={"DoenetML"}
+                                setValue={(e) => {
+                                    setFormatAsDoenetML(e === "DoenetML");
+                                }}
+                            >
+                                <Select className="button" />
+                                <SelectPopover
+                                    sameWidth
+                                    gutter={2}
+                                    className="popover"
+                                >
+                                    <SelectItem
+                                        className="select-item"
+                                        value="DoenetML"
+                                        onSelect={(e) =>
+                                            console.log("changed ", e)
+                                        }
+                                    />
+                                    <SelectItem
+                                        className="select-item"
+                                        value="XML"
+                                    />
+                                </SelectPopover>
+                            </SelectProvider>
+                        </div>
+                        <UiButton
+                            title="Format your source code"
+                            onClick={async () => {
+                                const printed = await prettyPrint(
+                                    editorDoenetMLRef.current,
+                                    {
+                                        doenetSyntax: formatAsDoenetML,
+                                        tabWidth: 2,
+                                    },
+                                );
+                                onEditorChange(printed);
+                            }}
+                        >
+                            Format
+                        </UiButton>
+                    </>
+                ) : null}
+                <div className="doenetml-version" title="DoenetML version">
+                    Version: {DOENETML_VERSION}
+                </div>
+            </div>
+        </div>
     );
 
     if (!showViewer) {
         return (
-            <Box
-                width={width}
-                height={height}
-                border={border}
-                boxSizing="border-box"
+            <div
+                style={{
+                    display: "flex",
+                    width: width,
+                    height: height,
+                    border: border,
+                    boxSizing: "border-box",
+                }}
             >
                 {editorPanel}
-            </Box>
+            </div>
         );
     }
 
-    const controlHeight =
-        !readOnly || variants.numVariants > 1 ? "32px" : "0px";
-
     const viewerPanel = (
-        <Grid
-            width="100%"
-            height="100%"
-            templateAreas={`"controls"
-                            "viewer"`}
-            gridTemplateRows={`${controlHeight} 1fr`}
-            gridTemplateColumns={`1fr`}
-            overflowY="hidden"
-        >
-            <GridItem
-                area="controls"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-                id={id + "-viewer-controls"}
-            >
-                <HStack w="100%" h="32px" bg={backgroundColor}>
-                    {!readOnly && (
-                        <Box>
-                            <Tooltip
-                                hasArrow
-                                label={
-                                    platform == "Mac"
-                                        ? "Updates Viewer cmd+s"
-                                        : "Updates Viewer ctrl+s"
-                                }
-                            >
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    data-test="Viewer Update Button"
-                                    bg="doenet.canvas"
-                                    leftIcon={<RxUpdate />}
-                                    rightIcon={
-                                        codeChanged ? (
-                                            <WarningTwoIcon
-                                                color="doenet.mainBlue"
-                                                fontSize="18px"
-                                            />
-                                        ) : undefined
-                                    }
-                                    isDisabled={!codeChanged}
-                                    onClick={() => {
-                                        setViewerDoenetML(
-                                            editorDoenetMLRef.current,
-                                        );
-                                        window.clearTimeout(
-                                            updateValueTimer.current ??
-                                                undefined,
-                                        );
-                                        if (
-                                            lastReportedDoenetML.current !==
-                                            editorDoenetMLRef.current
-                                        ) {
-                                            lastReportedDoenetML.current =
-                                                editorDoenetMLRef.current;
-                                            if (!showViewer) {
-                                                doenetmlChangeCallback?.(
-                                                    editorDoenetMLRef.current,
-                                                );
-                                            }
-                                        }
-                                        setCodeChanged(false);
-                                        updateValueTimer.current = null;
-                                        setResponses([]);
-                                    }}
-                                >
-                                    Update
-                                </Button>
-                            </Tooltip>
-                        </Box>
-                    )}
-                    {variants.numVariants > 1 && (
-                        <Box bg={backgroundColor} h="32px" width="100%">
-                            <VariantSelect
-                                size="sm"
-                                menuWidth="140px"
-                                array={variants.allPossibleVariants}
-                                syncIndex={variants.index}
-                                onChange={(index: number) =>
-                                    setVariants((prev) => {
-                                        let next = { ...prev };
-                                        next.index = index + 1;
-                                        return next;
-                                    })
-                                }
-                            />
-                        </Box>
-                    )}
-                </HStack>
-            </GridItem>
-            <GridItem
-                area="viewer"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-            >
-                <Box
-                    height="100%"
-                    width="100%"
-                    background="var(--canvas)"
-                    borderWidth="1px"
-                    borderStyle="solid"
-                    borderColor="doenet.mediumGray"
-                    overflow="scroll"
-                    id={id + "-viewer"}
-                    ref={scrollableContainer}
-                >
-                    {/* @ts-ignore */}
-                    <DocViewer
-                        doenetML={viewerDoenetML}
-                        flags={{
-                            showCorrectness: true,
-                            solutionDisplayMode: "button",
-                            showFeedback: true,
-                            showHints: true,
-                            autoSubmit: false,
-                            allowLoadState: false,
-                            allowSaveState: false,
-                            allowLocalState: false,
-                            allowSaveEvents: showResponses,
-                            readOnly: false,
-                        }}
-                        activityId={activityId}
-                        prefixForIds={prefixForIds}
-                        attemptNumber={1}
-                        generatedVariantCallback={(x: any) => {
-                            const allPossibleVariants = x.allPossibleVariants;
-                            if (Array.isArray(allPossibleVariants)) {
-                                const numVariants = allPossibleVariants.length;
-                                if (
-                                    typeof x.variantInfo === "object" &&
-                                    typeof x.variantInfo.index === "number"
-                                ) {
-                                    const index = x.variantInfo.index;
-                                    setVariants({
-                                        index,
-                                        numVariants,
-                                        allPossibleVariants,
-                                    });
+        <div className="viewer-panel" id={id + "-viewer"}>
+            <div className="viewer-controls" id={id + "-viewer-controls"}>
+                {!readOnly && (
+                    <UiButton
+                        data-test="Viewer Update Button"
+                        disabled={!codeChanged}
+                        title={
+                            platform == "Mac"
+                                ? "Updates Viewer cmd+s"
+                                : "Updates Viewer ctrl+s"
+                        }
+                        onClick={() => {
+                            setViewerDoenetML(editorDoenetMLRef.current);
+                            window.clearTimeout(
+                                updateValueTimer.current ?? undefined,
+                            );
+                            if (
+                                lastReportedDoenetML.current !==
+                                editorDoenetMLRef.current
+                            ) {
+                                lastReportedDoenetML.current =
+                                    editorDoenetMLRef.current;
+                                if (!showViewer) {
+                                    doenetmlChangeCallback?.(
+                                        editorDoenetMLRef.current,
+                                    );
                                 }
                             }
+                            setCodeChanged(false);
+                            updateValueTimer.current = null;
+                            setResponses([]);
                         }}
-                        requestedVariantIndex={variants.index}
-                        setErrorsAndWarningsCallback={
-                            setErrorsAndWarningsCallback
+                    >
+                        <RxUpdate /> Update{" "}
+                        {codeChanged ? (
+                            <BsExclamationTriangleFill
+                                fontSize="18px"
+                                color="var(--mainBlue)"
+                            />
+                        ) : undefined}
+                    </UiButton>
+                )}
+                {variants.numVariants > 1 && (
+                    <VariantSelect
+                        size="sm"
+                        menuWidth="140px"
+                        array={variants.allPossibleVariants}
+                        syncIndex={variants.index}
+                        onChange={(index: number) =>
+                            setVariants((prev) => {
+                                let next = { ...prev };
+                                next.index = index + 1;
+                                return next;
+                            })
                         }
-                        documentStructureCallback={
-                            documentStructureThenChangeCallback
-                        }
-                        linkSettings={linkSettings}
-                        scrollableContainer={
-                            scrollableContainer.current ?? undefined
-                        }
-                        darkMode={darkMode}
-                        showAnswerResponseMenu={showAnswerResponseMenu}
-                        answerResponseCounts={answerResponseCounts}
                     />
-                </Box>
-            </GridItem>
-        </Grid>
+                )}
+            </div>
+            <div
+                className="viewer"
+                id={id + "-viewer"}
+                ref={scrollableContainer}
+            >
+                <DocViewer
+                    doenetML={viewerDoenetML}
+                    flags={{
+                        showCorrectness: true,
+                        solutionDisplayMode: "button",
+                        showFeedback: true,
+                        showHints: true,
+                        autoSubmit: false,
+                        allowLoadState: false,
+                        allowSaveState: false,
+                        allowLocalState: false,
+                        allowSaveEvents: showResponses,
+                        readOnly: false,
+                    }}
+                    activityId={activityId}
+                    prefixForIds={prefixForIds}
+                    attemptNumber={1}
+                    generatedVariantCallback={(x: any) => {
+                        const allPossibleVariants = x.allPossibleVariants;
+                        if (Array.isArray(allPossibleVariants)) {
+                            const numVariants = allPossibleVariants.length;
+                            if (
+                                typeof x.variantInfo === "object" &&
+                                typeof x.variantInfo.index === "number"
+                            ) {
+                                const index = x.variantInfo.index;
+                                setVariants({
+                                    index,
+                                    numVariants,
+                                    allPossibleVariants,
+                                });
+                            }
+                        }
+                    }}
+                    requestedVariantIndex={variants.index}
+                    setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
+                    documentStructureCallback={
+                        documentStructureThenChangeCallback
+                    }
+                    linkSettings={linkSettings}
+                    scrollableContainer={
+                        scrollableContainer.current ?? undefined
+                    }
+                    darkMode={darkMode}
+                    showAnswerResponseMenu={showAnswerResponseMenu}
+                    answerResponseCounts={answerResponseCounts}
+                />
+            </div>
+        </div>
     );
 
     const viewerFirst = viewerLocation === "left" || viewerLocation === "top";

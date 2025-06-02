@@ -13,6 +13,9 @@
     "exports": {
         ".": {
             "import": "./dist/index.js"
+        },
+        "./style.css": {
+            "import": "./dist/style.css"
         }
     },
     "scripts": {
@@ -31,11 +34,13 @@
                 "src/**/*.js",
                 "src/**/*.tsx",
                 "src/**/*.jsx",
+                "dist/**/*.css",
                 "tsconfig.json"
             ],
             "output": [
                 "dist/**/*.js",
                 "dist/**/*.d.ts",
+                "dist/**/*.css",
                 "dist/**/*.json"
             ]
         }

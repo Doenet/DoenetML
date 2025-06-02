@@ -32,7 +32,7 @@ export type CopyToClipboard = (args: {
     actionId?: string;
 }) => void;
 export type SendEvent = (data: any) => void;
-export type RequestSolutionView = (componentIdx: string) => Promise<{
+export type RequestSolutionView = (componentIdx: number) => Promise<{
     allowView: boolean;
 }>;
 
@@ -420,7 +420,7 @@ export class PublicDoenetMLCore {
 
     // TODO: restore functionality that opens collapsible sections
     // when navigating to them or to items inside them
-    navigatingToComponent(componentIdx: string, hash: string) {
+    navigatingToComponent(componentIdx: number, hash: string) {
         // This function no longer works
         this.core?.handleNavigatingToComponent({ componentIdx, hash });
     }

@@ -1,33 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { atomFamily, useRecoilValue, useSetRecoilState } from "recoil";
-// import { serializedComponentsReviver } from '@doenet/utils';
 import { renderersLoadComponent } from "./DocViewer";
-
-export const rendererState = atomFamily<
-    {
-        stateValues: Record<string, any>;
-        sourceOfUpdate?: Record<string, any>;
-        ignoreUpdate: boolean;
-        childrenInstructions: Record<string, any>[];
-        prefixForIds: string;
-    },
-    string
->({
-    key: "rendererState",
-    default: {
-        stateValues: {},
-        sourceOfUpdate: {},
-        ignoreUpdate: false,
-        childrenInstructions: [],
-        prefixForIds: "",
-    },
-    // dangerouslyAllowMutability: true,
-});
+import { ComponentInfo, mainSlice, useAppSelector } from "../state";
 
 export type UseDoenetRendererProps = {
     coreId: string;
     componentInstructions: {
-        actions: Record<string, { actionName: string; componentIdx: string }>;
+        actions: Record<string, { actionName: string; componentIdx: number }>;
         componentIdx: number;
         effectiveName: string;
         componentType: string;
@@ -49,19 +27,28 @@ export default function useDoenetRenderer(
     props: UseDoenetRendererProps,
     initializeChildrenOnConstruction = true,
 ) {
-    let actions = props.componentInstructions.actions;
-    let componentIdx = props.componentInstructions.componentIdx;
-    let effectiveName = props.componentInstructions.effectiveName;
-    let rendererName = props.coreId + componentIdx;
-    let [renderersToLoad, setRenderersToLoad] = useState({});
+    const actions = props.componentInstructions.actions;
+    const componentIdx = props.componentInstructions.componentIdx;
+    const effectiveName = props.componentInstructions.effectiveName;
+    const rendererName = props.coreId + componentIdx;
+    const [renderersToLoad, setRenderersToLoad] = useState({});
+    const componentInfo = useAppSelector(
+        (state) => mainSlice.selectors.componentInfo(state)[rendererName],
+    );
 
-    let {
+    const {
         stateValues,
         sourceOfUpdate = {},
         ignoreUpdate,
         childrenInstructions,
         prefixForIds,
-    } = useRecoilValue(rendererState(rendererName));
+    }: ComponentInfo = componentInfo || {
+        stateValues: {},
+        sourceOfUpdate: {},
+        ignoreUpdate: false,
+        childrenInstructions: [],
+        prefixForIds: "",
+    };
 
     //TODO: Fix this for graph
     // if (initializeChildrenOnConstruction
@@ -117,6 +104,8 @@ export default function useDoenetRenderer(
                 setRenderersToLoad((old: Promise<any>[]) => {
                     let rendererPromises = { ...old };
                     if (!(childInstructions.rendererType in rendererPromises)) {
+                        // XXX: these import file extensions aren't correct for components that have been converted to .tsx
+                        // but this shouldn't really be used right now. It should be cleaned up at some point.
                         rendererPromises[childInstructions.rendererType] =
                             import(
                                 `./renderers/${childInstructions.rendererType}.jsx`

@@ -8,7 +8,7 @@ import { RefObject, useEffect, useState } from "react";
  * If `skipRecording` is false, then don't do anything.
  */
 export function useRecordVisibilityChanges(
-    ref: RefObject<HTMLElement>,
+    ref: RefObject<HTMLElement | null>,
     callAction: (argObj: Record<string, any>) => void,
     actions: any,
     skipRecording = false,
@@ -44,7 +44,7 @@ export function useRecordVisibilityChanges(
  *
  * Used to approximately detect if the element is not hidden.
  */
-export function useIsOnPage(ref: RefObject<HTMLElement>) {
+export function useIsOnPage(ref: RefObject<HTMLElement | null>) {
     const [isIntersecting, setIntersecting] = useState(false);
 
     useEffect(() => {

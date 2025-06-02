@@ -5,33 +5,20 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { focusedMathField } from "./MathInputSelector";
 import { VirtualKeyboard } from "./virtual-keyboard";
-import { RecoilRoot, useSetRecoilState, useRecoilValue } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
-import { ChakraProvider } from "@chakra-ui/react";
 import { ManagedKeyboard } from "./virtual-keyboard";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.Fragment>
         <ManagedKeyboard onClick={(e) => console.log("keyboard event", e)} />
-        <ChakraProvider>
-            <RecoilRoot>
-                <App />
-            </RecoilRoot>
-        </ChakraProvider>
+        <App />
     </React.Fragment>,
 );
 
 function App() {
     const [text, setText] = React.useState("Some Text");
     const [lastCommand, setLastCommand] = React.useState("");
-    const setFocusedField = useSetRecoilState(focusedMathField);
-    React.useEffect(() => {
-        setFocusedField(() => (cmd: string) => {
-            setLastCommand(cmd);
-        });
-    }, []);
 
     return (
         <div>
@@ -49,7 +36,11 @@ function App() {
                 }}
             />
             <MathJaxContext>
-                <VirtualKeyboard />
+                <VirtualKeyboard
+                    onClick={(e) =>
+                        setLastCommand(JSON.stringify(e).replace(/"/g, "'"))
+                    }
+                />
             </MathJaxContext>
         </div>
     );

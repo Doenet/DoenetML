@@ -2,16 +2,18 @@ import "./DoenetML.css";
 import seedrandom from "seedrandom";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
-import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
 import type { ErrorDescription, WarningDescription } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
-import { Box, ChakraProvider, extendTheme } from "@chakra-ui/react";
 import "@doenet/virtual-keyboard/style.css";
+import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
+import { Provider as ReduxProvider } from "react-redux";
+import { store, useAppDispatch } from "./state";
+import { keyboardSlice } from "./state/slices/keyboard";
 
 export const version: string = DOENETML_VERSION;
 
@@ -47,6 +49,14 @@ export const defaultFlags: DoenetMLFlags = {
     autoSubmit: false,
 };
 
+/**
+ * A context that is used to keep track of the currently focused math input. This is used
+ * for processing events from the virtual keyboard.
+ */
+export const FocusedMathInputContext = React.createContext<
+    React.MutableRefObject<HTMLElement | null>
+>({ current: null });
+
 const rngClass = seedrandom.alea;
 
 /**
@@ -54,45 +64,6 @@ const rngClass = seedrandom.alea;
  * error: global is not defined
  */
 window.global = window.global || window;
-
-const theme = extendTheme({
-    fonts: {
-        body: "Jost",
-    },
-    textStyles: {
-        primary: {
-            fontFamily: "Jost",
-        },
-    },
-    config: {
-        initialColorMode: "light",
-        useSystemColorMode: false,
-        // initialColorMode: "system",
-        // useSystemColorMode: true,
-    },
-    colors: {
-        doenet: {
-            mainBlue: "#1a5a99",
-            lightBlue: "#b8d2ea",
-            solidLightBlue: "#8fb8de",
-            mainGray: "#e3e3e3",
-            mediumGray: "#949494",
-            lightGray: "#e7e7e7",
-            donutBody: "#eea177",
-            donutTopping: "#6d4445",
-            mainRed: "#c1292e",
-            lightRed: "#eab8b8",
-            mainGreen: "#459152",
-            canvas: "#ffffff",
-            canvastext: "#000000",
-            lightGreen: "#a6f19f",
-            lightYellow: "#f5ed85",
-            whiteBlankLink: "#6d4445",
-            mainYellow: "#94610a",
-            mainPurple: "#4a03d9",
-        },
-    },
-});
 
 export function DoenetViewer({
     doenetML,
@@ -200,21 +171,19 @@ export function DoenetViewer({
 
         if (variants.numVariants > 1) {
             variantSelector = (
-                <Box bg="doenet.mainGray" h="32px" width="100%">
-                    <VariantSelect
-                        size="sm"
-                        menuWidth="140px"
-                        array={variants.allPossibleVariants}
-                        syncIndex={variants.index}
-                        onChange={(index: number) =>
-                            setVariants((prev) => {
-                                let next = { ...prev };
-                                next.index = index + 1;
-                                return next;
-                            })
-                        }
-                    />
-                </Box>
+                <VariantSelect
+                    size="sm"
+                    menuWidth="140px"
+                    array={variants.allPossibleVariants}
+                    syncIndex={variants.index}
+                    onChange={(index: number) =>
+                        setVariants((prev) => {
+                            let next = { ...prev };
+                            next.index = index + 1;
+                            return next;
+                        })
+                    }
+                />
             );
         }
     } else {
@@ -234,12 +203,6 @@ export function DoenetViewer({
             lastPropSet.current = thisPropSet;
         }
     }
-
-    const keyboard = addVirtualKeyboard ? (
-        <VirtualKeyboard
-            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
-        />
-    ) : null;
 
     const viewer = (
         <DocViewer
@@ -274,26 +237,25 @@ export function DoenetViewer({
     );
 
     return (
-        <ChakraProvider
-            theme={theme}
-            resetScope=".before-keyboard"
-            disableGlobalStyle
-        >
-            <RecoilRoot>
-                <MathJaxContext
-                    version={3}
-                    config={mathjaxConfig}
-                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
-                >
-                    <div ref={ref}>
+        <ReduxProvider store={store}>
+            <MathJaxContext
+                version={3}
+                config={mathjaxConfig}
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+            >
+                <div ref={ref}>
+                    <WrapWithKeyboard
+                        addVirtualKeyboard={addVirtualKeyboard}
+                        externalVirtualKeyboardProvided={
+                            externalVirtualKeyboardProvided
+                        }
+                    >
                         {variantSelector}
                         {viewer}
-                        <div className="before-keyboard" />
-                        {keyboard}
-                    </div>
-                </MathJaxContext>
-            </RecoilRoot>
-        </ChakraProvider>
+                    </WrapWithKeyboard>
+                </div>
+            </MathJaxContext>
+        </ReduxProvider>
     );
 }
 
@@ -350,12 +312,6 @@ export function DoenetEditor({
     initialErrors?: ErrorDescription[];
     initialWarnings?: WarningDescription[];
 }) {
-    const keyboard = addVirtualKeyboard ? (
-        <VirtualKeyboard
-            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
-        />
-    ) : null;
-
     const editor = (
         <EditorViewer
             doenetML={doenetML}
@@ -368,7 +324,6 @@ export function DoenetEditor({
             width={width}
             height={height}
             viewerLocation={viewerLocation}
-            backgroundColor={backgroundColor}
             showViewer={showViewer}
             doenetmlChangeCallback={doenetmlChangeCallback}
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
@@ -385,22 +340,52 @@ export function DoenetEditor({
     );
 
     return (
-        <ChakraProvider
-            theme={theme}
-            resetScope=".before-keyboard"
-            disableGlobalStyle
-        >
-            <RecoilRoot>
-                <MathJaxContext
-                    version={3}
-                    config={mathjaxConfig}
-                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+        <ReduxProvider store={store}>
+            <MathJaxContext
+                version={3}
+                config={mathjaxConfig}
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+            >
+                <WrapWithKeyboard
+                    addVirtualKeyboard={addVirtualKeyboard}
+                    externalVirtualKeyboardProvided={
+                        externalVirtualKeyboardProvided
+                    }
                 >
                     {editor}
-                    <div className="before-keyboard" />
-                    {keyboard}
-                </MathJaxContext>
-            </RecoilRoot>
-        </ChakraProvider>
+                </WrapWithKeyboard>
+            </MathJaxContext>
+        </ReduxProvider>
+    );
+}
+
+/**
+ * Component that wraps its children and provides a VirtualKeyboard
+ */
+function WrapWithKeyboard({
+    addVirtualKeyboard,
+    externalVirtualKeyboardProvided,
+    children,
+}: React.PropsWithChildren<{
+    addVirtualKeyboard: boolean;
+    externalVirtualKeyboardProvided: boolean;
+}>) {
+    const dispatch = useAppDispatch();
+    const focusedMathInput = useRef<HTMLElement | null>(null);
+    const keyboard = addVirtualKeyboard ? (
+        <VirtualKeyboard
+            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+            onClick={(keyCommands) => {
+                dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
+            }}
+        />
+    ) : null;
+
+    return (
+        <FocusedMathInputContext.Provider value={focusedMathInput}>
+            {children}
+            <div className="before-keyboard" />
+            {keyboard}
+        </FocusedMathInputContext.Provider>
     );
 }
