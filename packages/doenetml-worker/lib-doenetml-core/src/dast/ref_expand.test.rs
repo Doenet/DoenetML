@@ -514,7 +514,7 @@ fn initial_ref_skips_option_children() {
                   },
                   {
                     "type": "error",
-                    "message": "Ref resolution error: No node identified by path",
+                    "message": "No referent found for reference: $n2",
                     "errorType": "warning",
                     "parent": 0,
                     "idx": 3,

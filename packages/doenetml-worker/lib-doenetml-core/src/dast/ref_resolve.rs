@@ -30,7 +30,7 @@ pub enum ResolutionError {
 /// this message includes the path up to any index.
 ///
 /// For example, given this DoenetML
-/// ```
+/// ```xml
 /// <text name="t" /><text name="t" />
 /// $a.b.c[1].d
 /// $t.a[1].b
