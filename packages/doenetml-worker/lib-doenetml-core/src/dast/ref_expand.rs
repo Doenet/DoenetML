@@ -29,7 +29,7 @@ impl Expander {
     pub fn expand(flat_root: &mut FlatRoot) -> Resolver {
         let resolver = Resolver::from_flat_root(flat_root);
         Expander::expand_refs(flat_root, &resolver);
-        Expander::consume_extend_copy_attributes(flat_root);
+        Expander::consume_extend_and_copy_attributes(flat_root);
         resolver
     }
 
@@ -166,7 +166,7 @@ impl Expander {
     /// and instead set each node's `extending` to either a
     /// `Source::ExtendAttribute` or `Source::CopyAttribute` containing the extend's referent.
     /// This should be called _after_ all refs have been expanded into element form.
-    fn consume_extend_copy_attributes(flat_root: &mut FlatRoot) {
+    fn consume_extend_and_copy_attributes(flat_root: &mut FlatRoot) {
         for i in 0..flat_root.nodes.len() {
             // Skip any cases we don't need to consider.
             if let FlatNode::Element(e) = &flat_root.nodes[i] {
@@ -279,7 +279,7 @@ impl Expander {
             // we must mark it as such
             // (which indicates that we shouldn't change the component type
             // from the one specified in the element)
-            if extend_or_copy.name == "copy" {
+            if extend_or_copy.name.eq_ignore_ascii_case("copy") {
                 element.extending = extend_referent.map(|source| source.as_copy_attribute());
             } else {
                 element.extending = extend_referent.map(|source| source.as_extend_attribute());
