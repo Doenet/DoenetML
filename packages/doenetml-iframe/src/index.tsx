@@ -4,7 +4,7 @@ import { watchForResize } from "./resize-watcher";
 
 import { MdError } from "react-icons/md";
 import { findAllNewlines, getLineCharRange } from "@doenet/utils";
-import type { ErrorDescription, WarningDescription } from "@doenet/utils";
+import type { ErrorRecord, WarningRecord } from "@doenet/utils";
 import {
     DoenetViewerProps,
     DoenetEditorProps,
@@ -17,7 +17,7 @@ export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
-export type { ErrorDescription, WarningDescription };
+export type { ErrorRecord, WarningRecord };
 export { parseAndCompile } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
@@ -283,9 +283,7 @@ export function DoenetEditor({
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
-    const [initialErrors, setInitialErrors] = React.useState<
-        ErrorDescription[]
-    >([]);
+    const [initialErrors, setInitialErrors] = React.useState<ErrorRecord[]>([]);
 
     // Augment the DoenetEditor props by adding any initialErrors found
     const augmentedDoenetEditorProps = { ...doenetEditorProps };

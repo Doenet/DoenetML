@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
-import type { ErrorDescription, WarningDescription } from "@doenet/utils";
+import type { ErrorRecord, WarningRecord } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
@@ -309,8 +309,8 @@ export function DoenetEditor({
     showErrorsWarnings?: boolean;
     showResponses?: boolean;
     border?: string;
-    initialErrors?: ErrorDescription[];
-    initialWarnings?: WarningDescription[];
+    initialErrors?: ErrorRecord[];
+    initialWarnings?: WarningRecord[];
 }) {
     const editor = (
         <EditorViewer

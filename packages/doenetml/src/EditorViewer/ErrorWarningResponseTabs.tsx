@@ -8,9 +8,9 @@ import {
     useTabStore,
     TabStore,
 } from "@ariakit/react";
-import { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { BsExclamationTriangleFill, BsX } from "react-icons/bs";
 import classNames from "classnames";
+import { ErrorRecord, WarningRecord } from "@doenet/utils";
 
 /**
  * The tabstrip to control the display of the errors and warnings tabs.
@@ -27,8 +27,8 @@ export function ErrorWarningResponseTabstrip({
 }: {
     store: TabStore;
 
-    warnings: WarningDescription[];
-    errors: ErrorDescription[];
+    warnings: WarningRecord[];
+    errors: ErrorRecord[];
     submittedResponses: {
         answerId: string;
         response: ReactElement;
@@ -101,8 +101,8 @@ export function ErrorWarningResponseTabContents({
     showResponses = true,
 }: {
     store: TabStore;
-    warnings: WarningDescription[];
-    errors: ErrorDescription[];
+    warnings: WarningRecord[];
+    errors: ErrorRecord[];
     submittedResponses: {
         answerId: string;
         response: ReactElement;
@@ -194,12 +194,12 @@ export function ErrorWarningResponseTabContents({
                                                             marginBottom: -2,
                                                         }}
                                                     />
+                                                    {/* XXX: why doesn't the type of position come through? */}
                                                     {warningObj.position
-                                                        ?.lineBegin
                                                         ? `Line #${
                                                               warningObj
                                                                   .position
-                                                                  ?.lineBegin
+                                                                  ?.start.line
                                                           }`
                                                         : null}{" "}
                                                     {warningObj.message}
@@ -234,10 +234,9 @@ export function ErrorWarningResponseTabContents({
                                                         }}
                                                     />
                                                     {errorObj.position
-                                                        ?.lineBegin
                                                         ? `Line #${
                                                               errorObj.position
-                                                                  ?.lineBegin
+                                                                  ?.start.line
                                                           }`
                                                         : null}{" "}
                                                     {errorObj.message}

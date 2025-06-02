@@ -321,7 +321,7 @@ export class PublicDoenetMLCore {
                 activeChildren: any[];
                 replacements?: any[];
                 replacementsToWithhold?: number;
-                replacementOf?: string;
+                replacementOf?: number;
                 sharedParameters: any;
             }
         > = {};

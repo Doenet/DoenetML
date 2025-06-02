@@ -1,6 +1,5 @@
 import type { SyntaxNode, TreeCursor } from "@lezer/common";
 import { parser } from "./generated-assets/lezer-doenet";
-import { ErrorDescription } from "@doenet/utils";
 
 // Re-export parser for CodeMirror instances
 export { parser };
@@ -38,8 +37,6 @@ type DummyElement = {
 
 export type Node = Element | DummyElement | string;
 
-export type ParseError = ErrorDescription;
-
 /**
  *  takes in a string an outputs a TreeCursor
  * @param {string} inText
@@ -48,13 +45,15 @@ export type ParseError = ErrorDescription;
 export function parse(inText: string) {
     return parser.parse(inText).cursor();
 }
+
 /**
  * parse string and output a convenient to use object.
  * ignores macros.
  * @param {string} inText
  */
 export function parseAndCompile(inText: string) {
-    let errors: ParseError[] = [];
+    // XXX: removed this error type as we are getting rid of this function
+    let errors: any[] = [];
 
     function compileElement(cursor: TreeCursor) {
         if (cursor.name !== "Element") {

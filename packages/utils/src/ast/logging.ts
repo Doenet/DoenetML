@@ -1,3 +1,16 @@
+import { Position } from "@doenet/parser";
+
+export function printDoenetMLrange(position: Position) {
+    if (position.start.line === position.end.line) {
+        return `line ${position.start.line}`;
+    } else {
+        return `lines ${position.start.line}–${position.end.line}`;
+    }
+}
+
+// XXX: the remaining functions are using the position types from the old parser.
+// Change to the new parser Position, along with changing other calls in the code to use the new parser.
+
 export type position = {
     begin?: number;
     end?: number;
@@ -12,16 +25,6 @@ export type position = {
     attrBegin?: number;
     attrEnd?: number;
 };
-
-export function printDoenetMLrange(position: position) {
-    if (position.lineBegin === undefined) {
-        return "";
-    } else if (position.lineBegin === position.lineEnd) {
-        return `line ${position.lineBegin}`;
-    } else {
-        return `lines ${position.lineBegin}–${position.lineEnd}`;
-    }
-}
 
 export function getLineCharRange(position: position, allNewlines: number[]) {
     let { begin, end } = getBeginEndFromDoenetMLRange(position);

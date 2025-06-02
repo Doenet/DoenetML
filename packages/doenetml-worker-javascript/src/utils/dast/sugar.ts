@@ -1,12 +1,10 @@
-import { deepClone } from "@doenet/utils";
+import { deepClone, ErrorRecord, WarningRecord } from "@doenet/utils";
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
-    ErrorRecord,
     isSerializedAttribute,
     isSerializedComponent,
     PrimitiveAttributeValue,
     SerializedComponent,
-    WarningRecord,
 } from "./types";
 import {
     isUnflattenedAttribute,
@@ -337,6 +335,7 @@ export function applySugar({
             newComponents.push(convertResult.component);
 
             errors.push({
+                type: "error",
                 message: convertResult.message,
                 position: component.position,
             });

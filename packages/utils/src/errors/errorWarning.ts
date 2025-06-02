@@ -1,12 +1,21 @@
-import { position } from "../ast/logging";
+import type { Position, Point } from "@doenet/parser";
 
-export type ErrorDescription = {
-    position: position;
+export type { Position, Point };
+
+export type ErrorRecord = {
+    type: "error";
     message: string;
-    displayInActivity?: boolean;
+    position?: Position;
 };
-export type WarningDescription = {
-    position: position;
-    level: number;
+
+export type WarningRecord = {
+    type: "warning";
     message: string;
+    position?: Position;
+};
+
+export type InfoRecord = {
+    type: "info";
+    message: string;
+    position?: Position;
 };

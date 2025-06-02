@@ -35,7 +35,9 @@ import {
     PropIndex as _PropIndexV6,
 } from "./macros-v6/types";
 
+/** Range in a source string */
 export type Position = UnistLiteral["position"] & {};
+/** Point in a source string */
 export type Point = Position["start"];
 
 // ## Interfaces

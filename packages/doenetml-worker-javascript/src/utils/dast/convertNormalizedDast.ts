@@ -1,4 +1,5 @@
 import {
+    FlatElement,
     FlatPathPart,
     NormalizedRoot,
     RefResolution,
@@ -9,14 +10,12 @@ import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     AttributeDefinition,
     DoenetMLComponentClass,
-    ErrorRecord,
     PrimitiveAttributeValue,
     SerializedAttribute,
     SerializedComponent,
     SerializedRefResolution,
     SerializedRefResolutionPathPart,
     UnresolvedAttribute,
-    WarningRecord,
 } from "./types";
 import {
     UnflattenedAttribute,
@@ -28,6 +27,7 @@ import { convertToErrorComponent } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
+import { ErrorRecord, WarningRecord } from "@doenet/utils";
 
 /**
  * Transform the normalized dast into the serialized components used
@@ -52,67 +52,105 @@ export async function normalizedDastToSerializedComponents(
      * Convert Elements to a `componentType` matching their name.
      * Convert Errors to a `componentType` of "_error".
      */
-    function unflattenDastNode(
-        idxOrString: UntaggedContent,
-    ): UnflattenedComponent | string {
-        if (typeof idxOrString === "string") {
-            return idxOrString;
-        } else {
-            const node = normalized_root.nodes[idxOrString];
-            if (node.type === "element") {
-                return {
-                    type: "unflattened",
-                    componentType: node.name,
-                    componentIdx: idxOrString,
-                    attributes: Object.fromEntries(
-                        node.attributes.map((attribute) => [
-                            attribute.name,
-                            {
-                                name: attribute.name,
-                                children:
-                                    attribute.children.map(unflattenDastNode),
-                                position: attribute.position,
-                            },
-                        ]),
-                    ),
-                    position: node.position,
-                    childrenPosition: node.children_position,
-                    extending: node.extending
-                        ? unFlattenExtending(node.extending)
-                        : undefined,
-                    children: node.children.map(unflattenDastNode),
-                    state: {},
-                };
+    function unflattenDastNodes(
+        indicesOrStrings: UntaggedContent[],
+        warnings: WarningRecord[],
+    ): (UnflattenedComponent | string)[] {
+        const unflattenedNodes: (UnflattenedComponent | string)[] = [];
+
+        for (const idxOrString of indicesOrStrings) {
+            if (typeof idxOrString === "string") {
+                unflattenedNodes.push(idxOrString);
+                continue;
             } else {
-                // node.type === "error"
-                return {
-                    type: "unflattened",
-                    componentType: "_error",
-                    componentIdx: idxOrString,
-                    attributes: {},
-                    position: node.position,
-                    state: {
-                        message: node.message,
-                        unresolvedPath: node.unresolvedPath,
-                    },
-                    children: [],
-                };
+                const node = normalized_root.nodes[idxOrString];
+                if (node.type === "element") {
+                    unflattenedNodes.push({
+                        type: "unflattened",
+                        componentType: getComponentType(node),
+                        componentIdx: idxOrString,
+                        attributes: Object.fromEntries(
+                            node.attributes
+                                // remove type attribute from divisions
+                                .filter(
+                                    (attribute) =>
+                                        attribute.name !== "type" ||
+                                        node.name !== "division",
+                                )
+                                .map((attribute) => [
+                                    attribute.name,
+                                    {
+                                        name: attribute.name,
+                                        children: unflattenDastNodes(
+                                            attribute.children,
+                                            warnings,
+                                        ),
+                                        position: attribute.position,
+                                    },
+                                ]),
+                        ),
+                        position: node.position,
+                        childrenPosition: node.children_position,
+                        extending: node.extending
+                            ? unFlattenExtending(node.extending, warnings)
+                            : undefined,
+                        children: unflattenDastNodes(node.children, warnings),
+                        state: {},
+                    });
+                } else {
+                    // node.type === "error"
+
+                    // XXX: for now, treating info the same as warning
+
+                    // Remove warning from the dast and add to warning record
+                    if (
+                        node.errorType === "warning" ||
+                        node.errorType === "info"
+                    ) {
+                        warnings.push({
+                            type: "warning",
+                            message: node.message,
+                            position: node.position,
+                        });
+                    } else {
+                        unflattenedNodes.push({
+                            type: "unflattened",
+                            componentType: "_error",
+                            componentIdx: idxOrString,
+                            attributes: {},
+                            position: node.position,
+                            state: {
+                                message: node.message,
+                                unresolvedPath: node.unresolvedPath,
+                            },
+                            children: [],
+                        });
+                    }
+                }
             }
         }
+        return unflattenedNodes;
     }
 
     function unFlattenExtending(
         extending: Source<RefResolution>,
+        warnings: WarningRecord[],
     ): Source<UnflattenedRefResolution> {
         const refResolution = unwrapSource(extending);
 
         let unresolvedPath: UnflattenedPathPart[] | null = null;
 
         if (refResolution.unresolvedPath) {
-            unresolvedPath = unflattenPath(refResolution.unresolvedPath);
+            unresolvedPath = unflattenPath(
+                refResolution.unresolvedPath,
+                warnings,
+            );
         }
 
-        const originalPath = unflattenPath(refResolution.originalPath);
+        const originalPath = unflattenPath(
+            refResolution.originalPath,
+            warnings,
+        );
 
         const unflattenedRefResolution: UnflattenedRefResolution = {
             nodeIdx: refResolution.nodeIdx,
@@ -123,10 +161,10 @@ export async function normalizedDastToSerializedComponents(
         return addSource(unflattenedRefResolution, extending);
     }
 
-    function unflattenPath(path: FlatPathPart[]) {
+    function unflattenPath(path: FlatPathPart[], warnings: WarningRecord[]) {
         return path.map((path_part) => {
             let index = path_part.index.map((flat_index) => {
-                let value = flat_index.value.map(unflattenDastNode);
+                let value = unflattenDastNodes(flat_index.value, warnings);
                 return {
                     value,
                     position: flat_index.position,
@@ -151,10 +189,12 @@ export async function normalizedDastToSerializedComponents(
     ) {
         throw Error("Root of dast should be a single document");
     }
+    const warnings: WarningRecord[] = [];
 
-    const unflattenedDocument = unflattenDastNode(
-        documentIdx,
-    ) as UnflattenedComponent;
+    const unflattenedDocument = unflattenDastNodes(
+        [documentIdx],
+        warnings,
+    )[0] as UnflattenedComponent;
 
     if (unflattenedDocument.componentType !== "document") {
         throw Error("Root of dast should be a single document");
@@ -309,6 +349,7 @@ export function expandUnflattenedToSerializedComponents({
 
             if (!ignoreErrors) {
                 errors.push({
+                    type: "error",
                     message: convertResult.message,
                     position: component.position,
                 });
@@ -1040,4 +1081,24 @@ export function addSource<T, U>(
     } else {
         return { CopyAttribute: refResolution };
     }
+}
+
+/**
+ * For divisions, return their `type` attribute as `componentType`.
+ * For all other elements return their `name` as `componentType`.
+ */
+function getComponentType(element: FlatElement) {
+    if (element.name === "division") {
+        const typeAttr = element.attributes.find(
+            (attr) => attr.name === "type",
+        );
+        if (
+            typeAttr?.children.length == 1 &&
+            typeof typeAttr.children[0] === "string"
+        ) {
+            return typeAttr.children[0];
+        }
+    }
+
+    return element.name;
 }

@@ -210,13 +210,6 @@ export function isSerializedAttribute(
     );
 }
 
-export type ErrorRecord = {
-    message: string;
-    position?: Position;
-};
-
-export type WarningRecord = ErrorRecord & { level: number };
-
 /**
  * Information about the definition of an attribute for a component type.
  *

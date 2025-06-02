@@ -6,7 +6,7 @@ use super::{
     flat_dast::{
         ErrorType, FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent,
     },
-    ref_resolve::{RefResolution, ResolutionError, Resolver},
+    ref_resolve::{format_error_message, RefResolution, ResolutionError, Resolver},
     DastElement, DastElementContent, DastError,
 };
 
@@ -68,7 +68,7 @@ impl Expander {
                         Err(err) => FlatNode::Error(FlatError {
                             idx: ref_.idx,
                             parent: ref_.parent,
-                            message: format!("Ref resolution error: {}", err),
+                            message: format_error_message(err, &ref_.path),
                             error_type: ErrorType::Warning,
                             unresolved_path: if let ResolutionError::NoReferent = err {
                                 Some(ref_.path.clone())
@@ -243,6 +243,7 @@ impl Expander {
             //  3. Multiple elements are present
             let mut is_invalid_attr = false;
             let mut num_element_children = 0;
+            let mut error_found: Option<&FlatError> = None;
             let extend_referent: Option<Source<RefResolution>> = extend_or_copy
                 .children
                 .iter()
@@ -252,6 +253,10 @@ impl Expander {
 
                         match &flat_root.nodes[*idx] {
                             FlatNode::Element(e) => e.extending.clone(),
+                            FlatNode::Error(err) => {
+                                error_found = Some(err);
+                                None
+                            }
                             _ => None,
                         }
                     }
@@ -268,19 +273,16 @@ impl Expander {
                 // We couldn't find a unique `extending` prop, so the `extend` attribute is invalid.
                 // Push an error message as a child of `node`.
 
-                let error_type = if is_invalid_attr || num_element_children != 1 {
-                    ErrorType::Error
-                } else {
+                let error_type = if let Some(_err) = error_found {
                     ErrorType::Warning
+                } else {
+                    ErrorType::Error
                 };
 
-                let message = if is_invalid_attr || num_element_children != 1 {
-                    format!("Invalid '{}' attribute", extend_or_copy.name)
+                let message = if let Some(err) = error_found {
+                    format!("In '{}' attribute: {}", extend_or_copy.name, err.message)
                 } else {
-                    format!(
-                        "Ref resolution error: No node identified by path in '{}' attribute",
-                        extend_or_copy.name
-                    )
+                    format!("Invalid '{}' attribute", extend_or_copy.name)
                 };
 
                 element.children.push(flat_root.merge_content(
