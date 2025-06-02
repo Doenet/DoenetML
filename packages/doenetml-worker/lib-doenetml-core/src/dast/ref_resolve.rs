@@ -44,10 +44,10 @@ pub fn format_error_message(err: ResolutionError, path: &[FlatPathPart]) -> Stri
     // and using the entire DoenetML string that created the reference
     let mut paths_until_first_index = vec![];
     for path_part in path.iter() {
-        if path_part.name != "" {
+        if !path_part.name.is_empty() {
             paths_until_first_index.push(path_part.name.clone())
         }
-        if path_part.index.len() > 0 {
+        if !path_part.index.is_empty() {
             break;
         }
     }

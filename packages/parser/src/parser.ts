@@ -52,7 +52,7 @@ export function parse(inText: string) {
  * @param {string} inText
  */
 export function parseAndCompile(inText: string) {
-    // XXX: removed this error type as we are getting rid of this function
+    // XXX: remove this error type as we are getting rid of this function
     let errors: any[] = [];
 
     function compileElement(cursor: TreeCursor) {
