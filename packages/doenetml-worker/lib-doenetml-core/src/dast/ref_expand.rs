@@ -3,7 +3,9 @@ use std::{collections::HashMap, mem};
 use anyhow::anyhow;
 
 use super::{
-    flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent},
+    flat_dast::{
+        ErrorType, FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent,
+    },
     ref_resolve::{RefResolution, ResolutionError, Resolver},
     DastElement, DastElementContent, DastError,
 };
@@ -67,6 +69,7 @@ impl Expander {
                             idx: ref_.idx,
                             parent: ref_.parent,
                             message: format!("Ref resolution error: {}", err),
+                            error_type: ErrorType::Warning,
                             unresolved_path: if let ResolutionError::NoReferent = err {
                                 Some(ref_.path.clone())
                             } else {
@@ -146,6 +149,7 @@ impl Expander {
                                 idx: function_ref.idx,
                                 parent: function_ref.parent,
                                 message: format!("Ref resolution error: {}", err),
+                                error_type: ErrorType::Warning,
                                 unresolved_path: if let ResolutionError::NoReferent = err {
                                     Some(function_ref.path.clone())
                                 } else {
@@ -208,6 +212,7 @@ impl Expander {
                 // Push an error message as a child of `node`.
                 element.children.push(flat_root.merge_content(
                     &DastElementContent::Error(DastError {
+                        error_type: Some(ErrorType::Error),
                         message: "Duplicate `extend` or `copy` attributes".to_string(),
                         position: element.position.clone(),
                     }),
@@ -262,13 +267,36 @@ impl Expander {
             if is_invalid_attr || num_element_children != 1 || extend_referent.is_none() {
                 // We couldn't find a unique `extending` prop, so the `extend` attribute is invalid.
                 // Push an error message as a child of `node`.
+
+                let error_type = if is_invalid_attr || num_element_children != 1 {
+                    ErrorType::Error
+                } else {
+                    ErrorType::Warning
+                };
+
+                let message = if is_invalid_attr || num_element_children != 1 {
+                    format!("Invalid '{}' attribute", extend_or_copy.name)
+                } else {
+                    format!(
+                        "Ref resolution error: No node identified by path in '{}' attribute",
+                        extend_or_copy.name
+                    )
+                };
+
                 element.children.push(flat_root.merge_content(
                     &DastElementContent::Error(DastError {
-                        message: "Invalid `extend` attribute".to_string(),
+                        message,
+                        error_type: Some(error_type),
                         position: extend_or_copy.position.clone(),
                     }),
                     extend_or_copy.parent,
                 ));
+
+                // Remove the `extend` or `copy` attribute since it has been replaced with an error
+                element.attributes.retain(|attr| {
+                    !(attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy"))
+                });
 
                 // We took this memory earlier, so we need to put it back.
                 flat_root.nodes[i] = node;

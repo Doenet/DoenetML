@@ -515,6 +515,7 @@ fn initial_ref_skips_option_children() {
                   {
                     "type": "error",
                     "message": "Ref resolution error: No node identified by path",
+                    "errorType": "warning",
                     "parent": 0,
                     "idx": 3,
                     "unresolvedPath": [{ "type": "flatPathPart", "name": "n2", "index": [] }]

@@ -13,6 +13,8 @@ use thiserror::Error;
 
 use crate::props::PropValue;
 
+use super::flat_dast::ErrorType;
+
 /// Dast root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -323,6 +325,9 @@ pub struct DastIndex {
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastError {
     pub message: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_type: Option<ErrorType>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,

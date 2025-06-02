@@ -199,6 +199,7 @@ impl FlatRoot {
         self.nodes[idx] = FlatNode::Error(FlatError {
             message: node.message.clone(),
             unresolved_path: None,
+            error_type: node.error_type.unwrap_or_default(),
             position: node.position.clone(),
             parent,
             idx,

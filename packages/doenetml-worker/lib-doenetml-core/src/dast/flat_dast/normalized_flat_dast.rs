@@ -5,7 +5,7 @@ use serde::Serialize;
 #[cfg(feature = "web")]
 use tsify_next::Tsify;
 
-use super::{FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent};
+use super::{ErrorType, FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent};
 
 /// Objects that can be stored in the main `nodes` array of a `NormalizedRoot`.
 #[derive(Clone, Debug, Serialize)]
@@ -21,6 +21,7 @@ impl Default for NormalizedNode {
         NormalizedNode::Error(FlatError {
             parent: None,
             message: "DEFAULT NODE".to_string(),
+            error_type: ErrorType::Error,
             unresolved_path: None,
             position: None,
             idx: 0,
