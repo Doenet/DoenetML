@@ -10,7 +10,8 @@ import {
     DoenetEditor,
 } from "@doenet/doenetml/doenetml-inline-worker.js";
 import "@doenet/doenetml/style.css";
-import { nanoid } from "nanoid";
+import "./pretext-compat.css";
+import { ResizeWatcher } from "./resize-watcher";
 
 // Re-export React and friends in case a user really wants to use them
 export { React, ReactDOM, DoenetViewer, DoenetEditor };
@@ -53,13 +54,19 @@ export function renderDoenetViewerToContainer(
         const value = normalizeBooleanAttr(attr.value);
         attrs[name] = value;
     }
-    let { addVirtualKeyboard, ...rest } = attrs;
+    const { addVirtualKeyboard, sendResizeEvents, ...rest } = attrs;
+    const resizeWatcher = new ResizeWatcher();
 
     ReactDOM.createRoot(container).render(
         <DoenetViewer
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
             flags={rest}
+            onInit={(r) => {
+                if (sendResizeEvents) {
+                    resizeWatcher.watch(r);
+                }
+            }}
             {...config}
         />,
     );
