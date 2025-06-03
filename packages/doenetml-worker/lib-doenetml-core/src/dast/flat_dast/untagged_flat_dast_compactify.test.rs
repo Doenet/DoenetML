@@ -216,10 +216,11 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
           "node_parent": [
             null,
             0,
-            0,
-            0,
-            0,
-            4
+            1,
+            1,
+            1,
+            1,
+            5
           ],
           "resolution_algorithm": [
             "SearchChildren",
@@ -227,26 +228,28 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
             "SearchChildren",
             "SearchChildren",
             "SearchChildren",
+            "SearchChildren",
             "SearchChildren"
           ],
-          "name_map": {
-            "index_offset": 1,
-            "inner": [
-              {},
-              {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
-              },
-              {},
-              {},
-              {},
-              {
-                "tiv": { "Unique": 5 }
-              },
-              {},
-            ]
-          }
+          "name_map": [
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {},
+            {},
+            {},
+            {
+              "tiv": { "Unique": 5 }
+            },
+            {},
+          ]
         })
     );
 }
@@ -369,10 +372,11 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
           "node_parent": [
             null,
             0,
-            0,
-            0,
-            0,
-            4
+            1,
+            1,
+            1,
+            1,
+            5
           ],
           "resolution_algorithm": [
             "SearchChildren",
@@ -380,26 +384,126 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
             "SearchChildren",
             "SearchChildren",
             "SearchChildren",
+            "SearchChildren",
             "SearchChildren"
           ],
-          "name_map": {
-            "index_offset": 1,
-            "inner": [
-              {},
+          "name_map": [
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {},
+            {},
+            {},
+            {
+              "tiv": { "Unique": 5 }
+            },
+            {},
+          ]
+        })
+    );
+}
+
+#[test]
+fn compactify_adjusts_refs_to_document() {
+    let dast_root = dast_root_no_position(
+        r#"<document name="doc"><number extend="$doc.creditAchieved" /><number copy="$doc.creditAchieved" /></document>"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let mut resolver = Expander::expand(&mut flat_root);
+    flat_root.compactify(Some(&mut resolver));
+
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "flatRoot",
+            "children": [0],
+            "nodes": [
               {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "type": "element",
+                "name": "document",
+                "children": [1, 2],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 0,
+                    "children": ["doc"]
+                  }
+                ],
+                "idx": 0
               },
-              {},
-              {},
-              {},
               {
-                "tiv": { "Unique": 5 }
+                "type": "element",
+                "name": "number",
+                "parent": 0,
+                "children": [],
+                "attributes": [],
+                "idx": 1,
+                "extending": {
+                  "ExtendAttribute": {
+                    "nodeIdx": 0,
+                    "unresolvedPath": [{ "type": "flatPathPart", "name": "creditAchieved", "index": [] }],
+                    "originalPath": [
+                        { "type": "flatPathPart", "name": "doc", "index": [] },
+                        { "type": "flatPathPart", "name": "creditAchieved", "index": [] }
+                      ]
+                  }
+                }
               },
-              {},
+              {
+                "type": "element",
+                "name": "number",
+                "parent": 0,
+                "children": [],
+                "attributes": [],
+                "idx": 2,
+                "extending": {
+                  "CopyAttribute": {
+                    "nodeIdx": 0,
+                    "unresolvedPath": [{ "type": "flatPathPart", "name": "creditAchieved", "index": [] }],
+                    "originalPath": [
+                        { "type": "flatPathPart", "name": "doc", "index": [] },
+                        { "type": "flatPathPart", "name": "creditAchieved", "index": [] }
+                      ]
+                  }
+                }
+              },
             ]
           }
+        )
+    );
+
+    assert_json_eq!(
+        serde_json::to_value(&resolver).unwrap(),
+        json!({
+          "node_parent": [
+            null,
+            0,
+            1,
+            1,
+          ],
+          "resolution_algorithm": [
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+          ],
+          "name_map": [
+            {
+              "doc": { "Unique": 0 },
+            },
+            {},
+            {},
+            {},
+          ]
         })
     );
 }
