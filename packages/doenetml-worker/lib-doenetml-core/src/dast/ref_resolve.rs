@@ -8,8 +8,9 @@ use std::{collections::HashMap, iter, mem};
 
 use crate::dast::flat_dast::{FlatNode, UntaggedContent};
 
-use super::flat_dast::{
-    FlatElement, FlatFragment, FlatPathPart, FlatRoot, FlatRootOrFragment, Index,
+use super::{
+    extended_vec::ExtendedVector,
+    flat_dast::{FlatElement, FlatFragment, FlatPathPart, FlatRoot, FlatRootOrFragment, Index},
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -120,7 +121,7 @@ pub struct Resolver {
     /// List of the resolution algorithm of a node at a given index
     resolution_algorithm: Vec<ResolutionAlgorithm>,
     /// Map of all the names that are accessible (as descendants) from a given node.
-    name_map: Vec<HashMap<String, Ref>>,
+    name_map: ExtendedVector<HashMap<String, Ref>>,
 }
 
 const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
@@ -186,8 +187,8 @@ impl Resolver {
         // We will add items to the resolver for parent only if the parent does not already have items with that name,
         // i.e., the resolver will continue to resolve to descendants of parent as before,
         // and now will fall back to new items if there wasn't already a ref resolution.
-        let parent_map = &mut self.name_map[parent_idx];
-        let new_parent_map = mem::take(&mut subtree_name_map[parent_idx]);
+        let parent_map = &mut self.name_map[parent_idx.try_into().unwrap()];
+        let new_parent_map = mem::take(&mut subtree_name_map[parent_idx.try_into().unwrap()]);
 
         for (key, ref_) in new_parent_map.into_iter() {
             parent_map.entry(key).or_insert(ref_);
@@ -196,9 +197,9 @@ impl Resolver {
         // Add new items to `name_map`.
         // If a node was already in the `name_map`, its value is replaced.
         for node in flat_fragment.nodes.iter() {
-            let names = mem::take(&mut subtree_name_map[node.idx()]);
+            let names = mem::take(&mut subtree_name_map[node.idx().try_into().unwrap()]);
             for (key, ref_) in names.into_iter() {
-                self.name_map[node.idx()].insert(key, ref_);
+                self.name_map[node.idx().try_into().unwrap()].insert(key, ref_);
             }
         }
     }
@@ -218,7 +219,7 @@ impl Resolver {
             while let Some(parent_idx) = self.node_parent[prev_parent_idx] {
                 prev_parent_idx = parent_idx;
 
-                let name_map = &mut self.name_map[parent_idx];
+                let name_map = &mut self.name_map[parent_idx.try_into().unwrap()];
 
                 let references = name_map.remove(&name);
 
@@ -327,7 +328,9 @@ impl Resolver {
             if self.resolution_algorithm[current_idx] == ResolutionAlgorithm::SearchChildren {
                 // current_idx specifies the "root" of the search. We try to resolve
                 // children based on the path part, returning an error if there is an ambiguity.
-                if let Some(referent) = self.name_map[current_idx].get(&part.name) {
+                if let Some(referent) =
+                    self.name_map[current_idx.try_into().unwrap()].get(&part.name)
+                {
                     matched_part_name = true;
                     match referent {
                         Ref::Unique(idx) => {
@@ -387,7 +390,7 @@ impl Resolver {
         // if passed in a node without a parent, then search from that node itself
         // TODO: don't duplicate code with case where have parent, below
         if self.node_parent[current_idx].is_none() {
-            if let Some(resolved) = self.name_map[current_idx].get(name) {
+            if let Some(resolved) = self.name_map[current_idx.try_into().unwrap()].get(name) {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
@@ -402,7 +405,7 @@ impl Resolver {
         }
 
         while let Some(parent) = self.node_parent[current_idx] {
-            if let Some(resolved) = self.name_map[parent].get(name) {
+            if let Some(resolved) = self.name_map[parent.try_into().unwrap()].get(name) {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
@@ -419,11 +422,16 @@ impl Resolver {
 
     /// Build a map of all the names that are accessible from a given node
     /// and the indices of the referents.
-    fn build_name_map(flat_root_or_fragment: &FlatRootOrFragment) -> Vec<HashMap<String, Ref>> {
+    fn build_name_map(
+        flat_root_or_fragment: &FlatRootOrFragment,
+    ) -> ExtendedVector<HashMap<String, Ref>> {
         // Pre-populate with empty hashmaps for each element
-        let mut descendant_names = iter::repeat_with(HashMap::new)
-            .take(flat_root_or_fragment.len())
-            .collect::<Vec<_>>();
+        let mut descendant_names = ExtendedVector::from_vector(
+            iter::repeat_with(HashMap::new)
+                .take(flat_root_or_fragment.len() + 1)
+                .collect::<Vec<_>>(),
+            1,
+        );
 
         let mut fragment_parent = None;
         if let FlatRootOrFragment::Fragment(flat_fragment) = flat_root_or_fragment {
@@ -454,7 +462,7 @@ impl Resolver {
                 .map(|parent| parent.idx)
                 .chain(fragment_parent.iter().copied())
             {
-                descendant_names[parent_idx]
+                descendant_names[parent_idx.try_into().unwrap()]
                     .get_mut(&name)
                     .map(|x| {
                         *x = match x {
@@ -469,7 +477,8 @@ impl Resolver {
                     })
                     .unwrap_or_else(|| {
                         // There is no current match for the name `name`, so we have a unique reference
-                        descendant_names[parent_idx].insert(name.clone(), Ref::Unique(element.idx));
+                        descendant_names[parent_idx.try_into().unwrap()]
+                            .insert(name.clone(), Ref::Unique(element.idx));
                     });
 
                 // Stop if we've reached a parent that isn't the fragment parent
@@ -513,9 +522,12 @@ impl Resolver {
             .collect();
         self.resolution_algorithm = new_resolution_algorithm;
 
-        let new_name_map: Vec<HashMap<String, Ref>> = self
+        // An iterator for all elements of the name map except the base with index -1
+        let first_name_map_element = mem::take(&mut self.name_map[-1]);
+        let new_name_map = self
             .name_map
             .iter()
+            .skip(1)
             .enumerate()
             .filter(|(idx, _names)| node_is_referenced[*idx])
             .map(|(_idx, names)| {
@@ -530,10 +542,14 @@ impl Resolver {
                             ),
                         ),
                     })
-                    .collect()
-            })
-            .collect();
-        self.name_map = new_name_map;
+                    .collect::<HashMap<String, Ref>>()
+            });
+        self.name_map = ExtendedVector::from_vector(
+            iter::once(first_name_map_element)
+                .chain(new_name_map)
+                .collect(),
+            1,
+        );
     }
 }
 

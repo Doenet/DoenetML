@@ -12,6 +12,7 @@
 //! where the node is stored.
 
 pub mod dast_structure;
+pub mod extended_vec;
 pub mod flat_dast;
 pub mod ref_expand;
 pub mod ref_resolve;

@@ -229,20 +229,24 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
             "SearchChildren",
             "SearchChildren"
           ],
-          "name_map": [
-            {
-              "t": { "Unique": 1 },
-              "ti": { "Unique": 3 },
-              "tiv": { "Unique": 5 }
-            },
-            {},
-            {},
-            {},
-            {
-              "tiv": { "Unique": 5 }
-            },
-            {},
-          ]
+          "name_map": {
+            "index_offset": 1,
+            "inner": [
+              {},
+              {
+                "t": { "Unique": 1 },
+                "ti": { "Unique": 3 },
+                "tiv": { "Unique": 5 }
+              },
+              {},
+              {},
+              {},
+              {
+                "tiv": { "Unique": 5 }
+              },
+              {},
+            ]
+          }
         })
     );
 }
@@ -378,20 +382,24 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
             "SearchChildren",
             "SearchChildren"
           ],
-          "name_map": [
-            {
-              "t": { "Unique": 1 },
-              "ti": { "Unique": 3 },
-              "tiv": { "Unique": 5 }
-            },
-            {},
-            {},
-            {},
-            {
-              "tiv": { "Unique": 5 }
-            },
-            {},
-          ]
+          "name_map": {
+            "index_offset": 1,
+            "inner": [
+              {},
+              {
+                "t": { "Unique": 1 },
+                "ti": { "Unique": 3 },
+                "tiv": { "Unique": 5 }
+              },
+              {},
+              {},
+              {},
+              {
+                "tiv": { "Unique": 5 }
+              },
+              {},
+            ]
+          }
         })
     );
 }
