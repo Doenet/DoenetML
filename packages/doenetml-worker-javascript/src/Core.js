@@ -1019,7 +1019,9 @@ export default class Core {
         rendererStatesToUpdate.push({
             componentIdx,
             stateValues: stateValuesForRenderer,
-            childrenInstructions: childrenToRender,
+            childrenInstructions: childrenToRender.filter(
+                (child) => child != null,
+            ),
         });
         if (Object.keys(stateValuesForRendererAlwaysUpdate).length > 0) {
             rendererStatesToForceUpdate.push({
@@ -1031,7 +1033,9 @@ export default class Core {
         // this.renderState is used to save the renderer state to the database
         this.rendererState[componentIdx] = {
             stateValues: stateValuesForRenderer,
-            childrenInstructions: childrenToRender,
+            childrenInstructions: childrenToRender.filter(
+                (child) => child != null,
+            ),
         };
 
         componentsWithChangedChildrenToRenderInProgress.delete(componentIdx);
