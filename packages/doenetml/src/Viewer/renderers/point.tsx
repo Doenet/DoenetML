@@ -72,8 +72,8 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 shadowPointJXG.current.off("up");
                 shadowPointJXG.current.off("keyfocusout");
                 shadowPointJXG.current.off("keydown");
-                board.removeObject(pointJXG.current);
-                board.removeObject(shadowPointJXG.current);
+                board!.removeObject(pointJXG.current);
+                board!.removeObject(shadowPointJXG.current);
                 pointJXG.current = null;
                 shadowPointJXG.current = null;
             }
