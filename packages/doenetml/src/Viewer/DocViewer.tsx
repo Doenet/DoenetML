@@ -479,7 +479,10 @@ export function DocViewer({
         if (baseVariableValue !== undefined && componentIdx != null) {
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
-            updatesToIgnoreRef.current.set(actionId, baseVariableValue);
+            updatesToIgnoreRef.current.set(
+                `${actionId}|${componentIdx}`,
+                baseVariableValue,
+            );
         }
 
         let actionArgs = {
