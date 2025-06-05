@@ -3853,25 +3853,25 @@ describe("Math tag tests", async () => {
     it("copy value prop copies attributes", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-          <p><math name="m1" displayDigits="3">8.5203845251</math>
+          <p><math name="m1" displayDigits="2">8.5203845251</math>
           <math extend="$m1.value" name="m1a" />
           <math extend="$m1.value" displayDigits="5" name="m1b" />
-          <math extend="$m1.value" link="false" name="m1c" />
-          <math extend="$m1.value" link="false" displayDigits="5" name="m1d" />
+          <math copy="$m1.value" name="m1c" />
+          <math copy="$m1.value" displayDigits="5" name="m1d" />
           </p>
         
           <p><math name="m2" displayDecimals="4">8.5203845251</math>
           <math extend="$m2.value" name="m2a" />
           <math extend="$m2.value" displayDecimals="6" name="m2b" />
-          <math extend="$m2.value" link="false" name="m2c" />
-          <math extend="$m2.value" link="false" displayDecimals="6" name="m2d" />
+          <math copy="$m2.value" name="m2c" />
+          <math copy="$m2.value" displayDecimals="6" name="m2d" />
           </p>
         
           <p><math name="m3" displaySmallAsZero="false">0.000000000000000015382487</math>
           <math extend="$m3.value" name="m3a" />
           <math extend="$m3.value" displaySmallAsZero="true" name="m3b" />
-          <math extend="$m3.value" link="false" name="m3c" />
-          <math extend="$m3.value" link="false" displaySmallAsZero="true" name="m3d" />
+          <math copy="$m3.value" name="m3c" />
+          <math copy="$m3.value" displaySmallAsZero="true" name="m3d" />
           </p>
         
           `,
@@ -3882,12 +3882,12 @@ describe("Math tag tests", async () => {
             cleanLatex(
                 stateVariables[resolveComponentName("m1")].stateValues.latex,
             ),
-        ).eq("8.52");
+        ).eq("8.5");
         expect(
             cleanLatex(
                 stateVariables[resolveComponentName("m1a")].stateValues.latex,
             ),
-        ).eq("8.52");
+        ).eq("8.5");
         expect(
             cleanLatex(
                 stateVariables[resolveComponentName("m1b")].stateValues.latex,
@@ -3897,7 +3897,7 @@ describe("Math tag tests", async () => {
             cleanLatex(
                 stateVariables[resolveComponentName("m1c")].stateValues.latex,
             ),
-        ).eq("8.52");
+        ).eq("8.5");
         expect(
             cleanLatex(
                 stateVariables[resolveComponentName("m1d")].stateValues.latex,

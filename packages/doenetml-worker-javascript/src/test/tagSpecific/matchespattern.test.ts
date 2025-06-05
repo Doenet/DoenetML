@@ -12,52 +12,52 @@ vi.mock("hyperformula");
 
 describe("MatchesPattern tag tests", async () => {
     it("match linear pattern", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>Pattern: <math name="pattern">()x+()</math></p>
-  <p>Expression: <mathinput name="expr" /></p>
+  <p>Expression: <mathInput name="expr" /></p>
 
   <p>Default settings: <matchesPattern name="default" pattern="$pattern">
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="default.patternMatches" assignNames="dm1 dm2" /></p>
+  <p>Matches: <mathList extend="$default.patternMatches" name="dm" /></p>
 
   <p>No permutations: <matchesPattern name="noperm" pattern="$pattern" allowPermutations="false">
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="noperm.patternMatches" assignNames="npm1 npm2" /></p>
+  <p>Matches: <mathList extend="$noperm.patternMatches" name="npm" /></p>
 
   <p>Implicit identities: <matchesPattern name="implicitIdents" pattern="$pattern" allowImplicitIdentities>
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="implicitIdents.patternMatches" assignNames="iim1 iim2" /></p>
+  <p>Matches: <mathList extend="$implicitIdents.patternMatches" name="iim" /></p>
 
   <p>Require numeric matches: <matchesPattern name="requireNumeric" pattern="$pattern" requireNumericMatches>
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="requireNumeric.patternMatches" assignNames="rnm1 rnm2" /></p>
+  <p>Matches: <mathList extend="$requireNumeric.patternMatches" name="rnm" /></p>
 
   <p>Require variable matches: <matchesPattern name="requireVariable" pattern="$pattern" requirevariableMatches>
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="requireVariable.patternMatches" assignNames="rvm1 rvm2" /></p>
+  <p>Matches: <mathList extend="$requireVariable.patternMatches" name="rvm" /></p>
 
   <p>Variable except x: <matchesPattern name="excludeX" pattern="$pattern" excludeMatches="x" requirevariableMatches>
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="excludeX.patternMatches" assignNames="exm1 exm2" /></p>
+  <p>Matches: <mathList extend="$excludeX.patternMatches" name="exm" /></p>
 
 
   `,
         });
 
         let matchNames = {
-            default: ["dm1", "dm2"],
-            noperm: ["npm1", "npm2"],
-            implicitIdents: ["iim1", "iim2"],
-            requireNumeric: ["rnm1", "rnm2"],
-            requireVariable: ["rvm1", "rvm2"],
-            excludeX: ["exm1", "exm2"],
+            default: ["dm[1]", "dm[2]"],
+            noperm: ["npm[1]", "npm[2]"],
+            implicitIdents: ["iim[1]", "iim[2]"],
+            requireNumeric: ["rnm[1]", "rnm[2]"],
+            requireVariable: ["rvm[1]", "rvm[2]"],
+            excludeX: ["exm[1]", "exm[2]"],
         };
 
         let desiredResults = {
@@ -178,7 +178,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                name: "/expr",
+                componentIdx: resolveComponentName("expr"),
                 core,
             });
             let stateVariables = await core.returnAllStateVariables(
@@ -191,81 +191,91 @@ describe("MatchesPattern tag tests", async () => {
             for (let name in dResults) {
                 let res = dResults[name];
                 if (res) {
-                    expect(stateVariables[`/${name}`].stateValues.value).to.be
-                        .true;
+                    expect(
+                        stateVariables[resolveComponentName(`${name}`)]
+                            .stateValues.value,
+                    ).to.be.true;
                     expect(
                         cleanLatex(
-                            stateVariables[`/${matchNames[name][0]}`]
-                                .stateValues.latex,
+                            stateVariables[
+                                resolveComponentName(`${matchNames[name][0]}`)
+                            ].stateValues.latex,
                         ),
                     ).eq(res[0]);
                     expect(
                         cleanLatex(
-                            stateVariables[`/${matchNames[name][1]}`]
-                                .stateValues.latex,
+                            stateVariables[
+                                resolveComponentName(`${matchNames[name][1]}`)
+                            ].stateValues.latex,
                         ),
                     ).eq(res[1]);
                 } else {
-                    expect(stateVariables[`/${name}`].stateValues.value).to.be
-                        .false;
-                    expect(stateVariables[`/${matchNames[name][0]}`]).eq(
-                        undefined,
-                    );
-                    expect(stateVariables[`/${matchNames[name][1]}`]).eq(
-                        undefined,
-                    );
+                    expect(
+                        stateVariables[resolveComponentName(`${name}`)]
+                            .stateValues.value,
+                    ).to.be.false;
+                    expect(
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][0]}`)
+                        ],
+                    ).eq(undefined);
+                    expect(
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][1]}`)
+                        ],
+                    ).eq(undefined);
                 }
             }
         }
     });
 
     it("match quadratic pattern, base test", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>Pattern: <math name="pattern">()x^2+()x+()</math></p>
-  <p>Expression: <mathinput name="expr" /></p>
+  <p>Expression: <mathInput name="expr" /></p>
 
   <p>Default settings: <matchesPattern name="default" pattern="$pattern">
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="default.patternMatches" assignNames="dm1 dm2 dm3" /></p>
+  <p>Matches: <mathList extend="$default.patternMatches" name="dm" /></p>
 
   <p>No permutations: <matchesPattern name="noperm" pattern="$pattern" allowPermutations="false">
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="noperm.patternMatches" assignNames="npm1 npm2 npm3" /></p>
+  <p>Matches: <mathList extend="$noperm.patternMatches" name="npm" /></p>
 
   <p>Implicit identities: <matchesPattern name="implicitIdents" pattern="$pattern" allowImplicitIdentities>
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="implicitIdents.patternMatches" assignNames="iim1 iim2 iim3" /></p>
+  <p>Matches: <mathList extend="$implicitIdents.patternMatches" name="iim" /></p>
 
   <p>Require numeric matches: <matchesPattern name="requireNumeric" pattern="$pattern" requireNumericMatches>
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="requireNumeric.patternMatches" assignNames="rnm1 rnm2 rnm3" /></p>
+  <p>Matches: <mathList extend="$requireNumeric.patternMatches" name="rnm" /></p>
 
   <p>Require variable matches: <matchesPattern name="requireVariable" pattern="$pattern" requirevariableMatches>
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="requireVariable.patternMatches" assignNames="rvm1 rvm2 rvm3" /></p>
+  <p>Matches: <mathList extend="$requireVariable.patternMatches" name="rvm" /></p>
 
   <p>Variable except x: <matchesPattern name="excludeX" pattern="$pattern" excludeMatches="x" requirevariableMatches>
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="excludeX.patternMatches" assignNames="exm1 exm2 exm3" /></p>
+  <p>Matches: <mathList extend="$excludeX.patternMatches" name="exm" /></p>
 
 
   `,
         });
 
         let matchNames = {
-            default: ["dm1", "dm2", "dm3"],
-            noperm: ["npm1", "npm2", "npm3"],
-            implicitIdents: ["iim1", "iim2", "iim3"],
-            requireNumeric: ["rnm1", "rnm2", "rnm3"],
-            requireVariable: ["rvm1", "rvm2", "rvm3"],
-            excludeX: ["exm1", "exm2", "exm3"],
+            default: ["dm[1]", "dm[2]", "dm[3]"],
+            noperm: ["npm[1]", "npm[2]", "npm[3]"],
+            implicitIdents: ["iim[1]", "iim[2]", "iim[3]"],
+            requireNumeric: ["rnm[1]", "rnm[2]", "rnm[3]"],
+            requireVariable: ["rvm[1]", "rvm[2]", "rvm[3]"],
+            excludeX: ["exm[1]", "exm[2]", "exm[3]"],
         };
 
         let desiredResults = {
@@ -338,7 +348,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                name: "/expr",
+                componentIdx: resolveComponentName("expr"),
                 core,
             });
             let stateVariables = await core.returnAllStateVariables(
@@ -351,47 +361,57 @@ describe("MatchesPattern tag tests", async () => {
             for (let name in dResults) {
                 let res = dResults[name];
                 if (res) {
-                    expect(stateVariables[`/${name}`].stateValues.value).to.be
-                        .true;
+                    expect(
+                        stateVariables[resolveComponentName(`${name}`)]
+                            .stateValues.value,
+                    ).to.be.true;
                     expect(
                         cleanLatex(
-                            stateVariables[`/${matchNames[name][0]}`]
-                                .stateValues.latex,
+                            stateVariables[
+                                resolveComponentName(`${matchNames[name][0]}`)
+                            ].stateValues.latex,
                         ),
                     ).eq(res[0]);
                     expect(
                         cleanLatex(
-                            stateVariables[`/${matchNames[name][1]}`]
-                                .stateValues.latex,
+                            stateVariables[
+                                resolveComponentName(`${matchNames[name][1]}`)
+                            ].stateValues.latex,
                         ),
                     ).eq(res[1]);
                 } else {
-                    expect(stateVariables[`/${name}`].stateValues.value).to.be
-                        .false;
-                    expect(stateVariables[`/${matchNames[name][0]}`]).eq(
-                        undefined,
-                    );
-                    expect(stateVariables[`/${matchNames[name][1]}`]).eq(
-                        undefined,
-                    );
+                    expect(
+                        stateVariables[resolveComponentName(`${name}`)]
+                            .stateValues.value,
+                    ).to.be.false;
+                    expect(
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][0]}`)
+                        ],
+                    ).eq(undefined);
+                    expect(
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][1]}`)
+                        ],
+                    ).eq(undefined);
                 }
             }
         }
     });
 
     it("match quadratic pattern, combine matches for flexibility", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>Pattern 1: <math name="pattern1">()x^2+()x+()</math></p>
   <p>Pattern 2: <math name="pattern2">()x^2+()</math></p>
-  <p>Expression: <mathinput name="expr" /></p>
+  <p>Expression: <mathInput name="expr" /></p>
 
   <p>base: <boolean name="base">
     <matchesPattern name="base1" pattern="$pattern1" allowImplicitIdentities>$expr</matchesPattern>
     or <matchesPattern name="base2" pattern="$pattern2" allowImplicitIdentities>$expr</matchesPattern>
   </boolean></p>
   <p>Matches: 
-    <conditionalContent assignNames="(bm1 bm2 bm3)" maximumNumberToShow="1">
+    <conditionalContent name="bm">
       <case condition="$base1">$base1.patternMatches[1] $base1.patternMatches[2] $base1.patternMatch3</case>
       <case condition="$base2">$base2.patternMatches[1] <math>0</math> $base2.patternMatch2</case>
     </conditionalContent>
@@ -402,7 +422,7 @@ describe("MatchesPattern tag tests", async () => {
     or <matchesPattern name="requireNumeric2" pattern="$pattern2" requireNumericMatches allowImplicitIdentities>$expr</matchesPattern>
   </boolean></p>
   <p>Matches: 
-    <conditionalContent assignNames="(rnm1 rnm2 rnm3)" maximumNumberToShow="1">
+    <conditionalContent name="rnm">
       <case condition="$requireNumeric1">$requireNumeric1.patternMatches[1] $requireNumeric1.patternMatches[2] $requireNumeric1.patternMatch3</case>
       <case condition="$requireNumeric2">$requireNumeric2.patternMatches[1] <math>0</math> $requireNumeric2.patternMatch2</case>
     </conditionalContent>
@@ -413,7 +433,7 @@ describe("MatchesPattern tag tests", async () => {
     or <matchesPattern name="excludeX2" pattern="$pattern2" excludeMatches="x" allowImplicitIdentities>$expr</matchesPattern>
   </boolean></p>
   <p>Matches: 
-    <conditionalContent assignNames="(exm1 exm2 exm3)" maximumNumberToShow="1">
+    <conditionalContent name="exm">
       <case condition="$excludeX1">$excludeX1.patternMatches[1] $excludeX1.patternMatches[2] $excludeX1.patternMatch3</case>
       <case condition="$excludeX2">$excludeX2.patternMatches[1] <math>0</math> $excludeX2.patternMatch2</case>
     </conditionalContent>
@@ -422,9 +442,9 @@ describe("MatchesPattern tag tests", async () => {
         });
 
         let matchNames = {
-            base: ["bm1", "bm2", "bm3"],
-            requireNumeric: ["rnm1", "rnm2", "rnm3"],
-            excludeX: ["exm1", "exm2", "exm3"],
+            base: ["bm[1][1]", "bm[1][2]", "bm[1][3]"],
+            requireNumeric: ["rnm[1][1]", "rnm[1][2]", "rnm[1][3]"],
+            excludeX: ["exm[1][1]", "exm[1][2]", "exm[1][3]"],
         };
 
         let desiredResults = {
@@ -492,7 +512,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                name: "/expr",
+                componentIdx: resolveComponentName("expr"),
                 core,
             });
             let stateVariables = await core.returnAllStateVariables(
@@ -505,9 +525,15 @@ describe("MatchesPattern tag tests", async () => {
             for (let name in dResults) {
                 let res = dResults[name];
                 if (res) {
-                    expect(stateVariables[`/${name}`].stateValues.value).to.be
-                        .true;
-                    let match1 = stateVariables[`/${matchNames[name][0]}`];
+                    expect(
+                        stateVariables[resolveComponentName(`${name}`)]
+                            .stateValues.value,
+                    ).to.be.true;
+                    let match1 =
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][0]}`)
+                        ];
+
                     if (match1.componentType === "copy") {
                         match1 =
                             stateVariables[
@@ -515,7 +541,11 @@ describe("MatchesPattern tag tests", async () => {
                             ];
                     }
                     expect(cleanLatex(match1.stateValues.latex)).eq(res[0]);
-                    let match2 = stateVariables[`/${matchNames[name][1]}`];
+                    let match2 =
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][1]}`)
+                        ];
+
                     if (match2.componentType === "copy") {
                         match2 =
                             stateVariables[
@@ -523,7 +553,10 @@ describe("MatchesPattern tag tests", async () => {
                             ];
                     }
                     expect(cleanLatex(match2.stateValues.latex)).eq(res[1]);
-                    let match3 = stateVariables[`/${matchNames[name][2]}`];
+                    let match3 =
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][2]}`)
+                        ];
                     if (match3.componentType === "copy") {
                         match3 =
                             stateVariables[
@@ -532,24 +565,32 @@ describe("MatchesPattern tag tests", async () => {
                     }
                     expect(cleanLatex(match3.stateValues.latex)).eq(res[2]);
                 } else {
-                    expect(stateVariables[`/${name}`].stateValues.value).to.be
-                        .false;
-                    expect(stateVariables[`/${matchNames[name][0]}`]).eq(
-                        undefined,
-                    );
-                    expect(stateVariables[`/${matchNames[name][1]}`]).eq(
-                        undefined,
-                    );
-                    expect(stateVariables[`/${matchNames[name][2]}`]).eq(
-                        undefined,
-                    );
+                    expect(
+                        stateVariables[resolveComponentName(`${name}`)]
+                            .stateValues.value,
+                    ).to.be.false;
+                    expect(
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][0]}`)
+                        ],
+                    ).eq(undefined);
+                    expect(
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][1]}`)
+                        ],
+                    ).eq(undefined);
+                    expect(
+                        stateVariables[
+                            resolveComponentName(`${matchNames[name][2]}`)
+                        ],
+                    ).eq(undefined);
                 }
             }
         }
     });
 
     it("handle case with no pattern specified", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><matchesPattern name="mp">hello</matchesPattern></p>
   `,
@@ -557,16 +598,17 @@ describe("MatchesPattern tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/mp`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`mp`)].stateValues.value).to
+            .be.false;
     });
 
     it("works with string or multiple children", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><matchesPattern name="mps" pattern="()^()">e^(x+2)</matchesPattern></p>
-  <p>Matches: <copy source="mps.patternMatches" assignNames="mpsm1 mpsm2" /></p>
+  <p>Matches: <mathList extend="$mps.patternMatches" name="mpsm" /></p>
   <p><matchesPattern name="mpm" pattern="()^()">e^(<math>x</math>+<math>2</math>)</matchesPattern></p>
-  <p>Matches: <copy source="mpm.patternMatches" assignNames="mpmm1 mpmm2" /></p>
+  <p>Matches: <mathList extend="$mpm.patternMatches" name="mpmm" /></p>
 
 
   `,
@@ -574,31 +616,49 @@ describe("MatchesPattern tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/mps`].stateValues.value).to.be.true;
-        expect(cleanLatex(stateVariables[`/mpsm1`].stateValues.latex)).eq("e");
-        expect(cleanLatex(stateVariables[`/mpsm2`].stateValues.latex)).eq(
-            "x+2",
-        );
+        expect(stateVariables[resolveComponentName(`mps`)].stateValues.value).to
+            .be.true;
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName(`mpsm[1]`)].stateValues
+                    .latex,
+            ),
+        ).eq("e");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName(`mpsm[2]`)].stateValues
+                    .latex,
+            ),
+        ).eq("x+2");
 
-        expect(stateVariables[`/mpm`].stateValues.value).to.be.true;
-        expect(cleanLatex(stateVariables[`/mpmm1`].stateValues.latex)).eq("e");
-        expect(cleanLatex(stateVariables[`/mpmm2`].stateValues.latex)).eq(
-            "x+2",
-        );
+        expect(stateVariables[resolveComponentName(`mpm`)].stateValues.value).to
+            .be.true;
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName(`mpmm[1]`)].stateValues
+                    .latex,
+            ),
+        ).eq("e");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName(`mpmm[2]`)].stateValues
+                    .latex,
+            ),
+        ).eq("x+2");
     });
 
     it("match expression with blanks", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <text>a</text>
   <p>Pattern: <math name="pattern"> < </math></p>
-  <p>Expression: <mathinput name="expr" /></p>
-  <p><booleanInput name="matchBlanks"><label>Match expression with blanks</label></booleanInput> <boolean name="matchBlanks2" copySource="matchBlanks" /></p>
+  <p>Expression: <mathInput name="expr" /></p>
+  <p><booleanInput name="matchBlanks"><label>Match expression with blanks</label></booleanInput> <boolean name="matchBlanks2" extend="$matchBlanks" /></p>
 
   <p>Matches: <matchesPattern name="match" pattern="$pattern" matchExpressionWithBlanks="$matchBlanks">
     $expr
   </matchesPattern></p>
-  <p>Matches: <copy source="match.patternMatches" assignNames="m1 m2" /></p>
+  <p>Matches: <mathList extend="$match.patternMatches" name="m" /></p>
 
 
   `,
@@ -654,12 +714,12 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                name: "/expr",
+                componentIdx: resolveComponentName("expr"),
                 core,
             });
             await updateBooleanInputValue({
                 boolean: true,
-                name: "/matchBlanks",
+                componentIdx: resolveComponentName("matchBlanks"),
                 core,
             });
 
@@ -672,22 +732,38 @@ describe("MatchesPattern tag tests", async () => {
 
             let res = dResults.blanks;
             if (res) {
-                expect(stateVariables[`/match`].stateValues.value).to.be.true;
-                expect(cleanLatex(stateVariables[`/m1`].stateValues.latex)).eq(
-                    res[0],
-                );
-                expect(cleanLatex(stateVariables[`/m2`].stateValues.latex)).eq(
-                    res[1],
-                );
+                expect(
+                    stateVariables[resolveComponentName(`match`)].stateValues
+                        .value,
+                ).to.be.true;
+                expect(
+                    cleanLatex(
+                        stateVariables[resolveComponentName(`m[1]`)].stateValues
+                            .latex,
+                    ),
+                ).eq(res[0]);
+                expect(
+                    cleanLatex(
+                        stateVariables[resolveComponentName(`m[2]`)].stateValues
+                            .latex,
+                    ),
+                ).eq(res[1]);
             } else {
-                expect(stateVariables[`/match`].stateValues.value).to.be.false;
-                expect(stateVariables[`/m1`]).eq(undefined);
-                expect(stateVariables[`/m2`]).eq(undefined);
+                expect(
+                    stateVariables[resolveComponentName(`match`)].stateValues
+                        .value,
+                ).to.be.false;
+                expect(stateVariables[resolveComponentName(`m[1]`)]).eq(
+                    undefined,
+                );
+                expect(stateVariables[resolveComponentName(`m[2]`)]).eq(
+                    undefined,
+                );
             }
 
             await updateBooleanInputValue({
                 boolean: false,
-                name: "/matchBlanks",
+                componentIdx: resolveComponentName("matchBlanks"),
                 core,
             });
 
@@ -697,17 +773,33 @@ describe("MatchesPattern tag tests", async () => {
 
             res = dResults.default;
             if (res) {
-                expect(stateVariables[`/match`].stateValues.value).to.be.true;
-                expect(cleanLatex(stateVariables[`/m1`].stateValues.latex)).eq(
-                    res[0],
-                );
-                expect(cleanLatex(stateVariables[`/m2`].stateValues.latex)).eq(
-                    res[1],
-                );
+                expect(
+                    stateVariables[resolveComponentName(`match`)].stateValues
+                        .value,
+                ).to.be.true;
+                expect(
+                    cleanLatex(
+                        stateVariables[resolveComponentName(`m[1]`)].stateValues
+                            .latex,
+                    ),
+                ).eq(res[0]);
+                expect(
+                    cleanLatex(
+                        stateVariables[resolveComponentName(`m[2]`)].stateValues
+                            .latex,
+                    ),
+                ).eq(res[1]);
             } else {
-                expect(stateVariables[`/match`].stateValues.value).to.be.false;
-                expect(stateVariables[`/m1`]).eq(undefined);
-                expect(stateVariables[`/m2`]).eq(undefined);
+                expect(
+                    stateVariables[resolveComponentName(`match`)].stateValues
+                        .value,
+                ).to.be.false;
+                expect(stateVariables[resolveComponentName(`m[1]`)]).eq(
+                    undefined,
+                );
+                expect(stateVariables[resolveComponentName(`m[2]`)]).eq(
+                    undefined,
+                );
             }
         }
     });

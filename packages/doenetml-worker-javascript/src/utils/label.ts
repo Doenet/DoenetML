@@ -24,7 +24,8 @@ export function returnWrapNonLabelsSugarFunction({
     onlyStringOrMacros?: boolean;
     customWrappingFunction: (
         arg: (SerializedComponent | string)[],
-    ) => (SerializedComponent | string)[];
+        nComponents: number,
+    ) => { newChildren: (SerializedComponent | string)[]; nComponents: number };
     wrapSingleIfNotWrappingComponentType?: boolean;
 }) {
     return function ({
@@ -143,7 +144,13 @@ export function returnWrapNonLabelsSugarFunction({
 
             let wrappedChildren: (string | SerializedComponent)[];
             if (customWrappingFunction) {
-                wrappedChildren = customWrappingFunction(childrenToWrap);
+                const wrapResult = customWrappingFunction(
+                    childrenToWrap,
+                    nComponents,
+                );
+
+                wrappedChildren = wrapResult.newChildren;
+                nComponents = wrapResult.nComponents;
             } else {
                 wrappedChildren = [
                     {

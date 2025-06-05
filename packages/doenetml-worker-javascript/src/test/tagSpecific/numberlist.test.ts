@@ -755,12 +755,12 @@ describe("NumberList tag tests", async () => {
     <p name="p5a"><numberList name="nl5a" extend="$nl5" /></p>
     <p name="p6a"><numberList name="nl6a" extend="$nl6" /></p>
 
-    <p name="p1b"><numberList name="nl1b" extend="$nl1" link="false" /></p>
-    <p name="p2b"><numberList name="nl2b" extend="$nl2" link="false" /></p>
-    <p name="p3b"><numberList name="nl3b" extend="$nl3" link="false" /></p>
-    <p name="p4b"><numberList name="nl4b" extend="$nl4" link="false" /></p>
-    <p name="p5b"><numberList name="nl5b" extend="$nl5" link="false" /></p>
-    <p name="p6b"><numberList name="nl6b" extend="$nl6" link="false" /></p>
+    <p name="p1b"><numberList name="nl1b" extend="$nl1" /></p>
+    <p name="p2b"><numberList name="nl2b" extend="$nl2" /></p>
+    <p name="p3b"><numberList name="nl3b" extend="$nl3" /></p>
+    <p name="p4b"><numberList name="nl4b" extend="$nl4" /></p>
+    <p name="p5b"><numberList name="nl5b" extend="$nl5" /></p>
+    <p name="p6b"><numberList name="nl6b" extend="$nl6" /></p>
 
 
     `,

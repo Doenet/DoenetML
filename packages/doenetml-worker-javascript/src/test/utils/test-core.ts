@@ -49,6 +49,10 @@ const defaultFlags: DoenetMLFlags = {
     autoSubmit: false,
 };
 
+export type ResolveComponentName = Awaited<
+    ReturnType<typeof createTestCore>
+>["resolveComponentName"];
+
 export async function createTestCore({
     doenetML,
     requestedVariantIndex = 1,
@@ -136,7 +140,7 @@ export async function createTestCore({
         // This algorithm is not a careful check of the correct form.
         // It assume all characters of the `name` of each path piece are word characters.
 
-        const initialMatch = name.match(/^(\w+)((\[\d+\])*)/);
+        const initialMatch = name.match(/^([\w-]+)((\[\d+\])*)/);
 
         if (!initialMatch) {
             throw Error(`Invalid name to resolve: ${name}`);
@@ -149,7 +153,7 @@ export async function createTestCore({
                 index: extractIndex(initialMatch[2]),
             },
         ];
-        for (const match of name.matchAll(/\.(\w+)((\[\d+\])*)/g)) {
+        for (const match of name.matchAll(/\.([\w-]+)((\[\d+\])*)/g)) {
             path.push({
                 type: "flatPathPart",
                 name: match[1],
@@ -307,7 +311,7 @@ function resolveAdditionalPath(
         let elt = nonBlankStringReplacements.pop();
 
         while (elt) {
-            if (elt.componentType === "copy") {
+            if (elt.componentType === "_copy") {
                 // Add the replacements of the copy to the queue (in reverse order)
                 const newNonBlankReplacements = elt.replacements.filter(
                     (x) => typeof x !== "string" || x.trim() !== "",

@@ -1299,29 +1299,29 @@ describe("Number tag tests", async () => {
   <p><number name="n1" displayDigits="2">8.5203845251</number>
   <number extend="$n1.value" name="n1a" />
   <number extend="$n1.value" displayDigits="5" name="n1b" />
-  <number extend="$n1.value" link="false" name="n1c" />
-  <number extend="$n1.value" link="false" displayDigits="5" name="n1d" />
+  <number copy="$n1.value" name="n1c" />
+  <number copy="$n1.value" displayDigits="5" name="n1d" />
   </p>
 
   <p><number name="n2" displayDecimals="0">8.5203845251</number>
   <number extend="$n2.value" name="n2a" />
   <number extend="$n2.value" displayDecimals="6" name="n2b" />
-  <number extend="$n2.value" link="false" name="n2c" />
-  <number extend="$n2.value" link="false" displayDecimals="6" name="n2d" />
+  <number copy="$n2.value" name="n2c" />
+  <number copy="$n2.value" displayDecimals="6" name="n2d" />
   </p>
 
   <p><number name="n3" displaySmallAsZero="false">0.000000000000000015382487</number>
   <number extend="$n3.value" name="n3a" />
   <number extend="$n3.value" displaySmallAsZero name="n3b" />
-  <number extend="$n3.value" link="false" name="n3c" />
-  <number extend="$n3.value" link="false" displaySmallAsZero name="n3d" />
+  <number copy="$n3.value" name="n3c" />
+  <number copy="$n3.value" displaySmallAsZero name="n3d" />
   </p>
 
   <p><number name="n4" padZeros>8</number>
   <number extend="$n4.value" name="n4a" />
   <number extend="$n4.value" padZeros="false" name="n4b" />
-  <number extend="$n4.value" link="false" name="n4c" />
-  <number extend="$n4.value" link="false" padZeros="false" name="n4d" />
+  <number copy="$n4.value" name="n4c" />
+  <number copy="$n4.value" padZeros="false" name="n4d" />
   </p>
 
   `,

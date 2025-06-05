@@ -1347,7 +1347,6 @@ describe("MathList tag tests", async () => {
         );
     });
 
-    // TODO: fix the link="false" cases
     it("mathList and rounding, from strings", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
@@ -1365,12 +1364,12 @@ describe("MathList tag tests", async () => {
     <p name="p5a"><mathList name="ml5a" extend="$ml5" /></p>
     <p name="p6a"><mathList name="ml6a" extend="$ml6" /></p>
 
-    <p name="p1b"><mathList name="ml1b" extend="$ml1" link="false" /></p>
-    <p name="p2b"><mathList name="ml2b" extend="$ml2" link="false" /></p>
-    <p name="p3b"><mathList name="ml3b" extend="$ml3" link="false" /></p>
-    <p name="p4b"><mathList name="ml4b" extend="$ml4" link="false" /></p>
-    <p name="p5b"><mathList name="ml5b" extend="$ml5" link="false" /></p>
-    <p name="p6b"><mathList name="ml6b" extend="$ml6" link="false" /></p>
+    <p name="p1b"><mathList name="ml1b" copy="$ml1" /></p>
+    <p name="p2b"><mathList name="ml2b" copy="$ml2" /></p>
+    <p name="p3b"><mathList name="ml3b" copy="$ml3" /></p>
+    <p name="p4b"><mathList name="ml4b" copy="$ml4" /></p>
+    <p name="p5b"><mathList name="ml5b" copy="$ml5" /></p>
+    <p name="p6b"><mathList name="ml6b" copy="$ml6" /></p>
 
 
     `,
