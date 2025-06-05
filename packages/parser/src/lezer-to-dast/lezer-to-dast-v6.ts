@@ -19,6 +19,7 @@ import {
 } from "../types";
 import { createErrorNode } from "./create-error-node";
 import {
+    OffsetToPositionMap,
     attributeValueText,
     createOffsetToPositionMap,
     entityToString,
@@ -142,14 +143,20 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRootV6 {
                     }
                     let attrChildren: DastAttributeV6["children"] = attrValue
                         ? [
-                              ...reprocessTextForMacros({
-                                  type: "text",
-                                  value: attributeValueText(attrValue, source),
-                                  position: lezerNodeToPosition(
-                                      attrValue,
-                                      offsetMap,
-                                  ),
-                              } as DastText),
+                              ...reprocessTextForMacros(
+                                  {
+                                      type: "text",
+                                      value: attributeValueText(
+                                          attrValue,
+                                          source,
+                                      ),
+                                      position: lezerNodeToPosition(
+                                          attrValue,
+                                          offsetMap,
+                                      ),
+                                  } as DastText,
+                                  offsetMap,
+                              ),
                           ]
                         : [];
                     // Attributes with no specified value are assigned the value "true".
@@ -190,7 +197,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRootV6 {
                     value: textNodeToText(node, source),
                     position: lezerNodeToPosition(node, offsetMap),
                 };
-                return reprocessTextForMacros(textNode);
+                return reprocessTextForMacros(textNode, offsetMap);
             }
             case "Ampersand":
                 return [
@@ -356,6 +363,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRootV6 {
  */
 function reprocessTextForMacros(
     textNode: DastText,
+    offsetToPositionMap: OffsetToPositionMap,
 ): (DastText | DastMacroV6 | DastFunctionMacroV6)[] {
     if (!textNode.value.includes("$")) {
         return [textNode];
@@ -366,6 +374,8 @@ function reprocessTextForMacros(
     // The text node may be located anywhere in the source and we have
     // just re-parsed it, so we need to make sure the position data is
     // correct.
-    parsed.forEach((n) => updateNodePositionData(n, textNode));
+    parsed.forEach((n) =>
+        updateNodePositionData(n, textNode, offsetToPositionMap),
+    );
     return parsed;
 }

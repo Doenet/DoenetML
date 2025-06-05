@@ -1,4 +1,3 @@
-import { filterPositionInfo } from "../dast-to-xml/utils";
 import {
     DastElementContent,
     DastFunctionMacro,
@@ -95,6 +94,13 @@ export function gobbleFunctionArguments(
                         ),
                     );
                     currentFunctionArg = [];
+                    // We found the closing `)`. This should mark the position
+                    // of the end of the function macro.
+                    if (nextNode.position) {
+                        functionNode.position.end = {
+                            ...nextNode.position.end,
+                        } as any;
+                    }
                     functionNode = null;
                     i++;
                     continue;
