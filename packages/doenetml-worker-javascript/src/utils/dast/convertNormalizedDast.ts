@@ -112,6 +112,30 @@ export async function normalizedDastToSerializedComponents(
                             message: node.message,
                             position: node.position,
                         });
+                        if (
+                            node.message.includes("No referent") ||
+                            node.message.includes("Multiple referents")
+                        ) {
+                            // Depending on the parent, we still want something to show up for these invalid reference.
+                            // Since we already have that logic implemented for copy, we'll just make a copy
+                            // with no referent
+                            unflattenedNodes.push({
+                                type: "unflattened",
+                                componentType: "_copy",
+                                componentIdx: idxOrString,
+                                attributes: {},
+                                position: node.position,
+                                extending: {
+                                    Ref: {
+                                        nodeIdx: -1,
+                                        unresolvedPath: null,
+                                        originalPath: [],
+                                    },
+                                },
+                                state: {},
+                                children: [],
+                            });
+                        }
                     } else {
                         unflattenedNodes.push({
                             type: "unflattened",
@@ -217,7 +241,6 @@ export async function normalizedDastToSerializedComponents(
     let expandedRoot = expandResult.components;
     nComponents = expandResult.nComponents;
     const errors = expandResult.errors;
-    const warnings: WarningRecord[] = [];
 
     expandedRoot = removeBlankStringChildren(
         expandedRoot,

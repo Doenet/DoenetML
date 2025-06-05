@@ -3891,7 +3891,10 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
             };
         }
 
-        let variableName = this.definition.unresolvedPath[0].name;
+        let unresolvedPath = [...this.definition.unresolvedPath];
+        let nextPart = unresolvedPath.shift();
+
+        let variableName = nextPart.name;
 
         if (variableName === "") {
             variableName = component.constructor.variableForIndexAsProp;
@@ -3910,17 +3913,36 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
 
         let propIndex = [];
         let foundBadIndex = false;
-        if (this.definition.unresolvedPath[0].index.length > 0) {
-            propIndex = this.definition.unresolvedPath[0].index.map(
-                (index_part) => Math.round(Number(index_part.value[0])),
+        if (nextPart.index.length > 0) {
+            propIndex = nextPart.index.map((index_part) =>
+                Math.round(Number(index_part.value[0])),
             );
             if (!propIndex.every(Number.isFinite)) {
                 foundBadIndex = true;
             }
         }
 
-        if (!foundBadIndex && this.definition.unresolvedPath.length > 1) {
-            const nextPart = this.definition.unresolvedPath[1];
+        nextPart = unresolvedPath.shift();
+
+        if (
+            foundBadIndex ||
+            unresolvedPath.length > 0 ||
+            nextPart?.index.length > 0
+        ) {
+            // At this point, we haven't implement searching an entire path.
+            // Hence, we regard the reference as invalid and return nothing if
+            // 1. we have a bad index
+            // 2. we have a third part of the unresolved path, or
+            // 3. the second part of the unresolved path as an index.
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        if (nextPart != undefined) {
+            let foundMatchToNextName = false;
 
             const stateVarInfo =
                 this.dependencyHandler.componentInfoObjects
@@ -3934,6 +3956,7 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
                 const aliasIdx = aliases.indexOf(nextPart.name);
                 if (aliasIdx !== -1) {
                     propIndex.push(aliasIdx + 1);
+                    foundMatchToNextName = true;
                 }
             } else {
                 const arrayEntryCheck =
@@ -3969,15 +3992,24 @@ class StateVariableFromUnresolvedPathDependency extends Dependency {
                         const aliasIdx = aliases.indexOf(nextPart.name);
                         if (aliasIdx !== -1) {
                             propIndex.push(aliasIdx + 1);
+                            foundMatchToNextName = true;
                         }
                     }
                 }
             }
+
+            // If the name to the second part of the unresolved path did not match,
+            // then we regard the reference as invalid and return nothing
+            if (!foundMatchToNextName) {
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
         }
 
-        if (foundBadIndex) {
-            this.propIndex = [];
-        } else if (propIndex.length > 0) {
+        if (propIndex.length > 0) {
             this.propIndex = propIndex;
         }
 

@@ -46,6 +46,12 @@ export default class BooleanList extends CompositeComponent {
             leaveRaw: true,
         };
 
+        attributes.asList = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "asList",
+            defaultValue: true,
+        };
+
         return attributes;
     }
 
@@ -92,13 +98,6 @@ export default class BooleanList extends CompositeComponent {
                     booleansShadow: true,
                 },
             }),
-        };
-
-        stateVariableDefinitions.asList = {
-            returnDependencies: () => ({}),
-            definition() {
-                return { setValue: { asList: true } };
-            },
         };
 
         stateVariableDefinitions.numComponents = {

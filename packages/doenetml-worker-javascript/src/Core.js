@@ -2531,6 +2531,7 @@ export default class Core {
             nComponents: this.components.length,
             workspace: component.replacementsWorkspace,
             componentInfoObjects: this.componentInfoObjects,
+            allDoenetMLs: this.allDoenetMLs,
             flags: this.flags,
             resolveItem: this.dependencies.resolveItem.bind(this.dependencies),
             publicCaseInsensitiveAliasSubstitutions:
@@ -2830,6 +2831,17 @@ export default class Core {
             } else {
                 serializedReplacements.push(repl);
             }
+        }
+
+        if (component.constructor.addExtraSerializedChildrenWhenShadowing) {
+            // add any serialized children that are beyond the replacements we already have
+            serializedReplacements.push(
+                ...deepClone(
+                    component.serializedChildren.slice(
+                        serializedReplacements.length,
+                    ),
+                ),
+            );
         }
 
         this.adjustForCreateComponentIdxName(serializedReplacements, component);
@@ -9461,7 +9473,13 @@ export default class Core {
 
                 // recurse on components that shadow
                 if (component.shadowedBy) {
-                    componentsToRecurse.push(...component.shadowedBy);
+                    // XXX: is the the correct way to handle the fact that
+                    // we want shadowed replacements to stick around so that they can be correctly deleted from the resolver?
+
+                    // componentsToRecurse.push(...component.shadowedBy);
+                    for (let comp of component.shadowedBy) {
+                        delete comp.shadows;
+                    }
                 }
 
                 // recurse on replacements and adapters

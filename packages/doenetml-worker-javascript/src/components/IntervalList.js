@@ -47,6 +47,12 @@ export default class IntervalList extends CompositeComponent {
             leaveRaw: true,
         };
 
+        attributes.asList = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "asList",
+            defaultValue: true,
+        };
+
         for (let attrName in returnRoundingAttributes()) {
             attributes[attrName] = {
                 leaveRaw: true,
@@ -119,13 +125,6 @@ export default class IntervalList extends CompositeComponent {
                     intervalsShadow: true,
                 },
             }),
-        };
-
-        stateVariableDefinitions.asList = {
-            returnDependencies: () => ({}),
-            definition() {
-                return { setValue: { asList: true } };
-            },
         };
 
         stateVariableDefinitions.numIntervals = {

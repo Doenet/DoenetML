@@ -21,6 +21,7 @@ export default class Group extends CompositeComponent {
         "readyToExpandWhenResolved";
 
     static useSerializedChildrenComponentIndices = true;
+    static addExtraSerializedChildrenWhenShadowing = true;
 
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {

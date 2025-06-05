@@ -1219,9 +1219,17 @@ export default class BaseComponent {
                 }
 
                 if (this.serializedChildren !== undefined) {
+                    // if this component has `copyInChildren` set,
+                    // then its serialized children will have actual components made from them,
+                    // so they should be shadowed.
+                    let shadowComponents =
+                        this.attributes.copyInChildren?.primitive?.value;
                     for (let child of this.serializedChildren) {
                         serializedChildren.push(
-                            this.copySerializedComponent(child),
+                            this.copySerializedComponent(
+                                child,
+                                shadowComponents,
+                            ),
                         );
                     }
                 }
@@ -1372,7 +1380,14 @@ export default class BaseComponent {
         // XXX: lost whether this was a Ref, an ExtendAttribute or a CopyAttribute
         if (this.refResolution) {
             serializedComponent.extending = {
-                Ref: deepClone(this.refResolution),
+                Ref: {
+                    nodeIdx: this.refResolution.nodeIdx,
+                    unresolvedPath: await this.serializePath(
+                        this.refResolution.unresolvedPath,
+                        parametersForChildren,
+                    ),
+                    originalPath: deepClone(this.refResolution.originalPath),
+                },
             };
         }
 
@@ -1382,13 +1397,50 @@ export default class BaseComponent {
         return serializedComponent;
     }
 
-    copySerializedComponent(serializedComponent) {
+    async serializePath(path, parametersForChildren) {
+        if (path == null) {
+            return path;
+        }
+
+        let newPath = [];
+
+        for (const pathPart of path) {
+            const newPathPart = {
+                name: pathPart.name,
+                position: pathPart.position,
+                index: [],
+            };
+
+            for (const index of pathPart.index) {
+                const newIndex = {
+                    position: index.position,
+                    value: [],
+                };
+                for (let comp of index.value) {
+                    if (typeof comp !== "object") {
+                        newIndex.value.push(comp);
+                    } else {
+                        newIndex.value.push(
+                            await comp.serialize(parametersForChildren),
+                        );
+                    }
+                }
+                newPathPart.index.push(newIndex);
+            }
+
+            newPath.push(newPathPart);
+        }
+        return newPath;
+    }
+
+    copySerializedComponent(serializedComponent, shadowComponents = false) {
         if (typeof serializedComponent !== "object") {
             return serializedComponent;
         }
 
         let serializedChildren = [];
         if (serializedComponent.children !== undefined) {
+            // XXX: should we set `shadowComponents` recursively here?
             for (let child of serializedComponent.children) {
                 serializedChildren.push(this.copySerializedComponent(child));
             }
@@ -1399,7 +1451,7 @@ export default class BaseComponent {
             componentType: serializedComponent.componentType,
             componentIdx: serializedComponent.componentIdx,
             originalIdx: serializedComponent.componentIdx,
-            originalNameFromSerializedComponent: true,
+            dontShadowOriginalIndex: !shadowComponents,
             children: serializedChildren,
             state: {},
             doenetAttributes: {},

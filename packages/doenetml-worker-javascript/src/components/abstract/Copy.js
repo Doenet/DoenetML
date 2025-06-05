@@ -560,10 +560,10 @@ export default class Copy extends CompositeComponent {
 
                     // if createComponentOfType matches the source's componentType,
                     // we won't allow an implicit prop
-                    // We could alternatively check to make sure that no attributes were added
+                    // We could alternatively check to make sure that no attributes or children were added
                     // (so that we know state variables won't have to be recalculated)
                     // and that no name was specified,
-                    // (so that we know it can't be extended and expected to have children)
+                    // (so that we know it can't be extended to gain attributes or children)
                     // and make an exception in those cases.
                     if (componentTypeFromAttr === source.componentType) {
                         return { setValue: { implicitProp: null } };
@@ -611,10 +611,6 @@ export default class Copy extends CompositeComponent {
                         ind,
                         source,
                     ] of stateValues.replacementSourceIdentities.entries()) {
-                        if (typeof source === "string") {
-                            continue;
-                        }
-
                         let thisUnresolvedPath = stateValues.unresolvedPath;
 
                         if (stateValues.implicitProp) {
@@ -636,6 +632,10 @@ export default class Copy extends CompositeComponent {
                                 value: thisUnresolvedPath,
                             };
 
+                            if (typeof source === "string") {
+                                continue;
+                            }
+
                             thisTarget = {
                                 dependencyType:
                                     "stateVariableFromUnresolvedPath",
@@ -648,6 +648,10 @@ export default class Copy extends CompositeComponent {
                                 useMappedVariableNames: true,
                             };
                         } else {
+                            if (typeof source === "string") {
+                                continue;
+                            }
+
                             thisTarget = {
                                 dependencyType: "componentIdentity",
                                 componentIdx: source.componentIdx,
@@ -694,8 +698,13 @@ export default class Copy extends CompositeComponent {
                                 ];
 
                             if (typeof replSource === "string") {
-                                replacementSources.push(replSource);
-                                effectivePropNameBySource.push(undefined);
+                                if (dependencyValues["unresolvedPath" + ind]) {
+                                    const propName = "__prop_name_not_found";
+                                    effectivePropNameBySource.push(propName);
+                                } else {
+                                    replacementSources.push(replSource);
+                                    effectivePropNameBySource.push(undefined);
+                                }
                             } else {
                                 // Target not found. Create an invalid effective prop name so that get no replacement
                                 replacementSources.push(undefined);
@@ -1073,6 +1082,7 @@ export default class Copy extends CompositeComponent {
         components,
         nComponents,
         workspace,
+        allDoenetMLs,
         componentInfoObjects,
         resolveItem,
         publicCaseInsensitiveAliasSubstitutions,
@@ -1400,6 +1410,7 @@ export default class Copy extends CompositeComponent {
                 sourceNum,
                 components,
                 nComponents,
+                allDoenetMLs,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
                 compositeAttributesObj,
@@ -1473,13 +1484,13 @@ export default class Copy extends CompositeComponent {
         sourceNum,
         components,
         nComponents,
+        allDoenetMLs,
         numReplacementsSoFar,
         numNonStringReplacementsSoFar,
         compositeAttributesObj,
         componentInfoObjects,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
-
         copyInChildren,
     }) {
         // console.log(`create replacement for sourceNum ${sourceNum}`);
@@ -1549,6 +1560,7 @@ export default class Copy extends CompositeComponent {
                 nComponents,
                 replacementSource,
                 propName,
+                allDoenetMLs,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
                 compositeAttributesObj,
@@ -1711,21 +1723,6 @@ export default class Copy extends CompositeComponent {
                 children: component.serializedChildren,
                 componentInfoObjects,
             });
-        }
-
-        // XXX: is the the right approach to not shadow composites?
-        // If we can get away with this, we can delete a lot of code about shadowing composites.
-        // though we probably need to address other composites further down in the tree.
-        // Test this as a way to avoid having to deal with copyInChildren in the shadowing composites code.
-        if (
-            serializedReplacements.length === 1 &&
-            serializedReplacements[0].componentType === "_copy"
-            // componentInfoObjects.isCompositeComponent({
-            //     componentType: serializedReplacements[0].componentType,
-            //     includeNonStandard: true,
-            // })
-        ) {
-            delete serializedReplacements[0].downstreamDependencies;
         }
 
         // console.log(
@@ -2436,7 +2433,7 @@ export default class Copy extends CompositeComponent {
             publicCaseInsensitiveAliasSubstitutions,
             copyInChildren:
                 Number(sourceNum) === 0 &&
-                component.attributes.primitive?.copyInChildren.value,
+                component.attributes.copyInChildren?.primitive.value,
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);
@@ -2487,6 +2484,7 @@ export async function replacementFromProp({
     nComponents,
     replacementSource,
     propName,
+    allDoenetMLs,
     // numReplacementsSoFar,
     compositeAttributesObj,
     componentInfoObjects,
@@ -2516,7 +2514,25 @@ export async function replacementFromProp({
     })[0];
 
     if (varName === undefined || varName.slice(0, 12) === "__not_public") {
-        if (propName !== "__prop_name_not_found") {
+        if (propName === "__no_target_found") {
+            // find name of prop from unresolvedPath position and doenetML
+            const unresolvedPath = component.refResolution.unresolvedPath;
+            const startOffset = unresolvedPath[0].position?.start.offset;
+            const endOffset =
+                unresolvedPath[unresolvedPath.length - 1].position?.end.offset;
+
+            let unresolvedPropName = "";
+            if (startOffset != undefined && endOffset != undefined) {
+                unresolvedPropName = allDoenetMLs?.[0]?.substring(
+                    startOffset,
+                    endOffset,
+                );
+            }
+            warnings.push({
+                message: `Could not find prop ${unresolvedPropName} on a component of type ${replacementSource.componentType}`,
+                level: 2,
+            });
+        } else if (propName !== "__prop_name_not_found") {
             warnings.push({
                 message: `Could not find prop ${propName} on a component of type ${replacementSource.componentType}`,
                 level: 2,

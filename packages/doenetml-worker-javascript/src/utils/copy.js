@@ -32,10 +32,16 @@ export function postProcessCopy({
         if (component.originalIdx != undefined) {
             // preserializedNamesFound[component.originalIdx] = component;
 
-            if (!component.originalNameFromSerializedComponent) {
-                // if originalNameFromSerializedComponent, then was copied from a serialized component
+            if (!component.dontShadowOriginalIndex) {
+                // if dontShadowOriginalIndex, then was copied from a serialized component
                 // so copy cannot shadow anything
-                if (addShadowDependencies) {
+
+                // Note: we don't add shadow dependencies to copies so that the logic from Copy will be used every time,
+                // including the logical of copying in children.
+                if (
+                    addShadowDependencies &&
+                    component.componentType !== "_copy"
+                ) {
                     let downDep = {
                         [component.originalIdx]: [
                             {
@@ -816,8 +822,55 @@ export function addAttributesToSingleReplacement(
             component.attributes.createComponentIdx?.primitive.value !=
             undefined
         ) {
-            replacements[0].componentIdx =
+            const prevComponentIdx = replacements[0].componentIdx;
+            const newComponentIdx =
                 component.attributes.createComponentIdx.primitive.value;
+
+            substituteComponentIdx(
+                replacements,
+                prevComponentIdx,
+                newComponentIdx,
+            );
+        }
+    }
+}
+
+/**
+ * Recurse through all `components` and substitute `newComponentIdx` for `prevComponentIdx`,
+ * both for a component's `componentIdx` and also for any `nodeIdx` in an `extending` attribute.
+ */
+function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
+    for (const component of components) {
+        if (typeof component === "string") {
+            continue;
+        }
+
+        if (component.componentIdx === prevComponentIdx) {
+            component.componentIdx = newComponentIdx;
+        }
+
+        if (component.extending) {
+            const refResolution = unwrapSource(component.extending);
+            if (refResolution.nodeIdx === prevComponentIdx) {
+                refResolution.nodeIdx = newComponentIdx;
+            }
+        }
+
+        substituteComponentIdx(
+            component.children,
+            prevComponentIdx,
+            newComponentIdx,
+        );
+
+        for (const attrName in component.attributes) {
+            const attribute = component.attributes[attrName];
+            if (attribute.type === "component") {
+                substituteComponentIdx(
+                    [attribute.component],
+                    prevComponentIdx,
+                    newComponentIdx,
+                );
+            }
         }
     }
 }
