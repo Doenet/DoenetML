@@ -1,4 +1,4 @@
-import VectorListComponent from "./abstract/VectorListComponent";
+import VectorListComponent from "./VectorList";
 
 export default class ControlVectors extends VectorListComponent {
     static componentType = "controlVectors";

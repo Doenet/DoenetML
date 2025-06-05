@@ -367,7 +367,7 @@ describe("UpdateValue tag tests", async () => {
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(6,0)");
     }
 
-    it("update componentIndex", async () => {
+    it("update sourceIndex", async () => {
         let core = await createTestCore({
             doenetML: `
     <group name="grp">
@@ -378,7 +378,7 @@ describe("UpdateValue tag tests", async () => {
     
     <collect componentTypes="point" source="grp" name="col" />
   
-    <updateValue name="uv1" target="col" prop="x" newValue="2$(p.x)" componentIndex="2" />
+    <updateValue name="uv1" target="col" prop="x" newValue="2$(p.x)" sourceIndex="2" />
     <updateValue name="uv2" target="col[3].x" newValue="2$(p.x)" />
     `,
         });
@@ -386,7 +386,7 @@ describe("UpdateValue tag tests", async () => {
         await test_update_component_index_points(core);
     });
 
-    it("update componentIndex of group", async () => {
+    it("update sourceIndex of group", async () => {
         let core = await createTestCore({
             doenetML: `
     <group name="grp">
@@ -398,7 +398,7 @@ describe("UpdateValue tag tests", async () => {
     </group>
     
   
-    <updateValue name="uv1" target="grp" prop="x" newValue="2$(grp[1].x)" componentIndex="3" />
+    <updateValue name="uv1" target="grp" prop="x" newValue="2$(grp[1].x)" sourceIndex="3" />
     <updateValue name="uv2" target="grp[5].x" newValue="2$(grp[1].x)" />
     `,
         });
@@ -406,7 +406,7 @@ describe("UpdateValue tag tests", async () => {
         await test_update_component_index_points(core);
     });
 
-    it("update componentIndex of group with target subnames", async () => {
+    it("update sourceIndex of group with target subnames", async () => {
         let core = await createTestCore({
             doenetML: `
     <group name="grp">

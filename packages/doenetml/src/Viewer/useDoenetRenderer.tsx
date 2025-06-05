@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { renderersLoadComponent } from "./DocViewer";
-import { cesc } from "@doenet/utils";
 import { ComponentInfo, mainSlice, useAppSelector } from "../state";
 
 export type UseDoenetRendererProps = {
@@ -138,7 +137,7 @@ export default function useDoenetRenderer(
 
     return {
         name: effectiveName,
-        id: prefixForIds + cesc(effectiveName),
+        id: prefixForIds + effectiveName,
         SVs: stateValues,
         docId: props.docId,
         activityId: props.activityId,

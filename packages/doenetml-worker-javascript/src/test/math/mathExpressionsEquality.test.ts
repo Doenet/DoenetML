@@ -974,25 +974,29 @@ describe("Math expressions equality tests", async () => {
             doenetML += `\n<boolean name="sse${ind}" symbolicEquality simplifyOnCompare expandOnCompare>${info.expr1} = ${info.expr2}</boolean>`;
         }
 
-        let core = await createTestCore({ doenetML });
+        let { core, resolveComponentName } = await createTestCore({ doenetML });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let [ind, info] of equivalences.entries()) {
             expect(
-                stateVariables[`/n${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`n${ind}`)].stateValues
+                    .value,
                 `Comparing ${info.expr1} and ${info.expr2}`,
             ).eq(info.equal);
             expect(
-                stateVariables[`/s${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`s${ind}`)].stateValues
+                    .value,
                 `Comparing symbolic ${info.expr1} and ${info.expr2}`,
             ).eq(info.symbolicEqual);
             expect(
-                stateVariables[`/ss${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`ss${ind}`)].stateValues
+                    .value,
                 `Comparing symbolic simplify ${info.expr1} and ${info.expr2}`,
             ).eq(info.symbolicSimplifyEqual);
             expect(
-                stateVariables[`/sse${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`sse${ind}`)].stateValues
+                    .value,
                 `Comparing symbolic simplify expand ${info.expr1} and ${info.expr2}`,
             ).eq(info.symbolicSimplifyExpandEqual);
         }

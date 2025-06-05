@@ -1,18 +1,13 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
-import {
-    convertAttributesForComponentType,
-    postProcessCopy,
-} from "../utils/copy";
-import { processAssignNames } from "../utils/naming";
+import { postProcessCopy } from "../utils/copy";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class TextList extends CompositeComponent {
     static componentType = "textList";
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
-
-    static assignNamesToReplacements = true;
 
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
@@ -53,6 +48,12 @@ export default class TextList extends CompositeComponent {
             leaveRaw: true,
         };
 
+        attributes.asList = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "asList",
+            defaultValue: true,
+        };
+
         return attributes;
     }
 
@@ -68,8 +69,11 @@ export default class TextList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren }) {
-                return groupIntoTextsSeparatedBySpaces({ matchedChildren });
+            replacementFunction: function ({ matchedChildren, nComponents }) {
+                return groupIntoTextsSeparatedBySpaces({
+                    matchedChildren,
+                    nComponents,
+                });
             },
         });
 
@@ -97,13 +101,6 @@ export default class TextList extends CompositeComponent {
                     textsShadow: true,
                 },
             }),
-        };
-
-        stateVariableDefinitions.asList = {
-            returnDependencies: () => ({}),
-            definition() {
-                return { setValue: { asList: true } };
-            },
         };
 
         stateVariableDefinitions.numComponents = {
@@ -247,18 +244,21 @@ export default class TextList extends CompositeComponent {
                             variableIndex: 0,
                         });
                     } else if (globalDependencyValues.textsShadow !== null) {
-                        if (!workspace.desiredTextShadow) {
-                            workspace.desiredTextShadow = [
+                        if (!workspace.desiredTextsShadow) {
+                            workspace.desiredTextsShadow = [
                                 ...globalDependencyValues.textsShadow,
                             ];
                         }
-                        workspace.desiredTextShadow[arrayKey] =
+                        workspace.desiredTextsShadow[arrayKey] =
                             desiredStateVariableValues.texts[arrayKey];
-                        instructions.push({
-                            setDependency: "textsShadow",
-                            desiredValue: workspace.desiredTextShadow,
-                        });
                     }
+                }
+
+                if (workspace.desiredTextsShadow) {
+                    instructions.push({
+                        setDependency: "textsShadow",
+                        desiredValue: workspace.desiredTextsShadow,
+                    });
                 }
 
                 return {
@@ -304,6 +304,7 @@ export default class TextList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -318,27 +319,27 @@ export default class TextList extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
-        // allow one to override the fixed and isResponse attributes
-        // as well as rounding settings
-        // by specifying it on the sequence
-        let attributesFromComposite = {};
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            attributesFromComposite = convertAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: "text",
-                componentInfoObjects,
-                compositeCreatesNewNamespace: newNamespace,
-            });
-        }
-
         let childNameByComponent =
             await component.stateValues.childNameByComponent;
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
+            // allow one to override the fixed and isResponse attributes
+            // by specifying it on the sequence
+            let attributesFromComposite = {};
+
+            if (Object.keys(attributesToConvert).length > 0) {
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "text",
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
+
             let childIdx = childNameByComponent[i];
             let replacementSource = components[childIdx];
 
@@ -346,8 +347,13 @@ export default class TextList extends CompositeComponent {
                 componentsCopied.push(replacementSource.componentIdx);
             }
             replacements.push({
+                type: "serialized",
                 componentType: "text",
+                componentIdx: nComponents++,
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                doenetAttributes: {},
+                children: [],
+                state: {},
                 downstreamDependencies: {
                     [component.componentIdx]: [
                         {
@@ -360,32 +366,21 @@ export default class TextList extends CompositeComponent {
             });
         }
 
-        workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
             componentIdx: component.componentIdx,
-            uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
         });
-
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
 
         workspace.componentsCopied = componentsCopied;
         workspace.numComponents = numComponents;
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
@@ -394,6 +389,7 @@ export default class TextList extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -421,7 +417,7 @@ export default class TextList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return [];
+                return { replacementChanges: [] };
             }
         }
 
@@ -431,11 +427,13 @@ export default class TextList extends CompositeComponent {
             components,
             componentInfoObjects,
             workspace,
+            nComponents,
         });
 
         let replacements = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -447,6 +445,6 @@ export default class TextList extends CompositeComponent {
             },
         ];
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 }

@@ -36,7 +36,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         attributes.endpoints = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
 
         attributes.showCoordsWhenDragging = {
@@ -455,6 +455,7 @@ export default class LineSegment extends GraphicalComponent {
             },
             isArray: true,
             numDimensions: 2,
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["endpointX", "endpoint"],
             returnEntryDimensions: (prefix) => (prefix === "endpoint" ? 1 : 0),
             hasEssential: true,

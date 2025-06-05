@@ -38,7 +38,27 @@ fn error_from_no_referent() {
         .message
         .as_ref()
         .unwrap()
-        .contains("resolution error"));
+        .contains("No referent"));
+}
+
+#[test]
+fn error_from_multiple_referents() {
+    let dast_root =
+        dast_root_no_position("<document><text name='t' />$t<text name='t' /></document>");
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    let elements = core.to_flat_dast().elements;
+
+    assert_eq!(elements[2].name, "_error");
+    assert_eq!(elements[2].data.id, 2);
+    assert!(elements[2]
+        .data
+        .message
+        .as_ref()
+        .unwrap()
+        .contains("Multiple referents"));
 }
 
 #[test]

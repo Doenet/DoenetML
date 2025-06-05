@@ -4,14 +4,18 @@ extern crate web_sys;
 
 use std::collections::HashMap;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
 
 use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
     core::core::Core,
-    dast::{flat_dast::NormalizedRoot, DastRoot, FlatDastElementUpdate, FlatDastRoot},
+    dast::{
+        flat_dast::{FlatFragment, FlatNode, FlatPathPart, FlatRoot, Index, NormalizedRoot},
+        ref_resolve::{RefResolution, ResolutionError, Resolver},
+        DastRoot, FlatDastElementUpdate, FlatDastRoot,
+    },
 };
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -34,6 +38,34 @@ pub struct PublicDoenetMLCore {
 #[tsify(into_wasm_abi)]
 pub struct ActionResponse {
     payload: HashMap<ComponentIdx, FlatDastElementUpdate>,
+}
+
+#[derive(Debug, Serialize, Tsify)]
+#[tsify(into_wasm_abi)]
+#[serde(rename_all = "camelCase")]
+pub struct RootResolver {
+    normalized_root: NormalizedRoot,
+    resolver: Resolver,
+}
+
+#[derive(Debug, Serialize, Tsify)]
+#[tsify(into_wasm_abi)]
+#[serde(rename_all = "camelCase")]
+pub struct AddNodesResult {
+    resolver: Resolver,
+    flat_subtree: FlatRoot,
+}
+
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct PathToCheck {
+    path: Vec<FlatPathPart>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct NodeList {
+    nodes: Vec<FlatNode>,
 }
 
 // For some reason, wasm-bindgen won't always correctly see that a module is being used
@@ -73,7 +105,7 @@ impl PublicDoenetMLCore {
         self.initialized = false;
     }
 
-    pub fn return_normalized_dast_root(&self) -> Result<NormalizedRoot, String> {
+    pub fn return_normalized_dast_root(&self) -> Result<RootResolver, String> {
         let dast_root = match &self.dast_root {
             Some(d) => d,
             None => {
@@ -81,9 +113,33 @@ impl PublicDoenetMLCore {
             }
         };
 
-        let (normalized_root, _resolver) = Core::normalized_root_from_dast_root(dast_root);
+        let (normalized_root, resolver) = Core::normalized_root_from_dast_root(dast_root);
 
-        Ok(normalized_root)
+        Ok(RootResolver {
+            normalized_root,
+            resolver,
+        })
+    }
+
+    pub fn add_nodes_to_resolver(mut resolver: Resolver, flat_fragment: FlatFragment) -> Resolver {
+        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver);
+
+        resolver
+    }
+
+    pub fn delete_nodes_from_resolver(mut resolver: Resolver, node_list: NodeList) -> Resolver {
+        Core::delete_nodes_from_resolver(&node_list.nodes, &mut resolver);
+
+        resolver
+    }
+
+    pub fn resolve_path(
+        resolver: Resolver,
+        path: PathToCheck,
+        origin: Index,
+        skip_parent_search: bool,
+    ) -> Result<RefResolution, ResolutionError> {
+        resolver.resolve(&path.path, origin, skip_parent_search)
     }
 
     pub fn return_dast(&mut self) -> Result<FlatDastRoot, String> {

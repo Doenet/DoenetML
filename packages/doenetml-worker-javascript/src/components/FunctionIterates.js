@@ -11,6 +11,8 @@ export default class FunctionIterates extends InlineComponent {
     static componentType = "functionIterates";
     static rendererType = undefined;
 
+    static variableForIndexAsProp = "iterates";
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.numIterates = {

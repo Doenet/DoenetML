@@ -8,7 +8,6 @@ import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
-import { cesc } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
@@ -545,10 +544,10 @@ export default React.memo(function MathComponent(
     let latexWithDelims = beginDelim + SVs.latex + endDelim;
 
     let anchors = [<a key={id} />];
-    if (SVs.mrowChildNames) {
+    if (SVs.mrowChildIndices) {
         anchors.push(
-            ...SVs.mrowChildNames.map((x: string) => {
-                let rowId = cesc(x);
+            ...SVs.mrowChildIndices.map((x: string) => {
+                let rowId = x;
                 return <a key={rowId} id={rowId} />;
             }),
         );

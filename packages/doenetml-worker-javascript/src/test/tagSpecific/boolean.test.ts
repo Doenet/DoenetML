@@ -13,7 +13,7 @@ vi.mock("hyperformula");
 
 describe("Boolean tag tests", async () => {
     it("basic boolean evaluation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>
     <boolean name="t1">true</boolean>
@@ -99,20 +99,20 @@ describe("Boolean tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
-                stateVariables[`/t${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`t${i}`)].stateValues.value,
                 `expected t${i} to be true`,
             ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
             expect(
-                stateVariables[`/f${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`f${i}`)].stateValues.value,
                 `expected f${i} to be false`,
             ).to.be.false;
         }
     });
 
     it("boolean based on math", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="0" />
 
@@ -123,27 +123,39 @@ describe("Boolean tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b`].stateValues.value).to.be.false;
-
-        await updateMathInputValue({ latex: "3", name: "/mi", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b`].stateValues.value).to.be.true;
-
-        await updateMathInputValue({ latex: "2x", name: "/mi", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`b`)].stateValues.value).to
+            .be.false;
 
         await updateMathInputValue({
-            latex: "2x-x-x",
-            name: "/mi",
+            latex: "3",
+            componentIdx: resolveComponentName("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`b`)].stateValues.value).to
+            .be.true;
+
+        await updateMathInputValue({
+            latex: "2x",
+            componentIdx: resolveComponentName("mi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[resolveComponentName(`b`)].stateValues.value).to
+            .be.false;
+
+        await updateMathInputValue({
+            latex: "2x-x-x",
+            componentIdx: resolveComponentName("mi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[resolveComponentName(`b`)].stateValues.value).to
+            .be.false;
     });
 
     it("boolean based on complex numbers", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p><number name="a">3+4i</number> <number name="b">3i</number> <number name="c">pi+e i</number></p>
 
@@ -175,22 +187,22 @@ describe("Boolean tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
-                stateVariables[`/t${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`t${i}`)].stateValues.value,
                 `expected t${i} to be true`,
             ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
             expect(
-                stateVariables[`/f${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`f${i}`)].stateValues.value,
                 `expected f${i} to be false`,
             ).to.be.false;
         }
     });
 
     it("boolean from computation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <mathinput prefill="1" name="i" />
+    <mathInput prefill="1" name="i" />
 
     <boolean name="b1">mod($i,2) = 1</boolean>
     <boolean name="b2">abs(cos(pi*$i/2)) < 10^(-12)</boolean>
@@ -201,53 +213,81 @@ describe("Boolean tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b1`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b4`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b3`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b4`)].stateValues.value).to
+            .be.false;
 
-        await updateMathInputValue({ latex: "4", name: "/i", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("i"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b3`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b3`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b4`)].stateValues.value).to
+            .be.true;
 
-        await updateMathInputValue({ latex: "-7", name: "/i", core });
+        await updateMathInputValue({
+            latex: "-7",
+            componentIdx: resolveComponentName("i"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b1`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b4`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b3`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b4`)].stateValues.value).to
+            .be.false;
 
-        await updateMathInputValue({ latex: "0", name: "/i", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("i"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b3`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b3`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b4`)].stateValues.value).to
+            .be.true;
     });
 
     it("boolean with lists and sequences", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <boolean name="t1"><math>1,2</math> = <mathlist>1 2</mathlist></boolean>
-    <boolean name="t2"><math>1,2</math> = <mathlist unordered>2 1</mathlist></boolean>
-    <boolean name="t3"><math unordered>1,2</math> = <mathlist>2 1</mathlist></boolean>
-    <boolean name="t4"><math unordered>1,2</math> = <mathlist unordered>2 1</mathlist></boolean>
-    <boolean name="t5"><numberlist>1 2</numberlist> = <mathlist>1 2</mathlist></boolean>
-    <boolean name="t6"><mathlist unordered>1 2</mathlist> = <mathlist>2 1</mathlist></boolean>
-    <boolean name="t7"><numberlist unordered>1 2</numberlist> = <mathlist>2 1</mathlist></boolean>
-    <boolean name="t8"><numberlist unordered>1 2</numberlist> = <numberlist>2 1</numberlist></boolean>
-    <boolean name="t9"><textlist unordered>a b</textlist> = <textlist>b a</textlist></boolean>
-    <boolean name="t10"><booleanlist unordered>true false</booleanlist> = <booleanlist>false true</booleanlist></boolean>
-    <boolean name="t11"><mathlist>1</mathlist> = <math>1</math></boolean>
-    <boolean name="t12"><mathlist>1</mathlist> = <number>1</number></boolean>
-    <boolean name="t13"><numberlist>1</numberlist> = <math>1</math></boolean>
-    <boolean name="t14"><numberlist>1</numberlist> = <number>1</number></boolean>
-    <boolean name="t15"><text>a, b</text> = <textlist>a b</textlist></boolean>
-    <boolean name="t16"><text>a, b</text> = <textlist unordered>b a</textlist></boolean>
-    <boolean name="t17"><text>a,b</text> = <textlist>a b</textlist></boolean>
+    <boolean name="t1"><math>1,2</math> = <mathList>1 2</mathList></boolean>
+    <boolean name="t2"><math>1,2</math> = <mathList unordered>2 1</mathList></boolean>
+    <boolean name="t3"><math unordered>1,2</math> = <mathList>2 1</mathList></boolean>
+    <boolean name="t4"><math unordered>1,2</math> = <mathList unordered>2 1</mathList></boolean>
+    <boolean name="t5"><numberList>1 2</numberList> = <mathList>1 2</mathList></boolean>
+    <boolean name="t6"><mathList unordered>1 2</mathList> = <mathList>2 1</mathList></boolean>
+    <boolean name="t7"><numberList unordered>1 2</numberList> = <mathList>2 1</mathList></boolean>
+    <boolean name="t8"><numberList unordered>1 2</numberList> = <numberList>2 1</numberList></boolean>
+    <boolean name="t9"><textList unordered>a b</textList> = <textList>b a</textList></boolean>
+    <boolean name="t10"><booleanList unordered>true false</booleanList> = <booleanList>false true</booleanList></boolean>
+    <boolean name="t11"><mathList>1</mathList> = <math>1</math></boolean>
+    <boolean name="t12"><mathList>1</mathList> = <number>1</number></boolean>
+    <boolean name="t13"><numberList>1</numberList> = <math>1</math></boolean>
+    <boolean name="t14"><numberList>1</numberList> = <number>1</number></boolean>
+    <boolean name="t15"><text>a, b</text> = <textList>a b</textList></boolean>
+    <boolean name="t16"><text>a, b</text> = <textList unordered>b a</textList></boolean>
+    <boolean name="t17"><text>a,b</text> = <textList>a b</textList></boolean>
     <boolean name="t18"><mathList>1 2</mathList> = <sequence from="1" to="2" /></boolean>
     <boolean name="t19"><numberList>1 2</numberList> = <sequence from="1" to="2" /></boolean>
     <boolean name="t20"><math>1, 2</math> = <sequence from="1" to="2" /></boolean>
@@ -256,25 +296,25 @@ describe("Boolean tag tests", async () => {
 
 
 
-    <boolean name="f1"><math>1,2</math> = <mathlist>2 1</mathlist></boolean>
-    <boolean name="f2"><mathlist>1 2</mathlist> = <mathlist>2 1</mathlist></boolean>
-    <boolean name="f3"><numberlist>1 2</numberlist> = <mathlist>2 1</mathlist></boolean>
-    <boolean name="f4"><numberlist>1 2</numberlist> = <numberlist>2 1</numberlist></boolean>
-    <boolean name="f5"><textlist>a b</textlist> = <textlist>b a</textlist></boolean>
-    <boolean name="f6"><booleanlist>true false</booleanlist> = <booleanlist>false true</booleanlist></boolean>
-    <boolean name="f7"><mathlist></mathlist> = <mathlist>1</mathlist></boolean>
-    <boolean name="f8"><numberlist></numberlist> = <mathlist>1</mathlist></boolean>
-    <boolean name="f9"><numberlist>1</numberlist> = <mathlist>0</mathlist></boolean>
-    <boolean name="f10"><numberlist></numberlist> = <numberlist>1</numberlist></boolean>
-    <boolean name="f11"><textlist></textlist> = <textlist>a</textlist></boolean>
-    <boolean name="f12"><mathlist>1</mathlist> = <math>2</math></boolean>
-    <boolean name="f13"><mathlist>1</mathlist> = <number>2</number></boolean>
-    <boolean name="f14"><numberlist>1</numberlist> = <math>2</math></boolean>
-    <boolean name="f15"><numberlist>1</numberlist> = <number>2</number></boolean>
-    <boolean name="f16"><mathlist></mathlist> = <math></math></boolean>
-    <boolean name="f17"><numberlist></numberlist> = <number></number></boolean>
-    <boolean name="f18"><textlist></textlist> = <text></text></boolean>
-    <boolean name="f19"><text>a, b</text> = <textlist>b a</textlist></boolean>
+    <boolean name="f1"><math>1,2</math> = <mathList>2 1</mathList></boolean>
+    <boolean name="f2"><mathList>1 2</mathList> = <mathList>2 1</mathList></boolean>
+    <boolean name="f3"><numberList>1 2</numberList> = <mathList>2 1</mathList></boolean>
+    <boolean name="f4"><numberList>1 2</numberList> = <numberList>2 1</numberList></boolean>
+    <boolean name="f5"><textList>a b</textList> = <textList>b a</textList></boolean>
+    <boolean name="f6"><booleanList>true false</booleanList> = <booleanList>false true</booleanList></boolean>
+    <boolean name="f7"><mathList></mathList> = <mathList>1</mathList></boolean>
+    <boolean name="f8"><numberList></numberList> = <mathList>1</mathList></boolean>
+    <boolean name="f9"><numberList>1</numberList> = <mathList>0</mathList></boolean>
+    <boolean name="f10"><numberList></numberList> = <numberList>1</numberList></boolean>
+    <boolean name="f11"><textList></textList> = <textList>a</textList></boolean>
+    <boolean name="f12"><mathList>1</mathList> = <math>2</math></boolean>
+    <boolean name="f13"><mathList>1</mathList> = <number>2</number></boolean>
+    <boolean name="f14"><numberList>1</numberList> = <math>2</math></boolean>
+    <boolean name="f15"><numberList>1</numberList> = <number>2</number></boolean>
+    <boolean name="f16"><mathList></mathList> = <math></math></boolean>
+    <boolean name="f17"><numberList></numberList> = <number></number></boolean>
+    <boolean name="f18"><textList></textList> = <text></text></boolean>
+    <boolean name="f19"><text>a, b</text> = <textList>b a</textList></boolean>
     <boolean name="f20"><math>1</math><math>2</math> = <sequence from="1" to="2" /></boolean>
     <boolean name="f21"><math>(1, 2)</math> = <mathList>1 2</mathList></boolean>
     <boolean name="f22">(1, 2) = <mathList>1 2</mathList></boolean>
@@ -291,13 +331,13 @@ describe("Boolean tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
-                stateVariables[`/t${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`t${i}`)].stateValues.value,
                 `expected t${i} to be true`,
             ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
             expect(
-                stateVariables[`/f${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`f${i}`)].stateValues.value,
                 `expected f${i} to be false`,
             ).to.be.false;
         }
@@ -307,13 +347,13 @@ describe("Boolean tag tests", async () => {
         let elements = [
             {
                 element: "1",
-                set: "<mathlist>1 2</mathlist>",
+                set: "<mathList>1 2</mathList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
             {
                 element: "1",
-                set: "<numberlist>1 2</numberlist>",
+                set: "<numberList>1 2</numberList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
@@ -343,13 +383,13 @@ describe("Boolean tag tests", async () => {
             },
             {
                 element: "<math>1</math>",
-                set: "<mathlist>1 2</mathlist>",
+                set: "<mathList>1 2</mathList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
             {
                 element: "<math>1</math>",
-                set: "<numberlist>1 2</numberlist>",
+                set: "<numberList>1 2</numberList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
@@ -379,13 +419,13 @@ describe("Boolean tag tests", async () => {
             },
             {
                 element: "<number>1</number>",
-                set: "<mathlist>1 2</mathlist>",
+                set: "<mathList>1 2</mathList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
             {
                 element: "<number>1</number>",
-                set: "<numberlist>1 2</numberlist>",
+                set: "<numberList>1 2</numberList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
@@ -421,13 +461,13 @@ describe("Boolean tag tests", async () => {
             },
             {
                 element: "3",
-                set: "<mathlist>1 2</mathlist>",
+                set: "<mathList>1 2</mathList>",
                 isElement: false,
                 isElementCaseInsensitive: false,
             },
             {
                 element: "3",
-                set: "<numberlist>1 2</numberlist>",
+                set: "<numberList>1 2</numberList>",
                 isElement: false,
                 isElementCaseInsensitive: false,
             },
@@ -542,7 +582,7 @@ describe("Boolean tag tests", async () => {
             },
             {
                 element: "2x",
-                set: "<mathlist>x+x y/2</mathlist>",
+                set: "<mathList>x+x y/2</mathList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
@@ -572,7 +612,7 @@ describe("Boolean tag tests", async () => {
             },
             {
                 element: "<math>2x</math>",
-                set: "<mathlist>x+x y/2</mathlist>",
+                set: "<mathList>x+x y/2</mathList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
@@ -608,7 +648,7 @@ describe("Boolean tag tests", async () => {
             },
             {
                 element: "2x",
-                set: "<mathlist>x+X y/2</mathlist>",
+                set: "<mathList>x+X y/2</mathList>",
                 isElement: false,
                 isElementCaseInsensitive: true,
             },
@@ -632,7 +672,7 @@ describe("Boolean tag tests", async () => {
             },
             {
                 element: "x",
-                set: "<mathlist>x+X y/2</mathlist>",
+                set: "<mathList>x+X y/2</mathList>",
                 isElement: false,
                 isElementCaseInsensitive: false,
             },
@@ -692,49 +732,49 @@ describe("Boolean tag tests", async () => {
             },
             {
                 element: "b",
-                set: "<textlist>abc</textlist>",
+                set: "<textList>abc</textList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
             {
                 element: "b",
-                set: "<textlist>abc def</textlist>",
+                set: "<textList>abc def</textList>",
                 isElement: false,
                 isElementCaseInsensitive: false,
             },
             {
                 element: "abc",
-                set: "<textlist>abc def</textlist>",
+                set: "<textList>abc def</textList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
             {
                 element: "abc",
-                set: "<textlist>ABC def</textlist>",
+                set: "<textList>ABC def</textList>",
                 isElement: false,
                 isElementCaseInsensitive: true,
             },
             {
                 element: "truE",
-                set: "<booleanlist>false true</booleanlist>",
+                set: "<booleanList>false true</booleanList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
             {
                 element: "true",
-                set: "<booleanlist>false false</booleanlist>",
+                set: "<booleanList>false false</booleanList>",
                 isElement: false,
                 isElementCaseInsensitive: false,
             },
             {
                 element: "<boolean>truE</boolean>",
-                set: "<booleanlist>false true</booleanlist>",
+                set: "<booleanList>false true</booleanList>",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
             {
                 element: "<boolean>true</boolean>",
-                set: "<booleanlist>false false</booleanlist>",
+                set: "<booleanList>false false</booleanList>",
                 isElement: false,
                 isElementCaseInsensitive: false,
             },
@@ -749,7 +789,7 @@ describe("Boolean tag tests", async () => {
             doenetML += `\n<boolean caseInsensitiveMatch name="nsci${ind}">${info.element} notelementof ${info.set}</boolean>`;
         }
 
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML,
         });
 
@@ -757,19 +797,23 @@ describe("Boolean tag tests", async () => {
 
         for (let [ind, info] of elements.entries()) {
             expect(
-                stateVariables[`/s${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`s${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.element} is element of ${info.set}`,
             ).eq(info.isElement && !info.isInvalid);
             expect(
-                stateVariables[`/n${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`n${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.element} is not element of ${info.set}`,
             ).eq(!info.isElement && !info.isInvalid);
             expect(
-                stateVariables[`/sci${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`sci${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.element} is case-insensitive element of ${info.set}`,
             ).eq(info.isElementCaseInsensitive && !info.isInvalid);
             expect(
-                stateVariables[`/nsci${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`nsci${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.element} is not case-insensitive element of ${info.set}`,
             ).eq(!info.isElementCaseInsensitive && !info.isInvalid);
         }
@@ -987,14 +1031,6 @@ describe("Boolean tag tests", async () => {
                 isSupersetCaseInsensitive: false,
             },
             {
-                set1: "<extract prop='words'><text>hello there</text></extract>",
-                set2: "<textList>there hello bye</textList>",
-                isSubset: true,
-                isSubsetCaseInsensitive: true,
-                isSuperset: false,
-                isSupersetCaseInsensitive: false,
-            },
-            {
                 set1: "<textList>a c</textList>",
                 set2: "<sequence type='letters' from='a' to='e' step='2' />",
                 isSubset: true,
@@ -1011,28 +1047,12 @@ describe("Boolean tag tests", async () => {
                 isSupersetCaseInsensitive: false,
             },
             {
-                set1: "<extract prop='list'><text>a, c</text></extract>",
-                set2: "<sequence type='letters' from='a' to='e' step='2' />",
-                isSubset: true,
-                isSubsetCaseInsensitive: true,
-                isSuperset: false,
-                isSupersetCaseInsensitive: false,
-            },
-            {
                 set1: "<text>ace</text>",
                 set2: "<sequence type='letters' from='a' to='e' step='2' />",
                 isSubset: false,
                 isSubsetCaseInsensitive: false,
                 isSuperset: false,
                 isSupersetCaseInsensitive: false,
-            },
-            {
-                set1: "<extract prop='characters'><text>ace</text></extract>",
-                set2: "<sequence type='letters' from='a' to='e' step='2' />",
-                isSubset: true,
-                isSubsetCaseInsensitive: true,
-                isSuperset: true,
-                isSupersetCaseInsensitive: true,
             },
             {
                 set1: "<textList>A c</textList>",
@@ -1113,7 +1133,7 @@ describe("Boolean tag tests", async () => {
             doenetML += `\n<boolean caseInsensitiveMatch name="nspci${ind}">${info.set1} notsuperset ${info.set2}</boolean>`;
         }
 
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML,
         });
 
@@ -1121,60 +1141,68 @@ describe("Boolean tag tests", async () => {
 
         for (let [ind, info] of elements.entries()) {
             expect(
-                stateVariables[`/sb${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`sb${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.set1} is subset of ${info.set2}`,
             ).eq(info.isSubset && !info.isInvalid);
             expect(
-                stateVariables[`/nsb${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`nsb${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.set1} is not subset of ${info.set2}`,
             ).eq(!info.isSubset && !info.isInvalid);
             expect(
-                stateVariables[`/sp${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`sp${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.set1} is superset of ${info.set2}`,
             ).eq(info.isSuperset && !info.isInvalid);
             expect(
-                stateVariables[`/nsp${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`nsp${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.set1} is not superset of ${info.set2}`,
             ).eq(!info.isSuperset && !info.isInvalid);
             expect(
-                stateVariables[`/sbci${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`sbci${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.set1} is case-insensitive subset of ${info.set2}`,
             ).eq(info.isSubsetCaseInsensitive && !info.isInvalid);
             expect(
-                stateVariables[`/nsbci${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`nsbci${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.set1} is not case-insensitive subset of ${info.set2}`,
             ).eq(!info.isSubsetCaseInsensitive && !info.isInvalid);
             expect(
-                stateVariables[`/spci${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`spci${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.set1} is case-insensitive superset of ${info.set2}`,
             ).eq(info.isSupersetCaseInsensitive && !info.isInvalid);
             expect(
-                stateVariables[`/nspci${ind}`].stateValues.value,
+                stateVariables[resolveComponentName(`nspci${ind}`)].stateValues
+                    .value,
                 `Checking if ${info.set1} is not case-insensitive superset of ${info.set2}`,
             ).eq(!info.isSupersetCaseInsensitive && !info.isInvalid);
         }
     });
 
     it("boolean with texts", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <boolean name="t1"><text>hello there</text> = hello there</boolean>
     <boolean name="t2"><text>hello there</text> = <text>hello</text> <text>there</text></boolean>
     <boolean name="t3"><text>hello there</text> = hello  there</boolean>
     <boolean name="t4"><text>hello there</text> = <text>hello</text><text>there</text></boolean>
     <boolean name="t5"><text>hellothere</text> = <text><text>hello</text><text>there</text></text></boolean>
-    <boolean name="t6"><textlist>hello</textlist> = hello</boolean>
+    <boolean name="t6"><textList>hello</textList> = hello</boolean>
     <boolean name="t7"><text>hello  there</text> = hello there</boolean>
     <boolean name="t8"><text>hello  there</text> = hello  there</boolean>
-    <boolean name="t9"><textlist>hello there</textlist> = <text>hello,there</text></boolean>
-    <boolean name="t10"><textlist>hello there</textlist> = <text>hello, there</text></boolean>
-    <boolean name="t11"><textlist>hello there</textlist> = <text> hello ,   there   </text></boolean>
+    <boolean name="t9"><textList>hello there</textList> = <text>hello,there</text></boolean>
+    <boolean name="t10"><textList>hello there</textList> = <text>hello, there</text></boolean>
+    <boolean name="t11"><textList>hello there</textList> = <text> hello ,   there   </text></boolean>
 
     <boolean name="f1"><text>hello there</text> = hellothere</boolean>
     <boolean name="f2"><text>hello there</text> = <text>hellothere</text></boolean>
     <boolean name="f3"><text>hello there</text> = <text><text>hello</text><text>there</text></text></boolean>
-    <boolean name="f4"><textlist>hello there</textlist> = hello there</boolean>
-    <boolean name="f5"><textlist>hello there</textlist> = hello, there</boolean>
+    <boolean name="f4"><textList>hello there</textList> = hello there</boolean>
+    <boolean name="f5"><textList>hello there</textList> = hello, there</boolean>
     `,
         });
 
@@ -1184,20 +1212,20 @@ describe("Boolean tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
-                stateVariables[`/t${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`t${i}`)].stateValues.value,
                 `expected t${i} to be true`,
             ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
             expect(
-                stateVariables[`/f${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`f${i}`)].stateValues.value,
                 `expected f${i} to be false`,
             ).to.be.false;
         }
     });
 
     it("math errors and invalid targets are not equal", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <boolean name="f1"><math></math> = <math></math></boolean>
@@ -1218,27 +1246,27 @@ describe("Boolean tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
-                stateVariables[`/t${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`t${i}`)].stateValues.value,
                 `expected t${i} to be true`,
             ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
             expect(
-                stateVariables[`/f${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`f${i}`)].stateValues.value,
                 `expected f${i} to be false`,
             ).to.be.false;
         }
     });
 
     it("boolean with number strings for text", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <choiceinput name="c">
+    <choiceInput name="c">
       <choice>1</choice>
       <choice>2</choice>
       <choice>three</choice>
       <choice>four</choice>
-    </choiceinput>
+    </choiceInput>
 
     <boolean name="one">$c = 1</boolean>
     <boolean name="two">$c = <text>2</text></boolean>
@@ -1249,46 +1277,82 @@ describe("Boolean tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/one`].stateValues.value).to.be.false;
-        expect(stateVariables[`/two`].stateValues.value).to.be.false;
-        expect(stateVariables[`/three`].stateValues.value).to.be.false;
-        expect(stateVariables[`/four`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`one`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`two`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`three`)].stateValues.value)
+            .to.be.false;
+        expect(stateVariables[resolveComponentName(`four`)].stateValues.value)
+            .to.be.false;
 
-        await updateSelectedIndices({ name: "/c", selectedIndices: [1], core });
+        await updateSelectedIndices({
+            componentIdx: resolveComponentName("c"),
+            selectedIndices: [1],
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/one`].stateValues.value).to.be.true;
-        expect(stateVariables[`/two`].stateValues.value).to.be.false;
-        expect(stateVariables[`/three`].stateValues.value).to.be.false;
-        expect(stateVariables[`/four`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`one`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`two`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`three`)].stateValues.value)
+            .to.be.false;
+        expect(stateVariables[resolveComponentName(`four`)].stateValues.value)
+            .to.be.false;
 
-        await updateSelectedIndices({ name: "/c", selectedIndices: [2], core });
+        await updateSelectedIndices({
+            componentIdx: resolveComponentName("c"),
+            selectedIndices: [2],
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/one`].stateValues.value).to.be.false;
-        expect(stateVariables[`/two`].stateValues.value).to.be.true;
-        expect(stateVariables[`/three`].stateValues.value).to.be.false;
-        expect(stateVariables[`/four`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`one`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`two`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`three`)].stateValues.value)
+            .to.be.false;
+        expect(stateVariables[resolveComponentName(`four`)].stateValues.value)
+            .to.be.false;
 
-        await updateSelectedIndices({ name: "/c", selectedIndices: [3], core });
+        await updateSelectedIndices({
+            componentIdx: resolveComponentName("c"),
+            selectedIndices: [3],
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/one`].stateValues.value).to.be.false;
-        expect(stateVariables[`/two`].stateValues.value).to.be.false;
-        expect(stateVariables[`/three`].stateValues.value).to.be.true;
-        expect(stateVariables[`/four`].stateValues.value).to.be.false;
+        expect(stateVariables[resolveComponentName(`one`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`two`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`three`)].stateValues.value)
+            .to.be.true;
+        expect(stateVariables[resolveComponentName(`four`)].stateValues.value)
+            .to.be.false;
 
-        await updateSelectedIndices({ name: "/c", selectedIndices: [4], core });
+        await updateSelectedIndices({
+            componentIdx: resolveComponentName("c"),
+            selectedIndices: [4],
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/one`].stateValues.value).to.be.false;
-        expect(stateVariables[`/two`].stateValues.value).to.be.false;
-        expect(stateVariables[`/three`].stateValues.value).to.be.false;
-        expect(stateVariables[`/four`].stateValues.value).to.be.true;
+        expect(stateVariables[resolveComponentName(`one`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`two`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`three`)].stateValues.value)
+            .to.be.false;
+        expect(stateVariables[resolveComponentName(`four`)].stateValues.value)
+            .to.be.true;
     });
 
     it("boolean adapts to text", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <booleanInput name="bi" />
     <p><text name="t">You are hungry. $bi</text></p>
@@ -1298,126 +1362,170 @@ describe("Boolean tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. false",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "false",
+        );
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/bi",
+            componentIdx: resolveComponentName("bi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. true",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("true");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "true",
+        );
 
         await updateTextInputValue({
             text: "false",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. false",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "false",
+        );
 
         await updateTextInputValue({
             text: "tRuE",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. true",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("true");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "true",
+        );
 
-        await updateTextInputValue({ text: "0", name: "/ti", core });
+        await updateTextInputValue({
+            text: "0",
+            componentIdx: resolveComponentName("ti"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. true",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("true");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "true",
+        );
 
-        await updateTextInputValue({ text: "1=0", name: "/ti", core });
+        await updateTextInputValue({
+            text: "1=0",
+            componentIdx: resolveComponentName("ti"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. true",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("true");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "true",
+        );
 
-        await updateTextInputValue({ text: "f", name: "/ti", core });
+        await updateTextInputValue({
+            text: "f",
+            componentIdx: resolveComponentName("ti"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. true",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("true");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "true",
+        );
 
         await updateTextInputValue({
             text: "FALSE",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. false",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "false",
+        );
 
-        await updateTextInputValue({ text: "1", name: "/ti", core });
+        await updateTextInputValue({
+            text: "1",
+            componentIdx: resolveComponentName("ti"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. false",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "false",
+        );
 
-        await updateTextInputValue({ text: "t", name: "/ti", core });
+        await updateTextInputValue({
+            text: "t",
+            componentIdx: resolveComponentName("ti"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. false",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "false",
+        );
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/bi",
+            componentIdx: resolveComponentName("bi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. true",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("true");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "true",
+        );
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/bi",
+            componentIdx: resolveComponentName("bi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[`/t`].stateValues.value).eq(
+        expect(stateVariables[resolveComponentName(`t`)].stateValues.value).eq(
             "You are hungry. false",
         );
-        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+        expect(stateVariables[resolveComponentName(`ti`)].stateValues.value).eq(
+            "false",
+        );
     });
 
     it("boolean does not adapt while number adapts", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <boolean name="b1"><number>3</number> != 1 and <boolean>true</boolean></boolean>
     <boolean name="b2"><number>3</number> != 1 and <boolean>true</boolean> and <number>4</number> = <math>4</math></boolean>
@@ -1425,37 +1533,46 @@ describe("Boolean tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b1`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.true;
     });
 
     it("overwrite properties when copying", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <boolean name="b">x+x = 2x</boolean>
 
-    $b{symbolicEquality name="b1"}
-    $b1{symbolicEquality="false" name="b2"}
-    $b2{symbolicEquality="true" name="b3"}
+    <boolean extend="$b" symbolicEquality name="b1" />
+    <boolean extend="$b1" symbolicEquality="false" name="b2" />
+    <boolean extend="$b2" symbolicEquality="true" name="b3" />
     
-    $b1{simplifyOnCompare name="b4"}
-    $b4{simplifyOnCompare="false" name="b5"}
-    $b5{simplifyOnCompare="true" name="b6"}
+    <boolean extend="$b1" simplifyOnCompare name="b4" />
+    <boolean extend="$b4" simplifyOnCompare="false" name="b5" />
+    <boolean extend="$b5" simplifyOnCompare="true" name="b6" />
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b5`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b6`].stateValues.value).to.be.true;
+        expect(stateVariables[resolveComponentName(`b`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b3`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b4`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b5`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b6`)].stateValues.value).to
+            .be.true;
     });
 
     it("verify fix of boolean simplifyOnCompare bug", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <boolean simplifyOnCompare symbolicEquality name="b1">
       <math>-5e^(-t)</math> = <math simplify>-5e^(-t)</math>
@@ -1467,12 +1584,14 @@ describe("Boolean tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b1`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.true;
     });
 
     it("case insensitive match", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <boolean name="b1">a/B = A/b</boolean>
     <boolean name="b2" caseInsensitiveMatch>a/B = A/b</boolean>
@@ -1484,16 +1603,22 @@ describe("Boolean tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b5`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b6`].stateValues.value).to.be.true;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b3`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b4`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b5`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b6`)].stateValues.value).to
+            .be.true;
     });
 
     it("match blanks", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <boolean name="b1">/a = /a</boolean>
     <boolean name="b2" matchBlanks>/a = /a</boolean>
@@ -1507,18 +1632,26 @@ describe("Boolean tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b5`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b6`].stateValues.value).to.be.true;
-        expect(stateVariables[`/b7`].stateValues.value).to.be.false;
-        expect(stateVariables[`/b8`].stateValues.value).to.be.true;
+        expect(stateVariables[resolveComponentName(`b1`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b2`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b3`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b4`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b5`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b6`)].stateValues.value).to
+            .be.true;
+        expect(stateVariables[resolveComponentName(`b7`)].stateValues.value).to
+            .be.false;
+        expect(stateVariables[resolveComponentName(`b8`)].stateValues.value).to
+            .be.true;
     });
 
     it("boolean with symbolic functions", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <boolean name="t1">
       <math>(f(a)-g(b))(x)</math> = <math>(g(b)-f(a))(-x)</math>
@@ -1553,20 +1686,20 @@ describe("Boolean tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
-                stateVariables[`/t${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`t${i}`)].stateValues.value,
                 `expected t${i} to be true`,
             ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
             expect(
-                stateVariables[`/f${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`f${i}`)].stateValues.value,
                 `expected f${i} to be false`,
             ).to.be.false;
         }
     });
 
     it("symbolicEquality correctly matches negative numbers", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <math name="p5">5</math>
     <math name="p5x">5x</math>
@@ -1625,13 +1758,13 @@ describe("Boolean tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
-                stateVariables[`/t${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`t${i}`)].stateValues.value,
                 `expected t${i} to be true`,
             ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
             expect(
-                stateVariables[`/f${i}`].stateValues.value,
+                stateVariables[resolveComponentName(`f${i}`)].stateValues.value,
                 `expected f${i} to be false`,
             ).to.be.false;
         }

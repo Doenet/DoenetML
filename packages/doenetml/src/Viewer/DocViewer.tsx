@@ -1451,7 +1451,7 @@ export function getURLFromRef({
     edit,
     hash,
     givenUri,
-    targetName = "",
+    targetIdx = -1,
     linkSettings,
     search = "",
     id = "",
@@ -1462,7 +1462,7 @@ export function getURLFromRef({
     edit?: boolean;
     hash?: string;
     givenUri?: string;
-    targetName?: string;
+    targetIdx?: number;
     linkSettings: Record<string, any>;
     search?: string;
     id?: string;
@@ -1523,8 +1523,8 @@ export function getURLFromRef({
         if (hash) {
             url += hash;
         } else {
-            if (targetName) {
-                url += "#" + cesc(targetName);
+            if (targetIdx) {
+                url += "#" + targetIdx.toString();
             }
         }
     } else if (givenUri) {
@@ -1543,7 +1543,7 @@ export function getURLFromRef({
         let firstSlash = id.indexOf("\\/");
         let prefix = id.substring(0, firstSlash);
         url += "#" + prefix;
-        url += cesc(targetName);
+        url += targetIdx.toString();
         targetForATag = null;
         haveValidTarget = true;
     }

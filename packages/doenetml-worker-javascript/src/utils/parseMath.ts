@@ -359,14 +359,19 @@ function baseStringFromChildren({
     let str = "";
 
     for (let ind = startInd; ind <= endInd; ind++) {
-        let child = children[ind];
+        const child = children[ind];
         if (typeof child === "string") {
-            str += " " + child + " ";
+            // unless child is adjacent to another string child, pad with spaces
+            const leadingSpace =
+                typeof children[ind - 1] === "string" ? "" : " ";
+            const trailingSpace =
+                typeof children[ind + 1] === "string" ? "" : " ";
+            str += leadingSpace + child + trailingSpace;
         } else {
             // a non-string
-            let code = codePre + nonStringIndByChild[ind];
+            const code = codePre + nonStringIndByChild[ind];
 
-            let nextString = returnStringForCode(format, code);
+            const nextString = returnStringForCode(format, code);
 
             str += nextString;
         }

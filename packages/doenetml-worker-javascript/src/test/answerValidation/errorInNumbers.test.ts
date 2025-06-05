@@ -14,17 +14,18 @@ async function run_single_response_tests({
     doenetML: string;
     responseCredits: Record<string, number>;
 }) {
-    const core = await createTestCore({ doenetML });
+    const { core, resolveComponentName } = await createTestCore({ doenetML });
     const stateVariables = await core.returnAllStateVariables(false, true);
-    const mathInputName =
-        stateVariables["/ans"].stateValues.inputChildren[0].componentIdx;
+    const mathInputIdx =
+        stateVariables[resolveComponentName("ans")].stateValues.inputChildren[0]
+            .componentIdx;
 
     for (let response in responseCredits) {
         await submit_check({
             response,
             creditAchieved: responseCredits[response],
             core,
-            mathInputName,
+            mathInputIdx,
         });
     }
 
@@ -32,24 +33,24 @@ async function run_single_response_tests({
         core,
         response,
         creditAchieved,
-        mathInputName,
+        mathInputIdx,
     }: {
         core: PublicDoenetMLCore;
         response: string;
         creditAchieved: number;
-        mathInputName: string;
+        mathInputIdx: number;
     }) {
         await updateMathInputValue({
             latex: response,
-            name: mathInputName,
+            componentIdx: mathInputIdx,
             core,
         });
-        await submitAnswer({ name: "/ans", core });
+        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
-            creditAchieved,
-            `For response ${response}`,
-        );
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .creditAchieved,
+        ).eq(creditAchieved, `For response ${response}`);
     }
 }
 
@@ -60,7 +61,7 @@ async function run_two_response_tests({
     doenetML: string;
     responseCredits: Record<string, number>;
 }) {
-    const core = await createTestCore({ doenetML });
+    const { core, resolveComponentName } = await createTestCore({ doenetML });
 
     for (let response in responseCredits) {
         await submit_check({
@@ -82,20 +83,20 @@ async function run_two_response_tests({
         let [response1, response2] = response.split(",");
         await updateMathInputValue({
             latex: response1,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: response2,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
-        await submitAnswer({ name: "/ans", core });
+        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
-            creditAchieved,
-            `For response ${response}`,
-        );
+        expect(
+            stateVariables[resolveComponentName("ans")].stateValues
+                .creditAchieved,
+        ).eq(creditAchieved, `For response ${response}`);
     }
 }
 
@@ -106,8 +107,8 @@ describe("Allow error in numbers validation tests", async () => {
       <award allowedErrorInNumbers="0.00001" name="aw">
         log(32x+c)
       </award>
-      <award copySource="aw" credit="0.8" allowedErrorInNumbers="0.0001" />
-      <award copySource="aw" credit="0.6" allowedErrorInNumbers="0.001" />
+      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
+      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
     </answer>
     `;
 
@@ -132,8 +133,8 @@ describe("Allow error in numbers validation tests", async () => {
       <award allowedErrorInNumbers="0.00001" allowedErrorIsAbsolute name="aw">
         log(32x+c)
       </award>
-      <award copySource="aw" credit="0.8" allowedErrorInNumbers="0.0001" />
-      <award copySource="aw" credit="0.6" allowedErrorInNumbers="0.001" />
+      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
+      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
     </answer>
     `;
 
@@ -198,8 +199,8 @@ describe("Allow error in numbers validation tests", async () => {
       <award symbolicEquality allowedErrorInNumbers="0.00001" name="aw">
         log(32x+c)
       </award>
-      <award copySource="aw" credit="0.8" allowedErrorInNumbers="0.0001" />
-      <award copySource="aw" credit="0.6" allowedErrorInNumbers="0.001" />
+      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
+      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
     </answer>
     `;
 
@@ -224,8 +225,8 @@ describe("Allow error in numbers validation tests", async () => {
       <award symbolicEquality allowedErrorInNumbers="0.00001" allowedErrorIsAbsolute name="aw">
         log(32x+c)
       </award>
-      <award copySource="aw" credit="0.8" allowedErrorInNumbers="0.0001" />
-      <award copySource="aw" credit="0.6" allowedErrorInNumbers="0.001" />
+      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
+      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
     </answer>
     `;
 
@@ -252,8 +253,8 @@ describe("Allow error in numbers validation tests", async () => {
       <award allowedErrorInNumbers="0.0000001" name="aw">
         10000 exp(7x^2/(0.00003-sqrt(y)))
       </award>
-      <award copySource="aw" credit="0.8" allowedErrorInNumbers="0.000001" />
-      <award copySource="aw" credit="0.6" allowedErrorInNumbers="0.00001" />
+      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.000001" />
+      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.00001" />
     </answer>
     `;
 
@@ -276,8 +277,8 @@ describe("Allow error in numbers validation tests", async () => {
       <award allowedErrorInNumbers="0.0000001" name="aw">
         10000 exp(7x^2/(0.00003-sqrt(y)))
       </award>
-      <award copySource="aw" credit="0.8" allowedErrorInNumbers="0.000001" />
-      <award copySource="aw" credit="0.6" allowedErrorInNumbers="0.00001" />
+      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.000001" />
+      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.00001" />
     </answer>
     `;
 

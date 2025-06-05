@@ -37,7 +37,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.vertices = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
 
         attributes.showCoordsWhenDragging = {

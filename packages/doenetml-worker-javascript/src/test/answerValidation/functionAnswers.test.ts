@@ -25,7 +25,7 @@ describe("function answer validation tests", async () => {
             "-0.05": Math.cos(2 * Math.PI * 0.05),
         };
 
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
             <function name="f">cos(2*pi*x)</function>
             
@@ -42,23 +42,26 @@ describe("function answer validation tests", async () => {
         for (let response in responseCredits) {
             await updateMathInputValue({
                 latex: response,
-                name: "/x",
+                componentIdx: resolveComponentName("x"),
                 core,
             });
-            await submitAnswer({ name: "/ans", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans"),
+                core,
+            });
             let stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            expect(stateVariables["/ans"].stateValues.creditAchieved).closeTo(
-                responseCredits[response],
-                1e-12,
-            );
+            expect(
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .creditAchieved,
+            ).closeTo(responseCredits[response], 1e-12);
         }
     });
 
     it("function with parameters", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>Offset: <mathInput name="offset" prefill="0"/></p>
   <p>Period: <mathInput name="period" prefill="1"/></p>
@@ -87,19 +90,19 @@ describe("function answer validation tests", async () => {
         for (let offset of offsets) {
             await updateMathInputValue({
                 latex: `${offset}`,
-                name: "/offset",
+                componentIdx: resolveComponentName("offset"),
                 core,
             });
             for (let period of periods) {
                 await updateMathInputValue({
                     latex: `${period}`,
-                    name: "/period",
+                    componentIdx: resolveComponentName("period"),
                     core,
                 });
                 for (let magnitude of magnitudes) {
                     await updateMathInputValue({
                         latex: `${magnitude}`,
-                        name: "/magnitude",
+                        componentIdx: resolveComponentName("magnitude"),
                         core,
                     });
 
@@ -121,16 +124,20 @@ describe("function answer validation tests", async () => {
                     ]) {
                         await updateMathInputValue({
                             latex: `${response}`,
-                            name: "/x",
+                            componentIdx: resolveComponentName("x"),
                             core,
                         });
-                        await submitAnswer({ name: "/ans", core });
+                        await submitAnswer({
+                            componentIdx: resolveComponentName("ans"),
+                            core,
+                        });
                         let stateVariables = await core.returnAllStateVariables(
                             false,
                             true,
                         );
                         expect(
-                            stateVariables["/ans"].stateValues.creditAchieved,
+                            stateVariables[resolveComponentName("ans")]
+                                .stateValues.creditAchieved,
                         ).closeTo(
                             partialCredit(offset, period, magnitude, response),
                             1e-12,

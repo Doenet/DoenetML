@@ -1,6 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { normalizeMathExpression } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
@@ -11,17 +10,12 @@ export default class Substitute extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["math", "text"];
 
-    static assignNamesToReplacements = true;
-
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.type = {
             createPrimitiveOfType: "string",
             createStateVariable: "type",
@@ -51,7 +45,8 @@ export default class Substitute extends CompositeComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
         };
 
@@ -449,8 +444,6 @@ export default class Substitute extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         let type = await component.stateValues.type;
         let serializedReplacement = {
             componentType: type,
@@ -503,18 +496,8 @@ export default class Substitute extends CompositeComponent {
             serializedReplacement.attributes = attributes;
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: [serializedReplacement],
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements: [serializedReplacement],
             errors,
             warnings,
         };

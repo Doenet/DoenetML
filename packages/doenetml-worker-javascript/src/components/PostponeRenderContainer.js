@@ -1,7 +1,12 @@
-import Template from "./Template";
+import Group from "./Group";
 
-export default class PostponeRenderContainer extends Template {
+export default class PostponeRenderContainer extends Group {
     static componentType = "_postponeRenderContainer";
+
+    static inSchemaOnlyInheritAs = [];
+    static allowInSchemaAsComponent = undefined;
+
+    static renderedDefault = false;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

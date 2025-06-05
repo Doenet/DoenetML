@@ -13,12 +13,14 @@ vi.mock("hyperformula");
 describe("NumberList tag tests", async () => {
     async function test_numberList({
         core,
+        resolveComponentName,
         name,
         pName,
         text,
         numbers,
     }: {
         core: PublicDoenetMLCore;
+        resolveComponentName: (name: string, origin?: number) => number;
         name?: string;
         pName?: string;
         text?: string;
@@ -27,16 +29,20 @@ describe("NumberList tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         if (text !== undefined && pName !== undefined) {
-            expect(stateVariables[pName].stateValues.text).eq(text);
+            expect(
+                stateVariables[resolveComponentName(pName)].stateValues.text,
+            ).eq(text);
         }
 
         if (numbers !== undefined && name !== undefined) {
-            expect(stateVariables[name].stateValues.numbers).eqls(numbers);
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.numbers,
+            ).eqls(numbers);
         }
     }
 
     it("numberList from string", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><numberList name="nl1">5 1+1 </numberList></p>
     `,
@@ -44,15 +50,16 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: "/nl1",
-            pName: "/p",
+            resolveComponentName,
+            name: "nl1",
+            pName: "p",
             text: "5, 2",
             numbers: [5, 2],
         });
     });
 
     it("numberList with error in string", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><numberList name="nl1">5 @  1+1 </numberList></p>
     `,
@@ -60,15 +67,16 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: "/nl1",
-            pName: "/p",
+            resolveComponentName,
+            name: "nl1",
+            pName: "p",
             text: "5, NaN, 2",
             numbers: [5, NaN, 2],
         });
     });
 
     it("numberList with number children", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1">
       <number>5</number>
@@ -86,23 +94,25 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: "/nl1",
-            pName: "/p1",
+            resolveComponentName,
+            name: "nl1",
+            pName: "p1",
             text,
             numbers,
         });
 
         await test_numberList({
             core,
-            name: "/nl2",
-            pName: "/p2",
+            resolveComponentName,
+            name: "nl2",
+            pName: "p2",
             text,
             numbers,
         });
     });
 
     it("numberList with number and string children", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><numberList name="nl1">
      -1 8/2
@@ -113,15 +123,16 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: "/nl1",
-            pName: "/p",
+            resolveComponentName,
+            name: "nl1",
+            pName: "p",
             text: "-1, 4, 5, 9, 2",
             numbers: [-1, 4, 5, 9, 2],
         });
     });
 
     it("numberList with math and number children", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1">
       <number>5</number>
@@ -136,133 +147,149 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: "/nl1",
-            pName: "/p1",
+            resolveComponentName,
+            name: "nl1",
+            pName: "p1",
             text,
             numbers,
         });
     });
 
-    async function test_nested_and_inverse(core: PublicDoenetMLCore) {
+    async function test_nested_and_inverse(
+        core: PublicDoenetMLCore,
+        resolveComponentName: (name: string, origin?: number) => number,
+    ) {
         await test_numberList({
             core,
-            name: "/nl1",
-            pName: "/p",
+            resolveComponentName,
+            name: "nl1",
+            pName: "p",
             text: "1, 2, 3, 4, 5, 6, 7, 8, 9",
             numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9],
         });
 
         await test_numberList({
             core,
-            name: "/nl2",
+            resolveComponentName,
+            name: "nl2",
             numbers: [2, 3],
         });
         await test_numberList({
             core,
-            name: "/nl3",
+            resolveComponentName,
+            name: "nl3",
             numbers: [5, 6, 7, 8, 9],
         });
         await test_numberList({
             core,
-            name: "/nl4",
+            resolveComponentName,
+            name: "nl4",
             numbers: [5, 6, 7],
         });
         await test_numberList({
             core,
-            name: "/nl5",
+            resolveComponentName,
+            name: "nl5",
             numbers: [6, 7],
         });
         await test_numberList({
             core,
-            name: "/nl6",
+            resolveComponentName,
+            name: "nl6",
             numbers: [8, 9],
         });
 
         // change values
 
         await updateMathInputValue({
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             latex: "-11",
             core,
         });
         await updateMathInputValue({
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             latex: "-12",
             core,
         });
         await updateMathInputValue({
-            name: "/mi3",
+            componentIdx: resolveComponentName("mi3"),
             latex: "-13",
             core,
         });
         await updateMathInputValue({
-            name: "/mi4",
+            componentIdx: resolveComponentName("mi4"),
             latex: "-14",
             core,
         });
         await updateMathInputValue({
-            name: "/mi5",
+            componentIdx: resolveComponentName("mi5"),
             latex: "-15",
             core,
         });
         await updateMathInputValue({
-            name: "/mi6",
+            componentIdx: resolveComponentName("mi6"),
             latex: "-16",
             core,
         });
         await updateMathInputValue({
-            name: "/mi7",
+            componentIdx: resolveComponentName("mi7"),
             latex: "-17",
             core,
         });
         await updateMathInputValue({
-            name: "/mi8",
+            componentIdx: resolveComponentName("mi8"),
             latex: "-18",
             core,
         });
         await updateMathInputValue({
-            name: "/mi9",
+            componentIdx: resolveComponentName("mi9"),
             latex: "-19",
             core,
         });
 
         await test_numberList({
             core,
-            name: "/nl1",
-            pName: "/p",
+            resolveComponentName,
+            name: "nl1",
+            pName: "p",
             text: "-11, -12, -13, -14, -15, -16, -17, -18, -19",
             numbers: [-11, -12, -13, -14, -15, -16, -17, -18, -19],
         });
 
         await test_numberList({
             core,
-            name: "/nl2",
+            resolveComponentName,
+            name: "nl2",
             numbers: [-12, -13],
         });
         await test_numberList({
             core,
-            name: "/nl3",
+            resolveComponentName,
+            name: "nl3",
             numbers: [-15, -16, -17, -18, -19],
         });
         await test_numberList({
             core,
-            name: "/nl4",
+            resolveComponentName,
+            name: "nl4",
             numbers: [-15, -16, -17],
         });
         await test_numberList({
             core,
-            name: "/nl5",
+            resolveComponentName,
+            name: "nl5",
             numbers: [-16, -17],
         });
         await test_numberList({
             core,
-            name: "/nl6",
+            resolveComponentName,
+            name: "nl6",
             numbers: [-18, -19],
         });
     }
 
     it("numberList with numberList children, test inverse", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><numberList name="nl1">
       <number>1</number>
@@ -290,11 +317,11 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        await test_nested_and_inverse(core);
+        await test_nested_and_inverse(core, resolveComponentName);
     });
 
     it("numberList with numberList children and sugar, test inverse", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><numberList name="nl1">
       1
@@ -321,11 +348,11 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        await test_nested_and_inverse(core);
+        await test_nested_and_inverse(core, resolveComponentName);
     });
 
     it("numberList with maximum number", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><numberList name="nl1" maxNumber="7">
         <number>1</number>
@@ -353,9 +380,10 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: `/nl1`,
+            resolveComponentName,
+            name: "nl1",
             numbers: vals1,
-            pName: "/p",
+            pName: "p",
             text: vals1.join(", "),
         });
 
@@ -363,14 +391,16 @@ describe("NumberList tag tests", async () => {
             let vals = sub_vals[i];
             await test_numberList({
                 core,
-                name: `/nl${i + 2}`,
+                resolveComponentName,
+                name: `nl${i + 2}`,
                 numbers: vals,
             });
         }
     });
 
-    it("copy numberList and overwrite maximum number", async () => {
-        let core = await createTestCore({
+    // For now, at least, giving up the feature where you can overwrite maximum number and make it larger
+    it.skip("copy numberList and overwrite maximum number", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1">1 2 3 4 5</numberList></p>
     <p name="p2">$nl1{maxNumber="3" name="nl2"}</p>
@@ -386,144 +416,126 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: "/nl1",
+            resolveComponentName,
+            name: "nl1",
             numbers: list,
-            pName: "/p1",
+            pName: "p1",
             text: list.join(", "),
         });
         await test_numberList({
             core,
-            name: "/nl2",
+            resolveComponentName,
+            name: "nl2",
             numbers: list.slice(0, 3),
-            pName: "/p2",
+            pName: "p2",
             text: list.slice(0, 3).join(", "),
         });
         await test_numberList({
             core,
-            name: "/nl3",
+            resolveComponentName,
+            name: "nl3",
             numbers: list,
-            pName: "/p3",
+            pName: "p3",
             text: list.join(", "),
         });
         await test_numberList({
             core,
-            name: "/nl4",
+            resolveComponentName,
+            name: "nl4",
             numbers: list.slice(0, 3),
-            pName: "/p4",
+            pName: "p4",
             text: list.slice(0, 3).join(", "),
         });
         await test_numberList({
             core,
-            name: "/nl5",
+            resolveComponentName,
+            name: "nl5",
             numbers: list.slice(0, 4),
-            pName: "/p5",
+            pName: "p5",
             text: list.slice(0, 4).join(", "),
         });
         await test_numberList({
             core,
-            name: "/nl6",
+            resolveComponentName,
+            name: "nl6",
             numbers: list,
-            pName: "/p6",
+            pName: "p6",
             text: list.join(", "),
         });
     });
 
     it("dynamic maximum number", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    
-    <p>Maximum number 1: <mathInput name="mn1" prefill="2" /></p>
-    <p>Maximum number 2: <mathInput name="mn2" /></p>
+    <p>Maximum number 1: <mathInput name="mn" prefill="2" /></p>
     <section name="sec">
-        <p name="p1"><numberList name="nl1" maxNumber="$mn1" >1 2 3 4 5 6</numberList></p>
-        <p name="p2">$nl1{maxNumber="$mn2" name="nl2"}</p>
-        <p name="p3">$nl2{name="nl3"}</p>
-        <p name="p4">$nl3{name="nl4" maxNumber=""}</p>
+        <p name="p1"><numberList name="ml1" maxNumber="$mn" >1 2 3 4 5 6</numberList></p>
+        <p name="p2"><numberList extend="$ml1" name="ml2" /></p>
+        <p name="p3">$ml2</p>
     </section>
-    <section name="sec2" copySource="sec" newNamespace />
+    <section name="sec2" extend="$sec" />
 
       `,
         });
 
         let list = [1, 2, 3, 4, 5, 6];
 
-        async function check_items(max1, max2) {
-            for (let pre of ["", "/sec2"]) {
+        async function check_items(maxNum: number) {
+            for (let pre of ["sec", "sec2"]) {
                 await test_numberList({
+                    resolveComponentName,
                     core,
-                    name: `${pre}/nl1`,
-                    numbers: list.slice(0, max1),
-                    pName: `${pre}/p1`,
-                    text: list.slice(0, max1).join(", "),
+                    name: `${pre}.ml1`,
+                    numbers: list.slice(0, maxNum),
+                    pName: `${pre}.p1`,
+                    text: list.slice(0, maxNum).join(", "),
                 });
                 await test_numberList({
+                    resolveComponentName,
                     core,
-                    name: `${pre}/nl2`,
-                    numbers: list.slice(0, max2),
-                    pName: `${pre}/p2`,
-                    text: list.slice(0, max2).join(", "),
+                    name: `${pre}.ml2`,
+                    numbers: list.slice(0, maxNum),
+                    pName: `${pre}.p2`,
+                    text: list.slice(0, maxNum).join(", "),
                 });
                 await test_numberList({
+                    resolveComponentName,
                     core,
-                    name: `${pre}/nl3`,
-                    numbers: list.slice(0, max2),
-                    pName: `${pre}/p3`,
-                    text: list.slice(0, max2).join(", "),
-                });
-                await test_numberList({
-                    core,
-                    name: `${pre}/nl4`,
-                    numbers: list,
-                    pName: `${pre}/p4`,
-                    text: list.join(", "),
+                    numbers: list.slice(0, maxNum),
+                    pName: `${pre}.p3`,
+                    text: list.slice(0, maxNum).join(", "),
                 });
             }
         }
 
-        let max1 = 2,
-            max2 = Infinity;
+        let maxNum = 2;
 
-        await check_items(max1, max2);
+        await check_items(maxNum);
 
-        max1 = Infinity;
-        await updateMathInputValue({ latex: "", name: "/mn1", core });
-        await check_items(max1, max2);
+        maxNum = Infinity;
+        const mnIdx = resolveComponentName("mn");
+        await updateMathInputValue({ latex: "", componentIdx: mnIdx, core });
+        await check_items(maxNum);
 
-        max2 = 3;
+        maxNum = 4;
         await updateMathInputValue({
-            latex: max2.toString(),
-            name: "/mn2",
+            latex: maxNum.toString(),
+            componentIdx: mnIdx,
             core,
         });
-        await check_items(max1, max2);
+        await check_items(maxNum);
 
-        max1 = 4;
+        maxNum = 1;
         await updateMathInputValue({
-            latex: max1.toString(),
-            name: "/mn1",
+            latex: maxNum.toString(),
+            componentIdx: mnIdx,
             core,
         });
-        await check_items(max1, max2);
-
-        max1 = 1;
-        await updateMathInputValue({
-            latex: max1.toString(),
-            name: "/mn1",
-            core,
-        });
-        await check_items(max1, max2);
-
-        max2 = 10;
-        await updateMathInputValue({
-            latex: max2.toString(),
-            name: "/mn2",
-            core,
-        });
-        await check_items(max1, max2);
+        await check_items(maxNum);
     });
 
     it("always merge math lists when have one math child", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1">
       <math>1,2,3,4,5</math>
@@ -545,9 +557,10 @@ describe("NumberList tag tests", async () => {
         async function check_items(vals: number[]) {
             await test_numberList({
                 core,
-                name: `/nl1`,
+                resolveComponentName,
+                name: "nl1",
                 numbers: vals,
-                pName: `/p1`,
+                pName: "p1",
                 text: vals.join(", "),
             });
 
@@ -556,12 +569,12 @@ describe("NumberList tag tests", async () => {
                 true,
             );
 
-            expect(stateVariables["/p2"].stateValues.text).eq(
-                `Third number: ${vals[2]}`,
-            );
-            expect(stateVariables["/p3"].stateValues.text).eq(
-                `Fifth number: ${vals[4]}`,
-            );
+            expect(
+                stateVariables[resolveComponentName("p2")].stateValues.text,
+            ).eq(`Third number: ${vals[2]}`);
+            expect(
+                stateVariables[resolveComponentName("p3")].stateValues.text,
+            ).eq(`Fifth number: ${vals[4]}`);
         }
 
         let vals = [1, 2, 3, 4, 5];
@@ -572,7 +585,7 @@ describe("NumberList tag tests", async () => {
         for (let [i, v] of vals.entries()) {
             await updateMathInputValue({
                 latex: v.toString(),
-                name: `/mi${i + 1}`,
+                componentIdx: resolveComponentName(`mi${i + 1}`),
                 core,
             });
         }
@@ -580,7 +593,7 @@ describe("NumberList tag tests", async () => {
     });
 
     it("maxNumber with when have one math child", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList maxNumber="3" name="nl">
       <math name="m">1,2,3,4,5</math>
@@ -597,24 +610,25 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: `/nl`,
+            resolveComponentName,
+            name: "nl",
             numbers: vals.slice(0, 3),
-            pName: `/p1`,
+            pName: "p1",
             text: vals.slice(0, 3).join(", "),
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/p2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
             `Copied math: ${vals.join(", ")}`,
         );
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             `Copied numberList: ${vals.slice(0, 3).join(", ")}`,
         );
     });
 
     it("maxNumber with mathList or numberList child", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
   <mathInput prefill="2" name="maxN" />
@@ -623,19 +637,19 @@ describe("NumberList tag tests", async () => {
   <p name="pNlNl"><numberList name="nlNl" maxNumber="$maxN"><numberList>1 2 3</numberList></numberList></p>
   <p name="pNlMl"><numberList name="nlMl"  maxNumber="$maxN"><mathList>1 2 3</mathList></numberList></p>
 
-  <p name="pCopyMl">$nl{name="nlCopy"}</p>
-  <p name="pCopyNlNl">$nlNl{name="nlNlCopy"}</p>
-  <p name="pCopyNlMl">$nlMl{name="nlMlCopy"}</p>
+  <p name="pCopyMl"><numberList extend="$nl" name="nlCopy" /></p>
+  <p name="pCopyNlNl"><numberList extend="$nlNl" name="nlNlCopy" /></p>
+  <p name="pCopyNlMl"><numberList extend="$nlMl" name="nlMlCopy" /></p>
     `,
         });
 
         let names = [
-            ["/nl", "/pNl"],
-            ["/nlNl", "/pNlNl"],
-            ["/nlMl", "/pNlMl"],
-            ["/nlCopy", "/pCopyMl"],
-            ["/nlNlCopy", "/pCopyNlNl"],
-            ["/nlMlCopy", "/pCopyNlMl"],
+            ["nl", "pNl"],
+            ["nlNl", "pNlNl"],
+            ["nlMl", "pNlMl"],
+            ["nlCopy", "pCopyMl"],
+            ["nlNlCopy", "pCopyNlNl"],
+            ["nlMlCopy", "pCopyNlMl"],
         ];
         async function check_items(maxN: number) {
             let numbers = [1, 2, 3].slice(0, maxN);
@@ -644,6 +658,7 @@ describe("NumberList tag tests", async () => {
             for (let [m, p] of names) {
                 await test_numberList({
                     core,
+                    resolveComponentName,
                     name: m,
                     numbers,
                     pName: p,
@@ -658,7 +673,7 @@ describe("NumberList tag tests", async () => {
         maxN = 4;
         await updateMathInputValue({
             latex: maxN.toString(),
-            name: "/maxN",
+            componentIdx: resolveComponentName("maxN"),
             core,
         });
         await check_items(maxN);
@@ -666,14 +681,14 @@ describe("NumberList tag tests", async () => {
         maxN = 1;
         await updateMathInputValue({
             latex: maxN.toString(),
-            name: "/maxN",
+            componentIdx: resolveComponentName("maxN"),
             core,
         });
         await check_items(maxN);
     });
 
     it("numberList within numberLists, ignore child hide", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList hide="true" name="nl1">1 2 3</numberList></p>
 
@@ -681,33 +696,35 @@ describe("NumberList tag tests", async () => {
       <number>4</number>
       $nl1
       <number hide>5</number>
-      $nl1{hide="false"}
+      <numberList extend="$nl1" hide="false" />
     </numberList></p>
 
-    <p name="p3">$nl2{name="nl3" maxNumber="6"}</p>
+    <p name="p3"><numberList extend="$nl2" name="nl3" maxNumber="6" /></p>
 
     `,
         });
 
         await test_numberList({
             core,
-            name: "/nl2",
+            resolveComponentName,
+            name: "nl2",
             numbers: [4, 1, 2, 3, 5, 1, 2, 3],
-            pName: "/p2",
+            pName: "p2",
             text: "4, 1, 2, 3, 5, 1, 2, 3",
         });
 
         await test_numberList({
             core,
-            name: "/nl3",
+            resolveComponentName,
+            name: "nl3",
             numbers: [4, 1, 2, 3, 5, 1],
-            pName: "/p3",
+            pName: "p3",
             text: "4, 1, 2, 3, 5, 1",
         });
     });
 
     it("numberList does not force composite replacement, even in boolean", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <boolean name="b">
       <numberList>$nothing 3</numberList> = <numberList>3</numberList>
@@ -716,29 +733,13 @@ describe("NumberList tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/b"].stateValues.value).eq(true);
-    });
-
-    it("assignNames", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <p name="p1"><numberList assignNames="a b c">1 2 3</numberList></p>
-    <p name="p2">$a, $b, $c</p>
-
-    `,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(stateVariables["/p1"].stateValues.text).eq("1, 2, 3");
-        expect(stateVariables["/p2"].stateValues.text).eq("1, 2, 3");
-        expect(stateVariables["/a"].stateValues.value).eq(1);
-        expect(stateVariables["/b"].stateValues.value).eq(2);
-        expect(stateVariables["/c"].stateValues.value).eq(3);
+        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
+            true,
+        );
     });
 
     it("numberList and rounding, from strings", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1" displayDigits="4">2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</numberList></p>
     <p name="p2"><numberList name="nl2" displayDigits="4" padZeros>2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</numberList></p>
@@ -747,19 +748,19 @@ describe("NumberList tag tests", async () => {
     <p name="p5"><numberList name="nl5" displayDecimals="4" displayDigits="3" displaySmallAsZero="false">2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</numberList></p>
     <p name="p6"><numberList name="nl6" displayDecimals="4" displayDigits="3" displaySmallAsZero="false" padZeros>2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</numberList></p>
 
-    <p name="p1a"><numberList name="nl1a" copySource="nl1" /></p>
-    <p name="p2a"><numberList name="nl2a" copySource="nl2" /></p>
-    <p name="p3a"><numberList name="nl3a" copySource="nl3" /></p>
-    <p name="p4a"><numberList name="nl4a" copySource="nl4" /></p>
-    <p name="p5a"><numberList name="nl5a" copySource="nl5" /></p>
-    <p name="p6a"><numberList name="nl6a" copySource="nl6" /></p>
+    <p name="p1a"><numberList name="nl1a" extend="$nl1" /></p>
+    <p name="p2a"><numberList name="nl2a" extend="$nl2" /></p>
+    <p name="p3a"><numberList name="nl3a" extend="$nl3" /></p>
+    <p name="p4a"><numberList name="nl4a" extend="$nl4" /></p>
+    <p name="p5a"><numberList name="nl5a" extend="$nl5" /></p>
+    <p name="p6a"><numberList name="nl6a" extend="$nl6" /></p>
 
-    <p name="p1b"><numberList name="nl1b" copySource="nl1" link="false" /></p>
-    <p name="p2b"><numberList name="nl2b" copySource="nl2" link="false" /></p>
-    <p name="p3b"><numberList name="nl3b" copySource="nl3" link="false" /></p>
-    <p name="p4b"><numberList name="nl4b" copySource="nl4" link="false" /></p>
-    <p name="p5b"><numberList name="nl5b" copySource="nl5" link="false" /></p>
-    <p name="p6b"><numberList name="nl6b" copySource="nl6" link="false" /></p>
+    <p name="p1b"><numberList name="nl1b" extend="$nl1" link="false" /></p>
+    <p name="p2b"><numberList name="nl2b" extend="$nl2" link="false" /></p>
+    <p name="p3b"><numberList name="nl3b" extend="$nl3" link="false" /></p>
+    <p name="p4b"><numberList name="nl4b" extend="$nl4" link="false" /></p>
+    <p name="p5b"><numberList name="nl5b" extend="$nl5" link="false" /></p>
+    <p name="p6b"><numberList name="nl6b" extend="$nl6" link="false" /></p>
 
 
     `,
@@ -797,53 +798,60 @@ describe("NumberList tag tests", async () => {
         ].join(", ");
 
         for (let post of ["", "a", "b"]) {
+            console.log({ post });
             await test_numberList({
                 core,
-                name: `/nl1${post}`,
+                resolveComponentName,
+                name: `nl1${post}`,
                 numbers: vals,
-                pName: `/p1${post}`,
+                pName: `p1${post}`,
                 text: text1,
             });
             await test_numberList({
                 core,
-                name: `/nl2${post}`,
+                resolveComponentName,
+                name: `nl2${post}`,
                 numbers: vals,
-                pName: `/p2${post}`,
+                pName: `p2${post}`,
                 text: text2,
             });
             await test_numberList({
                 core,
-                name: `/nl3${post}`,
+                resolveComponentName,
+                name: `nl3${post}`,
                 numbers: vals,
-                pName: `/p3${post}`,
+                pName: `p3${post}`,
                 text: text3,
             });
             await test_numberList({
                 core,
-                name: `/nl4${post}`,
+                resolveComponentName,
+                name: `nl4${post}`,
                 numbers: vals,
-                pName: `/p4${post}`,
+                pName: `p4${post}`,
                 text: text4,
             });
             await test_numberList({
                 core,
-                name: `/nl5${post}`,
+                resolveComponentName,
+                name: `nl5${post}`,
                 numbers: vals,
-                pName: `/p5${post}`,
+                pName: `p5${post}`,
                 text: text5,
             });
             await test_numberList({
                 core,
-                name: `/nl6${post}`,
+                resolveComponentName,
+                name: `nl6${post}`,
                 numbers: vals,
-                pName: `/p6${post}`,
+                pName: `p6${post}`,
                 text: text6,
             });
         }
     });
 
     it("numberList and rounding, ignore math and number children attributes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1">
       <number displayDigits="5">2345.1535268</number>
@@ -954,57 +962,63 @@ describe("NumberList tag tests", async () => {
         for (let post of ["", "m"]) {
             await test_numberList({
                 core,
-                name: `/nl1${post}`,
+                resolveComponentName,
+                name: `nl1${post}`,
                 numbers: vals,
-                pName: `/p1${post}`,
+                pName: `p1${post}`,
                 text: text1,
             });
             await test_numberList({
                 core,
-                name: `/nl2${post}`,
+                resolveComponentName,
+                name: `nl2${post}`,
                 numbers: vals,
-                pName: `/p2${post}`,
+                pName: `p2${post}`,
                 text: text2,
             });
             await test_numberList({
                 core,
-                name: `/nl3${post}`,
+                resolveComponentName,
+                name: `nl3${post}`,
                 numbers: vals,
-                pName: `/p3${post}`,
+                pName: `p3${post}`,
                 text: text3,
             });
             await test_numberList({
                 core,
-                name: `/nl4${post}`,
+                resolveComponentName,
+                name: `nl4${post}`,
                 numbers: vals,
-                pName: `/p4${post}`,
+                pName: `p4${post}`,
                 text: text4,
             });
             await test_numberList({
                 core,
-                name: `/nl5${post}`,
+                resolveComponentName,
+                name: `nl5${post}`,
                 numbers: vals,
-                pName: `/p5${post}`,
+                pName: `p5${post}`,
                 text: text5,
             });
             await test_numberList({
                 core,
-                name: `/nl6${post}`,
+                resolveComponentName,
+                name: `nl6${post}`,
                 numbers: vals,
-                pName: `/p6${post}`,
+                pName: `p6${post}`,
                 text: text6,
             });
         }
     });
 
     it("numberList and rounding, copy and override", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p"><numberList name="nl">34.245023482352345 <number displayDigits="7">0.0023823402358234234</number></numberList></p>
-    <p name="pDig6"><numberList name="nlDig6" copySource="nl" displayDigits="6" /></p>
-    <p name="pDec6"><numberList name="nlDec6" copySource="nl" displayDecimals="6" /></p>
-    <p name="pDig6a"><numberList name="nlDig6a" copySource="nlDec6" displayDigits="6" /></p>
-    <p name="pDec6a"><numberList name="nlDec6a" copySource="nlDig6" displayDecimals="6" /></p>
+    <p name="pDig6"><numberList name="nlDig6" extend="$nl" displayDigits="6" /></p>
+    <p name="pDec6"><numberList name="nlDec6" extend="$nl" displayDecimals="6" /></p>
+    <p name="pDig6a"><numberList name="nlDig6a" extend="$nlDec6" displayDigits="6" /></p>
+    <p name="pDec6a"><numberList name="nlDec6a" extend="$nlDig6" displayDecimals="6" /></p>
     `,
         });
 
@@ -1016,43 +1030,48 @@ describe("NumberList tag tests", async () => {
 
         await test_numberList({
             core,
-            name: `/nl`,
+            resolveComponentName,
+            name: "nl",
             numbers: vals,
-            pName: `/p`,
+            pName: "p",
             text: text,
         });
         await test_numberList({
             core,
-            name: `/nlDig6`,
+            resolveComponentName,
+            name: "nlDig6",
             numbers: vals,
-            pName: `/pDig6`,
+            pName: "pDig6",
             text: textDig6,
         });
         await test_numberList({
             core,
-            name: `/nlDig6a`,
+            resolveComponentName,
+            name: "nlDig6a",
             numbers: vals,
-            pName: `/pDig6a`,
+            pName: "pDig6a",
             text: textDig6,
         });
         await test_numberList({
             core,
-            name: `/nlDec6`,
+            resolveComponentName,
+            name: "nlDec6",
             numbers: vals,
-            pName: `/pDec6`,
+            pName: "pDec6",
             text: textDec6,
         });
         await test_numberList({
             core,
-            name: `/nlDec6a`,
+            resolveComponentName,
+            name: "nlDec6a",
             numbers: vals,
-            pName: `/pDec6a`,
+            pName: "pDec6a",
             text: textDec6,
         });
     });
 
     it("numberList adapts to math and text", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <numberList name="nl"><number>1</number> <number>2</number><number>3</number></numberList>
 
@@ -1063,17 +1082,16 @@ describe("NumberList tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m"].stateValues.value.tree).eqls([
-            "list",
-            1,
-            2,
-            3,
-        ]);
-        expect(stateVariables["/t"].stateValues.value).eq("1, 2, 3");
+        expect(
+            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+        ).eqls(["list", 1, 2, 3]);
+        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
+            "1, 2, 3",
+        );
     });
 
     it("numberList adapts to mathList", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl"><number>9</number> <number>8</number><number>7</number></numberList></p>
 
@@ -1089,9 +1107,10 @@ describe("NumberList tag tests", async () => {
             let text = [n1, n2, n3].join(", ");
             await test_numberList({
                 core,
-                name: "/nl",
+                resolveComponentName,
+                name: "nl",
                 numbers: [n1, n2, n3],
-                pName: "/p1",
+                pName: "p1",
                 text,
             });
 
@@ -1099,7 +1118,9 @@ describe("NumberList tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/p2"].stateValues.text).eq(text);
+            expect(
+                stateVariables[resolveComponentName("p2")].stateValues.text,
+            ).eq(text);
         }
 
         let n1 = 9,
@@ -1111,7 +1132,7 @@ describe("NumberList tag tests", async () => {
         n2 = 83;
         await updateMathInputValue({
             latex: n2.toString(),
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
         await test_items(n1, n2, n3);
@@ -1120,14 +1141,14 @@ describe("NumberList tag tests", async () => {
         n3 = 2;
         await updateMathInputValue({
             latex: `(${n1}, ${n3})`,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
         await test_items(n1, n2, n3);
     });
 
     it("text and latex from numberList", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <numberList name="nl">7 -8</numberList>
 
@@ -1138,17 +1159,21 @@ describe("NumberList tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pText"].stateValues.text).eq("Text: 7, -8");
-        expect(stateVariables["/pLatex"].stateValues.text).eq("Latex: 7, -8");
+        expect(
+            stateVariables[resolveComponentName("pText")].stateValues.text,
+        ).eq("Text: 7, -8");
+        expect(
+            stateVariables[resolveComponentName("pLatex")].stateValues.text,
+        ).eq("Latex: 7, -8");
     });
 
     it("definition and inverse based on shadowed value from a numberList prop", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <regionBetweenCurves boundaryValues="-5 8" name="rbc" />
 
-    <p name="p">$rbc.boundaryValues{assignNames="nl"}</p>
+    <p name="p"><numberList extend="$rbc.boundaryValues" name="nl" /></p>
     <mathInput name="mi">$rbc.boundaryValues</mathInput>
 
     `,
@@ -1160,9 +1185,10 @@ describe("NumberList tag tests", async () => {
             n2 = 8;
         await test_numberList({
             core,
-            name: "/nl",
+            resolveComponentName,
+            name: "nl",
             numbers: [n1, n2],
-            pName: "/p",
+            pName: "p",
             text: `${n1}, ${n2}`,
         });
 
@@ -1170,14 +1196,15 @@ describe("NumberList tag tests", async () => {
         n2 = 6;
         await updateMathInputValue({
             latex: `${n1}, ${n2}`,
-            name: "/mi",
+            componentIdx: resolveComponentName("mi"),
             core,
         });
         await test_numberList({
             core,
-            name: "/nl",
+            resolveComponentName,
+            name: "nl",
             numbers: [n1, n2],
-            pName: "/p",
+            pName: "p",
             text: `${n1}, ${n2}`,
         });
     });

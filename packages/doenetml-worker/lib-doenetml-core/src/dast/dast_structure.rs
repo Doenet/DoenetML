@@ -13,6 +13,8 @@ use thiserror::Error;
 
 use crate::props::PropValue;
 
+use super::flat_dast::ErrorType;
+
 /// Dast root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -44,6 +46,18 @@ impl DastElementContent {
     pub fn element_with_name(name: &str) -> Self {
         DastElementContent::Element(DastElement::with_name(name))
     }
+
+    pub fn position(&self) -> Option<&Position> {
+        match self {
+            DastElementContent::Element(dast_element) => (dast_element.position).as_ref(),
+            DastElementContent::Text(dast_text) => (dast_text.position).as_ref(),
+            DastElementContent::Ref(dast_ref) => (dast_ref.position).as_ref(),
+            DastElementContent::FunctionRef(dast_function_ref) => {
+                (dast_function_ref.position).as_ref()
+            }
+            DastElementContent::Error(dast_error) => (dast_error.position).as_ref(),
+        }
+    }
 }
 
 /// Allowed children of an attribute node
@@ -51,10 +65,11 @@ impl DastElementContent {
 #[cfg_attr(test, derive(PartialEq))]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
-pub enum DastTextRefContent {
+pub enum DastTextRefElementContent {
     Text(DastText),
     Ref(DastRef),
     FunctionRef(DastFunctionRef),
+    Element(DastElement),
 }
 
 /// An element node
@@ -214,7 +229,7 @@ pub struct TextData {}
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastAttribute {
     pub name: String,
-    pub children: Vec<DastTextRefContent>,
+    pub children: Vec<DastTextRefElementContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
@@ -223,7 +238,7 @@ pub struct DastAttribute {
 impl DastAttribute {
     pub fn get_string_value(&self) -> Result<String, NoValueFound> {
         if self.children.len() == 1 {
-            if let DastTextRefContent::Text(name_text) = &self.children[0] {
+            if let DastTextRefElementContent::Text(name_text) = &self.children[0] {
                 // have string attribute
                 return Ok(name_text.value.clone());
             }
@@ -236,7 +251,7 @@ impl DastAttribute {
         if self.children.is_empty() {
             return Ok("true".to_string());
         } else if self.children.len() == 1 {
-            if let DastTextRefContent::Text(name_text) = &self.children[0] {
+            if let DastTextRefElementContent::Text(name_text) = &self.children[0] {
                 // have string attribute
                 return Ok(name_text.value.clone());
             }
@@ -295,7 +310,7 @@ pub struct PathPart {
 #[serde(rename = "index")]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastIndex {
-    pub value: Vec<DastTextRefContent>,
+    pub value: Vec<DastTextRefElementContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
@@ -310,6 +325,9 @@ pub struct DastIndex {
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastError {
     pub message: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_type: Option<ErrorType>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,

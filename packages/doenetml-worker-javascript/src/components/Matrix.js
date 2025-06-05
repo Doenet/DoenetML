@@ -51,6 +51,7 @@ export default class Matrix extends MathComponent {
         let replaceRowAndColumnChildren = function ({
             matchedChildren,
             componentInfoObjects,
+            nComponents,
         }) {
             if (matchedChildren.length === 0) {
                 return { success: false };
@@ -77,19 +78,20 @@ export default class Matrix extends MathComponent {
                     child.componentType = "matrixRow";
                     foundRowsOrColumns = true;
                 } else if (
-                    child.attributes?.createComponentOfType?.primitive ===
+                    child.attributes?.createComponentOfType?.primitive.value ===
                     "column"
                 ) {
                     child.doenetAttributes.createNameFromComponentType =
                         "column";
-                    child.attributes.createComponentOfType.primitive =
+                    child.attributes.createComponentOfType.primitive.value =
                         "matrixColumn";
                     foundRowsOrColumns = true;
                 } else if (
-                    child.attributes?.createComponentOfType?.primitive === "row"
+                    child.attributes?.createComponentOfType?.primitive.value ===
+                    "row"
                 ) {
                     child.doenetAttributes.createNameFromComponentType = "row";
-                    child.attributes.createComponentOfType.primitive =
+                    child.attributes.createComponentOfType.primitive.value =
                         "matrixRow";
                     foundRowsOrColumns = true;
                 }
@@ -107,8 +109,13 @@ export default class Matrix extends MathComponent {
                 ) {
                     newChildren = [
                         {
+                            type: "serialized",
                             componentType: "math",
+                            componentIdx: nComponents++,
                             children: matchedChildren,
+                            attributes: {},
+                            doenetAttributes: {},
+                            state: {},
                         },
                     ];
                 }
@@ -117,6 +124,7 @@ export default class Matrix extends MathComponent {
             return {
                 success: true,
                 newChildren,
+                nComponents,
             };
         };
 

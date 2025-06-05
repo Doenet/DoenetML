@@ -60,14 +60,14 @@ export default class CompositeComponent extends BaseComponent {
 
     // This function is called by Core.js in expandCompositeComponent
     // See that invocation for documentation
-    static createSerializedReplacements() {
-        return { replacements: [], errors: [], warnings: [] };
+    static createSerializedReplacements({ nComponents }) {
+        return { replacements: [], errors: [], warnings: [], nComponents };
     }
 
     // This function is called by Core.js in updateCompositeReplacements
     // See that invocation for documentation
-    static calculateReplacementChanges() {
-        return [];
+    static calculateReplacementChanges({ nComponents }) {
+        return { replacementChanges: [], nComponents };
     }
 
     // serialize(parameters = {}) {
@@ -118,8 +118,8 @@ export default class CompositeComponent extends BaseComponent {
 
         // we still recurse to all children, even though was skipped at base component
         // due to not having a rendererType
-        for (let childIdx in this.allChildren) {
-            let child = this.allChildren[childIdx].component;
+        for (const childIdxStr in this.allChildren) {
+            let child = this.allChildren[childIdxStr].component;
             for (let rendererType of child.allPotentialRendererTypes) {
                 if (!allPotentialRendererTypes.includes(rendererType)) {
                     allPotentialRendererTypes.push(rendererType);

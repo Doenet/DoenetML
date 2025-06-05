@@ -1,7 +1,23 @@
-import Template from "./Template";
+import BaseComponent from "./abstract/BaseComponent";
 
-export default class Case extends Template {
+export default class Case extends BaseComponent {
     static componentType = "case";
+    static rendererType = undefined;
+
+    static inSchemaOnlyInheritAs = [];
+    static allowInSchemaAsComponent = undefined;
+    static includeBlankStringChildren = true;
+
+    static keepChildrenSerialized({ serializedComponent }) {
+        if (serializedComponent.children === undefined) {
+            return [];
+        } else {
+            return Object.keys(serializedComponent.children);
+        }
+    }
+
+    // since don't have child groups, tell schema about children here
+    static additionalSchemaChildren = ["_base"];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -15,6 +31,22 @@ export default class Case extends Template {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.serializedChildren = {
+            returnDependencies: () => ({
+                serializedChildren: {
+                    dependencyType: "serializedChildren",
+                    doNotProxy: true,
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                return {
+                    setValue: {
+                        serializedChildren: dependencyValues.serializedChildren,
+                    },
+                };
+            },
+        };
 
         stateVariableDefinitions.conditionSatisfied = {
             public: true,
@@ -44,14 +76,19 @@ export default class Case extends Template {
         return stateVariableDefinitions;
     }
 
-    static createSerializedReplacements({ component, componentInfoObjects }) {
-        if (!component.stateValues.conditionSatisfied) {
-            return { replacements: [], errors: [], warnings: [] };
+    get allPotentialRendererTypes() {
+        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+
+        let additionalRendererTypes =
+            this.potentialRendererTypesFromSerializedComponents(
+                this.serializedChildren,
+            );
+        for (let rendererType of additionalRendererTypes) {
+            if (!allPotentialRendererTypes.includes(rendererType)) {
+                allPotentialRendererTypes.push(rendererType);
+            }
         }
 
-        return super.createSerializedReplacements({
-            component,
-            componentInfoObjects,
-        });
+        return allPotentialRendererTypes;
     }
 }

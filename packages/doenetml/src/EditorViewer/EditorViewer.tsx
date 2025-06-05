@@ -15,11 +15,7 @@ import {
     ErrorWarningResponseTabContents,
     ErrorWarningResponseTabstrip,
 } from "./ErrorWarningResponseTabs";
-import {
-    type WarningDescription,
-    type ErrorDescription,
-    nanInfinityReviver,
-} from "@doenet/utils";
+import { ErrorRecord, nanInfinityReviver, WarningRecord } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 import { formatResponse } from "../utils/responses";
@@ -78,8 +74,8 @@ export function EditorViewer({
     showErrorsWarnings?: boolean;
     showResponses?: boolean;
     border?: string;
-    initialErrors?: ErrorDescription[];
-    initialWarnings?: WarningDescription[];
+    initialErrors?: ErrorRecord[];
+    initialWarnings?: WarningRecord[];
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -124,18 +120,14 @@ export function EditorViewer({
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
 
     const [errorsAndWarnings, setErrorsAndWarningsCallback] = useState<{
-        errors: ErrorDescription[];
-        warnings: WarningDescription[];
+        errors: ErrorRecord[];
+        warnings: WarningRecord[];
     }>({
         errors: [],
         warnings: [],
     });
 
-    const warningsLevel = 1; //TODO: eventually give user ability adjust warning level filter
-    const warningsObjs = [
-        ...initialWarnings,
-        ...errorsAndWarnings.warnings.filter((w) => w.level <= warningsLevel),
-    ];
+    const warningsObjs = [...initialWarnings, ...errorsAndWarnings.warnings];
     const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
 
     const [responses, setResponses] = useState<

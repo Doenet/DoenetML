@@ -1,17 +1,15 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames, setTNamesToAbsolute } from "../utils/naming";
-import {
-    applyMacros,
-    applySugar,
-    componentFromAttribute,
-} from "../utils/expandDoenetML";
+// XXX: we need to use the replacement functions for these
+// import {
+//     applyMacros,
+//     applySugar,
+//     componentFromAttribute,
+// } from "../utils/expandDoenetML";
 
 export default class CustomAttribute extends CompositeComponent {
     static componentType = "customAttribute";
 
     static inSchemaOnlyInheritAs = [];
-
-    static assignNamesToReplacements = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -87,8 +85,6 @@ export default class CustomAttribute extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
         if (!component.attributes.componentType) {
             warnings.push({
                 message: `<customAttribute> must contain a componentType attribute.`,
@@ -99,14 +95,14 @@ export default class CustomAttribute extends CompositeComponent {
 
         let componentType =
             componentInfoObjects.componentTypeLowerCaseMapping[
-                component.attributes.componentType.primitive.toLowerCase()
+                component.attributes.componentType.primitive.value.toLowerCase()
             ];
         let componentClass =
             componentInfoObjects.allComponentClasses[componentType];
 
         if (!componentClass) {
             warnings.push({
-                message: `<customAttribute> contains an invalid component type: <${component.attributes.componentType.primitive}>.`,
+                message: `<customAttribute> contains an invalid component type: <${component.attributes.componentType.primitive.value}>.`,
                 level: 1,
             });
             return { replacements: [], errors, warnings };
@@ -153,7 +149,7 @@ export default class CustomAttribute extends CompositeComponent {
         let containerAttrNames = Object.keys(
             containerClass.createAttributesObject(),
         ).map((x) => x.toLowerCase());
-        containerAttrNames.push("name", "target", "assignnames");
+        containerAttrNames.push("name", "target");
         if (containerAttrNames.includes(SVattributeName.toLowerCase())) {
             warnings.push({
                 message: `Cannot add attribute "${SVattributeName}" to a <${containerClass.componentType}> because the <${containerClass.componentType}> component type already has a "${SVattributeName}" attribute defined.`,
@@ -178,17 +174,6 @@ export default class CustomAttribute extends CompositeComponent {
 
         if (serializedComponent.children) {
             applyMacros(serializedComponent.children, componentInfoObjects);
-            if (newNamespace) {
-                // modify targets to go back one namespace
-                for (let child of serializedComponent.children) {
-                    if (child.componentType === "copy") {
-                        let target = child.doenetAttributes.target;
-                        if (/[a-zA-Z_]/.test(target[0])) {
-                            child.doenetAttributes.target = "../" + target;
-                        }
-                    }
-                }
-            }
         }
 
         applySugar({
@@ -197,20 +182,11 @@ export default class CustomAttribute extends CompositeComponent {
             componentInfoObjects,
         });
 
-        setTNamesToAbsolute([serializedComponent]);
-
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: [serializedComponent],
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
+        // XXX: what is the replacement for this?
+        // setTNamesToAbsolute([serializedComponent]);
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements: [serializedComponent],
             errors,
             warnings,
         };

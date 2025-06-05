@@ -35,7 +35,10 @@ import {
     PropIndex as _PropIndexV6,
 } from "./macros-v6/types";
 
+/** Range in a source string */
 export type Position = UnistLiteral["position"] & {};
+/** Point in a source string */
+export type Point = Position["start"];
 
 // ## Interfaces
 
@@ -45,7 +48,7 @@ export type Position = UnistLiteral["position"] & {};
 export interface DastAttribute extends DastAbstractNode {
     type: "attribute";
     name: string;
-    children: (DastText | DastMacro | DastFunctionMacro)[];
+    children: (DastText | DastMacro | DastFunctionMacro | DastElement)[];
 }
 
 /**
