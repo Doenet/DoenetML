@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -10,18 +10,24 @@ vi.mock("hyperformula");
 describe("Function curve tag tests", async () => {
     async function test_function({
         core,
+        resolveComponentName,
         f,
         flipFunction = false,
     }: {
         core: PublicDoenetMLCore;
         f: (arg: number) => number;
+        resolveComponentName: ResolveComponentName;
         flipFunction?: boolean;
     }) {
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.curveType).eq("function");
-        expect(stateVariables["/c"].stateValues.flipFunction).eq(flipFunction);
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.curveType,
+        ).eq("function");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.flipFunction,
+        ).eq(flipFunction);
 
-        let c_fun = stateVariables["/c"].stateValues.fs[0];
+        let c_fun = stateVariables[resolveComponentName("c")].stateValues.fs[0];
 
         for (let x = -5; x <= 5; x += 2) {
             expect(c_fun(x)).closeTo(f(x), 1e-12);
@@ -29,7 +35,7 @@ describe("Function curve tag tests", async () => {
     }
 
     it("a function of x", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -39,11 +45,15 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_function({ core, f: (x) => x ** 3 - x });
+        await test_function({
+            core,
+            resolveComponentName,
+            f: (x) => x ** 3 - x,
+        });
     });
 
     it("sugar a function of x", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -53,11 +63,15 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_function({ core, f: (x) => x ** 3 - x });
+        await test_function({
+            core,
+            resolveComponentName,
+            f: (x) => x ** 3 - x,
+        });
     });
 
     it("sugar a function of x, with strings and macros", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -68,11 +82,15 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_function({ core, f: (x) => x ** 3 - x });
+        await test_function({
+            core,
+            resolveComponentName,
+            f: (x) => x ** 3 - x,
+        });
     });
 
     it("sugar a function of r", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" variable="r">
@@ -82,11 +100,15 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_function({ core, f: (x) => x ** 3 - x });
+        await test_function({
+            core,
+            resolveComponentName,
+            f: (x) => x ** 3 - x,
+        });
     });
 
     it("sugar a function of r, with strings and macros", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" variable="r">
@@ -97,11 +119,15 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_function({ core, f: (x) => x ** 3 - x });
+        await test_function({
+            core,
+            resolveComponentName,
+            f: (x) => x ** 3 - x,
+        });
     });
 
     it("a function of a", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -111,11 +137,15 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_function({ core, f: (x) => x ** 3 - x });
+        await test_function({
+            core,
+            resolveComponentName,
+            f: (x) => x ** 3 - x,
+        });
     });
 
     it("a function with variable parameter", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <mathInput prefill="1" name="a" />
@@ -127,10 +157,14 @@ describe("Function curve tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.curveType).eq("function");
-        expect(stateVariables["/c"].stateValues.flipFunction).eq(false);
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.curveType,
+        ).eq("function");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.flipFunction,
+        ).eq(false);
 
-        let c_fun = stateVariables["/c"].stateValues.fs[0];
+        let c_fun = stateVariables[resolveComponentName("c")].stateValues.fs[0];
 
         let f = (x, a) => x ** 3 - x * a;
         let a = 1;
@@ -140,16 +174,20 @@ describe("Function curve tag tests", async () => {
         }
 
         a = -2;
-        await updateMathInputValue({ latex: `${a}`, name: "/a", core });
+        await updateMathInputValue({
+            latex: `${a}`,
+            componentIdx: resolveComponentName("a"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        c_fun = stateVariables["/c"].stateValues.fs[0];
+        c_fun = stateVariables[resolveComponentName("c")].stateValues.fs[0];
         for (let x = -5; x <= 5; x += 2) {
             expect(c_fun(x)).closeTo(f(x, a), 1e-12);
         }
     });
 
     it("a function manually flipped", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" flipFunction>
@@ -159,11 +197,17 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_function({ core, f: (x) => x ** 3 - x, flipFunction: true });
+        await test_function({
+            core,
+            resolveComponentName,
+            f: (x) => x ** 3 - x,
+            flipFunction: true,
+        });
     });
 
     async function test_constrain_to_function(
         core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
         f: (arg: number) => number,
     ) {
         async function check_items(x: number) {
@@ -171,8 +215,12 @@ describe("Function curve tag tests", async () => {
                 false,
                 true,
             );
-            let px = stateVariables["/P"].stateValues.xs[0].tree;
-            let py = stateVariables["/P"].stateValues.xs[1].tree;
+            let px =
+                stateVariables[resolveComponentName("P")].stateValues.xs[0]
+                    .tree;
+            let py =
+                stateVariables[resolveComponentName("P")].stateValues.xs[1]
+                    .tree;
             expect(px).eq(x);
             expect(py).closeTo(f(x), 1e-5);
         }
@@ -181,16 +229,26 @@ describe("Function curve tag tests", async () => {
         await check_items(x);
 
         x = 1.5;
-        await movePoint({ name: "/P", x, y: -1.5, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x,
+            y: -1.5,
+            core,
+        });
         await check_items(x);
 
         x = -0.1;
-        await movePoint({ name: "/P", x, y: -10, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x,
+            y: -10,
+            core,
+        });
         await check_items(x);
     }
 
     it("constrain to function", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -210,11 +268,11 @@ describe("Function curve tag tests", async () => {
         });
 
         let f = (x) => x ** 4 - 5 * x ** 2;
-        await test_constrain_to_function(core, f);
+        await test_constrain_to_function(core, resolveComponentName, f);
     });
 
     it("constrain to function 2", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <text>a</text>
     <graph>
@@ -233,43 +291,63 @@ describe("Function curve tag tests", async () => {
         });
 
         let f = (x) => x ** 4 - 5 * x ** 2;
-        await test_constrain_to_function(core, f);
+        await test_constrain_to_function(core, resolveComponentName, f);
     });
 
     async function test_constrain_to_function_as_curve(
         core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
     ) {
         let f = (x) => x ** 4 - 5 * x ** 2;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let x = stateVariables["/P"].stateValues.xs[0].tree;
-        let y = stateVariables["/P"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).closeTo(5, 0.1);
         expect(x).greaterThan(2);
         expect(y).closeTo(f(x), 1e-5);
 
-        await movePoint({ name: "/P", x: 1.5, y: -1.5, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: 1.5,
+            y: -1.5,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).closeTo(-1.5, 0.1);
         expect(x).greaterThan(1.5);
         expect(y).closeTo(f(x), 1e-5);
 
-        await movePoint({ name: "/P", x: 0.1, y: -10, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: 0.1,
+            y: -10,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
-        let minimum2 = stateVariables["/f"].stateValues.minima[1];
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        let minimum2 =
+            stateVariables[resolveComponentName("f")].stateValues.minima[1];
         expect(x).closeTo(minimum2[0], 0.1);
         expect(y).closeTo(minimum2[1], 0.1);
         expect(y).closeTo(f(x), 1e-5);
 
-        await movePoint({ name: "/P", x: -0.1, y: -10, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: -0.1,
+            y: -10,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
-        let minimum1 = stateVariables["/f"].stateValues.minima[0];
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        let minimum1 =
+            stateVariables[resolveComponentName("f")].stateValues.minima[0];
         expect(x).closeTo(minimum1[0], 0.1);
         expect(y).closeTo(minimum1[1], 0.1);
         expect(y).closeTo(f(x), 1e-5);
@@ -277,10 +355,19 @@ describe("Function curve tag tests", async () => {
         // try a bunch of points at right to make sure stay on right branch
         // which fails with numDiscretizationPoints too low (e.g., at 100)
         for (let v = -5; v <= -1; v += 0.1) {
-            await movePoint({ name: "/P", x: 5, y: v, core });
+            await movePoint({
+                componentIdx: resolveComponentName("P"),
+                x: 5,
+                y: v,
+                core,
+            });
             stateVariables = await core.returnAllStateVariables(false, true);
-            x = stateVariables["/P"].stateValues.xs[0].tree;
-            y = stateVariables["/P"].stateValues.xs[1].tree;
+            x =
+                stateVariables[resolveComponentName("P")].stateValues.xs[0]
+                    .tree;
+            y =
+                stateVariables[resolveComponentName("P")].stateValues.xs[1]
+                    .tree;
             expect(x).greaterThan(1.7);
             expect(y).greaterThan(v);
             expect(y).lessThan(v + 0.5);
@@ -289,7 +376,7 @@ describe("Function curve tag tests", async () => {
     }
 
     it("constrain to function, nearest point as curve", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" nearestPointAsCurve>
@@ -308,11 +395,11 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_constrain_to_function_as_curve(core);
+        await test_constrain_to_function_as_curve(core, resolveComponentName);
     });
 
     it("constrain to function, nearest point as curve 2", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <function name="f" variables="u" nearestPointAsCurve>
@@ -329,11 +416,11 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_constrain_to_function_as_curve(core);
+        await test_constrain_to_function_as_curve(core, resolveComponentName);
     });
 
     it("constrain to function, nearest point as curve 3", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -352,11 +439,11 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_constrain_to_function_as_curve(core);
+        await test_constrain_to_function_as_curve(core, resolveComponentName);
     });
 
     it("constrain to function, different scales from graph", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph yMax="120" yMin="-45" xMin="-1" xMax="5.5">
       <curve name="c">
@@ -375,21 +462,28 @@ describe("Function curve tag tests", async () => {
             (60 * t - 106 * t ** 2 + 59 * t ** 3 - 13 * t ** 4 + t ** 5) * 4;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let x = stateVariables["/A"].stateValues.xs[0].tree;
-        let y = stateVariables["/A"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(x).closeTo(1.5, 1e-10);
         expect(y).closeTo(f(1.5), 1e-10);
 
-        await movePoint({ name: "/A", x: 5, y: -60, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 5,
+            y: -60,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(x).closeTo(5, 1e-10);
         expect(y).closeTo(f(5), 1e-10);
     });
 
     it("constrain to function, different scales from graph 2 ", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph xMax="120" xMin="-45" yMin="-1" yMax="5.5">
       <curve name="c">
@@ -407,42 +501,64 @@ describe("Function curve tag tests", async () => {
         let f = (t) => Math.sin(t / 10) + t / 50 + 2;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let x = stateVariables["/A"].stateValues.xs[0].tree;
-        let y = stateVariables["/A"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(x).closeTo(1.5, 1e-10);
         expect(y).closeTo(f(1.5), 1e-10);
 
-        await movePoint({ name: "/A", x: 90, y: 5, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 90,
+            y: 5,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(x).closeTo(90, 1e-10);
         expect(y).closeTo(f(90), 1e-10);
 
-        await movePoint({ name: "/A", x: 120, y: -5, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 120,
+            y: -5,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(x).closeTo(100, 1e-10);
         expect(y).closeTo(f(100), 1e-10);
 
-        await movePoint({ name: "/A", x: -10, y: 10, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: -10,
+            y: 10,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(x).closeTo(-10, 1e-10);
         expect(y).closeTo(f(-10), 1e-10);
 
-        await movePoint({ name: "/A", x: -50, y: -100, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: -50,
+            y: -100,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(x).closeTo(-20, 1e-10);
         expect(y).closeTo(f(-20), 1e-10);
     });
 
     it("constrain to inverse function", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" flipFunction>
@@ -464,68 +580,113 @@ describe("Function curve tag tests", async () => {
         let f = (y) => y ** 4 - 5 * y ** 2;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.flipFunction).eq(true);
-        let x = stateVariables["/P"].stateValues.xs[0].tree;
-        let y = stateVariables["/P"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.flipFunction,
+        ).eq(true);
+        let x =
+            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).eq(3);
         expect(x).closeTo(f(y), 1e-5);
 
-        await movePoint({ name: "/P", y: 1.5, x: -1.5, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            y: 1.5,
+            x: -1.5,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).eq(1.5);
         expect(x).closeTo(f(y), 1e-5);
 
-        await movePoint({ name: "/P", y: 0.1, x: -10, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            y: 0.1,
+            x: -10,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).eq(0.1);
         expect(x).closeTo(f(y), 1e-5);
 
-        await movePoint({ name: "/P", y: -0.1, x: -10, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            y: -0.1,
+            x: -10,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).eq(-0.1);
         expect(x).closeTo(f(y), 1e-5);
     });
 
-    async function test_constrain_inverse_as_curve(core: PublicDoenetMLCore) {
+    async function test_constrain_inverse_as_curve(
+        core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
+    ) {
         let f = (y) => y ** 4 - 5 * y ** 2;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.flipFunction).eq(true);
-        let x = stateVariables["/P"].stateValues.xs[0].tree;
-        let y = stateVariables["/P"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.flipFunction,
+        ).eq(true);
+        let x =
+            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(x).closeTo(5, 0.1);
         expect(y).greaterThan(2);
         expect(x).closeTo(f(y), 1e-5);
 
-        await movePoint({ name: "/P", x: -1.5, y: 1.5, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: -1.5,
+            y: 1.5,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(x).closeTo(-1.5, 0.1);
         expect(y).greaterThan(1.5);
         expect(x).closeTo(f(y), 1e-5);
 
-        await movePoint({ name: "/P", x: -10, y: 0.1, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: -10,
+            y: 0.1,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
-        let minimum2 = stateVariables["/_function1"].stateValues.minima[1];
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        let minimum2 =
+            stateVariables[resolveComponentName("_function1")].stateValues
+                .minima[1];
 
         expect(y).closeTo(minimum2[0], 0.1);
         expect(x).closeTo(minimum2[1], 0.1);
         expect(x).closeTo(f(y), 1e-5);
 
-        await movePoint({ name: "/P", x: -10, y: -0.1, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: -10,
+            y: -0.1,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
-        let minimum1 = stateVariables["/_function1"].stateValues.minima[0];
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        let minimum1 =
+            stateVariables[resolveComponentName("_function1")].stateValues
+                .minima[0];
 
         expect(y).closeTo(minimum1[0], 0.1);
         expect(x).closeTo(minimum1[1], 0.1);
@@ -534,10 +695,19 @@ describe("Function curve tag tests", async () => {
         // try a bunch of points at top to make sure stay on top branch
         // which fails with numDiscretizationPoints too low (e.g., at 100)
         for (let v = -5; v <= -1; v += 0.1) {
-            await movePoint({ name: "/P", x: v, y: 5, core });
+            await movePoint({
+                componentIdx: resolveComponentName("P"),
+                x: v,
+                y: 5,
+                core,
+            });
             stateVariables = await core.returnAllStateVariables(false, true);
-            x = stateVariables["/P"].stateValues.xs[0].tree;
-            y = stateVariables["/P"].stateValues.xs[1].tree;
+            x =
+                stateVariables[resolveComponentName("P")].stateValues.xs[0]
+                    .tree;
+            y =
+                stateVariables[resolveComponentName("P")].stateValues.xs[1]
+                    .tree;
             expect(y).greaterThan(1.7);
             expect(x).greaterThan(v);
             expect(x).lessThan(v + 0.5);
@@ -545,7 +715,7 @@ describe("Function curve tag tests", async () => {
         }
     }
     it("constrain to inverse function, nearest point as curve", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" flipFunction nearestPointAsCurve>
@@ -564,11 +734,11 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_constrain_inverse_as_curve(core);
+        await test_constrain_inverse_as_curve(core, resolveComponentName);
     });
 
     it("constrain to inverse function, nearest point as curve 2", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" flipFunction>
@@ -579,7 +749,7 @@ describe("Function curve tag tests", async () => {
     
     <point name="P" x='5' y='3'>
     <constraints>
-      <constrainTo>$c{nearestPointAsCurve}</constrainTo>
+      <constrainTo><curve extend="$c" nearestPointAsCurve /></constrainTo>
     </constraints>
     </point>
     
@@ -587,11 +757,11 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        await test_constrain_inverse_as_curve(core);
+        await test_constrain_inverse_as_curve(core, resolveComponentName);
     });
 
     it("constrain to inverse function, different scales from graph", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph xMax="120" xMin="-45" yMin="-1" yMax="5.5">
       <curve name="c" flipFunction>
@@ -610,21 +780,28 @@ describe("Function curve tag tests", async () => {
             (60 * t - 106 * t ** 2 + 59 * t ** 3 - 13 * t ** 4 + t ** 5) * 4;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let x = stateVariables["/A"].stateValues.xs[0].tree;
-        let y = stateVariables["/A"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(y).closeTo(1.5, 1e-10);
         expect(x).closeTo(f(1.5), 1e-10);
 
-        await movePoint({ name: "/A", x: -60, y: 5, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: -60,
+            y: 5,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(y).closeTo(5, 1e-10);
         expect(x).closeTo(f(5), 1e-10);
     });
 
     it("constrain to inverse function, different scales from graph 2 ", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph yMax="120" yMin="-45" xMin="-1" xMax="5.5">
       <curve name="c" flipFunction>
@@ -642,42 +819,64 @@ describe("Function curve tag tests", async () => {
         let f = (t) => Math.sin(t / 10) + t / 50 + 2;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let x = stateVariables["/A"].stateValues.xs[0].tree;
-        let y = stateVariables["/A"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(y).closeTo(1.5, 1e-10);
         expect(x).closeTo(f(1.5), 1e-10);
 
-        await movePoint({ name: "/A", x: 5, y: 90, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 5,
+            y: 90,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(y).closeTo(90, 1e-10);
         expect(x).closeTo(f(90), 1e-10);
 
-        await movePoint({ name: "/A", x: -5, y: 120, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: -5,
+            y: 120,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(y).closeTo(100, 1e-10);
         expect(x).closeTo(f(100), 1e-10);
 
-        await movePoint({ name: "/A", x: 10, y: -10, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 10,
+            y: -10,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(y).closeTo(-10, 1e-10);
         expect(x).closeTo(f(-10), 1e-10);
 
-        await movePoint({ name: "/A", x: -100, y: -50, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: -100,
+            y: -50,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/A"].stateValues.xs[0].tree;
-        y = stateVariables["/A"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
         expect(y).closeTo(-20, 1e-10);
         expect(x).closeTo(f(-20), 1e-10);
     });
 
     it("function with label as math", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -691,11 +890,17 @@ describe("Function curve tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.curveType).eq("function");
-        expect(stateVariables["/c"].stateValues.flipFunction).eq(false);
-        expect(stateVariables["/c"].stateValues.label).eq("hello \\(x^3-x\\)");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.curveType,
+        ).eq("function");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.flipFunction,
+        ).eq(false);
+        expect(stateVariables[resolveComponentName("c")].stateValues.label).eq(
+            "hello \\(x^3-x\\)",
+        );
 
-        let f = stateVariables["/c"].stateValues.fs[0];
+        let f = stateVariables[resolveComponentName("c")].stateValues.fs[0];
         expect(f(-2)).eq(-8 + 2);
         expect(f(3)).eq(27 - 3);
     });

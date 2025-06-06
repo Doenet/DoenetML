@@ -619,6 +619,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         component,
         componentInfoObjects,
         startNum = 0,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -638,18 +639,25 @@ export default class SampleRandomNumbers extends CompositeComponent {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite =
-                    convertUnresolvedAttributesForComponentType({
-                        attributes: attributesToConvert,
-                        componentType: "number",
-                        componentInfoObjects,
-                    });
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "number",
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
             }
 
             replacements.push({
+                type: "serialized",
                 componentType: "number",
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
                 state: { value },
+                doenetAttributes: {},
+                children: [],
             });
         }
 
@@ -657,12 +665,14 @@ export default class SampleRandomNumbers extends CompositeComponent {
             replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static async calculateReplacementChanges({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -699,9 +709,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     component,
                     componentInfoObjects,
                     startNum: component.replacements.length,
+                    nComponents,
                 });
                 errors.push(...result.errors);
                 warnings.push(...result.warnings);
+                nComponents = result.nComponents;
 
                 let replacementInstruction = {
                     changeType: "add",
@@ -729,7 +741,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
         }
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 
     static setUpVariant({

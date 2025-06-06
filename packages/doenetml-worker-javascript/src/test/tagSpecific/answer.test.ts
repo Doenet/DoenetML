@@ -2385,14 +2385,11 @@ Enter enter number larger than 5 or less than 2:
         });
     });
 
-    it("answer inside map", async () => {
+    it("answer inside repeat", async () => {
         const doenetML = `
-    <map assignNames="a b c">
-      <template newNamespace>
+    <repeat name="r" for="1 2 3" itemName="n">
         <p>Enter <m>x^$n</m>: <answer name="answer1"><award><math>x^$n</math></award></answer></p>
-      </template>
-      <sources alias="n"><sequence from="1" to="3" /></sources>
-    </map>
+    </repeat>
   `;
 
         await test_math_answer({
@@ -2401,7 +2398,7 @@ Enter enter number larger than 5 or less than 2:
                 { latex: "x", credit: 1 },
                 { latex: "u", credit: 0 },
             ],
-            answerName: "a.answer1",
+            answerName: "r[1].answer1",
         });
 
         await test_math_answer({
@@ -2410,7 +2407,7 @@ Enter enter number larger than 5 or less than 2:
                 { latex: "x^2", credit: 1 },
                 { latex: "v", credit: 0 },
             ],
-            answerName: "b.answer1",
+            answerName: "r[2].answer1",
         });
 
         await test_math_answer({
@@ -2419,7 +2416,7 @@ Enter enter number larger than 5 or less than 2:
                 { latex: "x^3", credit: 1 },
                 { latex: "w", credit: 0 },
             ],
-            answerName: "c.answer1",
+            answerName: "r[3].answer1",
         });
     });
 
@@ -2656,14 +2653,10 @@ The animal is a <answer name="answer1">
 
     <answer name="answer1">
     <choiceInput shuffleOrder>
-      <map>
-        <template>
+      <setup><sequence name="s" from="0" to="$num-1" /></setup>
+      <repeat for="$s" itemName="m">
           <choice credit="$m/($num-1)">Get <number displayDigits="3">$m/($num-1)</number></choice>
-        </template>
-        <sources alias="m">
-          <sequence from="0" to="$num-1" />
-        </sources>
-      </map>
+      </repeat>
     </choiceInput>
     </answer>
   `;
@@ -3160,7 +3153,7 @@ Enter any letter:
                 doenetML: `
         <variantControl numVariants="4" variantNames="cat dog mouse fish"/>
   
-        <select assignNames="(animal)" hide>
+        <select name="animal" hide>
           <option selectForVariants="cat">
             <text>cat</text>
           </option>
@@ -3241,27 +3234,27 @@ Enter any letter:
                 doenetML: `
         <variantControl numVariants="4" variantNames="cat dog mouse fish"/>
   
-        <select assignNames="(animal sound)" hide>
+        <select name="s" hide>
           <option selectForVariants="cat">
-            <text>cat</text><text>meow</text>
+            <text name="animal">cat</text><text name="sound">meow</text>
           </option>
           <option selectForVariants="dog">
-            <text>dog</text><text>woof</text>
+            <text name="animal">dog</text><text name="sound">woof</text>
           </option>
           <option selectForVariants="mouse">
-            <text>mouse</text><text>squeak</text>
+            <text name="animal">mouse</text><text name="sound">squeak</text>
           </option>
           <option selectForVariants="fish">
-            <text>fish</text><text>blub</text>
+            <text name="animal">fish</text><text name="sound">blub</text>
           </option>
         </select>
         
-        <p>What does the $animal say?
+        <p>What does the $s.animal say?
           <answer name="ans" type="text">
-            <award credit="$animal=cat" ><text>meow</text></award>
-            <award credit="$animal=dog" ><text>woof</text></award>
-            <award credit="$animal=mouse" ><text>squeak</text></award>
-            <award credit="$animal=fish" ><text>blub</text></award>
+            <award credit="$s.animal=cat" ><text>meow</text></award>
+            <award credit="$s.animal=dog" ><text>woof</text></award>
+            <award credit="$s.animal=mouse" ><text>squeak</text></award>
+            <award credit="$s.animal=fish" ><text>blub</text></award>
           </answer>
         </p>
         `,
@@ -4005,7 +3998,7 @@ Enter any letter:
     it("justSubmitted with expression containing NaN", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <answer name="a"><mathinput name="mi" /><award><math><number>0/0</number>+1</math></award></answer>
+  <answer name="a"><mathInput name="mi" /><award><math><number>0/0</number>+1</math></award></answer>
    `,
         });
 
@@ -4036,7 +4029,7 @@ Enter any letter:
     <mathInput name="mi" />
     <award>1</award>
   </answer>
-  <conditionalContent condition="$ans.justSubmitted" assignNames="just" name="cond"><p>The answer was just submitted.</p></conditionalContent>
+  <conditionalContent condition="$ans.justSubmitted" name="cond"><p>The answer was just submitted.</p></conditionalContent>
    `,
         });
 
@@ -4059,14 +4052,17 @@ Enter any letter:
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[resolveComponentName("cond")].replacements).eqls([
-            { componentIdx: resolveComponentName("just"), componentType: "p" },
+            {
+                componentIdx: resolveComponentName("cond[1]"),
+                componentType: "group",
+            },
         ]);
         expect(
             stateVariables[resolveComponentName("cond")].replacementsToWithhold,
         ).eq(0);
 
         expect(
-            stateVariables[resolveComponentName("just")].stateValues.text,
+            stateVariables[resolveComponentName("cond[1][1]")].stateValues.text,
         ).eq("The answer was just submitted.");
         expect(
             stateVariables[resolveComponentName("ans")].stateValues
@@ -4083,9 +4079,13 @@ Enter any letter:
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[resolveComponentName("cond")].replacements!.length,
+        ).eq(0);
         expect(
             stateVariables[resolveComponentName("cond")].replacementsToWithhold,
-        ).eq(1);
+        ).eq(0);
         expect(
             stateVariables[resolveComponentName("ans")].stateValues
                 .justSubmitted,
@@ -4104,10 +4104,13 @@ Enter any letter:
             stateVariables[resolveComponentName("cond")].replacementsToWithhold,
         ).eq(0);
         expect(stateVariables[resolveComponentName("cond")].replacements).eqls([
-            { componentIdx: resolveComponentName("just"), componentType: "p" },
+            {
+                componentIdx: resolveComponentName("cond[1]"),
+                componentType: "group",
+            },
         ]);
         expect(
-            stateVariables[resolveComponentName("just")].stateValues.text,
+            stateVariables[resolveComponentName("cond[1][1]")].stateValues.text,
         ).eq("The answer was just submitted.");
         expect(
             stateVariables[resolveComponentName("ans")].stateValues
@@ -4130,8 +4133,11 @@ Enter any letter:
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
+            stateVariables[resolveComponentName("cond")].replacements!.length,
+        ).eq(0);
+        expect(
             stateVariables[resolveComponentName("cond")].replacementsToWithhold,
-        ).eq(1);
+        ).eq(0);
         expect(
             stateVariables[resolveComponentName("ans")].stateValues
                 .justSubmitted,
@@ -6153,7 +6159,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         let indexByName = {};
         for (let [ind, val] of stateVariables[
-            "/ci"
+            resolveComponentName("ci")
         ].stateValues.choiceTexts.entries()) {
             indexByName[val] = ind + 1;
         }

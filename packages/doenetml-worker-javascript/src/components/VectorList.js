@@ -534,7 +534,7 @@ export default class VectorListComponent extends CompositeComponent {
             if (Object.keys(attributesToConvert).length > 0) {
                 const res = convertUnresolvedAttributesForComponentType({
                     attributes: attributesToConvert,
-                    componentType: "text",
+                    componentType: "vector",
                     componentInfoObjects,
                     nComponents,
                 });

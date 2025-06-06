@@ -34,12 +34,6 @@ export default class Copy extends CompositeComponent {
         delete attributes.isResponse;
         delete attributes.hide;
 
-        attributes.obtainPropFromComposite = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "obtainPropFromComposite",
-            defaultValue: false,
-            public: true,
-        };
         attributes.createComponentOfType = {
             createPrimitiveOfType: "string",
         };
@@ -310,7 +304,6 @@ export default class Copy extends CompositeComponent {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
                 "unresolvedPath",
-                "obtainPropFromComposite",
                 "createComponentOfType",
             ],
             additionalStateVariablesDefined: ["usedReplacements"],
@@ -336,19 +329,26 @@ export default class Copy extends CompositeComponent {
                                 stateValues.extendedComponent.componentType,
                             includeNonStandard: true,
                         }) &&
-                            (!stateValues.unresolvedPath ||
-                                !stateValues.obtainPropFromComposite) &&
                             stateValues.extendedComponent.componentType !==
                                 stateValues.createComponentOfType)
                     ) {
-                        // If the target is a copy or extract (no matter what),
-                        // then we'll use replacements),
-                        // which means we cannot obtainPropFromComposite for a copy.
-                        // For any other composite, we'll use replacements)
-                        // only if we're are getting a prop that is not from the composite
-                        // and we're not extending the component (where createComponentOfType == componentType)
+                        // If the target is a copy (no matter what),
+                        // then we'll use replacements.
+                        // For any other composite, we'll use replacements
+                        // only if we're not extending the component (where createComponentOfType == componentType)
 
                         useReplacements = true;
+
+                        // If the first part of the unresolved path has a prop name,
+                        // and a composite has a public state variable that matches the prop,
+                        // then we will stop and return the composite rather than its replacements
+                        // so that we can get the prop from the composite.
+                        let firstPropNameFromPath =
+                            stateValues.unresolvedPath?.[0]?.name;
+
+                        if (firstPropNameFromPath === "") {
+                            firstPropNameFromPath = null;
+                        }
 
                         // Note: it is possible that we have more than one target
                         // for the case where we have a prop and a composite target
@@ -360,6 +360,7 @@ export default class Copy extends CompositeComponent {
                             recurseNonStandardComposites:
                                 stateValues.unresolvedPath != null,
                             includeWithheldReplacements: true,
+                            stopIfHaveProp: firstPropNameFromPath,
                         };
                     }
 
@@ -883,7 +884,6 @@ export default class Copy extends CompositeComponent {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
                 "unresolvedPath",
-                "obtainPropFromComposite",
                 "link",
             ],
             returnDependencies({ stateValues, componentInfoObjects }) {
@@ -921,17 +921,15 @@ export default class Copy extends CompositeComponent {
                         variableName: "unlinkedDescendants",
                     },
                 };
+                // XXX: how do we deal here if we ended up grabbing a prop from a composite.
+                // Same question for `needsReplacementsUpdatedWhenStale`
                 if (
                     stateValues.extendedComponent &&
                     componentInfoObjects.isCompositeComponent({
                         componentType:
                             stateValues.extendedComponent.componentType,
                         includeNonStandard: false,
-                    }) &&
-                    !(
-                        stateValues.unresolvedPath &&
-                        stateValues.obtainPropFromComposite
-                    )
+                    })
                 ) {
                     dependencies.targetReadyToExpandWhenResolved = {
                         dependencyType: "stateVariable",
@@ -963,7 +961,6 @@ export default class Copy extends CompositeComponent {
                 "replacementSourceIdentities",
                 "effectivePropNameBySource",
                 "unresolvedPath",
-                "obtainPropFromComposite",
                 "link",
                 "removeEmptyArrayEntries",
             ],
@@ -1031,13 +1028,10 @@ export default class Copy extends CompositeComponent {
                         componentType:
                             stateValues.extendedComponent.componentType,
                         includeNonStandard: false,
-                    }) &&
-                    !(
-                        stateValues.unresolvedPath &&
-                        stateValues.obtainPropFromComposite
-                    )
+                    })
                 ) {
                     // XXX: how do we deal with this now?
+                    // Also because removed `obtainPropFromComposite` so that where we stop with replacements is inferred
 
                     // Include identities of all replacements (and inactive target variable)
                     // without filtering by sourceIndex,
@@ -2321,7 +2315,8 @@ export default class Copy extends CompositeComponent {
                     }
 
                     if (foundDifference) {
-                        // XXX: what to do with nComponents here?
+                        // TODO: we could be more conservative and calculate the maximum componentIdx in the new replacements we used
+                        nComponents = nComponentsForNew;
                         let replacementInstruction = {
                             changeType: "add",
                             changeTopLevelReplacements: true,

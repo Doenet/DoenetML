@@ -445,6 +445,7 @@ export default class Circle extends Curve {
             },
             isArray: true,
             numDimensions: 2,
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["throughPointX", "throughPoint"],
             returnEntryDimensions: (prefix) =>
                 prefix === "throughPoint" ? 1 : 0,
@@ -2447,6 +2448,7 @@ export default class Circle extends Curve {
             },
             isArray: true,
             entryPrefixes: ["centerX"],
+            indexAliases: [["x", "y", "z"]],
             stateVariablesDeterminingDependencies: [
                 "numThroughPoints",
                 "havePrescribedCenter",

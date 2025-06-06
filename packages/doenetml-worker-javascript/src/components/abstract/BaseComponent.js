@@ -123,7 +123,7 @@ export default class BaseComponent {
     }
 
     get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = [];
+        let allPotentialRendererTypes = ["_error"];
         if (this.rendererType) {
             allPotentialRendererTypes.push(this.rendererType);
         }

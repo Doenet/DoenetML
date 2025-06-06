@@ -531,7 +531,7 @@ export default class PointList extends CompositeComponent {
             if (Object.keys(attributesToConvert).length > 0) {
                 const res = convertUnresolvedAttributesForComponentType({
                     attributes: attributesToConvert,
-                    componentType: "text",
+                    componentType: "point",
                     componentInfoObjects,
                     nComponents,
                 });

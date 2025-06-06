@@ -15,7 +15,9 @@ import { addSource, unwrapSource } from "./dast/convertNormalizedDast";
 
 /**
  * Recurse through all serialized components and update their component indices
- * to new values, starting with `nComponents`
+ * to new values, starting with `nComponents`.
+ *
+ * If `idxMapOverride` is supplied, then use that map to create any matching indices rather than creating new indices.
  *
  * Returns:
  * - `components`: the components with new indices
@@ -24,10 +26,12 @@ import { addSource, unwrapSource } from "./dast/convertNormalizedDast";
 export function createNewComponentIndices(
     serializedComponents: (SerializedComponent | string)[],
     nComponents: number,
+    idxMapOverride?: Record<number, number>,
 ) {
     const result = createNewComponentIndicesSub(
         serializedComponents,
         nComponents,
+        idxMapOverride,
     );
 
     const newComponents = result.components;
@@ -43,6 +47,7 @@ export function createNewComponentIndices(
 function createNewComponentIndicesSub(
     serializedComponents: (SerializedComponent | string)[],
     nComponents: number,
+    idxMapOverride?: Record<number, number>,
 ) {
     const newComponents: (SerializedComponent | string)[] = [];
     const idxMap: Record<number, number> = {};
@@ -56,12 +61,14 @@ function createNewComponentIndicesSub(
         const newComponent: SerializedComponent = { ...component };
 
         newComponent.originalIdx = component.componentIdx;
-        newComponent.componentIdx = nComponents++;
+        const override = idxMapOverride?.[newComponent.originalIdx];
+        newComponent.componentIdx = override ?? nComponents++;
         idxMap[newComponent.originalIdx] = newComponent.componentIdx;
 
         const childResult = createNewComponentIndicesSub(
             component.children,
             nComponents,
+            idxMapOverride,
         );
         newComponent.children = childResult.components;
         Object.assign(idxMap, childResult.idxMap);
@@ -71,6 +78,8 @@ function createNewComponentIndicesSub(
             component.attributes,
             nComponents,
             idxMap,
+            undefined,
+            idxMapOverride,
         );
         newComponent.attributes = attrResult.attributes;
         nComponents = attrResult.nComponents;
@@ -80,6 +89,7 @@ function createNewComponentIndicesSub(
                 newComponent.extending,
                 nComponents,
                 idxMap,
+                idxMapOverride,
             );
 
             newComponent.extending = extendResult.extending;
@@ -96,6 +106,7 @@ function newComponentIndicesForExtending(
     extending: Source<SerializedRefResolution>,
     nComponents: number,
     idxMap: Record<number, number>,
+    idxMapOverride?: Record<number, number>,
 ) {
     let newExtending: Source<SerializedRefResolution> = extending;
 
@@ -113,6 +124,7 @@ function newComponentIndicesForExtending(
                 const indexResult = createNewComponentIndicesSub(
                     newIndexPart.value,
                     nComponents,
+                    idxMapOverride,
                 );
                 newIndexPart.value = indexResult.components;
                 Object.assign(idxMap, indexResult.idxMap);
@@ -136,6 +148,7 @@ function newComponentIndicesForAttributes(
     nComponents: number,
     idxMap: Record<number, number>,
     setCreateComponentIdx?: number,
+    idxMapOverride?: Record<number, number>,
 ) {
     const newAttributes: Record<string, SerializedAttribute> = {};
 
@@ -147,6 +160,7 @@ function newComponentIndicesForAttributes(
             const attrResult = createNewComponentIndicesSub(
                 [attribute.component],
                 nComponents,
+                idxMapOverride,
             );
             attribute.component = attrResult
                 .components[0] as SerializedComponent;
@@ -156,6 +170,7 @@ function newComponentIndicesForAttributes(
             const attrResult = createNewComponentIndicesSub(
                 attribute.references,
                 nComponents,
+                idxMapOverride,
             );
             attribute.references =
                 attrResult.components as SerializedComponent[];
@@ -175,7 +190,9 @@ function newComponentIndicesForAttributes(
                 attribute.primitive.type === "number"
             ) {
                 const originalIdx = attribute.primitive.value;
-                const newIdx = setCreateComponentIdx ?? nComponents++;
+                const override = idxMapOverride?.[originalIdx];
+                const newIdx =
+                    setCreateComponentIdx ?? override ?? nComponents++;
                 attribute.primitive = { type: "number", value: newIdx };
                 idxMap[originalIdx] = newIdx;
             }
@@ -448,7 +465,7 @@ export function createComponentIndicesFromSerializedChildren(
     const remapResult = remapRefResolutions(newComponents, idxMap, nComponents);
     nComponents = remapResult.nComponents;
 
-    return { components: newComponents, nComponents };
+    return { components: newComponents, nComponents, idxMap };
 }
 
 function createComponentIndicesFromSerializedChildrenSub(

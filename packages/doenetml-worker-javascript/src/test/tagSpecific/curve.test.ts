@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import {
     moveControlVector,
     movePoint,
@@ -17,61 +17,84 @@ vi.mock("hyperformula");
 describe("Curve tag tests", async () => {
     async function test_curve_through_4_points({
         core,
+        resolveComponentName,
         hasLabel = false,
         hasPoints = false,
         splineForm = "centripetal",
         splineTension = 0.8,
     }: {
         core: PublicDoenetMLCore;
+        resolveComponentName: ResolveComponentName;
         hasLabel?: boolean;
         hasPoints?: boolean;
         splineForm?: "centripetal" | "uniform";
         splineTension?: number;
     }) {
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.curveType).eq("bezier");
-        expect(stateVariables["/c"].stateValues.numThroughPoints).eq(4);
-        expect(stateVariables["/c"].stateValues.splineForm).eq(splineForm);
-        expect(stateVariables["/c"].stateValues.splineTension).eq(
-            splineTension,
-        );
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.curveType,
+        ).eq("bezier");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues
+                .numThroughPoints,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq(splineForm);
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(splineTension);
         if (hasLabel) {
-            expect(stateVariables["/c"].stateValues.label).eq(
-                "Hi \\((-1,2), (2, -2 ), (2( -2 ), -4), (5,6)\\)",
-            );
+            expect(
+                stateVariables[resolveComponentName("c")].stateValues.label,
+            ).eq("Hi \\((-1,2), (2, -2 ), (2( -2 ), -4), (5,6)\\)");
         }
-        let f1 = stateVariables["/c"].stateValues.fs[0];
-        let f2 = stateVariables["/c"].stateValues.fs[1];
+        let f1 = stateVariables[resolveComponentName("c")].stateValues.fs[0];
+        let f2 = stateVariables[resolveComponentName("c")].stateValues.fs[1];
         expect(f1(1)).eq(2);
         expect(f2(1)).eq(-2);
         expect(f1(2)).eq(-4);
         expect(f2(2)).eq(-4);
 
-        await updateMathInputValue({ latex: "4", name: "/mi", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("mi"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.curveType).eq("bezier");
-        expect(stateVariables["/c"].stateValues.numThroughPoints).eq(4);
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.curveType,
+        ).eq("bezier");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues
+                .numThroughPoints,
+        ).eq(4);
         if (hasLabel) {
-            expect(stateVariables["/c"].stateValues.label).eq(
-                "Hi \\((-1,2), (2, 4 ), (2( 4 ), -4), (5,6)\\)",
-            );
+            expect(
+                stateVariables[resolveComponentName("c")].stateValues.label,
+            ).eq("Hi \\((-1,2), (2, 4 ), (2( 4 ), -4), (5,6)\\)");
         }
-        f1 = stateVariables["/c"].stateValues.fs[0];
-        f2 = stateVariables["/c"].stateValues.fs[1];
+        f1 = stateVariables[resolveComponentName("c")].stateValues.fs[0];
+        f2 = stateVariables[resolveComponentName("c")].stateValues.fs[1];
         expect(f1(1)).eq(2);
         expect(f2(1)).eq(4);
         expect(f1(2)).eq(8);
         expect(f2(2)).eq(-4);
 
         if (hasPoints) {
-            await movePoint({ name: "/P2", x: 5, y: 7, core });
+            await movePoint({
+                componentIdx: resolveComponentName("P2"),
+                x: 5,
+                y: 7,
+                core,
+            });
             let stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            f1 = stateVariables["/c"].stateValues.fs[0];
-            f2 = stateVariables["/c"].stateValues.fs[1];
+            f1 = stateVariables[resolveComponentName("c")].stateValues.fs[0];
+            f2 = stateVariables[resolveComponentName("c")].stateValues.fs[1];
             expect(f1(1)).eq(5);
             expect(f2(1)).eq(7);
             expect(f1(2)).eq(14);
@@ -80,7 +103,7 @@ describe("Curve tag tests", async () => {
     }
 
     it("spline through four points, as string with copy", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="-2"/>
     <graph>
@@ -89,11 +112,11 @@ describe("Curve tag tests", async () => {
     `,
         });
 
-        await test_curve_through_4_points({ core });
+        await test_curve_through_4_points({ core, resolveComponentName });
     });
 
     it("spline through four points, as string with copy, label with math", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="-2"/>
     <graph>
@@ -104,11 +127,15 @@ describe("Curve tag tests", async () => {
     `,
         });
 
-        await test_curve_through_4_points({ core, hasLabel: true });
+        await test_curve_through_4_points({
+            core,
+            resolveComponentName,
+            hasLabel: true,
+        });
     });
 
     it("spline through four points, as copied points", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="-2"/>
     <graph>
@@ -121,11 +148,15 @@ describe("Curve tag tests", async () => {
     `,
         });
 
-        await test_curve_through_4_points({ core, hasPoints: true });
+        await test_curve_through_4_points({
+            core,
+            resolveComponentName,
+            hasPoints: true,
+        });
     });
 
     it("spline through four points, as copied points, different spline parameters", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="-2"/>
     <graph>
@@ -140,6 +171,7 @@ describe("Curve tag tests", async () => {
 
         await test_curve_through_4_points({
             core,
+            resolveComponentName,
             hasPoints: true,
             splineForm: "uniform",
             splineTension: 0.4,
@@ -147,7 +179,7 @@ describe("Curve tag tests", async () => {
     });
 
     it("constrain to spline", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <textInput name="form" />
     <mathInput name="tension" prefill="0.8"/>
@@ -169,100 +201,204 @@ describe("Curve tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.curveType).eq("bezier");
-        expect(stateVariables["/c"].stateValues.numThroughPoints).eq(4);
-        expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
-        expect(stateVariables["/c"].stateValues.splineTension).eq(0.8);
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.curveType,
+        ).eq("bezier");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues
+                .numThroughPoints,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq("centripetal");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(0.8);
 
-        let x = stateVariables["/P5"].stateValues.xs[0].tree;
-        let y = stateVariables["/P5"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(2.8, 0.1);
         expect(y).closeTo(6.1, 0.1);
 
-        await updateTextInputValue({ text: "uniform", name: "/form", core });
+        await updateTextInputValue({
+            text: "uniform",
+            componentIdx: resolveComponentName("form"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.splineForm).eq("uniform");
-        expect(stateVariables["/c"].stateValues.splineTension).eq(0.8);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq("uniform");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(0.8);
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(3.4, 0.1);
         expect(y).closeTo(8, 0.1);
 
         await updateTextInputValue({
             text: "centripetal",
-            name: "/form",
+            componentIdx: resolveComponentName("form"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
-        expect(stateVariables["/c"].stateValues.splineTension).eq(0.8);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq("centripetal");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(0.8);
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(2.8, 0.1);
         expect(y).closeTo(6.1, 0.1);
 
-        await movePoint({ name: "/P5", x: 10, y: 2, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P5"),
+            x: 10,
+            y: 2,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(5.5, 0.1);
         expect(y).closeTo(0.2, 0.1);
 
-        await updateMathInputValue({ latex: "0.1", name: "/tension", core });
+        await updateMathInputValue({
+            latex: "0.1",
+            componentIdx: resolveComponentName("tension"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
-        expect(stateVariables["/c"].stateValues.splineTension).eq(0.1);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq("centripetal");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(0.1);
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(5.5, 0.1);
         expect(y).closeTo(0.2, 0.1);
 
-        await movePoint({ name: "/P1", x: 9, y: 9, core });
-        await movePoint({ name: "/P2", x: -9, y: 2, core });
-        await movePoint({ name: "/P3", x: 6, y: -8, core });
-        await movePoint({ name: "/P4", x: 9, y: 9, core });
-        await movePoint({ name: "/P5", x: 10, y: -7, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P1"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("P2"),
+            x: -9,
+            y: 2,
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("P3"),
+            x: 6,
+            y: -8,
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("P4"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("P5"),
+            x: 10,
+            y: -7,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
-        expect(stateVariables["/c"].stateValues.splineTension).eq(0.1);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq("centripetal");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(0.1);
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(6.4, 0.1);
         expect(y).closeTo(-6.3, 0.1);
 
-        await updateTextInputValue({ text: "uniform", name: "/form", core });
-        await movePoint({ name: "/P5", x: 10, y: -7, core });
+        await updateTextInputValue({
+            text: "uniform",
+            componentIdx: resolveComponentName("form"),
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("P5"),
+            x: 10,
+            y: -7,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.splineForm).eq("uniform");
-        expect(stateVariables["/c"].stateValues.splineTension).eq(0.1);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq("uniform");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(0.1);
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(6.5, 0.1);
         expect(y).closeTo(-6.3, 0.1);
 
-        await updateMathInputValue({ latex: "1", name: "/tension", core });
-        await movePoint({ name: "/P5", x: 10, y: -7, core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("tension"),
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("P5"),
+            x: 10,
+            y: -7,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.splineForm).eq("uniform");
-        expect(stateVariables["/c"].stateValues.splineTension).eq(1);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq("uniform");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(1);
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(8.6, 0.1);
         expect(y).closeTo(-6.1, 0.1);
 
-        await updateTextInputValue({ text: "", name: "/form", core });
-        await movePoint({ name: "/P5", x: 10, y: -7, core });
+        await updateTextInputValue({
+            text: "",
+            componentIdx: resolveComponentName("form"),
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("P5"),
+            x: 10,
+            y: -7,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
-        expect(stateVariables["/c"].stateValues.splineTension).eq(1);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineForm,
+        ).eq("centripetal");
+        expect(
+            stateVariables[resolveComponentName("c")].stateValues.splineTension,
+        ).eq(1);
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(7.4, 0.1);
         expect(y).closeTo(-6.1, 0.1);
     });
 
     it("extrapolate", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <booleanInput name="backward" />
     <booleanInput name="forward" />
@@ -294,102 +430,114 @@ describe("Curve tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let x = stateVariables["/P5"].stateValues.xs[0].tree;
-        let y = stateVariables["/P5"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(7, 1e-3);
         expect(y).closeTo(-4, 1e-3);
 
-        x = stateVariables["/P6"].stateValues.xs[0].tree;
-        y = stateVariables["/P6"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P6")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P6")].stateValues.xs[1].tree;
         expect(x).closeTo(-7, 1e-3);
         expect(y).closeTo(-4, 1e-3);
 
         // turn on extrapolation
         await updateBooleanInputValue({
             boolean: true,
-            name: "/forward",
+            componentIdx: resolveComponentName("forward"),
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            name: "/backward",
+            componentIdx: resolveComponentName("backward"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(9.1, 0.1);
         expect(y).closeTo(-6.9, 0.1);
-        x = stateVariables["/P6"].stateValues.xs[0].tree;
-        y = stateVariables["/P6"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P6")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P6")].stateValues.xs[1].tree;
         expect(x).closeTo(-9.1, 0.1);
         expect(y).closeTo(-6.9, 0.1);
 
         // activate bezier controls and move tangents
         await core.requestAction({
-            componentIdx: "/c",
+            componentIdx: resolveComponentName("c"),
             actionName: "changeVectorControlDirection",
             args: { throughPointInd: 0, direction: "symmetric" },
         });
         await core.requestAction({
-            componentIdx: "/c",
+            componentIdx: resolveComponentName("c"),
             actionName: "changeVectorControlDirection",
             args: { throughPointInd: 3, direction: "symmetric" },
         });
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [0, 0],
             controlVector: [-1, 2],
             core,
         });
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [3, 1],
             controlVector: [1, 2],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(6.7, 0.1);
         expect(y).closeTo(-4.3, 0.1);
-        x = stateVariables["/P6"].stateValues.xs[0].tree;
-        y = stateVariables["/P6"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P6")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P6")].stateValues.xs[1].tree;
         expect(x).closeTo(-6.7, 0.1);
         expect(y).closeTo(-4.3, 0.1);
 
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [0, 0],
             controlVector: [1, -2],
             core,
         });
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [3, 1],
             controlVector: [-1, -2],
             core,
         });
 
-        await movePoint({ name: "/P5", x: 9, y: -3, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P5"),
+            x: 9,
+            y: -3,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P5"].stateValues.xs[0].tree;
-        y = stateVariables["/P5"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P5")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P5")].stateValues.xs[1].tree;
         expect(x).closeTo(7.2, 0.1);
         expect(y).closeTo(-3, 0.1);
 
-        await movePoint({ name: "/P6", x: -9, y: -3, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P6"),
+            x: -9,
+            y: -3,
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P6"].stateValues.xs[0].tree;
-        y = stateVariables["/P6"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P6")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P6")].stateValues.xs[1].tree;
         expect(x).closeTo(-7.2, 0.1);
         expect(y).closeTo(-3, 0.1);
     });
 
     it("extrapolate always reaches edge of graph", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>xMin = <mathInput name="xMin" prefill="-10" /></p>
     <p>xMax = <mathInput name="xMax" prefill="10" /></p>
@@ -418,232 +566,280 @@ describe("Curve tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let x = stateVariables["/P1"].stateValues.xs[0].tree;
-        let y = stateVariables["/P1"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
         expect(y).closeTo(1, 1e-5);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(-1, 1e-5);
         expect(y).closeTo(-1, 1e-5);
 
         // make tangents even smaller
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [0, 0],
             controlVector: [-0.01, -0.01],
             core,
         });
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [1, 0],
             controlVector: [-0.01, -0.01],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
         expect(y).closeTo(1, 1e-5);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(-1, 1e-5);
         expect(y).closeTo(-1, 1e-5);
 
         // make graph larger
-        await updateMathInputValue({ latex: "-1000", name: "/xMin", core });
-        await updateMathInputValue({ latex: "1000", name: "/xMax", core });
-        await updateMathInputValue({ latex: "-1000", name: "/yMin", core });
-        await updateMathInputValue({ latex: "1000", name: "/yMax", core });
+        await updateMathInputValue({
+            latex: "-1000",
+            componentIdx: resolveComponentName("xMin"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "1000",
+            componentIdx: resolveComponentName("xMax"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "-1000",
+            componentIdx: resolveComponentName("yMin"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "1000",
+            componentIdx: resolveComponentName("yMax"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
         expect(y).closeTo(1, 1e-5);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(-1, 1e-5);
         expect(y).closeTo(-1, 1e-5);
 
         // move points to corners
 
-        await movePoint({ name: "/P1", x: 1001, y: 999, core });
-        await movePoint({ name: "/P2", x: -1001, y: -999, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P1"),
+            x: 1001,
+            y: 999,
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("P2"),
+            x: -1001,
+            y: -999,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 1e-5);
         expect(y).closeTo(1000, 1e-5);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(-1000, 1e-5);
         expect(y).closeTo(-1000, 1e-5);
 
         // upper right tangent slightly upward
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [1, 0],
             controlVector: [-0.01, -0.012],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(10, 10);
         expect(y).closeTo(1000, 10);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(-10, 10);
         expect(y).closeTo(-1000, 10);
 
         // upper right tangent slightly rightward
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [1, 0],
             controlVector: [-0.012, -0.01],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 10);
         expect(y).closeTo(10, 10);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(-1000, 10);
         expect(y).closeTo(-10, 10);
 
         // lower left tangent upward and to left
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [0, 0],
             controlVector: [-0.02, 0.02],
             core,
         });
 
-        await movePoint({ name: "/P2", x: -1000, y: 1000, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P2"),
+            x: -1000,
+            y: 1000,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 10);
         expect(y).closeTo(10, 10);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(-10, 10);
         expect(y).closeTo(1000, 10);
 
         // lower left tangent downward and to right
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [0, 0],
             controlVector: [0.1, -0.1],
             core,
         });
 
-        await movePoint({ name: "/P2", x: 1000, y: -1000, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P2"),
+            x: 1000,
+            y: -1000,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(10, 10);
         expect(y).closeTo(1000, 10);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 10);
         expect(y).closeTo(-10, 10);
 
         // upper right tangent straight right
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [1, 0],
             controlVector: [-0.01, 0],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 1e-5);
         expect(y).closeTo(1, 1e-5);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 10);
         expect(y).closeTo(-10, 10);
 
         // upper right tangent straight up
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [1, 0],
             controlVector: [0, -0.01],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
         expect(y).closeTo(1000, 1e-5);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 10);
         expect(y).closeTo(-10, 10);
 
         // lower left tangent straight left
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [0, 0],
             controlVector: [-0.01, 0],
             core,
         });
-        await movePoint({ name: "/P2", x: -1000, y: -1000, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P2"),
+            x: -1000,
+            y: -1000,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
         expect(y).closeTo(1000, 1e-5);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(-1000, 1e-5);
         expect(y).closeTo(0, 1e-5);
 
         // lower left tangent straight down
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [0, 0],
             controlVector: [0, -0.01],
             core,
         });
 
-        await movePoint({ name: "/P2", x: -1000, y: -1000, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P2"),
+            x: -1000,
+            y: -1000,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P1"].stateValues.xs[0].tree;
-        y = stateVariables["/P1"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
         expect(y).closeTo(1000, 1e-5);
 
-        x = stateVariables["/P2"].stateValues.xs[0].tree;
-        y = stateVariables["/P2"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree;
         expect(x).closeTo(0, 1e-5);
         expect(y).closeTo(-1000, 1e-5);
     });
 
     it("extrapolate modes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <booleanInput name="eb"/>
     <booleanInput name="ef"/>
@@ -655,8 +851,8 @@ describe("Curve tag tests", async () => {
     
     </graph>
     
-    <p>ebm: $c.extrapolateBackwardMode{assignNames="ebm"}</p>
-    <p>efm: $c.extrapolateForwardMode{assignNames="efm"}</p>
+    <p>ebm: <text extend="$c.extrapolateBackwardMode" name="ebm" /></p>
+    <p>efm: <text extend="$c.extrapolateForwardMode" name="efm" /></p>
 
     `,
         });
@@ -666,25 +862,35 @@ describe("Curve tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/c"].stateValues.extrapolateBackwardMode).eq(
-                ebm,
-            );
-            expect(stateVariables["/c"].stateValues.extrapolateForwardMode).eq(
-                efm,
-            );
-            expect(stateVariables["/ebm"].stateValues.value).eq(ebm);
-            expect(stateVariables["/efm"].stateValues.value).eq(efm);
+            expect(
+                stateVariables[resolveComponentName("c")].stateValues
+                    .extrapolateBackwardMode,
+            ).eq(ebm);
+            expect(
+                stateVariables[resolveComponentName("c")].stateValues
+                    .extrapolateForwardMode,
+            ).eq(efm);
+            expect(
+                stateVariables[resolveComponentName("ebm")].stateValues.value,
+            ).eq(ebm);
+            expect(
+                stateVariables[resolveComponentName("efm")].stateValues.value,
+            ).eq(efm);
         }
 
         await check_items("", "");
 
         // extrapolate backward
-        await updateBooleanInputValue({ boolean: true, name: "/eb", core });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: resolveComponentName("eb"),
+            core,
+        });
         await check_items("line", "");
 
         // move first control vector
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [0, 0],
             controlVector: [1, -1],
             core,
@@ -693,7 +899,7 @@ describe("Curve tag tests", async () => {
 
         // move second through point
         await moveThroughPoint({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             throughPointInd: 1,
             throughPoint: [-1, 4],
             core,
@@ -701,12 +907,16 @@ describe("Curve tag tests", async () => {
         await check_items("parabolaVertical", "");
 
         // extrapolate foward
-        await updateBooleanInputValue({ boolean: true, name: "/ef", core });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: resolveComponentName("ef"),
+            core,
+        });
         await check_items("parabolaVertical", "line");
 
         // move last control vector
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [2, 0],
             controlVector: [1, -1],
             core,
@@ -715,7 +925,7 @@ describe("Curve tag tests", async () => {
 
         // move last control vector again
         await moveControlVector({
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             controlVectorInds: [2, 0],
             controlVector: [-1, -1],
             core,
@@ -724,19 +934,17 @@ describe("Curve tag tests", async () => {
     });
 
     it("variable length curve", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of points: <mathInput name="numPoints" /></p>
     <p>Step size: <mathInput name="step" /></p>
     
-    <map hide name="map">
-      <template><point>($x, sin($x))</point></template>
-      <sources alias="x">
-        <sequence from="0" length="$numPoints" step="$step" />
-      </sources>
-    </map>
+    <setup><sequence name="s" from="0" length="$numPoints" step="$step" /></setup>
+    <repeat hide name="repeat" for="$s" itemName="x">
+      <point>($x, sin($x))</point>
+    </repeat>
     <graph>
-    <curve name="c" through="$map" />
+    <curve name="c" through="$repeat" />
     </graph>
     `,
         });
@@ -753,7 +961,7 @@ describe("Curve tag tests", async () => {
                 true,
             );
 
-            const c = stateVariables["/c"].stateValues;
+            const c = stateVariables[resolveComponentName("c")].stateValues;
 
             expect(c.throughPoints.length).eq(numPoints);
             expect(c.controlVectors.length).eq(numPoints);
@@ -778,12 +986,12 @@ describe("Curve tag tests", async () => {
         step = 1;
         await updateMathInputValue({
             latex: `${numPoints}`,
-            name: "/numPoints",
+            componentIdx: resolveComponentName("numPoints"),
             core,
         });
         await updateMathInputValue({
             latex: `${step}`,
-            name: "/step",
+            componentIdx: resolveComponentName("step"),
             core,
         });
         await check_items({ numPoints, step });
@@ -791,7 +999,7 @@ describe("Curve tag tests", async () => {
         numPoints = 20;
         await updateMathInputValue({
             latex: `${numPoints}`,
-            name: "/numPoints",
+            componentIdx: resolveComponentName("numPoints"),
             core,
         });
         await check_items({ numPoints, step });
@@ -799,7 +1007,7 @@ describe("Curve tag tests", async () => {
         step = 0.5;
         await updateMathInputValue({
             latex: `${step}`,
-            name: "/step",
+            componentIdx: resolveComponentName("step"),
             core,
         });
         await check_items({ numPoints, step });
@@ -807,14 +1015,14 @@ describe("Curve tag tests", async () => {
         numPoints = 10;
         await updateMathInputValue({
             latex: `${numPoints}`,
-            name: "/numPoints",
+            componentIdx: resolveComponentName("numPoints"),
             core,
         });
         await check_items({ numPoints, step });
     });
 
     it("new curve from copied vertices, some flipped", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c1" through="(-9,6) (-3,7) (4,0) (8,5)" />
@@ -834,8 +1042,12 @@ describe("Curve tag tests", async () => {
                 false,
                 true,
             );
-            let c1ps = stateVariables["/c1"].stateValues.throughPoints;
-            let c2ps = stateVariables["/c2"].stateValues.throughPoints;
+            let c1ps =
+                stateVariables[resolveComponentName("c1")].stateValues
+                    .throughPoints;
+            let c2ps =
+                stateVariables[resolveComponentName("c2")].stateValues
+                    .throughPoints;
             expect(c1ps.map((v) => v.map((x) => x.tree))).eqls(ps);
             expect(c2ps.map((v) => v.map((x) => x.tree))).eqls(psFlipped);
         }
@@ -860,7 +1072,7 @@ describe("Curve tag tests", async () => {
         for (let [i, p] of newPs.entries()) {
             ps[i] = p;
             await moveThroughPoint({
-                name: "/c1",
+                componentIdx: resolveComponentName("c1"),
                 throughPointInd: i,
                 throughPoint: ps[i],
                 core,
@@ -882,7 +1094,7 @@ describe("Curve tag tests", async () => {
         for (let [i, p] of newPs.entries()) {
             ps[i] = p;
             await moveThroughPoint({
-                name: "/c2",
+                componentIdx: resolveComponentName("c2"),
                 throughPointInd: i,
                 throughPoint: newPsFlipped[i],
                 core,
@@ -892,7 +1104,7 @@ describe("Curve tag tests", async () => {
     });
 
     it("extracting point coordinates of symmetric curve", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <math hide fixed name="fixed3">3</math>
     <math hide fixed name="fixed4">4</math>
@@ -913,19 +1125,31 @@ describe("Curve tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables["/c"].stateValues.throughPoints[0].map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("c")
+                ].stateValues.throughPoints[0].map((v) => v.tree),
             ).eqls([x, y]);
             expect(
-                stateVariables["/c"].stateValues.throughPoints[1].map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("c")
+                ].stateValues.throughPoints[1].map((v) => v.tree),
             ).eqls([y, x]);
-            expect(stateVariables["/x1"].stateValues.xs[0].tree).eq(x);
-            expect(stateVariables["/x2"].stateValues.xs[0].tree).eq(y);
-            expect(stateVariables["/y1"].stateValues.xs[1].tree).eq(y);
-            expect(stateVariables["/y2"].stateValues.xs[1].tree).eq(x);
+            expect(
+                stateVariables[resolveComponentName("x1")].stateValues.xs[0]
+                    .tree,
+            ).eq(x);
+            expect(
+                stateVariables[resolveComponentName("x2")].stateValues.xs[0]
+                    .tree,
+            ).eq(y);
+            expect(
+                stateVariables[resolveComponentName("y1")].stateValues.xs[1]
+                    .tree,
+            ).eq(y);
+            expect(
+                stateVariables[resolveComponentName("y2")].stateValues.xs[1]
+                    .tree,
+            ).eq(x);
         }
 
         let x = 1,
@@ -935,22 +1159,38 @@ describe("Curve tag tests", async () => {
 
         // move x point 1
         x = 3;
-        await movePoint({ name: "/x1", x: x, core });
+        await movePoint({
+            componentIdx: resolveComponentName("x1"),
+            x: x,
+            core,
+        });
         await check_items(x, y);
 
         // move x point 2
         y = 4;
-        await movePoint({ name: "/x2", x: y, core });
+        await movePoint({
+            componentIdx: resolveComponentName("x2"),
+            x: y,
+            core,
+        });
         await check_items(x, y);
 
         // move y point 1
         y = -6;
-        await movePoint({ name: "/y1", y: y, core });
+        await movePoint({
+            componentIdx: resolveComponentName("y1"),
+            y: y,
+            core,
+        });
         await check_items(x, y);
 
         // move y point 2
         x = -8;
-        await movePoint({ name: "/y2", y: x, core });
+        await movePoint({
+            componentIdx: resolveComponentName("y2"),
+            y: x,
+            core,
+        });
         await check_items(x, y);
     });
 
@@ -973,7 +1213,10 @@ describe("Curve tag tests", async () => {
     `;
 
         async function test_items(theme: "dark" | "light") {
-            const core = await createTestCore({ doenetML, theme });
+            const { core, resolveComponentName } = await createTestCore({
+                doenetML,
+                theme,
+            });
 
             const AColor = theme === "dark" ? "yellow" : "brown";
             const BShade = theme === "dark" ? "light" : "dark";
@@ -984,15 +1227,18 @@ describe("Curve tag tests", async () => {
                 true,
             );
 
-            expect(stateVariables["/ADescription"].stateValues.text).eq(
-                `Curve A is thick ${AColor}.`,
-            );
-            expect(stateVariables["/BDescription"].stateValues.text).eq(
-                `B is a ${BShade} red curve.`,
-            );
-            expect(stateVariables["/CDescription"].stateValues.text).eq(
-                `C is a thin ${CColor} curve.`,
-            );
+            expect(
+                stateVariables[resolveComponentName("ADescription")].stateValues
+                    .text,
+            ).eq(`Curve A is thick ${AColor}.`);
+            expect(
+                stateVariables[resolveComponentName("BDescription")].stateValues
+                    .text,
+            ).eq(`B is a ${BShade} red curve.`);
+            expect(
+                stateVariables[resolveComponentName("CDescription")].stateValues
+                    .text,
+            ).eq(`C is a thin ${CColor} curve.`);
         }
 
         await test_items("light");

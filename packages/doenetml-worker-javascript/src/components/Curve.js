@@ -148,10 +148,21 @@ export default class Curve extends GraphicalComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakIntoFunctionsByCommas = function (childrenToBreak) {
-            let childrenToComponentFunction = (x) => ({
-                componentType: "function",
-                children: x,
+        let breakIntoFunctionsByCommas = function (
+            childrenToBreak,
+            nComponents,
+        ) {
+            let childrenToComponentFunction = (x, nComponents) => ({
+                component: {
+                    type: "serialized",
+                    componentType: "function",
+                    componentIdx: nComponents++,
+                    children: x,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                },
+                nComponents,
             });
 
             let breakFunction = returnBreakStringsSugarFunction({
@@ -159,23 +170,33 @@ export default class Curve extends GraphicalComponent {
                 mustStripOffOuterParentheses: true,
             });
 
-            let result = breakFunction({ matchedChildren: childrenToBreak });
+            let result = breakFunction({
+                matchedChildren: childrenToBreak,
+                nComponents,
+            });
 
             let functionChildren = [];
 
             if (result.success) {
                 functionChildren = result.newChildren;
+                nComponents = result.nComponents;
             } else {
                 // if didn't succeed,
                 // then just wrap children with a function
                 functionChildren = [
                     {
+                        type: "serialized",
                         componentType: "function",
+                        componentIdx: nComponents++,
                         children: childrenToBreak,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ];
             }
-            return functionChildren;
+
+            return { newChildren: functionChildren, nComponents };
         };
 
         sugarInstructions.push({
@@ -1231,6 +1252,7 @@ export default class Curve extends GraphicalComponent {
                     }
                 },
             },
+            indexAliases: [[], [], ["x", "y", "z"]],
             entryPrefixes: [
                 "controlVectorX",
                 "controlVector",

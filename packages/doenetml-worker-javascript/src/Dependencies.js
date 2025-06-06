@@ -6685,6 +6685,10 @@ class ReplacementDependency extends Dependency {
             }
         }
 
+        // If we encounter a composite that has a public state variable matching `stopIfHaveProp`
+        // then we won't returns its replacements but instead return the composite itself.
+        this.stopIfHaveProp = this.definition.stopIfHaveProp;
+
         this.includeWithheldReplacements =
             this.definition.includeWithheldReplacements;
 
@@ -6748,6 +6752,27 @@ class ReplacementDependency extends Dependency {
             };
         }
 
+        if (this.stopIfHaveProp) {
+            const checkForPublic =
+                this.dependencyHandler.core.matchPublicStateVariables({
+                    stateVariables: [this.stopIfHaveProp],
+                    componentClass: composite.constructor,
+                })[0];
+
+            if (!checkForPublic.startsWith("__not_public_")) {
+                // We found that the composite has a public state variable matching `stopIfHaveProp`.
+                // Therefore, we treat the composite itself as the "replacement",
+                // and don't even check if the composite is expanded or get its replacements.
+                this.replacementPrimitives.push(null);
+
+                return {
+                    success: true,
+                    downstreamComponentIndices: [composite.componentIdx],
+                    downstreamComponentTypes: [composite.componentType],
+                };
+            }
+        }
+
         if (!composite.isExpanded) {
             for (let varName of this.upstreamVariableNames) {
                 await this.dependencyHandler.addBlocker({
@@ -6808,6 +6833,7 @@ class ReplacementDependency extends Dependency {
                             this.recurseNonStandardComposites,
                         includeWithheldReplacements:
                             this.includeWithheldReplacements,
+                        stopIfHaveProp: this.stopIfHaveProp,
                     },
                 );
 

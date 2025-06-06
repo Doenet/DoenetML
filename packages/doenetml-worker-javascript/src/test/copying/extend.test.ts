@@ -5823,7 +5823,7 @@ describe("Extend tests", async () => {
             "nothing: ",
         );
         expect(stateVariables[resolveComponentName("p13")].stateValues.text).eq(
-            "Prop fixed from group: falsetruefalsefalsefalse",
+            "Prop fixed from group: false",
         );
         expect(stateVariables[resolveComponentName("p14")].stateValues.text).eq(
             "Prop x from group: x4",

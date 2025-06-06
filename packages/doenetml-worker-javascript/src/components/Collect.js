@@ -231,7 +231,6 @@ export default class Collect extends CompositeComponent {
                     useReplacementsForComposites: true,
                     includeNonActiveChildren: true,
                     recurseToMatchedChildren: false,
-                    sourceIndex: stateValues.sourceIndex,
                 };
 
                 return {

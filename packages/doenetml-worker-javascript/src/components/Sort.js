@@ -411,6 +411,7 @@ export default class Sort extends CompositeComponent {
                     nComponents,
                 );
                 nComponents = res.nComponents;
+                replacements.push(res.components[0]);
             }
         }
 

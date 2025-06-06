@@ -224,7 +224,7 @@ export default class Vector extends GraphicalComponent {
                         component: {
                             type: "serialized",
                             componentType: "coords",
-                            componentIdx: nComponents + 1,
+                            componentIdx: nComponents++,
                             children: componentChildren,
                             state: {},
                             attributes: {},
@@ -236,7 +236,7 @@ export default class Vector extends GraphicalComponent {
                     ...nonComponentChildrenBegin,
                     ...nonComponentChildrenEnd,
                 ],
-                nComponents: nComponents + 1,
+                nComponents,
             };
         };
 

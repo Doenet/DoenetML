@@ -36,12 +36,7 @@ export function postProcessCopy({
                 // if dontShadowOriginalIndex, then was copied from a serialized component
                 // so copy cannot shadow anything
 
-                // Note: we don't add shadow dependencies to copies so that the logic from Copy will be used every time,
-                // including the logical of copying in children.
-                if (
-                    addShadowDependencies &&
-                    component.componentType !== "_copy"
-                ) {
+                if (addShadowDependencies) {
                     let downDep = {
                         [component.originalIdx]: [
                             {
