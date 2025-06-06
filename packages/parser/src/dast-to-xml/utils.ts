@@ -101,3 +101,27 @@ export function filterPositionInfo(
     }
     return nodes;
 }
+
+/**
+ * Recursively find all nodes with position info from a DAST tree.
+ */
+export function findNodesWithPositionInfo(
+    nodes: DastNodes | DastRoot | DastNodes[],
+): DastNodes[] {
+    if (typeof nodes !== "object" || nodes === null) {
+        return [];
+    }
+    if (Array.isArray(nodes)) {
+        return nodes.flatMap(findNodesWithPositionInfo);
+    }
+    if (!("type" in nodes)) {
+        return [];
+    }
+    const ret = "position" in nodes ? [nodes] : [];
+    for (const value of Object.values(nodes)) {
+        if (Array.isArray(value)) {
+            ret.push(...findNodesWithPositionInfo(value as DastNodes[]));
+        }
+    }
+    return ret;
+}
