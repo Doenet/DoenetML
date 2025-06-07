@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import { movePoint, movePolygon } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -9,22 +9,23 @@ vi.mock("hyperformula");
 
 async function test_triangle(
     core: PublicDoenetMLCore,
+    resolveComponentName: ResolveComponentName,
     initial_vertices: number[][],
 ) {
     async function check_items(vertices: number[][]) {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables["/triangle"].stateValues.vertices.map((v) =>
-                v.map((x) => x.tree),
-            ),
+            stateVariables[
+                resolveComponentName("triangle")
+            ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
         ).eqls(vertices);
 
         for (let i = 0; i < 3; i++) {
             expect(
-                stateVariables[`/vertex${i + 1}`].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName(`vertex${i + 1}`)
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls(vertices[i]);
         }
     }
@@ -38,7 +39,11 @@ async function test_triangle(
     let moveY = 2;
 
     vertices = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
-    await movePolygon({ name: "/triangle", pointCoords: vertices, core });
+    await movePolygon({
+        componentIdx: resolveComponentName("triangle"),
+        pointCoords: vertices,
+        core,
+    });
     await check_items(vertices);
 
     // move each point
@@ -50,7 +55,7 @@ async function test_triangle(
 
     for (let i = 0; i < 3; i++) {
         await movePoint({
-            name: `/vertex${i + 1}`,
+            componentIdx: resolveComponentName(`vertex${i + 1}`),
             x: vertices[i][0],
             y: vertices[i][1],
             core,
@@ -62,18 +67,18 @@ async function test_triangle(
 
 describe("Triangle tag tests", async () => {
     it("triangle with no children", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle" />
-    $triangle.vertex1{assignNames="vertex1"}
-    $triangle.vertex2{assignNames="vertex2"}
-    $triangle.vertex3{assignNames="vertex3"}
+    <point extend="$triangle.vertex1" name="vertex1" />
+    <point extend="$triangle.vertex2" name="vertex2" />
+    <point extend="$triangle.vertex3" name="vertex3" />
   </graph>
   `,
         });
 
-        await test_triangle(core, [
+        await test_triangle(core, resolveComponentName, [
             [0, 1],
             [1, 0],
             [0, 0],
@@ -81,18 +86,18 @@ describe("Triangle tag tests", async () => {
     });
 
     it("triangle with empty vertices", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle" vertices="" />
-    $triangle.vertex1{assignNames="vertex1"}
-    $triangle.vertex2{assignNames="vertex2"}
-    $triangle.vertex3{assignNames="vertex3"}
+    <point extend="$triangle.vertex1" name="vertex1" />
+    <point extend="$triangle.vertex2" name="vertex2" />
+    <point extend="$triangle.vertex3" name="vertex3" />
   </graph>
   `,
         });
 
-        await test_triangle(core, [
+        await test_triangle(core, resolveComponentName, [
             [0, 1],
             [1, 0],
             [0, 0],
@@ -100,18 +105,18 @@ describe("Triangle tag tests", async () => {
     });
 
     it("triangle with one vertex specified", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle" vertices="(-8,5)" />
-    $triangle.vertex1{assignNames="vertex1"}
-    $triangle.vertex2{assignNames="vertex2"}
-    $triangle.vertex3{assignNames="vertex3"}
+    <point extend="$triangle.vertex1" name="vertex1" />
+    <point extend="$triangle.vertex2" name="vertex2" />
+    <point extend="$triangle.vertex3" name="vertex3" />
   </graph>
   `,
         });
 
-        await test_triangle(core, [
+        await test_triangle(core, resolveComponentName, [
             [-8, 5],
             [1, 0],
             [0, 0],
@@ -119,18 +124,18 @@ describe("Triangle tag tests", async () => {
     });
 
     it("triangle with two vertices specified", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle" vertices="(-8,5) (6,2)" />
-    $triangle.vertex1{assignNames="vertex1"}
-    $triangle.vertex2{assignNames="vertex2"}
-    $triangle.vertex3{assignNames="vertex3"}
+    <point extend="$triangle.vertex1" name="vertex1" />
+    <point extend="$triangle.vertex2" name="vertex2" />
+    <point extend="$triangle.vertex3" name="vertex3" />
   </graph>
   `,
         });
 
-        await test_triangle(core, [
+        await test_triangle(core, resolveComponentName, [
             [-8, 5],
             [6, 2],
             [0, 0],
@@ -138,18 +143,18 @@ describe("Triangle tag tests", async () => {
     });
 
     it("triangle with three vertices specified", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle" vertices="(-8,5) (6,2) (5,-4)" />
-    $triangle.vertex1{assignNames="vertex1"}
-    $triangle.vertex2{assignNames="vertex2"}
-    $triangle.vertex3{assignNames="vertex3"}
+    <point extend="$triangle.vertex1" name="vertex1" />
+    <point extend="$triangle.vertex2" name="vertex2" />
+    <point extend="$triangle.vertex3" name="vertex3" />
   </graph>
   `,
         });
 
-        await test_triangle(core, [
+        await test_triangle(core, resolveComponentName, [
             [-8, 5],
             [6, 2],
             [5, -4],
@@ -157,26 +162,26 @@ describe("Triangle tag tests", async () => {
     });
 
     it("copy triangle and overwrite vertices", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <group newNamespace name="g1" >
+  <group name="g1" >
     <sideBySide widths="25% 25% 25% 25%" >
       <graph width="180" height="180">
         <triangle name="t1" />
       </graph>
       <graph width="180" height="180">
-        <triangle copySource="t1" vertices="(3,-2)" name="t2" />
+        <triangle extend="$t1" vertices="(3,-2)" name="t2" />
       </graph>
       <graph width="180" height="180">
-        <triangle copySource="t1" vertices="(5,2) (6, -1)" name="t3" />
+        <triangle extend="$t1" vertices="(5,2) (6, -1)" name="t3" />
       </graph>
       <graph width="180" height="180">
-        <triangle copySource="t1" vertices="(9,0) (-4, 5) (2, -3)" name="t4" />
+        <triangle extend="$t1" vertices="(9,0) (-4, 5) (2, -3)" name="t4" />
       </graph>
     </sideBySide>
   </group>
   
-  $g1{name="g2"}
+  <group extend="$g1" name="g2" />
 
   `,
         });
@@ -201,47 +206,47 @@ describe("Triangle tag tests", async () => {
             let allVertices3 = [...vertices3, vertices1[2]];
 
             expect(
-                stateVariables["/g1/t1"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("g1.t1")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(vertices1);
             expect(
-                stateVariables["/g2/t1"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("g2.t1")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(vertices1);
 
             expect(
-                stateVariables["/g1/t2"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("g1.t2")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(allVertices2);
             expect(
-                stateVariables["/g2/t2"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("g2.t2")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(allVertices2);
 
             expect(
-                stateVariables["/g1/t3"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("g1.t3")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(allVertices3);
             expect(
-                stateVariables["/g2/t3"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("g2.t3")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(allVertices3);
 
             expect(
-                stateVariables["/g1/t4"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("g1.t4")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(vertices4);
             expect(
-                stateVariables["/g2/t4"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("g2.t4")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(vertices4);
         }
 
@@ -267,7 +272,11 @@ describe("Triangle tag tests", async () => {
         let dx = 3,
             dy = 2;
         vertices1 = vertices1.map((v) => [v[0] + dx, v[1] + dy]);
-        await movePolygon({ name: "/g1/t1", pointCoords: vertices1, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g1.t1"),
+            pointCoords: vertices1,
+            core,
+        });
         await check_items({ vertices1, vertex2_1, vertices3, vertices4 });
 
         // move vertices of g2/t1 independently
@@ -278,7 +287,7 @@ describe("Triangle tag tests", async () => {
         ];
         for (let i = 0; i < 3; i++) {
             await movePolygon({
-                name: "/g2/t1",
+                componentIdx: resolveComponentName("g2.t1"),
                 pointCoords: { [i]: vertices1[i] },
                 core,
             });
@@ -293,7 +302,7 @@ describe("Triangle tag tests", async () => {
             vertices1[i] = [vertices1[i][0] + dx, vertices1[i][1] + dy];
         }
         await movePolygon({
-            name: "/g2/t2",
+            componentIdx: resolveComponentName("g2.t2"),
             pointCoords: [vertex2_1, ...vertices1.slice(1)],
             core,
         });
@@ -304,13 +313,13 @@ describe("Triangle tag tests", async () => {
         vertices1[1] = [5, 4];
         vertices1[2] = [-3, -5];
         await movePolygon({
-            name: "/g1/t2",
+            componentIdx: resolveComponentName("g1.t2"),
             pointCoords: { 0: vertex2_1 },
             core,
         });
         for (let i = 1; i < 3; i++) {
             await movePolygon({
-                name: "/g1/t2",
+                componentIdx: resolveComponentName("g1.t2"),
                 pointCoords: { [i]: vertices1[i] },
                 core,
             });
@@ -324,7 +333,7 @@ describe("Triangle tag tests", async () => {
         vertices3 = vertices3.map((v) => [v[0] + dx, v[1] + dy]);
         vertices1[2] = [vertices1[2][0] + dx, vertices1[2][1] + dy];
         await movePolygon({
-            name: "/g1/t3",
+            componentIdx: resolveComponentName("g1.t3"),
             pointCoords: [...vertices3, ...vertices1.slice(2)],
             core,
         });
@@ -338,13 +347,13 @@ describe("Triangle tag tests", async () => {
         vertices1[2] = [9, -5];
         for (let i = 0; i < 2; i++) {
             await movePolygon({
-                name: "/g2/t3",
+                componentIdx: resolveComponentName("g2.t3"),
                 pointCoords: { [i]: vertices3[i] },
                 core,
             });
         }
         await movePolygon({
-            name: "/g2/t3",
+            componentIdx: resolveComponentName("g2.t3"),
             pointCoords: { 2: vertices1[2] },
             core,
         });
@@ -355,7 +364,7 @@ describe("Triangle tag tests", async () => {
         dy = -8;
         vertices4 = vertices4.map((v) => [v[0] + dx, v[1] + dy]);
         await movePolygon({
-            name: "/g2/t4",
+            componentIdx: resolveComponentName("g2.t4"),
             pointCoords: vertices4,
             core,
         });
@@ -369,7 +378,7 @@ describe("Triangle tag tests", async () => {
         ];
         for (let i = 0; i < 3; i++) {
             await movePolygon({
-                name: "/g1/t4",
+                componentIdx: resolveComponentName("g1.t4"),
                 pointCoords: { [i]: vertices4[i] },
                 core,
             });
@@ -378,7 +387,7 @@ describe("Triangle tag tests", async () => {
     });
 
     it("constrain to triangle", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle" vertices="(0,0) (6,0) (0,6)" />
@@ -396,49 +405,85 @@ describe("Triangle tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/P"].stateValues.xs[0].tree).closeTo(
-                x,
-                1e-14,
-            );
-            expect(stateVariables["/P"].stateValues.xs[1].tree).closeTo(
-                y,
-                1e-14,
-            );
+            expect(
+                stateVariables[resolveComponentName("P")].stateValues.xs[0]
+                    .tree,
+            ).closeTo(x, 1e-14);
+            expect(
+                stateVariables[resolveComponentName("P")].stateValues.xs[1]
+                    .tree,
+            ).closeTo(y, 1e-14);
         }
 
         await check_items(3, 3);
 
         // move point upper left
-        await movePoint({ name: "/P", x: -3, y: 8, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: -3,
+            y: 8,
+            core,
+        });
         await check_items(0, 6);
 
         // move point to left
-        await movePoint({ name: "/P", x: -5, y: 4, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: -5,
+            y: 4,
+            core,
+        });
         await check_items(0, 4);
 
         // move point to lower left
-        await movePoint({ name: "/P", x: -7, y: -3, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: -7,
+            y: -3,
+            core,
+        });
         await check_items(0, 0);
 
         // move point to lower right
-        await movePoint({ name: "/P", x: 8, y: -8, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: 8,
+            y: -8,
+            core,
+        });
         await check_items(6, 0);
 
         // move point to right
-        await movePoint({ name: "/P", x: 8, y: 4, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: 8,
+            y: 4,
+            core,
+        });
         await check_items(5, 1);
 
         // move point to middle
-        await movePoint({ name: "/P", x: 1.5, y: 3.5, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: 1.5,
+            y: 3.5,
+            core,
+        });
         await check_items(2, 4);
 
         // move point a little left
-        await movePoint({ name: "/P", x: 1, y: 3, core });
+        await movePoint({
+            componentIdx: resolveComponentName("P"),
+            x: 1,
+            y: 3,
+            core,
+        });
         await check_items(0, 3);
     });
 
     async function test_reflected_triangles(
         core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
         initial_vertices: number[][],
     ) {
         async function check_items(vertices1: number[][]) {
@@ -450,15 +495,15 @@ describe("Triangle tag tests", async () => {
             const vertices2 = vertices1.map((v) => [v[1], v[0]]);
 
             expect(
-                stateVariables["/triangle1"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("triangle1")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(vertices1);
 
             expect(
-                stateVariables["/triangle2"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("triangle2")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(vertices2);
         }
 
@@ -472,7 +517,7 @@ describe("Triangle tag tests", async () => {
             [7, 9],
         ];
         await movePolygon({
-            name: "/triangle1",
+            componentIdx: resolveComponentName("triangle1"),
             pointCoords: vertices1,
             core,
         });
@@ -485,7 +530,7 @@ describe("Triangle tag tests", async () => {
             [3, -6],
         ];
         await movePolygon({
-            name: "/triangle2",
+            componentIdx: resolveComponentName("triangle2"),
             pointCoords: vertices1.map((v) => [v[1], v[0]]),
             core,
         });
@@ -493,7 +538,7 @@ describe("Triangle tag tests", async () => {
     }
 
     it("reflect triangle via individual vertices", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle1" vertices="(1,2) (3,4) (-5,6)" />
@@ -505,7 +550,7 @@ describe("Triangle tag tests", async () => {
   `,
         });
 
-        await test_reflected_triangles(core, [
+        await test_reflected_triangles(core, resolveComponentName, [
             [1, 2],
             [3, 4],
             [-5, 6],
@@ -513,7 +558,7 @@ describe("Triangle tag tests", async () => {
     });
 
     it("reflect triangle via individual vertices, one vertex specified", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle1" vertices="(1,2)" />
@@ -525,7 +570,7 @@ describe("Triangle tag tests", async () => {
   `,
         });
 
-        await test_reflected_triangles(core, [
+        await test_reflected_triangles(core, resolveComponentName, [
             [1, 2],
             [1, 0],
             [0, 0],
@@ -534,6 +579,7 @@ describe("Triangle tag tests", async () => {
 
     async function test_triangle_one_vertex_reflection(
         core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
         initial_vertex2: number[],
         initial_vertex3: number[],
     ) {
@@ -546,9 +592,9 @@ describe("Triangle tag tests", async () => {
             const vertices = [[vertex2[1], vertex2[0]], vertex2, vertex3];
 
             expect(
-                stateVariables["/triangle"].stateValues.vertices.map((v) =>
-                    v.map((x) => x.tree),
-                ),
+                stateVariables[
+                    resolveComponentName("triangle")
+                ].stateValues.vertices.map((v) => v.map((x) => x.tree)),
             ).eqls(vertices);
         }
 
@@ -559,7 +605,7 @@ describe("Triangle tag tests", async () => {
         // move first vertex
         vertex2 = [4, -1];
         await movePolygon({
-            name: "/triangle",
+            componentIdx: resolveComponentName("triangle"),
             pointCoords: { 0: [vertex2[1], vertex2[0]] },
             core,
         });
@@ -568,7 +614,7 @@ describe("Triangle tag tests", async () => {
         // move second vertex
         vertex2 = [7, -8];
         await movePolygon({
-            name: "/triangle",
+            componentIdx: resolveComponentName("triangle"),
             pointCoords: { 1: vertex2 },
             core,
         });
@@ -577,7 +623,7 @@ describe("Triangle tag tests", async () => {
         // move third vertex
         vertex3 = [0, 6];
         await movePolygon({
-            name: "/triangle",
+            componentIdx: resolveComponentName("triangle"),
             pointCoords: { 2: vertex3 },
             core,
         });
@@ -585,7 +631,7 @@ describe("Triangle tag tests", async () => {
     }
 
     it("triangle with one vertex refection of other", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <point name="A" hide>
@@ -599,11 +645,16 @@ describe("Triangle tag tests", async () => {
   `,
         });
 
-        await test_triangle_one_vertex_reflection(core, [3, 5], [-5, 2]);
+        await test_triangle_one_vertex_reflection(
+            core,
+            resolveComponentName,
+            [3, 5],
+            [-5, 2],
+        );
     });
 
     it("triangle with one vertex refection of other with internal references", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <triangle name="triangle" vertices="($(triangle.vertexX2_2), $(triangle.vertexX2_1)) (3,5) (-5,2)" />
@@ -611,11 +662,16 @@ describe("Triangle tag tests", async () => {
   `,
         });
 
-        await test_triangle_one_vertex_reflection(core, [3, 5], [-5, 2]);
+        await test_triangle_one_vertex_reflection(
+            core,
+            resolveComponentName,
+            [3, 5],
+            [-5, 2],
+        );
     });
 
     it("triangle with one vertex refection of other with internal references, one vertex specified", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <triangle name="triangle" vertices="($(triangle.vertexX2_2), $(triangle.vertexX2_1))" />
@@ -623,17 +679,22 @@ describe("Triangle tag tests", async () => {
   `,
         });
 
-        await test_triangle_one_vertex_reflection(core, [1, 0], [0, 0]);
+        await test_triangle_one_vertex_reflection(
+            core,
+            resolveComponentName,
+            [1, 0],
+            [0, 0],
+        );
     });
 
     it("area and perimeter", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="t"/>
   </graph>
-  <p>Area: <number copySource="t.area" name="area" /></p>
-  <p>Perimeter: <number copySource="t.perimeter" name="perimeter" /></p>
+  <p>Area: <number extend="$t.area" name="area" /></p>
+  <p>Perimeter: <number extend="$t.perimeter" name="perimeter" /></p>
   `,
         });
 
@@ -641,11 +702,15 @@ describe("Triangle tag tests", async () => {
         let perimeter = 2 + Math.sqrt(2);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/area"].stateValues.value).eq(area);
-        expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
+        expect(
+            stateVariables[resolveComponentName("area")].stateValues.value,
+        ).eq(area);
+        expect(
+            stateVariables[resolveComponentName("perimeter")].stateValues.value,
+        ).eq(perimeter);
 
         await movePolygon({
-            name: "/t",
+            componentIdx: resolveComponentName("t"),
             pointCoords: { 2: [10, 0] },
             core,
         });
@@ -654,18 +719,22 @@ describe("Triangle tag tests", async () => {
         perimeter = 9 + Math.sqrt(100 + 1) + Math.sqrt(2);
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/area"].stateValues.value).eq(area);
-        expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
+        expect(
+            stateVariables[resolveComponentName("area")].stateValues.value,
+        ).eq(area);
+        expect(
+            stateVariables[resolveComponentName("perimeter")].stateValues.value,
+        ).eq(perimeter);
     });
 
     it("Rigid triangle", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <triangle name="triangle" vertices="(0,6) (3,0)" rigid />
-    $triangle.vertex1{assignNames="vertex1"}
-    $triangle.vertex2{assignNames="vertex2"}
-    $triangle.vertex3{assignNames="vertex3"}
+    <point extend="$triangle.vertex1" name="vertex1" />
+    <point extend="$triangle.vertex2" name="vertex2" />
+    <point extend="$triangle.vertex3" name="vertex3" />
   </graph>
   `,
         });
@@ -677,14 +746,18 @@ describe("Triangle tag tests", async () => {
             );
 
             expect(
-                stateVariables["/triangle"].stateValues.vertices.map((v) =>
+                stateVariables[
+                    resolveComponentName("triangle")
+                ].stateValues.vertices.map((v) =>
                     v.map((x) => Math.round(x.tree * 1e12) / 1e12),
                 ),
             ).eqls(vertices);
 
             for (let i = 0; i < 3; i++) {
                 expect(
-                    stateVariables[`/vertex${i + 1}`].stateValues.xs.map(
+                    stateVariables[
+                        resolveComponentName(`vertex${i + 1}`)
+                    ].stateValues.xs.map(
                         (v) => Math.round(v.tree * 1e12) / 1e12,
                     ),
                 ).eqls(vertices[i]);
@@ -706,7 +779,7 @@ describe("Triangle tag tests", async () => {
         vertices = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
         await movePolygon({
-            name: "/triangle",
+            componentIdx: resolveComponentName("triangle"),
             pointCoords: vertices,
             core,
         });
@@ -718,7 +791,12 @@ describe("Triangle tag tests", async () => {
             [6, 6],
             [6, 3],
         ];
-        await movePoint({ name: "/vertex1", x: -12, y: 0, core });
+        await movePoint({
+            componentIdx: resolveComponentName("vertex1"),
+            x: -12,
+            y: 0,
+            core,
+        });
         await check_items(vertices);
     });
 });

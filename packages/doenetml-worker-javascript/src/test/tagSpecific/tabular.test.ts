@@ -7,7 +7,7 @@ vi.mock("hyperformula");
 
 describe("Tabular tag tests", async () => {
     it("inHeader attribute", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <tabular>
   <row header>
@@ -26,10 +26,10 @@ describe("Tabular tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
             "Top: inHeader = true",
         );
-        expect(stateVariables["/p2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
             "Bottom: inHeader = false",
         );
     });
