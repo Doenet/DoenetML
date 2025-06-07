@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import {
     movePoint,
     movePolygon,
@@ -15,13 +15,15 @@ vi.mock("hyperformula");
 
 async function testPolygonCopiedTwice({
     core,
+    resolveComponentName,
     vertices,
-    polygonName = "/pg",
-    graph1Name = "/g1",
-    graph2Name = "/g2",
-    graph3Name = "/g3",
+    polygonName = "pg",
+    graph1Name = "g1",
+    graph2Name = "g2",
+    graph3Name = "g3",
 }: {
     core: PublicDoenetMLCore;
+    resolveComponentName: ResolveComponentName;
     vertices: (number | string)[][];
     polygonName?: string;
     graph1Name?: string;
@@ -30,13 +32,16 @@ async function testPolygonCopiedTwice({
 }) {
     let stateVariables = await core.returnAllStateVariables(false, true);
     expect(
-        stateVariables[graph1Name + polygonName].stateValues.numVertices,
+        stateVariables[resolveComponentName(`${graph1Name}.${polygonName}`)]
+            .stateValues.numVertices,
     ).eqls(vertices.length);
     expect(
-        stateVariables[graph2Name + polygonName].stateValues.numVertices,
+        stateVariables[resolveComponentName(`${graph2Name}.${polygonName}`)]
+            .stateValues.numVertices,
     ).eqls(vertices.length);
     expect(
-        stateVariables[graph3Name + polygonName].stateValues.numVertices,
+        stateVariables[resolveComponentName(`${graph3Name}.${polygonName}`)]
+            .stateValues.numVertices,
     ).eqls(vertices.length);
 
     for (let i in vertices) {
@@ -47,42 +52,45 @@ async function testPolygonCopiedTwice({
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph1Name + polygonName].stateValues
-                            .vertices[i][0],
+                        stateVariables[
+                            resolveComponentName(`${graph1Name}.${polygonName}`)
+                        ].stateValues.vertices[i][0],
                     )
                     .evaluate_to_constant(),
             ).closeTo(vertices[i][0], 1e-12);
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph2Name + polygonName].stateValues
-                            .vertices[i][0],
+                        stateVariables[
+                            resolveComponentName(`${graph2Name}.${polygonName}`)
+                        ].stateValues.vertices[i][0],
                     )
                     .evaluate_to_constant(),
             ).closeTo(vertices[i][0], 1e-12);
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph3Name + polygonName].stateValues
-                            .vertices[i][0],
+                        stateVariables[
+                            resolveComponentName(`${graph3Name}.${polygonName}`)
+                        ].stateValues.vertices[i][0],
                     )
                     .evaluate_to_constant(),
             ).closeTo(vertices[i][0], 1e-12);
         } else {
             expect(
-                stateVariables[graph1Name + polygonName].stateValues.vertices[
-                    i
-                ][0].tree,
+                stateVariables[
+                    resolveComponentName(`${graph1Name}.${polygonName}`)
+                ].stateValues.vertices[i][0].tree,
             ).eq(vertices[i][0]);
             expect(
-                stateVariables[graph2Name + polygonName].stateValues.vertices[
-                    i
-                ][0].tree,
+                stateVariables[
+                    resolveComponentName(`${graph2Name}.${polygonName}`)
+                ].stateValues.vertices[i][0].tree,
             ).eq(vertices[i][0]);
             expect(
-                stateVariables[graph3Name + polygonName].stateValues.vertices[
-                    i
-                ][0].tree,
+                stateVariables[
+                    resolveComponentName(`${graph3Name}.${polygonName}`)
+                ].stateValues.vertices[i][0].tree,
             ).eq(vertices[i][0]);
         }
         if (
@@ -92,42 +100,45 @@ async function testPolygonCopiedTwice({
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph1Name + polygonName].stateValues
-                            .vertices[i][1],
+                        stateVariables[
+                            resolveComponentName(`${graph1Name}.${polygonName}`)
+                        ].stateValues.vertices[i][1],
                     )
                     .evaluate_to_constant(),
             ).closeTo(vertices[i][1], 1e-12);
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph2Name + polygonName].stateValues
-                            .vertices[i][1],
+                        stateVariables[
+                            resolveComponentName(`${graph2Name}.${polygonName}`)
+                        ].stateValues.vertices[i][1],
                     )
                     .evaluate_to_constant(),
             ).closeTo(vertices[i][1], 1e-12);
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph3Name + polygonName].stateValues
-                            .vertices[i][1],
+                        stateVariables[
+                            resolveComponentName(`${graph3Name}.${polygonName}`)
+                        ].stateValues.vertices[i][1],
                     )
                     .evaluate_to_constant(),
             ).closeTo(vertices[i][1], 1e-12);
         } else {
             expect(
-                stateVariables[graph1Name + polygonName].stateValues.vertices[
-                    i
-                ][1].tree,
+                stateVariables[
+                    resolveComponentName(`${graph1Name}.${polygonName}`)
+                ].stateValues.vertices[i][1].tree,
             ).eq(vertices[i][1]);
             expect(
-                stateVariables[graph2Name + polygonName].stateValues.vertices[
-                    i
-                ][1].tree,
+                stateVariables[
+                    resolveComponentName(`${graph2Name}.${polygonName}`)
+                ].stateValues.vertices[i][1].tree,
             ).eq(vertices[i][1]);
             expect(
-                stateVariables[graph3Name + polygonName].stateValues.vertices[
-                    i
-                ][1].tree,
+                stateVariables[
+                    resolveComponentName(`${graph3Name}.${polygonName}`)
+                ].stateValues.vertices[i][1].tree,
             ).eq(vertices[i][1]);
         }
     }
@@ -135,19 +146,19 @@ async function testPolygonCopiedTwice({
 
 describe("Polygon tag tests", async () => {
     it("Polygon vertices and copied points", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,5)</point>
     <point>(-4,-1)</point>
     <point>(5,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -158,18 +169,18 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move individual vertex
         vertices[1] = [4, 7];
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move copied polygon up and to the right
         let moveX = 3;
@@ -180,33 +191,37 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: vertices[2] },
             core,
         });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
     it("Polygon macro in vertices", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <math name="m">-1</math>
-  <graph name="g1" newNamespace>
-    <polygon vertices="(3,5) (-4,$(../m)) (5,2) (-3,4)" name="pg" />
+  <graph name="g1">
+    <polygon vertices="(3,5) (-4,$m) (5,2) (-3,4)" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -217,18 +232,18 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move individual vertex
         vertices[1] = [4, 7];
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move copied polygon up and to the right
         let moveX = 3;
@@ -239,146 +254,150 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: vertices[2] },
             core,
         });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
     it("dynamic polygon with vertices from copied map, initially zero, copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <mathInput name="length" prefill="0" />
-  <graph name="g1" newNamespace>
-    <map>
-      <template><point>($x, 5sin($x))</point></template>
-      <sources alias="x"><sequence from="0" length="$(../length)" /></sources>
-    </map>
-    <polygon vertices="$_map1" name="pg" />
+  <graph name="g1">
+    <setup><sequence from="0" length="$length" name="s" /></setup>
+    <repeat for="$s" itemName="x">
+      <point>($x, 5sin($x))</point>
+    </repeat>
+    <polygon vertices="$_repeat1" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
         let vertices: number[][] = [];
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "1",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
         vertices[0] = [0, 5 * Math.sin(0)];
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "2",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
         vertices[1] = [1, 5 * Math.sin(1)];
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "3",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
         vertices[2] = [2, 5 * Math.sin(2)];
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "2",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
         vertices.splice(2, 1);
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "0",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
         vertices = [];
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "5",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
         for (let i = 0; i < 5; i++) {
             vertices.push([i, 5 * Math.sin(i)]);
         }
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // start over and begin with big increment
-        core = await createTestCore({
+        ({ core, resolveComponentName } = await createTestCore({
             doenetML: `
 
   <mathInput name="length" prefill="0" />
-  <graph name="g1" newNamespace>
-    <map>
-      <template><point>($x, 5sin($x))</point></template>
-      <sources alias="x"><sequence from="0" length="$(../length)" /></sources>
-    </map>
-    <polygon vertices="$_map1" name="pg" />
+  <graph name="g1">
+    <setup><sequence from="0" length="$length" name="s" /></setup>
+    <repeat for="$s" itemName="x">
+      <point>($x, 5sin($x))</point>
+    </repeat>
+    <polygon vertices="$_repeat1" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
-        });
+        }));
 
         vertices = [];
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "10",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
         for (let i = 0; i < 10; i++) {
             vertices.push([i, 5 * Math.sin(i)]);
         }
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "1",
-            name: "/length",
+            componentIdx: resolveComponentName("length"),
             core,
         });
         vertices = [[0, 5 * Math.sin(0)]];
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
     it("polygon with initially undefined point", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <mathInput name="mi" />
 
-  <graph name="g1" newNamespace>
-    <polygon vertices="(1,2) (-1,5) ($(../mi),7) (3,-5) (-4,-3)" name="pg" />
+  <graph name="g1">
+    <polygon vertices="(1,2) (-1,5) ($mi,7) (3,-5) (-4,-3)" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -389,32 +408,32 @@ describe("Polygon tag tests", async () => {
             [3, -5],
             [-4, -3],
         ];
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         await updateMathInputValue({
             latex: "-2",
-            name: "/mi",
+            componentIdx: resolveComponentName("mi"),
             core,
         });
 
         vertices[2][0] = -2;
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
-    it(`can't move polygon based on map`, async () => {
-        let core = await createTestCore({
+    it(`can't move polygon based on repeat`, async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
-    <map hide assignNames="(mp1) (mp2) (mp3) (mp4) (mp5) (mp6) (mp7) (mp8) (mp9) (mp10) (mp11)" >
-      <template><point>($x, 5sin($x))</point></template>
-      <sources alias="x"><sequence from="-5" to="5"/></sources>
-    </map>
-    <polygon vertices="$_map1" name="pg" />
+  <graph name="g1">
+    <setup><sequence from="-5" to="5" name="s"/></setup>
+    <repeat hide for="$s" name="mps" itemName="x">
+      <point>($x, 5sin($x))</point>
+    </repeat>
+    <polygon vertices="$mps" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -422,11 +441,21 @@ describe("Polygon tag tests", async () => {
         for (let i = -5; i <= 5; i++) {
             vertices.push([i, 5 * Math.sin(i)]);
         }
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // can't move points
-        await movePoint({ name: "/g1/mp1", x: 9, y: -8, core });
-        await movePoint({ name: "/g1/mp9", x: -8, y: 4, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g1.mps[1]"),
+            x: 9,
+            y: -8,
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("g1.mps[9]"),
+            x: -8,
+            y: 4,
+            core,
+        });
 
         // can't move polygon1
         let moveX = 3;
@@ -434,9 +463,13 @@ describe("Polygon tag tests", async () => {
 
         let vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await movePolygon({ name: "/g1/pg", pointCoords: vertices2, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g1.pg"),
+            pointCoords: vertices2,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // can't move polygon2
         moveX = -5;
@@ -444,9 +477,13 @@ describe("Polygon tag tests", async () => {
 
         vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices2, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices2,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // can't move polygon3
         moveX = 7;
@@ -454,25 +491,29 @@ describe("Polygon tag tests", async () => {
 
         vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await movePolygon({ name: "/g3/pg", pointCoords: vertices2, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g3.pg"),
+            pointCoords: vertices2,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
-    it(`create moveable polygon based on map`, async () => {
-        let core = await createTestCore({
+    it(`create moveable polygon based on repeat`, async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
-    <map hide assignNames="(mp1) (mp2) (mp3) (mp4) (mp5) (mp6) (mp7) (mp8) (mp9) (mp10) (mp11)" >
-      <template><point>($x + <math>0</math>, 5sin($x) + <math>0</math>)</point></template>
-      <sources alias="x"><sequence from="-5" to="5"/></sources>
-    </map>
-    <polygon vertices="$_map1" name="pg" />
+  <graph name="g1">
+    <setup><sequence from="-5" to="5" name="s"/></setup>
+    <repeat hide name="mps" for="$s" itemName="x">
+      <point>($x + <math>0</math>, 5sin($x) + <math>0</math>)</point>
+    </repeat>
+    <polygon vertices="$mps" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -480,7 +521,7 @@ describe("Polygon tag tests", async () => {
         for (let i = -5; i <= 5; i++) {
             vertices.push([i, 5 * Math.sin(i)]);
         }
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // can move points
 
@@ -488,19 +529,19 @@ describe("Polygon tag tests", async () => {
         vertices[8] = [-8, 4];
 
         await movePoint({
-            name: "/g1/mp1",
+            componentIdx: resolveComponentName("g1.mps[1][1]"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
         await movePoint({
-            name: "/g1/mp9",
+            componentIdx: resolveComponentName("g1.mps[9][1]"),
             x: vertices[8][0],
             y: vertices[8][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // can move polygon1
         let moveX = 3;
@@ -511,9 +552,13 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await movePolygon({ name: "/g1/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g1.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // can move polygon2
         moveX = -5;
@@ -524,9 +569,13 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         moveX = 7;
         moveY = -4;
@@ -536,25 +585,29 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
     it("copy vertices of polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <polygon name="pl" vertices="(-3,-1) (1,2) (3,4) (6,-2)" />
   </graph>
   <graph>
-  $pl.vertex1{assignNames="v1"}
-  $pl.vertex2{assignNames="v2"}
-  $pl.vertex3{assignNames="v3"}
-  $pl.vertex4{assignNames="v4"}
+  <point extend="$pl.vertex1" name="v1" />
+  <point extend="$pl.vertex2" name="v2" />
+  <point extend="$pl.vertex3" name="v3" />
+  <point extend="$pl.vertex4" name="v4" />
   </graph>
   <graph>
-  <copy assignNames="v1a v2a v3a v4a" prop="vertices" target="pl" />
+  <pointList name="vs" extend="$pl.vertices" />
   </graph>
   `,
         });
@@ -568,18 +621,22 @@ describe("Polygon tag tests", async () => {
         ];
 
         for (let i = 0; i < 4; i++) {
-            expect(stateVariables[`/v${i + 1}`].stateValues.xs[0].tree).eq(
-                ps[i][0],
-            );
-            expect(stateVariables[`/v${i + 1}a`].stateValues.xs[0].tree).eq(
-                ps[i][0],
-            );
-            expect(stateVariables[`/v${i + 1}`].stateValues.xs[1].tree).eq(
-                ps[i][1],
-            );
-            expect(stateVariables[`/v${i + 1}a`].stateValues.xs[1].tree).eq(
-                ps[i][1],
-            );
+            expect(
+                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
+                    .xs[0].tree,
+            ).eq(ps[i][0]);
+            expect(
+                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
+                    .xs[0].tree,
+            ).eq(ps[i][0]);
+            expect(
+                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
+                    .xs[1].tree,
+            ).eq(ps[i][1]);
+            expect(
+                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
+                    .xs[1].tree,
+            ).eq(ps[i][1]);
         }
 
         // move individually copied vertices
@@ -592,7 +649,7 @@ describe("Polygon tag tests", async () => {
 
         for (let i = 0; i < 4; i++) {
             await movePoint({
-                name: `/v${i + 1}`,
+                componentIdx: resolveComponentName(`v${i + 1}`),
                 x: ps[i][0],
                 y: ps[i][1],
                 core,
@@ -601,18 +658,22 @@ describe("Polygon tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 4; i++) {
-            expect(stateVariables[`/v${i + 1}`].stateValues.xs[0].tree).eq(
-                ps[i][0],
-            );
-            expect(stateVariables[`/v${i + 1}a`].stateValues.xs[0].tree).eq(
-                ps[i][0],
-            );
-            expect(stateVariables[`/v${i + 1}`].stateValues.xs[1].tree).eq(
-                ps[i][1],
-            );
-            expect(stateVariables[`/v${i + 1}a`].stateValues.xs[1].tree).eq(
-                ps[i][1],
-            );
+            expect(
+                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
+                    .xs[0].tree,
+            ).eq(ps[i][0]);
+            expect(
+                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
+                    .xs[0].tree,
+            ).eq(ps[i][0]);
+            expect(
+                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
+                    .xs[1].tree,
+            ).eq(ps[i][1]);
+            expect(
+                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
+                    .xs[1].tree,
+            ).eq(ps[i][1]);
         }
 
         // move array-copied vertices
@@ -625,7 +686,7 @@ describe("Polygon tag tests", async () => {
 
         for (let i = 0; i < 4; i++) {
             await movePoint({
-                name: `/v${i + 1}a`,
+                componentIdx: resolveComponentName(`vs[${i + 1}]`),
                 x: ps[i][0],
                 y: ps[i][1],
                 core,
@@ -634,31 +695,35 @@ describe("Polygon tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 4; i++) {
-            expect(stateVariables[`/v${i + 1}`].stateValues.xs[0].tree).eq(
-                ps[i][0],
-            );
-            expect(stateVariables[`/v${i + 1}a`].stateValues.xs[0].tree).eq(
-                ps[i][0],
-            );
-            expect(stateVariables[`/v${i + 1}`].stateValues.xs[1].tree).eq(
-                ps[i][1],
-            );
-            expect(stateVariables[`/v${i + 1}a`].stateValues.xs[1].tree).eq(
-                ps[i][1],
-            );
+            expect(
+                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
+                    .xs[0].tree,
+            ).eq(ps[i][0]);
+            expect(
+                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
+                    .xs[0].tree,
+            ).eq(ps[i][0]);
+            expect(
+                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
+                    .xs[1].tree,
+            ).eq(ps[i][1]);
+            expect(
+                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
+                    .xs[1].tree,
+            ).eq(ps[i][1]);
         }
     });
 
     it("new polygon from copied vertices of polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
   <polygon vertices="(-9,6) (-3,7) (4,0) (8,5)" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    <polygon vertices="$(../g1/pg.vertices)" name="pg" />
+  <graph name="g2">
+    <polygon vertices="$g1.pg.vertices" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -669,7 +734,7 @@ describe("Polygon tag tests", async () => {
             [8, 5],
         ];
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move first polygon up and to the right
         let moveX = 4;
@@ -680,9 +745,13 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await movePolygon({ name: "/g1/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g1.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move copied polygon up and to the left
         moveX = -7;
@@ -693,9 +762,13 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move double copied polygon down and to the left
         moveX = -1;
@@ -706,33 +779,32 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await movePolygon({ name: "/g3/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g3.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
     it("new polygon as translated version of polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathInput prefill="5" name="transx" />
     <mathInput prefill="7" name="transy" />
     <graph>
     <polygon vertices=" (0,0) (3,-4) (1,-6) (-5,-6) " />
-    <map hide>
-      <template newNamespace>
-        <point>(<extract prop="x"><copy target="x" fixed="false"/></extract>+
-          <copy prop="value" modifyIndirectly="false" target="../transx" />,
-        <extract prop="y"><copy target="x" fixed="false" /></extract>+
-        <copy prop="value" modifyIndirectly="false" target="../transy" />)
+    <repeat hide for="$_polygon1.vertices" itemName="x">
+        <point>(<math extend="$x.x" fixed="false" />+
+          <math modifyIndirectly="false" extend="$transx" />,
+          <math extend="$x.y" fixed="false" />+
+          <math modifyIndirectly="false" extend="$transy" />)
         </point>
-      </template>
-      <sources alias="x">
-        $_polygon1.vertices{name="vs"}
-      </sources>
-    </map>
-    <polygon vertices="$_map1" />
+    </repeat>
+    <polygon vertices="$_repeat1" />
     </graph>
-    $_polygon2.vertices{assignNames="p1 p2 p3 p4"}
+    <pointList extend="$_polygon2.vertices" name="ps" />
 
     `,
         });
@@ -744,66 +816,72 @@ describe("Polygon tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/_polygon1"].stateValues.numVertices).eqls(
-                vertices.length,
-            );
-            expect(stateVariables["/_polygon2"].stateValues.numVertices).eqls(
-                vertices.length,
-            );
+            expect(
+                stateVariables[resolveComponentName("_polygon1")].stateValues
+                    .numVertices,
+            ).eqls(vertices.length);
+            expect(
+                stateVariables[resolveComponentName("_polygon2")].stateValues
+                    .numVertices,
+            ).eqls(vertices.length);
 
             for (let i in vertices) {
                 if (Number.isFinite(vertices[i][0])) {
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/_polygon1"].stateValues
-                                    .vertices[i][0],
+                                stateVariables[
+                                    resolveComponentName("_polygon1")
+                                ].stateValues.vertices[i][0],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices[i][0], 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/_polygon2"].stateValues
-                                    .vertices[i][0],
+                                stateVariables[
+                                    resolveComponentName("_polygon2")
+                                ].stateValues.vertices[i][0],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices2[i][0], 1e-12);
                 } else {
                     expect(
-                        stateVariables["/_polygon1"].stateValues.vertices[i][0]
-                            .tree,
+                        stateVariables[resolveComponentName("_polygon1")]
+                            .stateValues.vertices[i][0].tree,
                     ).eq(vertices[i][0]);
                     expect(
-                        stateVariables["/_polygon2"].stateValues.vertices[i][0]
-                            .tree,
+                        stateVariables[resolveComponentName("_polygon2")]
+                            .stateValues.vertices[i][0].tree,
                     ).eq(vertices2[i][0]);
                 }
                 if (Number.isFinite(vertices[i][1])) {
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/_polygon1"].stateValues
-                                    .vertices[i][1],
+                                stateVariables[
+                                    resolveComponentName("_polygon1")
+                                ].stateValues.vertices[i][1],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices[i][1], 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/_polygon2"].stateValues
-                                    .vertices[i][1],
+                                stateVariables[
+                                    resolveComponentName("_polygon2")
+                                ].stateValues.vertices[i][1],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices2[i][1], 1e-12);
                 } else {
                     expect(
-                        stateVariables["/_polygon1"].stateValues.vertices[i][1]
-                            .tree,
+                        stateVariables[resolveComponentName("_polygon1")]
+                            .stateValues.vertices[i][1].tree,
                     ).eq(vertices[i][1]);
                     expect(
-                        stateVariables["/_polygon2"].stateValues.vertices[i][1]
-                            .tree,
+                        stateVariables[resolveComponentName("_polygon2")]
+                            .stateValues.vertices[i][1].tree,
                     ).eq(vertices2[i][1]);
                 }
             }
@@ -828,7 +906,11 @@ describe("Polygon tag tests", async () => {
             [6, 3],
         ];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: vertices,
+            core,
+        });
 
         await testPolygons({ vertices, transX, transY });
 
@@ -840,7 +922,11 @@ describe("Polygon tag tests", async () => {
             [2, -1],
         ];
 
-        await movePolygon({ name: "/_polygon2", pointCoords: vertices2, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon2"),
+            pointCoords: vertices2,
+            core,
+        });
 
         vertices = vertices2.map((v) => [v[0] - transX, v[1] - transY]);
 
@@ -849,12 +935,12 @@ describe("Polygon tag tests", async () => {
         // change translation
         await updateMathInputValue({
             latex: "2",
-            name: "/transx",
+            componentIdx: resolveComponentName("transx"),
             core,
         });
         await updateMathInputValue({
             latex: "10",
-            name: "/transy",
+            componentIdx: resolveComponentName("transy"),
             core,
         });
 
@@ -865,10 +951,14 @@ describe("Polygon tag tests", async () => {
     });
 
     it("parallelogram based on three points", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
-      <polygon name="parallelogram" vertices="(1,2) (3,4) (-5,6) ($(parallelogram.vertexX1_1{fixed})+$(parallelogram.vertexX3_1{fixed})-$(parallelogram.vertexX2_1), $(parallelogram.vertexX1_2{fixed})+$(parallelogram.vertexX3_2{fixed})-$(parallelogram.vertexX2_2))" />
+      <setup>
+        <point name="v1Fixed" extend="$parallelogram.vertex1" fixed />
+        <point name="v3Fixed" extend="$parallelogram.vertex3" fixed />
+      </setup>
+      <polygon name="parallelogram" vertices="(1,2) (3,4) (-5,6) ($v1Fixed.x+$v3Fixed.x-$parallelogram.vertex2.x, $v1Fixed.y+$v3Fixed.y-$parallelogram.vertex2.y)" />
     </graph>
     `,
         });
@@ -880,24 +970,24 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
         // move first vertex
@@ -905,62 +995,62 @@ describe("Polygon tag tests", async () => {
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
         await movePolygon({
-            name: "/parallelogram",
+            componentIdx: resolveComponentName("parallelogram"),
             pointCoords: { 0: A },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
         B = [8, 9];
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
         await movePolygon({
-            name: "/parallelogram",
+            componentIdx: resolveComponentName("parallelogram"),
             pointCoords: { 1: B },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
         // move third vertex
@@ -968,31 +1058,31 @@ describe("Polygon tag tests", async () => {
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
         await movePolygon({
-            name: "/parallelogram",
+            componentIdx: resolveComponentName("parallelogram"),
             pointCoords: { 2: C },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
         // move fourth vertex
@@ -1000,42 +1090,42 @@ describe("Polygon tag tests", async () => {
         B = [A[0] + C[0] - D[0], A[1] + C[1] - D[1]];
 
         await movePolygon({
-            name: "/parallelogram",
+            componentIdx: resolveComponentName("parallelogram"),
             pointCoords: { 3: D },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/parallelogram"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("parallelogram")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
     });
 
     it("new polygon from copied vertices, some flipped", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <polygon vertices="(-9,6) (-3,7) (4,0) (8,5)" />
   </graph>
   <graph>
-    <polygon vertices="$(_polygon1.vertex1) ($(_polygon1.vertexX2_2), $(_polygon1.vertexX2_1)) $(_polygon1.vertex3) ($(_polygon1.vertexX4_2), $(_polygon1.vertexX4_1))" />
+    <polygon vertices="$(_polygon1.vertex1) ($(_polygon1.vertex2[2]), $(_polygon1.vertex2[1])) $(_polygon1.vertex3) ($(_polygon1.vertex4[2]), $(_polygon1.vertex4[1]))" />
   </graph>
   `,
         });
@@ -1049,66 +1139,72 @@ describe("Polygon tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/_polygon1"].stateValues.numVertices).eqls(
-                vertices.length,
-            );
-            expect(stateVariables["/_polygon2"].stateValues.numVertices).eqls(
-                vertices.length,
-            );
+            expect(
+                stateVariables[resolveComponentName("_polygon1")].stateValues
+                    .numVertices,
+            ).eqls(vertices.length);
+            expect(
+                stateVariables[resolveComponentName("_polygon2")].stateValues
+                    .numVertices,
+            ).eqls(vertices.length);
 
             for (let i in vertices) {
                 if (Number.isFinite(vertices[i][0])) {
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/_polygon1"].stateValues
-                                    .vertices[i][0],
+                                stateVariables[
+                                    resolveComponentName("_polygon1")
+                                ].stateValues.vertices[i][0],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices[i][0], 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/_polygon2"].stateValues
-                                    .vertices[i][0],
+                                stateVariables[
+                                    resolveComponentName("_polygon2")
+                                ].stateValues.vertices[i][0],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices2[i][0], 1e-12);
                 } else {
                     expect(
-                        stateVariables["/_polygon1"].stateValues.vertices[i][0]
-                            .tree,
+                        stateVariables[resolveComponentName("_polygon1")]
+                            .stateValues.vertices[i][0].tree,
                     ).eq(vertices[i][0]);
                     expect(
-                        stateVariables["/_polygon2"].stateValues.vertices[i][0]
-                            .tree,
+                        stateVariables[resolveComponentName("_polygon2")]
+                            .stateValues.vertices[i][0].tree,
                     ).eq(vertices2[i][0]);
                 }
                 if (Number.isFinite(vertices[i][1])) {
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/_polygon1"].stateValues
-                                    .vertices[i][1],
+                                stateVariables[
+                                    resolveComponentName("_polygon1")
+                                ].stateValues.vertices[i][1],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices[i][1], 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/_polygon2"].stateValues
-                                    .vertices[i][1],
+                                stateVariables[
+                                    resolveComponentName("_polygon2")
+                                ].stateValues.vertices[i][1],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices2[i][1], 1e-12);
                 } else {
                     expect(
-                        stateVariables["/_polygon1"].stateValues.vertices[i][1]
-                            .tree,
+                        stateVariables[resolveComponentName("_polygon1")]
+                            .stateValues.vertices[i][1].tree,
                     ).eq(vertices[i][1]);
                     expect(
-                        stateVariables["/_polygon2"].stateValues.vertices[i][1]
-                            .tree,
+                        stateVariables[resolveComponentName("_polygon2")]
+                            .stateValues.vertices[i][1].tree,
                     ).eq(vertices2[i][1]);
                 }
             }
@@ -1131,7 +1227,11 @@ describe("Polygon tag tests", async () => {
             [-4, -3],
         ];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: vertices,
+            core,
+        });
 
         await testPolygons({ vertices });
 
@@ -1143,7 +1243,11 @@ describe("Polygon tag tests", async () => {
             [-7, 6],
         ];
 
-        await movePolygon({ name: "/_polygon2", pointCoords: vertices2, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon2"),
+            pointCoords: vertices2,
+            core,
+        });
 
         vertices = [...vertices2];
         vertices[1] = [vertices[1][1], vertices[1][0]];
@@ -1153,10 +1257,14 @@ describe("Polygon tag tests", async () => {
     });
 
     it("four vertex polygon based on three points", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
+  <setup>
+    <point name="v2Fixed" extend="$_polygon1.vertex2" fixed />
+    <point name="v3Fixed" extend="$_polygon1.vertex3" fixed />
+  </setup>
   <graph>
-  <polygon vertices="(1,2) (3,4) (-5,6) ($(_polygon1.vertexX3_1{fixed})+$(_polygon1.vertexX2_1{fixed})-$(_polygon1.vertexX1_1), $(_polygon1.vertexX3_2{fixed})+$(_polygon1.vertexX2_2{fixed})-$(_polygon1.vertexX1_2))" />
+  <polygon vertices="(1,2) (3,4) (-5,6) ($v3Fixed[1]+$v2Fixed[1]-$_polygon1.vertex1[1], $v3Fixed[2]+$v2Fixed[2]-$_polygon1.vertex1[2])" />
   </graph>
 
   `,
@@ -1169,144 +1277,162 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
         // move first vertex
         A = [-4, -1];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 0: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
         // move second vertex
         B = [8, 9];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 1: B },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
         // move third vertex
         C = [-3, 7];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 2: C },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
         // move fourth vertex
         D = [7, 0];
         A = [C[0] + B[0] - D[0], C[1] + B[1] - D[1]];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 3: D }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 3: D },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
     });
 
-    it("fourth vertex depends on internal copy of first vertex", async () => {
-        let core = await createTestCore({
+    // TODO: regain functionality of internal copies and restore these skipped tests
+    it.skip("fourth vertex depends on internal copy of first vertex", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
+  <setup><point extend="$_polygon1.vertex1" name="v1" /></setup>
   <graph>
-  <polygon vertices="(1,2) (3,4) (-5,6) $(_polygon1.vertex1{createComponentOfType='point'})" />
+  <polygon vertices="(1,2) (3,4) (-5,6) $v1" />
   </graph>
   `,
         });
@@ -1316,141 +1442,161 @@ describe("Polygon tag tests", async () => {
         let C = [-5, 6];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/_polygon1"].stateValues.numVertices).eq(4);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("_polygon1")].stateValues
+                .numVertices,
+        ).eq(4);
+        expect(
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move first vertex
         A = [-4, -1];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 0: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move second vertex
         B = [8, 9];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 1: B },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move third vertex
         C = [-3, 7];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 2: C },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move fourth vertex
         A = [7, 0];
-        await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 3: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
     });
 
-    it("first vertex depends on internal copy of fourth vertex", async () => {
-        let core = await createTestCore({
+    it.skip("first vertex depends on internal copy of fourth vertex", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
+  <setup><point extend="$_polygon1.vertex4" name="v4" /></setup>
   <graph>
-  <polygon vertices="$(_polygon1.vertex4{ createComponentOfType='point' }) (3,4) (-5,6) (1,2)" />
+  <polygon vertices="$v4 (3,4) (-5,6) (1,2)" />
   </graph>
   
   `,
@@ -1461,145 +1607,163 @@ describe("Polygon tag tests", async () => {
         let C = [-5, 6];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/_polygon1"].stateValues.numVertices).eq(4);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[resolveComponentName("_polygon1")].stateValues
+                .numVertices,
+        ).eq(4);
+        expect(
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move first vertex
         A = [-4, -1];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 0: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move second vertex
         B = [8, 9];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 1: B },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move third vertex
         C = [-3, 7];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 2: C },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move fourth vertex
         A = [7, 0];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 3: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
     });
 
-    it("first vertex depends fourth, formula for fifth", async () => {
-        let core = await createTestCore({
+    it.skip("first vertex depends fourth, formula for fifth", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <text>a</text>
+  <setup><point extend="$_polygon1.vertex4" name="v4" /></setup>
   <graph>
-  <polygon vertices="$(_polygon1.vertex4{createComponentOfType='point'}) (3,4) (-5,6) (1,2) ($(_polygon1.vertexX1_1)+1,2)" />
+  <polygon vertices="$v4 (3,4) (-5,6) (1,2) ($_polygon1.vertex1[1]+1,2)" />
   </graph>
-  $_polygon1.vertices{assignNames="p1 p2 p3 p4 p5"}
   
   `,
         });
@@ -1611,200 +1775,225 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[4].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
         // move first vertex
         A = [-4, -1];
         D[0] = A[0] + 1;
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 0: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[4].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
         // move second vertex
         B = [8, 9];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 1: B },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[4].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
         // move third vertex
         C = [-3, 7];
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 2: C },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[4].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
         // move fourth vertex
         A = [7, 0];
         D[0] = A[0] + 1;
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 3: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[4].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
         // move fifth vertex
         D = [-5, 9];
         A[0] = D[0] - 1;
 
-        await movePolygon({ name: "/_polygon1", pointCoords: { 4: D }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("_polygon1"),
+            pointCoords: { 4: D },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[0].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[1].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[2].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[3].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/_polygon1"].stateValues.vertices[4].map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                resolveComponentName("_polygon1")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
     });
 
-    it("first, fourth, seventh vertex depends on fourth, seventh, tenth", async () => {
-        let core = await createTestCore({
+    it.skip("first, fourth, seventh vertex depends on fourth, seventh, tenth", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
+  <setup>
+    <point extend="$P.vertex4" name="v4" />
+    <point extend="$P.vertex7" name="v7" />
+    <point extend="$P.vertex10" name="v10" />
+  </setup>
   <graph>
-  <polygon name="P" vertices="$(P.vertex4{createComponentOfType='point'}) (1,2) (3,4) $(P.vertex7{createComponentOfType='point'}) (5,7) (-5,7) $(P.vertex10{createComponentOfType='point'}) (3,1) (5,0) (-5,-1)" />
+  <polygon name="P" vertices="$v4 (1,2) (3,4) $v7 (5,7) (-5,7) $v10 (3,1) (5,0) (-5,-1)" />
   </graph>
   
   `,
@@ -1820,415 +2009,673 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move first vertex
         A = [-4, -9];
 
-        await movePolygon({ name: "/P", pointCoords: { 0: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 0: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move second vertex
         B = [8, 9];
 
-        await movePolygon({ name: "/P", pointCoords: { 1: B }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 1: B },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move third vertex
         C = [-3, 7];
 
-        await movePolygon({ name: "/P", pointCoords: { 2: C }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 2: C },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move fourth vertex
         A = [7, 0];
 
-        await movePolygon({ name: "/P", pointCoords: { 3: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 3: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move fifth vertex
         D = [-9, 1];
 
-        await movePolygon({ name: "/P", pointCoords: { 4: D }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 4: D },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move sixth vertex
         E = [-3, 6];
 
-        await movePolygon({ name: "/P", pointCoords: { 5: E }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 5: E },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move seventh vertex
         A = [2, -4];
 
-        await movePolygon({ name: "/P", pointCoords: { 6: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 6: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move eighth vertex
         F = [6, 7];
 
-        await movePolygon({ name: "/P", pointCoords: { 7: F }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 7: F },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move ninth vertex
         G = [1, -8];
 
-        await movePolygon({ name: "/P", pointCoords: { 8: G }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 8: G },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move tenth vertex
         A = [-6, 10];
 
-        await movePolygon({ name: "/P", pointCoords: { 9: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 9: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
     });
 
     it("first, fourth, seventh vertex depends on shifted fourth, seventh, tenth", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <text>a</text>
   <graph>
-  <polygon name="P" vertices="($(P.vertexX4_1)+1,$(P.vertexX4_2)+1) (1,2) (3,4) ($(P.vertexX7_1)+1,$(P.vertexX7_2)+1) (5,7) (-5,7) ($(P.vertexX10_1)+1,$(P.vertexX10_2)+1) (3,1) (5,0) (-5,-1)" />
+  <polygon name="P" vertices="($P.vertex4[1]+1,$P.vertex4[2]+1) (1,2) (3,4) ($P.vertex7[1]+1,$P.vertex7[2]+1) (5,7) (-5,7) ($P.vertex10[1]+1,$P.vertex10[2]+1) (3,1) (5,0) (-5,-1)" />
   </graph>
-  $P.vertices{assignNames="p1 p2 p3 p4 p5 p6 p7 p8 p9 p10"}
   
   `,
         });
@@ -2246,34 +2693,54 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move first vertex
@@ -2282,112 +2749,184 @@ describe("Polygon tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await movePolygon({ name: "/P", pointCoords: { 0: A3 }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 0: A3 },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move second vertex
         B = [8, 9];
 
-        await movePolygon({ name: "/P", pointCoords: { 1: B }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 1: B },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move third vertex
         C = [-3, 7];
 
-        await movePolygon({ name: "/P", pointCoords: { 2: C }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 2: C },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move fourth vertex
@@ -2396,112 +2935,184 @@ describe("Polygon tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await movePolygon({ name: "/P", pointCoords: { 3: A2 }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 3: A2 },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move fifth vertex
         D = [-9, 1];
 
-        await movePolygon({ name: "/P", pointCoords: { 4: D }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 4: D },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move sixth vertex
         E = [-3, 6];
 
-        await movePolygon({ name: "/P", pointCoords: { 5: E }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 5: E },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move seventh vertex
@@ -2510,112 +3121,184 @@ describe("Polygon tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await movePolygon({ name: "/P", pointCoords: { 6: A1 }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 6: A1 },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move eighth vertex
         F = [6, 7];
 
-        await movePolygon({ name: "/P", pointCoords: { 7: F }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 7: F },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move ninth vertex
         G = [1, -8];
 
-        await movePolygon({ name: "/P", pointCoords: { 8: G }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 8: G },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
         // move tenth vertex
@@ -2624,43 +3307,67 @@ describe("Polygon tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await movePolygon({ name: "/P", pointCoords: { 9: A }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("P"),
+            pointCoords: { 9: A },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
-            stateVariables["/P"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
-            stateVariables["/P"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
-            stateVariables["/P"].stateValues.vertices[3].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
-            stateVariables["/P"].stateValues.vertices[4].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
-            stateVariables["/P"].stateValues.vertices[5].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
-            stateVariables["/P"].stateValues.vertices[6].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
-            stateVariables["/P"].stateValues.vertices[7].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
-            stateVariables["/P"].stateValues.vertices[8].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
-            stateVariables["/P"].stateValues.vertices[9].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("P")
+            ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
     });
 
     it("attract to polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <polygon vertices=" (3,5) (-4,-1) (5,2)" />
@@ -2683,23 +3390,31 @@ describe("Polygon tag tests", async () => {
         // point originally not attracted
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
-            "vector",
-            7,
-            8,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("_point1")].stateValues.coords
+                .tree,
+        ).eqls(["vector", 7, 8]);
 
         // move point near segment 1
         let x = 1;
         let mseg1 = (y2 - y1) / (x2 - x1);
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        let px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        let py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        let px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        let py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
 
@@ -2708,11 +3423,20 @@ describe("Polygon tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.4;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg2 * (px - x2) + y2, 1e-6);
 
@@ -2721,11 +3445,20 @@ describe("Polygon tag tests", async () => {
         let mseg3 = (y1 - y3) / (x1 - x3);
         y = mseg3 * (x - x3) + y3 + 0.2;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
 
@@ -2733,11 +3466,20 @@ describe("Polygon tag tests", async () => {
         x = x1 + 0.2;
         y = y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x1, 1e-6);
         expect(py).closeTo(y1, 1e-6);
@@ -2747,11 +3489,20 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -2760,11 +3511,20 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -2773,11 +3533,20 @@ describe("Polygon tag tests", async () => {
         x = x2 - 0.2;
         y = y2 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -2787,11 +3556,20 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -2800,11 +3578,20 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -2821,7 +3608,7 @@ describe("Polygon tag tests", async () => {
         y3 += moveY;
 
         await movePolygon({
-            name: "/_polygon1",
+            componentIdx: resolveComponentName("_polygon1"),
             pointCoords: [
                 [x1, y1],
                 [x2, y2],
@@ -2831,8 +3618,12 @@ describe("Polygon tag tests", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         mseg1 = (y2 - y1) / (x2 - x1);
 
@@ -2846,15 +3637,19 @@ describe("Polygon tag tests", async () => {
         y2 += moveY;
 
         await movePolygon({
-            name: "/_polygon1",
+            componentIdx: resolveComponentName("_polygon1"),
             pointCoords: { 1: [x2, y2] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         mseg2 = (y2 - y3) / (x2 - x3);
 
@@ -2862,7 +3657,7 @@ describe("Polygon tag tests", async () => {
     });
 
     it("constrain to polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <polygon vertices=" (3,5) (-4,-1) (5,2)" />
@@ -2885,23 +3680,31 @@ describe("Polygon tag tests", async () => {
         // point originally constrained
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
-            "vector",
-            x1,
-            y1,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("_point1")].stateValues.coords
+                .tree,
+        ).eqls(["vector", x1, y1]);
 
         // move point near segment 1
         let x = 1;
         let mseg1 = (y2 - y1) / (x2 - x1);
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        let px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        let py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        let px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        let py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
 
@@ -2910,11 +3713,20 @@ describe("Polygon tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.4;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg2 * (px - x2) + y2, 1e-6);
 
@@ -2924,11 +3736,20 @@ describe("Polygon tag tests", async () => {
         let mseg3 = (y1 - y3) / (x1 - x3);
         y = mseg3 * (x - x3) + y3 + 0.2;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
         expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
 
         // move point just past first vertex
@@ -2936,11 +3757,20 @@ describe("Polygon tag tests", async () => {
         x = x1 + 0.2;
         y = y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x1, 1e-6);
         expect(py).closeTo(y1, 1e-6);
@@ -2951,11 +3781,20 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x1, 1e-6);
         expect(py).closeTo(y1, 1e-6);
@@ -2963,11 +3802,20 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -2977,11 +3825,20 @@ describe("Polygon tag tests", async () => {
         x = x2 - 0.2;
         y = y2 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -2992,11 +3849,20 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x3, 1e-6);
         expect(py).closeTo(y3, 1e-6);
@@ -3005,11 +3871,20 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -3027,7 +3902,7 @@ describe("Polygon tag tests", async () => {
         y3 += moveY;
 
         await movePolygon({
-            name: "/_polygon1",
+            componentIdx: resolveComponentName("_polygon1"),
             pointCoords: [
                 [x1, y1],
                 [x2, y2],
@@ -3037,8 +3912,12 @@ describe("Polygon tag tests", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         mseg1 = (y2 - y1) / (x2 - x1);
 
@@ -3053,15 +3932,19 @@ describe("Polygon tag tests", async () => {
         y2 += moveY;
 
         await movePolygon({
-            name: "/_polygon1",
+            componentIdx: resolveComponentName("_polygon1"),
             pointCoords: { 1: [x2, y2] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         mseg2 = (y2 - y3) / (x2 - x3);
 
@@ -3069,7 +3952,7 @@ describe("Polygon tag tests", async () => {
     });
 
     it("constrain to polygon, different scales from graph", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
     <polygon vertices="(-50,-0.02) (-40,0.07) (70,0.06) (10,-0.01)" name="p" />
@@ -3097,8 +3980,10 @@ describe("Polygon tag tests", async () => {
 
         let mseg3 = (y4 - y3) / (x4 - x3);
 
-        let px = stateVariables["/A"].stateValues.xs[0].tree;
-        let py = stateVariables["/A"].stateValues.xs[1].tree;
+        let px =
+            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        let py =
+            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
 
         expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
 
@@ -3106,11 +3991,16 @@ describe("Polygon tag tests", async () => {
 
         let mseg1 = (y2 - y1) / (x2 - x1);
 
-        await movePoint({ name: `/A`, x: -20, y: 0.02, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`A`),
+            x: -20,
+            y: 0.02,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/A"].stateValues.xs[0].tree;
-        py = stateVariables["/A"].stateValues.xs[1].tree;
+        px = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        py = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
 
         expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
 
@@ -3118,11 +4008,16 @@ describe("Polygon tag tests", async () => {
 
         let mseg2 = (y2 - y3) / (x2 - x3);
 
-        await movePoint({ name: `/A`, x: 0, y: 0.04, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`A`),
+            x: 0,
+            y: 0.04,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/A"].stateValues.xs[0].tree;
-        py = stateVariables["/A"].stateValues.xs[1].tree;
+        px = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        py = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
 
         expect(py).closeTo(mseg2 * (px - x2) + y2, 1e-6);
 
@@ -3130,17 +4025,22 @@ describe("Polygon tag tests", async () => {
 
         let mseg4 = (y4 - y1) / (x4 - x1);
 
-        await movePoint({ name: `/A`, x: -10, y: 0.02, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`A`),
+            x: -10,
+            y: 0.02,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/A"].stateValues.xs[0].tree;
-        py = stateVariables["/A"].stateValues.xs[1].tree;
+        px = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+        py = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
 
         expect(py).closeTo(mseg4 * (px - x4) + y4, 1e-6);
     });
 
     it("constrain to interior of polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <polygon vertices=" (3,5) (-4,-1) (5,2)" filled />
@@ -3161,11 +4061,10 @@ describe("Polygon tag tests", async () => {
             y3 = 2;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
-            "vector",
-            x1,
-            y1,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("_point1")].stateValues.coords
+                .tree,
+        ).eqls(["vector", x1, y1]);
 
         // move point near segment 1, outside polygon
 
@@ -3173,12 +4072,21 @@ describe("Polygon tag tests", async () => {
         let mseg1 = (y2 - y1) / (x2 - x1);
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        let px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        let py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        let px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        let py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
 
@@ -3187,11 +4095,20 @@ describe("Polygon tag tests", async () => {
         x = 3;
         y = 1.5;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(3, 1e-12);
         expect(py).closeTo(1.5, 1e-12);
@@ -3202,11 +4119,20 @@ describe("Polygon tag tests", async () => {
         let mseg3 = (y1 - y3) / (x1 - x3);
         y = mseg3 * (x - x3) + y3 + 0.2;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
 
@@ -3215,11 +4141,20 @@ describe("Polygon tag tests", async () => {
         x = x1 + 0.2;
         y = y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x1, 1e-6);
         expect(py).closeTo(y1, 1e-6);
@@ -3230,11 +4165,20 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x1, 1e-6);
         expect(py).closeTo(y1, 1e-6);
@@ -3243,11 +4187,20 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -3257,11 +4210,20 @@ describe("Polygon tag tests", async () => {
         x = x2 - 0.2;
         y = y2 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -3272,11 +4234,20 @@ describe("Polygon tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x3, 1e-6);
         expect(py).closeTo(y3, 1e-6);
@@ -3288,11 +4259,20 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 - 0.3;
 
-        await movePoint({ name: `/_point1`, x, y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`_point1`),
+            x,
+            y,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -3314,7 +4294,7 @@ describe("Polygon tag tests", async () => {
         y3 += moveY;
 
         await movePolygon({
-            name: "/_polygon1",
+            componentIdx: resolveComponentName("_polygon1"),
             pointCoords: [
                 [x1, y1],
                 [x2, y2],
@@ -3324,8 +4304,12 @@ describe("Polygon tag tests", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         mseg1 = (y2 - y1) / (x2 - x1);
 
@@ -3340,15 +4324,19 @@ describe("Polygon tag tests", async () => {
         y2 += moveY;
 
         await movePolygon({
-            name: "/_polygon1",
+            componentIdx: resolveComponentName("_polygon1"),
             pointCoords: { 1: [x2, y2] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         mseg2 = (y2 - y3) / (x2 - x3);
 
@@ -3360,15 +4348,19 @@ describe("Polygon tag tests", async () => {
         y3 = -6;
 
         await movePolygon({
-            name: "/_polygon1",
+            componentIdx: resolveComponentName("_polygon1"),
             pointCoords: { 2: [x3, y3] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables["/_point1"].stateValues.xs[0].tree;
-        py = stateVariables["/_point1"].stateValues.xs[1].tree;
+        px =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
+                .tree;
 
         // point moves to coordinates where last moved the point
         expect(px).closeTo(xsave, 1e-6);
@@ -3376,7 +4368,7 @@ describe("Polygon tag tests", async () => {
     });
 
     it("constrain to interior of non-simple polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <polygon vertices="(2,0) (8,0) (8,8) (0,8) (0,4) (6,4) (6,2) (4,2) (4,6) (2,6)" filled name="pg" />
@@ -3392,45 +4384,62 @@ describe("Polygon tag tests", async () => {
         // point originally in interior
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let px = stateVariables["/P"].stateValues.xs[0].tree;
-        let py = stateVariables["/P"].stateValues.xs[1].tree;
+        let px =
+            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        let py =
+            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(px).closeTo(7, 1e-12);
         expect(py).closeTo(6, 1e-12);
 
         // move point above polygon
 
-        await movePoint({ name: `/P`, x: 3, y: 10, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P`),
+            x: 3,
+            y: 10,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables["/P"].stateValues.xs[0].tree;
-        py = stateVariables["/P"].stateValues.xs[1].tree;
+        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(px).closeTo(3, 1e-12);
         expect(py).closeTo(8, 1e-12);
 
         // move point inside doubly wound region
 
-        await movePoint({ name: `/P`, x: 3, y: 5, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P`),
+            x: 3,
+            y: 5,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/P"].stateValues.xs[0].tree;
-        py = stateVariables["/P"].stateValues.xs[1].tree;
+        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(px).closeTo(3, 1e-12);
         expect(py).closeTo(5, 1e-12);
 
         // attempt to move point inside zero wound region
 
-        await movePoint({ name: `/P`, x: 4.9, y: 3, core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P`),
+            x: 4.9,
+            y: 3,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables["/P"].stateValues.xs[0].tree;
-        py = stateVariables["/P"].stateValues.xs[1].tree;
+        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(px).closeTo(4, 1e-12);
         expect(py).closeTo(3, 1e-12);
     });
 
     it("fixed polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <polygon vertices="(1,3) (5,7) (-2,6)" name="p" fixed />
@@ -3440,20 +4449,28 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
-        expect(stateVariables["/p"].stateValues.fixed).eq(true);
+        expect(stateVariables[resolveComponentName("p")].stateValues.fixed).eq(
+            true,
+        );
 
         // cannot move vertices
 
         await movePolygon({
-            name: "/p",
+            componentIdx: resolveComponentName("p"),
             pointCoords: [
                 [4, 7],
                 [8, 10],
@@ -3464,18 +4481,24 @@ describe("Polygon tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
     });
 
     it("copy propIndex of vertices, dot and array notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <text>a</text>
     <graph>
@@ -3484,11 +4507,11 @@ describe("Polygon tag tests", async () => {
  
     <p><mathInput name="n" /></p>
 
-    <p>$pl.vertices[$n]{assignNames="P1 P2 P3"}</p>
+    <p><pointList extend="$pl.vertices[$n]" name="Ps" /></p>
 
-    <p>$pl.vertex2[$n]{assignNames="x"}</p>
+    <p><mathList extend="$pl.vertex2[$n]" name="x" /></p>
 
-    <p>$pl.vertices[2][$n]{assignNames="xa"}</p>
+    <p><mathList extend="$pl.vertices[2][$n]" name="xa" /></p>
     `,
         });
 
@@ -3501,60 +4524,89 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/P1"]).eq(undefined);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"]).eq(undefined);
-        expect(stateVariables["/xa"]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
 
-        await updateMathInputValue({ latex: "1", name: "/n", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
-            t1x,
-            t1y,
-        ]);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"].stateValues.value.tree).eq(t2x);
-        expect(stateVariables["/xa"].stateValues.value.tree).eq(t2x);
+        expect(
+            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
+                (x) => x.tree,
+            ),
+        ).eqls([t1x, t1y]);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(
+            stateVariables[resolveComponentName("x[1]")].stateValues.value.tree,
+        ).eq(t2x);
+        expect(
+            stateVariables[resolveComponentName("xa[1]")].stateValues.value
+                .tree,
+        ).eq(t2x);
 
-        await updateMathInputValue({ latex: "2", name: "/n", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
-            t2x,
-            t2y,
-        ]);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"].stateValues.value.tree).eq(t2y);
-        expect(stateVariables["/xa"].stateValues.value.tree).eq(t2y);
+        expect(
+            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
+                (x) => x.tree,
+            ),
+        ).eqls([t2x, t2y]);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(
+            stateVariables[resolveComponentName("x[1]")].stateValues.value.tree,
+        ).eq(t2y);
+        expect(
+            stateVariables[resolveComponentName("xa[1]")].stateValues.value
+                .tree,
+        ).eq(t2y);
 
-        await updateMathInputValue({ latex: "3", name: "/n", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
-            t3x,
-            t3y,
-        ]);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"]).eq(undefined);
-        expect(stateVariables["/xa"]).eq(undefined);
+        expect(
+            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
+                (x) => x.tree,
+            ),
+        ).eqls([t3x, t3y]);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
 
-        await updateMathInputValue({ latex: "4", name: "/n", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/P1"]).eq(undefined);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"]).eq(undefined);
-        expect(stateVariables["/xa"]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
     });
 
     it("polygon from vector operations", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <math name="m" fixed>(-3,2)</math>
     <graph>
@@ -3568,9 +4620,9 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/polygon"].stateValues.vertices.map((x) =>
-                x.map((y) => y.tree),
-            ),
+            stateVariables[
+                resolveComponentName("polygon")
+            ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [7, -2],
             [6, 3],
@@ -3578,16 +4630,16 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/polygon",
+            componentIdx: resolveComponentName("polygon"),
             pointCoords: { 0: [3, 5] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/polygon"].stateValues.vertices.map((x) =>
-                x.map((y) => y.tree),
-            ),
+            stateVariables[
+                resolveComponentName("polygon")
+            ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
             [6, 3],
@@ -3595,16 +4647,16 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/polygon",
+            componentIdx: resolveComponentName("polygon"),
             pointCoords: { 1: [-9, -6] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/polygon"].stateValues.vertices.map((x) =>
-                x.map((y) => y.tree),
-            ),
+            stateVariables[
+                resolveComponentName("polygon")
+            ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
             [-9, -6],
@@ -3612,16 +4664,16 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/polygon",
+            componentIdx: resolveComponentName("polygon"),
             pointCoords: { 2: [-3, 1] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/polygon"].stateValues.vertices.map((x) =>
-                x.map((y) => y.tree),
-            ),
+            stateVariables[
+                resolveComponentName("polygon")
+            ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
             [9, -9],
@@ -3630,7 +4682,7 @@ describe("Polygon tag tests", async () => {
     });
 
     it("polygon from vector operations, create individual vectors", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <math name="m" fixed>(-3,2)</math>
     <graph>
@@ -3647,9 +4699,9 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/polygon"].stateValues.vertices.map((x) =>
-                x.map((y) => y.tree),
-            ),
+            stateVariables[
+                resolveComponentName("polygon")
+            ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [7, -2],
             [6, 3],
@@ -3657,16 +4709,16 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/polygon",
+            componentIdx: resolveComponentName("polygon"),
             pointCoords: { 0: [3, 5] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/polygon"].stateValues.vertices.map((x) =>
-                x.map((y) => y.tree),
-            ),
+            stateVariables[
+                resolveComponentName("polygon")
+            ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
             [6, 3],
@@ -3674,16 +4726,16 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/polygon",
+            componentIdx: resolveComponentName("polygon"),
             pointCoords: { 1: [-9, -6] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/polygon"].stateValues.vertices.map((x) =>
-                x.map((y) => y.tree),
-            ),
+            stateVariables[
+                resolveComponentName("polygon")
+            ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
             [-9, -6],
@@ -3691,16 +4743,16 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/polygon",
+            componentIdx: resolveComponentName("polygon"),
             pointCoords: { 2: [-3, 1] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/polygon"].stateValues.vertices.map((x) =>
-                x.map((y) => y.tree),
-            ),
+            stateVariables[
+                resolveComponentName("polygon")
+            ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
             [9, -9],
@@ -3709,7 +4761,7 @@ describe("Polygon tag tests", async () => {
     });
 
     it("changing styles", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <text>a</text>
     <setup>
@@ -3735,30 +4787,30 @@ describe("Polygon tag tests", async () => {
 
     </graph>
 
-    <p>First polygon is $p1.styleDescription{assignNames="st1"}.  It is a $p1.styleDescriptionWithNoun{assignNames="stn1"}. 
-      Its border is $p1.borderStyleDescription{assignNames="bst1"}.  Its fill is $p1.fillStyleDescription{assignNames="fst1"}.
+    <p>First polygon is <text extend="$p1.styleDescription" name="st1" />.  It is a <text extend="$p1.styleDescriptionWithNoun" name="stn1" />. 
+      Its border is <text extend="$p1.borderStyleDescription" name="bst1" />.  Its fill is <text extend="$p1.fillStyleDescription" name="fst1" />.
     </p>
-    <p>Second polygon is $p2.styleDescription{assignNames="st2"}.  It is a $p2.styleDescriptionWithNoun{assignNames="stn2"}. 
-      Its border is $p2.borderStyleDescription{assignNames="bst2"}.  Its fill is $p2.fillStyleDescription{assignNames="fst2"}.
+    <p>Second polygon is <text extend="$p2.styleDescription" name="st2" />.  It is a <text extend="$p2.styleDescriptionWithNoun" name="stn2" />. 
+      Its border is <text extend="$p2.borderStyleDescription" name="bst2" />.  Its fill is <text extend="$p2.fillStyleDescription" name="fst2" />.
     </p>
-    <p>Third polygon is $p3.styleDescription{assignNames="st3"}.  It is a $p3.styleDescriptionWithNoun{assignNames="stn3"}. 
-      Its border is $p3.borderStyleDescription{assignNames="bst3"}.  Its fill is $p3.fillStyleDescription{assignNames="fst3"}.
+    <p>Third polygon is <text extend="$p3.styleDescription" name="st3" />.  It is a <text extend="$p3.styleDescriptionWithNoun" name="stn3" />. 
+      Its border is <text extend="$p3.borderStyleDescription" name="bst3" />.  Its fill is <text extend="$p3.fillStyleDescription" name="fst3" />.
     </p>
-    <p>Fourth polygon is $p4.styleDescription{assignNames="st4"}.  It is a $p4.styleDescriptionWithNoun{assignNames="stn4"}. 
-      Its border is $p4.borderStyleDescription{assignNames="bst4"}.  Its fill is $p4.fillStyleDescription{assignNames="fst4"}.
+    <p>Fourth polygon is <text extend="$p4.styleDescription" name="st4" />.  It is a <text extend="$p4.styleDescriptionWithNoun" name="stn4" />. 
+      Its border is <text extend="$p4.borderStyleDescription" name="bst4" />.  Its fill is <text extend="$p4.fillStyleDescription" name="fst4" />.
     </p>
 
-    <p>Fifth polygon is $p5.styleDescription{assignNames="st5"}.  It is a $p5.styleDescriptionWithNoun{assignNames="stn5"}. 
-      Its border is $p5.borderStyleDescription{assignNames="bst5"}.  Its fill is $p5.fillStyleDescription{assignNames="fst5"}.
+    <p>Fifth polygon is <text extend="$p5.styleDescription" name="st5" />.  It is a <text extend="$p5.styleDescriptionWithNoun" name="stn5" />. 
+      Its border is <text extend="$p5.borderStyleDescription" name="bst5" />.  Its fill is <text extend="$p5.fillStyleDescription" name="fst5" />.
     </p>
-    <p>Sixth polygon is $p6.styleDescription{assignNames="st6"}.  It is a $p6.styleDescriptionWithNoun{assignNames="stn6"}. 
-      Its border is $p6.borderStyleDescription{assignNames="bst6"}.  Its fill is $p6.fillStyleDescription{assignNames="fst6"}.
+    <p>Sixth polygon is <text extend="$p6.styleDescription" name="st6" />.  It is a <text extend="$p6.styleDescriptionWithNoun" name="stn6" />. 
+      Its border is <text extend="$p6.borderStyleDescription" name="bst6" />.  Its fill is <text extend="$p6.fillStyleDescription" name="fst6" />.
     </p>
-    <p>Seventh polygon is $p7.styleDescription{assignNames="st7"}.  It is a $p7.styleDescriptionWithNoun{assignNames="stn7"}. 
-      Its border is $p7.borderStyleDescription{assignNames="bst7"}.  Its fill is $p7.fillStyleDescription{assignNames="fst7"}.
+    <p>Seventh polygon is <text extend="$p7.styleDescription" name="st7" />.  It is a <text extend="$p7.styleDescriptionWithNoun" name="stn7" />. 
+      Its border is <text extend="$p7.borderStyleDescription" name="bst7" />.  Its fill is <text extend="$p7.fillStyleDescription" name="fst7" />.
     </p>
-    <p>Eighth polygon is $p8.styleDescription{assignNames="st8"}.  It is a $p8.styleDescriptionWithNoun{assignNames="stn8"}. 
-      Its border is $p8.borderStyleDescription{assignNames="bst8"}.  Its fill is $p8.fillStyleDescription{assignNames="fst8"}.
+    <p>Eighth polygon is <text extend="$p8.styleDescription" name="st8" />.  It is a <text extend="$p8.styleDescriptionWithNoun" name="stn8" />. 
+      Its border is <text extend="$p8.borderStyleDescription" name="bst8" />.  Its fill is <text extend="$p8.fillStyleDescription" name="fst8" />.
     </p>
 
 
@@ -3767,110 +4819,182 @@ describe("Polygon tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/st1"].stateValues.text).eq("blue");
-        expect(stateVariables["/stn1"].stateValues.text).eq("blue polygon");
-        expect(stateVariables["/bst1"].stateValues.text).eq("blue");
-        expect(stateVariables["/fst1"].stateValues.text).eq("unfilled");
-
-        expect(stateVariables["/st2"].stateValues.text).eq("filled blue");
-        expect(stateVariables["/stn2"].stateValues.text).eq(
-            "filled blue polygon",
+        expect(stateVariables[resolveComponentName("st1")].stateValues.text).eq(
+            "blue",
         );
-        expect(stateVariables["/bst2"].stateValues.text).eq("blue");
-        expect(stateVariables["/fst2"].stateValues.text).eq("blue");
+        expect(
+            stateVariables[resolveComponentName("stn1")].stateValues.text,
+        ).eq("blue polygon");
+        expect(
+            stateVariables[resolveComponentName("bst1")].stateValues.text,
+        ).eq("blue");
+        expect(
+            stateVariables[resolveComponentName("fst1")].stateValues.text,
+        ).eq("unfilled");
 
-        expect(stateVariables["/st3"].stateValues.text).eq("red");
-        expect(stateVariables["/stn3"].stateValues.text).eq("red polygon");
-        expect(stateVariables["/bst3"].stateValues.text).eq("red");
-        expect(stateVariables["/fst3"].stateValues.text).eq("unfilled");
+        expect(stateVariables[resolveComponentName("st2")].stateValues.text).eq(
+            "filled blue",
+        );
+        expect(
+            stateVariables[resolveComponentName("stn2")].stateValues.text,
+        ).eq("filled blue polygon");
+        expect(
+            stateVariables[resolveComponentName("bst2")].stateValues.text,
+        ).eq("blue");
+        expect(
+            stateVariables[resolveComponentName("fst2")].stateValues.text,
+        ).eq("blue");
 
-        expect(stateVariables["/st4"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("st3")].stateValues.text).eq(
+            "red",
+        );
+        expect(
+            stateVariables[resolveComponentName("stn3")].stateValues.text,
+        ).eq("red polygon");
+        expect(
+            stateVariables[resolveComponentName("bst3")].stateValues.text,
+        ).eq("red");
+        expect(
+            stateVariables[resolveComponentName("fst3")].stateValues.text,
+        ).eq("unfilled");
+
+        expect(stateVariables[resolveComponentName("st4")].stateValues.text).eq(
             "filled green with red border",
         );
-        expect(stateVariables["/stn4"].stateValues.text).eq(
-            "filled green polygon with a red border",
-        );
-        expect(stateVariables["/bst4"].stateValues.text).eq("red");
-        expect(stateVariables["/fst4"].stateValues.text).eq("green");
+        expect(
+            stateVariables[resolveComponentName("stn4")].stateValues.text,
+        ).eq("filled green polygon with a red border");
+        expect(
+            stateVariables[resolveComponentName("bst4")].stateValues.text,
+        ).eq("red");
+        expect(
+            stateVariables[resolveComponentName("fst4")].stateValues.text,
+        ).eq("green");
 
-        expect(stateVariables["/st5"].stateValues.text).eq("thick blue");
-        expect(stateVariables["/stn5"].stateValues.text).eq(
-            "thick blue polygon",
+        expect(stateVariables[resolveComponentName("st5")].stateValues.text).eq(
+            "thick blue",
         );
-        expect(stateVariables["/bst5"].stateValues.text).eq("thick blue");
-        expect(stateVariables["/fst5"].stateValues.text).eq("unfilled");
+        expect(
+            stateVariables[resolveComponentName("stn5")].stateValues.text,
+        ).eq("thick blue polygon");
+        expect(
+            stateVariables[resolveComponentName("bst5")].stateValues.text,
+        ).eq("thick blue");
+        expect(
+            stateVariables[resolveComponentName("fst5")].stateValues.text,
+        ).eq("unfilled");
 
-        expect(stateVariables["/st6"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("st6")].stateValues.text).eq(
             "filled blue with thick border",
         );
-        expect(stateVariables["/stn6"].stateValues.text).eq(
-            "filled blue polygon with a thick border",
-        );
-        expect(stateVariables["/bst6"].stateValues.text).eq("thick blue");
-        expect(stateVariables["/fst6"].stateValues.text).eq("blue");
+        expect(
+            stateVariables[resolveComponentName("stn6")].stateValues.text,
+        ).eq("filled blue polygon with a thick border");
+        expect(
+            stateVariables[resolveComponentName("bst6")].stateValues.text,
+        ).eq("thick blue");
+        expect(
+            stateVariables[resolveComponentName("fst6")].stateValues.text,
+        ).eq("blue");
 
-        expect(stateVariables["/st7"].stateValues.text).eq("thin dotted red");
-        expect(stateVariables["/stn7"].stateValues.text).eq(
-            "thin dotted red polygon",
+        expect(stateVariables[resolveComponentName("st7")].stateValues.text).eq(
+            "thin dotted red",
         );
-        expect(stateVariables["/bst7"].stateValues.text).eq("thin dotted red");
-        expect(stateVariables["/fst7"].stateValues.text).eq("unfilled");
+        expect(
+            stateVariables[resolveComponentName("stn7")].stateValues.text,
+        ).eq("thin dotted red polygon");
+        expect(
+            stateVariables[resolveComponentName("bst7")].stateValues.text,
+        ).eq("thin dotted red");
+        expect(
+            stateVariables[resolveComponentName("fst7")].stateValues.text,
+        ).eq("unfilled");
 
-        expect(stateVariables["/st8"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("st8")].stateValues.text).eq(
             "filled green with thin dotted red border",
         );
-        expect(stateVariables["/stn8"].stateValues.text).eq(
-            "filled green polygon with a thin dotted red border",
-        );
-        expect(stateVariables["/bst8"].stateValues.text).eq("thin dotted red");
-        expect(stateVariables["/fst8"].stateValues.text).eq("green");
+        expect(
+            stateVariables[resolveComponentName("stn8")].stateValues.text,
+        ).eq("filled green polygon with a thin dotted red border");
+        expect(
+            stateVariables[resolveComponentName("bst8")].stateValues.text,
+        ).eq("thin dotted red");
+        expect(
+            stateVariables[resolveComponentName("fst8")].stateValues.text,
+        ).eq("green");
     });
 
     it("draggable, vertices draggable", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <polygon vertices="(1,3) (5,7) (-2,6)" name="p" draggable="$draggable" verticesDraggable="$verticesDraggable" />
   </graph>
-  <p>draggable: <booleaninput name="draggable" /> <boolean copySource="p.draggable" name="d2" /></p>
-  <p>vertices draggable: <booleaninput name="verticesDraggable" /> <boolean copySource="p.verticesDraggable" name="vd2" /></p>
+  <p>draggable: <booleanInput name="draggable" /> <boolean extend="$p.draggable" name="d2" /></p>
+  <p>vertices draggable: <booleanInput name="verticesDraggable" /> <boolean extend="$p.verticesDraggable" name="vd2" /></p>
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(false);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(false);
 
         // cannot move single vertex
 
-        await movePolygon({ name: "/p", pointCoords: { 0: [4, 7] }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("p"),
+            pointCoords: { 0: [4, 7] },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(false);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(false);
 
         // cannot move all vertices
 
         await movePolygon({
-            name: "/p",
+            componentIdx: resolveComponentName("p"),
             pointCoords: [
                 [4, 7],
                 [8, 10],
@@ -3881,46 +5005,72 @@ describe("Polygon tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(false);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(false);
 
         // only vertices draggable
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/verticesDraggable",
+            componentIdx: resolveComponentName("verticesDraggable"),
             core,
         });
 
         // can move single vertex
 
-        await movePolygon({ name: "/p", pointCoords: { 0: [4, 7] }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("p"),
+            pointCoords: { 0: [4, 7] },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(false);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(true);
 
         // cannot move all vertices
 
         await movePolygon({
-            name: "/p",
+            componentIdx: resolveComponentName("p"),
             pointCoords: [
                 [3, 8],
                 [8, 10],
@@ -3931,46 +5081,72 @@ describe("Polygon tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(false);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(true);
 
         // vertices and polygon draggable
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/draggable",
+            componentIdx: resolveComponentName("draggable"),
             core,
         });
 
         // can move single vertex
 
-        await movePolygon({ name: "/p", pointCoords: { 1: [-3, 2] }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("p"),
+            pointCoords: { 1: [-3, 2] },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([-3, 2]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(true);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(true);
 
         // can move all vertices
 
         await movePolygon({
-            name: "/p",
+            componentIdx: resolveComponentName("p"),
             pointCoords: [
                 [3, 8],
                 [8, 10],
@@ -3981,46 +5157,72 @@ describe("Polygon tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([3, 8]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([8, 10]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([1, 9]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(true);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(true);
 
         // polygon but not vertices draggable
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/verticesDraggable",
+            componentIdx: resolveComponentName("verticesDraggable"),
             core,
         });
 
         // cannot move single vertex
 
-        await movePolygon({ name: "/p", pointCoords: { 2: [9, 3] }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("p"),
+            pointCoords: { 2: [9, 3] },
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([3, 8]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([8, 10]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([1, 9]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(true);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(false);
 
         // can move all vertices
 
         await movePolygon({
-            name: "/p",
+            componentIdx: resolveComponentName("p"),
             pointCoords: [
                 [-4, 1],
                 [9, -4],
@@ -4031,22 +5233,33 @@ describe("Polygon tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([-4, 1]);
         expect(
-            stateVariables["/p"].stateValues.vertices[1].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([9, -4]);
         expect(
-            stateVariables["/p"].stateValues.vertices[2].map((x) => x.tree),
+            stateVariables[
+                resolveComponentName("p")
+            ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([0, 7]);
-        expect(stateVariables["/p"].stateValues.draggable).eq(true);
-        expect(stateVariables["/p"].stateValues.verticesDraggable).eq(false);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.draggable,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues
+                .verticesDraggable,
+        ).eq(false);
     });
 
     it("One vertex constrained to grid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,5)</point>
     <point>(-4,-1)</point>
     <point>(5,2)
@@ -4057,10 +5270,10 @@ describe("Polygon tag tests", async () => {
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -4071,19 +5284,19 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move individual vertex
 
         vertices[1] = [4, 7];
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move copied polygon up and to the right
 
@@ -4095,7 +5308,11 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4105,7 +5322,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // try to move double copied polygon down and to the right
 
@@ -4117,7 +5334,11 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await movePolygon({ name: "/g3/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g3.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4127,13 +5348,13 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
     it("Two vertices constrained to same grid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,5)
       <constraints>
         <constrainToGrid dx="3" dy="4" />
@@ -4148,10 +5369,10 @@ describe("Polygon tag tests", async () => {
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -4162,19 +5383,19 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move individual vertex
 
         vertices[1] = [4, 7];
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move copied polygon up and to the right
 
@@ -4186,7 +5407,11 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4196,7 +5421,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // try to move double copied polygon down and to the right
 
@@ -4208,7 +5433,11 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await movePolygon({ name: "/g3/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g3.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4218,13 +5447,13 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
     it("Three vertices constrained to same grid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,5)
       <constraints>
         <constrainToGrid dx="3" dy="4" />
@@ -4243,10 +5472,10 @@ describe("Polygon tag tests", async () => {
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -4257,14 +5486,14 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move individual vertex
 
         vertices[1] = [4, 7];
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
@@ -4272,7 +5501,7 @@ describe("Polygon tag tests", async () => {
         // adjust for constraint
         vertices[1] = [3, 8];
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // move copied polygon up and to the right
 
@@ -4284,7 +5513,11 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g2.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4294,7 +5527,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
 
         // try to move double copied polygon down and to the right
 
@@ -4306,7 +5539,11 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await movePolygon({ name: "/g3/pg", pointCoords: vertices, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("g3.pg"),
+            pointCoords: vertices,
+            core,
+        });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4316,22 +5553,22 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolygonCopiedTwice({ core, vertices });
+        await testPolygonCopiedTwice({ core, resolveComponentName, vertices });
     });
 
     it("Two vertices fixed, handle rounding error from third calculated vertex", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point fixed>(1,2)</point>
     <point>(-1,-1)</point>
     <point fixed>(5,2)</point>
     <polygon vertices="$_point1 3$_point2 $_point3" name="pg" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
 
   `,
         });
@@ -4342,7 +5579,7 @@ describe("Polygon tag tests", async () => {
             [5, 2],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // try to move polygon where calculated vertex can't be represented exactly
 
@@ -4367,16 +5604,16 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: desiredVertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("handle bad vertices", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
       <polygon vertices="A" name="pl" />
@@ -4386,17 +5623,17 @@ describe("Polygon tag tests", async () => {
 
         // document is created
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pl"]).not.eq(undefined);
+        expect(stateVariables[resolveComponentName("pl")]).not.eq(undefined);
     });
 
     it("area and perimeter", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
       <polygon vertices="(0,0) (5,0) (6,1) (5,2) (0,10)" name="p" />
     </graph>
-    <p>Area: <number copySource="p.area" name="area" /></p>
-    <p>Perimeter: <number copySource="p.perimeter" name="perimeter" /></p>
+    <p>Area: <number extend="$p.area" name="area" /></p>
+    <p>Perimeter: <number extend="$p.perimeter" name="perimeter" /></p>
     `,
         });
 
@@ -4404,53 +5641,85 @@ describe("Polygon tag tests", async () => {
         let perimeter = 5 + 2 * Math.sqrt(2) + Math.sqrt(25 + 64) + 10;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/area"].stateValues.value).eq(area);
-        expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
+        expect(
+            stateVariables[resolveComponentName("area")].stateValues.value,
+        ).eq(area);
+        expect(
+            stateVariables[resolveComponentName("perimeter")].stateValues.value,
+        ).eq(perimeter);
 
-        await movePolygon({ name: "/p", pointCoords: { 1: [-8, -4] }, core });
-        await movePolygon({ name: "/p", pointCoords: { 2: [-8, 2] }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("p"),
+            pointCoords: { 1: [-8, -4] },
+            core,
+        });
+        await movePolygon({
+            componentIdx: resolveComponentName("p"),
+            pointCoords: { 2: [-8, 2] },
+            core,
+        });
 
         area = 2 * 8 + (4 * 8) / 2 - (5 * 8) / 2;
         perimeter = 13 + 6 + Math.sqrt(16 + 64) + 10 + Math.sqrt(25 + 64);
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/area"].stateValues.value).eq(area);
-        expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
+        expect(
+            stateVariables[resolveComponentName("area")].stateValues.value,
+        ).eq(area);
+        expect(
+            stateVariables[resolveComponentName("perimeter")].stateValues.value,
+        ).eq(perimeter);
 
-        await movePolygon({ name: "/p", pointCoords: { 3: [8, 2] }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("p"),
+            pointCoords: { 3: [8, 2] },
+            core,
+        });
 
         area = 0;
         perimeter = 16 + 6 + Math.sqrt(16 + 64) + 10 + Math.sqrt(64 + 64);
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/area"].stateValues.value).eq(area);
-        expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
+        expect(
+            stateVariables[resolveComponentName("area")].stateValues.value,
+        ).eq(area);
+        expect(
+            stateVariables[resolveComponentName("perimeter")].stateValues.value,
+        ).eq(perimeter);
 
-        await movePolygon({ name: "/p", pointCoords: { 0: [0, 2] }, core });
+        await movePolygon({
+            componentIdx: resolveComponentName("p"),
+            pointCoords: { 0: [0, 2] },
+            core,
+        });
 
         area = (8 * 8) / 2 - (8 * 6) / 2;
         perimeter = 16 + 6 + Math.sqrt(36 + 64) + 8 + Math.sqrt(64 + 64);
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/area"].stateValues.value).eq(area);
-        expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
+        expect(
+            stateVariables[resolveComponentName("area")].stateValues.value,
+        ).eq(area);
+        expect(
+            stateVariables[resolveComponentName("perimeter")].stateValues.value,
+        ).eq(perimeter);
     });
 
     it("Rigid polygon", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" rigid />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -4461,7 +5730,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         let centroid = vertices.reduce(
             (a, c) => [a[0] + c[0], a[1] + c[1]],
@@ -4482,12 +5751,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to the right choosminimum moved");
         let moveX = 3;
@@ -4505,12 +5774,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex, gettirotation");
         centroid = vertices.reduce(
@@ -4532,12 +5801,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving single copied vertex gets rotation
         centroid = vertices.reduce(
@@ -4559,42 +5828,42 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Preserve similarity", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -4605,7 +5874,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex rotates and dilates
         let centroid = vertices.reduce(
@@ -4627,12 +5896,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to the right choosminimum moved");
         let moveX = 3;
@@ -4650,12 +5919,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex, getting rotation and dilation
 
@@ -4678,12 +5947,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving single copied vertex gets rotation adilation");
         centroid = vertices.reduce(
@@ -4705,42 +5974,42 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Preserve similarity and don't allow dilation equals rigid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowDilation="false" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -4751,7 +6020,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex rotates
         let centroid = vertices.reduce(
@@ -4773,12 +6042,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to the right choosminimum moved");
         let moveX = 3;
@@ -4796,29 +6065,29 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Rigid supersedes setting preserveSimilarity to false or allowDilation to true", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity="false" rigid allowDilation="true" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -4829,7 +6098,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex rotates
         let centroid = vertices.reduce(
@@ -4851,12 +6120,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to the right choosminimum moved");
         let moveX = 3;
@@ -4874,29 +6143,29 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Don't allow rotation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowRotation="false" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -4907,7 +6176,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex only dilates
         let centroid = vertices.reduce(
@@ -4939,12 +6208,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to the right choosminimum moved");
         let moveX = 3;
@@ -4962,12 +6231,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex, attempting to rotation 90 degrees shrinks to minimum
 
@@ -4998,12 +6267,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving single copied vertex to dilate
         centroid = vertices.reduce(
@@ -5035,42 +6304,42 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Don't allow rotation, large minShrink", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowRotation="false" minShrink="2" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -5081,7 +6350,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex only dilates
         let centroid = vertices.reduce(
@@ -5113,12 +6382,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to the right chooses minimum moved
         let moveX = 3;
@@ -5136,12 +6405,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex, attempting to rotation 90 degrees shrinks to minimum
 
@@ -5172,12 +6441,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving single copied vertex to dilate
         centroid = vertices.reduce(
@@ -5209,42 +6478,42 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Don't allow translation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowTranslation="false" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -5255,7 +6524,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex rotates and dilates
         let centroid = vertices.reduce(
@@ -5277,12 +6546,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up does not move
         let moveX = 3;
@@ -5298,12 +6567,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex, getting rotation and dilation
 
@@ -5326,12 +6595,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving single copied vertex gets rotation adilation");
         centroid = vertices.reduce(
@@ -5353,42 +6622,42 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Only translation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowRotation="false" allowDilation="false" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -5399,7 +6668,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex translates
         let moveX = -1;
@@ -5415,12 +6684,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to right
         moveX = 3;
@@ -5438,12 +6707,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex, getting translation
         moveX = -8;
@@ -5459,12 +6728,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving single copied vertex gets translation
         moveX = 2;
@@ -5480,42 +6749,42 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Don't allow any transformations", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowTranslation="false" allowRotation="false" allowDilation="false" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -5526,7 +6795,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex doesn't move
         let centroid = vertices.reduce(
@@ -5545,12 +6814,12 @@ describe("Polygon tag tests", async () => {
         ];
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 1: requested_vertex_1 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up does not move
         let moveX = 3;
@@ -5566,12 +6835,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex doesn't move
         centroid = vertices.reduce(
@@ -5590,12 +6859,12 @@ describe("Polygon tag tests", async () => {
         ];
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving single copied vertex doesn't move
         centroid = vertices.reduce(
@@ -5614,42 +6883,42 @@ describe("Polygon tag tests", async () => {
         ];
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Rotate around vertex", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity rotateAround="vertex" rotationVertex="2" />
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -5660,7 +6929,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex rotates and dilates
         let rotationPoint = vertices[1];
@@ -5677,12 +6946,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 0: requested_vertex_0 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to the right chooses minimum moved
         let moveX = 3;
@@ -5700,12 +6969,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex, getting rotation and dilation
 
@@ -5723,12 +6992,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving single copied vertex gets rotation and dilation
         rotationPoint = vertices[1];
@@ -5745,31 +7014,31 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("Rotate around exterior point", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g1" newNamespace>
+  <graph name="g1">
     <point>(3,7)</point>
     <point>(-4,-1)</point>
     <point>(8,2)</point>
@@ -5778,11 +7047,11 @@ describe("Polygon tag tests", async () => {
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity rotateAround="point" rotationCenter="$rotationPoint" />
 
   </graph>
-  <graph name="g2" newNamespace>
-    $(../g1/pg{name="pg"})
-    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
   </graph>
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
   `,
         });
 
@@ -5793,7 +7062,7 @@ describe("Polygon tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move individual vertex rotates and dilates
         let rotationPoint = [-1, 3];
@@ -5810,12 +7079,12 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/pg",
+            componentIdx: resolveComponentName("g1.pg"),
             pointCoords: { 0: requested_vertex_0 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move copied polygon up and to the right chooses minimum moved
         let moveX = 3;
@@ -5833,12 +7102,12 @@ describe("Polygon tag tests", async () => {
         }
 
         await movePolygon({
-            name: "/g2/pg",
+            componentIdx: resolveComponentName("g2.pg"),
             pointCoords: requested_vertices,
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // move double copied individual vertex, getting rotation and dilation
 
@@ -5856,16 +7125,21 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/pg",
+            componentIdx: resolveComponentName("g3.pg"),
             pointCoords: { 2: requested_vertex_2 },
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // change rotation point, then moving single copied vertex gets rotation and dilation
 
-        await movePoint({ name: "/g1/rotationPoint", x: 6, y: -2, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g1.rotationPoint"),
+            x: 6,
+            y: -2,
+            core,
+        });
 
         rotationPoint = [6, -2];
 
@@ -5881,25 +7155,25 @@ describe("Polygon tag tests", async () => {
         ]);
 
         await movePoint({
-            name: "/g2/v4",
+            componentIdx: resolveComponentName("g2.vs[4]"),
             x: requested_vertex_3[0],
             y: requested_vertex_3[1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
 
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
         await movePoint({
-            name: "/g1/_point1",
+            componentIdx: resolveComponentName("g1._point1"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
 
-        await testPolygonCopiedTwice({ vertices, core });
+        await testPolygonCopiedTwice({ vertices, core, resolveComponentName });
     });
 
     it("style description changes with theme", async () => {
@@ -5927,7 +7201,10 @@ describe("Polygon tag tests", async () => {
     `;
 
         async function test_items(theme: "dark" | "light") {
-            const core = await createTestCore({ doenetML, theme });
+            const { core, resolveComponentName } = await createTestCore({
+                doenetML,
+                theme,
+            });
 
             const AColor = theme === "dark" ? "yellow" : "brown";
             const BShade = theme === "dark" ? "light" : "dark";
@@ -5938,33 +7215,42 @@ describe("Polygon tag tests", async () => {
                 true,
             );
 
-            expect(stateVariables["/ADescription"].stateValues.text).eq(
-                `Polygon A is filled ${AColor} with thick border.`,
-            );
-            expect(stateVariables["/BDescription"].stateValues.text).eq(
-                `B is a filled ${BShade} red polygon.`,
-            );
-            expect(stateVariables["/CDescription"].stateValues.text).eq(
-                `C is a filled ${CColor} polygon with a thin border.`,
-            );
-            expect(stateVariables["/ABorderDescription"].stateValues.text).eq(
-                `A has a thick ${AColor} border.`,
-            );
-            expect(stateVariables["/BBorderDescription"].stateValues.text).eq(
-                `B has a ${BShade} red border.`,
-            );
-            expect(stateVariables["/CBorderDescription"].stateValues.text).eq(
-                `C has a thin ${CColor} border.`,
-            );
-            expect(stateVariables["/AFillDescription"].stateValues.text).eq(
-                `A has a ${AColor} fill.`,
-            );
-            expect(stateVariables["/BFillDescription"].stateValues.text).eq(
-                `B has a ${BShade} red fill.`,
-            );
-            expect(stateVariables["/CFillDescription"].stateValues.text).eq(
-                `C has a ${CColor} fill.`,
-            );
+            expect(
+                stateVariables[resolveComponentName("ADescription")].stateValues
+                    .text,
+            ).eq(`Polygon A is filled ${AColor} with thick border.`);
+            expect(
+                stateVariables[resolveComponentName("BDescription")].stateValues
+                    .text,
+            ).eq(`B is a filled ${BShade} red polygon.`);
+            expect(
+                stateVariables[resolveComponentName("CDescription")].stateValues
+                    .text,
+            ).eq(`C is a filled ${CColor} polygon with a thin border.`);
+            expect(
+                stateVariables[resolveComponentName("ABorderDescription")]
+                    .stateValues.text,
+            ).eq(`A has a thick ${AColor} border.`);
+            expect(
+                stateVariables[resolveComponentName("BBorderDescription")]
+                    .stateValues.text,
+            ).eq(`B has a ${BShade} red border.`);
+            expect(
+                stateVariables[resolveComponentName("CBorderDescription")]
+                    .stateValues.text,
+            ).eq(`C has a thin ${CColor} border.`);
+            expect(
+                stateVariables[resolveComponentName("AFillDescription")]
+                    .stateValues.text,
+            ).eq(`A has a ${AColor} fill.`);
+            expect(
+                stateVariables[resolveComponentName("BFillDescription")]
+                    .stateValues.text,
+            ).eq(`B has a ${BShade} red fill.`);
+            expect(
+                stateVariables[resolveComponentName("CFillDescription")]
+                    .stateValues.text,
+            ).eq(`C has a ${CColor} fill.`);
         }
 
         await test_items("light");

@@ -645,6 +645,10 @@ export default class BaseComponent {
                     dependencyType: "adapterSourceStateVariable",
                     variableName: "fixed",
                 },
+                shadowSourceFixed: {
+                    dependencyType: "shadowSourceStateVariable",
+                    variableName: "fixed",
+                },
                 ignoreParentFixed: {
                     dependencyType: "doenetAttribute",
                     attributeName: "ignoreParentFixed",
@@ -682,6 +686,13 @@ export default class BaseComponent {
                     !usedDefault.adapterSourceFixed
                 ) {
                     fixed = fixed || dependencyValues.adapterSourceFixed;
+                    useEssential = false;
+                }
+                if (
+                    dependencyValues.shadowSourceFixed !== null &&
+                    !usedDefault.shadowSourceFixed
+                ) {
+                    fixed = fixed || dependencyValues.shadowSourceFixed;
                     useEssential = false;
                 }
 
@@ -761,6 +772,10 @@ export default class BaseComponent {
                     dependencyType: "adapterSourceStateVariable",
                     variableName: "fixLocation",
                 },
+                shadowSourceFixLocation: {
+                    dependencyType: "shadowSourceStateVariable",
+                    variableName: "fixLocation",
+                },
             }),
             definition({ dependencyValues, usedDefault }) {
                 if (!usedDefault.fixLocationPreliminary) {
@@ -799,6 +814,14 @@ export default class BaseComponent {
                     fixLocation =
                         fixLocation ||
                         dependencyValues.adapterSourceFixLocation;
+                    useEssential = false;
+                }
+                if (
+                    dependencyValues.shadowSourceFixLocation !== null &&
+                    !usedDefault.shadowSourceFixLocation
+                ) {
+                    fixLocation =
+                        fixLocation || dependencyValues.shadowSourceFixLocation;
                     useEssential = false;
                 }
 

@@ -7943,6 +7943,128 @@ class SourceCompositeIdentityDependency extends Dependency {
 
 dependencyTypeArray.push(SourceCompositeIdentityDependency);
 
+class ShadowSourceStateVariableDependency extends Dependency {
+    static dependencyType = "shadowSourceStateVariable";
+
+    setUpParameters() {
+        if (this.definition.componentIdx != undefined) {
+            this.componentIdx = this.definition.componentIdx;
+            this.specifiedComponentName = this.componentIdx;
+        } else {
+            this.componentIdx = this.upstreamComponentIdx;
+        }
+
+        if (!this.definition.variableName) {
+            throw Error(
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: must have a variableName`,
+            );
+        } else {
+            this.originalDownstreamVariableNames = [
+                this.definition.variableName,
+            ];
+        }
+
+        this.returnSingleVariableValue = true;
+
+        // for shadow source
+        // always make variables optional so that don't get error
+        // depending on shadow source (which a component can't control)
+        this.variablesOptional = true;
+    }
+
+    async determineDownstreamComponents() {
+        let component = this.dependencyHandler._components[this.componentIdx];
+
+        if (!component) {
+            let dependenciesMissingComponent =
+                this.dependencyHandler.updateTriggers
+                    .dependenciesMissingComponentBySpecifiedName[
+                    this.componentIdx
+                ];
+            if (!dependenciesMissingComponent) {
+                dependenciesMissingComponent =
+                    this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
+                        this.componentIdx
+                    ] = [];
+            }
+            if (!dependenciesMissingComponent.includes(this)) {
+                dependenciesMissingComponent.push(this);
+            }
+
+            for (let varName of this.upstreamVariableNames) {
+                await this.dependencyHandler.addBlocker({
+                    blockerComponentIdx: this.componentIdx,
+                    blockerType: "componentIdentity",
+                    componentIdxBlocked: this.upstreamComponentIdx,
+                    typeBlocked: "recalculateDownstreamComponents",
+                    stateVariableBlocked: varName,
+                    dependencyBlocked: this.dependencyName,
+                });
+
+                await this.dependencyHandler.addBlocker({
+                    blockerComponentIdx: this.upstreamComponentIdx,
+                    blockerType: "recalculateDownstreamComponents",
+                    blockerStateVariable: varName,
+                    blockerDependency: this.dependencyName,
+                    componentIdxBlocked: this.upstreamComponentIdx,
+                    typeBlocked: "stateVariable",
+                    stateVariableBlocked: varName,
+                });
+            }
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        if (!component.shadows) {
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        let shadowSourceComponentIdx = component.shadows.componentIdx;
+        let shadowSource =
+            this.dependencyHandler._components[shadowSourceComponentIdx];
+
+        if (!shadowSource) {
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        return {
+            success: true,
+            downstreamComponentIndices: [shadowSource.componentIdx],
+            downstreamComponentTypes: [shadowSource.componentType],
+        };
+    }
+
+    deleteFromUpdateTriggers() {
+        if (this.specifiedComponentName) {
+            let dependenciesMissingComponent =
+                this.dependencyHandler.updateTriggers
+                    .dependenciesMissingComponentBySpecifiedName[
+                    this.specifiedComponentName
+                ];
+            if (dependenciesMissingComponent) {
+                let ind = dependenciesMissingComponent.indexOf(this);
+                if (ind !== -1) {
+                    dependenciesMissingComponent.splice(ind, 1);
+                }
+            }
+        }
+    }
+}
+
+dependencyTypeArray.push(ShadowSourceStateVariableDependency);
+
 class ShadowSourceDependency extends Dependency {
     static dependencyType = "shadowSource";
 

@@ -258,7 +258,7 @@ export class PaginatorControls extends BlockComponent {
             public: true,
         };
         attributes.paginator = {
-            createTargetComponentNames: true,
+            createReferences: true,
         };
 
         return attributes;
@@ -268,23 +268,32 @@ export class PaginatorControls extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.paginatorComponentIdx = {
+            additionalStateVariablesDefined: ["unresolvedPath"],
             returnDependencies: () => ({
                 paginator: {
-                    dependencyType: "attributeTargetComponentNames",
+                    dependencyType: "attributeRefResolutions",
                     attributeName: "paginator",
                 },
             }),
             definition({ dependencyValues }) {
-                let paginatorComponentIdx;
-
                 if (dependencyValues.paginator?.length === 1) {
-                    paginatorComponentIdx =
-                        dependencyValues.paginator[0].absoluteName;
-                } else {
-                    paginatorComponentIdx = null;
-                }
+                    const paginator = dependencyValues.paginator[0];
 
-                return { setValue: { paginatorComponentIdx } };
+                    if (paginator.unresolvedPath == null) {
+                        return {
+                            setValue: {
+                                paginatorComponentIdx: paginator.componentIdx,
+                                unresolvedPath: paginator.unresolvedPath,
+                            },
+                        };
+                    }
+                }
+                return {
+                    setValue: {
+                        paginatorComponentIdx: null,
+                        unresolvedPath: null,
+                    },
+                };
             },
         };
 
@@ -305,6 +314,7 @@ export class PaginatorControls extends BlockComponent {
                 }
             },
             definition({ dependencyValues }) {
+                console.log("current page", dependencyValues);
                 if ("paginatorPage" in dependencyValues) {
                     return {
                         setValue: {
@@ -334,6 +344,7 @@ export class PaginatorControls extends BlockComponent {
                 }
             },
             definition({ dependencyValues }) {
+                console.log("num pages", dependencyValues);
                 if ("paginatorNPages" in dependencyValues) {
                     return {
                         setValue: {

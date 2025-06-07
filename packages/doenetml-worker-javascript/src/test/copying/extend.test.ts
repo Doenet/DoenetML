@@ -6247,4 +6247,55 @@ describe("Extend tests", async () => {
             stateVariables[resolveComponentName("m3")].stateValues.value.tree,
         ).eqls(["*", "x", "y"]);
     });
+
+    it("handle extending or copying with invalid component type", async () => {
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+        <graph>
+            <point name="p" >(3,4)</point>
+        </graph>
+        <graph name="g2">
+            <invalidName extend="$p" name="p2" /><anotherInvalidName copy="$p" name="p3" />
+        </graph>
+    `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(2);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `Cannot extend or copy an unrecognized component type: invalidName`,
+        );
+
+        expect(errorWarnings.warnings[0].level).eq(1);
+        expect(errorWarnings.warnings[0].position.start.line).eq(6);
+        expect(errorWarnings.warnings[0].position.start.column).eq(13);
+        expect(errorWarnings.warnings[0].position.end.line).eq(6);
+        expect(errorWarnings.warnings[0].position.end.column).eq(50);
+
+        expect(errorWarnings.warnings[1].message).contain(
+            `Cannot extend or copy an unrecognized component type: anotherInvalidName`,
+        );
+
+        expect(errorWarnings.warnings[1].level).eq(1);
+        expect(errorWarnings.warnings[1].position.start.line).eq(6);
+        expect(errorWarnings.warnings[1].position.start.column).eq(50);
+        expect(errorWarnings.warnings[1].position.end.line).eq(6);
+        expect(errorWarnings.warnings[1].position.end.column).eq(92);
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[resolveComponentName("p")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([3, 4]);
+        expect(stateVariables[resolveComponentName("p2")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("p3")]).eq(undefined);
+
+        expect(
+            stateVariables[resolveComponentName("g2")].activeChildren.length,
+        ).eq(0);
+    });
 });

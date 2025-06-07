@@ -2194,6 +2194,12 @@ export default class Core {
             let childType =
                 typeof child !== "object" ? typeof child : child.componentType;
 
+            if (childType == undefined) {
+                success = false;
+                unmatchedChildren.push(child);
+                continue;
+            }
+
             let result = this.findChildGroup(childType, parent.constructor);
 
             if (result.success) {

@@ -749,9 +749,16 @@ export default class Copy extends CompositeComponent {
                             componentInfoObjects.allComponentClasses
                         )
                     ) {
-                        throw Error(
-                            `Invalid componentType ${dependencyValues.typeAttr} of copy.`,
-                        );
+                        return {
+                            setValue: { numComponentsSpecified: null },
+                            sendWarnings: [
+                                {
+                                    type: "warning",
+                                    message: `Cannot extend or copy an unrecognized component type: ${dependencyValues.typeAttr}.`,
+                                    level: 1,
+                                },
+                            ],
+                        };
                     }
                     if (dependencyValues.numComponentsAttr !== null) {
                         numComponentsSpecified =

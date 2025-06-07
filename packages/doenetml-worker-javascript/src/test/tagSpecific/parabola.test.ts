@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import {
     moveControlVector,
     movePoint,
@@ -15,22 +15,22 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 async function setupScene(parabolaML: string) {
-    let core = await createTestCore({
+    let { core, resolveComponentName } = await createTestCore({
         doenetML:
             `
 <graph>
 ` +
             parabolaML +
             `
-    <point copySource="p1.vertex" name="v1" />
+    <point extend="$p1.vertex" name="v1" />
 </graph>
 <graph name="g2">
-    $p1{name="p2"}
-    $v1{name="v2"}
+    <parabola extend="$p1" name="p2" />
+    <point extend="$v1" name="v2" />
 </graph>
-$g2{name="g3" newNamespace}
+<graph extend="$g2" name="g3" />
 
-$p2.equation{assignNames="e2"}
+<math extend="$p2.equation" name="e2" />
 
 <p>a = <mathInput name="a" bindValueTo="$(p1.a)"/></p>
 <p>b = <mathInput name="b" bindValueTo="$(p1.b)"/></p>
@@ -43,7 +43,7 @@ $p2.equation{assignNames="e2"}
     `,
     });
 
-    return core;
+    return { core, resolveComponentName };
 }
 
 function calc_pars_from_points({
@@ -174,17 +174,19 @@ function adjust_points_from_pars({
 
 async function runTests({
     core,
+    resolveComponentName,
     points = [],
     vertex,
 }: {
     core: PublicDoenetMLCore;
+    resolveComponentName: ResolveComponentName;
     points?: number[][];
     vertex?: number[];
 }) {
     let names = [
-        ["/p1", "/v1"],
-        ["/p2", "/v2"],
-        ["/g3/p2", "/g3/v2"],
+        ["p1", "v1"],
+        ["p2", "v2"],
+        ["g3.p2", "g3.v2"],
     ];
 
     let have_vertex = vertex !== undefined;
@@ -194,43 +196,123 @@ async function runTests({
 
     let [a, b, c] = calc_pars_from_points({ points, have_vertex });
 
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // Change a
     a = -2;
-    await updateMathInputValue({ latex: `${a}`, name: "/a", core });
+    await updateMathInputValue({
+        latex: `${a}`,
+        componentIdx: resolveComponentName("a"),
+        core,
+    });
     adjust_points_from_pars({ a, b, c, points, have_vertex });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // change b
     b = 3;
-    await updateMathInputValue({ latex: `${b}`, name: "/b", core });
+    await updateMathInputValue({
+        latex: `${b}`,
+        componentIdx: resolveComponentName("b"),
+        core,
+    });
     adjust_points_from_pars({ a, b, c, points, have_vertex });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // change c
     c = 9;
-    await updateMathInputValue({ latex: `${c}`, name: "/c", core });
+    await updateMathInputValue({
+        latex: `${c}`,
+        componentIdx: resolveComponentName("c"),
+        core,
+    });
     adjust_points_from_pars({ a, b, c, points, have_vertex });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // Change a2
     a = 0.2;
-    await updateMathInputValue({ latex: `${a}`, name: "/a2", core });
+    await updateMathInputValue({
+        latex: `${a}`,
+        componentIdx: resolveComponentName("a2"),
+        core,
+    });
     adjust_points_from_pars({ a, b, c, points, have_vertex });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // change b2
     b = -1.7;
-    await updateMathInputValue({ latex: `${b}`, name: "/b2", core });
+    await updateMathInputValue({
+        latex: `${b}`,
+        componentIdx: resolveComponentName("b2"),
+        core,
+    });
     adjust_points_from_pars({ a, b, c, points, have_vertex });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // change c2
     c = -4.5;
-    await updateMathInputValue({ latex: `${c}`, name: "/c2", core });
+    await updateMathInputValue({
+        latex: `${c}`,
+        componentIdx: resolveComponentName("c2"),
+        core,
+    });
     adjust_points_from_pars({ a, b, c, points, have_vertex });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // move vertices
     let vertexValues = [
@@ -243,13 +325,26 @@ async function runTests({
         let values = vertexValues[ind];
         let vertex_x = values[0];
         let vertex_y = values[1];
-        await movePoint({ name: vertexName, x: vertex_x, y: vertex_y, core });
+        await movePoint({
+            componentIdx: resolveComponentName(vertexName),
+            x: vertex_x,
+            y: vertex_y,
+            core,
+        });
 
         let b = -2 * a * vertex_x;
         let c = vertex_y + a * vertex_x * vertex_x;
         adjust_points_from_pars({ a, b, c, points, have_vertex });
 
-        await checkAllParabolaValues({ names, a, b, c, points, core });
+        await checkAllParabolaValues({
+            names,
+            a,
+            b,
+            c,
+            points,
+            core,
+            resolveComponentName,
+        });
     }
 
     if (points.length === 0) {
@@ -265,14 +360,27 @@ async function runTests({
         [-9, 2],
     ].slice(0, points.length);
     for (let [ind, pt] of points.entries()) {
-        await movePoint({ name: `/P${ind + 1}`, x: pt[0], y: pt[1], core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P${ind + 1}`),
+            x: pt[0],
+            y: pt[1],
+            core,
+        });
     }
     [a, b, c] = calc_pars_from_points({
         points,
         have_vertex,
         old_pars: last_specified_pars,
     });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     if (points.length === 1) {
         return;
@@ -282,34 +390,71 @@ async function runTests({
     points = points.map((_) => [3, -9]);
 
     for (let [ind, pt] of points.entries()) {
-        await movePoint({ name: `/P${ind + 1}`, x: pt[0], y: pt[1], core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P${ind + 1}`),
+            x: pt[0],
+            y: pt[1],
+            core,
+        });
     }
     [a, b, c] = calc_pars_from_points({
         points,
         have_vertex,
         old_pars: last_specified_pars,
     });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // move one point above others, parabola becomes undefined
     points[0][1] = -3;
-    await movePoint({ name: `/P1`, y: points[0][1], core });
+    await movePoint({
+        componentIdx: resolveComponentName(`P1`),
+        y: points[0][1],
+        core,
+    });
     [a, b, c] = calc_pars_from_points({
         points,
         have_vertex,
         old_pars: last_specified_pars,
     });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // move that point apart
     points[0][0] = 5;
-    await movePoint({ name: `/P1`, x: points[0][0], core });
+    await movePoint({
+        componentIdx: resolveComponentName(`P1`),
+        x: points[0][0],
+        core,
+    });
     [a, b, c] = calc_pars_from_points({
         points,
         have_vertex,
         old_pars: last_specified_pars,
     });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     if (points.length === 2) {
         return;
@@ -319,14 +464,27 @@ async function runTests({
     points[0] = [3, -9];
     points[1] = [4, -9];
     for (let [ind, pt] of points.slice(0, 2).entries()) {
-        await movePoint({ name: `/P${ind + 1}`, x: pt[0], y: pt[1], core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P${ind + 1}`),
+            x: pt[0],
+            y: pt[1],
+            core,
+        });
     }
     [a, b, c] = calc_pars_from_points({
         points,
         have_vertex,
         old_pars: last_specified_pars,
     });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // change point grouping (so point 3 is the one apart)
     points[1] = [3, -9];
@@ -335,14 +493,27 @@ async function runTests({
         if (ind == 0) {
             continue;
         }
-        await movePoint({ name: `/P${ind + 1}`, x: pt[0], y: pt[1], core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P${ind + 1}`),
+            x: pt[0],
+            y: pt[1],
+            core,
+        });
     }
     [a, b, c] = calc_pars_from_points({
         points,
         have_vertex,
         old_pars: last_specified_pars,
     });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // move all points above each other, parabola undefined
     points = [
@@ -351,14 +522,27 @@ async function runTests({
         [5, 3],
     ];
     for (let [ind, pt] of points.entries()) {
-        await movePoint({ name: `/P${ind + 1}`, x: pt[0], y: pt[1], core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P${ind + 1}`),
+            x: pt[0],
+            y: pt[1],
+            core,
+        });
     }
     [a, b, c] = calc_pars_from_points({
         points,
         have_vertex,
         old_pars: last_specified_pars,
     });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 
     // move points apart
     points = [
@@ -367,14 +551,27 @@ async function runTests({
         [0, 1],
     ];
     for (let [ind, pt] of points.entries()) {
-        await movePoint({ name: `/P${ind + 1}`, x: pt[0], y: pt[1], core });
+        await movePoint({
+            componentIdx: resolveComponentName(`P${ind + 1}`),
+            x: pt[0],
+            y: pt[1],
+            core,
+        });
     }
     [a, b, c] = calc_pars_from_points({
         points,
         have_vertex,
         old_pars: last_specified_pars,
     });
-    await checkAllParabolaValues({ names, a, b, c, points, core });
+    await checkAllParabolaValues({
+        names,
+        a,
+        b,
+        c,
+        points,
+        core,
+        resolveComponentName,
+    });
 }
 
 async function checkAllParabolaValues({
@@ -384,6 +581,7 @@ async function checkAllParabolaValues({
     c,
     points,
     core,
+    resolveComponentName,
 }: {
     names: string[][];
     a: number;
@@ -391,6 +589,7 @@ async function checkAllParabolaValues({
     c: number;
     points: number[][];
     core: PublicDoenetMLCore;
+    resolveComponentName: ResolveComponentName;
 }) {
     for (let namePair of names) {
         await checkParabolaValues({
@@ -400,19 +599,20 @@ async function checkAllParabolaValues({
             b,
             c,
             core,
+            resolveComponentName,
         });
     }
 
     const stateVariables = await core.returnAllStateVariables(false, true);
     for (let [i, pt] of points.entries()) {
-        expect(stateVariables[`/P${i + 1}`].stateValues.xs[0].tree).closeTo(
-            pt[0],
-            1e-12,
-        );
-        expect(stateVariables[`/P${i + 1}`].stateValues.xs[1].tree).closeTo(
-            pt[1],
-            1e-12,
-        );
+        expect(
+            stateVariables[resolveComponentName(`P${i + 1}`)].stateValues.xs[0]
+                .tree,
+        ).closeTo(pt[0], 1e-12);
+        expect(
+            stateVariables[resolveComponentName(`P${i + 1}`)].stateValues.xs[1]
+                .tree,
+        ).closeTo(pt[1], 1e-12);
     }
 }
 
@@ -423,6 +623,7 @@ async function checkParabolaValues({
     b,
     c,
     core,
+    resolveComponentName,
 }: {
     name: string;
     vertexName: string;
@@ -430,96 +631,103 @@ async function checkParabolaValues({
     b: number;
     c: number;
     core: PublicDoenetMLCore;
+    resolveComponentName: ResolveComponentName;
 }) {
     let vertex_x = -b / (2 * a);
     let vertex_y = c - b ** 2 / (4 * a);
 
+    const cIdx = resolveComponentName(name);
+    const vertexIdx = resolveComponentName(vertexName);
+
     const stateVariables = await core.returnAllStateVariables(false, true);
 
     if (Number.isFinite(a) && Number.isFinite(b) && Number.isFinite(c)) {
-        expect(stateVariables[name].stateValues.a).closeTo(a, 1e-12);
-        expect(stateVariables[name].stateValues.b).closeTo(b, 1e-12);
-        expect(stateVariables[name].stateValues.c).closeTo(c, 1e-12);
+        expect(stateVariables[cIdx].stateValues.a).closeTo(a, 1e-12);
+        expect(stateVariables[cIdx].stateValues.b).closeTo(b, 1e-12);
+        expect(stateVariables[cIdx].stateValues.c).closeTo(c, 1e-12);
 
         let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
         expect(
-            stateVariables[name].stateValues.equation.equals(
+            stateVariables[cIdx].stateValues.equation.equals(
                 equationExpression,
             ),
         ).eq(true);
         expect(
-            stateVariables["/e2"].stateValues.value.equals(equationExpression),
+            stateVariables[resolveComponentName("e2")].stateValues.value.equals(
+                equationExpression,
+            ),
         ).eq(true);
     } else {
-        expect(stateVariables[name].stateValues.a).eqls(NaN);
-        expect(stateVariables[name].stateValues.b).eqls(NaN);
-        expect(stateVariables[name].stateValues.c).eqls(NaN);
+        expect(stateVariables[cIdx].stateValues.a).eqls(NaN);
+        expect(stateVariables[cIdx].stateValues.b).eqls(NaN);
+        expect(stateVariables[cIdx].stateValues.c).eqls(NaN);
     }
     if (Number.isFinite(vertex_x)) {
         expect(
-            stateVariables[name].stateValues.vertex[0].evaluate_numbers().tree,
+            stateVariables[cIdx].stateValues.vertex[0].evaluate_numbers().tree,
         ).closeTo(vertex_x, 1e-12);
         expect(
-            stateVariables[vertexName].stateValues.xs[0].evaluate_numbers()
-                .tree,
+            stateVariables[vertexIdx].stateValues.xs[0].evaluate_numbers().tree,
         ).closeTo(vertex_x, 1e-12);
     } else {
         expect(
-            stateVariables[name].stateValues.vertex[0].evaluate_numbers().tree,
+            stateVariables[cIdx].stateValues.vertex[0].evaluate_numbers().tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[vertexName].stateValues.xs[0].evaluate_numbers()
-                .tree,
+            stateVariables[vertexIdx].stateValues.xs[0].evaluate_numbers().tree,
         ).eq("\uff3f");
     }
     if (Number.isFinite(vertex_y)) {
         expect(
-            stateVariables[name].stateValues.vertex[1].evaluate_numbers().tree,
+            stateVariables[cIdx].stateValues.vertex[1].evaluate_numbers().tree,
         ).closeTo(vertex_y, 1e-12);
         expect(
-            stateVariables[vertexName].stateValues.xs[1].evaluate_numbers()
-                .tree,
+            stateVariables[vertexIdx].stateValues.xs[1].evaluate_numbers().tree,
         ).closeTo(vertex_y, 1e-12);
     } else {
         expect(
-            stateVariables[name].stateValues.vertex[1].evaluate_numbers().tree,
+            stateVariables[cIdx].stateValues.vertex[1].evaluate_numbers().tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[vertexName].stateValues.xs[1].evaluate_numbers()
-                .tree,
+            stateVariables[vertexIdx].stateValues.xs[1].evaluate_numbers().tree,
         ).eq("\uff3f");
     }
 }
 
 describe("Parabola Tag Tests", async () => {
     it("parabola with no parameters gives y=x^2", async () => {
-        let core = await setupScene(`<parabola name="p1" />`);
+        let { core, resolveComponentName } = await setupScene(
+            `<parabola name="p1" />`,
+        );
 
-        await runTests({ core });
+        await runTests({ core, resolveComponentName });
     });
 
     it("parabola through no points gives y=x^2", async () => {
-        let core = await setupScene(`<parabola through="" name="p1" />`);
+        let { core, resolveComponentName } = await setupScene(
+            `<parabola through="" name="p1" />`,
+        );
 
-        await runTests({ core });
+        await runTests({ core, resolveComponentName });
     });
 
     it("parabola through one point uses it as vertex", async () => {
-        let core = await setupScene(`
+        let { core, resolveComponentName } = await setupScene(`
             <point name="P1">(1,2)</point>
             <parabola through="$P1" name="p1" />`);
 
-        await runTests({ core, points: [[1, 2]] });
+        await runTests({ core, resolveComponentName, points: [[1, 2]] });
     });
 
     it("parabola through two points", async () => {
-        let core = await setupScene(`
+        let { core, resolveComponentName } = await setupScene(`
             <point name="P1">(1,2)</point>
             <point name="P2">(3,4)</point>
             <parabola through="$P1 $P2" name="p1" />`);
 
         await runTests({
             core,
+            resolveComponentName,
             points: [
                 [1, 2],
                 [3, 4],
@@ -528,7 +736,7 @@ describe("Parabola Tag Tests", async () => {
     });
 
     it("parabola through three points", async () => {
-        let core = await setupScene(`
+        let { core, resolveComponentName } = await setupScene(`
             <point name="P1">(1,2)</point>
             <point name="P2">(3,4)</point>
             <point name="P3">(5,6)</point>
@@ -536,6 +744,7 @@ describe("Parabola Tag Tests", async () => {
 
         await runTests({
             core,
+            resolveComponentName,
             points: [
                 [1, 2],
                 [3, 4],
@@ -545,7 +754,7 @@ describe("Parabola Tag Tests", async () => {
     });
 
     it("warning with parabola through four points", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
     <graph>
     <parabola through="(1,2) (3,4) (5,6) (7,8)" />
@@ -563,31 +772,36 @@ describe("Parabola Tag Tests", async () => {
             `Haven't implemented parabola through more than 3 points`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].position.charEnd).eq(50);
+        expect(errorWarnings.warnings[0].position.start.line).eq(3);
+        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.end.line).eq(3);
+        expect(errorWarnings.warnings[0].position.end.column).eq(51);
     });
 
     it("parabola with prescribed vertex", async () => {
-        let core = await setupScene(`
+        let { core, resolveComponentName } = await setupScene(`
             <point name="P1">(1,2)</point>
             <parabola vertex="$P1" name="p1" />`);
 
-        await runTests({ core, vertex: [1, 2] });
+        await runTests({ core, resolveComponentName, vertex: [1, 2] });
     });
 
     it("parabola with prescribed vertex and through point", async () => {
-        let core = await setupScene(`
+        let { core, resolveComponentName } = await setupScene(`
             <point name="P1">(1,2)</point>
             <point name="P2">(3,4)</point>
             <parabola vertex="$P1" through="$P2" name="p1" />`);
 
-        await runTests({ core, points: [[3, 4]], vertex: [1, 2] });
+        await runTests({
+            core,
+            resolveComponentName,
+            points: [[3, 4]],
+            vertex: [1, 2],
+        });
     });
 
     it("warning with parabola with vertex and two points", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
     <graph>
     <parabola vertex="(1,2)" through="(3,4) (5,6)" />
@@ -605,14 +819,14 @@ describe("Parabola Tag Tests", async () => {
             `Haven't implemented parabola with vertex through more than 1 point`,
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].position.charEnd).eq(53);
+        expect(errorWarnings.warnings[0].position.start.line).eq(3);
+        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.end.line).eq(3);
+        expect(errorWarnings.warnings[0].position.end.column).eq(54);
     });
 
     it("constrain to parabola", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <parabola through="(1,2)" name="p" />
@@ -623,10 +837,10 @@ describe("Parabola Tag Tests", async () => {
     </point>
     </graph>
     <graph name="g2">
-      $p{name="p2"}
-      $A{name="A2"}
+      <parabola extend="$p" name="p2" />
+      <point extend="$A" name="A2" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <graph extend="$g2" name="g3" />
     `,
         });
 
@@ -637,15 +851,15 @@ describe("Parabola Tag Tests", async () => {
                 false,
                 true,
             );
-            const [x1, x2] = stateVariables["/A"].stateValues.xs.map(
-                (v) => v.tree,
-            );
-            const [x12, x22] = stateVariables["/A2"].stateValues.xs.map(
-                (v) => v.tree,
-            );
-            const [x13, x23] = stateVariables["/g3/A2"].stateValues.xs.map(
-                (v) => v.tree,
-            );
+            const [x1, x2] = stateVariables[
+                resolveComponentName("A")
+            ].stateValues.xs.map((v) => v.tree);
+            const [x12, x22] = stateVariables[
+                resolveComponentName("A2")
+            ].stateValues.xs.map((v) => v.tree);
+            const [x13, x23] = stateVariables[
+                resolveComponentName("g3.A2")
+            ].stateValues.xs.map((v) => v.tree);
             expect(x1).greaterThan(xMin).lessThan(xMax);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -656,21 +870,41 @@ describe("Parabola Tag Tests", async () => {
 
         await check_items(0, 1);
 
-        await movePoint({ name: "/A", x: 9, y: -2, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 9,
+            y: -2,
+            core,
+        });
         await check_items(0, 9);
 
-        await movePoint({ name: "/A2", x: -9, y: 4, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A2"),
+            x: -9,
+            y: 4,
+            core,
+        });
         await check_items(-9, 0);
 
-        await movePoint({ name: "/g3/A2", x: 0.9, y: 9, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g3.A2"),
+            x: 0.9,
+            y: 9,
+            core,
+        });
         await check_items(-10, 0.9);
 
-        await movePoint({ name: "/g3/A2", x: 1.1, y: 9, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g3.A2"),
+            x: 1.1,
+            y: 9,
+            core,
+        });
         await check_items(1.11, 10);
     });
 
     it("constrain to parabola opening downward", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <parabola through="(1,-2) (2,-3) (0,-3)" name="p" />
@@ -681,10 +915,10 @@ describe("Parabola Tag Tests", async () => {
     </point>
     </graph>
     <graph name="g2">
-      $p{name="p2"}
-      $A{name="A2"}
+      <parabola extend="$p" name="p2" />
+      <point extend="$A" name="A2" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <graph extend="$g2" name="g3" />
     `,
         });
 
@@ -695,15 +929,15 @@ describe("Parabola Tag Tests", async () => {
                 false,
                 true,
             );
-            const [x1, x2] = stateVariables["/A"].stateValues.xs.map(
-                (v) => v.tree,
-            );
-            const [x12, x22] = stateVariables["/A2"].stateValues.xs.map(
-                (v) => v.tree,
-            );
-            const [x13, x23] = stateVariables["/g3/A2"].stateValues.xs.map(
-                (v) => v.tree,
-            );
+            const [x1, x2] = stateVariables[
+                resolveComponentName("A")
+            ].stateValues.xs.map((v) => v.tree);
+            const [x12, x22] = stateVariables[
+                resolveComponentName("A2")
+            ].stateValues.xs.map((v) => v.tree);
+            const [x13, x23] = stateVariables[
+                resolveComponentName("g3.A2")
+            ].stateValues.xs.map((v) => v.tree);
             expect(x1).greaterThan(xMin).lessThan(xMax);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -714,21 +948,41 @@ describe("Parabola Tag Tests", async () => {
 
         await check_items(0, 1);
 
-        await movePoint({ name: "/A", x: 9, y: 2, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 9,
+            y: 2,
+            core,
+        });
         await check_items(0, 9);
 
-        await movePoint({ name: "/A2", x: -9, y: -4, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A2"),
+            x: -9,
+            y: -4,
+            core,
+        });
         await check_items(-9, 0);
 
-        await movePoint({ name: "/g3/A2", x: 0.9, y: -9, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g3.A2"),
+            x: 0.9,
+            y: -9,
+            core,
+        });
         await check_items(-10, 0.9);
 
-        await movePoint({ name: "/g3/A2", x: 1.1, y: -9, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g3.A2"),
+            x: 1.1,
+            y: -9,
+            core,
+        });
         await check_items(1.11, 10);
     });
 
     it("constrain to parabola that is a line", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
     <parabola through="(1,2) (3,3) (5, 4)" name="p" />
@@ -739,10 +993,10 @@ describe("Parabola Tag Tests", async () => {
     </point>
     </graph>
     <graph name="g2">
-      $p{name="p2"}
-      $A{name="A2"}
+      <parabola extend="$p" name="p2" />
+      <point extend="$A" name="A2" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <graph extend="$g2" name="g3" />
     `,
         });
 
@@ -753,15 +1007,15 @@ describe("Parabola Tag Tests", async () => {
                 false,
                 true,
             );
-            const [x1, x2] = stateVariables["/A"].stateValues.xs.map(
-                (v) => v.tree,
-            );
-            const [x12, x22] = stateVariables["/A2"].stateValues.xs.map(
-                (v) => v.tree,
-            );
-            const [x13, x23] = stateVariables["/g3/A2"].stateValues.xs.map(
-                (v) => v.tree,
-            );
+            const [x1, x2] = stateVariables[
+                resolveComponentName("A")
+            ].stateValues.xs.map((v) => v.tree);
+            const [x12, x22] = stateVariables[
+                resolveComponentName("A2")
+            ].stateValues.xs.map((v) => v.tree);
+            const [x13, x23] = stateVariables[
+                resolveComponentName("g3.A2")
+            ].stateValues.xs.map((v) => v.tree);
             expect(x1).closeTo(x, 1e-14);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -772,18 +1026,33 @@ describe("Parabola Tag Tests", async () => {
 
         await check_items(1.5 / -2.5);
 
-        await movePoint({ name: "/A", x: 9, y: -2, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 9,
+            y: -2,
+            core,
+        });
         await check_items((1.5 - 2 * 9 + 2) / -2.5);
 
-        await movePoint({ name: "/A2", x: -9, y: 4, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A2"),
+            x: -9,
+            y: 4,
+            core,
+        });
         await check_items((1.5 + 2 * 9 - 4) / -2.5);
 
-        await movePoint({ name: "/g3/A2", x: 0.9, y: 9, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g3.A2"),
+            x: 0.9,
+            y: 9,
+            core,
+        });
         await check_items((1.5 - 2 * 0.9 - 9) / -2.5);
     });
 
     it("constrain to parabola opening downward, different axis scales", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph ymin="-1000" ymax="1000">
     <parabola through="(1,-200) (2,-300) (0,-300)" name="p" />
@@ -794,10 +1063,10 @@ describe("Parabola Tag Tests", async () => {
     </point>
     </graph>
     <graph name="g2" ymin="-1000" ymax="1000">
-      $p{name="p2"}
-      $A{name="A2"}
+      <parabola extend="$p" name="p2" />
+      <point extend="$A" name="A2" />
     </graph>
-    $g2{name="g3" ymin="-1000" ymax="1000" newNamespace}
+    <graph extend="$g2" name="g3" ymin="-1000" ymax="1000" />
     `,
         });
 
@@ -808,15 +1077,15 @@ describe("Parabola Tag Tests", async () => {
                 false,
                 true,
             );
-            const [x1, x2] = stateVariables["/A"].stateValues.xs.map(
-                (v) => v.tree,
-            );
-            const [x12, x22] = stateVariables["/A2"].stateValues.xs.map(
-                (v) => v.tree,
-            );
-            const [x13, x23] = stateVariables["/g3/A2"].stateValues.xs.map(
-                (v) => v.tree,
-            );
+            const [x1, x2] = stateVariables[
+                resolveComponentName("A")
+            ].stateValues.xs.map((v) => v.tree);
+            const [x12, x22] = stateVariables[
+                resolveComponentName("A2")
+            ].stateValues.xs.map((v) => v.tree);
+            const [x13, x23] = stateVariables[
+                resolveComponentName("g3.A2")
+            ].stateValues.xs.map((v) => v.tree);
             expect(x1).greaterThan(xMin).lessThan(xMax);
             expect(x2).closeTo(f_p(x1), 1e-12);
             expect(x12).eq(x1);
@@ -827,81 +1096,171 @@ describe("Parabola Tag Tests", async () => {
 
         await check_items(0, 1);
 
-        await movePoint({ name: "/A", x: 9, y: 200, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 9,
+            y: 200,
+            core,
+        });
         await check_items(0, 9);
 
-        await movePoint({ name: "/A2", x: -9, y: -400, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A2"),
+            x: -9,
+            y: -400,
+            core,
+        });
         await check_items(-9, 0);
 
-        await movePoint({ name: "/g3/A2", x: 0.9, y: -900, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g3.A2"),
+            x: 0.9,
+            y: -900,
+            core,
+        });
         await check_items(-10, 0.9);
 
-        await movePoint({ name: "/g3/A2", x: 1.1, y: -900, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g3.A2"),
+            x: 1.1,
+            y: -900,
+            core,
+        });
         await check_items(1.11, 10);
 
-        await movePoint({ name: "/A", x: 9, y: 0, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A"),
+            x: 9,
+            y: 0,
+            core,
+        });
         await check_items(2, 10);
 
-        await movePoint({ name: "/A2", x: -9, y: 100, core });
+        await movePoint({
+            componentIdx: resolveComponentName("A2"),
+            x: -9,
+            y: 100,
+            core,
+        });
         await check_items(-10, 0);
     });
 
     it("copy parabola and overwrite parameters", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <graph name="g1" newNamespace>
+    <graph name="g1">
     <parabola name="p0" />
-    $p0{vertex="(3,4)" name="p1"}
-    $p1{through="(5,-4)" name="p2"}
-    $p0{through="(-5,-2)" name="p3"}
-    $p3{vertex="(-6,6)" name="p4"}
+    <parabola extend="$p0" vertex="(3,4)" name="p1" />
+    <parabola extend="$p1" through="(5,-4)" name="p2" />
+    <parabola extend="$p0" through="(-5,-2)" name="p3" />
+    <parabola extend="$p3" vertex="(-6,6)" name="p4" />
     </graph>
 
-    $g1{name="g2"}
+    <graph extend="$g1" name="g2" />
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/g1/p0"].stateValues.a).closeTo(1, 1e-12);
-        expect(stateVariables["/g1/p0"].stateValues.b).closeTo(0, 1e-12);
-        expect(stateVariables["/g1/p0"].stateValues.c).closeTo(0, 1e-12);
-        expect(stateVariables["/g2/p0"].stateValues.a).closeTo(1, 1e-12);
-        expect(stateVariables["/g2/p0"].stateValues.b).closeTo(0, 1e-12);
-        expect(stateVariables["/g2/p0"].stateValues.c).closeTo(0, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p0")].stateValues.a,
+        ).closeTo(1, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p0")].stateValues.b,
+        ).closeTo(0, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p0")].stateValues.c,
+        ).closeTo(0, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p0")].stateValues.a,
+        ).closeTo(1, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p0")].stateValues.b,
+        ).closeTo(0, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p0")].stateValues.c,
+        ).closeTo(0, 1e-12);
 
-        expect(stateVariables["/g1/p1"].stateValues.a).closeTo(1, 1e-12);
-        expect(stateVariables["/g1/p1"].stateValues.b).closeTo(-6, 1e-12);
-        expect(stateVariables["/g1/p1"].stateValues.c).closeTo(13, 1e-12);
-        expect(stateVariables["/g2/p1"].stateValues.a).closeTo(1, 1e-12);
-        expect(stateVariables["/g2/p1"].stateValues.b).closeTo(-6, 1e-12);
-        expect(stateVariables["/g2/p1"].stateValues.c).closeTo(13, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p1")].stateValues.a,
+        ).closeTo(1, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p1")].stateValues.b,
+        ).closeTo(-6, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p1")].stateValues.c,
+        ).closeTo(13, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p1")].stateValues.a,
+        ).closeTo(1, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p1")].stateValues.b,
+        ).closeTo(-6, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p1")].stateValues.c,
+        ).closeTo(13, 1e-12);
 
-        expect(stateVariables["/g1/p2"].stateValues.a).closeTo(-2, 1e-12);
-        expect(stateVariables["/g1/p2"].stateValues.b).closeTo(12, 1e-12);
-        expect(stateVariables["/g1/p2"].stateValues.c).closeTo(-14, 1e-12);
-        expect(stateVariables["/g2/p2"].stateValues.a).closeTo(-2, 1e-12);
-        expect(stateVariables["/g2/p2"].stateValues.b).closeTo(12, 1e-12);
-        expect(stateVariables["/g2/p2"].stateValues.c).closeTo(-14, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p2")].stateValues.a,
+        ).closeTo(-2, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p2")].stateValues.b,
+        ).closeTo(12, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p2")].stateValues.c,
+        ).closeTo(-14, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p2")].stateValues.a,
+        ).closeTo(-2, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p2")].stateValues.b,
+        ).closeTo(12, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p2")].stateValues.c,
+        ).closeTo(-14, 1e-12);
 
-        expect(stateVariables["/g1/p3"].stateValues.a).closeTo(1, 1e-12);
-        expect(stateVariables["/g1/p3"].stateValues.b).closeTo(10, 1e-12);
-        expect(stateVariables["/g1/p3"].stateValues.c).closeTo(23, 1e-12);
-        expect(stateVariables["/g2/p3"].stateValues.a).closeTo(1, 1e-12);
-        expect(stateVariables["/g2/p3"].stateValues.b).closeTo(10, 1e-12);
-        expect(stateVariables["/g2/p3"].stateValues.c).closeTo(23, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p3")].stateValues.a,
+        ).closeTo(1, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p3")].stateValues.b,
+        ).closeTo(10, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p3")].stateValues.c,
+        ).closeTo(23, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p3")].stateValues.a,
+        ).closeTo(1, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p3")].stateValues.b,
+        ).closeTo(10, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p3")].stateValues.c,
+        ).closeTo(23, 1e-12);
 
-        expect(stateVariables["/g1/p4"].stateValues.a).closeTo(-8, 1e-12);
-        expect(stateVariables["/g1/p4"].stateValues.b).closeTo(-96, 1e-12);
-        expect(stateVariables["/g1/p4"].stateValues.c).closeTo(-282, 1e-12);
-        expect(stateVariables["/g2/p4"].stateValues.a).closeTo(-8, 1e-12);
-        expect(stateVariables["/g2/p4"].stateValues.b).closeTo(-96, 1e-12);
-        expect(stateVariables["/g2/p4"].stateValues.c).closeTo(-282, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p4")].stateValues.a,
+        ).closeTo(-8, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p4")].stateValues.b,
+        ).closeTo(-96, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g1.p4")].stateValues.c,
+        ).closeTo(-282, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p4")].stateValues.a,
+        ).closeTo(-8, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p4")].stateValues.b,
+        ).closeTo(-96, 1e-12);
+        expect(
+            stateVariables[resolveComponentName("g2.p4")].stateValues.c,
+        ).closeTo(-282, 1e-12);
     });
 
     it("copy propIndex of points, dot and array notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
       <parabola through="(2,-3) (3,4) (-3,4)" name="p" />
@@ -909,11 +1268,11 @@ describe("Parabola Tag Tests", async () => {
  
     <p><mathInput name="n" /></p>
 
-    <p><copy source="p.throughPoints[$n]" assignNames="P1 P2 P3" /></p>
+    <p><pointList extend="$p.throughPoints[$n]" name="Ps" /></p>
 
-    <p><copy source="p.throughPoint2[$n]" assignNames="x" /></p>
+    <p><mathList extend="$p.throughPoint2[$n]" name="x" /></p>
 
-    <p><copy source="p.throughPoints[2][$n]" assignNames="xa" /></p>
+    <p><mathList extend="$p.throughPoints[2][$n]" name="xa" /></p>
     `,
         });
 
@@ -925,51 +1284,80 @@ describe("Parabola Tag Tests", async () => {
             t3y = 4;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/P1"]).eq(undefined);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"]).eq(undefined);
-        expect(stateVariables["/xa"]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
 
-        await updateMathInputValue({ latex: "1", name: "/n", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
-            t1x,
-            t1y,
-        ]);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"].stateValues.value.tree).eq(t2x);
-        expect(stateVariables["/xa"].stateValues.value.tree).eq(t2x);
+        expect(
+            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([t1x, t1y]);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(
+            stateVariables[resolveComponentName("x[1]")].stateValues.value.tree,
+        ).eq(t2x);
+        expect(
+            stateVariables[resolveComponentName("xa[1]")].stateValues.value
+                .tree,
+        ).eq(t2x);
 
-        await updateMathInputValue({ latex: "2", name: "/n", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
-            t2x,
-            t2y,
-        ]);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"].stateValues.value.tree).eq(t2y);
-        expect(stateVariables["/xa"].stateValues.value.tree).eq(t2y);
+        expect(
+            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([t2x, t2y]);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(
+            stateVariables[resolveComponentName("x[1]")].stateValues.value.tree,
+        ).eq(t2y);
+        expect(
+            stateVariables[resolveComponentName("xa[1]")].stateValues.value
+                .tree,
+        ).eq(t2y);
 
-        await updateMathInputValue({ latex: "3", name: "/n", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
-            t3x,
-            t3y,
-        ]);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"]).eq(undefined);
-        expect(stateVariables["/xa"]).eq(undefined);
+        expect(
+            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([t3x, t3y]);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
 
-        await updateMathInputValue({ latex: "4", name: "/n", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/P1"]).eq(undefined);
-        expect(stateVariables["/P2"]).eq(undefined);
-        expect(stateVariables["/P3"]).eq(undefined);
-        expect(stateVariables["/x"]).eq(undefined);
-        expect(stateVariables["/xa"]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
+        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
     });
 });
