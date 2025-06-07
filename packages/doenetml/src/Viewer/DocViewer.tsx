@@ -105,7 +105,13 @@ export function DocViewer({
     const lastAttemptNumber = useRef<number | null>(null);
     const lastRequestedVariantIndex = useRef<number | null>(null);
 
-    const [stage, setStage] = useState("initial");
+    const [stage, setStage] = useState<
+        | "initial"
+        | "readyToCreateCore"
+        | "coreCreated"
+        | "wait"
+        | "waitingOnCore"
+    >("initial");
 
     const [documentRenderer, setDocumentRenderer] =
         useState<ReactElement | null>(null);
@@ -197,12 +203,6 @@ export function DocViewer({
         answerResponseCounts,
     };
 
-    const postfixForWindowFunctions =
-        prefixForIds
-            .replaceAll("/", "")
-            .replaceAll("\\", "")
-            .replaceAll("-", "_") || "1";
-
     useEffect(() => {
         return () => {
             coreWorker.current?.terminate();
@@ -259,6 +259,12 @@ export function DocViewer({
             return;
         }
         if (docId !== null) {
+            const postfixForWindowFunctions =
+                prefixForIds
+                    .replaceAll("/", "")
+                    .replaceAll("\\", "")
+                    .replaceAll("-", "_") || "1";
+
             (window as any)[
                 "returnAllStateVariables" + postfixForWindowFunctions
             ] = async function () {
@@ -289,7 +295,7 @@ export function DocViewer({
                     });
                 };
         }
-    }, [docId, coreWorker.current]);
+    }, [docId, coreWorker.current, prefixForIds]);
 
     useEffect(() => {
         return () => {
@@ -594,7 +600,7 @@ export function DocViewer({
                 dispatch(
                     mainThunks.updateRendererSVs({
                         coreId: coreId.current,
-                        componentIdx: componentIdx,
+                        componentIdx: componentIdx as any,
                         stateValues:
                             args.rendererState[componentIdx].stateValues,
                         childrenInstructions:
@@ -1297,6 +1303,7 @@ export function DocViewer({
 
     if (stage === "readyToCreateCore" && render) {
         startCore();
+        // XXX: this state never occurs
     } else if (stage === "waitingOnCore" && !render && !coreCreated.current) {
         // we've moved off this doc, but core is still being created
         // so reinitialize core
