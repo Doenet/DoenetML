@@ -1,16 +1,10 @@
-// @ts-nocheck
 import React, { useContext } from "react";
-import { DocContext, getURLFromRef } from "../DocViewer";
-import useDoenetRenderer from "../useDoenetRenderer";
+import { DocContext } from "../DocViewer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import styled from "styled-components";
-
-// const LinkStyling = styled.a`
-//     color: var(--mainBlue);
-//     border-radius: 5px;
-//     &: focus {
-//       outline: 2px solid var(--mainBlue);
-//     }
-//   `;
+import { cesc } from "@doenet/utils";
 
 const RefButton = styled.button`
     position: relative;
@@ -42,12 +36,14 @@ const RefButton = styled.button`
     }
 `;
 
-export default React.memo(function Ref(props) {
+export default React.memo(function Ref(props: UseDoenetRendererProps) {
     let { name, id, SVs, children } = useDoenetRenderer(props);
 
-    let { location = {}, linkSettings } = useContext(DocContext) || {};
+    let { linkSettings } = useContext(DocContext) || {};
 
-    let search = location.search || "";
+    // XXX: location is never supplied, so this will always be empty
+    //let search = location.search || "";
+    let search = "";
 
     if (SVs.hidden) {
         return null;
@@ -66,7 +62,7 @@ export default React.memo(function Ref(props) {
         hash: SVs.hash,
         givenUri: SVs.uri,
         targetName: SVs.targetName,
-        linkSettings,
+        linkSettings: linkSettings || {},
         search,
         id,
     });
@@ -75,10 +71,11 @@ export default React.memo(function Ref(props) {
         if (targetForATag === "_blank") {
             return (
                 <span id={id}>
-                    <a name={id} />
                     <RefButton
                         id={id + "_button"}
-                        onClick={() => window.open(url, targetForATag)}
+                        onClick={() =>
+                            window.open(url, targetForATag || undefined)
+                        }
                         disabled={SVs.disabled}
                     >
                         {SVs.linkText}
@@ -88,7 +85,6 @@ export default React.memo(function Ref(props) {
         } else {
             return (
                 <span id={id}>
-                    <a name={id} />
                     <RefButton
                         id={id + "_button"}
                         onClick={() => {
@@ -111,9 +107,8 @@ export default React.memo(function Ref(props) {
                         color: "var(--mainBlue)",
                         borderRadius: "5px",
                     }}
-                    target={targetForATag}
+                    target={targetForATag || undefined}
                     id={id}
-                    name={id}
                     href={url}
                 >
                     {linkContent}
@@ -124,3 +119,110 @@ export default React.memo(function Ref(props) {
         }
     }
 });
+
+// TODO: fix this function as it assume conventions that are no longer valid
+export function getURLFromRef({
+    cid,
+    activityId,
+    variantIndex,
+    edit,
+    hash,
+    givenUri,
+    targetName = "",
+    linkSettings,
+    search = "",
+    id = "",
+}: {
+    cid?: string;
+    activityId?: string;
+    variantIndex?: number;
+    edit?: boolean;
+    hash?: string;
+    givenUri?: string;
+    targetName?: string;
+    linkSettings: Record<string, any>;
+    search?: string;
+    id?: string;
+}) {
+    // possible linkSettings
+    // - viewURL
+    // - editURL
+    // - useQueryParameters
+
+    let url = "";
+    let targetForATag: string | null = "_blank";
+    let haveValidTarget = false;
+    let externalUri = false;
+
+    if (cid || activityId) {
+        if (cid) {
+            if (linkSettings.useQueryParameters) {
+                url = `cid=${cid}`;
+            } else {
+                // TODO: make this URL work for create another URL to reference by cid
+                url = `/${cid}`;
+            }
+        } else {
+            if (linkSettings.useQueryParameters) {
+                url = `doenetId=${activityId}`;
+            } else {
+                url = `/${activityId}`;
+            }
+        }
+        if (variantIndex) {
+            // TODO: how to specify variant if don't useQueryParameters
+            if (linkSettings.useQueryParameters) {
+                url += `&variant=${variantIndex}`;
+            }
+        }
+
+        if (linkSettings.useQueryParameters) {
+            let baseUrl =
+                edit == true ? linkSettings.editURL : linkSettings.viewURL;
+            if (baseUrl.includes("?")) {
+                if (baseUrl[baseUrl.length - 1] !== "?") {
+                    baseUrl += "&";
+                }
+            } else {
+                baseUrl += "?";
+            }
+            url = baseUrl + url;
+        } else {
+            if (edit == true) {
+                url = linkSettings.editURL + url;
+            } else {
+                url = linkSettings.viewURL + url;
+            }
+        }
+
+        haveValidTarget = true;
+
+        if (hash) {
+            url += hash;
+        } else {
+            if (targetName) {
+                url += "#" + cesc(targetName);
+            }
+        }
+    } else if (givenUri) {
+        url = givenUri;
+        if (
+            url.substring(0, 8) === "https://" ||
+            url.substring(0, 7) === "http://" ||
+            url.substring(0, 7) === "mailto:"
+        ) {
+            haveValidTarget = true;
+            externalUri = true;
+        }
+    } else {
+        url = search;
+
+        let firstSlash = id.indexOf("\\/");
+        let prefix = id.substring(0, firstSlash);
+        url += "#" + prefix;
+        url += cesc(targetName);
+        targetForATag = null;
+        haveValidTarget = true;
+    }
+    return { targetForATag, url, haveValidTarget, externalUri };
+}
