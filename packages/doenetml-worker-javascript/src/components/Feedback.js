@@ -21,7 +21,7 @@ export default class Feedback extends BlockComponent {
             createComponentOfType: "boolean",
         };
         attributes.updateWith = {
-            createTargetComponentNames: true,
+            createReferences: true,
         };
 
         return attributes;
@@ -39,29 +39,56 @@ export default class Feedback extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.updateWithComponentNames = {
+        stateVariableDefinitions.updateWith = {
+            returnDependencies: () => ({
+                updateWith: {
+                    dependencyType: "attributeRefResolutions",
+                    attributeName: "updateWith",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let updateWith = [];
+                if (dependencyValues.updateWith !== null) {
+                    for (let refResolution of dependencyValues.updateWith) {
+                        if (refResolution.unresolvedPath === null) {
+                            updateWith.push(refResolution.componentIdx);
+                        }
+                    }
+                }
+
+                if (updateWith.length === 0) {
+                    updateWith = null;
+                }
+
+                return { setValue: { updateWith } };
+            },
+        };
+
+        stateVariableDefinitions.updateWithComponentIds = {
             chainActionOnActionOfStateVariableTargets: {
                 triggeredAction: "updateHide",
             },
             returnDependencies: () => ({
                 updateWith: {
-                    dependencyType: "attributeTargetComponentNames",
-                    attributeName: "updateWith",
+                    dependencyType: "stateVariable",
+                    variableName: "updateWith",
                 },
             }),
             definition({ dependencyValues }) {
+                let updateWithComponentIds = [];
+
                 if (dependencyValues.updateWith) {
-                    return {
-                        setValue: {
-                            updateWithComponentNames:
-                                dependencyValues.updateWith.map(
-                                    (x) => x.absoluteName,
-                                ),
-                        },
-                    };
-                } else {
-                    return { setValue: { updateWithComponentNames: [] } };
+                    for (let cIdx of dependencyValues.updateWith) {
+                        if (!updateWithComponentIds.includes(cIdx)) {
+                            updateWithComponentIds.push(cIdx);
+                        }
+                    }
                 }
+
+                return { setValue: { updateWithComponentIds } };
+            },
+            markStale() {
+                return { updateActionChaining: true };
             },
         };
 
@@ -100,8 +127,8 @@ export default class Feedback extends BlockComponent {
             hasEssential: true,
             returnDependencies: () => ({
                 updateWith: {
-                    dependencyType: "attributeTargetComponentNames",
-                    attributeName: "updateWith",
+                    dependencyType: "stateVariable",
+                    variableName: "updateWith",
                 },
                 condition: {
                     dependencyType: "attributeComponent",
@@ -112,6 +139,10 @@ export default class Feedback extends BlockComponent {
                     dependencyType: "flag",
                     flagName: "showFeedback",
                 },
+                shadowSource: {
+                    dependencyType: "shadowSource",
+                    givePropVariableValue: true,
+                },
             }),
             definition: function ({ dependencyValues }) {
                 if (dependencyValues.updateWith) {
@@ -121,6 +152,15 @@ export default class Feedback extends BlockComponent {
                 }
 
                 if (!dependencyValues.showFeedback) {
+                    return { setValue: { hide: true } };
+                }
+
+                if (
+                    dependencyValues.shadowSource &&
+                    Object.values(
+                        dependencyValues.shadowSource.stateValues,
+                    )[0] == undefined
+                ) {
                     return { setValue: { hide: true } };
                 }
 

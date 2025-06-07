@@ -7972,6 +7972,8 @@ class ShadowSourceDependency extends Dependency {
         // always make variables optional so that don't get error
         // depending on shadow source (which a component can't control)
         this.variablesOptional = true;
+
+        this.givePropVariableValue = this.definition.givePropVariableValue;
     }
 
     async determineDownstreamComponents() {
@@ -8029,17 +8031,32 @@ class ShadowSourceDependency extends Dependency {
             };
         }
 
-        // only get sources that are shadowed without propVariable
-        // unless from implicit prop
         if (
             component.shadows.propVariable &&
             !component.shadows.fromImplicitProp
         ) {
-            return {
-                success: true,
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
+            if (!this.givePropVariableValue) {
+                // If `givePropVariableValue` not specified,
+                // only get sources that are shadowed without propVariable
+                // unless from implicit prop
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            } else {
+                // if `givePropVariableValue` is specified,
+                // then add prop variable to variable names
+                if (
+                    !this.originalDownstreamVariableNames.includes(
+                        component.shadows.propVariable,
+                    )
+                ) {
+                    this.originalDownstreamVariableNames.push(
+                        component.shadows.propVariable,
+                    );
+                }
+            }
         }
 
         let shadowSourceComponentIdx = component.shadows.componentIdx;

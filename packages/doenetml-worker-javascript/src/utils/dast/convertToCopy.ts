@@ -72,7 +72,10 @@ export function convertRefsToCopies({
 
         if (
             newComponent.componentType === "evaluate" &&
-            unresolvedPath === null
+            unresolvedPath === null &&
+            newComponent.children.length === 1 &&
+            (newComponent.children[0] as UnflattenedComponent).componentType ===
+                "ol"
         ) {
             const evalResult = convertEvaluate({
                 evaluateComponent: newComponent,

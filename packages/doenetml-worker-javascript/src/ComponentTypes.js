@@ -153,7 +153,6 @@ import RegionBetweenCurveXAxis from "./components/RegionBetweenCurveXAxis";
 import RegionBetweenCurves from "./components/RegionBetweenCurves";
 import RegionHalfPlane from "./components/RegionHalfPlane";
 import CodeEditor from "./components/CodeEditor";
-import CodeViewer from "./components/CodeViewer";
 import HasSameFactoring from "./components/HasSameFactoring";
 import DataFrame from "./components/DataFrame";
 import SummaryStatistics from "./components/SummaryStatistics";
@@ -347,7 +346,6 @@ const componentTypeArray = [
     RegionBetweenCurves,
     RegionHalfPlane,
     CodeEditor,
-    CodeViewer,
     HasSameFactoring,
     DataFrame,
     SummaryStatistics,
