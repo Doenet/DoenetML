@@ -2608,10 +2608,15 @@ export default class Core {
         return { success: true, compositesExpanded: [component.componentIdx] };
     }
 
-    addReplacementsToResolver(serializedReplacements, component) {
+    addReplacementsToResolver(
+        serializedReplacements,
+        component,
+        overrideReplacementsAlreadyInResolver,
+    ) {
         if (
             serializedReplacements.length === 0 ||
-            component.constructor.replacementsAlreadyInResolver
+            (component.constructor.replacementsAlreadyInResolver &&
+                !overrideReplacementsAlreadyInResolver)
         ) {
             return;
         }
@@ -10362,9 +10367,13 @@ export default class Core {
                     shadowingComponent,
                 );
 
+                // In this, we override `replacementsAlreadyInResolver` for groups,
+                // because if they get new replacements from a composite they are shadowing,
+                // they wouldn't have had them when the group was originally created.
                 this.addReplacementsToResolver(
                     newSerializedReplacements,
                     shadowingComponent,
+                    true,
                 );
 
                 // expand `this._components` to length `newNComponents` so that the component indices will not be reused

@@ -170,6 +170,7 @@ export default class Graph extends BlockComponent {
         };
         attributes.grid = {
             createComponentOfType: "text",
+            valueForTrue: "medium",
         };
 
         Object.assign(attributes, returnRoundingAttributes());

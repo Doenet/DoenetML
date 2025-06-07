@@ -134,6 +134,7 @@ export default class Intersection extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -156,14 +157,14 @@ export default class Intersection extends CompositeComponent {
         let totNums = numLines + numCircles + numPolys;
 
         if (totNums < 2) {
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         } else if (totNums > 2) {
             warnings.push({
                 message:
                     "Haven't implemented intersection for more than two items",
                 level: 1,
             });
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         }
 
         let points = [];
@@ -187,16 +188,21 @@ export default class Intersection extends CompositeComponent {
         }
 
         if (points.length === 0) {
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         }
 
         let serializedReplacements = points.map((pt) => ({
+            type: "serialized",
             componentType: "point",
+            componentIdx: nComponents++,
             state: {
                 coords: me.fromAst(["vector", ...pt]),
                 draggable: false,
                 fixed: true,
             },
+            attributes: {},
+            doenetAttributes: {},
+            children: [],
         }));
 
         let attributesToConvert = {};
@@ -206,12 +212,15 @@ export default class Intersection extends CompositeComponent {
 
         if (Object.keys(attributesToConvert).length > 0) {
             for (let repl of serializedReplacements) {
-                let attributesFromComposite =
-                    convertUnresolvedAttributesForComponentType({
-                        attributes: attributesToConvert,
-                        componentType: repl.componentType,
-                        componentInfoObjects,
-                    });
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: repl.componentType,
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                const attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
 
                 if (!repl.attributes) {
                     repl.attributes = {};
@@ -220,13 +229,19 @@ export default class Intersection extends CompositeComponent {
             }
         }
 
-        return { replacements: serializedReplacements, errors, warnings };
+        return {
+            replacements: serializedReplacements,
+            errors,
+            warnings,
+            nComponents,
+        };
     }
 
     static async calculateReplacementChanges({
         component,
         components,
         componentInfoObjects,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -238,11 +253,13 @@ export default class Intersection extends CompositeComponent {
             component,
             components,
             componentInfoObjects,
+            nComponents,
         });
 
         let serializedIntersections = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        const newNComponents = replacementResults.nComponents;
 
         let nNewIntersections = serializedIntersections.length;
 
@@ -284,7 +301,7 @@ export default class Intersection extends CompositeComponent {
         }
 
         if (recreateReplacements === false) {
-            return replacementChanges;
+            return { replacementChanges, nComponents };
         }
 
         // replace with new intersection
@@ -295,8 +312,9 @@ export default class Intersection extends CompositeComponent {
             numberReplacementsToReplace: component.replacements.length,
             serializedReplacements: serializedIntersections,
         };
+        nComponents = newNComponents;
 
-        return [replacementInstruction];
+        return { replacementChanges: [replacementInstruction], nComponents };
     }
 }
 

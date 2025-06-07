@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import {
     submitAnswer,
     updateBooleanInputValue,
@@ -17,7 +17,7 @@ vi.mock("hyperformula");
 
 describe("Graph tag tests", async () => {
     it("functions adapted to curves in graph", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g">
       <function>x^2</function>
@@ -27,8 +27,12 @@ describe("Graph tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let curve1Name = stateVariables["/g"].activeChildren[0].componentIdx;
-        let curve2Name = stateVariables["/g"].activeChildren[1].componentIdx;
+        let curve1Name =
+            stateVariables[resolveComponentName("g")].activeChildren[0]
+                .componentIdx;
+        let curve2Name =
+            stateVariables[resolveComponentName("g")].activeChildren[1]
+                .componentIdx;
 
         let f1 = stateVariables[curve1Name].stateValues.fs[0];
         let f2 = stateVariables[curve2Name].stateValues.fs[0];
@@ -46,7 +50,7 @@ describe("Graph tag tests", async () => {
     });
 
     it("labels and positioning", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <text>a</text>
 
@@ -83,67 +87,101 @@ describe("Graph tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.xlabel).eq("x");
-        expect(stateVariables["/g"].stateValues.xlabelPosition).eq("right");
-        expect(stateVariables["/g"].stateValues.ylabel).eq("y");
-        expect(stateVariables["/g"].stateValues.ylabelPosition).eq("top");
-        expect(stateVariables["/g"].stateValues.ylabelAlignment).eq("left");
+        expect(stateVariables[resolveComponentName("g")].stateValues.xlabel).eq(
+            "x",
+        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .xlabelPosition,
+        ).eq("right");
+        expect(stateVariables[resolveComponentName("g")].stateValues.ylabel).eq(
+            "y",
+        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .ylabelPosition,
+        ).eq("top");
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .ylabelAlignment,
+        ).eq("left");
 
         await updateTextInputValue({
             text: "hello",
-            name: "/xlabel",
+            componentIdx: resolveComponentName("xlabel"),
             core,
         });
         await updateTextInputValue({
             text: "bye",
-            name: "/ylabel",
+            componentIdx: resolveComponentName("ylabel"),
             core,
         });
 
         await updateSelectedIndices({
-            name: "/xlabelpos",
+            componentIdx: resolveComponentName("xlabelpos"),
             selectedIndices: [1],
             core,
         });
         await updateSelectedIndices({
-            name: "/ylabelpos",
+            componentIdx: resolveComponentName("ylabelpos"),
             selectedIndices: [2],
             core,
         });
         await updateSelectedIndices({
-            name: "/ylabelalign",
+            componentIdx: resolveComponentName("ylabelalign"),
             selectedIndices: [2],
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.xlabel).eq("hello");
-        expect(stateVariables["/g"].stateValues.xlabelPosition).eq("left");
-        expect(stateVariables["/g"].stateValues.ylabel).eq("bye");
-        expect(stateVariables["/g"].stateValues.ylabelPosition).eq("bottom");
-        expect(stateVariables["/g"].stateValues.ylabelAlignment).eq("right");
+        expect(stateVariables[resolveComponentName("g")].stateValues.xlabel).eq(
+            "hello",
+        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .xlabelPosition,
+        ).eq("left");
+        expect(stateVariables[resolveComponentName("g")].stateValues.ylabel).eq(
+            "bye",
+        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .ylabelPosition,
+        ).eq("bottom");
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .ylabelAlignment,
+        ).eq("right");
     });
 
     it("change essential xlabel and ylabel", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" />
-    <p><updateValue name="uvx" target="g.xlabel" type="text" newValue="s" ><label>Change x-label</label></updateValue></p>
-    <p><updateValue name="uvy" target="g.ylabel" type="text" newValue="t" ><label>Change y-label</label></updateValue></p>
+    <p><updateValue name="uvx" target="$g.xlabel" type="text" newValue="s" ><label>Change x-label</label></updateValue></p>
+    <p><updateValue name="uvy" target="$g.ylabel" type="text" newValue="t" ><label>Change y-label</label></updateValue></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.xlabel).eq("");
-        expect(stateVariables["/g"].stateValues.ylabel).eq("");
+        expect(stateVariables[resolveComponentName("g")].stateValues.xlabel).eq(
+            "",
+        );
+        expect(stateVariables[resolveComponentName("g")].stateValues.ylabel).eq(
+            "",
+        );
 
-        await updateValue({ name: "/uvx", core });
-        await updateValue({ name: "/uvy", core });
+        await updateValue({ componentIdx: resolveComponentName("uvx"), core });
+        await updateValue({ componentIdx: resolveComponentName("uvy"), core });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.xlabel).eq("s");
-        expect(stateVariables["/g"].stateValues.ylabel).eq("t");
+        expect(stateVariables[resolveComponentName("g")].stateValues.xlabel).eq(
+            "s",
+        );
+        expect(stateVariables[resolveComponentName("g")].stateValues.ylabel).eq(
+            "t",
+        );
     });
 
     it("identical axis scales, with given aspect ratio", async () => {
@@ -156,16 +194,25 @@ describe("Graph tag tests", async () => {
 
         async function checkLimits(
             core: PublicDoenetMLCore,
+            resolveComponentName: ResolveComponentName,
             { xmin, xmax, ymin, ymax }: AxisLimits,
         ) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            expect(stateVariables["/g"].stateValues.xmin).eq(xmin);
-            expect(stateVariables["/g"].stateValues.xmax).eq(xmax);
-            expect(stateVariables["/g"].stateValues.ymin).eq(ymin);
-            expect(stateVariables["/g"].stateValues.ymax).eq(ymax);
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues.xmin,
+            ).eq(xmin);
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues.xmax,
+            ).eq(xmax);
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues.ymin,
+            ).eq(ymin);
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues.ymax,
+            ).eq(ymax);
         }
 
         async function test_case({
@@ -184,23 +231,25 @@ describe("Graph tag tests", async () => {
     <graph name="g" identicalAxisScales aspectRatio="$aspectRatio" ${specified_limits} />
     `;
 
-            const core = await createTestCore({ doenetML });
+            const { core, resolveComponentName } = await createTestCore({
+                doenetML,
+            });
 
-            await checkLimits(core, ratio1);
+            await checkLimits(core, resolveComponentName, ratio1);
 
             await updateMathInputValue({
                 latex: "2",
-                name: "/aspectRatio",
+                componentIdx: resolveComponentName("aspectRatio"),
                 core,
             });
-            await checkLimits(core, ratio2);
+            await checkLimits(core, resolveComponentName, ratio2);
 
             await updateMathInputValue({
                 latex: "1/2",
-                name: "/aspectRatio",
+                componentIdx: resolveComponentName("aspectRatio"),
                 core,
             });
-            await checkLimits(core, ratio05);
+            await checkLimits(core, resolveComponentName, ratio05);
         }
 
         let cases = [
@@ -289,19 +338,15 @@ describe("Graph tag tests", async () => {
     });
 
     it("identical axis scales, without given aspect ratio", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" identicalAxisScales />
 
-    <p>xmin: $g.xmin{assignNames="xmin"}</p>
-    <p>xmax: $g.xmax{assignNames="xmax"}</p>
-    <p>ymin: $g.ymin{assignNames="ymin"}</p>
-    <p>ymax: $g.ymax{assignNames="ymax"}</p>
 
-    <p>Change xmin: <mathinput name="xminInput" bindValueTo="$g.xmin" /></p>
-    <p>Change xmax: <mathinput name="xmaxInput" bindValueTo="$g.xmax" /></p>
-    <p>Change ymin: <mathinput name="yminInput" bindValueTo="$g.ymin" /></p>
-    <p>Change ymax: <mathinput name="ymaxInput" bindValueTo="$g.ymax" /></p>
+    <p>Change xmin: <mathInput name="xminInput" bindValueTo="$g.xmin" /></p>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
+    <p>Change ymin: <mathInput name="yminInput" bindValueTo="$g.ymin" /></p>
+    <p>Change ymax: <mathInput name="ymaxInput" bindValueTo="$g.ymax" /></p>
 
     `,
         });
@@ -311,14 +356,23 @@ describe("Graph tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/g"].stateValues.xmin).eq(xmin);
-            expect(stateVariables["/g"].stateValues.xmax).eq(xmax);
-            expect(stateVariables["/g"].stateValues.ymin).eq(ymin);
-            expect(stateVariables["/g"].stateValues.ymax).eq(ymax);
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues.xmin,
+            ).eq(xmin);
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues.xmax,
+            ).eq(xmax);
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues.ymin,
+            ).eq(ymin);
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues.ymax,
+            ).eq(ymax);
 
-            expect(stateVariables["/g"].stateValues.aspectRatio).eq(
-                (xmax - xmin) / (ymax - ymin),
-            );
+            expect(
+                stateVariables[resolveComponentName("g")].stateValues
+                    .aspectRatio,
+            ).eq((xmax - xmin) / (ymax - ymin));
         }
 
         await checkLimits(-10, 10, -10, 10);
@@ -326,7 +380,7 @@ describe("Graph tag tests", async () => {
         // set xmin to -5
         await updateMathInputValue({
             latex: "-5",
-            name: "/xminInput",
+            componentIdx: resolveComponentName("xminInput"),
             core,
         });
         await checkLimits(-5, 10, -10, 10);
@@ -334,40 +388,40 @@ describe("Graph tag tests", async () => {
         // set ymax to 0
         await updateMathInputValue({
             latex: "0",
-            name: "/ymaxInput",
+            componentIdx: resolveComponentName("ymaxInput"),
             core,
         });
         await checkLimits(-5, 10, -10, 0);
     });
 
     it("show grid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <graph name="g1"/>
-    <p>Graph 1 has grid: $g1.grid{assignNames="sg1"}</p>
+    <p>Graph 1 has grid: <text extend="$g1.grid" name="sg1" /></p>
 
     <graph name="g2" grid="none"/>
-    <p>Graph 2 has grid: $g2.grid{assignNames="sg2"}</p>
+    <p>Graph 2 has grid: <text extend="$g2.grid" name="sg2" /></p>
 
     <graph name="g3" grid/>
-    <p>Graph 3 has grid: $g3.grid{assignNames="sg3"}</p>
+    <p>Graph 3 has grid: <text extend="$g3.grid" name="sg3" /></p>
 
     <graph name="g4" grid="medium"/>
-    <p>Graph 4 has grid: $g4.grid{assignNames="sg4"}</p>
+    <p>Graph 4 has grid: <text extend="$g4.grid" name="sg4" /></p>
 
     <graph name="g5" grid="dense"/>
-    <p>Graph 5 has grid: $g5.grid{assignNames="sg5"}</p>
+    <p>Graph 5 has grid: <text extend="$g5.grid" name="sg5" /></p>
 
 
     <p>Show grid: <booleanInput name="bi" /></p>
     <graph name="g6" grid="$bi"/>
-    <p>Graph 6 has grid: $g6.grid{assignNames="sg6"}</p>
+    <p>Graph 6 has grid: <text extend="$g6.grid" name="sg6" /></p>
 
 
     <p>Show grid: <textInput name="ti" /></p>
     <graph name="g7" grid="$ti"/>
-    <p>Graph 7 has grid: $g7.grid{assignNames="sg7"}</p>
+    <p>Graph 7 has grid: <text extend="$g7.grid" name="sg7" /></p>
 
     `,
         });
@@ -375,250 +429,316 @@ describe("Graph tag tests", async () => {
         // not sure what to test as don't know how to check renderer...
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg1"].stateValues.value).eq("none");
-        expect(stateVariables["/sg2"].stateValues.value).eq("none");
-        expect(stateVariables["/sg3"].stateValues.value).eq("medium");
-        expect(stateVariables["/sg4"].stateValues.value).eq("medium");
-        expect(stateVariables["/sg5"].stateValues.value).eq("dense");
-        expect(stateVariables["/sg6"].stateValues.value).eq("none");
-        expect(stateVariables["/sg7"].stateValues.value).eq("none");
+        expect(
+            stateVariables[resolveComponentName("sg1")].stateValues.value,
+        ).eq("none");
+        expect(
+            stateVariables[resolveComponentName("sg2")].stateValues.value,
+        ).eq("none");
+        expect(
+            stateVariables[resolveComponentName("sg3")].stateValues.value,
+        ).eq("medium");
+        expect(
+            stateVariables[resolveComponentName("sg4")].stateValues.value,
+        ).eq("medium");
+        expect(
+            stateVariables[resolveComponentName("sg5")].stateValues.value,
+        ).eq("dense");
+        expect(
+            stateVariables[resolveComponentName("sg6")].stateValues.value,
+        ).eq("none");
+        expect(
+            stateVariables[resolveComponentName("sg7")].stateValues.value,
+        ).eq("none");
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/bi",
+            componentIdx: resolveComponentName("bi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg6"].stateValues.value).eq("medium");
+        expect(
+            stateVariables[resolveComponentName("sg6")].stateValues.value,
+        ).eq("medium");
 
         await updateTextInputValue({
             text: "true",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg7"].stateValues.value).eq("medium");
+        expect(
+            stateVariables[resolveComponentName("sg7")].stateValues.value,
+        ).eq("medium");
 
         await updateTextInputValue({
             text: "false",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg7"].stateValues.value).eq("none");
+        expect(
+            stateVariables[resolveComponentName("sg7")].stateValues.value,
+        ).eq("none");
 
         await updateTextInputValue({
             text: "dense",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg7"].stateValues.value).eq("dense");
+        expect(
+            stateVariables[resolveComponentName("sg7")].stateValues.value,
+        ).eq("dense");
 
         await updateTextInputValue({
             text: "hello",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg7"].stateValues.value).eq("none");
+        expect(
+            stateVariables[resolveComponentName("sg7")].stateValues.value,
+        ).eq("none");
 
         await updateTextInputValue({
             text: "medium",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg7"].stateValues.value).eq("medium");
+        expect(
+            stateVariables[resolveComponentName("sg7")].stateValues.value,
+        ).eq("medium");
 
         await updateTextInputValue({
             text: "none",
-            name: "/ti",
+            componentIdx: resolveComponentName("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg7"].stateValues.value).eq("none");
+        expect(
+            stateVariables[resolveComponentName("sg7")].stateValues.value,
+        ).eq("none");
     });
 
     it("fixed grids", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <graph name="g1" grid="1 pi/2" displayDigits="4" />
-    <p>Graph 1 has grid: $g1.grid{assignNames="sg1"}</p>
+    <p>Graph 1 has grid: <numberList extend="$g1.grid" name="sg1" /></p>
 
     <p>grid x: <mathInput name="g2x" /></p>
     <p>grid y: <mathInput name="g2y" /></p>
     <graph name="g2" grid="$g2x $g2y" />
-    <p>Graph 2 has grid: $g2.grid{assignNames="sg2"}</p>
+    <p>Graph 2 has grid: <numberList extend="$g2.grid" name="sg2" /></p>
 
     <p>grid x: <mathInput name="g3x" /> <number name="g3xa" hide>$g3x</number></p>
     <p>grid y: <mathInput name="g3y" /> <number name="g3ya" hide>$g3y</number></p>
     <graph name="g3" grid="$g3xa $g3ya" />
-    <p>Graph 3 has grid: $g3.grid{assignNames="sg3"}</p>
+    <p>Graph 3 has grid: <numberList extend="$g3.grid" name="sg3" /></p>
 
     <p>grid x: <mathInput name="g4x" prefill="1" /></p>
     <p>grid y: <mathInput name="g4y" prefill="1" /></p>
     <graph name="g4" grid="2$g4x 3$g4y" displayDecimals="2" />
-    <p>Graph 4 has grid: $g4.grid{assignNames="sg4"}</p>
+    <p>Graph 4 has grid: <numberList extend="$g4.grid" name="sg4" /></p>
 
     <p>grid x: <mathInput name="g5x" prefill="1" /> <number name="g5xa">$g5x</number></p>
     <p>grid y: <mathInput name="g5y" prefill="1" /> <number name="g5ya">$g5y</number></p>
     <graph name="g5" grid="2$g5xa 3$g5ya" displayDecimals="2" />
-    <p>Graph 5 has grid: $g5.grid{assignNames="sg5"}</p>
+    <p>Graph 5 has grid: <numberList extend="$g5.grid" name="sg5" /></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg1"].stateValues.numbers).eqls([
-            1,
-            Math.PI / 2,
-        ]);
-        expect(stateVariables["/sg2"].stateValues.value).eq("none");
-        expect(stateVariables["/sg3"].stateValues.value).eq("none");
-        expect(stateVariables["/sg4"].stateValues.numbers).eqls([2, 3]);
-        expect(stateVariables["/sg5"].stateValues.numbers).eqls([2, 3]);
+        expect(
+            stateVariables[resolveComponentName("sg1")].stateValues.numbers,
+        ).eqls([1, Math.PI / 2]);
+        expect(
+            stateVariables[resolveComponentName("sg2")].stateValues.numbers,
+        ).eqls([NaN]);
+        expect(
+            stateVariables[resolveComponentName("sg3")].stateValues.numbers,
+        ).eqls([NaN]);
+        expect(
+            stateVariables[resolveComponentName("sg4")].stateValues.numbers,
+        ).eqls([2, 3]);
+        expect(
+            stateVariables[resolveComponentName("sg5")].stateValues.numbers,
+        ).eqls([2, 3]);
 
-        await updateMathInputValue({ latex: "3", name: "/g2x", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("g2x"),
+            core,
+        });
         await updateMathInputValue({
             latex: "1.5",
-            name: "/g2y",
+            componentIdx: resolveComponentName("g2y"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg2"].stateValues.numbers).eqls([3, 1.5]);
+        expect(
+            stateVariables[resolveComponentName("sg2")].stateValues.numbers,
+        ).eqls([3, 1.5]);
 
-        await updateMathInputValue({ latex: "3", name: "/g3x", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("g3x"),
+            core,
+        });
         await updateMathInputValue({
             latex: "1.5",
-            name: "/g3y",
+            componentIdx: resolveComponentName("g3y"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg3"].stateValues.numbers).eqls([3, 1.5]);
+        expect(
+            stateVariables[resolveComponentName("sg3")].stateValues.numbers,
+        ).eqls([3, 1.5]);
 
-        await updateMathInputValue({ latex: "3", name: "/g4x", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("g4x"),
+            core,
+        });
         await updateMathInputValue({
             latex: "1.5",
-            name: "/g4y",
+            componentIdx: resolveComponentName("g4y"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg4"].stateValues.numbers).eqls([
-            3 * 2,
-            1.5 * 3,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("sg4")].stateValues.numbers,
+        ).eqls([3 * 2, 1.5 * 3]);
 
-        await updateMathInputValue({ latex: "3", name: "/g5x", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("g5x"),
+            core,
+        });
         await updateMathInputValue({
             latex: "1.5",
-            name: "/g5y",
+            componentIdx: resolveComponentName("g5y"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg5"].stateValues.numbers).eqls([
-            3 * 2,
-            1.5 * 3,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("sg5")].stateValues.numbers,
+        ).eqls([3 * 2, 1.5 * 3]);
 
         await updateMathInputValue({
             latex: "3e/2",
-            name: "/g2x",
+            componentIdx: resolveComponentName("g2x"),
             core,
         });
         await updateMathInputValue({
             latex: "1.5\\pi",
-            name: "/g2y",
+            componentIdx: resolveComponentName("g2y"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg2"].stateValues.numbers).eqls([
-            (3 * Math.E) / 2,
-            1.5 * Math.PI,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("sg2")].stateValues.numbers,
+        ).eqls([(3 * Math.E) / 2, 1.5 * Math.PI]);
 
         await updateMathInputValue({
             latex: "3e/2",
-            name: "/g3x",
+            componentIdx: resolveComponentName("g3x"),
             core,
         });
         await updateMathInputValue({
             latex: "1.5\\pi",
-            name: "/g3y",
+            componentIdx: resolveComponentName("g3y"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg3"].stateValues.numbers).eqls([
-            (3 * Math.E) / 2,
-            1.5 * Math.PI,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("sg3")].stateValues.numbers,
+        ).eqls([(3 * Math.E) / 2, 1.5 * Math.PI]);
 
         await updateMathInputValue({
             latex: "3\\pi/5",
-            name: "/g4x",
+            componentIdx: resolveComponentName("g4x"),
             core,
         });
         await updateMathInputValue({
             latex: "1.5e/6",
-            name: "/g4y",
+            componentIdx: resolveComponentName("g4y"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg4"].stateValues.numbers).eqls([
-            ((3 * Math.PI) / 5) * 2,
-            ((1.5 * Math.E) / 6) * 3,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("sg4")].stateValues.numbers,
+        ).eqls([((3 * Math.PI) / 5) * 2, ((1.5 * Math.E) / 6) * 3]);
 
         await updateMathInputValue({
             latex: "3\\pi/5",
-            name: "/g5x",
+            componentIdx: resolveComponentName("g5x"),
             core,
         });
         await updateMathInputValue({
             latex: "1.5e/6",
-            name: "/g5y",
+            componentIdx: resolveComponentName("g5y"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/sg5"].stateValues.numbers).eqls([
-            ((3 * Math.PI) / 5) * 2,
-            ((1.5 * Math.E) / 6) * 3,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("sg5")].stateValues.numbers,
+        ).eqls([((3 * Math.PI) / 5) * 2, ((1.5 * Math.E) / 6) * 3]);
     });
 
     it("correctly shadow references to number list grid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <section name="sec">
         <graph grid="1 2" name="g" />
 
-        <p>Grid: $g.grid{name="cgr" assignNames="gr"}</p>
-        <p>Grid2: $cgr{assignNames="gr2a gr2b"}</p>
-        <p>Grid3: $gr{name="gr3"}</p>
+        <p>Grid: <numberList extend="$g.grid" name="gr" /></p>
+        <p>Grid2: <number extend="$gr[1]" name="gr2a" /> <number extend="$gr[2]" name="gr2b" /></p>
+        <p>Grid3: <numberList extend="$gr" name="gr3" /></p>
     </section>
 
-    <section copySource="sec" name="sec2" newNamespace />
+    <section extend="$sec" name="sec2" />
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/gr"].stateValues.numbers).eqls([1, 2]);
-        expect(stateVariables["/gr2a"].stateValues.value).eq(1);
-        expect(stateVariables["/gr2b"].stateValues.value).eq(2);
-        expect(stateVariables["/gr3"].stateValues.numbers).eqls([1, 2]);
-        expect(stateVariables["/sec2/gr"].stateValues.numbers).eqls([1, 2]);
-        expect(stateVariables["/sec2/gr2a"].stateValues.value).eq(1);
-        expect(stateVariables["/sec2/gr2b"].stateValues.value).eq(2);
-        expect(stateVariables["/sec2/gr3"].stateValues.numbers).eqls([1, 2]);
+        expect(
+            stateVariables[resolveComponentName("gr")].stateValues.numbers,
+        ).eqls([1, 2]);
+        expect(
+            stateVariables[resolveComponentName("gr2a")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("gr2b")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[resolveComponentName("gr3")].stateValues.numbers,
+        ).eqls([1, 2]);
+        expect(
+            stateVariables[resolveComponentName("sec2.gr")].stateValues.numbers,
+        ).eqls([1, 2]);
+        expect(
+            stateVariables[resolveComponentName("sec2.gr2a")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("sec2.gr2b")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[resolveComponentName("sec2.gr3")].stateValues
+                .numbers,
+        ).eqls([1, 2]);
     });
 
     // check for bug in placeholder adapter
     it("graph with label as submitted response, createComponentOfType specified", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="graph1">
-      <xlabel>$(x.submittedResponse{ createComponentOfType='math'})</xlabel>
+      <xlabel><math extend="$x.submittedResponse" /></xlabel>
       <ylabel>y</ylabel>
     </graph>
 
@@ -630,24 +750,29 @@ describe("Graph tag tests", async () => {
         // but main thing is that don't have an error
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/graph1"].stateValues.xlabel).eq("\\(\uff3f\\)");
+        expect(
+            stateVariables[resolveComponentName("graph1")].stateValues.xlabel,
+        ).eq("\\(\uff3f\\)");
 
-        let mathinputName =
-            stateVariables["/x"].stateValues.inputChildren[0].componentIdx;
+        let mathinputIdx =
+            stateVariables[resolveComponentName("x")].stateValues
+                .inputChildren[0].componentIdx;
 
         await updateMathInputValue({
             latex: "x",
-            name: mathinputName,
+            componentIdx: mathinputIdx,
             core,
         });
-        await submitAnswer({ name: "/x", core });
+        await submitAnswer({ componentIdx: resolveComponentName("x"), core });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/graph1"].stateValues.xlabel).eq("\\(x\\)");
+        expect(
+            stateVariables[resolveComponentName("graph1")].stateValues.xlabel,
+        ).eq("\\(x\\)");
     });
 
     it("display tick labels", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" displayXAxisTickLabels="$b1" displayYAxisTickLabels="$b2"/>
     <booleanInput name="b1" />
@@ -659,68 +784,78 @@ describe("Graph tag tests", async () => {
 
         // not sure what to test as don't know how to check renderer...
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
-            false,
-        );
-        expect(stateVariables["/g"].stateValues.displayYAxisTickLabels).eq(
-            true,
-        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/b1",
+            componentIdx: resolveComponentName("b1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
-            true,
-        );
-        expect(stateVariables["/g"].stateValues.displayYAxisTickLabels).eq(
-            true,
-        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/b2",
+            componentIdx: resolveComponentName("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
-            true,
-        );
-        expect(stateVariables["/g"].stateValues.displayYAxisTickLabels).eq(
-            false,
-        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/b1",
+            componentIdx: resolveComponentName("b1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
-            false,
-        );
-        expect(stateVariables["/g"].stateValues.displayYAxisTickLabels).eq(
-            false,
-        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/b2",
+            componentIdx: resolveComponentName("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
-            false,
-        );
-        expect(stateVariables["/g"].stateValues.displayYAxisTickLabels).eq(
-            true,
-        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
     });
 
     it("graph sizes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" />
 
@@ -797,17 +932,18 @@ describe("Graph tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let name in expectedSizes) {
-            expect(stateVariables["/" + name].stateValues.size).eq(
-                expectedSizes[name],
-            );
-            expect(stateVariables["/" + name].stateValues.width.size).eq(
-                widthsBySize[expectedSizes[name]],
-            );
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.size,
+            ).eq(expectedSizes[name]);
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.width
+                    .size,
+            ).eq(widthsBySize[expectedSizes[name]]);
         }
     });
 
     it("horizontal align", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" />
     <graph name="gleft" horizontalAlign="left" />
@@ -819,21 +955,30 @@ describe("Graph tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.horizontalAlign).eq("center");
-        expect(stateVariables["/gleft"].stateValues.horizontalAlign).eq("left");
-        expect(stateVariables["/gright"].stateValues.horizontalAlign).eq(
-            "right",
-        );
-        expect(stateVariables["/gcenter"].stateValues.horizontalAlign).eq(
-            "center",
-        );
-        expect(stateVariables["/ginvalid"].stateValues.horizontalAlign).eq(
-            "center",
-        );
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .horizontalAlign,
+        ).eq("center");
+        expect(
+            stateVariables[resolveComponentName("gleft")].stateValues
+                .horizontalAlign,
+        ).eq("left");
+        expect(
+            stateVariables[resolveComponentName("gright")].stateValues
+                .horizontalAlign,
+        ).eq("right");
+        expect(
+            stateVariables[resolveComponentName("gcenter")].stateValues
+                .horizontalAlign,
+        ).eq("center");
+        expect(
+            stateVariables[resolveComponentName("ginvalid")].stateValues
+                .horizontalAlign,
+        ).eq("center");
     });
 
     it("displayMode", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" />
     <graph name="ginline" displayMode="inline" />
@@ -844,14 +989,25 @@ describe("Graph tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayMode).eq("block");
-        expect(stateVariables["/ginline"].stateValues.displayMode).eq("inline");
-        expect(stateVariables["/gblock"].stateValues.displayMode).eq("block");
-        expect(stateVariables["/ginvalid"].stateValues.displayMode).eq("block");
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayMode,
+        ).eq("block");
+        expect(
+            stateVariables[resolveComponentName("ginline")].stateValues
+                .displayMode,
+        ).eq("inline");
+        expect(
+            stateVariables[resolveComponentName("gblock")].stateValues
+                .displayMode,
+        ).eq("block");
+        expect(
+            stateVariables[resolveComponentName("ginvalid")].stateValues
+                .displayMode,
+        ).eq("block");
     });
 
     it("display axes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" displayXAxis="$b1" displayYAxis="$b2"/>
     <booleanInput name="b1" />
@@ -863,51 +1019,71 @@ describe("Graph tag tests", async () => {
 
         // not sure what to test as don't know how to check renderer...
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxis).eq(false);
-        expect(stateVariables["/g"].stateValues.displayYAxis).eq(true);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayXAxis,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayYAxis,
+        ).eq(true);
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/b1",
+            componentIdx: resolveComponentName("b1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxis).eq(true);
-        expect(stateVariables["/g"].stateValues.displayYAxis).eq(true);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayXAxis,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayYAxis,
+        ).eq(true);
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/b2",
+            componentIdx: resolveComponentName("b2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxis).eq(true);
-        expect(stateVariables["/g"].stateValues.displayYAxis).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayXAxis,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayYAxis,
+        ).eq(false);
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/b1",
+            componentIdx: resolveComponentName("b1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxis).eq(false);
-        expect(stateVariables["/g"].stateValues.displayYAxis).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayXAxis,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayYAxis,
+        ).eq(false);
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/b2",
+            componentIdx: resolveComponentName("b2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.displayXAxis).eq(false);
-        expect(stateVariables["/g"].stateValues.displayYAxis).eq(true);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayXAxis,
+        ).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues.displayYAxis,
+        ).eq(true);
     });
 
     it("display navigation bar", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" showNavigation="$b"/>
     <booleanInput name="b" />
@@ -917,88 +1093,97 @@ describe("Graph tag tests", async () => {
 
         // not sure what to test as don't know how to check renderer...
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.showNavigation).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .showNavigation,
+        ).eq(false);
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/b",
+            componentIdx: resolveComponentName("b"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.showNavigation).eq(true);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .showNavigation,
+        ).eq(true);
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/b",
+            componentIdx: resolveComponentName("b"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g"].stateValues.showNavigation).eq(false);
+        expect(
+            stateVariables[resolveComponentName("g")].stateValues
+                .showNavigation,
+        ).eq(false);
     });
 
     it("display digits and decimals, overwrite in copies", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" size="small" xmin="-45.03232523423" xmax="8.2857234234" ymin="-5.582342383823423" ymax="7.83710375032" />
-    <graph name="gdg3" displayDigits="5" copySource="g" />
-    <graph name="gdc5" displayDecimals="5" copySource="g" />
-    <graph name="gdg3a" displayDigits="5" copySource="gdc5" />
-    <graph name="gdc5a" displayDecimals="5" copySource="gdg3" />
-    <graph name="gdg3b" displayDigits="5" copySource="gdc5a" />
-    <graph name="gdc5b" displayDecimals="5" copySource="gdg3a" />
+    <graph name="gdg3" displayDigits="5" extend="$g" />
+    <graph name="gdc5" displayDecimals="5" extend="$g" />
+    <graph name="gdg3a" displayDigits="5" extend="$gdc5" />
+    <graph name="gdc5a" displayDecimals="5" extend="$gdg3" />
+    <graph name="gdg3b" displayDigits="5" extend="$gdc5a" />
+    <graph name="gdc5b" displayDecimals="5" extend="$gdg3a" />
 
     <p name="p">$g.xmin, $g.xmax, $g.ymin, $g.ymax</p>
 
     <p name="pdg3">$gdg3.xmin, $gdg3.xmax, $gdg3.ymin, $gdg3.ymax</p>
     <p name="pdg3a">$gdg3a.xmin, $gdg3a.xmax, $gdg3a.ymin, $gdg3a.ymax</p>
     <p name="pdg3b">$gdg3b.xmin, $gdg3b.xmax, $gdg3b.ymin, $gdg3b.ymax</p>
-    <p name="pdg3c">$g{displayDigits="5"}.xmin, $g{displayDigits="5"}.xmax, $g{displayDigits="5"}.ymin, $g{displayDigits="5"}.ymax</p>
-    <p name="pdg3d">$gdc5{displayDigits="5"}.xmin, $gdc5{displayDigits="5"}.xmax, $gdc5{displayDigits="5"}.ymin, $gdc5{displayDigits="5"}.ymax</p>
+    <p name="pdg3c"><setup><graph extend="$g" name="g5" displayDigits="5" /></setup>$g5.xmin, $g5.xmax, $g5.ymin, $g5.ymax</p>
+    <p name="pdg3d"><setup><graph extend="$gdc5" name="gdc55" displayDigits="5" /></setup>$gdc55.xmin, $gdc55.xmax, $gdc55.ymin, $gdc55.ymax</p>
 
     <p name="pdc5">$gdc5.xmin, $gdc5.xmax, $gdc5.ymin, $gdc5.ymax</p>
     <p name="pdc5a">$gdc5a.xmin, $gdc5a.xmax, $gdc5a.ymin, $gdc5a.ymax</p>
     <p name="pdc5b">$gdc5b.xmin, $gdc5b.xmax, $gdc5b.ymin, $gdc5b.ymax</p>
-    <p name="pdc5c">$g{displayDecimals="5"}.xmin, $g{displayDecimals="5"}.xmax, $g{displayDecimals="5"}.ymin, $g{displayDecimals="5"}.ymax</p>
-    <p name="pdc5d">$gdg3{displayDecimals="5"}.xmin, $gdg3{displayDecimals="5"}.xmax, $gdg3{displayDecimals="5"}.ymin, $gdg3{displayDecimals="5"}.ymax</p>
+    <p name="pdc5c"><setup><graph extend="$g" name="g5" displayDecimals="5" /></setup>$g5.xmin, $g5.xmax, $g5.ymin, $g5.ymax</p>
+    <p name="pdc5d"><setup><graph extend="$gdg3" name="gdg35" displayDecimals="5" /></setup>$gdg35.xmin, $gdg35.xmax, $gdg35.ymin, $gdg35.ymax</p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
             "-45.03, 8.29, -5.58, 7.84",
         );
 
-        expect(stateVariables["/pdg3"].stateValues.text).eq(
-            "-45.032, 8.2857, -5.5823, 7.8371",
-        );
-        expect(stateVariables["/pdg3b"].stateValues.text).eq(
-            "-45.032, 8.2857, -5.5823, 7.8371",
-        );
-        expect(stateVariables["/pdg3c"].stateValues.text).eq(
-            "-45.032, 8.2857, -5.5823, 7.8371",
-        );
-        expect(stateVariables["/pdg3d"].stateValues.text).eq(
-            "-45.032, 8.2857, -5.5823, 7.8371",
-        );
-        expect(stateVariables["/pdc5"].stateValues.text).eq(
-            "-45.03233, 8.28572, -5.58234, 7.8371",
-        );
-        expect(stateVariables["/pdc5b"].stateValues.text).eq(
-            "-45.03233, 8.28572, -5.58234, 7.8371",
-        );
-        expect(stateVariables["/pdc5c"].stateValues.text).eq(
-            "-45.03233, 8.28572, -5.58234, 7.8371",
-        );
-        expect(stateVariables["/pdc5d"].stateValues.text).eq(
-            "-45.03233, 8.28572, -5.58234, 7.8371",
-        );
+        expect(
+            stateVariables[resolveComponentName("pdg3")].stateValues.text,
+        ).eq("-45.032, 8.2857, -5.5823, 7.8371");
+        expect(
+            stateVariables[resolveComponentName("pdg3b")].stateValues.text,
+        ).eq("-45.032, 8.2857, -5.5823, 7.8371");
+        expect(
+            stateVariables[resolveComponentName("pdg3c")].stateValues.text,
+        ).eq("-45.032, 8.2857, -5.5823, 7.8371");
+        expect(
+            stateVariables[resolveComponentName("pdg3d")].stateValues.text,
+        ).eq("-45.032, 8.2857, -5.5823, 7.8371");
+        expect(
+            stateVariables[resolveComponentName("pdc5")].stateValues.text,
+        ).eq("-45.03233, 8.28572, -5.58234, 7.8371");
+        expect(
+            stateVariables[resolveComponentName("pdc5b")].stateValues.text,
+        ).eq("-45.03233, 8.28572, -5.58234, 7.8371");
+        expect(
+            stateVariables[resolveComponentName("pdc5c")].stateValues.text,
+        ).eq("-45.03233, 8.28572, -5.58234, 7.8371");
+        expect(
+            stateVariables[resolveComponentName("pdc5d")].stateValues.text,
+        ).eq("-45.03233, 8.28572, -5.58234, 7.8371");
     });
 
     it("pegboard", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
       <pegboard />
@@ -1012,18 +1197,38 @@ describe("Graph tag tests", async () => {
 
         // not sure what to test as don't know how to check renderer...
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/_pegboard1"].stateValues.dx).eq(1);
-        expect(stateVariables["/_pegboard1"].stateValues.dy).eq(1);
-        expect(stateVariables["/_pegboard1"].stateValues.xoffset).eq(0);
-        expect(stateVariables["/_pegboard1"].stateValues.yoffset).eq(0);
-        expect(stateVariables["/_pegboard2"].stateValues.dx).eq(3);
-        expect(stateVariables["/_pegboard2"].stateValues.dy).eq(2);
-        expect(stateVariables["/_pegboard2"].stateValues.xoffset).eq(1);
-        expect(stateVariables["/_pegboard2"].stateValues.yoffset).eq(-1);
+        expect(
+            stateVariables[resolveComponentName("_pegboard1")].stateValues.dx,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("_pegboard1")].stateValues.dy,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("_pegboard1")].stateValues
+                .xoffset,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("_pegboard1")].stateValues
+                .yoffset,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("_pegboard2")].stateValues.dx,
+        ).eq(3);
+        expect(
+            stateVariables[resolveComponentName("_pegboard2")].stateValues.dy,
+        ).eq(2);
+        expect(
+            stateVariables[resolveComponentName("_pegboard2")].stateValues
+                .xoffset,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("_pegboard2")].stateValues
+                .yoffset,
+        ).eq(-1);
     });
 
     it("show border", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph/>
     
@@ -1035,13 +1240,22 @@ describe("Graph tag tests", async () => {
 
         // not sure what to test as don't know how to check renderer...
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/_graph1"].stateValues.showBorder).eq(true);
-        expect(stateVariables["/_graph2"].stateValues.showBorder).eq(true);
-        expect(stateVariables["/_graph3"].stateValues.showBorder).eq(false);
+        expect(
+            stateVariables[resolveComponentName("_graph1")].stateValues
+                .showBorder,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("_graph2")].stateValues
+                .showBorder,
+        ).eq(true);
+        expect(
+            stateVariables[resolveComponentName("_graph3")].stateValues
+                .showBorder,
+        ).eq(false);
     });
 
     it("graph inside graph renders children in parent graph", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g1">
       <vector tail="(3,4)">(4,-5)</vector>
@@ -1065,9 +1279,17 @@ describe("Graph tag tests", async () => {
         // Not sure what to test as the interesting part is the graph renderer
         // The only new part from core is that the inner graph ignores its xmin, etc. attributes
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g1inner"].stateValues.xmin).eq(-10);
-        expect(stateVariables["/g1inner"].stateValues.xmax).eq(10);
-        expect(stateVariables["/g1inner"].stateValues.ymin).eq(-10);
-        expect(stateVariables["/g1inner"].stateValues.ymax).eq(10);
+        expect(
+            stateVariables[resolveComponentName("g1inner")].stateValues.xmin,
+        ).eq(-10);
+        expect(
+            stateVariables[resolveComponentName("g1inner")].stateValues.xmax,
+        ).eq(10);
+        expect(
+            stateVariables[resolveComponentName("g1inner")].stateValues.ymin,
+        ).eq(-10);
+        expect(
+            stateVariables[resolveComponentName("g1inner")].stateValues.ymax,
+        ).eq(10);
     });
 });

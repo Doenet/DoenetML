@@ -11,18 +11,18 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 export async function moveImage({
-    name,
+    componentIdx,
     x,
     y,
     core,
 }: {
-    name: string;
+    componentIdx: number;
     x: number;
     y: number;
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
-        componentIdx: name,
+        componentIdx,
         actionName: "moveImage",
         args: { x, y },
     });
@@ -30,7 +30,7 @@ export async function moveImage({
 
 describe("Image tag tests", async () => {
     it("image sizes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <image name="i" />
 
@@ -107,17 +107,18 @@ describe("Image tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let name in expectedSizes) {
-            expect(stateVariables["/" + name].stateValues.size).eq(
-                expectedSizes[name],
-            );
-            expect(stateVariables["/" + name].stateValues.width.size).eq(
-                widthsBySize[expectedSizes[name]],
-            );
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.size,
+            ).eq(expectedSizes[name]);
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.width
+                    .size,
+            ).eq(widthsBySize[expectedSizes[name]]);
         }
     });
 
     it("horizontal align", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <image name="i" />
     <image name="ileft" horizontalAlign="left" />
@@ -129,23 +130,32 @@ describe("Image tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/i"].stateValues.horizontalAlign).eq("center");
-        expect(stateVariables["/ileft"].stateValues.horizontalAlign).eq("left");
-        expect(stateVariables["/iright"].stateValues.horizontalAlign).eq(
-            "right",
-        );
-        expect(stateVariables["/icenter"].stateValues.horizontalAlign).eq(
-            "center",
-        );
-        expect(stateVariables["/iinvalid"].stateValues.horizontalAlign).eq(
-            "center",
-        );
+        expect(
+            stateVariables[resolveComponentName("i")].stateValues
+                .horizontalAlign,
+        ).eq("center");
+        expect(
+            stateVariables[resolveComponentName("ileft")].stateValues
+                .horizontalAlign,
+        ).eq("left");
+        expect(
+            stateVariables[resolveComponentName("iright")].stateValues
+                .horizontalAlign,
+        ).eq("right");
+        expect(
+            stateVariables[resolveComponentName("icenter")].stateValues
+                .horizontalAlign,
+        ).eq("center");
+        expect(
+            stateVariables[resolveComponentName("iinvalid")].stateValues
+                .horizontalAlign,
+        ).eq("center");
 
         // TODO: anything to check in the DOM?
     });
 
     it("displayMode", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <image name="i" />
     <image name="iinline" displayMode="inline" />
@@ -156,10 +166,21 @@ describe("Image tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/i"].stateValues.displayMode).eq("block");
-        expect(stateVariables["/iinline"].stateValues.displayMode).eq("inline");
-        expect(stateVariables["/iblock"].stateValues.displayMode).eq("block");
-        expect(stateVariables["/iinvalid"].stateValues.displayMode).eq("block");
+        expect(
+            stateVariables[resolveComponentName("i")].stateValues.displayMode,
+        ).eq("block");
+        expect(
+            stateVariables[resolveComponentName("iinline")].stateValues
+                .displayMode,
+        ).eq("inline");
+        expect(
+            stateVariables[resolveComponentName("iblock")].stateValues
+                .displayMode,
+        ).eq("block");
+        expect(
+            stateVariables[resolveComponentName("iinvalid")].stateValues
+                .displayMode,
+        ).eq("block");
     });
 
     it("image in graph", async () => {
@@ -174,7 +195,7 @@ describe("Image tag tests", async () => {
     });
 
     it("rotate image in graph", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph >
       <image rotate="$rotate1" name="image1" />
@@ -183,7 +204,7 @@ describe("Image tag tests", async () => {
     <p>Change rotate 1 <mathInput name="rotate1" prefill="pi/4" /></p>
     <p>Change rotate 1a <mathInput name="rotate1a" bindValueTo="$image1.rotate" /></p>
 
-    <image copySource="image1" name="image1a" />
+    <image extend="$image1" name="image1a" />
 
     `,
         });
@@ -191,36 +212,40 @@ describe("Image tag tests", async () => {
         // Is there a way to test the rotation of the image in the graph?
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/image1"].stateValues.rotate).eq(Math.PI / 4);
+        expect(
+            stateVariables[resolveComponentName("image1")].stateValues.rotate,
+        ).eq(Math.PI / 4);
 
         await updateMathInputValue({
             latex: "3\\pi/4",
-            name: "/rotate1",
+            componentIdx: resolveComponentName("rotate1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/image1"].stateValues.rotate).eq(
-            (3 * Math.PI) / 4,
-        );
+        expect(
+            stateVariables[resolveComponentName("image1")].stateValues.rotate,
+        ).eq((3 * Math.PI) / 4);
 
         await updateMathInputValue({
             latex: "-\\pi",
-            name: "/rotate1a",
+            componentIdx: resolveComponentName("rotate1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/image1"].stateValues.rotate).eq(-Math.PI);
+        expect(
+            stateVariables[resolveComponentName("image1")].stateValues.rotate,
+        ).eq(-Math.PI);
     });
 
     it("math in graph, handle bad anchor coordinates", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
             <graph >
               <image anchor="$anchorCoords1" name="image1" />
             </graph>
             
         
-            <p name="pAnchor1">Anchor 1 coordinates:  <point copySource="image1.anchor" name="image1anchor" /></p>
+            <p name="pAnchor1">Anchor 1 coordinates:  <point extend="$image1.anchor" name="image1anchor" /></p>
             <p name="pChangeAnchor1">Change anchor 1 coordinates: <mathInput name="anchorCoords1" prefill="x" /></p>
             
         
@@ -230,33 +255,42 @@ describe("Image tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            cleanLatex(stateVariables["/image1anchor"].stateValues.latex),
+            cleanLatex(
+                stateVariables[resolveComponentName("image1anchor")].stateValues
+                    .latex,
+            ),
         ).eq("x");
 
         // give good anchor coords
         await updateMathInputValue({
             latex: "(6,7)",
-            name: "/anchorCoords1",
+            componentIdx: resolveComponentName("anchorCoords1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            cleanLatex(stateVariables["/image1anchor"].stateValues.latex),
+            cleanLatex(
+                stateVariables[resolveComponentName("image1anchor")].stateValues
+                    .latex,
+            ),
         ).eq("(6,7)");
 
         // give bad anchor coords again
         await updateMathInputValue({
             latex: "q",
-            name: "/anchorCoords1",
+            componentIdx: resolveComponentName("anchorCoords1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            cleanLatex(stateVariables["/image1anchor"].stateValues.latex),
+            cleanLatex(
+                stateVariables[resolveComponentName("image1anchor")].stateValues
+                    .latex,
+            ),
         ).eq("q");
     });
 });
