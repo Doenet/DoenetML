@@ -152,10 +152,10 @@ export function DocViewer({
         Record<string, { animationFrameID?: number; timeoutId?: number }>
     >({});
 
-    const resolveActionPromises = useRef<Record<string, (value: any) => void>>(
-        {},
+    const onActionCallbacks = useRef(
+        new Map<string, (value: boolean) => void>(),
     );
-    const actionTentativelySkipped = useRef<{
+    const lastSkippableAction = useRef<{
         action: { actionName: string; componentIdx?: number };
         args: Record<string, any>;
         baseVariableValue?: any;
@@ -425,19 +425,15 @@ export function DocViewer({
             }
         }
 
-        if (actionTentativelySkipped.current) {
-            // we are for sure skipping the actionTentativelySkipped,
+        if (lastSkippableAction.current) {
+            // we are for sure skipping the lastSkippableAction,
             // so resolve its promise as false
-            actionTentativelySkipped.current.promiseResolve?.(false);
-            actionTentativelySkipped.current = null;
+            lastSkippableAction.current.promiseResolve?.(false);
+            lastSkippableAction.current = null;
         }
 
         if (args?.skippable) {
-            let nActionsInProgress = Object.keys(
-                resolveActionPromises.current,
-            ).length;
-
-            if (nActionsInProgress > 0) {
+            if (onActionCallbacks.current.size > 0) {
                 // Since another action is currently in progress,
                 // we will (at least initially) skip this skippable action.
                 // If the currently running action is resolved while this action
@@ -454,7 +450,7 @@ export function DocViewer({
                     });
                 }
 
-                actionTentativelySkipped.current = {
+                lastSkippableAction.current = {
                     action,
                     args,
                     baseVariableValue,
@@ -505,11 +501,11 @@ export function DocViewer({
             // and we are just being called inside resolveAction
             // (where the return is being ignored).
             // Simply set it up so that promiseResolve will be called when the action is resolved
-            resolveActionPromises.current[actionId] = promiseResolve;
+            onActionCallbacks.current.set(actionId, promiseResolve);
             return;
         } else {
             return new Promise((resolve, reject) => {
-                resolveActionPromises.current[actionId] = resolve;
+                onActionCallbacks.current.set(actionId, resolve);
             });
         }
     }
@@ -746,18 +742,22 @@ export function DocViewer({
     }
 
     function resolveAction({ actionId }: { actionId?: string }) {
-        if (actionId) {
-            resolveActionPromises.current[actionId]?.(true);
-            delete resolveActionPromises.current[actionId];
+        if (!actionId) {
+            return;
+        }
+        const callback = onActionCallbacks.current.get(actionId);
+        if (callback) {
+            callback(true);
+            onActionCallbacks.current.delete(actionId);
+        }
 
-            if (
-                actionTentativelySkipped.current &&
-                Object.keys(resolveActionPromises.current).length === 0
-            ) {
-                let actionToCall = actionTentativelySkipped.current;
-                actionTentativelySkipped.current = null;
-                callAction(actionToCall);
-            }
+        if (
+            lastSkippableAction.current &&
+            onActionCallbacks.current.size === 0
+        ) {
+            let actionToCall = lastSkippableAction.current;
+            lastSkippableAction.current = null;
+            callAction(actionToCall);
         }
     }
 
@@ -1002,7 +1002,7 @@ export function DocViewer({
             }
         }
 
-        resolveActionPromises.current = {};
+        onActionCallbacks.current.clear();
 
         coreCreationInProgress.current = true;
 
