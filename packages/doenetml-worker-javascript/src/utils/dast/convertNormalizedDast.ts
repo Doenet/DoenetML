@@ -207,6 +207,8 @@ export async function normalizedDastToSerializedComponents(
 
     let nComponents = normalized_root.nodes.length;
 
+    // console.log({ normalized_root });
+
     if (
         typeof documentIdx === "string" ||
         normalized_root.children.length !== 1
@@ -224,6 +226,12 @@ export async function normalizedDastToSerializedComponents(
         throw Error("Root of dast should be a single document");
     }
 
+    // console.log(
+    //     "before create copies",
+    //     JSON.parse(JSON.stringify([unflattenedDocument])),
+    //     nComponents,
+    // );
+
     const convertToCopyResult = convertRefsToCopies({
         serializedComponents: [unflattenedDocument],
         nComponents,
@@ -232,11 +240,19 @@ export async function normalizedDastToSerializedComponents(
     });
     nComponents = convertToCopyResult.nComponents;
 
+    // console.log(
+    //     "after create copies",
+    //     convertToCopyResult.components,
+    //     nComponents,
+    // );
+
     let expandResult = expandUnflattenedToSerializedComponents({
         serializedComponents: convertToCopyResult.components,
         componentInfoObjects,
         nComponents,
     });
+
+    // console.log({ expandResult });
 
     let expandedRoot = expandResult.components;
     nComponents = expandResult.nComponents;
@@ -247,6 +263,12 @@ export async function normalizedDastToSerializedComponents(
         componentInfoObjects,
     );
 
+    // console.log(
+    //     "before apply sugar",
+    //     JSON.parse(JSON.stringify(expandedRoot)),
+    //     nComponents,
+    // );
+
     const sugarResult = applySugar({
         serializedComponents: expandedRoot,
         componentInfoObjects,
@@ -255,6 +277,12 @@ export async function normalizedDastToSerializedComponents(
     errors.push(...sugarResult.errors);
     warnings.push(...sugarResult.warnings);
     nComponents = sugarResult.nComponents;
+
+    // console.log(
+    //     "after apply sugar",
+    //     JSON.parse(JSON.stringify(sugarResult.components)),
+    //     nComponents,
+    // );
 
     return {
         document: sugarResult.components[0] as SerializedComponent,
@@ -1014,10 +1042,20 @@ export function convertUnresolvedAttributesForComponentType({
     const newClass = componentInfoObjects.allComponentClasses[componentType];
     const newAttributesObj = newClass.createAttributesObject();
 
+    let attributeLowerCaseMapping: Record<string, string> = {};
+
+    for (let attrName in newAttributesObj) {
+        attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
+    }
+
     const newAttributes: Record<string, SerializedAttribute> = {};
 
-    for (const attrName in attributes) {
-        const attribute = attributes[attrName];
+    for (const attrNameOrig in attributes) {
+        const attribute = attributes[attrNameOrig];
+
+        const attrName =
+            attributeLowerCaseMapping[attrNameOrig.toLocaleLowerCase()];
+
         const attrDef = newAttributesObj[attrName];
 
         if (
@@ -1070,7 +1108,7 @@ export function convertUnresolvedAttributesForComponentType({
                 newAttributes[attrName] = attribute;
             }
         } else if (newClass.acceptAnyAttribute) {
-            newAttributes[attrName] = attribute;
+            newAttributes[attrNameOrig] = attribute;
         }
     }
 

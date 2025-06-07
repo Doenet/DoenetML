@@ -300,6 +300,16 @@ export default class UpdateValue extends InlineComponent {
 
                     for (let ind in dependencyValues.targetIdentities) {
                         let target = dependencyValues["target" + ind];
+                        if (target == null) {
+                            let message =
+                                "Invalid target for <updateValue>: cannot find target.";
+
+                            warnings.push({
+                                message,
+                                level: 1,
+                            });
+                            continue;
+                        }
                         targets.push(target);
                         if (Object.keys(target.stateValues)[0] === undefined) {
                             if (dependencyValues.unresolvedPath) {

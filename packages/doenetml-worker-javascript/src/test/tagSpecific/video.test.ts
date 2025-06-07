@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("Video tag tests", async () => {
     it("video sizes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <video name="v" />
 
@@ -85,17 +85,18 @@ describe("Video tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let name in expectedSizes) {
-            expect(stateVariables["/" + name].stateValues.size).eq(
-                expectedSizes[name],
-            );
-            expect(stateVariables["/" + name].stateValues.width.size).eq(
-                widthsBySize[expectedSizes[name]],
-            );
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.size,
+            ).eq(expectedSizes[name]);
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.width
+                    .size,
+            ).eq(widthsBySize[expectedSizes[name]]);
         }
     });
 
     it("horizontal align", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <video name="v" />
     <video name="vleft" horizontalAlign="left" />
@@ -106,21 +107,30 @@ describe("Video tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/v"].stateValues.horizontalAlign).eq("center");
-        expect(stateVariables["/vleft"].stateValues.horizontalAlign).eq("left");
-        expect(stateVariables["/vright"].stateValues.horizontalAlign).eq(
-            "right",
-        );
-        expect(stateVariables["/vcenter"].stateValues.horizontalAlign).eq(
-            "center",
-        );
-        expect(stateVariables["/vinvalid"].stateValues.horizontalAlign).eq(
-            "center",
-        );
+        expect(
+            stateVariables[resolveComponentName("v")].stateValues
+                .horizontalAlign,
+        ).eq("center");
+        expect(
+            stateVariables[resolveComponentName("vleft")].stateValues
+                .horizontalAlign,
+        ).eq("left");
+        expect(
+            stateVariables[resolveComponentName("vright")].stateValues
+                .horizontalAlign,
+        ).eq("right");
+        expect(
+            stateVariables[resolveComponentName("vcenter")].stateValues
+                .horizontalAlign,
+        ).eq("center");
+        expect(
+            stateVariables[resolveComponentName("vinvalid")].stateValues
+                .horizontalAlign,
+        ).eq("center");
     });
 
     it("displayMode", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <video name="v" />
     <video name="vinline" displayMode="inline" />
@@ -131,9 +141,20 @@ describe("Video tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/v"].stateValues.displayMode).eq("block");
-        expect(stateVariables["/vinline"].stateValues.displayMode).eq("inline");
-        expect(stateVariables["/vblock"].stateValues.displayMode).eq("block");
-        expect(stateVariables["/vinvalid"].stateValues.displayMode).eq("block");
+        expect(
+            stateVariables[resolveComponentName("v")].stateValues.displayMode,
+        ).eq("block");
+        expect(
+            stateVariables[resolveComponentName("vinline")].stateValues
+                .displayMode,
+        ).eq("inline");
+        expect(
+            stateVariables[resolveComponentName("vblock")].stateValues
+                .displayMode,
+        ).eq("block");
+        expect(
+            stateVariables[resolveComponentName("vinvalid")].stateValues
+                .displayMode,
+        ).eq("block");
     });
 });

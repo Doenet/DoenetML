@@ -1155,6 +1155,7 @@ export default class Vector extends GraphicalComponent {
                 },
             },
             isArray: true,
+            indexAliases: [["x", "y", "z"]],
             entryPrefixes: ["x"],
             hasEssential: true,
             essentialVarName: "displacement2", // since "displacement" used for displacementShadow
@@ -1603,6 +1604,7 @@ export default class Vector extends GraphicalComponent {
                 },
             },
             isArray: true,
+            indexAliases: [["x", "y", "z"]],
             entryPrefixes: ["headX"],
             set: convertValueToMathExpression,
             stateVariablesDeterminingDependencies: ["basedOnHead"],
@@ -1809,6 +1811,7 @@ export default class Vector extends GraphicalComponent {
                 },
             },
             isArray: true,
+            indexAliases: [["x", "y", "z"]],
             entryPrefixes: ["tailX"],
             hasEssential: true,
             defaultValueByArrayKey: () => me.fromAst(0),

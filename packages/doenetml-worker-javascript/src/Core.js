@@ -10835,23 +10835,23 @@ export default class Core {
                 actionsToChain.push(...this.actionsChangedToActions[id]);
             }
 
-            // XXX: how do we determine when we want to trigger the actions
-            // of the shadowed component now that we cannot use the name?
-            // The equivalent would be to use that it was a Ref and not an Attribute?
-            if (comp?.shadows /* and extends via a Ref? */) {
-                // Old: comment about how it used to work:
+            if (comp?.shadows) {
+                let composite = this._components[comp.shadows.compositeIdx];
+                if (composite.attributes.createComponentOfType != null) {
+                    break;
+                }
 
-                // We propagate to shadows if the copied component doesn't have a name.
-                // In this way, if we include $P in a graph,
-                // then triggerWhenObjectsClicked="P" and triggerWhenObjectsFocused="P"
-                // will be triggered by that copy (as only as copy not given a name).
+                // We propagate to shadows if the component was copied with a bare references such as `$P`
+                // but not if was copied via extend/copy attribute, such as `<point extend="$P" />
+                // Rationale:
+                // If we include $P in a graph,
+                // then triggerWhenObjectsClicked="$P" and triggerWhenObjectsFocused="$P"
+                // will be triggered by that reference, which is what authors would expect.
                 // Another use case is defining an <updateValue name="uv">,
-                // along with other triggered actions using triggerWith="uv",
-                // inside a <setup> and then including an unamed $uv
+                // along with other triggered actions using triggerWith="$uv",
+                // inside a <setup> and then including a $uv
                 // where we want the button to be.
-                // TODO: if <point extend="$P" /> no longer has a name like "_point1",
-                // should triggerWhenObjectsClicked="P" be triggered from that point?
-                // Currently (Oct 2, 2023), it is not triggered.
+
                 cIdx = comp.shadows.componentIdx;
             } else {
                 break;
