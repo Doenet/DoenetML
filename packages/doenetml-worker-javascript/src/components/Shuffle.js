@@ -52,8 +52,8 @@ export default class Shuffle extends CompositeComponent {
             }
 
             let type;
-            if (componentAttributes.type) {
-                type = componentAttributes.type;
+            if (componentAttributes.type?.value) {
+                type = componentAttributes.type.value;
             } else {
                 return { success: false };
             }

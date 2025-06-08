@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -16,10 +16,12 @@ function createInterval(string: string) {
 describe("SubsetOfReals tag tests", async () => {
     async function test_display_as_interval({
         core,
+        resolveComponentName,
         repeat = [],
         includeNe = false,
     }: {
         core: PublicDoenetMLCore;
+        resolveComponentName: ResolveComponentName;
         repeat?: string[];
         includeNe?: boolean;
     }) {
@@ -40,12 +42,12 @@ describe("SubsetOfReals tag tests", async () => {
         }
 
         let closedByPre = {
-            "/o": [false, false],
-            "/c": [true, true],
-            "/oc": [false, true],
-            "/co": [true, false],
+            o: [false, false],
+            c: [true, true],
+            oc: [false, true],
+            co: [true, false],
         };
-        let allPre = ["/o", "/c", "/oc", "/co"];
+        let allPre = ["o", "c", "oc", "co"];
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -54,19 +56,22 @@ describe("SubsetOfReals tag tests", async () => {
             if (typeof lim[0] === "string" || typeof lim[1] === "string") {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[`${pre}${ind}`].stateValues.value.tree,
+                        stateVariables[resolveComponentName(`${pre}${ind}`)]
+                            .stateValues.value.tree,
                     ).eq("\uff3f");
                 }
             } else if (lim[0] === -Infinity && lim[1] === Infinity) {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[`${pre}${ind}`].stateValues.value.tree,
+                        stateVariables[resolveComponentName(`${pre}${ind}`)]
+                            .stateValues.value.tree,
                     ).eq("R");
                 }
             } else if (lim[0] > lim[1]) {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[`${pre}${ind}`].stateValues.value.tree,
+                        stateVariables[resolveComponentName(`${pre}${ind}`)]
+                            .stateValues.value.tree,
                     ).eq("emptyset");
                 }
             } else if (lim[0] < lim[1]) {
@@ -80,7 +85,8 @@ describe("SubsetOfReals tag tests", async () => {
                         closed[1] = false;
                     }
                     expect(
-                        stateVariables[`${pre}${ind}`].stateValues.value.tree,
+                        stateVariables[resolveComponentName(`${pre}${ind}`)]
+                            .stateValues.value.tree,
                     ).eqls([
                         "interval",
                         ["tuple", ...lim],
@@ -90,15 +96,15 @@ describe("SubsetOfReals tag tests", async () => {
             } else {
                 // equal limits
                 for (let pre of allPre) {
-                    if (pre === "/c") {
+                    if (pre === "c") {
                         expect(
-                            stateVariables[`${pre}${ind}`].stateValues.value
-                                .tree,
+                            stateVariables[resolveComponentName(`${pre}${ind}`)]
+                                .stateValues.value.tree,
                         ).eqls(["set", lim[0]]);
                     } else {
                         expect(
-                            stateVariables[`${pre}${ind}`].stateValues.value
-                                .tree,
+                            stateVariables[resolveComponentName(`${pre}${ind}`)]
+                                .stateValues.value.tree,
                         ).eq("emptyset");
                     }
                 }
@@ -120,7 +126,8 @@ describe("SubsetOfReals tag tests", async () => {
 
                 if (Number.isFinite(num)) {
                     expect(
-                        stateVariables[`/ne${ind}`].stateValues.value.tree,
+                        stateVariables[resolveComponentName(`ne${ind}`)]
+                            .stateValues.value.tree,
                     ).eqls([
                         "union",
                         createInterval(`(-infinity, ${num})`),
@@ -128,7 +135,8 @@ describe("SubsetOfReals tag tests", async () => {
                     ]);
                 } else {
                     expect(
-                        stateVariables[`/ne${ind}`].stateValues.value.tree,
+                        stateVariables[resolveComponentName(`ne${ind}`)]
+                            .stateValues.value.tree,
                     ).eq("R");
                 }
             }
@@ -136,7 +144,7 @@ describe("SubsetOfReals tag tests", async () => {
     }
 
     it("single intervals", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="o1">(4,5)</subsetOfReals></p>
   <p><subsetOfReals name="o2">(5,4)</subsetOfReals></p>
@@ -180,11 +188,12 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_display_as_interval({ core });
+        await test_display_as_interval({ core, resolveComponentName });
     });
 
     async function test_display_as_inequality(
         core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
         variable: string = "x",
     ) {
         const limits = [
@@ -200,12 +209,12 @@ describe("SubsetOfReals tag tests", async () => {
         ];
 
         let closedByPre = {
-            "/o": [false, false],
-            "/c": [true, true],
-            "/oc": [false, true],
-            "/co": [true, false],
+            o: [false, false],
+            c: [true, true],
+            oc: [false, true],
+            co: [true, false],
         };
-        let allPre = ["/o", "/c", "/oc", "/co"];
+        let allPre = ["o", "c", "oc", "co"];
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -213,22 +222,22 @@ describe("SubsetOfReals tag tests", async () => {
             if (typeof lim[0] === "string" || typeof lim[1] === "string") {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[`${pre}${ind + 1}`].stateValues.value
-                            .tree,
+                        stateVariables[resolveComponentName(`${pre}${ind + 1}`)]
+                            .stateValues.value.tree,
                     ).eq("\uff3f");
                 }
             } else if (lim[0] === -Infinity && lim[1] === Infinity) {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[`${pre}${ind + 1}`].stateValues.value
-                            .tree,
+                        stateVariables[resolveComponentName(`${pre}${ind + 1}`)]
+                            .stateValues.value.tree,
                     ).eqls(["in", variable, "R"]);
                 }
             } else if (lim[0] > lim[1]) {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[`${pre}${ind + 1}`].stateValues.value
-                            .tree,
+                        stateVariables[resolveComponentName(`${pre}${ind + 1}`)]
+                            .stateValues.value.tree,
                     ).eqls(["in", variable, "emptyset"]);
                 }
             } else if (lim[0] < lim[1]) {
@@ -237,19 +246,22 @@ describe("SubsetOfReals tag tests", async () => {
                     if (lim[0] === -Infinity) {
                         let op = strict[1] ? "<" : "le";
                         expect(
-                            stateVariables[`${pre}${ind + 1}`].stateValues.value
-                                .tree,
+                            stateVariables[
+                                resolveComponentName(`${pre}${ind + 1}`)
+                            ].stateValues.value.tree,
                         ).eqls([op, variable, lim[1]]);
                     } else if (lim[1] === Infinity) {
                         let op = strict[0] ? ">" : "ge";
                         expect(
-                            stateVariables[`${pre}${ind + 1}`].stateValues.value
-                                .tree,
+                            stateVariables[
+                                resolveComponentName(`${pre}${ind + 1}`)
+                            ].stateValues.value.tree,
                         ).eqls([op, variable, lim[0]]);
                     } else {
                         expect(
-                            stateVariables[`${pre}${ind + 1}`].stateValues.value
-                                .tree,
+                            stateVariables[
+                                resolveComponentName(`${pre}${ind + 1}`)
+                            ].stateValues.value.tree,
                         ).eqls([
                             "lts",
                             ["tuple", lim[0], variable, lim[1]],
@@ -260,15 +272,17 @@ describe("SubsetOfReals tag tests", async () => {
             } else {
                 // equal limits
                 for (let pre of allPre) {
-                    if (pre === "/c") {
+                    if (pre === "c") {
                         expect(
-                            stateVariables[`${pre}${ind + 1}`].stateValues.value
-                                .tree,
+                            stateVariables[
+                                resolveComponentName(`${pre}${ind + 1}`)
+                            ].stateValues.value.tree,
                         ).eqls(["=", variable, lim[0]]);
                     } else {
                         expect(
-                            stateVariables[`${pre}${ind + 1}`].stateValues.value
-                                .tree,
+                            stateVariables[
+                                resolveComponentName(`${pre}${ind + 1}`)
+                            ].stateValues.value.tree,
                         ).eqls(["in", variable, "emptyset"]);
                     }
                 }
@@ -277,7 +291,7 @@ describe("SubsetOfReals tag tests", async () => {
     }
 
     it("single intervals, display as inequality", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals displayMode="inequalities" name="o1">(4,5)</subsetOfReals></p>
   <p><subsetOfReals displayMode="inequalities" name="o2">(5,4)</subsetOfReals></p>
@@ -321,11 +335,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_display_as_inequality(core);
+        await test_display_as_inequality(core, resolveComponentName);
     });
 
     it("single intervals, display as inequality, change variable", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals variable="v" displayMode="inequalities" name="o1">(4,5)</subsetOfReals></p>
   <p><subsetOfReals variable="v" displayMode="inequalities" name="o2">(5,4)</subsetOfReals></p>
@@ -369,11 +383,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_display_as_inequality(core, "v");
+        await test_display_as_inequality(core, resolveComponentName, "v");
     });
 
     it("single inequality", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="o1">4 < x < 5</subsetOfReals></p>
   <p><subsetOfReals name="o2">5 < x < 4</subsetOfReals></p>
@@ -434,13 +448,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         await test_display_as_interval({
             core,
+            resolveComponentName,
             repeat: ["4", "6"],
             includeNe: true,
         });
     });
 
     it("single inequality, change variable", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals variable="q" name="o1">4 < q < 5</subsetOfReals></p>
   <p><subsetOfReals variable="q" name="o2">5 < q < 4</subsetOfReals></p>
@@ -501,13 +516,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         await test_display_as_interval({
             core,
+            resolveComponentName,
             repeat: ["4", "6"],
             includeNe: true,
         });
     });
 
     it("single inequality, in set notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="o1">{q | 4 < q < 5}</subsetOfReals></p>
   <p><subsetOfReals name="o2">{q | 5 < q < 4}</subsetOfReals></p>
@@ -568,13 +584,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         await test_display_as_interval({
             core,
+            resolveComponentName,
             repeat: ["4", "6"],
             includeNe: true,
         });
     });
 
     it("single equality", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="e1">x=5</subsetOfReals></p>
   <p><subsetOfReals name="e2">x=infinity</subsetOfReals></p>
@@ -587,61 +604,75 @@ describe("SubsetOfReals tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/e1"].stateValues.value.tree).eqls(["set", 5]);
-        expect(stateVariables["/e2"].stateValues.value.tree).eq("emptyset");
-        expect(stateVariables["/e3"].stateValues.value.tree).eq("emptyset");
-        expect(stateVariables["/e4"].stateValues.value.tree).eq("\uff3f");
+        expect(
+            stateVariables[resolveComponentName("e1")].stateValues.value.tree,
+        ).eqls(["set", 5]);
+        expect(
+            stateVariables[resolveComponentName("e2")].stateValues.value.tree,
+        ).eq("emptyset");
+        expect(
+            stateVariables[resolveComponentName("e3")].stateValues.value.tree,
+        ).eq("emptyset");
+        expect(
+            stateVariables[resolveComponentName("e4")].stateValues.value.tree,
+        ).eq("\uff3f");
     });
 
-    async function test_union_interactions(core: PublicDoenetMLCore) {
+    async function test_union_interactions(
+        core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
+    ) {
         const res = {
-            "/u1": ["union", createInterval("(4,5)"), createInterval("(6,7)")],
-            "/u2": ["union", createInterval("(4,5)"), createInterval("(5,6)")],
-            "/u3": createInterval("(4,6]"),
-            "/u4": createInterval("(4,6]"),
-            "/u5": createInterval("(4,7)"),
-            "/u6": createInterval("(4,8)"),
-            "/u7": createInterval("(4,7]"),
-            "/u8": createInterval("[4,6)"),
-            "/u9": createInterval("(4,6)"),
-            "/u10": createInterval("(4,6]"),
-            "/u11": ["union", createInterval("(4,6)"), ["set", 7]],
-            "/u12": createInterval("(4,6)"),
-            "/u13": "R",
-            "/u14": "R",
-            "/u15": "R",
-            "/u16": "R",
-            "/u17": "R",
-            "/u18": createInterval("[-4,-2)"),
-            "/i1": "emptyset",
-            "/i2": "emptyset",
-            "/i3": "emptyset",
-            "/i4": ["set", 5],
-            "/i5": createInterval("(5,6)"),
-            "/i6": createInterval("(5,7)"),
-            "/i7": createInterval("(5,7)"),
-            "/i8": "emptyset",
-            "/i9": ["set", 5],
-            "/i10": "emptyset",
-            "/i11": "emptyset",
-            "/i12": "emptyset",
-            "/i13": createInterval("(2,5)"),
-            "/i14": createInterval("[2,5)"),
-            "/i15": createInterval("(2,5]"),
-            "/i16": createInterval("[2,5]"),
-            "/i17": "emptyset",
-            "/i18": ["set", -4],
+            u1: ["union", createInterval("(4,5)"), createInterval("(6,7)")],
+            u2: ["union", createInterval("(4,5)"), createInterval("(5,6)")],
+            u3: createInterval("(4,6]"),
+            u4: createInterval("(4,6]"),
+            u5: createInterval("(4,7)"),
+            u6: createInterval("(4,8)"),
+            u7: createInterval("(4,7]"),
+            u8: createInterval("[4,6)"),
+            u9: createInterval("(4,6)"),
+            u10: createInterval("(4,6]"),
+            u11: ["union", createInterval("(4,6)"), ["set", 7]],
+            u12: createInterval("(4,6)"),
+            u13: "R",
+            u14: "R",
+            u15: "R",
+            u16: "R",
+            u17: "R",
+            u18: createInterval("[-4,-2)"),
+            i1: "emptyset",
+            i2: "emptyset",
+            i3: "emptyset",
+            i4: ["set", 5],
+            i5: createInterval("(5,6)"),
+            i6: createInterval("(5,7)"),
+            i7: createInterval("(5,7)"),
+            i8: "emptyset",
+            i9: ["set", 5],
+            i10: "emptyset",
+            i11: "emptyset",
+            i12: "emptyset",
+            i13: createInterval("(2,5)"),
+            i14: createInterval("[2,5)"),
+            i15: createInterval("(2,5]"),
+            i16: createInterval("[2,5]"),
+            i17: "emptyset",
+            i18: ["set", -4],
         };
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let name in res) {
-            expect(stateVariables[name].stateValues.value.tree).eqls(res[name]);
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.value
+                    .tree,
+            ).eqls(res[name]);
         }
     }
 
     it("union and intersections of intervals and singletons", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="u1">(4,5) union (6,7)</subsetOfReals></p>
   <p><subsetOfReals name="u2">(4,5) union (5,6)</subsetOfReals></p>
@@ -683,11 +714,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core);
+        await test_union_interactions(core, resolveComponentName);
     });
 
     it("union and intersections of intervals and singletons, latex format", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals format="latex" name="u1">(4,5) \\cup (6,7)</subsetOfReals></p>
   <p><subsetOfReals format="latex" name="u2">(4,5) \\cup (5,6)</subsetOfReals></p>
@@ -729,11 +760,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core);
+        await test_union_interactions(core, resolveComponentName);
     });
 
     it("x element of union and intersections of intervals and singletons", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="u1">x elementof (4,5) union (6,7)</subsetOfReals></p>
   <p><subsetOfReals name="u2">x elementof (4,5) union (5,6)</subsetOfReals></p>
@@ -775,11 +806,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core);
+        await test_union_interactions(core, resolveComponentName);
     });
 
     it("union and intersections of intervals and singletons contains element x", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="u1">(4,5) union (6,7) containselement x</subsetOfReals></p>
   <p><subsetOfReals name="u2">(4,5) union (5,6) containselement x</subsetOfReals></p>
@@ -821,11 +852,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core);
+        await test_union_interactions(core, resolveComponentName);
     });
 
     it("x in union and intersections of intervals and singletons, latex format", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals format="latex" name="u1">x \\in (4,5) \\cup (6,7)</subsetOfReals></p>
   <p><subsetOfReals format="latex" name="u2">x \\in (4,5) \\cup (5,6)</subsetOfReals></p>
@@ -867,11 +898,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core);
+        await test_union_interactions(core, resolveComponentName);
     });
 
     it("union and intersections of intervals and singletons ni x, latex format", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals format="latex" name="u1">(4,5) \\cup (6,7) \\ni x</subsetOfReals></p>
   <p><subsetOfReals format="latex" name="u2">(4,5) \\cup (5,6) \\ni x</subsetOfReals></p>
@@ -913,11 +944,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core);
+        await test_union_interactions(core, resolveComponentName);
     });
 
     it("ands and ors with inequalities", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="o1">(4 < x < 5) or (6 < x < 7)</subsetOfReals></p>
   <p><subsetOfReals name="o2">(4 < x < 5) or (5 < x < 6)</subsetOfReals></p>
@@ -962,58 +993,57 @@ describe("SubsetOfReals tag tests", async () => {
         });
 
         const res = {
-            "/o1": ["union", createInterval("(4,5)"), createInterval("(6,7)")],
-            "/o2": ["union", createInterval("(4,5)"), createInterval("(5,6)")],
-            "/o3": createInterval("(4,6]"),
-            "/o4": createInterval("(4,6]"),
-            "/o5": createInterval("(4,7)"),
-            "/o6": createInterval("(4,8)"),
-            "/o7": createInterval("(4,7]"),
-            "/o8": createInterval("[4,6)"),
-            "/o9": createInterval("(4,6)"),
-            "/o10": createInterval("(4,6]"),
-            "/o11": ["union", createInterval("(4,6)"), ["set", 7]],
-            "/o12": createInterval("(4,6)"),
-            "/o13": "R",
-            "/o14": "R",
-            "/o15": "R",
-            "/o16": "R",
-            "/o17": "R",
-            "/o18": "R",
+            o1: ["union", createInterval("(4,5)"), createInterval("(6,7)")],
+            o2: ["union", createInterval("(4,5)"), createInterval("(5,6)")],
+            o3: createInterval("(4,6]"),
+            o4: createInterval("(4,6]"),
+            o5: createInterval("(4,7)"),
+            o6: createInterval("(4,8)"),
+            o7: createInterval("(4,7]"),
+            o8: createInterval("[4,6)"),
+            o9: createInterval("(4,6)"),
+            o10: createInterval("(4,6]"),
+            o11: ["union", createInterval("(4,6)"), ["set", 7]],
+            o12: createInterval("(4,6)"),
+            o13: "R",
+            o14: "R",
+            o15: "R",
+            o16: "R",
+            o17: "R",
+            o18: "R",
 
-            "/a1": "emptyset",
-            "/a2": "emptyset",
-            "/a3": "emptyset",
-            "/a4": createInterval("{5}"),
-            "/a5": createInterval("(5,6)"),
-            "/a6": createInterval("(5,7)"),
-            "/a7": createInterval("(5,7)"),
-            "/a8": "emptyset",
-            "/a9": ["set", 5],
-            "/a10": "emptyset",
-            "/a11": "emptyset",
-            "/a12": "emptyset",
-            "/a13": createInterval("(2,5)"),
-            "/a14": createInterval("[2,5)"),
-            "/a15": createInterval("(2,5]"),
-            "/a16": createInterval("[2,5]"),
-            "/a17": "emptyset",
-            "/a18": [
-                "union",
-                createInterval("(4,5)"),
-                createInterval("(5,10)"),
-            ],
+            a1: "emptyset",
+            a2: "emptyset",
+            a3: "emptyset",
+            a4: createInterval("{5}"),
+            a5: createInterval("(5,6)"),
+            a6: createInterval("(5,7)"),
+            a7: createInterval("(5,7)"),
+            a8: "emptyset",
+            a9: ["set", 5],
+            a10: "emptyset",
+            a11: "emptyset",
+            a12: "emptyset",
+            a13: createInterval("(2,5)"),
+            a14: createInterval("[2,5)"),
+            a15: createInterval("(2,5]"),
+            a16: createInterval("[2,5]"),
+            a17: "emptyset",
+            a18: ["union", createInterval("(4,5)"), createInterval("(5,10)")],
         };
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let name in res) {
-            expect(stateVariables[name].stateValues.value.tree).eqls(res[name]);
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.value
+                    .tree,
+            ).eqls(res[name]);
         }
     });
 
     it("complements of intervals and singletons", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="c1">(4,5)^c</subsetOfReals></p>
   <p><subsetOfReals name="c2">(4,5)^C</subsetOfReals></p>
@@ -1033,42 +1063,37 @@ describe("SubsetOfReals tag tests", async () => {
         });
 
         const res = {
-            "/c1": ["union", createInterval("(−∞,4]"), createInterval("[5,∞)")],
-            "/c2": ["union", createInterval("(−∞,4]"), createInterval("[5,∞)")],
-            "/c3": ["union", createInterval("(−∞,4]"), createInterval("(5,∞)")],
-            "/c4": ["union", createInterval("(−∞,4]"), createInterval("(5,∞)")],
-            "/c5": ["union", createInterval("(−∞,4)"), createInterval("[5,∞)")],
-            "/c6": ["union", createInterval("(−∞,4)"), createInterval("[5,∞)")],
-            "/c7": ["union", createInterval("(−∞,4)"), createInterval("(5,∞)")],
-            "/c8": ["union", createInterval("(−∞,4)"), createInterval("(5,∞)")],
-            "/c9": ["union", createInterval("(−∞,4)"), createInterval("(4,∞)")],
-            "/c10": [
-                "union",
-                createInterval("(−∞,4)"),
-                createInterval("(4,∞)"),
-            ],
-            "/c11": [
+            c1: ["union", createInterval("(−∞,4]"), createInterval("[5,∞)")],
+            c2: ["union", createInterval("(−∞,4]"), createInterval("[5,∞)")],
+            c3: ["union", createInterval("(−∞,4]"), createInterval("(5,∞)")],
+            c4: ["union", createInterval("(−∞,4]"), createInterval("(5,∞)")],
+            c5: ["union", createInterval("(−∞,4)"), createInterval("[5,∞)")],
+            c6: ["union", createInterval("(−∞,4)"), createInterval("[5,∞)")],
+            c7: ["union", createInterval("(−∞,4)"), createInterval("(5,∞)")],
+            c8: ["union", createInterval("(−∞,4)"), createInterval("(5,∞)")],
+            c9: ["union", createInterval("(−∞,4)"), createInterval("(4,∞)")],
+            c10: ["union", createInterval("(−∞,4)"), createInterval("(4,∞)")],
+            c11: [
                 "union",
                 createInterval("(−∞,4]"),
                 ["set", 5],
                 createInterval("[6,∞)"),
             ],
-            "/c12": [
-                "union",
-                createInterval("(−∞,5]"),
-                createInterval("[6,∞)"),
-            ],
+            c12: ["union", createInterval("(−∞,5]"), createInterval("[6,∞)")],
         };
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let name in res) {
-            expect(stateVariables[name].stateValues.value.tree).eqls(res[name]);
+            expect(
+                stateVariables[resolveComponentName(name)].stateValues.value
+                    .tree,
+            ).eqls(res[name]);
         }
     });
 
     it("dynamic subsets", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>Variable: <mathInput name="variable" prefill="x" /></p>
   <p>Input: <mathInput name="input" prefill="x > 1" /></p>
@@ -1084,86 +1109,112 @@ describe("SubsetOfReals tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq("( 1, ∞ )");
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("( 1, ∞ )");
 
         await updateSelectedIndices({
-            name: "/displayMode",
+            componentIdx: resolveComponentName("displayMode"),
             selectedIndices: [2],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq("x > 1");
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("x > 1");
 
-        await updateMathInputValue({ latex: "y", name: "/variable", core });
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: resolveComponentName("variable"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq("＿");
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("＿");
 
-        await updateMathInputValue({ latex: "y>1", name: "/input", core });
+        await updateMathInputValue({
+            latex: "y>1",
+            componentIdx: resolveComponentName("input"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq("y > 1");
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("y > 1");
 
         await updateSelectedIndices({
-            name: "/displayMode",
+            componentIdx: resolveComponentName("displayMode"),
             selectedIndices: [1],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq("( 1, ∞ )");
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("( 1, ∞ )");
 
-        await updateMathInputValue({ latex: "y \\ne 1", name: "/input", core });
+        await updateMathInputValue({
+            latex: "y \\ne 1",
+            componentIdx: resolveComponentName("input"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq(
-            "( -∞, 1 ) ∪ ( 1, ∞ )",
-        );
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("( -∞, 1 ) ∪ ( 1, ∞ )");
 
         await updateMathInputValue({
             latex: "(y>1)\\land(y<3)",
-            name: "/input",
+            componentIdx: resolveComponentName("input"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq("( 1, 3 )");
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("( 1, 3 )");
 
         await updateSelectedIndices({
-            name: "/displayMode",
+            componentIdx: resolveComponentName("displayMode"),
             selectedIndices: [2],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq("1 < y < 3");
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("1 < y < 3");
 
         await updateMathInputValue({
             latex: "(y>1)\\land(y<3)\\lor(y>6)",
-            name: "/input",
+            componentIdx: resolveComponentName("input"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq(
-            "(1 < y < 3) or (y > 6)",
-        );
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("(1 < y < 3) or (y > 6)");
 
         await updateSelectedIndices({
-            name: "/displayMode",
+            componentIdx: resolveComponentName("displayMode"),
             selectedIndices: [1],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/result"].stateValues.text).eq(
-            "( 1, 3 ) ∪ ( 6, ∞ )",
-        );
+        expect(
+            stateVariables[resolveComponentName("result")].stateValues.text,
+        ).eq("( 1, 3 ) ∪ ( 6, ∞ )");
     });
 
     it("modifying copies of subsets", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <p>Enter subset: <mathInput name="input0" prefill="(0,1)" /></p>
   <p>Subset 1: <subsetOfReals name="s1">$input0</subsetOfReals></p>
-  <p>Subset 2: $s1{name="s2"}</p>
-  <p>Subset 3: $s1.value{assignNames="s3"}</p>
-  <p>Subset 4: $s2{name="s4"}</p>
-  <p>Subset 5: $s2.value{assignNames="s5"}</p>
-  <p>Subset 6: $s3{name="s6"}</p>
-  <p>Subset 7: $s3.value{assignNames="s7"}</p>
+  <p>Subset 2: <subsetOfReals extend="$s1" name="s2" /></p>
+  <p>Subset 3: <subsetOfReals extend="$s1.value" name="s3"/></p>
+  <p>Subset 4: <subsetOfReals extend="$s2" name="s4" /></p>
+  <p>Subset 5: <subsetOfReals extend="$s2.value" name="s5"/></p>
+  <p>Subset 6: <subsetOfReals extend="$s3" name="s6" /></p>
+  <p>Subset 7: <subsetOfReals extend="$s3.value" name="s7"/></p>
   <p>Subset 8: <subsetOfReals name="s8">$s1</subsetOfReals></p>
   <p>Subset 9: <subsetOfReals name="s9">$(s1.value)</subsetOfReals></p>
   <p>Modify subset 1: <mathInput name="input1" bindValueTo="$s1" /></p>
@@ -1191,20 +1242,24 @@ describe("SubsetOfReals tag tests", async () => {
 
             for (let i = 1; i <= 9; i++) {
                 expect(
-                    cleanLatex(stateVariables[`/s${i}`].stateValues.latex),
+                    cleanLatex(
+                        stateVariables[resolveComponentName(`s${i}`)]
+                            .stateValues.latex,
+                    ),
                 ).eq(str);
 
                 expect(
                     cleanLatex(
-                        stateVariables[`/input${i}`].stateValues
-                            .rawRendererValue,
+                        stateVariables[resolveComponentName(`input${i}`)]
+                            .stateValues.rawRendererValue,
                     ),
                 ).eq(str);
             }
 
             expect(
                 cleanLatex(
-                    stateVariables[`/input0`].stateValues.rawRendererValue,
+                    stateVariables[resolveComponentName(`input0`)].stateValues
+                        .rawRendererValue,
                 ),
             ).eq(str0);
         }
@@ -1213,77 +1268,77 @@ describe("SubsetOfReals tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x \\ge 3",
-            name: "/input0",
+            componentIdx: resolveComponentName("input0"),
             core,
         });
         await check_items("[3,\\infty)", "x\\ge3");
 
         await updateMathInputValue({
             latex: "{q\\mid q=5}",
-            name: "/input1",
+            componentIdx: resolveComponentName("input1"),
             core,
         });
         await check_items("\\{5\\}");
 
         await updateMathInputValue({
             latex: "[-\\infty, \\pi)",
-            name: "/input2",
+            componentIdx: resolveComponentName("input2"),
             core,
         });
         await check_items("(-\\infty,3.141592654)");
 
         await updateMathInputValue({
             latex: "(-\\infty,\\infty)",
-            name: "/input3",
+            componentIdx: resolveComponentName("input3"),
             core,
         });
         await check_items("R");
 
         await updateMathInputValue({
             latex: "x\\in \\emptyset",
-            name: "/input4",
+            componentIdx: resolveComponentName("input4"),
             core,
         });
         await check_items("\\varnothing");
 
         await updateMathInputValue({
             latex: "x\\notin [9, \\infty)",
-            name: "/input5",
+            componentIdx: resolveComponentName("input5"),
             core,
         });
         await check_items("(-\\infty,9)");
 
         await updateMathInputValue({
             latex: "{7}\\ni x",
-            name: "/input6",
+            componentIdx: resolveComponentName("input6"),
             core,
         });
         await check_items("\\{7\\}");
 
         await updateMathInputValue({
             latex: "(-\\infty, -2) \\not\\ni x",
-            name: "/input7",
+            componentIdx: resolveComponentName("input7"),
             core,
         });
         await check_items("[-2,\\infty)");
 
         await updateMathInputValue({
             latex: "\\{1\\}^c \\cap \\{v \\mid v \\ge 1 \\}",
-            name: "/input8",
+            componentIdx: resolveComponentName("input8"),
             core,
         });
         await check_items("(1,\\infty)");
 
         await updateMathInputValue({
             latex: "x \\ne -6",
-            name: "/input9",
+            componentIdx: resolveComponentName("input9"),
             core,
         });
         await check_items("(-\\infty,-6)\\cup(-6,\\infty)");
     });
 
     it("union of subset with numbers", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <number name="x1">-9</number>
   <number name="x2">-6</number>
@@ -1299,16 +1354,16 @@ describe("SubsetOfReals tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/S"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("S")].stateValues.text).eq(
             "( -9, -6 ) ∪ ( -1, 8 )",
         );
-        expect(stateVariables["/Sclosed"].stateValues.text).eq(
-            "[ -9, -6 ] ∪ [ -1, 8 ]",
-        );
+        expect(
+            stateVariables[resolveComponentName("Sclosed")].stateValues.text,
+        ).eq("[ -9, -6 ] ∪ [ -1, 8 ]");
     });
 
     it("point and interval properties", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <subsetOfReals name="empty">emptyset</subsetOfReals>
   <subsetOfReals name="interval">[-1,2)</subsetOfReals>
@@ -1346,67 +1401,87 @@ describe("SubsetOfReals tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/emptyPoints"].stateValues.text).eq(
-            "empty points: ",
-        );
-        expect(stateVariables["/emptyPointsClosed"].stateValues.text).eq(
-            "empty points closed: ",
-        );
-        expect(stateVariables["/emptyIntervals"].stateValues.text).eq(
-            "empty intervals: ",
-        );
-        expect(stateVariables["/emptyIsolated"].stateValues.text).eq(
-            "empty isolated points: ",
-        );
-
-        expect(stateVariables["/intervalPoints"].stateValues.text).eq(
-            "interval points: -1, 2",
-        );
-        expect(stateVariables["/intervalPointsClosed"].stateValues.text).eq(
-            "interval points closed: true, false",
-        );
-        expect(stateVariables["/intervalIntervals"].stateValues.text).eq(
-            "interval intervals: [ -1, 2 )",
-        );
-        expect(stateVariables["/intervalIsolated"].stateValues.text).eq(
-            "interval isolated points: ",
-        );
-
-        expect(stateVariables["/intervalSingletonPoints"].stateValues.text).eq(
-            "intervalSingleton points: -5, -1, 2",
-        );
         expect(
-            stateVariables["/intervalSingletonPointsClosed"].stateValues.text,
+            stateVariables[resolveComponentName("emptyPoints")].stateValues
+                .text,
+        ).eq("empty points: ");
+        expect(
+            stateVariables[resolveComponentName("emptyPointsClosed")]
+                .stateValues.text,
+        ).eq("empty points closed: ");
+        expect(
+            stateVariables[resolveComponentName("emptyIntervals")].stateValues
+                .text,
+        ).eq("empty intervals: ");
+        expect(
+            stateVariables[resolveComponentName("emptyIsolated")].stateValues
+                .text,
+        ).eq("empty isolated points: ");
+
+        expect(
+            stateVariables[resolveComponentName("intervalPoints")].stateValues
+                .text,
+        ).eq("interval points: -1, 2");
+        expect(
+            stateVariables[resolveComponentName("intervalPointsClosed")]
+                .stateValues.text,
+        ).eq("interval points closed: true, false");
+        expect(
+            stateVariables[resolveComponentName("intervalIntervals")]
+                .stateValues.text,
+        ).eq("interval intervals: [ -1, 2 )");
+        expect(
+            stateVariables[resolveComponentName("intervalIsolated")].stateValues
+                .text,
+        ).eq("interval isolated points: ");
+
+        expect(
+            stateVariables[resolveComponentName("intervalSingletonPoints")]
+                .stateValues.text,
+        ).eq("intervalSingleton points: -5, -1, 2");
+        expect(
+            stateVariables[
+                resolveComponentName("intervalSingletonPointsClosed")
+            ].stateValues.text,
         ).eq("intervalSingleton points closed: true, false, true");
         expect(
-            stateVariables["/intervalSingletonIntervals"].stateValues.text,
+            stateVariables[resolveComponentName("intervalSingletonIntervals")]
+                .stateValues.text,
         ).eq("intervalSingleton intervals: ( -1, 2 ]");
         expect(
-            stateVariables["/intervalSingletonIsolated"].stateValues.text,
+            stateVariables[resolveComponentName("intervalSingletonIsolated")]
+                .stateValues.text,
         ).eq("intervalSingleton isolated points: -5");
 
-        expect(stateVariables["/missPointPoints"].stateValues.text).eq(
-            "missPoint points: 3",
-        );
-        expect(stateVariables["/missPointPointsClosed"].stateValues.text).eq(
-            "missPoint points closed: false",
-        );
-        expect(stateVariables["/missPointIntervals"].stateValues.text).eq(
-            "missPoint intervals: ( -∞, 3 ), ( 3, ∞ )",
-        );
-        expect(stateVariables["/missPointIsolated"].stateValues.text).eq(
-            "missPoint isolated points: ",
-        );
+        expect(
+            stateVariables[resolveComponentName("missPointPoints")].stateValues
+                .text,
+        ).eq("missPoint points: 3");
+        expect(
+            stateVariables[resolveComponentName("missPointPointsClosed")]
+                .stateValues.text,
+        ).eq("missPoint points closed: false");
+        expect(
+            stateVariables[resolveComponentName("missPointIntervals")]
+                .stateValues.text,
+        ).eq("missPoint intervals: ( -∞, 3 ), ( 3, ∞ )");
+        expect(
+            stateVariables[resolveComponentName("missPointIsolated")]
+                .stateValues.text,
+        ).eq("missPoint isolated points: ");
 
-        expect(stateVariables["/RPoints"].stateValues.text).eq("R points: ");
-        expect(stateVariables["/RPointsClosed"].stateValues.text).eq(
-            "R points closed: ",
-        );
-        expect(stateVariables["/RIntervals"].stateValues.text).eq(
-            "R intervals: ( -∞, ∞ )",
-        );
-        expect(stateVariables["/RIsolated"].stateValues.text).eq(
-            "R isolated points: ",
-        );
+        expect(
+            stateVariables[resolveComponentName("RPoints")].stateValues.text,
+        ).eq("R points: ");
+        expect(
+            stateVariables[resolveComponentName("RPointsClosed")].stateValues
+                .text,
+        ).eq("R points closed: ");
+        expect(
+            stateVariables[resolveComponentName("RIntervals")].stateValues.text,
+        ).eq("R intervals: ( -∞, ∞ )");
+        expect(
+            stateVariables[resolveComponentName("RIsolated")].stateValues.text,
+        ).eq("R isolated points: ");
     });
 });

@@ -37,6 +37,7 @@ export default class PostponeRenderContainer extends Group {
     static async calculateReplacementChanges({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -64,12 +65,15 @@ export default class PostponeRenderContainer extends Group {
                     serializedReplacements: replacements,
                 };
 
-                return [replacementInstruction];
+                return {
+                    replacementChanges: [replacementInstruction],
+                    nComponents,
+                };
             } else {
-                return [];
+                return { replacementChanges: [], nComponents };
             }
         } else {
-            return [];
+            return { replacementChanges: [], nComponents };
         }
     }
 }

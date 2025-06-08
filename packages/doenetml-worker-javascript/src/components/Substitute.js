@@ -80,8 +80,12 @@ export default class Substitute extends CompositeComponent {
     static returnSugarInstructions() {
         let sugarInstructions = [];
 
-        function addType({ matchedChildren, componentAttributes }) {
-            let type = componentAttributes.type;
+        function addType({
+            matchedChildren,
+            componentAttributes,
+            nComponents,
+        }) {
+            let type = componentAttributes.type?.value;
             if (!["math", "text"].includes(type)) {
                 type = "math";
             }
@@ -90,10 +94,16 @@ export default class Substitute extends CompositeComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType: type,
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
+                nComponents,
             };
         }
 
@@ -440,14 +450,20 @@ export default class Substitute extends CompositeComponent {
         component,
         componentInfoObjects,
         flags,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
 
         let type = await component.stateValues.type;
         let serializedReplacement = {
+            type: "serialized",
             componentType: type,
+            componentIdx: nComponents++,
             state: { value: await component.stateValues.value },
+            attributes: {},
+            doenetAttributes: {},
+            children: [],
             downstreamDependencies: {
                 [component.componentIdx]: [
                     {
@@ -476,7 +492,13 @@ export default class Substitute extends CompositeComponent {
 
             for (let attr in attributesComponentTypes) {
                 let shadowComponent = {
+                    type: "serialized",
                     componentType: attributesComponentTypes[attr],
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    doenetAttributes: {},
+                    children: [],
+                    state: {},
                     downstreamDependencies: {
                         [component.componentIdx]: [
                             {
@@ -489,6 +511,7 @@ export default class Substitute extends CompositeComponent {
                 };
 
                 attributes[attr] = {
+                    type: "component",
                     component: shadowComponent,
                 };
             }
@@ -500,6 +523,7 @@ export default class Substitute extends CompositeComponent {
             replacements: [serializedReplacement],
             errors,
             warnings,
+            nComponents,
         };
     }
 }

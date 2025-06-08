@@ -134,6 +134,7 @@ export class SectioningComponent extends BlockComponent {
         let wrapWithContainer = function ({
             matchedChildren,
             componentAttributes,
+            nComponents,
         }) {
             if (componentAttributes.postponeRendering) {
                 const titleChildren = [];
@@ -155,10 +156,16 @@ export class SectioningComponent extends BlockComponent {
                     newChildren: [
                         ...titleChildren,
                         {
+                            type: "serialized",
                             componentType: "_postponeRenderContainer",
+                            componentIdx: nComponents++,
                             children: postponedChildren,
+                            attributes: {},
+                            doenetAttributes: {},
+                            state: {},
                         },
                     ],
+                    nComponents,
                 };
             } else {
                 return { success: false };
