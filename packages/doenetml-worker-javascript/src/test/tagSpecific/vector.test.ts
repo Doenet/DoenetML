@@ -1722,7 +1722,6 @@ describe("Vector Tag Tests", function () {
         </constraints>
         </point>
     </graph>
-    $P{name="Pa"}
   `,
         });
 
@@ -1776,8 +1775,6 @@ describe("Vector Tag Tests", function () {
     <graph>
         <vector name="multiplied" tail="$zeroFixed" head="($a$(original.headX1), $a$(original.headX2))" />
     </graph>
-    $original{name="o2"}
-    $multiplied{name="m2"}
     `,
         });
 
