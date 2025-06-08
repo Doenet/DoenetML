@@ -11,7 +11,6 @@ import { nanoid } from "nanoid";
 import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
-    cesc,
     data_format_version,
     cidFromText,
 } from "@doenet/utils";
@@ -23,7 +22,12 @@ import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
-import { mainThunks, useAppDispatch } from "../state";
+import {
+    actionIdentifier,
+    mainThunks,
+    UniqueActionIdentifier,
+    useAppDispatch,
+} from "../state";
 
 export const DocContext = createContext<{
     linkSettings?: { viewURL: string; editURL: string };
@@ -93,7 +97,9 @@ export function DocViewer({
     // Sometimes components eagerly update before waiting for core to determine their exact state
     // This map from event ids to event values helps keep track of the updates that need to be ignored
     // so we don't clobber the component's state.
-    const updatesToIgnoreRef = useRef<Map<string, string>>(new Map());
+    const updatesToIgnoreRef = useRef<Map<UniqueActionIdentifier, string>>(
+        new Map(),
+    );
     const dispatch = useAppDispatch();
 
     const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -482,7 +488,7 @@ export function DocViewer({
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
             updatesToIgnoreRef.current.set(
-                `${actionId}|${componentIdx}`,
+                actionIdentifier(actionId, componentIdx),
                 baseVariableValue,
             );
         }
