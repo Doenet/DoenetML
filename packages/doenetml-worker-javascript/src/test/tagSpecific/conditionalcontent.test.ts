@@ -1331,7 +1331,10 @@ describe("Conditional content tag tests", async () => {
 
         expect(stateVariables[resolveComponentName("s")].activeChildren).eqls([
             "\n  ",
-            { componentIdx: "/n", componentType: "mathInput" },
+            {
+                componentIdx: resolveComponentName("n"),
+                componentType: "mathInput",
+            },
             "\n  before\n  ",
             "nothing: ",
             "\n  after\n",

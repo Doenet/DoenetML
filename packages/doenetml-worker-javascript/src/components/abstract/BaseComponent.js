@@ -649,6 +649,10 @@ export default class BaseComponent {
                     dependencyType: "shadowSourceStateVariable",
                     variableName: "fixed",
                 },
+                shadowSource: {
+                    dependencyType: "shadowSource",
+                    givePropVariableValue: true,
+                },
                 ignoreParentFixed: {
                     dependencyType: "doenetAttribute",
                     attributeName: "ignoreParentFixed",
@@ -692,8 +696,18 @@ export default class BaseComponent {
                     dependencyValues.shadowSourceFixed !== null &&
                     !usedDefault.shadowSourceFixed
                 ) {
-                    fixed = fixed || dependencyValues.shadowSourceFixed;
-                    useEssential = false;
+                    // If the shadow source is fixed, then we fix this component, too.
+                    // Exception: if we are shadowing the `fixed` state variable itself,
+                    // then we do not fix this component, or we will be unable to change the `fixed` state variable.
+                    // In this case, the `ignoreFixed` of this state variable is insufficient,
+                    // because it will be the `value` state variable that we need to change on the shadow.
+                    if (
+                        dependencyValues.shadowSource.stateValues &&
+                        !("fixed" in dependencyValues.shadowSource.stateValues)
+                    ) {
+                        fixed = fixed || dependencyValues.shadowSourceFixed;
+                        useEssential = false;
+                    }
                 }
 
                 if (useEssential) {

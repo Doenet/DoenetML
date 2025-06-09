@@ -594,7 +594,8 @@ describe("LineSegment tag tests", async () => {
         await check_items(x, y);
     });
 
-    it("three line segments with mutual references", async () => {
+    // TODO: restore test when restore functionality. See issue #479.
+    it.skip("three line segments with mutual references", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <graph>

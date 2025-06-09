@@ -1458,7 +1458,7 @@ describe("Curve Tag Bezier Tests", async () => {
         });
     }
 
-    // TODO: restore this functionality
+    // TODO: restore this functionality. See issue #479.
     it.skip("fourth point depends on internal copy of first point", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `

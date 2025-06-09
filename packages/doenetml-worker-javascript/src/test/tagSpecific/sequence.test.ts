@@ -1563,19 +1563,20 @@ describe("Sequence tag tests", async () => {
         ).eq("9, 41, 6, 7");
     });
 
-    it('copies with link="false" are not fixed', async () => {
+    it("unlinked copies are not fixed", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>From: <mathInput name="from" prefill="1" /></p>
     <p>Step: <mathInput name="step" prefill="2" /></p>
 
-    <p name="theList"><sequence assignNames="a b" from="$from" step="$step" to="7" /></p>
+    <p name="theList"><sequence name="s" from="$from" step="$step" to="7" /></p>
 
-    <p>Change first: <mathInput name="a2" bindValueTo="$a{link='false'}" /></p>
-    <p>Change second: <mathInput name="b2" bindValueTo="$b{link='false'}" /></p>
 
-    <p>Copy of a2: $a2{name="a3"}</p>
-    <p>Copy of b2: $b2{name="b3"}</p>
+    <p>Change first: <mathInput name="a2"> <number copy="$s[1]" name="a" /></mathInput></p>
+    <p>Change second: <mathInput name="b2" > <number copy="$s[2]" name="b" /></mathInput></p>
+
+    <p>Copy of a2: <math extend="$a2" name="a3" /></p>
+    <p>Copy of b2: <math extend="$b2" name="b3" /></p>
 
     `,
         });

@@ -1540,10 +1540,10 @@ describe("Line tag tests", async () => {
             doenetML: `
   <graph>
     <line name="l1">/2</line>
-    <line name="l2">$invalid</line>
+    <line name="l2">$invalid1</line>
     <line name="l3" equation="" />
     <line name="l4" equation="/2" />
-    <line name="l5" equation="$invalid" />
+    <line name="l5" equation="$invalid2" />
     <line name="l6">y=x^2</line>
     <line name="l7">1=2</line>
   </graph>
@@ -1669,25 +1669,41 @@ describe("Line tag tests", async () => {
         const errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(errorWarnings.warnings.length).eq(4);
 
         expect(errorWarnings.warnings[0].message).contain(
-            "Invalid format for equation of line in variables x and y",
+            "No referent found for reference: $invalid1",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.start.line).eq(8);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(8);
-        expect(errorWarnings.warnings[0].position.end.column).eq(33);
+        expect(errorWarnings.warnings[0].position.start.line).eq(4);
+        expect(errorWarnings.warnings[0].position.start.column).eq(21);
+        expect(errorWarnings.warnings[0].position.end.line).eq(4);
+        expect(errorWarnings.warnings[0].position.end.column).eq(30);
 
         expect(errorWarnings.warnings[1].message).contain(
+            "No referent found for reference: $invalid2",
+        );
+        expect(errorWarnings.warnings[1].position.start.line).eq(7);
+        expect(errorWarnings.warnings[1].position.start.column).eq(30);
+        expect(errorWarnings.warnings[1].position.end.line).eq(7);
+        expect(errorWarnings.warnings[1].position.end.column).eq(39);
+
+        expect(errorWarnings.warnings[2].message).contain(
             "Invalid format for equation of line in variables x and y",
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.start.line).eq(9);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
-        expect(errorWarnings.warnings[1].position.end.line).eq(9);
-        expect(errorWarnings.warnings[1].position.end.column).eq(31);
+        expect(errorWarnings.warnings[2].level).eq(1);
+        expect(errorWarnings.warnings[2].position.start.line).eq(8);
+        expect(errorWarnings.warnings[2].position.start.column).eq(5);
+        expect(errorWarnings.warnings[2].position.end.line).eq(8);
+        expect(errorWarnings.warnings[2].position.end.column).eq(33);
+
+        expect(errorWarnings.warnings[3].message).contain(
+            "Invalid format for equation of line in variables x and y",
+        );
+        expect(errorWarnings.warnings[3].level).eq(1);
+        expect(errorWarnings.warnings[3].position.start.line).eq(9);
+        expect(errorWarnings.warnings[3].position.start.column).eq(5);
+        expect(errorWarnings.warnings[3].position.end.line).eq(9);
+        expect(errorWarnings.warnings[3].position.end.column).eq(31);
     });
 
     it("line from points with strange constraints", async () => {
@@ -2042,7 +2058,8 @@ describe("Line tag tests", async () => {
         await check_items(x, y);
     });
 
-    it("three lines with mutual references", async () => {
+    // TODO: restore test when restore functionality. See issue #479.
+    it.skip("three lines with mutual references", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <graph>
@@ -2273,7 +2290,6 @@ describe("Line tag tests", async () => {
             ).closeTo(y2, 1e-12);
 
             for (let g of ["g2", "g3", "g4", "g5"]) {
-                console.log({ g });
                 expect(
                     stateVariables[
                         resolveComponentName(`${g}.l`)

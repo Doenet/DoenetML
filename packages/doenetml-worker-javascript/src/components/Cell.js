@@ -274,6 +274,7 @@ export default class Cell extends BaseComponent {
             },
             hasEssential: true,
             forRenderer: true,
+            defaultValue: "",
             returnDependencies: () => ({
                 children: {
                     dependencyType: "child",

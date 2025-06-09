@@ -6170,7 +6170,7 @@ describe("Point tag tests", async () => {
 
     <p>Fix location: <booleanInput name="fl" bindValueTo="$P.fixLocation" /></p>
     <p>Fixed: <booleanInput name="fx" bindValueTo="$P.fixed" /></p>
-    <p>Draggable: <booleanInput name="dg" bindValueTo="$P.draggable" />></p>
+    <p>Draggable: <booleanInput name="dg" bindValueTo="$P.draggable" /></p>
     <p>nClicks: <number name="nClicks">0</number><updateValue triggerWhenObjectsClicked="$P" target="$nClicks" newValue="$nClicks+1" /></p>
     <p>nFocused: <number name="nFocused">0</number><updateValue triggerWhenObjectsFocused="$P" target="$nFocused" newValue="$nFocused+1" /></p>
 

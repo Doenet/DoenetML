@@ -1712,19 +1712,19 @@ describe("Spreadsheet tag tests", async () => {
             "",
         );
         expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
             "",
         );
         expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
-            null,
+            "",
         );
 
         await updateMathInputValue({
@@ -1737,19 +1737,19 @@ describe("Spreadsheet tag tests", async () => {
             row[0],
         );
         expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
             column[0],
         );
         expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
-            null,
+            "",
         );
 
         await updateMathInputValue({
@@ -1762,19 +1762,19 @@ describe("Spreadsheet tag tests", async () => {
             row[1],
         );
         expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
             column[1],
         );
         expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
-            null,
+            "",
         );
 
         await updateMathInputValue({
@@ -1787,19 +1787,19 @@ describe("Spreadsheet tag tests", async () => {
             row[2],
         );
         expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
             column[2],
         );
         expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
-            null,
+            "",
         );
 
         await updateMathInputValue({
@@ -1809,22 +1809,22 @@ describe("Spreadsheet tag tests", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
-            null,
+            "",
         );
     }
 
@@ -1940,7 +1940,7 @@ describe("Spreadsheet tag tests", async () => {
     <cell name="R3" extend="$spreadsheet2.cellC1" />
   
     <spreadsheet name="spreadsheet2" minNumRows="0" minNumColumns="0">
-      <row extend="$spreadsheet1.rows[$n]" />
+     $spreadsheet1.rows[$n]
     </spreadsheet>
 
     <cell name="C1" extend="$spreadsheet3.cellA1" />
@@ -1948,7 +1948,7 @@ describe("Spreadsheet tag tests", async () => {
     <cell name="C3" extend="$spreadsheet3.cellA3" />
 
     <spreadsheet name="spreadsheet3" minNumRows="0" minNumColumns="0">
-      <column extend="$spreadsheet1.columns[$n]" />
+      $spreadsheet1.columns[$n]
     </spreadsheet>
     `,
         });
@@ -1966,22 +1966,22 @@ describe("Spreadsheet tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
-            null,
+            "",
         );
 
         await updateMathInputValue({
@@ -2066,22 +2066,22 @@ describe("Spreadsheet tag tests", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
-            null,
+            "",
         );
         expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
-            null,
+            "",
         );
     });
 });

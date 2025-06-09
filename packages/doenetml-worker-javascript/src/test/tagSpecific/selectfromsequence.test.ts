@@ -461,7 +461,7 @@ describe("SelectFromSequence tag tests", async () => {
     <selectFromSequence name="s" numToSelect="$n" withReplacement from="-4" to="4" step="2" exclude="0" />
     <number extend="$n3" name="n2" />
     <math extend="$num1" name="n" />
-    <math name="num1">$n2+$num2</math>
+    <math name="num1">$n2+$num2+2</math>
     <math name="num2">$n3+$num3</math>
     <number extend="$num3" name="n3" />
     <number name="num3">1</number>`;

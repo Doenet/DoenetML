@@ -1438,7 +1438,7 @@ describe("Polyline tag tests", async () => {
         ).eqls(D);
     });
 
-    // TODO: regain functionality of internal copies and restore these skipped tests
+    // TODO: regain functionality of internal copies and restore these skipped tests. See issue #479.
     it.skip("fourth vertex depends on internal copy of first vertex", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `

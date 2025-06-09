@@ -7740,15 +7740,6 @@ export default class Core {
             }
         }
 
-        if (
-            Object.keys(result).length === 0 &&
-            stateVarObj.isArrayEntry &&
-            (await stateVarObj.arrayKeys).length === 0
-        ) {
-            // if we have an empty array entry, make its value `null` not `undefined`;
-            stateVarObj.value = null;
-        }
-
         return await stateVarObj.value;
     }
 

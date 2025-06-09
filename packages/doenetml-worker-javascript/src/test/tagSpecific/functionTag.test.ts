@@ -3612,7 +3612,7 @@ describe("Function tag tests", async () => {
         });
     });
 
-    // TODO: fix rounding when copy to lists
+    // TODO: fix rounding when copy to lists. See issue 477.
     it.skip("extrema at domain endpoints, function from formula, unlinked copy", async () => {
         // Note: checking to see if rounding attributes are properly copied
         // for wrapped array state variables when link="false"

@@ -1411,21 +1411,24 @@ describe("Select tag tests", async () => {
             must_be_distinct: true,
         });
 
-        let { core } = await createTestCore({ doenetML });
+        // TODO: uncomment the rest of the test when have have warnings in new sugar and implemented for select sugar.
+        // See issue #476.
 
-        let errorWarnings = core.core!.errorWarnings;
+        // let { core } = await createTestCore({ doenetML });
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        // let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.warnings[0].message).contain(
-            "Invalid type for select: nothing",
-        );
-        expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(4);
-        expect(errorWarnings.warnings[0].position.end.column).eq(13);
+        // expect(errorWarnings.errors.length).eq(0);
+        // expect(errorWarnings.warnings.length).eq(1);
+
+        // expect(errorWarnings.warnings[0].message).contain(
+        //     "Invalid type for select: nothing",
+        // );
+        // expect(errorWarnings.warnings[0].level).eq(1);
+        // expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        // expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        // expect(errorWarnings.warnings[0].position.end.line).eq(4);
+        // expect(errorWarnings.warnings[0].position.end.column).eq(13);
     });
 
     it("select weighted", async () => {

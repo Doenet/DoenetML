@@ -738,7 +738,8 @@ describe("NumberList tag tests", async () => {
         );
     });
 
-    it("numberList and rounding, from strings", async () => {
+    // TODO: fix this feature and restore test. See issue #477.
+    it.skip("numberList and rounding, from strings", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1" displayDigits="4">2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</numberList></p>

@@ -1367,11 +1367,11 @@ describe("Repeat tag tests", async () => {
     it("cannot override fixed of source index", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <repeat name="r1" for="red yellow" forType="text" indexName="i">
+    <repeat name="r1" for="red yellow" type="text" indexName="i">
         <integer extend="$i" name="ind" />
         <mathInput name="mi">$ind</mathInput>
     </repeat>
-    <repeat name="r2" for="red yellow" forType="text" indexName="i">
+    <repeat name="r2" for="red yellow" type="text" indexName="i">
         <integer extend="$i" name="ind" fixed="false" />
         <mathInput name="mi">$ind</mathInput>
     </repeat>
@@ -1871,19 +1871,19 @@ describe("Repeat tag tests", async () => {
         }
     });
 
-    it("forType attribute wraps string", async () => {
+    it("type attribute wraps string", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <repeat for="x^2 y^2" itemName="x" name="rDefault">
         $x
     </repeat>
-    <repeat forType="math" for="ab cd" itemName="x" name="rMath">
+    <repeat type="math" for="ab cd" itemName="x" name="rMath">
         $x
     </repeat>
-    <repeat forType="number" for="5 6" itemName="x" name="rNumber">
+    <repeat type="number" for="5 6" itemName="x" name="rNumber">
         $x
     </repeat>
-    <repeat forType="text" for="hello there" itemName="x" name="rText">
+    <repeat type="text" for="hello there" itemName="x" name="rText">
         $x
     </repeat>
     `,

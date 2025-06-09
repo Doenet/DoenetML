@@ -13,6 +13,13 @@ export default class CompositeComponent extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // Make private these four public state variables that are found on all components
+        // so that references to this props won't stop at the composite but drill down into the replacements
+        stateVariableDefinitions.hidden.public = false;
+        stateVariableDefinitions.disabled.public = false;
+        stateVariableDefinitions.fixed.public = false;
+        stateVariableDefinitions.fixLocation.public = false;
+
         stateVariableDefinitions.replacements = {
             returnDependencies: () => ({
                 replacements: {
