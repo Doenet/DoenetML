@@ -271,6 +271,7 @@ export default class EigenDecomposition extends BaseComponent {
                 }
                 return null;
             },
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["eigenvectorX", "eigenvector"],
             returnEntryDimensions: (prefix) =>
                 prefix === "eigenvector" ? 1 : 0,
