@@ -1271,14 +1271,14 @@ describe("match partial validation tests", async () => {
   <p>
   <mathInput name="mi" />
   <answer name="ans1">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         $mi = <mathList><math>(1,2)</math><math>(3,4)</math></mathList>
       </when>
     </award>
   </answer>
   <answer name="ans2">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         <mathList><math>(1,2)</math><math>(3,4)</math></mathList> = $mi
       </when>
@@ -1294,14 +1294,14 @@ describe("match partial validation tests", async () => {
   <p>
   <mathInput name="mi" />
   <answer name="ans1">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         $mi = <mathList><math createVectors>(1,2)</math><math createVectors>(3,4)</math></mathList>
       </when>
     </award>
   </answer>
   <answer name="ans2">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         <mathList><math createVectors>(1,2)</math><math createVectors>(3,4)</math></mathList> = $mi
       </when>
@@ -1317,14 +1317,14 @@ describe("match partial validation tests", async () => {
   <p>
   <mathInput name="mi" />
   <answer name="ans1">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         <math createVectors>$mi</math> = <mathList><math>(1,2)</math><math>(3,4)</math></mathList>
       </when>
     </award>
   </answer>
   <answer name="ans2">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         <mathList><math>(1,2)</math><math>(3,4)</math></mathList> = <math createVectors>$mi</math>
       </when>
@@ -1340,14 +1340,14 @@ describe("match partial validation tests", async () => {
   <p>
   <mathInput name="mi" />
   <answer name="ans1">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         <math createVectors>$mi</math> = <mathList><math createVectors>(1,2)</math><math createVectors>(3,4)</math></mathList>
       </when>
     </award>
   </answer>
   <answer name="ans2">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         <mathList><math createVectors>(1,2)</math><math createVectors>(3,4)</math></mathList> = <math createVectors>$mi</math>
       </when>
@@ -1363,14 +1363,14 @@ describe("match partial validation tests", async () => {
   <p>
   <mathInput name="mi" />
   <answer name="ans1">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         $mi = <mathList><math>[1,2)</math><math>(3,4]</math></mathList>
       </when>
     </award>
   </answer>
   <answer name="ans2">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         <mathList><math>[1,2)</math><math>(3,4]</math></mathList> = $mi
       </when>
@@ -1396,14 +1396,14 @@ describe("match partial validation tests", async () => {
   <p>
   <mathInput name="mi" />
   <answer name="ans1">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         $mi = <mathList><math>[1,2]</math><math>[3,4]</math></mathList>
       </when>
     </award>
   </answer>
   <answer name="ans2">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         <mathList><math>[1,2]</math><math>[3,4]</math></mathList> = $mi
       </when>
@@ -1429,14 +1429,14 @@ describe("match partial validation tests", async () => {
   <p>
   <mathInput name="mi" />
   <answer name="ansP">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial>
         $mi = <mathList>(1,2) (3,4)</mathList>
       </when>
     </award>
   </answer>
   <answer name="ansPU">
-    <award sourcesAreResponses="mi">
+    <award referencesAreResponses="mi">
       <when matchPartial unorderedCompare>
         $mi = <mathList>(1,2) (3,4)</mathList>
       </when>
