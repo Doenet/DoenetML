@@ -6,36 +6,36 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Equilibriumpoint Tag Tests", async () => {
-    it("equilibriumpoint change stable", async () => {
-        let core = await createTestCore({
+describe("equilibriumPoint Tag Tests", async () => {
+    it("equilibriumPoint change stable", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="g" newNamespace>
-      <equilibriumpoint name="A" switchAble>(4,0)</equilibriumpoint>
-      <equilibriumpoint name="B" stable="false">(7,0)</equilibriumpoint>
-      <equilibriumpoint name="C" stable="$(../b1)" styleNumber="2">(-9,0)</equilibriumpoint>
-      <equilibriumpoint name="D" stable="$(../b2)" styleNumber="2" switchable>(-3,0)</equilibriumpoint>
+      <equilibriumPoint name="A" switchAble>(4,0)</equilibriumPoint>
+      <equilibriumPoint name="B" stable="false">(7,0)</equilibriumPoint>
+      <equilibriumPoint name="C" stable="$b1" styleNumber="2">(-9,0)</equilibriumPoint>
+      <equilibriumPoint name="D" stable="$b2" styleNumber="2" switchable>(-3,0)</equilibriumPoint>
     </graph>
   
-    <booleaninput name="b1" />
-    <booleaninput name="b2" />
+    <booleanInput name="b1" />
+    <booleanInput name="b2" />
 
-    <p><aslist>
-    $(g/A.stable{assignNames="gAs"})
-    $(g/B.stable{assignNames="gBs"})
-    $(g/C.stable{assignNames="gCs"})
-    $(g/D.stable{assignNames="gDs"})
-    </aslist>
+    <p><asList>
+    <boolean extend="$g.A.stable" name="gAs" />
+    <boolean extend="$g.B.stable" name="gBs" />
+    <boolean extend="$g.C.stable" name="gCs" />
+    <boolean extend="$g.D.stable" name="gDs" />
+    </asList>
     </p>
 
-    $g{name="g2"}
+    <graph extend="$g" name="g2" />
 
-    <p><aslist>
-    $(g2/A.stable{assignNames="g2As"})
-    $(g2/B.stable{assignNames="g2Bs"})
-    $(g2/C.stable{assignNames="g2Cs"})
-    $(g2/D.stable{assignNames="g2Ds"})
-    </aslist>
+    <p><asList>
+    <boolean extend="$g2.A.stable" name="g2As" />
+    <boolean extend="$g2.B.stable" name="g2Bs" />
+    <boolean extend="$g2.C.stable" name="g2Cs" />
+    <boolean extend="$g2.D.stable" name="g2Ds" />
+    </asList>
     </p>
     `,
         });
@@ -45,14 +45,30 @@ describe("Equilibriumpoint Tag Tests", async () => {
         const pointC = [-9, 0];
         const pointD = [-3, 0];
         let svs = await core.returnAllStateVariables(false, true);
-        expect(svs["/g/A"].stateValues.xs.map((v) => v.tree)).eqls(pointA);
-        expect(svs["/g/B"].stateValues.xs.map((v) => v.tree)).eqls(pointB);
-        expect(svs["/g/C"].stateValues.xs.map((v) => v.tree)).eqls(pointC);
-        expect(svs["/g/D"].stateValues.xs.map((v) => v.tree)).eqls(pointD);
-        expect(svs["/g2/A"].stateValues.xs.map((v) => v.tree)).eqls(pointA);
-        expect(svs["/g2/B"].stateValues.xs.map((v) => v.tree)).eqls(pointB);
-        expect(svs["/g2/C"].stateValues.xs.map((v) => v.tree)).eqls(pointC);
-        expect(svs["/g2/D"].stateValues.xs.map((v) => v.tree)).eqls(pointD);
+        expect(
+            svs[resolveComponentName("g.A")].stateValues.xs.map((v) => v.tree),
+        ).eqls(pointA);
+        expect(
+            svs[resolveComponentName("g.B")].stateValues.xs.map((v) => v.tree),
+        ).eqls(pointB);
+        expect(
+            svs[resolveComponentName("g.C")].stateValues.xs.map((v) => v.tree),
+        ).eqls(pointC);
+        expect(
+            svs[resolveComponentName("g.D")].stateValues.xs.map((v) => v.tree),
+        ).eqls(pointD);
+        expect(
+            svs[resolveComponentName("g2.A")].stateValues.xs.map((v) => v.tree),
+        ).eqls(pointA);
+        expect(
+            svs[resolveComponentName("g2.B")].stateValues.xs.map((v) => v.tree),
+        ).eqls(pointB);
+        expect(
+            svs[resolveComponentName("g2.C")].stateValues.xs.map((v) => v.tree),
+        ).eqls(pointC);
+        expect(
+            svs[resolveComponentName("g2.D")].stateValues.xs.map((v) => v.tree),
+        ).eqls(pointD);
 
         let As = true;
         let Cs = false;
@@ -63,40 +79,80 @@ describe("Equilibriumpoint Tag Tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/gAs"].stateValues.value).eqls(As);
-            expect(stateVariables["/gBs"].stateValues.value).eqls(false);
-            expect(stateVariables["/gCs"].stateValues.value).eqls(Cs);
-            expect(stateVariables["/gDs"].stateValues.value).eqls(Ds);
-            expect(stateVariables["/g2As"].stateValues.value).eqls(As);
-            expect(stateVariables["/g2Bs"].stateValues.value).eqls(false);
-            expect(stateVariables["/g2Cs"].stateValues.value).eqls(Cs);
-            expect(stateVariables["/g2Ds"].stateValues.value).eqls(Ds);
-            expect(stateVariables["/g/A"].stateValues.stable).eq(As);
-            expect(stateVariables["/g/B"].stateValues.stable).eq(false);
-            expect(stateVariables["/g/C"].stateValues.stable).eq(Cs);
-            expect(stateVariables["/g/D"].stateValues.stable).eq(Ds);
-            expect(stateVariables["/g2/A"].stateValues.stable).eq(As);
-            expect(stateVariables["/g2/B"].stateValues.stable).eq(false);
-            expect(stateVariables["/g2/C"].stateValues.stable).eq(Cs);
-            expect(stateVariables["/g2/D"].stateValues.stable).eq(Ds);
+            expect(
+                stateVariables[resolveComponentName("gAs")].stateValues.value,
+            ).eqls(As);
+            expect(
+                stateVariables[resolveComponentName("gBs")].stateValues.value,
+            ).eqls(false);
+            expect(
+                stateVariables[resolveComponentName("gCs")].stateValues.value,
+            ).eqls(Cs);
+            expect(
+                stateVariables[resolveComponentName("gDs")].stateValues.value,
+            ).eqls(Ds);
+            expect(
+                stateVariables[resolveComponentName("g2As")].stateValues.value,
+            ).eqls(As);
+            expect(
+                stateVariables[resolveComponentName("g2Bs")].stateValues.value,
+            ).eqls(false);
+            expect(
+                stateVariables[resolveComponentName("g2Cs")].stateValues.value,
+            ).eqls(Cs);
+            expect(
+                stateVariables[resolveComponentName("g2Ds")].stateValues.value,
+            ).eqls(Ds);
+            expect(
+                stateVariables[resolveComponentName("g.A")].stateValues.stable,
+            ).eq(As);
+            expect(
+                stateVariables[resolveComponentName("g.B")].stateValues.stable,
+            ).eq(false);
+            expect(
+                stateVariables[resolveComponentName("g.C")].stateValues.stable,
+            ).eq(Cs);
+            expect(
+                stateVariables[resolveComponentName("g.D")].stateValues.stable,
+            ).eq(Ds);
+            expect(
+                stateVariables[resolveComponentName("g2.A")].stateValues.stable,
+            ).eq(As);
+            expect(
+                stateVariables[resolveComponentName("g2.B")].stateValues.stable,
+            ).eq(false);
+            expect(
+                stateVariables[resolveComponentName("g2.C")].stateValues.stable,
+            ).eq(Cs);
+            expect(
+                stateVariables[resolveComponentName("g2.D")].stateValues.stable,
+            ).eq(Ds);
         }
 
         await check_stable();
 
         // switch C via boolean input
         Cs = !Cs;
-        await updateBooleanInputValue({ name: "/b1", boolean: Cs, core });
+        await updateBooleanInputValue({
+            componentIdx: resolveComponentName("b1"),
+            boolean: Cs,
+            core,
+        });
         await check_stable();
 
         // switch D via boolean input
         Ds = !Ds;
-        await updateBooleanInputValue({ name: "/b2", boolean: Ds, core });
+        await updateBooleanInputValue({
+            componentIdx: resolveComponentName("b2"),
+            boolean: Ds,
+            core,
+        });
         await check_stable();
 
         // switch A via first action
         As = !As;
         await core.requestAction({
-            componentIdx: "/g/A",
+            componentIdx: resolveComponentName("g.A"),
             actionName: "switchPoint",
             args: {},
         });
@@ -105,7 +161,7 @@ describe("Equilibriumpoint Tag Tests", async () => {
         // switch A via second action
         As = !As;
         await core.requestAction({
-            componentIdx: "/g2/A",
+            componentIdx: resolveComponentName("g2.A"),
             actionName: "switchPoint",
             args: {},
         });
@@ -113,7 +169,7 @@ describe("Equilibriumpoint Tag Tests", async () => {
 
         // cannot switch B via action
         await core.requestAction({
-            componentIdx: "/g/B",
+            componentIdx: resolveComponentName("g.B"),
             actionName: "switchPoint",
             args: {},
         });
@@ -121,7 +177,7 @@ describe("Equilibriumpoint Tag Tests", async () => {
 
         // cannot switch C via second action
         await core.requestAction({
-            componentIdx: "/g2/C",
+            componentIdx: resolveComponentName("g2.C"),
             actionName: "switchPoint",
             args: {},
         });
@@ -130,7 +186,7 @@ describe("Equilibriumpoint Tag Tests", async () => {
         // switch D via second action
         Ds = !Ds;
         await core.requestAction({
-            componentIdx: "/g2/D",
+            componentIdx: resolveComponentName("g2.D"),
             actionName: "switchPoint",
             args: {},
         });

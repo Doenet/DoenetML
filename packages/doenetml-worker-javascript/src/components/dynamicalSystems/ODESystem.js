@@ -12,7 +12,7 @@ import {
 import { returnNVariables, roundForDisplay } from "../../utils/math";
 
 export default class ODESystem extends InlineComponent {
-    static componentType = "odesystem";
+    static componentType = "odeSystem";
     static rendererType = "math";
 
     static createAttributesObject() {
@@ -218,7 +218,7 @@ export default class ODESystem extends InlineComponent {
                 ) {
                     warnings.push({
                         message:
-                            "Variables of <odesystem> must be different than independent variable.",
+                            "Variables of <odeSystem> must be different than independent variable.",
                         level: 1,
                     });
                 }
@@ -838,7 +838,7 @@ export default class ODESystem extends InlineComponent {
                                         chunkSize +
                                         " and tolerance " +
                                         tolerance +
-                                        ", odesystem";
+                                        ", odeSystem";
                                     if (componentIdx !== undefined) {
                                         message += " (" + componentIdx + ")";
                                     }
