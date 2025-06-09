@@ -339,7 +339,7 @@ export function expandUnflattenedToSerializedComponents({
         try {
             if (componentClass === undefined) {
                 throw Error(
-                    `Invalid component type: ${component.componentType}`,
+                    `Invalid component type: <${component.componentType}>`,
                 );
             }
 

@@ -29,6 +29,7 @@ export function convertToErrorComponent(
         children: [],
         attributes: {},
         doenetAttributes: {},
+        position: component.position,
     };
 
     if (component.attributes.name) {

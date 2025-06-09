@@ -2290,11 +2290,11 @@ describe("Extend tests", async () => {
 
     <p>Text stays hidden by default:</p>
     <p extend="$p1" name="p2" />
-    <p name="p4">Check attributes: $p2.hidden $p2.fixed $p2.isResponse $p2.hidden_text.hidden $p2.hidden_text.fixed $p2.hidden_text.isResponse</p>
+    <p name="p4">Check attributes: $p2.hidden $p2.isResponse $p2.hidden_text.hidden $p2.hidden_text.isResponse</p>
 
     <p>Now all is revealed:</p>
-    <p extend="$p1" name="p5" sourceAttributesToIgnore="hide fixed" />
-    <p name="p7">Check attributes: $p5.hidden $p5.fixed $p5.isResponse $p5.hidden_text.hidden $p5.hidden_text.fixed $p5.hidden_text.isResponse</p>
+    <p extend="$p1" name="p5" sourceAttributesToIgnore="hide" />
+    <p name="p7">Check attributes: $p5.hidden $p5.isResponse $p5.hidden_text.hidden $p5.hidden_text.isResponse</p>
 
     `,
         });
@@ -2307,13 +2307,59 @@ describe("Extend tests", async () => {
             "The text: ",
         );
         expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            "Check attributes: false true false true true false",
+            "Check attributes: false false true false",
         );
         expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
             "The text: secret",
         );
         expect(stateVariables[resolveComponentName("p7")].stateValues.text).eq(
-            "Check attributes: false false true false false true",
+            "Check attributes: false true false true",
+        );
+    });
+
+    it("fixed and fixLocation are propagated from shadow source, even with prop", async () => {
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+    <point fixed fixLocation name="P" />
+
+    <p name="p1">$P$P.x<point extend="$P" name="P2" /><math extend="$P.x" name="Px" /></p>
+    <p name="p2">$P.fixed $P2.fixed $Px.fixed</p>
+    <p name="p3">$P.fixLocation $P2.fixLocation $Px.fixLocation</p>
+
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const Pref =
+            stateVariables[resolveComponentName("p1")].activeChildren[0]
+                .componentIdx;
+        const Pxref =
+            stateVariables[resolveComponentName("p1")].activeChildren[1]
+                .componentIdx;
+
+        expect(stateVariables[Pref].stateValues.fixed).eq(true);
+        expect(stateVariables[Pref].stateValues.fixLocation).eq(true);
+        expect(stateVariables[Pxref].stateValues.fixed).eq(true);
+        expect(stateVariables[Pxref].stateValues.fixLocation).eq(true);
+        expect(stateVariables[resolveComponentName("P2")].stateValues.fixed).eq(
+            true,
+        );
+        expect(
+            stateVariables[resolveComponentName("P2")].stateValues.fixLocation,
+        ).eq(true);
+        expect(stateVariables[resolveComponentName("Px")].stateValues.fixed).eq(
+            true,
+        );
+        expect(
+            stateVariables[resolveComponentName("Px")].stateValues.fixLocation,
+        ).eq(true);
+
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "true true true",
+        );
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
+            "true true true",
         );
     });
 
@@ -5823,7 +5869,7 @@ describe("Extend tests", async () => {
             "nothing: ",
         );
         expect(stateVariables[resolveComponentName("p13")].stateValues.text).eq(
-            "Prop fixed from group: false",
+            "Prop fixed from group: falsetruefalsefalsefalse",
         );
         expect(stateVariables[resolveComponentName("p14")].stateValues.text).eq(
             "Prop x from group: x4",

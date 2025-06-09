@@ -49,7 +49,8 @@ export default class Core {
         componentInfoObjects,
         flags,
         allDoenetMLs,
-        preliminaryErrors,
+        // Note: we ignore preliminary errors, as we'll gather those from the dast when processing it.
+        preliminaryErrors: _preliminaryErrors,
         preliminaryWarnings,
         activityId,
         cid,
@@ -101,10 +102,10 @@ export default class Core {
 
         this.cid = cid;
 
-        this.errorWarnings = {
-            errors: [...preliminaryErrors],
-            warnings: [...preliminaryWarnings],
-        };
+        this.errorWarnings = {};
+
+        this.errorWarnings.errors = [];
+        this.errorWarnings.warnings = [...preliminaryWarnings];
 
         this.numerics = new Numerics();
         // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
@@ -1324,14 +1325,14 @@ export default class Core {
                 // However, it could get called from Javascript if developers
                 // create a serialized component that doesn't exist.
                 let message = `Invalid component type: <${serializedComponent.componentType}>.`;
-                let position = serializedComponent.position;
 
                 this.newErrorWarning = true;
-                this.errorWarnings.errors.push({
+
+                const convertResult = convertToErrorComponent(
+                    serializedComponent,
                     message,
-                    position,
-                });
-                convertToErrorComponent(serializedComponent, message);
+                );
+                serializedComponent = convertResult.component;
 
                 lastErrorMessage = message;
 
@@ -1673,6 +1674,13 @@ export default class Core {
 
         if (serializedComponent.componentType === "_error") {
             lastErrorMessage = serializedComponent.state.message;
+            this.newErrorWarning = true;
+
+            this.errorWarnings.errors.push({
+                type: "error",
+                message: serializedComponent.state.message,
+                position: serializedComponent.position,
+            });
         } else if (
             lastErrorMessageFromAttribute ||
             (lastErrorMessage && !componentClass.canDisplayChildErrors)
@@ -1682,7 +1690,13 @@ export default class Core {
             // 2. this component cannot display errors from children
             // In these cases, we turn this component into an error component
             // to ensure the error message is displayed.
-            convertToErrorComponent(serializedComponent, lastErrorMessage);
+
+            const convertResult = convertToErrorComponent(
+                serializedComponent,
+                lastErrorMessageFromAttribute || lastErrorMessage,
+            );
+            serializedComponent = convertResult.component;
+
             attributes = {};
             componentClass =
                 this.componentInfoObjects.allComponentClasses[
@@ -8997,7 +9011,7 @@ export default class Core {
 
     registerComponent(component) {
         if (this._components[component.componentIdx] !== undefined) {
-            throw Error(`Duplicate component name: ${component.componentIdx}`);
+            throw Error(`Duplicate component index: ${component.componentIdx}`);
         }
         this._components[component.componentIdx] = component;
     }
