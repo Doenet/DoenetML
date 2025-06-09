@@ -52,7 +52,7 @@ export default function useDoenetRenderer(
 
     //TODO: Fix this for graph
     // if (initializeChildrenOnConstruction
-    let children = [];
+    let children: React.ReactNode[] = [];
     const loadMoreRenderers = Object.keys(renderersToLoad).length === 0;
     for (let childInstructions of childrenInstructions) {
         let child = createChildFromInstructions(
@@ -108,7 +108,7 @@ export default function useDoenetRenderer(
                         // but this shouldn't really be used right now. It should be cleaned up at some point.
                         rendererPromises[childInstructions.rendererType] =
                             import(
-                                `./renderers/${childInstructions.rendererType}.jsx`
+                                `./renderers/${childInstructions.rendererType}.tsx`
                             );
                     }
                     return rendererPromises;

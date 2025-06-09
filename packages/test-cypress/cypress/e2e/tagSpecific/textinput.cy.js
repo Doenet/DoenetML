@@ -108,4 +108,58 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/pv")).should("have.text", "value: hello");
         cy.get(cesc("#\\/piv")).should("have.text", "immediate value: hello");
     });
+
+    it("shadowed textInput's update is not ignored", () => {
+        // Check for a bug where the renderer of a shadowed text input did not update correctly
+        // as its update was incorrectly being ignored.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <graph>
+        <point name="A" labelIsName />
+        </graph>
+        <graph>
+        <point copySource="A" name="B" />
+        </graph>
+
+        <p><textInput name="tiA">$A.label</textInput></p>
+        <p><textInput name="tiB">$B.label</textInput></p>
+        <label name="labelA" copySource="A.label" />
+        <label name="labelB" copySource="B.label" />
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/tiA_input")).should("have.value", "A");
+        cy.get(cesc("#\\/tiB_input")).should("have.value", "A");
+        cy.get(cesc("#\\/labelA")).should("have.text", "A");
+        cy.get(cesc("#\\/labelB")).should("have.text", "A");
+
+        cy.get(cesc("#\\/tiA_input")).type("B");
+        cy.get(cesc("#\\/tiA_input")).should("have.value", "AB");
+        cy.get(cesc("#\\/tiB_input")).should("have.value", "A");
+        cy.get(cesc("#\\/labelA")).should("have.text", "A");
+        cy.get(cesc("#\\/labelB")).should("have.text", "A");
+
+        cy.get(cesc("#\\/tiA_input")).blur();
+        cy.get(cesc("#\\/tiB_input")).should("have.value", "AB");
+        cy.get(cesc("#\\/tiA_input")).should("have.value", "AB");
+        cy.get(cesc("#\\/labelA")).should("have.text", "AB");
+        cy.get(cesc("#\\/labelB")).should("have.text", "AB");
+
+        cy.get(cesc("#\\/tiB_input")).type("C");
+        cy.get(cesc("#\\/tiB_input")).should("have.value", "ABC");
+        cy.get(cesc("#\\/tiA_input")).should("have.value", "AB");
+        cy.get(cesc("#\\/labelA")).should("have.text", "AB");
+        cy.get(cesc("#\\/labelB")).should("have.text", "AB");
+
+        cy.get(cesc("#\\/tiB_input")).blur();
+        cy.get(cesc("#\\/tiA_input")).should("have.value", "ABC");
+        cy.get(cesc("#\\/tiB_input")).should("have.value", "ABC");
+        cy.get(cesc("#\\/labelA")).should("have.text", "ABC");
+        cy.get(cesc("#\\/labelB")).should("have.text", "ABC");
+    });
 });

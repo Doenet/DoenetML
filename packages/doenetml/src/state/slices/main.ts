@@ -92,7 +92,9 @@ export const mainThunks = {
                 const updatesToIgnore = updatesToIgnoreRef.current;
 
                 if (updatesToIgnore.size > 0) {
-                    let valueFromRenderer = updatesToIgnore.get(actionId || "");
+                    let valueFromRenderer = updatesToIgnore.get(
+                        `${actionId}|${componentIdx}`,
+                    );
                     let valueFromCore = stateValues[baseStateVariable];
                     if (
                         valueFromRenderer === valueFromCore ||
@@ -107,7 +109,7 @@ export const mainThunks = {
                         ignoreUpdate = true;
                         // We've decided to ignore the update. Every update has a unique id,
                         // so we should safely be able to remove it from the ignore map.
-                        updatesToIgnore.delete(actionId || "");
+                        updatesToIgnore.delete(`${actionId}|${componentIdx}`);
                     } else {
                         // since value was changed from the time the update was created
                         // don't ignore the remaining pending changes in updatesToIgnore

@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { lezerToDast } from "../src/lezer-to-dast";
 import util from "util";
 import { filterPositionInfo } from "../src/dast-to-xml/utils";
-import { DastElement, DastFunctionMacro, DastRootContent } from "../src/types";
+import {
+    DastElement,
+    DastFunctionMacro,
+    DastMacro,
+    DastRootContent,
+} from "../src/types";
 import { MacroParser } from "../src/macros/parser";
 import { gobbleFunctionArguments } from "../src/lezer-to-dast/gobble-function-arguments";
 
@@ -909,6 +914,74 @@ describe("DAST", async () => {
               "column": 4,
               "line": 1,
               "offset": 3,
+            },
+          }
+        `);
+    });
+    it("DAST trees with macros in them have correct position and row/col information", () => {
+        let source: string;
+
+        source = `<abc />\n\n$x`;
+        let macro = lezerToDast(source).children[2] as DastMacro;
+        expect(macro.position).toMatchInlineSnapshot(`
+          {
+            "end": {
+              "column": 3,
+              "line": 3,
+              "offset": 11,
+            },
+            "start": {
+              "column": 1,
+              "line": 3,
+              "offset": 9,
+            },
+          }
+        `);
+        expect(macro.path[0].position).toMatchInlineSnapshot(`
+          {
+            "end": {
+              "column": 3,
+              "line": 3,
+              "offset": 11,
+            },
+            "start": {
+              "column": 2,
+              "line": 3,
+              "offset": 10,
+            },
+          }
+        `);
+    });
+    it("DAST trees with function macros in them have correct position and row/col information", () => {
+        let source: string;
+
+        source = `<abc />\n\n$$f(<abc />)`;
+        let macro = lezerToDast(source).children[2] as DastFunctionMacro;
+        expect(macro.position).toMatchInlineSnapshot(`
+          {
+            "end": {
+              "column": 13,
+              "line": 3,
+              "offset": 21,
+            },
+            "start": {
+              "column": 1,
+              "line": 3,
+              "offset": 9,
+            },
+          }
+        `);
+        expect(macro.path[0].position).toMatchInlineSnapshot(`
+          {
+            "end": {
+              "column": 4,
+              "line": 3,
+              "offset": 12,
+            },
+            "start": {
+              "column": 3,
+              "line": 3,
+              "offset": 11,
             },
           }
         `);

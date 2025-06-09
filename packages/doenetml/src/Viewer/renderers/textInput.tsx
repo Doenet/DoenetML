@@ -10,7 +10,6 @@ import {
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
 import { sizeToCSS } from "./utils/css";
-import { rendererState } from "../useDoenetRenderer";
 import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";

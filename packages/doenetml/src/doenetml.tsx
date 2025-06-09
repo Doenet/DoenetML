@@ -95,6 +95,7 @@ export function DoenetViewer({
     answerResponseCounts = {},
     includeVariantSelector = false,
     initializeCounters = {},
+    onInit = () => {},
 }: {
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
@@ -125,6 +126,11 @@ export function DoenetViewer({
     answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
     initializeCounters?: Record<string, number>;
+    /**
+     * Called when React has initialized and passed the DOM node that is a parent of
+     * the DoenetML UI.
+     */
+    onInit?: (elm: HTMLElement) => void;
 }) {
     const [variants, setVariants] = useState({
         index: 1,
@@ -243,7 +249,14 @@ export function DoenetViewer({
                 config={mathjaxConfig}
                 src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
             >
-                <div ref={ref}>
+                <div
+                    ref={(r) => {
+                        ref.current = r;
+                        if (onInit && r) {
+                            onInit(r);
+                        }
+                    }}
+                >
                     <WrapWithKeyboard
                         addVirtualKeyboard={addVirtualKeyboard}
                         externalVirtualKeyboardProvided={

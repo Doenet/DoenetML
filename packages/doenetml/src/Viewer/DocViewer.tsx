@@ -479,7 +479,10 @@ export function DocViewer({
         if (baseVariableValue !== undefined && componentIdx != null) {
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
-            updatesToIgnoreRef.current.set(actionId, baseVariableValue);
+            updatesToIgnoreRef.current.set(
+                `${actionId}|${componentIdx}`,
+                baseVariableValue,
+            );
         }
 
         let actionArgs = {
@@ -627,40 +630,7 @@ export function DocViewer({
         for (let rendererClassName of coreInfo.current
             .rendererTypesInDocument) {
             rendererClassNames.push(rendererClassName);
-            let extension = "jsx";
-            const CONVERTED_TO_TSX = new Set([
-                "_error",
-                "alert",
-                "angle",
-                "answer",
-                "asList",
-                "blockQuote",
-                "boolean",
-                "booleanInput",
-                "button",
-                "point",
-                "math",
-                "c",
-                "cell",
-                "choiceInput",
-                "circle",
-                "cobwebPolyline",
-                "codeEditor",
-                "codeViewer",
-                "containerBlock",
-                "containerInline",
-                "contentPicker",
-                "curve",
-                "mathInput",
-                "textInput",
-                "slider",
-            ]);
-            if (CONVERTED_TO_TSX.has(rendererClassName)) {
-                extension = "tsx";
-            }
-            renderPromises.push(
-                import(`./renderers/${rendererClassName}.${extension}`),
-            );
+            renderPromises.push(import(`./renderers/${rendererClassName}.tsx`));
         }
 
         let documentComponentInstructions = coreInfo.current.documentToRender;

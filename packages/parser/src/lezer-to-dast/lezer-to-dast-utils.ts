@@ -118,7 +118,7 @@ export function extractContent(node: SyntaxNode, source: string): string {
 }
 
 /**
- * Creates a map from source position to the row/column offset.
+ * Creates a map from an offset char in the source to the row/column offset.
  */
 export function createOffsetToPositionMap(source: string): OffsetToPositionMap {
     const rowMap = new Uint32Array(source.length + 1);
@@ -294,21 +294,32 @@ export function getLezerChildren(node: SyntaxNode) {
 export function updateNodePositionData(
     nodeToUpdate: DastAbstractNode,
     referenceNode: DastAbstractNode,
+    offsetToPositionMap: OffsetToPositionMap,
 ) {
     if (!nodeToUpdate.position || !referenceNode.position) {
         return;
     }
+
     const offset = referenceNode.position.start.offset;
-    const line = referenceNode.position.start.line - 1;
-    const column = referenceNode.position.start.column - 1;
     if (nodeToUpdate.position.start.offset != null && offset != null) {
         nodeToUpdate.position.start.offset += offset;
     }
-    nodeToUpdate.position.start.line += line;
-    nodeToUpdate.position.start.column += column;
     if (nodeToUpdate.position.end.offset != null && offset != null) {
         nodeToUpdate.position.end.offset += offset;
     }
-    nodeToUpdate.position.end.line += line;
-    nodeToUpdate.position.end.column += column;
+
+    const startOffset = nodeToUpdate.position.start.offset;
+    const endOffset = nodeToUpdate.position.end.offset;
+    if (startOffset != null && endOffset != null) {
+        // It's too difficult to directly compute the new row/column offsets,
+        // so we look them up in the offset map.
+        nodeToUpdate.position.start.line =
+            offsetToPositionMap.rowMap[startOffset] + 1;
+        nodeToUpdate.position.start.column =
+            offsetToPositionMap.columnMap[startOffset] + 1;
+        nodeToUpdate.position.end.line =
+            offsetToPositionMap.rowMap[endOffset] + 1;
+        nodeToUpdate.position.end.column =
+            offsetToPositionMap.columnMap[endOffset] + 1;
+    }
 }
