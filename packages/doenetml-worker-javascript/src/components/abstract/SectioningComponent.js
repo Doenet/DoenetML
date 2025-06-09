@@ -784,6 +784,7 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.generatedVariantInfo = {
+            shadowVariable: true,
             additionalStateVariablesDefined: ["isVariantComponent"],
             returnDependencies: ({
                 sharedParameters,
