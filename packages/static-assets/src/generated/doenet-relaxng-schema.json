@@ -66,7 +66,6 @@
         "rq",
         "lsq",
         "rsq",
-        "division",
         "section",
         "subsection",
         "subsubsection",
@@ -86,7 +85,7 @@
         "exercises",
         "ol",
         "ul",
-        "odesystem",
+        "odeSystem",
         "cobwebPolyline",
         "equilibriumPoint",
         "equilibriumLine",
@@ -208,7 +207,6 @@
         "regionBetweenCurves",
         "regionHalfPlane",
         "codeEditor",
-        "codeViewer",
         "hasSameFactoring",
         "dataFrame",
         "summaryStatistics",
@@ -222,6 +220,7 @@
         "contentPicker",
         "stickyGroup",
         "pointList",
+        "intervalList",
         "vectorList"
     ],
     "refs": {
@@ -474,7 +473,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -1698,7 +1697,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -2269,7 +2268,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -2885,7 +2884,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -3471,9 +3470,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -3531,7 +3527,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -3900,9 +3896,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -3940,6 +3933,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -4257,9 +4253,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -4317,7 +4310,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -4686,9 +4679,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -4726,6 +4716,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -5043,9 +5036,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -5103,7 +5093,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -5472,9 +5462,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -5512,6 +5499,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -6373,7 +6363,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -6973,7 +6963,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -7573,7 +7563,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -8575,7 +8565,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -30312,7 +30302,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -30839,7 +30829,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -31366,7 +31356,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -31893,7 +31883,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -32420,7 +32410,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -32947,7 +32937,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -33474,7 +33464,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -34001,7 +33991,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -34528,7 +34518,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -35055,7 +35045,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -36277,981 +36267,6 @@
                 }
             ]
         },
-        "division": {
-            "type": "element",
-            "name": "division",
-            "attributes": {
-                "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "hide": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "disabled": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixed": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixLocation": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "styleNumber": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "isResponse": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "aggregateScores": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "weight": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "sectionWideCheckWork": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "submitLabel": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "displayDigitsForCreditAchieved": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "boxed": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "includeAutoName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "includeAutoNumber": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "includeAutoNameIfNoTitle": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "includeAutoNumberIfNoTitle": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "asList": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "level": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "includeParentNumber": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "type": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                }
-            },
-            "children": [
-                {
-                    "ref": "variantControl"
-                },
-                {
-                    "ref": "title"
-                },
-                {
-                    "ref": "setup"
-                },
-                {
-                    "ref": "rightHandSide"
-                },
-                {
-                    "ref": "description"
-                },
-                {
-                    "ref": "xlabel"
-                },
-                {
-                    "ref": "ylabel"
-                },
-                {
-                    "ref": "statement"
-                },
-                {
-                    "ref": "introduction"
-                },
-                {
-                    "ref": "conclusion"
-                },
-                {
-                    "ref": "topic"
-                },
-                {
-                    "ref": "m"
-                },
-                {
-                    "ref": "me"
-                },
-                {
-                    "ref": "men"
-                },
-                {
-                    "ref": "md"
-                },
-                {
-                    "ref": "mdn"
-                },
-                {
-                    "ref": "mrow"
-                },
-                {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
-                },
-                {
-                    "ref": "sum"
-                },
-                {
-                    "ref": "product"
-                },
-                {
-                    "ref": "clampNumber"
-                },
-                {
-                    "ref": "wrapNumberPeriodic"
-                },
-                {
-                    "ref": "round"
-                },
-                {
-                    "ref": "setSmallToZero"
-                },
-                {
-                    "ref": "convertSetToList"
-                },
-                {
-                    "ref": "ceil"
-                },
-                {
-                    "ref": "floor"
-                },
-                {
-                    "ref": "abs"
-                },
-                {
-                    "ref": "sign"
-                },
-                {
-                    "ref": "mean"
-                },
-                {
-                    "ref": "median"
-                },
-                {
-                    "ref": "variance"
-                },
-                {
-                    "ref": "standardDeviation"
-                },
-                {
-                    "ref": "count"
-                },
-                {
-                    "ref": "min"
-                },
-                {
-                    "ref": "max"
-                },
-                {
-                    "ref": "mod"
-                },
-                {
-                    "ref": "gcd"
-                },
-                {
-                    "ref": "lcm"
-                },
-                {
-                    "ref": "extractMath"
-                },
-                {
-                    "ref": "clampFunction"
-                },
-                {
-                    "ref": "wrapFunctionPeriodic"
-                },
-                {
-                    "ref": "derivative"
-                },
-                {
-                    "ref": "extractMathOperator"
-                },
-                {
-                    "ref": "em"
-                },
-                {
-                    "ref": "alert"
-                },
-                {
-                    "ref": "q"
-                },
-                {
-                    "ref": "sq"
-                },
-                {
-                    "ref": "term"
-                },
-                {
-                    "ref": "c"
-                },
-                {
-                    "ref": "tag"
-                },
-                {
-                    "ref": "tage"
-                },
-                {
-                    "ref": "tagc"
-                },
-                {
-                    "ref": "attr"
-                },
-                {
-                    "ref": "ndash"
-                },
-                {
-                    "ref": "mdash"
-                },
-                {
-                    "ref": "nbsp"
-                },
-                {
-                    "ref": "ellipsis"
-                },
-                {
-                    "ref": "lq"
-                },
-                {
-                    "ref": "rq"
-                },
-                {
-                    "ref": "lsq"
-                },
-                {
-                    "ref": "rsq"
-                },
-                {
-                    "ref": "division"
-                },
-                {
-                    "ref": "section"
-                },
-                {
-                    "ref": "subsection"
-                },
-                {
-                    "ref": "subsubsection"
-                },
-                {
-                    "ref": "paragraphs"
-                },
-                {
-                    "ref": "aside"
-                },
-                {
-                    "ref": "objectives"
-                },
-                {
-                    "ref": "problem"
-                },
-                {
-                    "ref": "exercise"
-                },
-                {
-                    "ref": "question"
-                },
-                {
-                    "ref": "activity"
-                },
-                {
-                    "ref": "example"
-                },
-                {
-                    "ref": "definition"
-                },
-                {
-                    "ref": "note"
-                },
-                {
-                    "ref": "theorem"
-                },
-                {
-                    "ref": "proof"
-                },
-                {
-                    "ref": "problems"
-                },
-                {
-                    "ref": "exercises"
-                },
-                {
-                    "ref": "ol"
-                },
-                {
-                    "ref": "ul"
-                },
-                {
-                    "ref": "odesystem"
-                },
-                {
-                    "ref": "cobwebPolyline"
-                },
-                {
-                    "ref": "equilibriumPoint"
-                },
-                {
-                    "ref": "equilibriumLine"
-                },
-                {
-                    "ref": "equilibriumCurve"
-                },
-                {
-                    "ref": "atom"
-                },
-                {
-                    "ref": "ion"
-                },
-                {
-                    "ref": "ionicCompound"
-                },
-                {
-                    "ref": "electronConfiguration"
-                },
-                {
-                    "ref": "orbitalDiagram"
-                },
-                {
-                    "ref": "orbitalDiagramInput"
-                },
-                {
-                    "ref": "sideBySide"
-                },
-                {
-                    "ref": "sbsGroup"
-                },
-                {
-                    "ref": "stack"
-                },
-                {
-                    "ref": "h"
-                },
-                {
-                    "ref": "idx"
-                },
-                {
-                    "ref": "div"
-                },
-                {
-                    "ref": "span"
-                },
-                {
-                    "ref": "pre"
-                },
-                {
-                    "ref": "displayDoenetML"
-                },
-                {
-                    "ref": "paginator"
-                },
-                {
-                    "ref": "paginatorControls"
-                },
-                {
-                    "ref": "matrixInput"
-                },
-                {
-                    "ref": "solution"
-                },
-                {
-                    "ref": "document"
-                },
-                {
-                    "ref": "text"
-                },
-                {
-                    "ref": "textList"
-                },
-                {
-                    "ref": "p"
-                },
-                {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
-                    "ref": "collect"
-                },
-                {
-                    "ref": "ref"
-                },
-                {
-                    "ref": "point"
-                },
-                {
-                    "ref": "coords"
-                },
-                {
-                    "ref": "line"
-                },
-                {
-                    "ref": "lineSegment"
-                },
-                {
-                    "ref": "ray"
-                },
-                {
-                    "ref": "polyline"
-                },
-                {
-                    "ref": "polygon"
-                },
-                {
-                    "ref": "triangle"
-                },
-                {
-                    "ref": "rectangle"
-                },
-                {
-                    "ref": "regularPolygon"
-                },
-                {
-                    "ref": "circle"
-                },
-                {
-                    "ref": "parabola"
-                },
-                {
-                    "ref": "curve"
-                },
-                {
-                    "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
-                },
-                {
-                    "ref": "vector"
-                },
-                {
-                    "ref": "angle"
-                },
-                {
-                    "ref": "answer"
-                },
-                {
-                    "ref": "award"
-                },
-                {
-                    "ref": "when"
-                },
-                {
-                    "ref": "mathInput"
-                },
-                {
-                    "ref": "textInput"
-                },
-                {
-                    "ref": "booleanInput"
-                },
-                {
-                    "ref": "choiceInput"
-                },
-                {
-                    "ref": "choice"
-                },
-                {
-                    "ref": "number"
-                },
-                {
-                    "ref": "integer"
-                },
-                {
-                    "ref": "graph"
-                },
-                {
-                    "ref": "function"
-                },
-                {
-                    "ref": "piecewiseFunction"
-                },
-                {
-                    "ref": "interval"
-                },
-                {
-                    "ref": "sequence"
-                },
-                {
-                    "ref": "slider"
-                },
-                {
-                    "ref": "spreadsheet"
-                },
-                {
-                    "ref": "cell"
-                },
-                {
-                    "ref": "row"
-                },
-                {
-                    "ref": "column"
-                },
-                {
-                    "ref": "cellBlock"
-                },
-                {
-                    "ref": "tabular"
-                },
-                {
-                    "ref": "table"
-                },
-                {
-                    "ref": "figure"
-                },
-                {
-                    "ref": "markers"
-                },
-                {
-                    "ref": "repeat"
-                },
-                {
-                    "ref": "repeatForSequence"
-                },
-                {
-                    "ref": "pegboard"
-                },
-                {
-                    "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
-                },
-                {
-                    "ref": "asList"
-                },
-                {
-                    "ref": "selectFromSequence"
-                },
-                {
-                    "ref": "select"
-                },
-                {
-                    "ref": "group"
-                },
-                {
-                    "ref": "animateFromSequence"
-                },
-                {
-                    "ref": "evaluate"
-                },
-                {
-                    "ref": "selectRandomNumbers"
-                },
-                {
-                    "ref": "sampleRandomNumbers"
-                },
-                {
-                    "ref": "selectPrimeNumbers"
-                },
-                {
-                    "ref": "samplePrimeNumbers"
-                },
-                {
-                    "ref": "substitute"
-                },
-                {
-                    "ref": "periodicSet"
-                },
-                {
-                    "ref": "image"
-                },
-                {
-                    "ref": "video"
-                },
-                {
-                    "ref": "hint"
-                },
-                {
-                    "ref": "intcomma"
-                },
-                {
-                    "ref": "pluralize"
-                },
-                {
-                    "ref": "feedback"
-                },
-                {
-                    "ref": "lorem"
-                },
-                {
-                    "ref": "updateValue"
-                },
-                {
-                    "ref": "callAction"
-                },
-                {
-                    "ref": "triggerSet"
-                },
-                {
-                    "ref": "functionIterates"
-                },
-                {
-                    "ref": "module"
-                },
-                {
-                    "ref": "footnote"
-                },
-                {
-                    "ref": "caption"
-                },
-                {
-                    "ref": "endpoint"
-                },
-                {
-                    "ref": "sort"
-                },
-                {
-                    "ref": "shuffle"
-                },
-                {
-                    "ref": "solveEquations"
-                },
-                {
-                    "ref": "subsetOfRealsInput"
-                },
-                {
-                    "ref": "subsetOfReals"
-                },
-                {
-                    "ref": "split"
-                },
-                {
-                    "ref": "bestFitLine"
-                },
-                {
-                    "ref": "regionBetweenCurveXAxis"
-                },
-                {
-                    "ref": "regionBetweenCurves"
-                },
-                {
-                    "ref": "regionHalfPlane"
-                },
-                {
-                    "ref": "codeEditor"
-                },
-                {
-                    "ref": "codeViewer"
-                },
-                {
-                    "ref": "hasSameFactoring"
-                },
-                {
-                    "ref": "dataFrame"
-                },
-                {
-                    "ref": "summaryStatistics"
-                },
-                {
-                    "ref": "legend"
-                },
-                {
-                    "ref": "label"
-                },
-                {
-                    "ref": "matchesPattern"
-                },
-                {
-                    "ref": "matrix"
-                },
-                {
-                    "ref": "eigenDecomposition"
-                },
-                {
-                    "ref": "latex"
-                },
-                {
-                    "ref": "blockQuote"
-                },
-                {
-                    "ref": "contentPicker"
-                },
-                {
-                    "ref": "stickyGroup"
-                },
-                {
-                    "ref": "pointList"
-                },
-                {
-                    "ref": "vectorList"
-                }
-            ],
-            "textChildrenAllowed": true,
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "weight",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "sectionWideCheckWork",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeAutoName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeAutoNumber",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeAutoNameIfNoTitle",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeAutoNumberIfNoTitle",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeParentNumber",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "sectionNumber",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "title",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "open",
-                    "type": "boolean",
-                    "isArray": false
-                }
-            ]
-        },
         "section": {
             "type": "element",
             "name": "section",
@@ -37609,9 +36624,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -37669,7 +36681,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -38032,9 +37044,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -38072,6 +37081,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -38578,9 +37590,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -38638,7 +37647,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -39001,9 +38010,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -39041,6 +38047,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -39547,9 +38556,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -39607,7 +38613,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -39970,9 +38976,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -40010,6 +39013,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -40516,9 +39522,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -40576,7 +39579,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -40939,9 +39942,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -40979,6 +39979,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -41506,9 +40509,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -41566,7 +40566,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -41929,9 +40929,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -41969,6 +40966,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -42480,9 +41480,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -42540,7 +41537,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -42903,9 +41900,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -42943,6 +41937,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -43449,9 +42446,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -43509,7 +42503,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -43872,9 +42866,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -43912,6 +42903,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -44418,9 +43412,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -44478,7 +43469,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -44841,9 +43832,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -44881,6 +43869,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -45387,9 +44378,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -45447,7 +44435,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -45810,9 +44798,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -45850,6 +44835,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -46356,9 +45344,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -46416,7 +45401,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -46779,9 +45764,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -46819,6 +45801,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -47325,9 +46310,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -47385,7 +46367,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -47748,9 +46730,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -47788,6 +46767,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -48294,9 +47276,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -48354,7 +47333,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -48717,9 +47696,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -48757,6 +47733,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -49263,9 +48242,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -49323,7 +48299,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -49686,9 +48662,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -49726,6 +48699,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -50232,9 +49208,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -50292,7 +49265,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -50655,9 +49628,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -50695,6 +49665,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -51221,9 +50194,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -51281,7 +50251,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -51644,9 +50614,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -51684,6 +50651,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -52189,9 +51159,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -52249,7 +51216,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -52612,9 +51579,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -52652,6 +51616,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -53152,9 +52119,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -53212,7 +52176,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -53575,9 +52539,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -53615,6 +52576,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -54309,9 +53273,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -54369,7 +53330,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -54738,9 +53699,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -54778,6 +53736,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -54842,9 +53803,9 @@
                 }
             ]
         },
-        "odesystem": {
+        "odeSystem": {
             "type": "element",
-            "name": "odesystem",
+            "name": "odeSystem",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -60332,9 +59293,6 @@
                     "ref": "conclusion"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -60498,9 +59456,6 @@
                 },
                 {
                     "ref": "codeEditor"
-                },
-                {
-                    "ref": "codeViewer"
                 },
                 {
                     "ref": "summaryStatistics"
@@ -61069,9 +60024,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -61129,7 +60081,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -61498,9 +60450,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -61538,6 +60487,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -62409,26 +61361,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -62693,9 +61625,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -62753,7 +61682,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -63122,9 +62051,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -63162,6 +62088,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -63479,9 +62408,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -63539,7 +62465,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -63908,9 +62834,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -63948,6 +62871,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -64265,9 +63191,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -64325,7 +63248,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -64694,9 +63617,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -64734,6 +63654,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -65051,9 +63974,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -65111,7 +64031,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -65480,9 +64400,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -65520,6 +64437,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -65863,9 +64783,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -65923,7 +64840,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -66292,9 +65209,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -66332,6 +65246,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -67137,7 +66054,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -67365,9 +66282,6 @@
                     "ref": "conclusion"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -67492,9 +66406,6 @@
                 },
                 {
                     "ref": "codeEditor"
-                },
-                {
-                    "ref": "codeViewer"
                 },
                 {
                     "ref": "summaryStatistics"
@@ -67832,9 +66743,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -67892,7 +66800,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -68255,9 +67163,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -68295,6 +67200,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -68961,6 +67869,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -69193,26 +68108,6 @@
                 {
                     "name": "maxNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -69481,7 +68376,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -70351,6 +69246,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -70418,26 +69320,6 @@
                 {
                     "name": "maxNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -71224,6 +70106,13 @@
                         "false"
                     ]
                 },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -71525,26 +70414,6 @@
                 },
                 {
                     "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -71645,6 +70514,13 @@
                         "false"
                     ]
                 },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -71950,26 +70826,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -72057,6 +70913,13 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
                     ]
                 },
                 "displayDigits": {
@@ -72323,26 +71186,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -72433,26 +71276,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -72514,6 +71337,12 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "to": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "textType": {
@@ -72736,9 +71565,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -72796,7 +71622,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -73165,9 +71991,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -73205,6 +72028,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -80368,6 +79194,13 @@
                         "string"
                     ]
                 },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -80655,26 +79488,6 @@
                 {
                     "name": "pointNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -86034,9 +84847,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -86094,7 +84904,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -86463,9 +85273,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -86503,6 +85310,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -90499,31 +89309,6 @@
                 "isResponse": {
                     "optional": true,
                     "type": [
-                        "string"
-                    ]
-                },
-                "rendered": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "createComponentOfType": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "numComponents": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "asList": {
-                    "optional": true,
-                    "type": [
                         "true",
                         "false"
                     ]
@@ -90741,9 +89526,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -90801,7 +89583,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -91170,9 +89952,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -91212,6 +89991,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 }
             ],
@@ -91233,13 +90015,13 @@
                     "isArray": false
                 },
                 {
-                    "name": "permid",
-                    "type": "text",
+                    "name": "isResponse",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "rendered",
-                    "type": "boolean",
+                    "name": "permid",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -91403,12 +90185,6 @@
                         "true",
                         "false"
                     ]
-                },
-                "assignNames": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
                 }
             },
             "children": [],
@@ -91437,26 +90213,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -92687,9 +91443,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -92747,7 +91500,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -93002,9 +91755,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -93036,6 +91786,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -94147,7 +92900,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -94375,9 +93128,6 @@
                     "ref": "conclusion"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -94502,9 +93252,6 @@
                 },
                 {
                     "ref": "codeEditor"
-                },
-                {
-                    "ref": "codeViewer"
                 },
                 {
                     "ref": "summaryStatistics"
@@ -94851,7 +93598,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -95079,9 +93826,6 @@
                     "ref": "conclusion"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -95203,9 +93947,6 @@
                 },
                 {
                     "ref": "codeEditor"
-                },
-                {
-                    "ref": "codeViewer"
                 },
                 {
                     "ref": "summaryStatistics"
@@ -95902,9 +94643,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -95962,7 +94700,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -96331,9 +95069,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -96373,6 +95108,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 }
             ],
@@ -96396,26 +95134,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -96751,9 +95469,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -96811,7 +95526,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -97180,9 +95895,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -97222,6 +95934,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 }
             ],
@@ -97245,26 +95960,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -99541,12 +98236,6 @@
                         "string"
                     ]
                 },
-                "assignNames": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -99586,12 +98275,6 @@
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "assignNamesSkip": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "asList": {
@@ -99657,26 +98340,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -99774,26 +98437,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -100052,7 +98695,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -100501,12 +99144,6 @@
                         "string"
                     ]
                 },
-                "assignNames": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -100616,12 +99253,6 @@
                         "false"
                     ]
                 },
-                "assignNamesSkip": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "numToSelect": {
                     "optional": true,
                     "type": [
@@ -100693,26 +99324,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -100776,12 +99387,6 @@
                         "false"
                     ]
                 },
-                "assignNamesSkip": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "numToSelect": {
                     "optional": true,
                     "type": [
@@ -100799,13 +99404,6 @@
                     "optional": true,
                     "type": [
                         "string"
-                    ]
-                },
-                "addLevelToAssignNames": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
                     ]
                 },
                 "asList": {
@@ -100855,26 +99453,6 @@
                 },
                 {
                     "name": "withReplacement",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -101168,9 +99746,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -101228,7 +99803,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -101597,9 +100172,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -101639,6 +100211,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 }
             ],
@@ -101666,26 +100241,6 @@
                 },
                 {
                     "name": "rendered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -102453,12 +101008,6 @@
                         "string"
                     ]
                 },
-                "assignNames": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -102498,12 +101047,6 @@
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "assignNamesSkip": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "type": {
@@ -102633,26 +101176,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -102705,12 +101228,6 @@
                         "string"
                     ]
                 },
-                "assignNames": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -102750,12 +101267,6 @@
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "assignNamesSkip": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "numSamples": {
@@ -102897,26 +101408,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -102964,12 +101455,6 @@
                     ]
                 },
                 "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "assignNames": {
                     "optional": true,
                     "type": [
                         "string"
@@ -103029,12 +101514,6 @@
                     ]
                 },
                 "exclude": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "assignNamesSkip": {
                     "optional": true,
                     "type": [
                         "string"
@@ -103133,26 +101612,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -103170,12 +101629,6 @@
                     ]
                 },
                 "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "assignNames": {
                     "optional": true,
                     "type": [
                         "string"
@@ -103220,12 +101673,6 @@
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "assignNamesSkip": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "numSamples": {
@@ -103321,26 +101768,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -103358,12 +101785,6 @@
                     ]
                 },
                 "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "assignNames": {
                     "optional": true,
                     "type": [
                         "string"
@@ -103408,12 +101829,6 @@
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "assignNamesSkip": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "type": {
@@ -103691,9 +102106,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -103751,7 +102163,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -104120,9 +102532,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -104160,6 +102569,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -104214,26 +102626,6 @@
                 },
                 {
                     "name": "preserveCase",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -105578,9 +103970,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -105638,7 +104027,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -106007,9 +104396,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -106047,6 +104433,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -107452,9 +105841,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -107512,7 +105898,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -107881,9 +106267,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -107921,6 +106304,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -108233,9 +106619,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -108293,7 +106676,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -108662,9 +107045,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -108702,6 +107082,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -108812,31 +107195,6 @@
                     ]
                 },
                 "isResponse": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "rendered": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "createComponentOfType": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "numComponents": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "asList": {
                     "optional": true,
                     "type": [
                         "true",
@@ -109051,9 +107409,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -109111,7 +107466,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -109480,9 +107835,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -109522,6 +107874,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 }
             ],
@@ -109543,13 +107898,13 @@
                     "isArray": false
                 },
                 {
-                    "name": "permid",
-                    "type": "text",
+                    "name": "isResponse",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "rendered",
-                    "type": "boolean",
+                    "name": "permid",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -109595,12 +107950,6 @@
                     ]
                 },
                 "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "assignNames": {
                     "optional": true,
                     "type": [
                         "string"
@@ -109736,26 +108085,6 @@
                 {
                     "name": "maxWordsPerSentence",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -110062,6 +108391,12 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "target": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "actionName": {
@@ -110965,9 +109300,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -111025,7 +109357,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -111394,9 +109726,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -111436,6 +109765,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 }
             ],
@@ -111462,26 +109794,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -111499,12 +109811,6 @@
                     ]
                 },
                 "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "assignNames": {
                     "optional": true,
                     "type": [
                         "string"
@@ -111596,26 +109902,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -111889,9 +110175,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -111949,7 +110232,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -112318,9 +110601,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -112360,6 +110640,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 },
                 {
@@ -112391,26 +110674,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -112669,7 +110932,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -113201,7 +111464,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -113429,9 +111692,6 @@
                     "ref": "conclusion"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -113556,9 +111816,6 @@
                 },
                 {
                     "ref": "codeEditor"
-                },
-                {
-                    "ref": "codeViewer"
                 },
                 {
                     "ref": "summaryStatistics"
@@ -114525,9 +112782,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -114585,7 +112839,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -114954,9 +113208,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -114994,6 +113245,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -115034,26 +113288,6 @@
                 {
                     "name": "sortByComponent",
                     "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -115334,9 +113568,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -115394,7 +113625,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -115763,9 +113994,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -115805,6 +114033,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 }
             ],
@@ -115833,26 +114064,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -117299,12 +115510,6 @@
                         "string"
                     ]
                 },
-                "assignNames": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -117344,12 +115549,6 @@
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "assignNamesSkip": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "type": {
@@ -117567,9 +115766,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -117627,7 +115823,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -117996,9 +116192,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -118038,6 +116231,9 @@
                     "ref": "pointList"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "vectorList"
                 }
             ],
@@ -118066,26 +116262,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -119389,9 +117565,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -119449,7 +117622,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -119818,9 +117991,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -119858,6 +118028,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -119968,170 +118141,6 @@
                 {
                     "name": "text",
                     "type": "text",
-                    "isArray": false
-                }
-            ]
-        },
-        "codeViewer": {
-            "type": "element",
-            "name": "codeViewer",
-            "attributes": {
-                "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "hide": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "disabled": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixed": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixLocation": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "styleNumber": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "isResponse": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "codeSource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "width": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "height": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "hasCodeEditorParent": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "renderedName": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                }
-            },
-            "children": [],
-            "textChildrenAllowed": false,
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hasCodeEditorParent",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "locationFromParent",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "width",
-                    "type": "_componentSize",
-                    "isArray": false
-                },
-                {
-                    "name": "height",
-                    "type": "_componentSize",
-                    "isArray": false
-                },
-                {
-                    "name": "codeChanged",
-                    "type": "boolean",
                     "isArray": false
                 }
             ]
@@ -121543,7 +119552,7 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "equilibriumPoint"
@@ -124179,9 +122188,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -124239,7 +122245,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -124608,9 +122614,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -124648,6 +122651,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -124984,9 +122990,6 @@
                     "ref": "rsq"
                 },
                 {
-                    "ref": "division"
-                },
-                {
                     "ref": "section"
                 },
                 {
@@ -125044,7 +123047,7 @@
                     "ref": "ul"
                 },
                 {
-                    "ref": "odesystem"
+                    "ref": "odeSystem"
                 },
                 {
                     "ref": "cobwebPolyline"
@@ -125413,9 +123416,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "codeViewer"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -125453,6 +123453,9 @@
                 },
                 {
                     "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "vectorList"
@@ -126018,6 +124021,13 @@
                         "string"
                     ]
                 },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -126282,23 +124292,358 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "numPoints",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "numValues",
+                    "type": "number",
+                    "isArray": false
+                }
+            ]
+        },
+        "intervalList": {
+            "type": "element",
+            "name": "intervalList",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copySource": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "unordered": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "maxNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "displayDigits": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDecimals": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displaySmallAsZero": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "padZeros": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "topic"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "h"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intcomma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "disabled",
+                    "name": "modifyIndirectly",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "fixed",
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "fixLocation",
-                    "type": "boolean",
+                    "name": "maxNumber",
+                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -126307,7 +124652,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "numPoints",
+                    "name": "numIntervals",
                     "type": "number",
                     "isArray": false
                 },
@@ -126386,6 +124731,13 @@
                         "string"
                     ]
                 },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -126647,26 +124999,6 @@
                 {
                     "name": "maxNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {

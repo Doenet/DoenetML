@@ -66,7 +66,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -838,7 +838,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -1092,7 +1092,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -1421,7 +1421,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -1753,7 +1753,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -1773,7 +1772,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -1896,7 +1895,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -1910,6 +1908,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -2085,7 +2084,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -2105,7 +2103,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -2228,7 +2226,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -2242,6 +2239,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -2417,7 +2415,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -2437,7 +2434,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -2560,7 +2557,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -2574,6 +2570,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -3086,7 +3083,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -3402,7 +3399,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -3718,7 +3715,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -4401,7 +4398,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -20631,7 +20628,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -20880,7 +20877,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -21129,7 +21126,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -21378,7 +21375,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -21627,7 +21624,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -21876,7 +21873,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -22125,7 +22122,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -22374,7 +22371,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -22623,7 +22620,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -22872,7 +22869,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -23952,509 +23949,6 @@
             "acceptsStringChildren": false
         },
         {
-            "name": "division",
-            "children": [
-                "variantControl",
-                "title",
-                "setup",
-                "rightHandSide",
-                "description",
-                "xlabel",
-                "ylabel",
-                "statement",
-                "introduction",
-                "conclusion",
-                "topic",
-                "m",
-                "me",
-                "men",
-                "md",
-                "mdn",
-                "mrow",
-                "not",
-                "and",
-                "or",
-                "xor",
-                "isInteger",
-                "isNumber",
-                "isBetween",
-                "sum",
-                "product",
-                "clampNumber",
-                "wrapNumberPeriodic",
-                "round",
-                "setSmallToZero",
-                "convertSetToList",
-                "ceil",
-                "floor",
-                "abs",
-                "sign",
-                "mean",
-                "median",
-                "variance",
-                "standardDeviation",
-                "count",
-                "min",
-                "max",
-                "mod",
-                "gcd",
-                "lcm",
-                "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
-                "extractMathOperator",
-                "em",
-                "alert",
-                "q",
-                "sq",
-                "term",
-                "c",
-                "tag",
-                "tage",
-                "tagc",
-                "attr",
-                "ndash",
-                "mdash",
-                "nbsp",
-                "ellipsis",
-                "lq",
-                "rq",
-                "lsq",
-                "rsq",
-                "division",
-                "section",
-                "subsection",
-                "subsubsection",
-                "paragraphs",
-                "aside",
-                "objectives",
-                "problem",
-                "exercise",
-                "question",
-                "activity",
-                "example",
-                "definition",
-                "note",
-                "theorem",
-                "proof",
-                "problems",
-                "exercises",
-                "ol",
-                "ul",
-                "odesystem",
-                "cobwebPolyline",
-                "equilibriumPoint",
-                "equilibriumLine",
-                "equilibriumCurve",
-                "atom",
-                "ion",
-                "ionicCompound",
-                "electronConfiguration",
-                "orbitalDiagram",
-                "orbitalDiagramInput",
-                "sideBySide",
-                "sbsGroup",
-                "stack",
-                "h",
-                "idx",
-                "div",
-                "span",
-                "pre",
-                "displayDoenetML",
-                "paginator",
-                "paginatorControls",
-                "matrixInput",
-                "solution",
-                "document",
-                "text",
-                "textList",
-                "p",
-                "boolean",
-                "booleanList",
-                "math",
-                "mathList",
-                "tupleList",
-                "numberList",
-                "collect",
-                "ref",
-                "point",
-                "coords",
-                "line",
-                "lineSegment",
-                "ray",
-                "polyline",
-                "polygon",
-                "triangle",
-                "rectangle",
-                "regularPolygon",
-                "circle",
-                "parabola",
-                "curve",
-                "bezierControls",
-                "controlVectors",
-                "vector",
-                "angle",
-                "answer",
-                "award",
-                "when",
-                "mathInput",
-                "textInput",
-                "booleanInput",
-                "choiceInput",
-                "choice",
-                "number",
-                "integer",
-                "graph",
-                "function",
-                "piecewiseFunction",
-                "interval",
-                "sequence",
-                "slider",
-                "spreadsheet",
-                "cell",
-                "row",
-                "column",
-                "cellBlock",
-                "tabular",
-                "table",
-                "figure",
-                "markers",
-                "repeat",
-                "repeatForSequence",
-                "pegboard",
-                "intersection",
-                "conditionalContent",
-                "asList",
-                "selectFromSequence",
-                "select",
-                "group",
-                "animateFromSequence",
-                "evaluate",
-                "selectRandomNumbers",
-                "sampleRandomNumbers",
-                "selectPrimeNumbers",
-                "samplePrimeNumbers",
-                "substitute",
-                "periodicSet",
-                "image",
-                "video",
-                "hint",
-                "intcomma",
-                "pluralize",
-                "feedback",
-                "lorem",
-                "updateValue",
-                "callAction",
-                "triggerSet",
-                "functionIterates",
-                "module",
-                "footnote",
-                "caption",
-                "endpoint",
-                "sort",
-                "shuffle",
-                "solveEquations",
-                "subsetOfRealsInput",
-                "subsetOfReals",
-                "split",
-                "bestFitLine",
-                "regionBetweenCurveXAxis",
-                "regionBetweenCurves",
-                "regionHalfPlane",
-                "codeEditor",
-                "codeViewer",
-                "hasSameFactoring",
-                "dataFrame",
-                "summaryStatistics",
-                "legend",
-                "label",
-                "matchesPattern",
-                "matrix",
-                "eigenDecomposition",
-                "latex",
-                "blockQuote",
-                "contentPicker",
-                "stickyGroup",
-                "pointList",
-                "vectorList"
-            ],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "hide",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "disabled",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "aggregateScores",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "weight"
-                },
-                {
-                    "name": "sectionWideCheckWork",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "submitLabel"
-                },
-                {
-                    "name": "submitLabelNoCorrectness"
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved"
-                },
-                {
-                    "name": "boxed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "includeAutoName",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "includeAutoNumber",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "includeAutoNameIfNoTitle",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "includeAutoNumberIfNoTitle",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "asList",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "level"
-                },
-                {
-                    "name": "includeParentNumber",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "type"
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "weight",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "sectionWideCheckWork",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeAutoName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeAutoNumber",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeAutoNameIfNoTitle",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeAutoNumberIfNoTitle",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "includeParentNumber",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "sectionNumber",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "title",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "open",
-                    "type": "boolean",
-                    "isArray": false
-                }
-            ],
-            "top": true,
-            "acceptsStringChildren": true
-        },
-        {
             "name": "section",
             "children": [
                 "variantControl",
@@ -24525,7 +24019,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -24545,7 +24038,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -24666,7 +24159,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -24680,6 +24172,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -25025,7 +24518,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -25045,7 +24537,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -25166,7 +24658,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -25180,6 +24671,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -25525,7 +25017,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -25545,7 +25036,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -25666,7 +25157,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -25680,6 +25170,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -26025,7 +25516,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -26045,7 +25535,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -26166,7 +25656,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -26180,6 +25669,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -26525,7 +26015,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -26545,7 +26034,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -26666,7 +26155,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -26680,6 +26168,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -27051,7 +26540,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -27071,7 +26559,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -27192,7 +26680,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -27206,6 +26693,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -27551,7 +27039,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -27571,7 +27058,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -27692,7 +27179,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -27706,6 +27192,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -28051,7 +27538,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -28071,7 +27557,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -28192,7 +27678,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -28206,6 +27691,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -28551,7 +28037,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -28571,7 +28056,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -28692,7 +28177,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -28706,6 +28190,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -29051,7 +28536,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -29071,7 +28555,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -29192,7 +28676,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -29206,6 +28689,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -29551,7 +29035,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -29571,7 +29054,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -29692,7 +29175,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -29706,6 +29188,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -30051,7 +29534,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -30071,7 +29553,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -30192,7 +29674,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -30206,6 +29687,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -30551,7 +30033,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -30571,7 +30052,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -30692,7 +30173,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -30706,6 +30186,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -31051,7 +30532,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -31071,7 +30551,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -31192,7 +30672,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -31206,6 +30685,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -31551,7 +31031,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -31571,7 +31050,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -31692,7 +31171,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -31706,6 +31184,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -32068,7 +31547,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -32088,7 +31566,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -32209,7 +31687,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -32223,6 +31700,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -32559,7 +32037,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -32579,7 +32056,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -32700,7 +32177,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -32714,6 +32190,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -33300,7 +32777,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -33320,7 +32796,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -33443,7 +32919,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -33457,6 +32932,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -33569,7 +33045,7 @@
             "acceptsStringChildren": true
         },
         {
-            "name": "odesystem",
+            "name": "odeSystem",
             "children": [
                 "rightHandSide"
             ],
@@ -37813,7 +37289,6 @@
                 "statement",
                 "introduction",
                 "conclusion",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -37869,7 +37344,6 @@
                 "subsetOfRealsInput",
                 "split",
                 "codeEditor",
-                "codeViewer",
                 "summaryStatistics",
                 "blockQuote",
                 "contentPicker"
@@ -38284,7 +37758,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -38304,7 +37777,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -38427,7 +37900,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -38441,6 +37913,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -39036,26 +38509,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -39133,7 +38586,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -39153,7 +38605,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -39276,7 +38728,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -39290,6 +38741,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -39465,7 +38917,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -39485,7 +38936,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -39608,7 +39059,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -39622,6 +39072,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -39797,7 +39248,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -39817,7 +39267,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -39940,7 +39390,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -39954,6 +39403,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -40129,7 +39579,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -40149,7 +39598,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -40272,7 +39721,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -40286,6 +39734,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -40481,7 +39930,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -40501,7 +39949,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -40624,7 +40072,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -40638,6 +40085,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -41254,7 +40702,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -41330,7 +40778,6 @@
                 "statement",
                 "introduction",
                 "conclusion",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -41373,7 +40820,6 @@
                 "caption",
                 "subsetOfRealsInput",
                 "codeEditor",
-                "codeViewer",
                 "summaryStatistics",
                 "blockQuote",
                 "contentPicker"
@@ -41558,7 +41004,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -41578,7 +41023,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -41699,7 +41144,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -41713,6 +41157,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -42289,6 +41734,13 @@
                 },
                 {
                     "name": "maxNumber"
+                },
+                {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -42320,26 +41772,6 @@
                 {
                     "name": "maxNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -42427,7 +41859,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -43012,6 +42444,13 @@
                 },
                 {
                     "name": "maxNumber"
+                },
+                {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -43043,26 +42482,6 @@
                 {
                     "name": "maxNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -43732,6 +43151,13 @@
                     ]
                 },
                 {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -43807,26 +43233,6 @@
                 },
                 {
                     "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -43984,6 +43390,13 @@
                     ]
                 },
                 {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -44059,26 +43472,6 @@
                 },
                 {
                     "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -44229,6 +43622,13 @@
                     "name": "maxNumber"
                 },
                 {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -44270,26 +43670,6 @@
                 {
                     "name": "maxNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -44365,26 +43745,6 @@
                 {
                     "name": "sourceAttributesToIgnore",
                     "type": "stringArray",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -44465,7 +43825,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -44485,7 +43844,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -44608,7 +43967,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -44622,6 +43980,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -44671,6 +44030,9 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "to"
                 },
                 {
                     "name": "textType"
@@ -50406,6 +49768,13 @@
                     "name": "maxNumber"
                 },
                 {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -50470,26 +49839,6 @@
                 {
                     "name": "pointNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -54150,7 +53499,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -54170,7 +53518,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -54293,7 +53641,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -54307,6 +53654,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -57288,7 +56636,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -57308,7 +56655,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -57431,7 +56778,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -57445,6 +56791,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -57489,23 +56836,7 @@
                     "name": "styleNumber"
                 },
                 {
-                    "name": "isResponse"
-                },
-                {
-                    "name": "rendered",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "createComponentOfType"
-                },
-                {
-                    "name": "numComponents"
-                },
-                {
-                    "name": "asList",
+                    "name": "isResponse",
                     "values": [
                         "true",
                         "false"
@@ -57535,13 +56866,13 @@
                     "isArray": false
                 },
                 {
-                    "name": "permid",
-                    "type": "text",
+                    "name": "isResponse",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "rendered",
-                    "type": "boolean",
+                    "name": "permid",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -57671,9 +57002,6 @@
                         "true",
                         "false"
                     ]
-                },
-                {
-                    "name": "assignNames"
                 }
             ],
             "properties": [
@@ -57700,26 +57028,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -58431,7 +57739,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -58451,7 +57758,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumCurve",
                 "orbitalDiagram",
@@ -58536,7 +57843,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -58548,6 +57854,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -59450,7 +58757,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -59526,7 +58833,6 @@
                 "statement",
                 "introduction",
                 "conclusion",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -59569,7 +58875,6 @@
                 "caption",
                 "subsetOfRealsInput",
                 "codeEditor",
-                "codeViewer",
                 "summaryStatistics",
                 "blockQuote",
                 "contentPicker"
@@ -59774,7 +59079,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -59850,7 +59155,6 @@
                 "statement",
                 "introduction",
                 "conclusion",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -59892,7 +59196,6 @@
                 "feedback",
                 "subsetOfRealsInput",
                 "codeEditor",
-                "codeViewer",
                 "summaryStatistics",
                 "blockQuote",
                 "contentPicker"
@@ -60289,7 +59592,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -60309,7 +59611,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -60432,7 +59734,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -60446,6 +59747,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -60534,26 +59836,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -60631,7 +59913,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -60651,7 +59932,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -60774,7 +60055,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -60788,6 +60068,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -60896,26 +60177,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -62556,9 +61817,6 @@
                     "name": "copySource"
                 },
                 {
-                    "name": "assignNames"
-                },
-                {
                     "name": "name"
                 },
                 {
@@ -62600,9 +61858,6 @@
                     ]
                 },
                 {
-                    "name": "assignNamesSkip"
-                },
-                {
                     "name": "asList",
                     "values": [
                         "true",
@@ -62629,26 +61884,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -62741,26 +61976,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -62835,7 +62050,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -63163,9 +62378,6 @@
                     "name": "copySource"
                 },
                 {
-                    "name": "assignNames"
-                },
-                {
                     "name": "name"
                 },
                 {
@@ -63245,12 +62457,6 @@
                     ]
                 },
                 {
-                    "name": "assignNames"
-                },
-                {
-                    "name": "assignNamesSkip"
-                },
-                {
                     "name": "numToSelect"
                 },
                 {
@@ -63309,26 +62515,6 @@
                 },
                 {
                     "name": "sortResults",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -63395,9 +62581,6 @@
                     ]
                 },
                 {
-                    "name": "assignNamesSkip"
-                },
-                {
                     "name": "numToSelect"
                 },
                 {
@@ -63409,13 +62592,6 @@
                 },
                 {
                     "name": "type"
-                },
-                {
-                    "name": "addLevelToAssignNames",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
                 },
                 {
                     "name": "asList",
@@ -63458,26 +62634,6 @@
                 },
                 {
                     "name": "withReplacement",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -63559,7 +62715,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -63579,7 +62734,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -63702,7 +62857,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -63716,6 +62870,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -63806,26 +62961,6 @@
                 },
                 {
                     "name": "rendered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -64530,9 +63665,6 @@
                     "name": "copySource"
                 },
                 {
-                    "name": "assignNames"
-                },
-                {
                     "name": "name"
                 },
                 {
@@ -64572,9 +63704,6 @@
                         "true",
                         "false"
                     ]
-                },
-                {
-                    "name": "assignNamesSkip"
                 },
                 {
                     "name": "type",
@@ -64665,26 +63794,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -64734,9 +63843,6 @@
                     "name": "copySource"
                 },
                 {
-                    "name": "assignNames"
-                },
-                {
                     "name": "name"
                 },
                 {
@@ -64776,9 +63882,6 @@
                         "true",
                         "false"
                     ]
-                },
-                {
-                    "name": "assignNamesSkip"
                 },
                 {
                     "name": "numSamples"
@@ -64881,26 +63984,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -64948,9 +64031,6 @@
                 },
                 {
                     "name": "copySource"
-                },
-                {
-                    "name": "assignNames"
                 },
                 {
                     "name": "name"
@@ -65001,9 +64081,6 @@
                 },
                 {
                     "name": "exclude"
-                },
-                {
-                    "name": "assignNamesSkip"
                 },
                 {
                     "name": "numToSelect"
@@ -65090,26 +64167,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -65127,9 +64184,6 @@
                 },
                 {
                     "name": "copySource"
-                },
-                {
-                    "name": "assignNames"
                 },
                 {
                     "name": "name"
@@ -65171,9 +64225,6 @@
                         "true",
                         "false"
                     ]
-                },
-                {
-                    "name": "assignNamesSkip"
                 },
                 {
                     "name": "numSamples"
@@ -65250,26 +64301,6 @@
                 },
                 {
                     "name": "variantDeterminesSeed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -65351,7 +64382,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -65371,7 +64401,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -65494,7 +64524,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -65508,6 +64537,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -65516,9 +64546,6 @@
                 },
                 {
                     "name": "copySource"
-                },
-                {
-                    "name": "assignNames"
                 },
                 {
                     "name": "name"
@@ -65560,9 +64587,6 @@
                         "true",
                         "false"
                     ]
-                },
-                {
-                    "name": "assignNamesSkip"
                 },
                 {
                     "name": "type",
@@ -65672,26 +64696,6 @@
                 },
                 {
                     "name": "preserveCase",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -66750,7 +65754,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -66770,7 +65773,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -66893,7 +65896,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -66907,6 +65909,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -67798,7 +66801,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -67818,7 +66820,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -67941,7 +66943,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -67955,6 +66956,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -68128,7 +67130,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -68148,7 +67149,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -68271,7 +67272,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -68285,6 +67285,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -68460,7 +67461,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -68480,7 +67480,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -68603,7 +67603,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -68617,6 +67616,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -68661,23 +67661,7 @@
                     "name": "styleNumber"
                 },
                 {
-                    "name": "isResponse"
-                },
-                {
-                    "name": "rendered",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "createComponentOfType"
-                },
-                {
-                    "name": "numComponents"
-                },
-                {
-                    "name": "asList",
+                    "name": "isResponse",
                     "values": [
                         "true",
                         "false"
@@ -68708,13 +67692,13 @@
                     "isArray": false
                 },
                 {
-                    "name": "permid",
-                    "type": "text",
+                    "name": "isResponse",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "rendered",
-                    "type": "boolean",
+                    "name": "permid",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -68760,9 +67744,6 @@
                 },
                 {
                     "name": "copySource"
-                },
-                {
-                    "name": "assignNames"
                 },
                 {
                     "name": "name"
@@ -68871,26 +67852,6 @@
                 {
                     "name": "maxWordsPerSentence",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -69168,6 +68129,9 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "target"
                 },
                 {
                     "name": "actionName"
@@ -69779,7 +68743,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -69799,7 +68762,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -69922,7 +68885,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -69936,6 +68898,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -70022,26 +68985,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -70059,9 +69002,6 @@
                 },
                 {
                     "name": "copySource"
-                },
-                {
-                    "name": "assignNames"
                 },
                 {
                     "name": "name"
@@ -70138,26 +69078,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -70240,7 +69160,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -70260,7 +69179,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -70383,7 +69302,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -70397,6 +69315,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList",
                 "customAttribute"
             ],
@@ -70476,26 +69395,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -70570,7 +69469,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -70824,7 +69723,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -70900,7 +69799,6 @@
                 "statement",
                 "introduction",
                 "conclusion",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -70943,7 +69841,6 @@
                 "caption",
                 "subsetOfRealsInput",
                 "codeEditor",
-                "codeViewer",
                 "summaryStatistics",
                 "blockQuote",
                 "contentPicker"
@@ -71555,7 +70452,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -71575,7 +70471,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -71698,7 +70594,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -71712,6 +70607,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -71823,26 +70719,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
@@ -71920,7 +70796,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -71940,7 +70815,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -72063,7 +70938,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -72077,6 +70951,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -72162,26 +71037,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -73319,7 +72174,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -73339,7 +72193,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -73462,7 +72316,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -73476,6 +72329,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -73484,9 +72338,6 @@
                 },
                 {
                     "name": "copySource"
-                },
-                {
-                    "name": "assignNames"
                 },
                 {
                     "name": "name"
@@ -73530,9 +72381,6 @@
                     ]
                 },
                 {
-                    "name": "assignNamesSkip"
-                },
-                {
                     "name": "type",
                     "values": [
                         "text"
@@ -73571,26 +72419,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -74540,7 +73368,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -74560,7 +73387,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -74683,7 +73510,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -74697,6 +73523,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -74900,152 +73727,6 @@
             ],
             "top": true,
             "acceptsStringChildren": true
-        },
-        {
-            "name": "codeViewer",
-            "children": [],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "hide",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "disabled",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "codeSource"
-                },
-                {
-                    "name": "width"
-                },
-                {
-                    "name": "height"
-                },
-                {
-                    "name": "hasCodeEditorParent",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "renderedName"
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "hasCodeEditorParent",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "locationFromParent",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "width",
-                    "type": "_componentSize",
-                    "isArray": false
-                },
-                {
-                    "name": "height",
-                    "type": "_componentSize",
-                    "isArray": false
-                },
-                {
-                    "name": "codeChanged",
-                    "type": "boolean",
-                    "isArray": false
-                }
-            ],
-            "top": true,
-            "acceptsStringChildren": false
         },
         {
             "name": "hasSameFactoring",
@@ -76024,7 +74705,7 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "odesystem",
+                "odeSystem",
                 "equilibriumPoint",
                 "equilibriumLine",
                 "atom",
@@ -77831,7 +76512,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -77851,7 +76531,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -77974,7 +76654,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -77988,6 +76667,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -78163,7 +76843,6 @@
                 "rq",
                 "lsq",
                 "rsq",
-                "division",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -78183,7 +76862,7 @@
                 "exercises",
                 "ol",
                 "ul",
-                "odesystem",
+                "odeSystem",
                 "cobwebPolyline",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -78306,7 +76985,6 @@
                 "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
-                "codeViewer",
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
@@ -78320,6 +76998,7 @@
                 "contentPicker",
                 "stickyGroup",
                 "pointList",
+                "intervalList",
                 "vectorList"
             ],
             "attributes": [
@@ -78825,6 +77504,13 @@
                     "name": "maxNumber"
                 },
                 {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -78869,23 +77555,195 @@
                     "isArray": false
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
+                    "name": "doenetML",
+                    "type": "text",
                     "isArray": false
+                },
+                {
+                    "name": "numPoints",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "numValues",
+                    "type": "number",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "intervalList",
+            "children": [
+                "interval",
+                "rightHandSide",
+                "topic",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "h",
+                "matrixInput",
+                "text",
+                "math",
+                "point",
+                "coords",
+                "line",
+                "vector",
+                "angle",
+                "mathInput",
+                "choice",
+                "number",
+                "integer",
+                "function",
+                "piecewiseFunction",
+                "sequence",
+                "cell",
+                "selectFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intcomma",
+                "pluralize",
+                "lorem",
+                "endpoint",
+                "subsetOfReals",
+                "bestFitLine",
+                "matrix",
+                "latex"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 },
                 {
                     "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 },
                 {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
+                    "name": "fixed"
                 },
                 {
                     "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse"
+                },
+                {
+                    "name": "unordered",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "maxNumber"
+                },
+                {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "displayDigits"
+                },
+                {
+                    "name": "displayDecimals"
+                },
+                {
+                    "name": "displaySmallAsZero"
+                },
+                {
+                    "name": "padZeros"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "maxNumber",
+                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -78894,7 +77752,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "numPoints",
+                    "name": "numIntervals",
                     "type": "number",
                     "isArray": false
                 },
@@ -79030,6 +77888,13 @@
                     "name": "maxNumber"
                 },
                 {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -79071,26 +77936,6 @@
                 {
                     "name": "maxNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
