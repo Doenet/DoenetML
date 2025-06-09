@@ -655,7 +655,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                 componentType: "number",
                 componentIdx: nComponents++,
                 attributes: attributesFromComposite,
-                state: { value },
+                state: { value, fixed: true },
                 doenetAttributes: {},
                 children: [],
             });

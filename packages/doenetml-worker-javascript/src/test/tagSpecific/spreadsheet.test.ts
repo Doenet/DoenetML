@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
@@ -9,14 +9,14 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 async function changeSpreadsheetText({
-    name = "/spreadsheet1",
+    componentIdx,
     row,
     column,
     text = "",
     prevText = "",
     core,
 }: {
-    name?: string;
+    componentIdx: number;
     row: number;
     column: number;
     text?: string;
@@ -25,14 +25,14 @@ async function changeSpreadsheetText({
 }) {
     await core.requestAction({
         actionName: "onChange",
-        componentIdx: name,
+        componentIdx,
         args: { changes: [[row - 1, column - 1, prevText, text]] },
     });
 }
 
 describe("Spreadsheet tag tests", async () => {
     it("empty spreadsheet", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1" minNumRows="4" minNumColumns="4" />
   `,
@@ -40,44 +40,60 @@ describe("Spreadsheet tag tests", async () => {
 
         // check have spreadsheet cells
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            Array.isArray(stateVariables["/spreadsheet1"].stateValues.cells),
-        ).eq(true);
+
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(Array.isArray(stateVariables[ssIdx].stateValues.cells)).eq(true);
 
         // enter text in B3
-        await changeSpreadsheetText({ row: 3, column: 2, text: "hello", core });
+        await changeSpreadsheetText({
+            componentIdx: ssIdx,
+            row: 3,
+            column: 2,
+            text: "hello",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][1]).eq(
-            "hello",
-        );
+        expect(stateVariables[ssIdx].stateValues.cells[2][1]).eq("hello");
 
         // delete text in B3
-        await changeSpreadsheetText({ row: 3, column: 2, text: "", core });
+        await changeSpreadsheetText({
+            componentIdx: ssIdx,
+            row: 3,
+            column: 2,
+            text: "",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][1]).eq("");
+        expect(stateVariables[ssIdx].stateValues.cells[2][1]).eq("");
 
         // enter text in A1
-        await changeSpreadsheetText({ row: 1, column: 1, text: "first", core });
+        await changeSpreadsheetText({
+            componentIdx: ssIdx,
+            row: 1,
+            column: 1,
+            text: "first",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
-            "first",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][1]).eq("");
+        expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq("first");
+        expect(stateVariables[ssIdx].stateValues.cells[2][1]).eq("");
 
         // enter text in D2
-        await changeSpreadsheetText({ row: 2, column: 4, text: "right", core });
+        await changeSpreadsheetText({
+            componentIdx: ssIdx,
+            row: 2,
+            column: 4,
+            text: "right",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
-            "first",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][1]).eq("");
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][3]).eq(
-            "right",
-        );
+        expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq("first");
+        expect(stateVariables[ssIdx].stateValues.cells[2][1]).eq("");
+        expect(stateVariables[ssIdx].stateValues.cells[1][3]).eq("right");
     });
 
     it("spreadsheet with cell children", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <spreadsheet name="spreadsheet1">
         <cell name="cell1">first</cell>
@@ -89,34 +105,35 @@ describe("Spreadsheet tag tests", async () => {
   `,
         });
 
+        const ssIdx = resolveComponentName("spreadsheet1");
+
         async function check_items(A1: string, C1: string, C3: string) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
-                A1,
-            );
-            expect(stateVariables["/spreadsheet1"].stateValues.cells[2][2]).eq(
-                C3,
-            );
-            expect(stateVariables["/spreadsheet1"].stateValues.cells[2][3]).eq(
-                "bye",
-            );
-            expect(stateVariables["/spreadsheet1"].stateValues.cells[2][1]).eq(
-                "before",
-            );
-            expect(stateVariables["/spreadsheet1"].stateValues.cells[1][1]).eq(
-                "above",
-            );
-            expect(stateVariables["/spreadsheet1"].stateValues.cells[0][2]).eq(
-                C1,
-            );
-            expect(stateVariables["/cell1"].stateValues.text).eq(A1);
-            expect(stateVariables["/cell2"].stateValues.text).eq(C3);
-            expect(stateVariables["/cell3"].stateValues.text).eq("bye");
-            expect(stateVariables["/cell4"].stateValues.text).eq("before");
-            expect(stateVariables["/cell5"].stateValues.text).eq("above");
+
+            expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq(A1);
+            expect(stateVariables[ssIdx].stateValues.cells[2][2]).eq(C3);
+            expect(stateVariables[ssIdx].stateValues.cells[2][3]).eq("bye");
+            expect(stateVariables[ssIdx].stateValues.cells[2][1]).eq("before");
+            expect(stateVariables[ssIdx].stateValues.cells[1][1]).eq("above");
+            expect(stateVariables[ssIdx].stateValues.cells[0][2]).eq(C1);
+            expect(
+                stateVariables[resolveComponentName("cell1")].stateValues.text,
+            ).eq(A1);
+            expect(
+                stateVariables[resolveComponentName("cell2")].stateValues.text,
+            ).eq(C3);
+            expect(
+                stateVariables[resolveComponentName("cell3")].stateValues.text,
+            ).eq("bye");
+            expect(
+                stateVariables[resolveComponentName("cell4")].stateValues.text,
+            ).eq("before");
+            expect(
+                stateVariables[resolveComponentName("cell5")].stateValues.text,
+            ).eq("above");
         }
 
         let A1 = "first";
@@ -127,6 +144,7 @@ describe("Spreadsheet tag tests", async () => {
 
         // overwrite text in A1
         await changeSpreadsheetText({
+            componentIdx: ssIdx,
             row: 1,
             column: 1,
             prevText: A1,
@@ -138,11 +156,18 @@ describe("Spreadsheet tag tests", async () => {
 
         // enter text in new cell C1
         C1 = "third";
-        await changeSpreadsheetText({ row: 1, column: 3, text: C1, core });
+        await changeSpreadsheetText({
+            componentIdx: ssIdx,
+            row: 1,
+            column: 3,
+            text: C1,
+            core,
+        });
         await check_items(A1, C1, C3);
 
         // delete text in C3
         await changeSpreadsheetText({
+            componentIdx: ssIdx,
             row: 3,
             column: 3,
             prevText: C3,
@@ -154,7 +179,7 @@ describe("Spreadsheet tag tests", async () => {
     });
 
     it("copy individual cells into new spreadsheet", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <spreadsheet name="ss1">
         <cell name="c1">first</cell>
@@ -165,17 +190,17 @@ describe("Spreadsheet tag tests", async () => {
     </spreadsheet>
 
     <spreadsheet name="ss2">
-        $c4{name="c4a"}
-        <cell colnum="A" copySource="c2" name="c2a" />
-        $c3{name="c3a"}
-        <cell colnum="2" rownum="4" copySource="c1" name="c1a" />
-        <cell rownum="2" copySource="c5" name="c5a" />
+        <cell extend="$c4" name="c4a" />
+        <cell colnum="A" extend="$c2" name="c2a" />
+        <cell extend="$c3" name="c3a" />
+        <cell colnum="2" rownum="4" extend="$c1" name="c1a" />
+        <cell rownum="2" extend="$c5" name="c5a" />
     </spreadsheet>
 
-    <spreadsheet copySource="ss1" name="ss1a" />
-    <spreadsheet copySource="ss2" name="ss2a" />
-    <spreadsheet copySource="ss1a" name="ss1b" />
-    <spreadsheet copySource="ss2a" name="ss2b" />
+    <spreadsheet extend="$ss1" name="ss1a" />
+    <spreadsheet extend="$ss2" name="ss2a" />
+    <spreadsheet extend="$ss1a" name="ss1b" />
+    <spreadsheet extend="$ss2a" name="ss2b" />
   `,
         });
 
@@ -207,16 +232,16 @@ describe("Spreadsheet tag tests", async () => {
         };
 
         let cellIndices = {
-            1: ["/c1", "/c1a"],
-            2: ["/c2", "/c2a"],
-            3: ["/c3", "/c3a"],
-            4: ["/c4", "/c4a"],
-            5: ["/c5", "/c5a"],
+            1: ["c1", "c1a"],
+            2: ["c2", "c2a"],
+            3: ["c3", "c3a"],
+            4: ["c4", "c4a"],
+            5: ["c5", "c5a"],
         };
 
         let spreadsheetNames = {
-            0: ["/ss1", "/ss1a", "/ss1b"],
-            1: ["/ss2", "/ss2a", "/ss2b"],
+            0: ["ss1", "ss1a", "ss1b"],
+            1: ["ss2", "ss2a", "ss2b"],
         };
 
         async function check_items(cellValues: Record<string, string>) {
@@ -227,8 +252,9 @@ describe("Spreadsheet tag tests", async () => {
             for (let cellNum in cellIndices) {
                 for (let ind in cellIndices[cellNum]) {
                     expect(
-                        stateVariables[cellIndices[cellNum][ind]].stateValues
-                            .text,
+                        stateVariables[
+                            resolveComponentName(cellIndices[cellNum][ind])
+                        ].stateValues.text,
                     ).eq(cellValues[cellNum]);
                 }
             }
@@ -241,9 +267,8 @@ describe("Spreadsheet tag tests", async () => {
                         let effectiveNum =
                             cellNum === "6" && ssNum === "1" ? "6b" : cellNum;
                         expect(
-                            stateVariables[ssName].stateValues.cells[
-                                cLoc[0] - 1
-                            ][cLoc[1] - 1],
+                            stateVariables[resolveComponentName(ssName)]
+                                .stateValues.cells[cLoc[0] - 1][cLoc[1] - 1],
                         ).eq(cellValues[effectiveNum]);
                     }
                 }
@@ -289,7 +314,7 @@ describe("Spreadsheet tag tests", async () => {
                     let effectiveNum =
                         cellNum === "6" && ssNumChange === "1" ? "6b" : cellNum;
                     await changeSpreadsheetText({
-                        name: ssNameChange,
+                        componentIdx: resolveComponentName(ssNameChange),
                         row: cLoc[0],
                         column: cLoc[1],
                         prevText: cellValues[effectiveNum],
@@ -305,7 +330,7 @@ describe("Spreadsheet tag tests", async () => {
     });
 
     it("copy spreadsheet cells into new spreadsheet", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <spreadsheet name="ss1">
     <cell name="c1">first</cell>
@@ -316,17 +341,17 @@ describe("Spreadsheet tag tests", async () => {
   </spreadsheet>
 
   <spreadsheet name="ss2">
-    <cell colnum="D" rownum="4" copysource="ss1.cellD4" name="c4a" />
-    <cell colnum="A" rownum="3" copysource="ss1.cellC3" name="c2a" />
-    <cell copySource="ss1.cellD3" name="c3a" />
-    <cell colnum="2" rownum="4" copysource="ss1.cellA1" name="c1a" />
-    <cell rownum="2" colnum="b" copysource="ss1.cellb1" name="c5a" />
+    <cell colnum="D" rownum="4" extend="$ss1.cellD4" name="c4a" />
+    <cell colnum="A" rownum="3" extend="$ss1.cellC3" name="c2a" />
+    <cell extend="$ss1.cellD3" name="c3a" />
+    <cell colnum="2" rownum="4" extend="$ss1.cellA1" name="c1a" />
+    <cell rownum="2" colnum="b" extend="$ss1.cellb1" name="c5a" />
   </spreadsheet>
 
-  <spreadsheet copySource="ss1" name="ss1a" />
-  <spreadsheet copySource="ss2" name="ss2a" />
-  <spreadsheet copySource="ss1a" name="ss1b" />
-  <spreadsheet copySource="ss2a" name="ss2b" />
+  <spreadsheet extend="$ss1" name="ss1a" />
+  <spreadsheet extend="$ss2" name="ss2a" />
+  <spreadsheet extend="$ss1a" name="ss1b" />
+  <spreadsheet extend="$ss2a" name="ss2b" />
   `,
         });
 
@@ -358,16 +383,16 @@ describe("Spreadsheet tag tests", async () => {
         };
 
         let cellIndices = {
-            1: ["/c1", "/c1a"],
-            2: ["/c2", "/c2a"],
-            3: ["/c3", "/c3a"],
-            4: ["/c4", "/c4a"],
-            5: ["/c5", "/c5a"],
+            1: ["c1", "c1a"],
+            2: ["c2", "c2a"],
+            3: ["c3", "c3a"],
+            4: ["c4", "c4a"],
+            5: ["c5", "c5a"],
         };
 
         let spreadsheetNames = {
-            0: ["/ss1", "/ss1a", "/ss1b"],
-            1: ["/ss2", "/ss2a", "/ss2b"],
+            0: ["ss1", "ss1a", "ss1b"],
+            1: ["ss2", "ss2a", "ss2b"],
         };
 
         async function check_items(cellValues: Record<string, string>) {
@@ -378,8 +403,9 @@ describe("Spreadsheet tag tests", async () => {
             for (let cellNum in cellIndices) {
                 for (let ind in cellIndices[cellNum]) {
                     expect(
-                        stateVariables[cellIndices[cellNum][ind]].stateValues
-                            .text,
+                        stateVariables[
+                            resolveComponentName(cellIndices[cellNum][ind])
+                        ].stateValues.text,
                     ).eq(cellValues[cellNum]);
                 }
             }
@@ -392,9 +418,8 @@ describe("Spreadsheet tag tests", async () => {
                         let effectiveNum =
                             cellNum === "6" && ssNum === "1" ? "6b" : cellNum;
                         expect(
-                            stateVariables[ssName].stateValues.cells[
-                                cLoc[0] - 1
-                            ][cLoc[1] - 1],
+                            stateVariables[resolveComponentName(ssName)]
+                                .stateValues.cells[cLoc[0] - 1][cLoc[1] - 1],
                         ).eq(cellValues[effectiveNum]);
                     }
                 }
@@ -440,7 +465,7 @@ describe("Spreadsheet tag tests", async () => {
                     let effectiveNum =
                         cellNum === "6" && ssNumChange === "1" ? "6b" : cellNum;
                     await changeSpreadsheetText({
-                        name: ssNameChange,
+                        componentIdx: resolveComponentName(ssNameChange),
                         row: cLoc[0],
                         column: cLoc[1],
                         prevText: cellValues[effectiveNum],
@@ -456,7 +481,7 @@ describe("Spreadsheet tag tests", async () => {
     });
 
     it("build spreadsheet from cells and rows", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <spreadsheet name="spreadsheet1">
     <row><cell name="cell1">A1</cell><cell name="cell2">B1</cell><cell name="cell3" colnum="D">D1</cell></row>
@@ -469,51 +494,54 @@ describe("Spreadsheet tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(7);
-        expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(6);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
-            "A1",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][1]).eq(
-            "B1",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][3]).eq(
-            "D1",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][1]).eq(
-            "B2",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][2]).eq(
-            "C2",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[4][0]).eq(
-            "A5",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[4][5]).eq(
-            "F5",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[5][2]).eq(
-            "C6",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[5][3]).eq(
-            "D6",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[6][0]).eq(
-            "A7",
-        );
-        expect(stateVariables["/cell1"].stateValues.text).eq("A1");
-        expect(stateVariables["/cell2"].stateValues.text).eq("B1");
-        expect(stateVariables["/cell3"].stateValues.text).eq("D1");
-        expect(stateVariables["/cell4"].stateValues.text).eq("B2");
-        expect(stateVariables["/cell5"].stateValues.text).eq("C2");
-        expect(stateVariables["/cell6"].stateValues.text).eq("A5");
-        expect(stateVariables["/cell7"].stateValues.text).eq("F5");
-        expect(stateVariables["/cell8"].stateValues.text).eq("C6");
-        expect(stateVariables["/cell9"].stateValues.text).eq("D6");
-        expect(stateVariables["/cell10"].stateValues.text).eq("A7");
+
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(stateVariables[ssIdx].stateValues.numRows).eq(7);
+        expect(stateVariables[ssIdx].stateValues.numColumns).eq(6);
+        expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq("A1");
+        expect(stateVariables[ssIdx].stateValues.cells[0][1]).eq("B1");
+        expect(stateVariables[ssIdx].stateValues.cells[0][3]).eq("D1");
+        expect(stateVariables[ssIdx].stateValues.cells[1][1]).eq("B2");
+        expect(stateVariables[ssIdx].stateValues.cells[1][2]).eq("C2");
+        expect(stateVariables[ssIdx].stateValues.cells[4][0]).eq("A5");
+        expect(stateVariables[ssIdx].stateValues.cells[4][5]).eq("F5");
+        expect(stateVariables[ssIdx].stateValues.cells[5][2]).eq("C6");
+        expect(stateVariables[ssIdx].stateValues.cells[5][3]).eq("D6");
+        expect(stateVariables[ssIdx].stateValues.cells[6][0]).eq("A7");
+        expect(
+            stateVariables[resolveComponentName("cell1")].stateValues.text,
+        ).eq("A1");
+        expect(
+            stateVariables[resolveComponentName("cell2")].stateValues.text,
+        ).eq("B1");
+        expect(
+            stateVariables[resolveComponentName("cell3")].stateValues.text,
+        ).eq("D1");
+        expect(
+            stateVariables[resolveComponentName("cell4")].stateValues.text,
+        ).eq("B2");
+        expect(
+            stateVariables[resolveComponentName("cell5")].stateValues.text,
+        ).eq("C2");
+        expect(
+            stateVariables[resolveComponentName("cell6")].stateValues.text,
+        ).eq("A5");
+        expect(
+            stateVariables[resolveComponentName("cell7")].stateValues.text,
+        ).eq("F5");
+        expect(
+            stateVariables[resolveComponentName("cell8")].stateValues.text,
+        ).eq("C6");
+        expect(
+            stateVariables[resolveComponentName("cell9")].stateValues.text,
+        ).eq("D6");
+        expect(
+            stateVariables[resolveComponentName("cell10")].stateValues.text,
+        ).eq("A7");
 
         for (let ind = 1; ind <= 7; ind++) {
             await changeSpreadsheetText({
+                componentIdx: ssIdx,
                 row: ind,
                 column: 1,
                 text: `row${ind}`,
@@ -523,17 +551,23 @@ describe("Spreadsheet tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 7; ind++) {
-            expect(
-                stateVariables["/spreadsheet1"].stateValues.cells[ind - 1][0],
-            ).eq(`row${ind}`);
+            expect(stateVariables[ssIdx].stateValues.cells[ind - 1][0]).eq(
+                `row${ind}`,
+            );
         }
-        expect(stateVariables["/cell1"].stateValues.text).eq("row1");
-        expect(stateVariables["/cell6"].stateValues.text).eq("row5");
-        expect(stateVariables["/cell10"].stateValues.text).eq("row7");
+        expect(
+            stateVariables[resolveComponentName("cell1")].stateValues.text,
+        ).eq("row1");
+        expect(
+            stateVariables[resolveComponentName("cell6")].stateValues.text,
+        ).eq("row5");
+        expect(
+            stateVariables[resolveComponentName("cell10")].stateValues.text,
+        ).eq("row7");
     });
 
     it("build spreadsheet from cells and columns", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1">
   <column><cell name="cell1">A1</cell><cell name="cell2">A2</cell><cell name="cell3" rownum="D">A4</cell></column>
@@ -546,51 +580,54 @@ describe("Spreadsheet tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(6);
-        expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(7);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
-            "A1",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][0]).eq(
-            "A2",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[3][0]).eq(
-            "A4",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][1]).eq(
-            "B2",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][1]).eq(
-            "B3",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][4]).eq(
-            "E1",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[5][4]).eq(
-            "E6",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][5]).eq(
-            "F3",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[3][5]).eq(
-            "F4",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][6]).eq(
-            "G1",
-        );
-        expect(stateVariables["/cell1"].stateValues.text).eq("A1");
-        expect(stateVariables["/cell2"].stateValues.text).eq("A2");
-        expect(stateVariables["/cell3"].stateValues.text).eq("A4");
-        expect(stateVariables["/cell4"].stateValues.text).eq("B2");
-        expect(stateVariables["/cell5"].stateValues.text).eq("B3");
-        expect(stateVariables["/cell6"].stateValues.text).eq("E1");
-        expect(stateVariables["/cell7"].stateValues.text).eq("E6");
-        expect(stateVariables["/cell8"].stateValues.text).eq("F3");
-        expect(stateVariables["/cell9"].stateValues.text).eq("F4");
-        expect(stateVariables["/cell10"].stateValues.text).eq("G1");
+
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(stateVariables[ssIdx].stateValues.numRows).eq(6);
+        expect(stateVariables[ssIdx].stateValues.numColumns).eq(7);
+        expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq("A1");
+        expect(stateVariables[ssIdx].stateValues.cells[1][0]).eq("A2");
+        expect(stateVariables[ssIdx].stateValues.cells[3][0]).eq("A4");
+        expect(stateVariables[ssIdx].stateValues.cells[1][1]).eq("B2");
+        expect(stateVariables[ssIdx].stateValues.cells[2][1]).eq("B3");
+        expect(stateVariables[ssIdx].stateValues.cells[0][4]).eq("E1");
+        expect(stateVariables[ssIdx].stateValues.cells[5][4]).eq("E6");
+        expect(stateVariables[ssIdx].stateValues.cells[2][5]).eq("F3");
+        expect(stateVariables[ssIdx].stateValues.cells[3][5]).eq("F4");
+        expect(stateVariables[ssIdx].stateValues.cells[0][6]).eq("G1");
+        expect(
+            stateVariables[resolveComponentName("cell1")].stateValues.text,
+        ).eq("A1");
+        expect(
+            stateVariables[resolveComponentName("cell2")].stateValues.text,
+        ).eq("A2");
+        expect(
+            stateVariables[resolveComponentName("cell3")].stateValues.text,
+        ).eq("A4");
+        expect(
+            stateVariables[resolveComponentName("cell4")].stateValues.text,
+        ).eq("B2");
+        expect(
+            stateVariables[resolveComponentName("cell5")].stateValues.text,
+        ).eq("B3");
+        expect(
+            stateVariables[resolveComponentName("cell6")].stateValues.text,
+        ).eq("E1");
+        expect(
+            stateVariables[resolveComponentName("cell7")].stateValues.text,
+        ).eq("E6");
+        expect(
+            stateVariables[resolveComponentName("cell8")].stateValues.text,
+        ).eq("F3");
+        expect(
+            stateVariables[resolveComponentName("cell9")].stateValues.text,
+        ).eq("F4");
+        expect(
+            stateVariables[resolveComponentName("cell10")].stateValues.text,
+        ).eq("G1");
 
         for (let ind = 1; ind <= 7; ind++) {
             await changeSpreadsheetText({
+                componentIdx: ssIdx,
                 row: 1,
                 column: ind,
                 text: `column${ind}`,
@@ -599,94 +636,102 @@ describe("Spreadsheet tag tests", async () => {
         }
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 7; ind++) {
-            expect(
-                stateVariables["/spreadsheet1"].stateValues.cells[0][ind - 1],
-            ).eq(`column${ind}`);
+            expect(stateVariables[ssIdx].stateValues.cells[0][ind - 1]).eq(
+                `column${ind}`,
+            );
         }
-        expect(stateVariables["/cell1"].stateValues.text).eq("column1");
-        expect(stateVariables["/cell6"].stateValues.text).eq("column5");
-        expect(stateVariables["/cell10"].stateValues.text).eq("column7");
+        expect(
+            stateVariables[resolveComponentName("cell1")].stateValues.text,
+        ).eq("column1");
+        expect(
+            stateVariables[resolveComponentName("cell6")].stateValues.text,
+        ).eq("column5");
+        expect(
+            stateVariables[resolveComponentName("cell10")].stateValues.text,
+        ).eq("column7");
     });
 
-    it("build spreadsheet with cellblocks", async () => {
-        let core = await createTestCore({
+    it("build spreadsheet with cellBlocks", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1">
-    <cellblock rownum="2" colnum="3">
+    <cellBlock rownum="2" colnum="3">
         <row rownum="2"><cell name="cell1">C3</cell><cell name="cell2">D3</cell></row>
         <column colnum="3"><cell name="cell3">E2</cell><cell name="cell4">E3</cell></column>
-    </cellblock>
+    </cellBlock>
     <cell name="cell5">F2</cell>
-    <cellblock>
+    <cellBlock>
         <cell name="cell6">G2</cell>
         <cell name="cell7" rownum="3">G4</cell>
-    </cellblock>
-    <cellblock rownum="5">
+    </cellBlock>
+    <cellBlock rownum="5">
         <cell name="cell8">G5</cell><cell name="cell9">H5</cell>
-    </cellblock>
-    <cellblock colnum="A">
+    </cellBlock>
+    <cellBlock colnum="A">
         <cell name="cell10">A5</cell>
         <cell name="cell11" rownum="2" colnum="2">B6</cell>
-    </cellblock>
+    </cellBlock>
     <cell name="cell12">C5</cell>
   </spreadsheet>
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(6);
-        expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(8);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][2]).eq(
-            "C3",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][3]).eq(
-            "D3",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][4]).eq(
-            "E2",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][4]).eq(
-            "E3",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][5]).eq(
-            "F2",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][6]).eq(
-            "G2",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[3][6]).eq(
-            "G4",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[4][6]).eq(
-            "G5",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[4][7]).eq(
-            "H5",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[4][0]).eq(
-            "A5",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[5][1]).eq(
-            "B6",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[4][2]).eq(
-            "C5",
-        );
-        expect(stateVariables["/cell1"].stateValues.text).eq("C3");
-        expect(stateVariables["/cell2"].stateValues.text).eq("D3");
-        expect(stateVariables["/cell3"].stateValues.text).eq("E2");
-        expect(stateVariables["/cell4"].stateValues.text).eq("E3");
-        expect(stateVariables["/cell5"].stateValues.text).eq("F2");
-        expect(stateVariables["/cell6"].stateValues.text).eq("G2");
-        expect(stateVariables["/cell7"].stateValues.text).eq("G4");
-        expect(stateVariables["/cell8"].stateValues.text).eq("G5");
-        expect(stateVariables["/cell9"].stateValues.text).eq("H5");
-        expect(stateVariables["/cell10"].stateValues.text).eq("A5");
-        expect(stateVariables["/cell11"].stateValues.text).eq("B6");
-        expect(stateVariables["/cell12"].stateValues.text).eq("C5");
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(stateVariables[ssIdx].stateValues.numRows).eq(6);
+        expect(stateVariables[ssIdx].stateValues.numColumns).eq(8);
+        expect(stateVariables[ssIdx].stateValues.cells[2][2]).eq("C3");
+        expect(stateVariables[ssIdx].stateValues.cells[2][3]).eq("D3");
+        expect(stateVariables[ssIdx].stateValues.cells[1][4]).eq("E2");
+        expect(stateVariables[ssIdx].stateValues.cells[2][4]).eq("E3");
+        expect(stateVariables[ssIdx].stateValues.cells[1][5]).eq("F2");
+        expect(stateVariables[ssIdx].stateValues.cells[1][6]).eq("G2");
+        expect(stateVariables[ssIdx].stateValues.cells[3][6]).eq("G4");
+        expect(stateVariables[ssIdx].stateValues.cells[4][6]).eq("G5");
+        expect(stateVariables[ssIdx].stateValues.cells[4][7]).eq("H5");
+        expect(stateVariables[ssIdx].stateValues.cells[4][0]).eq("A5");
+        expect(stateVariables[ssIdx].stateValues.cells[5][1]).eq("B6");
+        expect(stateVariables[ssIdx].stateValues.cells[4][2]).eq("C5");
+        expect(
+            stateVariables[resolveComponentName("cell1")].stateValues.text,
+        ).eq("C3");
+        expect(
+            stateVariables[resolveComponentName("cell2")].stateValues.text,
+        ).eq("D3");
+        expect(
+            stateVariables[resolveComponentName("cell3")].stateValues.text,
+        ).eq("E2");
+        expect(
+            stateVariables[resolveComponentName("cell4")].stateValues.text,
+        ).eq("E3");
+        expect(
+            stateVariables[resolveComponentName("cell5")].stateValues.text,
+        ).eq("F2");
+        expect(
+            stateVariables[resolveComponentName("cell6")].stateValues.text,
+        ).eq("G2");
+        expect(
+            stateVariables[resolveComponentName("cell7")].stateValues.text,
+        ).eq("G4");
+        expect(
+            stateVariables[resolveComponentName("cell8")].stateValues.text,
+        ).eq("G5");
+        expect(
+            stateVariables[resolveComponentName("cell9")].stateValues.text,
+        ).eq("H5");
+        expect(
+            stateVariables[resolveComponentName("cell10")].stateValues.text,
+        ).eq("A5");
+        expect(
+            stateVariables[resolveComponentName("cell11")].stateValues.text,
+        ).eq("B6");
+        expect(
+            stateVariables[resolveComponentName("cell12")].stateValues.text,
+        ).eq("C5");
 
         for (let ind = 1; ind <= 8; ind++) {
             await changeSpreadsheetText({
+                componentIdx: ssIdx,
                 row: 5,
                 column: ind,
                 text: `column${ind}`,
@@ -696,76 +741,86 @@ describe("Spreadsheet tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 8; ind++) {
-            expect(
-                stateVariables["/spreadsheet1"].stateValues.cells[4][ind - 1],
-            ).eq(`column${ind}`);
+            expect(stateVariables[ssIdx].stateValues.cells[4][ind - 1]).eq(
+                `column${ind}`,
+            );
         }
-        expect(stateVariables["/cell8"].stateValues.text).eq("column7");
-        expect(stateVariables["/cell9"].stateValues.text).eq("column8");
-        expect(stateVariables["/cell10"].stateValues.text).eq("column1");
-        expect(stateVariables["/cell12"].stateValues.text).eq("column3");
+        expect(
+            stateVariables[resolveComponentName("cell8")].stateValues.text,
+        ).eq("column7");
+        expect(
+            stateVariables[resolveComponentName("cell9")].stateValues.text,
+        ).eq("column8");
+        expect(
+            stateVariables[resolveComponentName("cell10")].stateValues.text,
+        ).eq("column1");
+        expect(
+            stateVariables[resolveComponentName("cell12")].stateValues.text,
+        ).eq("column3");
     });
 
-    it("copy spreadsheet with cellblocks", async () => {
-        let core = await createTestCore({
+    it("copy spreadsheet with cellBlocks", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1">
     <row><cell>A1</cell><cell>B1</cell><cell>C1</cell></row>
     <column><cell rownum="2">A2</cell><cell>A3</cell><cell>A4</cell></column>
-    <cellblock rownum="2">
+    <cellBlock rownum="2">
         <cell>B2</cell><cell>C2</cell><cell>D2</cell>
         <row rownum="2"><cell>B3</cell><cell>C3</cell><cell>D3</cell></row>
-    </cellblock>
+    </cellBlock>
     <cell rownum="4">B4</cell><cell>C4</cell><cell>D4</cell>
     <cell rownum="1">D1</cell>
   </spreadsheet>
 
   <spreadsheet name="spreadsheet2">
-    <copy source="spreadsheet1.rangeC3D4" />
-    <copy prop="range((1,1),(4,2))" source="spreadsheet1" />
-    <copy rownum="3" colnum="1" source="spreadsheet1.rangeD2C1" />
+    $spreadsheet1.rangeC3D4
+    $spreadsheet1.rangeA1B4
+    <cellBlock rownum="3" colnum="1" extend="$spreadsheet1.rangeD2C1" />
   </spreadsheet>
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(4);
-        expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(4);
-        expect(stateVariables["/spreadsheet2"].stateValues.numRows).eq(4);
-        expect(stateVariables["/spreadsheet2"].stateValues.numColumns).eq(4);
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(stateVariables[ssIdx].stateValues.numRows).eq(4);
+        expect(stateVariables[ssIdx].stateValues.numColumns).eq(4);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .numRows,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .numColumns,
+        ).eq(4);
         for (let row = 1; row <= 4; row++) {
             for (let col = 1; col <= 4; col++) {
                 expect(
-                    stateVariables["/spreadsheet1"].stateValues.cells[row - 1][
-                        col - 1
-                    ],
+                    stateVariables[ssIdx].stateValues.cells[row - 1][col - 1],
                 ).eq(`${String.fromCharCode(64 + col)}${row}`);
             }
         }
         for (let row = 3; row <= 4; row++) {
             for (let col = 3; col <= 4; col++) {
                 expect(
-                    stateVariables["/spreadsheet2"].stateValues.cells[row - 3][
-                        col - 3
-                    ],
+                    stateVariables[resolveComponentName("spreadsheet2")]
+                        .stateValues.cells[row - 3][col - 3],
                 ).eq(`${String.fromCharCode(64 + col)}${row}`);
             }
         }
         for (let row = 1; row <= 4; row++) {
             for (let col = 1; col <= 2; col++) {
                 expect(
-                    stateVariables["/spreadsheet2"].stateValues.cells[row - 1][
-                        col + 1
-                    ],
+                    stateVariables[resolveComponentName("spreadsheet2")]
+                        .stateValues.cells[row - 1][col + 1],
                 ).eq(`${String.fromCharCode(64 + col)}${row}`);
             }
         }
         for (let row = 1; row <= 2; row++) {
             for (let col = 3; col <= 4; col++) {
                 expect(
-                    stateVariables["/spreadsheet2"].stateValues.cells[row + 1][
-                        col - 3
-                    ],
+                    stateVariables[resolveComponentName("spreadsheet2")]
+                        .stateValues.cells[row + 1][col - 3],
                 ).eq(`${String.fromCharCode(64 + col)}${row}`);
             }
         }
@@ -773,7 +828,7 @@ describe("Spreadsheet tag tests", async () => {
         // enter text into third row of first spreadsheet
         for (let ind = 1; ind <= 4; ind++) {
             await changeSpreadsheetText({
-                name: "/spreadsheet1",
+                componentIdx: ssIdx,
                 row: 3,
                 column: ind,
                 text: `column${ind}`,
@@ -782,27 +837,31 @@ describe("Spreadsheet tag tests", async () => {
         }
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 4; ind++) {
-            expect(
-                stateVariables["/spreadsheet1"].stateValues.cells[2][ind - 1],
-            ).eq(`column${ind}`);
+            expect(stateVariables[ssIdx].stateValues.cells[2][ind - 1]).eq(
+                `column${ind}`,
+            );
         }
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[2][2]).eq(
-            `column1`,
-        );
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[2][3]).eq(
-            `column2`,
-        );
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[0][0]).eq(
-            `column3`,
-        );
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[0][1]).eq(
-            `column4`,
-        );
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[2][2],
+        ).eq(`column1`);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[2][3],
+        ).eq(`column2`);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[0][0],
+        ).eq(`column3`);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[0][1],
+        ).eq(`column4`);
 
         // enter text into second column of second spreadsheet
         for (let ind = 1; ind <= 4; ind++) {
             await changeSpreadsheetText({
-                name: "/spreadsheet2",
+                componentIdx: resolveComponentName("spreadsheet2"),
                 row: ind,
                 column: 2,
                 text: `row${ind}`,
@@ -813,90 +872,91 @@ describe("Spreadsheet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 4; ind++) {
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[ind - 1][1],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[ind - 1][1],
             ).eq(`row${ind}`);
         }
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][3]).eq(
-            `row1`,
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[3][3]).eq(
-            `row2`,
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][3]).eq(
-            `row3`,
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][3]).eq(
-            `row4`,
-        );
+        expect(stateVariables[ssIdx].stateValues.cells[2][3]).eq(`row1`);
+        expect(stateVariables[ssIdx].stateValues.cells[3][3]).eq(`row2`);
+        expect(stateVariables[ssIdx].stateValues.cells[0][3]).eq(`row3`);
+        expect(stateVariables[ssIdx].stateValues.cells[1][3]).eq(`row4`);
     });
 
     it("copy spreadsheet with rows and columns", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1">
     <row><cell>A1</cell><cell>B1</cell><cell>C1</cell></row>
     <column><cell rownum="2">A2</cell><cell>A3</cell><cell>A4</cell></column>
-    <cellblock rownum="2">
+    <cellBlock rownum="2">
         <cell>B2</cell><cell>C2</cell><cell>D2</cell>
         <row rownum="2"><cell>B3</cell><cell>C3</cell><cell>D3</cell></row>
-    </cellblock>
+    </cellBlock>
     <cell rownum="4">B4</cell><cell>C4</cell><cell>D4</cell>
     <cell rownum="1">D1</cell>
   </spreadsheet>
 
   <spreadsheet name="spreadsheet2">
-    <copy prop="row2" rownum="3" source="spreadsheet1" />
-    <copy prop="column3" colnum="5" source="spreadsheet1" />
-    <copy prop="rowA" source="spreadsheet1" />
-    <copy prop="columnB" source="spreadsheet1" />
+    <row extend="$spreadsheet1.row2" rownum="3" />
+    <column extend="$spreadsheet1.column3" colnum="5" />
+    $spreadsheet1.rowA
+    $spreadsheet1.columnB
   </spreadsheet>
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(4);
-        expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(4);
-        expect(stateVariables["/spreadsheet2"].stateValues.numRows).eq(4);
-        expect(stateVariables["/spreadsheet2"].stateValues.numColumns).eq(6);
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(stateVariables[ssIdx].stateValues.numRows).eq(4);
+        expect(stateVariables[ssIdx].stateValues.numColumns).eq(4);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .numRows,
+        ).eq(4);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .numColumns,
+        ).eq(6);
         for (let row = 1; row <= 4; row++) {
             for (let col = 1; col <= 4; col++) {
                 expect(
-                    stateVariables["/spreadsheet1"].stateValues.cells[row - 1][
-                        col - 1
-                    ],
+                    stateVariables[ssIdx].stateValues.cells[row - 1][col - 1],
                 ).eq(`${String.fromCharCode(64 + col)}${row}`);
             }
         }
         for (let row = 1; row <= 2; row++) {
             for (let col = 1; col <= 4; col++) {
                 expect(
-                    stateVariables["/spreadsheet2"].stateValues.cells[row - 1][
-                        col - 1
-                    ],
+                    stateVariables[resolveComponentName("spreadsheet2")]
+                        .stateValues.cells[row - 1][col - 1],
                 ).eq("");
             }
         }
         for (let col = 1; col <= 4; col++) {
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[2][col - 1],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[2][col - 1],
             ).eq(`${String.fromCharCode(64 + col)}2`);
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[3][col - 1],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[3][col - 1],
             ).eq(`${String.fromCharCode(64 + col)}1`);
         }
         for (let row = 1; row <= 4; row++) {
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row - 1][4],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row - 1][4],
             ).eq(`C${row}`);
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row - 1][5],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row - 1][5],
             ).eq(`B${row}`);
         }
 
         // enter text into second row of first spreadsheet
         for (let ind = 1; ind <= 4; ind++) {
             await changeSpreadsheetText({
-                name: "/spreadsheet1",
+                componentIdx: ssIdx,
                 row: 2,
                 column: ind,
                 text: `column${ind}`,
@@ -905,36 +965,42 @@ describe("Spreadsheet tag tests", async () => {
         }
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 4; ind++) {
-            expect(
-                stateVariables["/spreadsheet1"].stateValues.cells[1][ind - 1],
-            ).eq(`column${ind}`);
+            expect(stateVariables[ssIdx].stateValues.cells[1][ind - 1]).eq(
+                `column${ind}`,
+            );
         }
         // becomes third row of second spreadsheet
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[2][0]).eq(
-            `column1`,
-        );
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[2][1]).eq(
-            `column2`,
-        );
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[2][2]).eq(
-            `column3`,
-        );
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[2][3]).eq(
-            `column4`,
-        );
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[2][0],
+        ).eq(`column1`);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[2][1],
+        ).eq(`column2`);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[2][2],
+        ).eq(`column3`);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[2][3],
+        ).eq(`column4`);
 
         // fifth and sixth column ref third and second column
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[1][4]).eq(
-            `column3`,
-        );
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[1][5]).eq(
-            `column2`,
-        );
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[1][4],
+        ).eq(`column3`);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[1][5],
+        ).eq(`column2`);
 
         // enter text into fifth column of second spreadsheet
         for (let ind = 1; ind <= 4; ind++) {
             await changeSpreadsheetText({
-                name: "/spreadsheet2",
+                componentIdx: resolveComponentName("spreadsheet2"),
                 row: ind,
                 column: 5,
                 text: `row${ind}`,
@@ -945,36 +1011,31 @@ describe("Spreadsheet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 4; ind++) {
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[ind - 1][4],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[ind - 1][4],
             ).eq(`row${ind}`);
         }
 
         //comes third column of first spreadsheet
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][2]).eq(
-            `row1`,
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][2]).eq(
-            `row2`,
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][2]).eq(
-            `row3`,
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[3][2]).eq(
-            `row4`,
-        );
+        expect(stateVariables[ssIdx].stateValues.cells[0][2]).eq(`row1`);
+        expect(stateVariables[ssIdx].stateValues.cells[1][2]).eq(`row2`);
+        expect(stateVariables[ssIdx].stateValues.cells[2][2]).eq(`row3`);
+        expect(stateVariables[ssIdx].stateValues.cells[3][2]).eq(`row4`);
 
         // third and fourth row of second spreadsheet also change due
         // changes in second and first row of first spreadsheet
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[2][2]).eq(
-            `row2`,
-        );
-        expect(stateVariables["/spreadsheet2"].stateValues.cells[3][2]).eq(
-            `row1`,
-        );
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[2][2],
+        ).eq(`row2`);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .cells[3][2],
+        ).eq(`row1`);
     });
 
     it("copy all spreadsheet cells shifted", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1" minNumRows="3" minNumColumns="3">
     <cell>A1</cell><cell>B1</cell><cell>C1</cell>
@@ -983,31 +1044,35 @@ describe("Spreadsheet tag tests", async () => {
   </spreadsheet>
 
   <spreadsheet name="spreadsheet2">
-    <copy prop="cells" rownum="3" colnum="2" source="spreadsheet1" />
+    <cellBlock extend="$spreadsheet1.cells" rownum="3" colnum="2" />
   </spreadsheet>
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(3);
-        expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(3);
-        expect(stateVariables["/spreadsheet2"].stateValues.numRows).eq(5);
-        expect(stateVariables["/spreadsheet2"].stateValues.numColumns).eq(4);
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(stateVariables[ssIdx].stateValues.numRows).eq(3);
+        expect(stateVariables[ssIdx].stateValues.numColumns).eq(3);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .numRows,
+        ).eq(5);
+        expect(
+            stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                .numColumns,
+        ).eq(4);
         for (let row = 1; row <= 3; row++) {
             for (let col = 1; col <= 3; col++) {
                 expect(
-                    stateVariables["/spreadsheet1"].stateValues.cells[row - 1][
-                        col - 1
-                    ],
+                    stateVariables[ssIdx].stateValues.cells[row - 1][col - 1],
                 ).eq(`${String.fromCharCode(64 + col)}${row}`);
             }
         }
         for (let row = 1; row <= 3; row++) {
             for (let col = 1; col <= 3; col++) {
                 expect(
-                    stateVariables["/spreadsheet2"].stateValues.cells[row + 1][
-                        col
-                    ],
+                    stateVariables[resolveComponentName("spreadsheet2")]
+                        .stateValues.cells[row + 1][col],
                 ).eq(`${String.fromCharCode(64 + col)}${row}`);
             }
         }
@@ -1015,7 +1080,7 @@ describe("Spreadsheet tag tests", async () => {
         // enter text into second row of first spreadsheet
         for (let ind = 1; ind <= 3; ind++) {
             await changeSpreadsheetText({
-                name: "/spreadsheet1",
+                componentIdx: ssIdx,
                 row: 2,
                 column: ind,
                 text: `column${ind}`,
@@ -1025,20 +1090,21 @@ describe("Spreadsheet tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 3; ind++) {
-            expect(
-                stateVariables["/spreadsheet1"].stateValues.cells[1][ind - 1],
-            ).eq(`column${ind}`);
+            expect(stateVariables[ssIdx].stateValues.cells[1][ind - 1]).eq(
+                `column${ind}`,
+            );
         }
         for (let ind = 1; ind <= 3; ind++) {
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[3][ind],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[3][ind],
             ).eq(`column${ind}`);
         }
 
         // enter text into fourth column of second spreadsheet
         for (let ind = 1; ind <= 5; ind++) {
             await changeSpreadsheetText({
-                name: "/spreadsheet2",
+                componentIdx: resolveComponentName("spreadsheet2"),
                 row: ind,
                 column: 4,
                 text: `row${ind}`,
@@ -1049,24 +1115,19 @@ describe("Spreadsheet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 5; ind++) {
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[ind - 1][3],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[ind - 1][3],
             ).eq(`row${ind}`);
         }
 
         //becomes third column of first spreadsheet
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][2]).eq(
-            `row3`,
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][2]).eq(
-            `row4`,
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[2][2]).eq(
-            `row5`,
-        );
+        expect(stateVariables[ssIdx].stateValues.cells[0][2]).eq(`row3`);
+        expect(stateVariables[ssIdx].stateValues.cells[1][2]).eq(`row4`);
+        expect(stateVariables[ssIdx].stateValues.cells[2][2]).eq(`row5`);
     });
 
     it("copy spreadsheet cells ignores cell col/row num", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1">
     <cell colnum="5">alpha</cell>
@@ -1075,9 +1136,9 @@ describe("Spreadsheet tag tests", async () => {
   </spreadsheet>
   
   <spreadsheet name="spreadsheet2">
-    <copy prop="rangeE1F2" source="spreadsheet1" />
-    <copy prop="rangeE1F2" colnum="4" source="spreadsheet1" />
-    <copy prop="rangeE1F2" rownum="3" source="spreadsheet1" />
+    $spreadsheet1.rangeE1F2
+    <cellBlock extend="$spreadsheet1.rangeE1F2" colnum="4" />
+    <cellBlock extend="$spreadsheet1.rangeE1F2" rownum="3" />
   </spreadsheet>  
   `,
         });
@@ -1089,55 +1150,51 @@ describe("Spreadsheet tag tests", async () => {
         ];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][4]).eq(
-            "alpha",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][5]).eq(
-            "beta",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][5]).eq(
-            "gamma",
-        );
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(stateVariables[ssIdx].stateValues.cells[0][4]).eq("alpha");
+        expect(stateVariables[ssIdx].stateValues.cells[0][5]).eq("beta");
+        expect(stateVariables[ssIdx].stateValues.cells[1][5]).eq("gamma");
         for (let inds of cellBlockUpperLefts) {
             let row = inds[0];
             let col = inds[1];
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row][col],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row][col],
             ).eq("alpha");
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row][col + 1],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row][col + 1],
             ).eq("beta");
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row + 1][
-                    col + 1
-                ],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row + 1][col + 1],
             ).eq("gamma");
         }
 
         // enter text in first spreadsheet block
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             row: 1,
             column: 5,
             text: `a`,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             row: 1,
             column: 6,
             text: `b`,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             row: 2,
             column: 5,
             text: `c`,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             row: 2,
             column: 6,
             text: `d`,
@@ -1145,53 +1202,55 @@ describe("Spreadsheet tag tests", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][4]).eq("a");
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][5]).eq("b");
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][4]).eq("c");
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][5]).eq("d");
+        expect(stateVariables[ssIdx].stateValues.cells[0][4]).eq("a");
+        expect(stateVariables[ssIdx].stateValues.cells[0][5]).eq("b");
+        expect(stateVariables[ssIdx].stateValues.cells[1][4]).eq("c");
+        expect(stateVariables[ssIdx].stateValues.cells[1][5]).eq("d");
         for (let inds of cellBlockUpperLefts) {
             let row = inds[0];
             let col = inds[1];
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row][col],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row][col],
             ).eq("a");
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row][col + 1],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row][col + 1],
             ).eq("b");
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row + 1][col],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row + 1][col],
             ).eq("c");
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row + 1][
-                    col + 1
-                ],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row + 1][col + 1],
             ).eq("d");
         }
 
         // enter text in other spreadsheet blocks
         await changeSpreadsheetText({
-            name: "/spreadsheet2",
+            componentIdx: resolveComponentName("spreadsheet2"),
             row: 1,
             column: 1,
             text: `first`,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet2",
+            componentIdx: resolveComponentName("spreadsheet2"),
             row: 1,
             column: 5,
             text: `second`,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet2",
+            componentIdx: resolveComponentName("spreadsheet2"),
             row: 4,
             column: 4,
             text: `third`,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet2",
+            componentIdx: resolveComponentName("spreadsheet2"),
             row: 4,
             column: 5,
             text: `fourth`,
@@ -1199,40 +1258,34 @@ describe("Spreadsheet tag tests", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][4]).eq(
-            "first",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][5]).eq(
-            "second",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][4]).eq(
-            "third",
-        );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[1][5]).eq(
-            "fourth",
-        );
+        expect(stateVariables[ssIdx].stateValues.cells[0][4]).eq("first");
+        expect(stateVariables[ssIdx].stateValues.cells[0][5]).eq("second");
+        expect(stateVariables[ssIdx].stateValues.cells[1][4]).eq("third");
+        expect(stateVariables[ssIdx].stateValues.cells[1][5]).eq("fourth");
         for (let inds of cellBlockUpperLefts) {
             let row = inds[0];
             let col = inds[1];
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row][col],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row][col],
             ).eq("first");
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row][col + 1],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row][col + 1],
             ).eq("second");
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row + 1][col],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row + 1][col],
             ).eq("third");
             expect(
-                stateVariables["/spreadsheet2"].stateValues.cells[row + 1][
-                    col + 1
-                ],
+                stateVariables[resolveComponentName("spreadsheet2")].stateValues
+                    .cells[row + 1][col + 1],
             ).eq("fourth");
         }
     });
 
     it("spreadsheet prefill", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <math name="m1">x^2</math>
   <text name="t1">hello</text>
@@ -1251,45 +1304,48 @@ describe("Spreadsheet tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m1"].stateValues.latex).eq("x^{2}");
-        expect(stateVariables["/t1"].stateValues.value).eq("hello");
-        expect(stateVariables["/n1"].stateValues.value).eq(5);
-        expect(stateVariables["/b1"].stateValues.value).eq(true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
-            "x²",
+        expect(stateVariables[resolveComponentName("m1")].stateValues.latex).eq(
+            "x^{2}",
         );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][1]).eq(
+        expect(stateVariables[resolveComponentName("t1")].stateValues.value).eq(
             "hello",
         );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][2]).eq("5");
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][3]).eq(
-            "true",
+        expect(stateVariables[resolveComponentName("n1")].stateValues.value).eq(
+            5,
         );
+        expect(stateVariables[resolveComponentName("b1")].stateValues.value).eq(
+            true,
+        );
+        const ssIdx = resolveComponentName("spreadsheet1");
+        expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq("x²");
+        expect(stateVariables[ssIdx].stateValues.cells[0][1]).eq("hello");
+        expect(stateVariables[ssIdx].stateValues.cells[0][2]).eq("5");
+        expect(stateVariables[ssIdx].stateValues.cells[0][3]).eq("true");
 
         // changing spreadsheet doesn't change prefill sources
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             row: 1,
             column: 1,
             text: "3(-",
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             row: 1,
             column: 2,
             text: "bye",
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             row: 1,
             column: 3,
             text: "ab",
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             row: 1,
             column: 4,
             text: "1+q",
@@ -1297,32 +1353,32 @@ describe("Spreadsheet tag tests", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m1"].stateValues.latex).eq("x^{2}");
-        expect(stateVariables["/t1"].stateValues.value).eq("hello");
-        expect(stateVariables["/n1"].stateValues.value).eq(5);
-        expect(stateVariables["/b1"].stateValues.value).eq(true);
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
-            "3(-",
+        expect(stateVariables[resolveComponentName("m1")].stateValues.latex).eq(
+            "x^{2}",
         );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][1]).eq(
-            "bye",
+        expect(stateVariables[resolveComponentName("t1")].stateValues.value).eq(
+            "hello",
         );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][2]).eq(
-            "ab",
+        expect(stateVariables[resolveComponentName("n1")].stateValues.value).eq(
+            5,
         );
-        expect(stateVariables["/spreadsheet1"].stateValues.cells[0][3]).eq(
-            "1+q",
+        expect(stateVariables[resolveComponentName("b1")].stateValues.value).eq(
+            true,
         );
+        expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq("3(-");
+        expect(stateVariables[ssIdx].stateValues.cells[0][1]).eq("bye");
+        expect(stateVariables[ssIdx].stateValues.cells[0][2]).eq("ab");
+        expect(stateVariables[ssIdx].stateValues.cells[0][3]).eq("1+q");
     });
 
     it("references to cells, adapter to math, number, or text", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <spreadsheet name="spreadsheet1" minNumRows="4" minNumColumns="4">
   <cell>1</cell>
 </spreadsheet>
 
-<p name="p1"><copy prop="cellA1" source="spreadsheet1" /> A</p>
+<p name="p1">$spreadsheet1.cellA1 A</p>
 
 <p name="p2"><asList>
   <math name="math1" simplify>$spreadsheet1.cellA1+1</math>
@@ -1337,6 +1393,7 @@ describe("Spreadsheet tag tests", async () => {
 </asList></p>
   `,
         });
+        const ssIdx = resolveComponentName("spreadsheet1");
 
         // check initial cell values
 
@@ -1358,29 +1415,33 @@ describe("Spreadsheet tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/p1"].stateValues.text).eq(`${A1} A`);
-            expect(stateVariables["/math1"].stateValues.value.tree).eqls(
-                m1.simplify().tree,
-            );
-            expect(stateVariables["/number1"].stateValues.value).eqls(
-                m1.evaluate_to_constant(),
-            );
-            expect(stateVariables["/text1"].stateValues.value).eq(`${A1} B`);
-            expect(stateVariables["/math2"].stateValues.value.tree).eqls(
-                m2.simplify().tree,
-            );
-            expect(stateVariables["/number2"].stateValues.value).eqls(
-                m2.evaluate_to_constant(),
-            );
-            expect(stateVariables["/text2"].stateValues.value).eq(
-                `${A1} + ${A2}`,
-            );
-            expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
-                A1,
-            );
-            expect(stateVariables["/spreadsheet1"].stateValues.cells[1][0]).eq(
-                A2,
-            );
+            expect(
+                stateVariables[resolveComponentName("p1")].stateValues.text,
+            ).eq(`${A1} A`);
+            expect(
+                stateVariables[resolveComponentName("math1")].stateValues.value
+                    .tree,
+            ).eqls(m1.simplify().tree);
+            expect(
+                stateVariables[resolveComponentName("number1")].stateValues
+                    .value,
+            ).eqls(m1.evaluate_to_constant());
+            expect(
+                stateVariables[resolveComponentName("text1")].stateValues.value,
+            ).eq(`${A1} B`);
+            expect(
+                stateVariables[resolveComponentName("math2")].stateValues.value
+                    .tree,
+            ).eqls(m2.simplify().tree);
+            expect(
+                stateVariables[resolveComponentName("number2")].stateValues
+                    .value,
+            ).eqls(m2.evaluate_to_constant());
+            expect(
+                stateVariables[resolveComponentName("text2")].stateValues.value,
+            ).eq(`${A1} + ${A2}`);
+            expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq(A1);
+            expect(stateVariables[ssIdx].stateValues.cells[1][0]).eq(A2);
         }
 
         let A1 = "1";
@@ -1392,14 +1453,14 @@ describe("Spreadsheet tag tests", async () => {
         A1 = "5";
         A2 = "7";
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             column: 1,
             row: 1,
             text: A1,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             column: 1,
             row: 2,
             text: A2,
@@ -1411,14 +1472,14 @@ describe("Spreadsheet tag tests", async () => {
         A1 = "x";
         A2 = "y";
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             column: 1,
             row: 1,
             text: A1,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             column: 1,
             row: 2,
             text: A2,
@@ -1430,14 +1491,14 @@ describe("Spreadsheet tag tests", async () => {
         A1 = "q(";
         A2 = "sin(w)";
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             column: 1,
             row: 1,
             text: A1,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             column: 1,
             row: 2,
             text: A2,
@@ -1449,14 +1510,14 @@ describe("Spreadsheet tag tests", async () => {
         A1 = "";
         A2 = "5";
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             column: 1,
             row: 1,
             text: A1,
             core,
         });
         await changeSpreadsheetText({
-            name: "/spreadsheet1",
+            componentIdx: ssIdx,
             column: 1,
             row: 2,
             text: A2,
@@ -1466,24 +1527,24 @@ describe("Spreadsheet tag tests", async () => {
     });
 
     it("references to cells are not adapted", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <spreadsheet minNumRows="4" minNumColumns="4" name="s">
   <cell>1</cell><cell>2</cell>
 </spreadsheet>
 
-$s.cellB1{assignNames="c1"}
-$s.cellA1{assignNames="c2"}
+<cell extend="$s.cellB1" name="c1" />
+<cell extend="$s.cellA1" name="c2" />
 
 <tabular>
   <row name="row1">
-    $s.cellB1{assignNames="c11"}
+    <cell extend="$s.cellB1" name="c11" />
     <cell name="c12">Hello</cell>
-    $s.cellB2{assignNames="c13"}
+    <cell extend="$s.cellB2" name="c13" />
   </row>
   <row name="row2">
     <cell name="c21">Bye</cell>
-    $s.cellA1{assignNames="c22"}
+    <cell extend="$s.cellA1" name="c22" />
   </row>
 </tabular>
 
@@ -1496,22 +1557,36 @@ $s.cellA1{assignNames="c2"}
                 true,
             );
             expect(
-                stateVariables["/row1"].activeChildren.map(
+                stateVariables[resolveComponentName("row1")].activeChildren.map(
                     (v) => v.componentIdx,
                 ),
-            ).eqls(["/c11", "/c12", "/c13"]);
+            ).eqls(["c11", "c12", "c13"].map(resolveComponentName));
             expect(
-                stateVariables["/row2"].activeChildren.map(
+                stateVariables[resolveComponentName("row2")].activeChildren.map(
                     (v) => v.componentIdx,
                 ),
-            ).eqls(["/c21", "/c22"]);
-            expect(stateVariables["/c1"].stateValues.text).eq(B1);
-            expect(stateVariables["/c2"].stateValues.text).eq(A1);
-            expect(stateVariables["/c11"].stateValues.text).eq(B1);
-            expect(stateVariables["/c12"].stateValues.text).eq("Hello");
-            expect(stateVariables["/c13"].stateValues.text).eq(B2);
-            expect(stateVariables["/c21"].stateValues.text).eq("Bye");
-            expect(stateVariables["/c22"].stateValues.text).eq(A1);
+            ).eqls(["c21", "c22"].map(resolveComponentName));
+            expect(
+                stateVariables[resolveComponentName("c1")].stateValues.text,
+            ).eq(B1);
+            expect(
+                stateVariables[resolveComponentName("c2")].stateValues.text,
+            ).eq(A1);
+            expect(
+                stateVariables[resolveComponentName("c11")].stateValues.text,
+            ).eq(B1);
+            expect(
+                stateVariables[resolveComponentName("c12")].stateValues.text,
+            ).eq("Hello");
+            expect(
+                stateVariables[resolveComponentName("c13")].stateValues.text,
+            ).eq(B2);
+            expect(
+                stateVariables[resolveComponentName("c21")].stateValues.text,
+            ).eq("Bye");
+            expect(
+                stateVariables[resolveComponentName("c22")].stateValues.text,
+            ).eq(A1);
         }
 
         let A1 = "1",
@@ -1525,21 +1600,21 @@ $s.cellA1{assignNames="c2"}
         B1 = "B";
         B2 = "C";
         await changeSpreadsheetText({
-            name: "/s",
+            componentIdx: resolveComponentName("s"),
             column: 1,
             row: 1,
             text: A1,
             core,
         });
         await changeSpreadsheetText({
-            name: "/s",
+            componentIdx: resolveComponentName("s"),
             column: 2,
             row: 1,
             text: B1,
             core,
         });
         await changeSpreadsheetText({
-            name: "/s",
+            componentIdx: resolveComponentName("s"),
             column: 2,
             row: 2,
             text: B2,
@@ -1549,26 +1624,50 @@ $s.cellA1{assignNames="c2"}
         await check_items(A1, B1, B2);
     });
 
-    async function test_merge_coordinates(core: PublicDoenetMLCore) {
+    async function test_merge_coordinates(
+        core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
+    ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/coords"].stateValues.text).eq("( 1, 2 )");
-        expect(stateVariables["/t1"].stateValues.value).eq("( 1, 2 )");
+        expect(
+            stateVariables[resolveComponentName("coords")].stateValues.text,
+        ).eq("( 1, 2 )");
+        expect(stateVariables[resolveComponentName("t1")].stateValues.value).eq(
+            "( 1, 2 )",
+        );
 
-        await updateMathInputValue({ latex: "3", name: "/x1", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("x1"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/coords"].stateValues.text).eq("( 3, 2 )");
-        expect(stateVariables["/t1"].stateValues.value).eq("( 3, 2 )");
+        expect(
+            stateVariables[resolveComponentName("coords")].stateValues.text,
+        ).eq("( 3, 2 )");
+        expect(stateVariables[resolveComponentName("t1")].stateValues.value).eq(
+            "( 3, 2 )",
+        );
 
-        await updateMathInputValue({ latex: "4", name: "/x2", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("x2"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/coords"].stateValues.text).eq("( 3, 4 )");
-        expect(stateVariables["/t1"].stateValues.value).eq("( 3, 4 )");
+        expect(
+            stateVariables[resolveComponentName("coords")].stateValues.text,
+        ).eq("( 3, 4 )");
+        expect(stateVariables[resolveComponentName("t1")].stateValues.value).eq(
+            "( 3, 4 )",
+        );
     }
 
     it("spreadsheet can merge coordinates", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <extract prop="text" assignNames="t1"><copy prop="cellA1" source="ss" /></extract>
+  <cell extend="$ss.cellA1" name="A1" />
+  <text extend="$A1.text" name="t1" />
   <spreadsheet name="ss">
   <cell name="coords" prefill="( 1, 2 )" />
   </spreadsheet>
@@ -1579,13 +1678,14 @@ $s.cellA1{assignNames="c2"}
   <p>Change y-coordinate: <mathInput name="x2" bindValueTo="$(P.x2)" /></p>
   `,
         });
-        await test_merge_coordinates(core);
+        await test_merge_coordinates(core, resolveComponentName);
     });
 
     it("spreadsheet can merge coordinates, with math child", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <extract prop="text" assignNames="t1"><copy prop="cellA1" source="ss" /></extract>
+  <cell extend="$ss.cellA1" name="A1" />
+  <text extend="$A1.text" name="t1" />
   <spreadsheet name="ss">
   <cell name="coords" ><math>(1,2)</math></cell>
   </spreadsheet>
@@ -1597,59 +1697,139 @@ $s.cellA1{assignNames="c2"}
   `,
         });
 
-        await test_merge_coordinates(core);
+        await test_merge_coordinates(core, resolveComponentName);
     });
 
-    async function test_copy_prop_index(core: PublicDoenetMLCore) {
+    async function test_copy_prop_index(
+        core: PublicDoenetMLCore,
+        resolveComponentName: ResolveComponentName,
+    ) {
         let row = ["A", "B", "C"];
         let column = ["B", "E", "H"];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"]).be.undefined;
-        expect(stateVariables["/R2"]).be.undefined;
-        expect(stateVariables["/R3"]).be.undefined;
-        expect(stateVariables["/C1"]).be.undefined;
-        expect(stateVariables["/C2"]).be.undefined;
-        expect(stateVariables["/C3"]).be.undefined;
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            "",
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            "",
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            null,
+        );
 
-        await updateMathInputValue({ latex: "1", name: "/n", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"].stateValues.value).eq(row[0]);
-        expect(stateVariables["/R2"]).be.undefined;
-        expect(stateVariables["/R3"]).be.undefined;
-        expect(stateVariables["/C1"].stateValues.value).eq(column[0]);
-        expect(stateVariables["/C2"]).be.undefined;
-        expect(stateVariables["/C3"]).be.undefined;
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            row[0],
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            column[0],
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            null,
+        );
 
-        await updateMathInputValue({ latex: "2", name: "/n", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"].stateValues.value).eq(row[1]);
-        expect(stateVariables["/R2"]).be.undefined;
-        expect(stateVariables["/R3"]).be.undefined;
-        expect(stateVariables["/C1"].stateValues.value).eq(column[1]);
-        expect(stateVariables["/C2"]).be.undefined;
-        expect(stateVariables["/C3"]).be.undefined;
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            row[1],
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            column[1],
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            null,
+        );
 
-        await updateMathInputValue({ latex: "3", name: "/n", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"].stateValues.value).eq(row[2]);
-        expect(stateVariables["/R2"]).be.undefined;
-        expect(stateVariables["/R3"]).be.undefined;
-        expect(stateVariables["/C1"].stateValues.value).eq(column[2]);
-        expect(stateVariables["/C2"]).be.undefined;
-        expect(stateVariables["/C3"]).be.undefined;
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            row[2],
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            column[2],
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            null,
+        );
 
-        await updateMathInputValue({ latex: "4", name: "/n", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"]).be.undefined;
-        expect(stateVariables["/R2"]).be.undefined;
-        expect(stateVariables["/R3"]).be.undefined;
-        expect(stateVariables["/C1"]).be.undefined;
-        expect(stateVariables["/C2"]).be.undefined;
-        expect(stateVariables["/C3"]).be.undefined;
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            null,
+        );
     }
+
     it("copy propIndex of cells, dot and array notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <spreadsheet name="spreadsheet1" minNumRows="3" minNumColumns="3">
       <row><cell>A</cell><cell>B</cell><cell>C</cell></row>
@@ -1659,29 +1839,29 @@ $s.cellA1{assignNames="c2"}
 
     <p><mathInput name="n" /></p>
 
-    <copy assignNames="R1" source="spreadsheet2.cellA1.text" />
-    <copy assignNames="R2" source="spreadsheet2.cellB1.text" />
-    <copy assignNames="R3" source="spreadsheet2.cellC1.text" />
+    <cell name="R1" extend="$spreadsheet2.cellA1" />
+    <cell name="R2" extend="$spreadsheet2.cellB1" />
+    <cell name="R3" extend="$spreadsheet2.cellC1" />
   
     <spreadsheet name="spreadsheet2" minNumRows="0" minNumColumns="0">
-      <copy source="spreadsheet1.row1[$n]" />
+      <cell extend="$spreadsheet1.row1[$n]" />
     </spreadsheet>
 
-    <copy assignNames="C1" source="spreadsheet3.cellA1.text" />
-    <copy assignNames="C2" source="spreadsheet3.cellA2.text" />
-    <copy assignNames="C3" source="spreadsheet3.cellA3.text" />
+    <cell name="C1" extend="$spreadsheet3.cellA1" />
+    <cell name="C2" extend="$spreadsheet3.cellA2" />
+    <cell name="C3" extend="$spreadsheet3.cellA3" />
 
     <spreadsheet name="spreadsheet3" minNumRows="0" minNumColumns="0">
-      <copy source="spreadsheet1.column2[$n]" />
+      <cell extend="$spreadsheet1.column2[$n]" />
     </spreadsheet>
     `,
         });
 
-        await test_copy_prop_index(core);
+        await test_copy_prop_index(core, resolveComponentName);
     });
 
     it("copy multidimensional propIndex of cells, array notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <spreadsheet name="spreadsheet1" minNumRows="3" minNumColumns="3">
       <row><cell>A</cell><cell>B</cell><cell>C</cell></row>
@@ -1691,29 +1871,29 @@ $s.cellA1{assignNames="c2"}
 
     <p><mathInput name="n" /></p>
 
-    <copy assignNames="R1" source="spreadsheet2.cellA1.text" />
-    <copy assignNames="R2" source="spreadsheet2.cellB1.text" />
-    <copy assignNames="R3" source="spreadsheet2.cellC1.text" />
+    <cell name="R1" extend="$spreadsheet2.cellA1" />
+    <cell name="R2" extend="$spreadsheet2.cellB1" />
+    <cell name="R3" extend="$spreadsheet2.cellC1" />
   
     <spreadsheet name="spreadsheet2" minNumRows="0" minNumColumns="0">
-      <copy source="spreadsheet1.cells[1][$n]" />
+      <cell extend="$spreadsheet1.cells[1][$n]" />
     </spreadsheet>
 
-    <copy assignNames="C1" source="spreadsheet3.cellA1.text" />
-    <copy assignNames="C2" source="spreadsheet3.cellA2.text" />
-    <copy assignNames="C3" source="spreadsheet3.cellA3.text" />
+    <cell name="C1" extend="$spreadsheet3.cellA1" />
+    <cell name="C2" extend="$spreadsheet3.cellA2" />
+    <cell name="C3" extend="$spreadsheet3.cellA3" />
 
     <spreadsheet name="spreadsheet3" minNumRows="0" minNumColumns="0">
-      <copy source="spreadsheet1.cells[$n][2]" />
+      <cell extend="$spreadsheet1.cells[$n][2]" />
     </spreadsheet>
     `,
         });
 
-        await test_copy_prop_index(core);
+        await test_copy_prop_index(core, resolveComponentName);
     });
 
     it("copy multidimensional propIndex of rows and columns, dot and array notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <spreadsheet name="spreadsheet1" minNumRows="3" minNumColumns="3">
       <row><cell>A</cell><cell>B</cell><cell>C</cell></row>
@@ -1723,29 +1903,29 @@ $s.cellA1{assignNames="c2"}
 
     <p><mathInput name="n" /></p>
 
-    <copy assignNames="R1" source="spreadsheet2.cellA1.text" />
-    <copy assignNames="R2" source="spreadsheet2.cellB1.text" />
-    <copy assignNames="R3" source="spreadsheet2.cellC1.text" />
+    <cell name="R1" extend="$spreadsheet2.cellA1" />
+    <cell name="R2" extend="$spreadsheet2.cellB1" />
+    <cell name="R3" extend="$spreadsheet2.cellC1" />
   
     <spreadsheet name="spreadsheet2" minNumRows="0" minNumColumns="0">
-      <copy source="spreadsheet1.rows[1][$n]" />
+      <cell extend="$spreadsheet1.rows[1][$n]" />
     </spreadsheet>
 
-    <copy assignNames="C1" source="spreadsheet3.cellA1.text" />
-    <copy assignNames="C2" source="spreadsheet3.cellA2.text" />
-    <copy assignNames="C3" source="spreadsheet3.cellA3.text" />
+    <cell name="C1" extend="$spreadsheet3.cellA1" />
+    <cell name="C2" extend="$spreadsheet3.cellA2" />
+    <cell name="C3" extend="$spreadsheet3.cellA3" />
 
     <spreadsheet name="spreadsheet3" minNumRows="0" minNumColumns="0">
-      <copy source="spreadsheet1.columns[2][$n]" />
+      <cell extend="$spreadsheet1.columns[2][$n]" />
     </spreadsheet>
     `,
         });
 
-        await test_copy_prop_index(core);
+        await test_copy_prop_index(core, resolveComponentName);
     });
 
     it("copy single propIndex of rows and columns, dot and array notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <spreadsheet name="spreadsheet1" minNumRows="3" minNumColumns="3">
       <row><cell>A</cell><cell>B</cell><cell>C</cell></row>
@@ -1755,20 +1935,20 @@ $s.cellA1{assignNames="c2"}
 
     <p><mathInput name="n" /></p>
 
-    <copy assignNames="R1" source="spreadsheet2.cellA1.text" />
-    <copy assignNames="R2" source="spreadsheet2.cellB1.text" />
-    <copy assignNames="R3" source="spreadsheet2.cellC1.text" />
+    <cell name="R1" extend="$spreadsheet2.cellA1" />
+    <cell name="R2" extend="$spreadsheet2.cellB1" />
+    <cell name="R3" extend="$spreadsheet2.cellC1" />
   
     <spreadsheet name="spreadsheet2" minNumRows="0" minNumColumns="0">
-      <copy source="spreadsheet1.rows[$n]" />
+      <row extend="$spreadsheet1.rows[$n]" />
     </spreadsheet>
 
-    <copy assignNames="C1" source="spreadsheet3.cellA1.text" />
-    <copy assignNames="C2" source="spreadsheet3.cellA2.text" />
-    <copy assignNames="C3" source="spreadsheet3.cellA3.text" />
+    <cell name="C1" extend="$spreadsheet3.cellA1" />
+    <cell name="C2" extend="$spreadsheet3.cellA2" />
+    <cell name="C3" extend="$spreadsheet3.cellA3" />
 
     <spreadsheet name="spreadsheet3" minNumRows="0" minNumColumns="0">
-      <copy source="spreadsheet1.columns[$n]" />
+      <column extend="$spreadsheet1.columns[$n]" />
     </spreadsheet>
     `,
         });
@@ -1785,47 +1965,123 @@ $s.cellA1{assignNames="c2"}
         ];
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"]).be.undefined;
-        expect(stateVariables["/R2"]).be.undefined;
-        expect(stateVariables["/R3"]).be.undefined;
-        expect(stateVariables["/C1"]).be.undefined;
-        expect(stateVariables["/C2"]).be.undefined;
-        expect(stateVariables["/C3"]).be.undefined;
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            null,
+        );
 
-        await updateMathInputValue({ latex: "1", name: "/n", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"].stateValues.value).eq(rows[0][0]);
-        expect(stateVariables["/R2"].stateValues.value).eq(rows[0][1]);
-        expect(stateVariables["/R3"].stateValues.value).eq(rows[0][2]);
-        expect(stateVariables["/C1"].stateValues.value).eq(columns[0][0]);
-        expect(stateVariables["/C2"].stateValues.value).eq(columns[0][1]);
-        expect(stateVariables["/C3"].stateValues.value).eq(columns[0][2]);
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            rows[0][0],
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            rows[0][1],
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            rows[0][2],
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            columns[0][0],
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            columns[0][1],
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            columns[0][2],
+        );
 
-        await updateMathInputValue({ latex: "2", name: "/n", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"].stateValues.value).eq(rows[1][0]);
-        expect(stateVariables["/R2"].stateValues.value).eq(rows[1][1]);
-        expect(stateVariables["/R3"].stateValues.value).eq(rows[1][2]);
-        expect(stateVariables["/C1"].stateValues.value).eq(columns[1][0]);
-        expect(stateVariables["/C2"].stateValues.value).eq(columns[1][1]);
-        expect(stateVariables["/C3"].stateValues.value).eq(columns[1][2]);
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            rows[1][0],
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            rows[1][1],
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            rows[1][2],
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            columns[1][0],
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            columns[1][1],
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            columns[1][2],
+        );
 
-        await updateMathInputValue({ latex: "3", name: "/n", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"].stateValues.value).eq(rows[2][0]);
-        expect(stateVariables["/R2"].stateValues.value).eq(rows[2][1]);
-        expect(stateVariables["/R3"].stateValues.value).eq(rows[2][2]);
-        expect(stateVariables["/C1"].stateValues.value).eq(columns[2][0]);
-        expect(stateVariables["/C2"].stateValues.value).eq(columns[2][1]);
-        expect(stateVariables["/C3"].stateValues.value).eq(columns[2][2]);
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            rows[2][0],
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            rows[2][1],
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            rows[2][2],
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            columns[2][0],
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            columns[2][1],
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            columns[2][2],
+        );
 
-        await updateMathInputValue({ latex: "4", name: "/n", core });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/R1"]).be.undefined;
-        expect(stateVariables["/R2"]).be.undefined;
-        expect(stateVariables["/R3"]).be.undefined;
-        expect(stateVariables["/C1"]).be.undefined;
-        expect(stateVariables["/C2"]).be.undefined;
-        expect(stateVariables["/C3"]).be.undefined;
+        expect(stateVariables[resolveComponentName("R1")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("R3")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C1")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C2")].stateValues.text).eq(
+            null,
+        );
+        expect(stateVariables[resolveComponentName("C3")].stateValues.text).eq(
+            null,
+        );
     });
 });

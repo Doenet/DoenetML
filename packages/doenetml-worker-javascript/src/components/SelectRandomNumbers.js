@@ -183,6 +183,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -200,18 +201,24 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite =
-                    convertUnresolvedAttributesForComponentType({
-                        attributes: attributesToConvert,
-                        componentType: "number",
-                        componentInfoObjects,
-                    });
-            }
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: "number",
+                    componentInfoObjects,
+                    nComponents,
+                });
 
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
             replacements.push({
+                type: "serialized",
                 componentType: "number",
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
-                state: { value },
+                state: { value, fixed: true },
+                doenetAttributes: {},
+                children: [],
             });
         }
 
@@ -219,6 +226,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 

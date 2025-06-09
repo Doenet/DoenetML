@@ -223,6 +223,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         component,
         componentInfoObjects,
         startNum = 0,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -233,8 +234,13 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             startNum,
         )) {
             replacements.push({
+                type: "serialized",
                 componentType: "integer",
-                state: { value },
+                componentIdx: nComponents++,
+                state: { value, fixed: true },
+                attributes: {},
+                doenetAttributes: {},
+                children: [],
             });
         }
 
@@ -242,6 +248,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
@@ -249,6 +256,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         component,
         componentInfoObjects,
         flags,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -286,9 +294,11 @@ export default class SamplePrimeNumbers extends CompositeComponent {
                     componentInfoObjects,
                     startNum: component.replacements.length,
                     flags,
+                    nComponents,
                 });
                 errors.push(...result.errors);
                 warnings.push(...result.warnings);
+                nComponents = result.nComponents;
 
                 let replacementInstruction = {
                     changeType: "add",
@@ -316,7 +326,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
         }
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 
     static setUpVariant({

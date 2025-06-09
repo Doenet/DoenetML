@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import {
     moveLineSegment,
     movePoint,
@@ -14,19 +14,21 @@ vi.mock("hyperformula");
 
 async function testScene({
     core,
+    resolveComponentName,
     vertices1,
     vertices2,
     point,
-    polygon1Name = "/pg1",
-    polygon2Name = "/pg2",
-    pointName = "/A",
-    stickyGroupName = "/sg",
-    graph1Name = "/g1",
-    graph2Name = "/g2",
-    graph3Name = "/g3",
-    graph4Name = "/g4",
+    polygon1Name = "pg1",
+    polygon2Name = "pg2",
+    pointName = "A",
+    stickyGroupName = "sg",
+    graph1Name = "g1",
+    graph2Name = "g2",
+    graph3Name = "g3",
+    graph4Name = "g4",
 }: {
     core: PublicDoenetMLCore;
+    resolveComponentName: ResolveComponentName;
     vertices1: number[][];
     vertices2: number[][];
     point: number[];
@@ -41,37 +43,61 @@ async function testScene({
 }) {
     let stateVariables = await core.returnAllStateVariables(false, true);
     expect(
-        stateVariables[graph1Name + stickyGroupName + polygon1Name].stateValues
-            .numVertices,
+        stateVariables[
+            resolveComponentName(
+                `${graph1Name}.${stickyGroupName}.${polygon1Name}`,
+            )
+        ].stateValues.numVertices,
     ).eq(vertices1.length);
     expect(
-        stateVariables[graph2Name + stickyGroupName + polygon1Name].stateValues
-            .numVertices,
+        stateVariables[
+            resolveComponentName(
+                `${graph2Name}.${stickyGroupName}.${polygon1Name}`,
+            )
+        ].stateValues.numVertices,
     ).eq(vertices1.length);
     expect(
-        stateVariables[graph3Name + stickyGroupName + polygon1Name].stateValues
-            .numVertices,
+        stateVariables[
+            resolveComponentName(
+                `${graph3Name}.${stickyGroupName}.${polygon1Name}`,
+            )
+        ].stateValues.numVertices,
     ).eq(vertices1.length);
     expect(
-        stateVariables[graph4Name + stickyGroupName + polygon1Name].stateValues
-            .numVertices,
+        stateVariables[
+            resolveComponentName(
+                `${graph4Name}.${stickyGroupName}.${polygon1Name}`,
+            )
+        ].stateValues.numVertices,
     ).eq(vertices1.length);
 
     expect(
-        stateVariables[graph1Name + stickyGroupName + polygon2Name].stateValues
-            .numVertices,
+        stateVariables[
+            resolveComponentName(
+                `${graph1Name}.${stickyGroupName}.${polygon2Name}`,
+            )
+        ].stateValues.numVertices,
     ).eq(vertices2.length);
     expect(
-        stateVariables[graph2Name + stickyGroupName + polygon2Name].stateValues
-            .numVertices,
+        stateVariables[
+            resolveComponentName(
+                `${graph2Name}.${stickyGroupName}.${polygon2Name}`,
+            )
+        ].stateValues.numVertices,
     ).eq(vertices2.length);
     expect(
-        stateVariables[graph3Name + stickyGroupName + polygon2Name].stateValues
-            .numVertices,
+        stateVariables[
+            resolveComponentName(
+                `${graph3Name}.${stickyGroupName}.${polygon2Name}`,
+            )
+        ].stateValues.numVertices,
     ).eq(vertices2.length);
     expect(
-        stateVariables[graph4Name + stickyGroupName + polygon2Name].stateValues
-            .numVertices,
+        stateVariables[
+            resolveComponentName(
+                `${graph4Name}.${stickyGroupName}.${polygon2Name}`,
+            )
+        ].stateValues.numVertices,
     ).eq(vertices2.length);
 
     for (let i in vertices1) {
@@ -79,40 +105,60 @@ async function testScene({
             if (Number.isFinite(vertices1[i][dim])) {
                 expect(
                     stateVariables[
-                        graph1Name + stickyGroupName + polygon1Name
+                        resolveComponentName(
+                            `${graph1Name}.${stickyGroupName}.${polygon1Name}`,
+                        )
                     ].stateValues.vertices[i][dim].evaluate_to_constant(),
                 ).closeTo(vertices1[i][dim], 1e-12);
                 expect(
                     stateVariables[
-                        graph2Name + stickyGroupName + polygon1Name
+                        resolveComponentName(
+                            `${graph2Name}.${stickyGroupName}.${polygon1Name}`,
+                        )
                     ].stateValues.vertices[i][dim].evaluate_to_constant(),
                 ).closeTo(vertices1[i][dim], 1e-12);
                 expect(
                     stateVariables[
-                        graph3Name + stickyGroupName + polygon1Name
+                        resolveComponentName(
+                            `${graph3Name}.${stickyGroupName}.${polygon1Name}`,
+                        )
                     ].stateValues.vertices[i][dim].evaluate_to_constant(),
                 ).closeTo(vertices1[i][dim], 1e-12);
                 expect(
                     stateVariables[
-                        graph4Name + stickyGroupName + polygon1Name
+                        resolveComponentName(
+                            `${graph4Name}.${stickyGroupName}.${polygon1Name}`,
+                        )
                     ].stateValues.vertices[i][dim].evaluate_to_constant(),
                 ).closeTo(vertices1[i][dim], 1e-12);
             } else {
                 expect(
-                    stateVariables[graph1Name + stickyGroupName + polygon1Name]
-                        .stateValues.vertices[i][dim].tree,
+                    stateVariables[
+                        resolveComponentName(
+                            `${graph1Name}.${stickyGroupName}.${polygon1Name}`,
+                        )
+                    ].stateValues.vertices[i][dim].tree,
                 ).eq(vertices1[i][dim]);
                 expect(
-                    stateVariables[graph2Name + stickyGroupName + polygon1Name]
-                        .stateValues.vertices[i][dim].tree,
+                    stateVariables[
+                        resolveComponentName(
+                            `${graph2Name}.${stickyGroupName}.${polygon1Name}`,
+                        )
+                    ].stateValues.vertices[i][dim].tree,
                 ).eq(vertices1[i][dim]);
                 expect(
-                    stateVariables[graph3Name + stickyGroupName + polygon1Name]
-                        .stateValues.vertices[i][dim].tree,
+                    stateVariables[
+                        resolveComponentName(
+                            `${graph3Name}.${stickyGroupName}.${polygon1Name}`,
+                        )
+                    ].stateValues.vertices[i][dim].tree,
                 ).eq(vertices1[i][dim]);
                 expect(
-                    stateVariables[graph4Name + stickyGroupName + polygon1Name]
-                        .stateValues.vertices[i][dim].tree,
+                    stateVariables[
+                        resolveComponentName(
+                            `${graph4Name}.${stickyGroupName}.${polygon1Name}`,
+                        )
+                    ].stateValues.vertices[i][dim].tree,
                 ).eq(vertices1[i][dim]);
             }
         }
@@ -123,40 +169,60 @@ async function testScene({
             if (Number.isFinite(vertices2[i][dim])) {
                 expect(
                     stateVariables[
-                        graph1Name + stickyGroupName + polygon2Name
+                        resolveComponentName(
+                            `${graph1Name}.${stickyGroupName}.${polygon2Name}`,
+                        )
                     ].stateValues.vertices[i][dim].evaluate_to_constant(),
                 ).closeTo(vertices2[i][dim], 1e-12);
                 expect(
                     stateVariables[
-                        graph2Name + stickyGroupName + polygon2Name
+                        resolveComponentName(
+                            `${graph2Name}.${stickyGroupName}.${polygon2Name}`,
+                        )
                     ].stateValues.vertices[i][dim].evaluate_to_constant(),
                 ).closeTo(vertices2[i][dim], 1e-12);
                 expect(
                     stateVariables[
-                        graph3Name + stickyGroupName + polygon2Name
+                        resolveComponentName(
+                            `${graph3Name}.${stickyGroupName}.${polygon2Name}`,
+                        )
                     ].stateValues.vertices[i][dim].evaluate_to_constant(),
                 ).closeTo(vertices2[i][dim], 1e-12);
                 expect(
                     stateVariables[
-                        graph4Name + stickyGroupName + polygon2Name
+                        resolveComponentName(
+                            `${graph4Name}.${stickyGroupName}.${polygon2Name}`,
+                        )
                     ].stateValues.vertices[i][dim].evaluate_to_constant(),
                 ).closeTo(vertices2[i][dim], 1e-12);
             } else {
                 expect(
-                    stateVariables[graph1Name + stickyGroupName + polygon2Name]
-                        .stateValues.vertices[i][dim].tree,
+                    stateVariables[
+                        resolveComponentName(
+                            `${graph1Name}.${stickyGroupName}.${polygon2Name}`,
+                        )
+                    ].stateValues.vertices[i][dim].tree,
                 ).eq(vertices2[i][dim]);
                 expect(
-                    stateVariables[graph2Name + stickyGroupName + polygon2Name]
-                        .stateValues.vertices[i][dim].tree,
+                    stateVariables[
+                        resolveComponentName(
+                            `${graph2Name}.${stickyGroupName}.${polygon2Name}`,
+                        )
+                    ].stateValues.vertices[i][dim].tree,
                 ).eq(vertices2[i][dim]);
                 expect(
-                    stateVariables[graph3Name + stickyGroupName + polygon2Name]
-                        .stateValues.vertices[i][dim].tree,
+                    stateVariables[
+                        resolveComponentName(
+                            `${graph3Name}.${stickyGroupName}.${polygon2Name}`,
+                        )
+                    ].stateValues.vertices[i][dim].tree,
                 ).eq(vertices2[i][dim]);
                 expect(
-                    stateVariables[graph4Name + stickyGroupName + polygon2Name]
-                        .stateValues.vertices[i][dim].tree,
+                    stateVariables[
+                        resolveComponentName(
+                            `${graph4Name}.${stickyGroupName}.${polygon2Name}`,
+                        )
+                    ].stateValues.vertices[i][dim].tree,
                 ).eq(vertices2[i][dim]);
             }
         }
@@ -166,40 +232,60 @@ async function testScene({
         if (Number.isFinite(point[dim])) {
             expect(
                 stateVariables[
-                    graph1Name + stickyGroupName + pointName
+                    resolveComponentName(
+                        `${graph1Name}.${stickyGroupName}.${pointName}`,
+                    )
                 ].stateValues.xs[dim].evaluate_to_constant(),
             ).closeTo(point[dim], 1e-12);
             expect(
                 stateVariables[
-                    graph2Name + stickyGroupName + pointName
+                    resolveComponentName(
+                        `${graph2Name}.${stickyGroupName}.${pointName}`,
+                    )
                 ].stateValues.xs[dim].evaluate_to_constant(),
             ).closeTo(point[dim], 1e-12);
             expect(
                 stateVariables[
-                    graph3Name + stickyGroupName + pointName
+                    resolveComponentName(
+                        `${graph3Name}.${stickyGroupName}.${pointName}`,
+                    )
                 ].stateValues.xs[dim].evaluate_to_constant(),
             ).closeTo(point[dim], 1e-12);
             expect(
                 stateVariables[
-                    graph4Name + stickyGroupName + pointName
+                    resolveComponentName(
+                        `${graph4Name}.${stickyGroupName}.${pointName}`,
+                    )
                 ].stateValues.xs[dim].evaluate_to_constant(),
             ).closeTo(point[dim], 1e-12);
         } else {
             expect(
-                stateVariables[graph1Name + stickyGroupName + pointName]
-                    .stateValues.xs[dim].tree,
+                stateVariables[
+                    resolveComponentName(
+                        `${graph1Name}.${stickyGroupName}.${pointName}`,
+                    )
+                ].stateValues.xs[dim].tree,
             ).eq(point[dim]);
             expect(
-                stateVariables[graph2Name + stickyGroupName + pointName]
-                    .stateValues.xs[dim].tree,
+                stateVariables[
+                    resolveComponentName(
+                        `${graph2Name}.${stickyGroupName}.${pointName}`,
+                    )
+                ].stateValues.xs[dim].tree,
             ).eq(point[dim]);
             expect(
-                stateVariables[graph3Name + stickyGroupName + pointName]
-                    .stateValues.xs[dim].tree,
+                stateVariables[
+                    resolveComponentName(
+                        `${graph3Name}.${stickyGroupName}.${pointName}`,
+                    )
+                ].stateValues.xs[dim].tree,
             ).eq(point[dim]);
             expect(
-                stateVariables[graph4Name + stickyGroupName + pointName]
-                    .stateValues.xs[dim].tree,
+                stateVariables[
+                    resolveComponentName(
+                        `${graph4Name}.${stickyGroupName}.${pointName}`,
+                    )
+                ].stateValues.xs[dim].tree,
             ).eq(point[dim]);
         }
     }
@@ -207,10 +293,10 @@ async function testScene({
 
 describe("StickyGroup tag tests", async () => {
     it("attract polygons and point when translating", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-        <graph name="g1" newNamespace>
-            <stickyGroup name="sg" newNamespace>
+        <graph name="g1">
+            <stickyGroup name="sg">
                 <polygon name="pg1" vertices="(1,2) (4,5) (-2,5)" rigid filled />
 
                 <polygon name="pg2" vertices="(7,8) (5,4) (9,1) (7,3)" styleNumber="2" filled />
@@ -220,17 +306,17 @@ describe("StickyGroup tag tests", async () => {
             </stickyGroup>
         </graph>
 
-        <graph name="g2" newNamespace>
-            <stickyGroup name="sg" newNamespace>
-                <polygon name="pg1" copySource="../../g1/sg/pg1" />
-                <polygon name="pg2" copySource="../../g1/sg/pg2" />
-                <point name="A" copySource="../../g1/sg/A" />
+        <graph name="g2">
+            <stickyGroup name="sg">
+                <polygon name="pg1" extend="$g1.sg.pg1" />
+                <polygon name="pg2" extend="$g1.sg.pg2" />
+                <point name="A" extend="$g1.sg.A" />
             </stickyGroup>
         </graph>
-        <graph name="g3" newNamespace>
-            <stickyGroup name="sg" newNamespace copySource="../g2/sg" />
+        <graph name="g3">
+            <stickyGroup name="sg" extend="$g2.sg" />
         </graph>
-        <graph name="g4" copySource="g3" />
+        <graph name="g4" extend="$g3" />
 
     `,
         });
@@ -250,7 +336,13 @@ describe("StickyGroup tag tests", async () => {
 
         let point = [-6, 2];
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 1 vertex near vertex of polygon 2
         let moveX = 0.8;
@@ -262,7 +354,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/sg/pg1",
+            componentIdx: resolveComponentName("g1.sg.pg1"),
             pointCoords: requested_vertices1,
             core,
         });
@@ -274,7 +366,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[0] + actualMoveX,
             vertex[1] + actualMoveY,
         ]);
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 2 vertex near vertex of polygon 1
         moveX = -5.2;
@@ -286,7 +384,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g2/sg/pg2",
+            componentIdx: resolveComponentName("g2.sg.pg2"),
             pointCoords: requested_vertices2,
             core,
         });
@@ -299,7 +397,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 2 left further to unstick from polygon 1
         moveX = -1;
@@ -311,7 +415,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/sg/pg2",
+            componentIdx: resolveComponentName("g3.sg.pg2"),
             pointCoords: requested_vertices2,
             core,
         });
@@ -324,7 +428,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 1 vertex near point
         moveX = -4.8;
@@ -336,7 +446,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g4/sg/pg1",
+            componentIdx: resolveComponentName("g4.sg.pg1"),
             pointCoords: requested_vertices1,
             core,
         });
@@ -349,21 +459,49 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move point near polygon2 vertex
-        await movePoint({ name: "/g1/sg/A", x: 0.8, y: 0.8, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g1.sg.A"),
+            x: 0.8,
+            y: 0.8,
+            core,
+        });
 
         point = [1, 1];
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move point away from vertices and edges
-        await movePoint({ name: "/g2/sg/A", x: -2, y: 1, core });
+        await movePoint({
+            componentIdx: resolveComponentName("g2.sg.A"),
+            x: -2,
+            y: 1,
+            core,
+        });
 
         point = [-2, 1];
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 1 vertex near edge of polygon 2
         moveX = 1.4;
@@ -375,7 +513,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/sg/pg1",
+            componentIdx: resolveComponentName("g3.sg.pg1"),
             pointCoords: requested_vertices1,
             core,
         });
@@ -387,7 +525,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[0] + actualMoveX,
             vertex[1] + actualMoveY,
         ]);
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 2 vertex next edge of polygon 1
         moveX = 1.2;
@@ -399,7 +543,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g4/sg/pg2",
+            componentIdx: resolveComponentName("g4.sg.pg2"),
             pointCoords: requested_vertices2,
             core,
         });
@@ -412,7 +556,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 1 edge near vertex of polygon 2
         moveX = 2.8;
@@ -424,7 +574,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/sg/pg1",
+            componentIdx: resolveComponentName("g1.sg.pg1"),
             pointCoords: requested_vertices1,
             core,
         });
@@ -436,7 +586,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[0] + actualMoveX,
             vertex[1] + actualMoveY,
         ]);
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 2 edge next vertex of polygon 1
         moveX = 2.2;
@@ -448,7 +604,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g2/sg/pg2",
+            componentIdx: resolveComponentName("g2.sg.pg2"),
             pointCoords: requested_vertices2,
             core,
         });
@@ -461,14 +617,20 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
     });
 
     it("attract parallel edges of polygons when translating", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-        <graph name="g1" newNamespace>
-            <stickyGroup name="sg" newNamespace>
+        <graph name="g1">
+            <stickyGroup name="sg">
                 <polygon name="pg1" vertices="(1,2) (4,5) (-2,5)" rigid filled />
 
                 <polygon name="pg2" vertices="(9,8) (3,2) (9,1)" styleNumber="2" filled />
@@ -476,17 +638,17 @@ describe("StickyGroup tag tests", async () => {
             </stickyGroup>
         </graph>
 
-        <graph name="g2" newNamespace>
-            <stickyGroup name="sg" newNamespace>
-                <polygon name="pg1" copySource="../../g1/sg/pg1" />
-                <polygon name="pg2" copySource="../../g1/sg/pg2" />
-                <point name="A" copySource="../../g1/sg/A" />
+        <graph name="g2">
+            <stickyGroup name="sg">
+                <polygon name="pg1" extend="$g1.sg.pg1" />
+                <polygon name="pg2" extend="$g1.sg.pg2" />
+                <point name="A" extend="$g1.sg.A" />
             </stickyGroup>
         </graph>
-        <graph name="g3" newNamespace>
-            <stickyGroup name="sg" newNamespace copySource="../g2/sg" />
+        <graph name="g3">
+            <stickyGroup name="sg" extend="$g2.sg" />
         </graph>
-        <graph name="g4" copySource="g3" />
+        <graph name="g4" extend="$g3" />
 
     `,
         });
@@ -505,7 +667,13 @@ describe("StickyGroup tag tests", async () => {
 
         let point = [];
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 1 edge near edge of polygon 2
 
@@ -518,7 +686,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/sg/pg1",
+            componentIdx: resolveComponentName("g1.sg.pg1"),
             pointCoords: requested_vertices1,
             core,
         });
@@ -530,7 +698,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[0] + actualMoveX,
             vertex[1] + actualMoveY,
         ]);
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 1 so edge is just past edge of polygon 2, vertices attract
 
@@ -543,7 +717,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g2/sg/pg1",
+            componentIdx: resolveComponentName("g2.sg.pg1"),
             pointCoords: requested_vertices1,
             core,
         });
@@ -556,7 +730,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 1 edge so that polygon 2 edge is just past edge of polygon 1, vertices attract
 
@@ -569,7 +749,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/sg/pg1",
+            componentIdx: resolveComponentName("g3.sg.pg1"),
             pointCoords: requested_vertices1,
             core,
         });
@@ -582,7 +762,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 1 edge further so vertices don't attract
 
@@ -595,7 +781,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g4/sg/pg1",
+            componentIdx: resolveComponentName("g4.sg.pg1"),
             pointCoords: requested_vertices1,
             core,
         });
@@ -608,7 +794,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 2 edge so just past edge of polygon 1
 
@@ -621,7 +813,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g3/sg/pg2",
+            componentIdx: resolveComponentName("g3.sg.pg2"),
             pointCoords: requested_vertices2,
             core,
         });
@@ -633,7 +825,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[0] + actualMoveX,
             vertex[1] + actualMoveY,
         ]);
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 2 less past edge of polygon 1 so vertices attract
 
@@ -646,7 +844,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g4/sg/pg2",
+            componentIdx: resolveComponentName("g4.sg.pg2"),
             pointCoords: requested_vertices2,
             core,
         });
@@ -659,7 +857,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 2 edge so that polygon 1 edge is just past edge of polygon 2, vertices attract
 
@@ -672,7 +876,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g1/sg/pg2",
+            componentIdx: resolveComponentName("g1.sg.pg2"),
             pointCoords: requested_vertices2,
             core,
         });
@@ -684,7 +888,13 @@ describe("StickyGroup tag tests", async () => {
             vertex[0] + actualMoveX,
             vertex[1] + actualMoveY,
         ]);
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
 
         // move polygon 2 edge further so vertices don't attract
 
@@ -697,7 +907,7 @@ describe("StickyGroup tag tests", async () => {
         ]);
 
         await movePolygon({
-            name: "/g2/sg/pg2",
+            componentIdx: resolveComponentName("g2.sg.pg2"),
             pointCoords: requested_vertices2,
             core,
         });
@@ -710,11 +920,17 @@ describe("StickyGroup tag tests", async () => {
             vertex[1] + actualMoveY,
         ]);
 
-        await testScene({ core, vertices1, vertices2, point });
+        await testScene({
+            core,
+            resolveComponentName,
+            vertices1,
+            vertices2,
+            point,
+        });
     });
 
     it("attract polygons when moving vertices, rigid and non-rigid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
         <graph name="g1">
             <stickyGroup name="sg">
@@ -740,7 +956,7 @@ describe("StickyGroup tag tests", async () => {
 
         // rotate polygon 1 to nearly match slope of nearby polygon 2 edge
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: { 0: [1.6, 2] },
             core,
         });
@@ -749,7 +965,9 @@ describe("StickyGroup tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
+        let pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
         let actual_slope = (pg1[1][1] - pg1[0][1]) / (pg1[1][0] - pg1[0][0]);
 
         expect(actual_slope).closeTo(desired_slope, 1e-12);
@@ -761,20 +979,20 @@ describe("StickyGroup tag tests", async () => {
         let moveY = 1;
 
         let desired_vertices = stateVariables[
-            "/pg1"
+            resolveComponentName("pg1")
         ].stateValues.numericalVertices.map((vertex) => [
             vertex[0] + moveX,
             vertex[1] + moveY,
         ]);
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: desired_vertices,
             core,
         });
 
         // perturb vertex slightly
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: {
                 0: [
                     desired_vertices[0][0] + 0.01,
@@ -788,14 +1006,16 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
         actual_slope = (pg1[1][1] - pg1[0][1]) / (pg1[1][0] - pg1[0][0]);
 
         expect(actual_slope).not.closeTo(desired_slope, 0.001);
 
         // polygon 1 edge still attracts to vertical
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: {
                 0: [-2.1, 5.1],
             },
@@ -804,14 +1024,16 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
 
         // edge should be vertical
         expect(pg1[2][0]).closeTo(pg1[1][0], 1e-12);
 
         // polygon 1 edge still attracts to horizontal
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: {
                 0: [0.2, 7.2],
             },
@@ -820,7 +1042,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
 
         // edge should be horizontal
         expect(pg1[2][1]).closeTo(pg1[1][1], 1e-12);
@@ -832,19 +1056,19 @@ describe("StickyGroup tag tests", async () => {
         moveY = -6.5;
 
         desired_vertices = stateVariables[
-            "/pg1"
+            resolveComponentName("pg1")
         ].stateValues.numericalVertices.map((vertex) => [
             vertex[0] + moveX,
             vertex[1] + moveY,
         ]);
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: desired_vertices,
             core,
         });
 
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: {
                 0: [5.2, -0.8],
             },
@@ -853,7 +1077,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
 
         // point3 should be at polygon 2's vertex
         expect(pg1[2][0]).closeTo(9, 1e-12);
@@ -861,7 +1087,7 @@ describe("StickyGroup tag tests", async () => {
 
         // small change in rotation stops attraction
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: {
                 0: [5.3, -0.8],
             },
@@ -870,7 +1096,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
 
         // point3 should be a small distance from polygon 2's vertex
         expect(pg1[2][0]).not.closeTo(9, 0.01);
@@ -878,7 +1106,7 @@ describe("StickyGroup tag tests", async () => {
 
         // rotate and move polygon 1 to have vertical edge
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: {
                 0: [4.9, -1.6],
             },
@@ -891,35 +1119,41 @@ describe("StickyGroup tag tests", async () => {
         moveY = 0.5;
 
         desired_vertices = stateVariables[
-            "/pg1"
+            resolveComponentName("pg1")
         ].stateValues.numericalVertices.map((vertex) => [
             vertex[0] + moveX,
             vertex[1] + moveY,
         ]);
         await movePolygon({
-            name: "/pg1",
+            componentIdx: resolveComponentName("pg1"),
             pointCoords: desired_vertices,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
 
         // edge should be vertical
         expect(pg1[2][0]).closeTo(pg1[1][0], 1e-12);
 
         // move polygon 2 vertex so edge attracts to polygon 1 vertex
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 2: [-0.3, -6] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
-        let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
+        let pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex 2 of pg1 should be along edge of vertices of 2 and 3 of pg2
         let slope1 = (pg2[2][1] - pg2[1][1]) / (pg2[2][0] - pg2[1][0]);
@@ -936,13 +1170,15 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon 2 vertex so edge almost attracts to polygon 1 vertex
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 0: [-10, 0.8] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex did not attract
         expect(pg2[0]).eqls([-10, 0.8]);
@@ -955,15 +1191,19 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon 2 vertex closer so edge does attract to polygon 1 vertex
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 0: [-10, 0.6] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex 3 of pg1 should be along edge of vertices of 1 and 4 of pg2
         slope1 = (pg2[3][1] - pg2[0][1]) / (pg2[3][0] - pg2[0][0]);
@@ -980,13 +1220,15 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon 2 vertex so almost attracts to polygon 1 edge
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 1: [1.7, -1] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex did not attract
         expect(pg2[1]).eqls([1.7, -1]);
@@ -999,13 +1241,15 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon 2 vertex closer so does attract to polygon 1 edge
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 1: [1.4, -1] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex did attract
         expect(pg2[1][0]).closeTo(1, 1e-12);
@@ -1019,13 +1263,15 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon 2 vertex close so attracts to polygon 1 vertex
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 3: [1.2, 1.8] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex did attract
         expect(pg2[3][0]).closeTo(1, 1e-12);
@@ -1039,13 +1285,15 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon 2 vertex slightly away so no longer attracts to polygon 1 vertex
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 3: [1.7, 2.8] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex did not attract
         expect(pg2[3]).eqls([1.7, 2.8]);
@@ -1058,14 +1306,18 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon 2 vertex so edge attracts to polygon 1 edge
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 0: [-6, -5.1] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg1 =
+            stateVariables[resolveComponentName("pg1")].stateValues
+                .numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex 1 and 4 of pg2 should be along edge of vertices of 1 and 3 of pg1
         slope1 = (pg1[2][1] - pg1[0][1]) / (pg1[2][0] - pg1[0][0]);
@@ -1088,13 +1340,15 @@ describe("StickyGroup tag tests", async () => {
 
         // make sure don't move point along polygon 1 edge when attracting polygon 2 point to vertex
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 2: [1.2, -4.2] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertex did attract
         expect(pg2[2][0]).closeTo(1, 1e-12);
@@ -1112,13 +1366,15 @@ describe("StickyGroup tag tests", async () => {
 
         // attract from other side of vertex
         await movePolygon({
-            name: "/pg2",
+            componentIdx: resolveComponentName("pg2"),
             pointCoords: { 2: [0.8, -3.8] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+        pg2 =
+            stateVariables[resolveComponentName("pg2")].stateValues
+                .numericalVertices;
 
         // vertices did not move
         expect(pg2[0][0]).closeTo(vertices2[0][0], 1e-12);
@@ -1132,7 +1388,7 @@ describe("StickyGroup tag tests", async () => {
     });
 
     it("attract rigid polyline and preserveSimilarity polygon when moving vertices", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
         <graph name="g1">
             <stickyGroup name="sg">
@@ -1150,7 +1406,7 @@ describe("StickyGroup tag tests", async () => {
 
         // rotate polyline 1 to nearly match slope of nearby polygon edge
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: { 1: [1.6, 2] },
             core,
         });
@@ -1159,7 +1415,9 @@ describe("StickyGroup tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let pl = stateVariables["/pl"].stateValues.numericalVertices;
+        let pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
         let actual_slope = (pl[1][1] - pl[2][1]) / (pl[1][0] - pl[2][0]);
 
         expect(actual_slope).closeTo(desired_slope, 1e-12);
@@ -1171,20 +1429,20 @@ describe("StickyGroup tag tests", async () => {
         let moveY = 1;
 
         let desired_vertices = stateVariables[
-            "/pl"
+            resolveComponentName("pl")
         ].stateValues.numericalVertices.map((vertex) => [
             vertex[0] + moveX,
             vertex[1] + moveY,
         ]);
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: desired_vertices,
             core,
         });
 
         // perturb vertex slightly
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: {
                 1: [
                     desired_vertices[1][0] + 0.01,
@@ -1198,7 +1456,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pl = stateVariables["/pl"].stateValues.numericalVertices;
+        pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
         actual_slope = (pl[1][1] - pl[2][1]) / (pl[1][0] - pl[2][0]);
 
         expect(actual_slope).closeTo(desired_slope, 0.05);
@@ -1211,19 +1471,19 @@ describe("StickyGroup tag tests", async () => {
         moveY = 0;
 
         desired_vertices = stateVariables[
-            "/pl"
+            resolveComponentName("pl")
         ].stateValues.numericalVertices.map((vertex) => [
             vertex[0] + moveX,
             vertex[1] + moveY,
         ]);
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: desired_vertices,
             core,
         });
 
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: {
                 1: [2.1, 5.71],
             },
@@ -1234,7 +1494,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pl = stateVariables["/pl"].stateValues.numericalVertices;
+        pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
         actual_slope = (pl[0][1] - pl[2][1]) / (pl[0][0] - pl[2][0]);
 
         expect(actual_slope).closeTo(desired_slope, 0.05);
@@ -1242,7 +1504,7 @@ describe("StickyGroup tag tests", async () => {
 
         // missing edge of polyline does not attract to polygon vertex
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: {
                 1: [2.1, 4.3],
             },
@@ -1255,20 +1517,22 @@ describe("StickyGroup tag tests", async () => {
         moveY = 0;
 
         desired_vertices = stateVariables[
-            "/pl"
+            resolveComponentName("pl")
         ].stateValues.numericalVertices.map((vertex) => [
             vertex[0] + moveX,
             vertex[1] + moveY,
         ]);
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: desired_vertices,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pl = stateVariables["/pl"].stateValues.numericalVertices;
+        pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
 
         // expect point [5,4] of polygon 2 to be nearly but not quite colinear
         // with the first and last vertex (so would have attracted if edge existed)
@@ -1280,7 +1544,7 @@ describe("StickyGroup tag tests", async () => {
 
         // rotate polyline to have vertical edge
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: {
                 1: [2.3, 6.3],
             },
@@ -1289,14 +1553,16 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pl = stateVariables["/pl"].stateValues.numericalVertices;
+        pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
 
         // edge should be vertical
         expect(pl[2][0]).closeTo(pl[1][0], 1e-12);
 
         // polyline's missing edge does not snap to vertical
         await movePolyline({
-            name: "/pl",
+            componentIdx: resolveComponentName("pl"),
             pointCoords: {
                 1: [5.8, 4.8],
             },
@@ -1305,7 +1571,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pl = stateVariables["/pl"].stateValues.numericalVertices;
+        pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
 
         // edge should be vertical
         expect(pl[2][0]).closeTo(pl[0][0], 0.1);
@@ -1313,15 +1581,19 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon vertex so edge attracts to polyline vertex
         await movePolygon({
-            name: "/pg",
+            componentIdx: resolveComponentName("pg"),
             pointCoords: { 0: [0, 2.4] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pl = stateVariables["/pl"].stateValues.numericalVertices;
-        let pg = stateVariables["/pg"].stateValues.numericalVertices;
+        pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
+        let pg =
+            stateVariables[resolveComponentName("pg")].stateValues
+                .numericalVertices;
 
         // vertex 2 of pg1 should be along edge of vertices of 2 and 3 of pg2
         slope1 = (pg[1][1] - pg[0][1]) / (pg[1][0] - pg[0][0]);
@@ -1335,13 +1607,15 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon vertex so edge almost attracts to polyline vertex
         await movePolygon({
-            name: "/pg",
+            componentIdx: resolveComponentName("pg"),
             pointCoords: { 0: [0, 2.2] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg = stateVariables["/pg"].stateValues.numericalVertices;
+        pg =
+            stateVariables[resolveComponentName("pg")].stateValues
+                .numericalVertices;
 
         // vertex did not attract
         expect(pg[0][0]).closeTo(0, 1e-10);
@@ -1349,13 +1623,15 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon vertex so almost attracts to polyline edge
         await movePolygon({
-            name: "/pg",
+            componentIdx: resolveComponentName("pg"),
             pointCoords: { 0: [4.4, 3.1] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        pg = stateVariables["/pg"].stateValues.numericalVertices;
+        pg =
+            stateVariables[resolveComponentName("pg")].stateValues
+                .numericalVertices;
 
         // vertex did not attract
         expect(pg[0][0]).closeTo(4.4, 1e-10);
@@ -1363,15 +1639,19 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon vertex closer so does attract to polyline edge
         await movePolygon({
-            name: "/pg",
+            componentIdx: resolveComponentName("pg"),
             pointCoords: { 0: [4.4, 3.3] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pl = stateVariables["/pl"].stateValues.numericalVertices;
-        pg = stateVariables["/pg"].stateValues.numericalVertices;
+        pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
+        pg =
+            stateVariables[resolveComponentName("pg")].stateValues
+                .numericalVertices;
 
         // vertex 1 of pg should be along edge of vertices of 1 and 2 of pg
         slope1 = (pl[1][1] - pl[0][1]) / (pl[1][0] - pl[0][0]);
@@ -1381,15 +1661,19 @@ describe("StickyGroup tag tests", async () => {
 
         // move polygon vertex does not attract missing polyline edge
         await movePolygon({
-            name: "/pg",
+            componentIdx: resolveComponentName("pg"),
             pointCoords: { 0: [2.8, 5.2] },
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pl = stateVariables["/pl"].stateValues.numericalVertices;
-        pg = stateVariables["/pg"].stateValues.numericalVertices;
+        pl =
+            stateVariables[resolveComponentName("pl")].stateValues
+                .numericalVertices;
+        pg =
+            stateVariables[resolveComponentName("pg")].stateValues
+                .numericalVertices;
 
         // vertex 1 of pg should close but not exactly along edge of vertices of 1 and 3 of pg
         let invslope1 = (pl[2][0] - pl[0][0]) / (pl[2][1] - pl[0][1]);
@@ -1404,7 +1688,7 @@ describe("StickyGroup tag tests", async () => {
     });
 
     it("attract line segments", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
         <graph name="g1">
             <stickyGroup name="sg">
@@ -1417,42 +1701,48 @@ describe("StickyGroup tag tests", async () => {
 
         // move endpoint of segment 1 to attract to edge of segment 2
         await moveLineSegment({
-            name: "/ls1",
+            componentIdx: resolveComponentName("ls1"),
             point1coords: [-2.2, 2.8],
             core,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+        let ls1 =
+            stateVariables[resolveComponentName("ls1")].stateValues
+                .numericalEndpoints;
 
         expect(ls1[0][0]).closeTo(-2, 1e-12);
         expect(ls1[0][1]).closeTo(3, 1e-12);
 
         // move endpoint of segment 1 further away so does not attract to edge of segment 2
         await moveLineSegment({
-            name: "/ls1",
+            componentIdx: resolveComponentName("ls1"),
             point1coords: [-2.5, 2.5],
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+        ls1 =
+            stateVariables[resolveComponentName("ls1")].stateValues
+                .numericalEndpoints;
 
         expect(ls1[0][0]).closeTo(-2.5, 1e-12);
         expect(ls1[0][1]).closeTo(2.5, 1e-12);
 
         // move endpoint of segment 1 so edge attracts to endpoint of segment 2
         await moveLineSegment({
-            name: "/ls1",
+            componentIdx: resolveComponentName("ls1"),
             point1coords: [-3.2, 1.2],
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+        ls1 =
+            stateVariables[resolveComponentName("ls1")].stateValues
+                .numericalEndpoints;
 
         let desired_slope = 0.5;
         let actual_slope = (ls1[1][1] - ls1[0][1]) / (ls1[1][0] - ls1[0][0]);
@@ -1461,38 +1751,48 @@ describe("StickyGroup tag tests", async () => {
 
         // move endpoint of segment 1 so edge no longer attracts to endpoint of segment 2
         await moveLineSegment({
-            name: "/ls1",
+            componentIdx: resolveComponentName("ls1"),
             point1coords: [-3.4, 1.4],
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+        ls1 =
+            stateVariables[resolveComponentName("ls1")].stateValues
+                .numericalEndpoints;
 
         expect(ls1[0][0]).closeTo(-3.4, 1e-12);
         expect(ls1[0][1]).closeTo(1.4, 1e-12);
 
         // extension of edge of segment 1 does not attract to endpoint of segment 2
-        await moveLineSegment({ name: "/ls1", point1coords: [0, 2.45], core });
+        await moveLineSegment({
+            componentIdx: resolveComponentName("ls1"),
+            point1coords: [0, 2.45],
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+        ls1 =
+            stateVariables[resolveComponentName("ls1")].stateValues
+                .numericalEndpoints;
 
         expect(ls1[0][0]).closeTo(0, 1e-12);
         expect(ls1[0][1]).closeTo(2.45, 1e-12);
 
         // move endpoint of segment 1 so attracts to endpoint of segment 2
         await moveLineSegment({
-            name: "/ls1",
+            componentIdx: resolveComponentName("ls1"),
             point1coords: [-2.8, 4.2],
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+        ls1 =
+            stateVariables[resolveComponentName("ls1")].stateValues
+                .numericalEndpoints;
 
         expect(ls1[0][0]).closeTo(-3, 1e-12);
         expect(ls1[0][1]).closeTo(4, 1e-12);
@@ -1501,7 +1801,7 @@ describe("StickyGroup tag tests", async () => {
         let dx = 0.2;
         let dy = 0.2;
         await moveLineSegment({
-            name: "/ls2",
+            componentIdx: resolveComponentName("ls2"),
             point1coords: [-2 + dx, 3 + dy],
             point2coords: [-4 + dx, 5 + dy],
             core,
@@ -1509,7 +1809,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        let ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+        let ls2 =
+            stateVariables[resolveComponentName("ls2")].stateValues
+                .numericalEndpoints;
 
         expect(ls2[0][0]).closeTo(-2, 1e-12);
         expect(ls2[0][1]).closeTo(3, 1e-12);
@@ -1520,7 +1822,7 @@ describe("StickyGroup tag tests", async () => {
         dx = 0.4;
         dy = 0.4;
         await moveLineSegment({
-            name: "/ls2",
+            componentIdx: resolveComponentName("ls2"),
             point1coords: [-2 + dx, 3 + dy],
             point2coords: [-4 + dx, 5 + dy],
             core,
@@ -1528,7 +1830,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+        ls2 =
+            stateVariables[resolveComponentName("ls2")].stateValues
+                .numericalEndpoints;
 
         expect(ls2[0][0]).closeTo(-2 + dx, 1e-12);
         expect(ls2[0][1]).closeTo(3 + dy, 1e-12);
@@ -1539,7 +1843,7 @@ describe("StickyGroup tag tests", async () => {
         dx = 0.0;
         dy = 0.4;
         await moveLineSegment({
-            name: "/ls2",
+            componentIdx: resolveComponentName("ls2"),
             point1coords: [-1 + dx, 4 + dy],
             point2coords: [-3 + dx, 6 + dy],
             core,
@@ -1547,7 +1851,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+        ls2 =
+            stateVariables[resolveComponentName("ls2")].stateValues
+                .numericalEndpoints;
 
         expect(ls2[0][0]).closeTo(-1, 1e-12);
         expect(ls2[0][1]).closeTo(4, 1e-12);
@@ -1558,7 +1864,7 @@ describe("StickyGroup tag tests", async () => {
         dx = 0.0;
         dy = 0.6;
         await moveLineSegment({
-            name: "/ls2",
+            componentIdx: resolveComponentName("ls2"),
             point1coords: [-1 + dx, 4 + dy],
             point2coords: [-3 + dx, 6 + dy],
             core,
@@ -1566,7 +1872,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+        ls2 =
+            stateVariables[resolveComponentName("ls2")].stateValues
+                .numericalEndpoints;
 
         expect(ls2[0][0]).closeTo(-1 + dx, 1e-12);
         expect(ls2[0][1]).closeTo(4 + dy, 1e-12);
@@ -1577,7 +1885,7 @@ describe("StickyGroup tag tests", async () => {
         dx = 0.2;
         dy = 0.3;
         await moveLineSegment({
-            name: "/ls2",
+            componentIdx: resolveComponentName("ls2"),
             point1coords: [3 + dx, 4 + dy],
             point2coords: [1 + dx, 6 + dy],
             core,
@@ -1585,7 +1893,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+        ls2 =
+            stateVariables[resolveComponentName("ls2")].stateValues
+                .numericalEndpoints;
 
         expect(ls2[0][0]).closeTo(3, 1e-12);
         expect(ls2[0][1]).closeTo(4, 1e-12);
@@ -1596,7 +1906,7 @@ describe("StickyGroup tag tests", async () => {
         dx = 0.5;
         dy = 0.3;
         await moveLineSegment({
-            name: "/ls2",
+            componentIdx: resolveComponentName("ls2"),
             point1coords: [3 + dx, 4 + dy],
             point2coords: [1 + dx, 6 + dy],
             core,
@@ -1604,7 +1914,9 @@ describe("StickyGroup tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+        ls2 =
+            stateVariables[resolveComponentName("ls2")].stateValues
+                .numericalEndpoints;
 
         expect(ls2[0][0]).closeTo(3 + dx, 1e-12);
         expect(ls2[0][1]).closeTo(4 + dy, 1e-12);

@@ -241,6 +241,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -253,12 +254,18 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             return {
                 replacements: [
                     {
+                        type: "serialized",
                         componentType: "_error",
+                        componentIdx: nComponents++,
                         state: { message: errorMessage },
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
                     },
                 ],
                 errors,
                 warnings,
+                nComponents,
             };
         }
 
@@ -266,8 +273,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         for (let value of await component.stateValues.selectedValues) {
             replacements.push({
+                type: "serialized",
                 componentType: "integer",
+                componentIdx: nComponents++,
                 state: { value, fixed: true },
+                attributes: {},
+                doenetAttributes: {},
+                children: [],
             });
         }
 
@@ -275,11 +287,12 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static calculateReplacementChanges() {
-        return [];
+        return { replacementChanges: [] };
     }
 
     static determineNumberOfUniqueVariants({ serializedComponent }) {
