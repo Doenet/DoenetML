@@ -150,7 +150,7 @@ describe("DAST", async () => {
                         "value": "foo",
                       },
                       {
-                        "attributes": [],
+                        "attributes": {},
                         "children": [
                           {
                             "type": "text",
