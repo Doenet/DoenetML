@@ -326,7 +326,7 @@ export async function focusPoint({
     await core.requestAction({
         componentIdx,
         actionName: "pointFocused",
-        args: { name: componentIdx },
+        args: { componentIdx },
     });
 }
 
@@ -340,7 +340,7 @@ export async function clickPoint({
     await core.requestAction({
         componentIdx,
         actionName: "pointClicked",
-        args: { name: componentIdx },
+        args: { componentIdx },
     });
 }
 

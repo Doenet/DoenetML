@@ -4,7 +4,6 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import styled from "styled-components";
-import { cesc } from "@doenet/utils";
 
 const RefButton = styled.button`
     position: relative;
