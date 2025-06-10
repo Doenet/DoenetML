@@ -513,7 +513,10 @@ export default class NumberComponent extends InlineComponent {
                                 },
                             };
                         }
-                        let number = Number(dependencyValues.stringChild[0]);
+                        // Convert string child to number, but don't let empty string be converted to 0
+                        let number = Number(
+                            dependencyValues.stringChild[0] || undefined,
+                        );
                         if (Number.isNaN(number)) {
                             try {
                                 number = me

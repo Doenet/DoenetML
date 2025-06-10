@@ -183,12 +183,7 @@ export async function verifyReplacementsMatchSpecifiedType({
 
     if (!replacementChanges) {
         // if have a group, filter out blank strings
-        if (
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: component.componentType,
-                baseComponentType: "group",
-            })
-        ) {
+        if (component.componentType === "group") {
             replacements = replacements.filter(
                 (x) => x.componentType || x.trim().length > 0,
             );
@@ -274,10 +269,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         if (
             replacements?.length === 1 &&
             requiredLength === 1 &&
-            (componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: replacements[0].componentType,
-                baseComponentType: "group",
-            }) ||
+            (replacements[0].componentType === "group" ||
                 replacements[0].componentType === "_copy")
         ) {
             if (!replacements[0].attributes) {
@@ -317,12 +309,8 @@ export async function verifyReplacementsMatchSpecifiedType({
             replacementChanges[0].changeType === "add" &&
             replacementChanges[0].changeTopLevelReplacements &&
             replacementChanges[0].serializedReplacements.length === 1 &&
-            (componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType:
-                    replacementChanges[0].serializedReplacements[0]
-                        .componentType,
-                baseComponentType: "group",
-            }) ||
+            (replacementChanges[0].serializedReplacements[0].componentType ==
+                "group" ||
                 replacementChanges[0].serializedReplacements[0]
                     .componentType === "_copy") &&
             requiredLength === 1 &&
@@ -788,10 +776,7 @@ export function addAttributesToSingleReplacement(
         // where it received the `createComponentIdx` attribute from the copy already,
         // then don't also give it the name and index
         if (
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: replacements[0].componentType,
-                baseComponentType: "group",
-            }) ||
+            replacements[0].componentType === "group" ||
             replacements[0].componentType === "_copy"
         ) {
             if (replacements[0].attributes?.createComponentIdx != null) {
@@ -896,10 +881,7 @@ export function addAttributesToSingleReplacementChange(
             // where it received the `createComponentIdx` attribute from the copy already,
             // then don't also give it the name and index
             if (
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: theNewReplacement.componentType,
-                    baseComponentType: "group",
-                }) ||
+                theNewReplacement.componentType === "group" ||
                 theNewReplacement.componentType === "_copy"
             ) {
                 if (theNewReplacement.attributes?.createComponentIdx != null) {

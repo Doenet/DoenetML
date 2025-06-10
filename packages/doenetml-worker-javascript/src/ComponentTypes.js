@@ -136,7 +136,7 @@ import CallAction from "./components/CallAction";
 import TriggerSet from "./components/TriggerSet";
 import FunctionIterates from "./components/FunctionIterates";
 import Module from "./components/Module";
-import CustomAttribute from "./components/CustomAttribute";
+import ModuleAttributes from "./components/ModuleAttributes";
 import Setup from "./components/Setup";
 import Footnote from "./components/Footnote";
 import Caption from "./components/Caption";
@@ -329,7 +329,7 @@ const componentTypeArray = [
     TriggerSet,
     FunctionIterates,
     Module,
-    CustomAttribute,
+    ModuleAttributes,
     Setup,
     Footnote,
     Caption,

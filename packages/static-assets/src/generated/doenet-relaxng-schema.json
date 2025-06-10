@@ -192,6 +192,7 @@
         "triggerSet",
         "functionIterates",
         "module",
+        "moduleAttributes",
         "setup",
         "footnote",
         "caption",
@@ -3851,6 +3852,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -4634,6 +4638,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -5415,6 +5422,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -37002,6 +37012,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -37966,6 +37979,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "footnote"
@@ -38934,6 +38950,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -39898,6 +39917,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "footnote"
@@ -40887,6 +40909,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -41858,6 +41883,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -42822,6 +42850,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "footnote"
@@ -43790,6 +43821,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -44754,6 +44788,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "footnote"
@@ -45722,6 +45759,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -46686,6 +46726,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "footnote"
@@ -47654,6 +47697,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -48620,6 +48666,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -49584,6 +49633,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "footnote"
@@ -50572,6 +50624,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -51537,6 +51592,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "footnote"
                 },
                 {
@@ -52495,6 +52553,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "footnote"
@@ -53652,6 +53713,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -60405,6 +60469,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -62006,6 +62073,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -62787,6 +62857,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -63572,6 +63645,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -64353,6 +64429,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -65162,6 +65241,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -67119,6 +67201,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "footnote"
@@ -71944,6 +72029,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -85228,6 +85316,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -89907,6 +89998,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -91717,6 +91811,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -95024,6 +95121,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -95848,6 +95948,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -100127,6 +100230,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -102487,6 +102593,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -104349,6 +104458,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -106222,6 +106334,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -106998,6 +107113,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -107788,6 +107906,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -109681,6 +109802,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -109800,9 +109924,9 @@
                 }
             ]
         },
-        "customAttribute": {
+        "moduleAttributes": {
             "type": "element",
-            "name": "customAttribute",
+            "name": "moduleAttributes",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -109856,28 +109980,683 @@
                         "true",
                         "false"
                     ]
-                },
-                "componentType": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "attribute": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "defaultValue": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
                 }
             },
-            "children": [],
-            "textChildrenAllowed": false,
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "xlabel"
+                },
+                {
+                    "ref": "ylabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "topic"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "h"
+                },
+                {
+                    "ref": "idx"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "markers"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intcomma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "dataFrame"
+                },
+                {
+                    "ref": "summaryStatistics"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "contentPicker"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
             "properties": [
                 {
                     "name": "hide",
@@ -110556,6 +111335,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -110644,9 +111426,6 @@
                 },
                 {
                     "ref": "vectorList"
-                },
-                {
-                    "ref": "customAttribute"
                 }
             ],
             "textChildrenAllowed": true,
@@ -113163,6 +113942,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -113947,6 +114729,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -116147,6 +116932,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -117944,6 +118732,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
@@ -122569,6 +123360,9 @@
                     "ref": "module"
                 },
                 {
+                    "ref": "moduleAttributes"
+                },
+                {
                     "ref": "setup"
                 },
                 {
@@ -123369,6 +124163,9 @@
                 },
                 {
                     "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
                 },
                 {
                     "ref": "setup"
