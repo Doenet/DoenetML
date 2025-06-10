@@ -30,7 +30,10 @@ export default class OrbitalDiagram extends BlockComponent {
     static returnSugarInstructions() {
         let sugarInstructions = [
             {
-                replacementFunction: function ({ matchedChildren }) {
+                replacementFunction: function ({
+                    matchedChildren,
+                    nComponents,
+                }) {
                     if (
                         matchedChildren.length === 1 &&
                         typeof matchedChildren[0] !== "string"
@@ -42,10 +45,16 @@ export default class OrbitalDiagram extends BlockComponent {
                         success: true,
                         newChildren: [
                             {
+                                type: "serialized",
                                 componentType: "tupleList",
+                                componentIdx: nComponents++,
                                 children: matchedChildren,
+                                attributes: {},
+                                doenetAttributes: {},
+                                state: {},
                             },
                         ],
+                        nComponents,
                     };
                 },
             },
