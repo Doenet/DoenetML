@@ -34,8 +34,16 @@ const Button = styled.button`
 `;
 
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
-    let { name, id, SVs, docId, activityId, actions, children, callAction } =
-        useDoenetRenderer(props);
+    let {
+        componentIdx,
+        id,
+        SVs,
+        docId,
+        activityId,
+        actions,
+        children,
+        callAction,
+    } = useDoenetRenderer(props);
 
     const { showAnswerResponseMenu, answerResponseCounts } =
         useContext(DocContext) || {};
@@ -63,7 +71,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
 
     let inputChildrenToRender = null;
     if (SVs.inputChildren.length > 0) {
-        let inputChildNames = SVs.inputChildren.map((x) => x.componentIdx);
+        let inputChildNames = SVs.inputChildren.map((x: any) => x.componentIdx);
         inputChildrenToRender = children.filter(
             //child might be null or a string
             (child) =>
@@ -76,14 +84,16 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         );
     }
 
+    // XXX: we need to send in actual name of the answer to the renderer
+    // so that can also be sent to the menu here
     let answerResponseMenu = null;
     if (showAnswerResponseMenu) {
         answerResponseMenu = (
             <AnswerResponseMenu
-                answerId={name}
+                answerId={componentIdx}
                 docId={docId}
                 activityId={activityId}
-                numResponses={answerResponseCounts?.[name]}
+                numResponses={answerResponseCounts?.[componentIdx]}
             />
         );
     }

@@ -16,7 +16,7 @@ const VideoStyling = styled.div`
 `;
 
 export default React.memo(function Video(props) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
 
     let player = useRef(null);
     let postSkipTime = useRef(null);

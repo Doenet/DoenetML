@@ -9,7 +9,7 @@ import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function Label(props) {
-    let { name, id, SVs, children, actions, callAction } =
+    let { componentIdx, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
     Label.ignoreActionsWithoutCore = () => true;
@@ -143,7 +143,7 @@ export default React.memo(function Label(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.labelFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -153,7 +153,7 @@ export default React.memo(function Label(props) {
             dragged.current = false;
             callAction({
                 action: actions.labelFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -170,7 +170,7 @@ export default React.memo(function Label(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.labelClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -303,7 +303,7 @@ export default React.memo(function Label(props) {
                 }
                 callAction({
                     action: actions.labelClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });

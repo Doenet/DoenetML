@@ -42,16 +42,8 @@ const Button = styled.button`
 `;
 
 export default function MathInput(props: UseDoenetRendererProps) {
-    let {
-        name,
-        id,
-        SVs,
-        actions,
-        sourceOfUpdate,
-        ignoreUpdate,
-        rendererName,
-        callAction,
-    } = useDoenetRenderer(props);
+    let { id, SVs, actions, sourceOfUpdate, ignoreUpdate, callAction } =
+        useDoenetRenderer(props);
 
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";

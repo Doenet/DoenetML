@@ -37,17 +37,8 @@ const Button = styled.button`
 `;
 
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
-    let {
-        name,
-        id,
-        SVs,
-        actions,
-        children,
-        sourceOfUpdate,
-        ignoreUpdate,
-        rendererName,
-        callAction,
-    } = useDoenetRenderer(props);
+    let { id, SVs, actions, children, ignoreUpdate, callAction } =
+        useDoenetRenderer(props);
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";

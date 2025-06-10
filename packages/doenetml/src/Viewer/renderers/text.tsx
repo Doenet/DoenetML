@@ -8,7 +8,7 @@ import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function Text(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     Text.ignoreActionsWithoutCore = () => true;
@@ -141,7 +141,7 @@ export default React.memo(function Text(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.textFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -151,7 +151,7 @@ export default React.memo(function Text(props) {
             dragged.current = false;
             callAction({
                 action: actions.textFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -168,7 +168,7 @@ export default React.memo(function Text(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.textClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -301,7 +301,7 @@ export default React.memo(function Text(props) {
                 }
                 callAction({
                     action: actions.textClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });

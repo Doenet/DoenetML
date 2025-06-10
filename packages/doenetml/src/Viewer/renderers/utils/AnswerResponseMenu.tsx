@@ -8,12 +8,13 @@ export function AnswerResponseMenu({
     docId,
     numResponses = 0,
 }: {
-    answerId: string;
+    answerId: number;
     activityId: string;
     docId: string;
     numResponses?: number;
 }) {
-    const modifiedId = answerId[0] === "/" ? answerId.substring(1) : answerId;
+    // XXX: we need to send in the actual answer name, as displaying the component index is not useful for instructors
+    const modifiedId = answerId;
     return (
         <MenuProvider>
             <MenuButton className="doenet-button action-button answer-response-menu-trigger">

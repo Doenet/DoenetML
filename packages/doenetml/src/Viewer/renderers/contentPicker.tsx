@@ -8,16 +8,8 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 export default React.memo(function ContentPicker(
     props: UseDoenetRendererProps,
 ) {
-    let {
-        name,
-        id,
-        SVs,
-        children,
-        actions,
-        ignoreUpdate,
-        rendererName,
-        callAction,
-    } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, ignoreUpdate, callAction } =
+        useDoenetRenderer(props);
 
     // @ts-ignore
     ContentPicker.baseStateVariable = "selectedIndices";

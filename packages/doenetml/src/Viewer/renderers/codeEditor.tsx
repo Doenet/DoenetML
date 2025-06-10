@@ -8,16 +8,9 @@ import { useInView } from "framer-motion";
 import { EditorViewer } from "../../EditorViewer/EditorViewer";
 
 export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
-    let {
-        name,
-        id,
-        SVs,
-        children,
-        actions,
-        ignoreUpdate,
-        rendererName,
-        callAction,
-    } = useDoenetRenderer(props) as any;
+    let { id, SVs, actions, ignoreUpdate, callAction } = useDoenetRenderer(
+        props,
+    ) as any;
 
     // @ts-ignore
     CodeEditor.baseStateVariable = "immediateValue";

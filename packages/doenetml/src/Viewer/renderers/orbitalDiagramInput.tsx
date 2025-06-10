@@ -14,7 +14,7 @@ const Box = styled.svg`
 `;
 
 export default React.memo(function orbitalDiagramInput(props) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
     // console.log("orbitalDiagramInput SVs ", SVs);
 
     let selectedRowIndex0 = SVs.selectedRowIndex - 1;

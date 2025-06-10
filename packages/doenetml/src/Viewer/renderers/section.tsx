@@ -35,9 +35,7 @@ const Button = styled.button`
 `;
 
 export default React.memo(function Section(props) {
-    let { name, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props);
-    // console.log("name: ", name, " SVs: ", SVs," Children",children);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
 
     const ref = useRef(null);
 

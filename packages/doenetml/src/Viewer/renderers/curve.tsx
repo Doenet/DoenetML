@@ -12,7 +12,7 @@ import {
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function Curve(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     Curve.ignoreActionsWithoutCore = () => true;
@@ -232,7 +232,7 @@ export default React.memo(function Curve(props) {
                 }
                 callAction({
                     action: actions.curveClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -247,7 +247,7 @@ export default React.memo(function Curve(props) {
                 }
                 callAction({
                     action: actions.curveClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -264,7 +264,7 @@ export default React.memo(function Curve(props) {
                 if (!fixed.current) {
                     callAction({
                         action: actions.curveFocused,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 }
             });
@@ -274,7 +274,7 @@ export default React.memo(function Curve(props) {
 
                 callAction({
                     action: actions.curveFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             });
 
@@ -351,7 +351,7 @@ export default React.memo(function Curve(props) {
                 if (!fixed.current) {
                     callAction({
                         action: actions.curveFocused,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 }
             });
@@ -359,7 +359,7 @@ export default React.memo(function Curve(props) {
             newCurveJXG.on("hit", function (e) {
                 callAction({
                     action: actions.curveFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             });
         }
@@ -1092,15 +1092,16 @@ export default React.memo(function Curve(props) {
 
             if (
                 sourceOfUpdate.sourceInformation &&
-                name in sourceOfUpdate.sourceInformation
+                componentIdx in sourceOfUpdate.sourceInformation
             ) {
                 let ind =
-                    sourceOfUpdate.sourceInformation[name].throughPointMoved;
+                    sourceOfUpdate.sourceInformation[componentIdx]
+                        .throughPointMoved;
                 if (ind !== undefined) {
                     board.updateInfobox(throughPointsJXG.current[ind]);
                 } else {
                     ind =
-                        sourceOfUpdate.sourceInformation[name]
+                        sourceOfUpdate.sourceInformation[componentIdx]
                             .controlVectorMoved;
                     if (ind !== undefined) {
                         board.updateInfobox(

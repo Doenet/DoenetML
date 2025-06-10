@@ -110,9 +110,9 @@ export default class BaseComponent {
         return this.constructor.componentType;
     }
 
-    get componentOrAdaptedName() {
+    get componentOrAdaptedIdx() {
         if (this.adaptedFrom) {
-            return this.adaptedFrom.componentOrAdaptedName;
+            return this.adaptedFrom.componentIdx;
         } else {
             return this.componentIdx;
         }

@@ -10,7 +10,7 @@ import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function NumberComponent(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     NumberComponent.ignoreActionsWithoutCore = () => true;
@@ -142,7 +142,7 @@ export default React.memo(function NumberComponent(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.numberFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -152,7 +152,7 @@ export default React.memo(function NumberComponent(props) {
             dragged.current = false;
             callAction({
                 action: actions.numberFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -169,7 +169,7 @@ export default React.memo(function NumberComponent(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.numberClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -302,7 +302,7 @@ export default React.memo(function NumberComponent(props) {
                 }
                 callAction({
                     action: actions.numberClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });

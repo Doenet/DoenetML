@@ -65,16 +65,8 @@ const Input = styled.input`
 `;
 
 export default function TextInput(props: UseDoenetRendererProps) {
-    let {
-        name,
-        id,
-        SVs,
-        actions,
-        sourceOfUpdate,
-        ignoreUpdate,
-        rendererName,
-        callAction,
-    } = useDoenetRenderer(props);
+    let { id, SVs, actions, ignoreUpdate, callAction } =
+        useDoenetRenderer(props);
 
     let width = sizeToCSS(SVs.width);
     let height = sizeToCSS(SVs.height); // only for TextArea

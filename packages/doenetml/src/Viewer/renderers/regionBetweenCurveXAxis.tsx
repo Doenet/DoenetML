@@ -6,7 +6,7 @@ import { createFunctionFromDefinition } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function RegionBetweenCurveXAxis(props) {
-    let { name, id, SVs } = useDoenetRenderer(props);
+    let { id, SVs } = useDoenetRenderer(props);
 
     RegionBetweenCurveXAxis.ignoreActionsWithoutCore = () => true;
 

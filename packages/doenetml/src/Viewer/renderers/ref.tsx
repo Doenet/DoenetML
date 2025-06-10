@@ -37,7 +37,7 @@ const RefButton = styled.button`
 `;
 
 export default React.memo(function Ref(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer(props);
 
     let { linkSettings } = useContext(DocContext) || {};
 

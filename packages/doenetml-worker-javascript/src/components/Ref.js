@@ -390,7 +390,7 @@ export default class Ref extends InlineComponent {
         let uri = await this.stateValues.uri;
         let targetIdx = await this.stateValues.targetIdx;
 
-        let effectiveName = this.componentOrAdaptedName;
+        let effectiveIdx = this.componentOrAdaptedIdx;
 
         this.coreFunctions.navigateToTarget({
             cid,
@@ -402,7 +402,7 @@ export default class Ref extends InlineComponent {
             targetIdx,
             actionId,
             componentIdx: this.componentIdx,
-            effectiveName,
+            effectiveIdx,
         });
     }
 }

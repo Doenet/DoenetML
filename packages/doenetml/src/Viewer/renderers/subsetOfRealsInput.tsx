@@ -32,10 +32,7 @@ const TextNoSelect = styled.text`
 // `;
 
 export default React.memo(function subsetOfReals(props) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(
-        props,
-        false,
-    );
+    let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
     let [mode, setMode] = useState("add remove points");
     let bounds = useRef(null);
     let pointGrabbed = useRef(null);

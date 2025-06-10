@@ -5,7 +5,7 @@ import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function LineSegment(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     LineSegment.ignoreActionsWithoutCore = () => true;
@@ -197,7 +197,7 @@ export default React.memo(function LineSegment(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.lineSegmentClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             downOnPoint.current = null;
@@ -214,7 +214,7 @@ export default React.memo(function LineSegment(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.lineSegmentClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             downOnPoint.current = null;
@@ -237,7 +237,7 @@ export default React.memo(function LineSegment(props) {
                 // Note: counting on fact that up on line segment will trigger before up on points
                 callAction({
                     action: actions.lineSegmentClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -287,7 +287,7 @@ export default React.memo(function LineSegment(props) {
             if (!endpointsFixed.current) {
                 callAction({
                     action: actions.lineSegmentFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -295,7 +295,7 @@ export default React.memo(function LineSegment(props) {
             draggedPoint.current = null;
             callAction({
                 action: actions.lineSegmentFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
         point2JXG.current.on("down", (e) => {
@@ -307,7 +307,7 @@ export default React.memo(function LineSegment(props) {
             if (!endpointsFixed.current) {
                 callAction({
                     action: actions.lineSegmentFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -315,7 +315,7 @@ export default React.memo(function LineSegment(props) {
             draggedPoint.current = null;
             callAction({
                 action: actions.lineSegmentFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
         lineSegmentJXG.current.on("down", function (e) {
@@ -332,7 +332,7 @@ export default React.memo(function LineSegment(props) {
                 // Note: counting on fact that down on line segment itself will trigger after down on points
                 callAction({
                     action: actions.lineSegmentFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -340,7 +340,7 @@ export default React.memo(function LineSegment(props) {
             draggedPoint.current = null;
             callAction({
                 action: actions.lineSegmentFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -357,7 +357,7 @@ export default React.memo(function LineSegment(props) {
                 draggedPoint.current = null;
                 callAction({
                     action: actions.lineSegmentClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -375,7 +375,7 @@ export default React.memo(function LineSegment(props) {
                 draggedPoint.current = null;
                 callAction({
                     action: actions.lineSegmentClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -394,7 +394,7 @@ export default React.memo(function LineSegment(props) {
                 draggedPoint.current = null;
                 callAction({
                     action: actions.lineSegmentClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -586,9 +586,10 @@ export default React.memo(function LineSegment(props) {
 
             if (
                 sourceOfUpdate.sourceInformation &&
-                name in sourceOfUpdate.sourceInformation
+                componentIdx in sourceOfUpdate.sourceInformation
             ) {
-                let ind = sourceOfUpdate.sourceInformation[name].endpoint;
+                let ind =
+                    sourceOfUpdate.sourceInformation[componentIdx].endpoint;
                 if (ind === 1) {
                     board.updateInfobox(lineSegmentJXG.current.point1);
                 } else if (ind === 2) {

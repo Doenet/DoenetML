@@ -7,7 +7,7 @@ import { addCommasForCompositeRanges } from "./utils/composites";
 export default React.memo(function ContainerInline(
     props: UseDoenetRendererProps,
 ) {
-    let { name, id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer(props);
 
     if (SVs.hidden) {
         return null;

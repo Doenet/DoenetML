@@ -14,7 +14,7 @@ import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 export default React.memo(function MathComponent(
     props: UseDoenetRendererProps,
 ) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     // @ts-ignore
@@ -174,7 +174,7 @@ export default React.memo(function MathComponent(
             if (!fixed.current) {
                 callAction({
                     action: actions.mathFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -190,7 +190,7 @@ export default React.memo(function MathComponent(
             dragged.current = false;
             callAction({
                 action: actions.mathFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -207,7 +207,7 @@ export default React.memo(function MathComponent(
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.mathClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -339,7 +339,7 @@ export default React.memo(function MathComponent(
                 }
                 callAction({
                     action: actions.mathClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });

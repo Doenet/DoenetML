@@ -13,9 +13,8 @@ import { JXGObject } from "./jsxgraph-distrib/types";
 export const BoardContext = createContext<JXGObject | null>();
 
 export default React.memo(function Graph(props) {
-    let { name, id, SVs, children, ignoreUpdate, actions, callAction } =
+    let { id, SVs, children, ignoreUpdate, actions, callAction } =
         useDoenetRenderer(props);
-    // console.log({ name, id, SVs, children, actions })
 
     Graph.baseStateVariable = "boundingbox";
 

@@ -25,8 +25,7 @@ const SpanStyling = styled.span`
 `;
 
 export default React.memo(function Solution(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
 
     const ref = useRef(null);
 

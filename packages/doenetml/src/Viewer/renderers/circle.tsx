@@ -20,7 +20,8 @@ import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function Circle(props: UseDoenetRendererProps) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
+    let { componentIdx, id, SVs, actions, callAction } =
+        useDoenetRenderer(props);
 
     // @ts-ignore
     Circle.ignoreActionsWithoutCore = () => true;
@@ -298,7 +299,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.circleClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -332,7 +333,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             if (!fixed.current) {
                 callAction({
                     action: actions.circleFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -347,7 +348,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             throughAnglesAtDown.current = [...throughAnglesFromCore.current!];
             callAction({
                 action: actions.circleFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -366,7 +367,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 }
                 callAction({
                     action: actions.circleClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -415,7 +416,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.circleClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -487,7 +488,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             if (!fixed.current) {
                 callAction({
                     action: actions.circleFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -504,7 +505,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             ] as [number, number];
             callAction({
                 action: actions.circleFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -523,7 +524,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 }
                 callAction({
                     action: actions.circleClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });

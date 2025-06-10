@@ -10,7 +10,7 @@ import { createFunctionFromDefinition } from "@doenet/utils";
 export default React.memo(function CobwebPolyline(
     props: UseDoenetRendererProps,
 ) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     CobwebPolyline.ignoreActionsWithoutCore = () => true;
@@ -390,10 +390,10 @@ export default React.memo(function CobwebPolyline(
 
             if (
                 sourceOfUpdate.sourceInformation &&
-                name in sourceOfUpdate.sourceInformation
+                componentIdx in sourceOfUpdate.sourceInformation
             ) {
                 let vertexUpdated =
-                    sourceOfUpdate.sourceInformation[name].vertex;
+                    sourceOfUpdate.sourceInformation[componentIdx].vertex;
 
                 if (Number.isFinite(vertexUpdated)) {
                     board.updateInfobox(pointsJXG.current[vertexUpdated]);
