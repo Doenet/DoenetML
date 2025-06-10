@@ -977,6 +977,26 @@ describe("Line tag tests", async () => {
         });
     });
 
+    it("parallel to string expression", async () => {
+        const { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+    <graph>
+        <line name="l" parallelTo="(1,-1)" />
+    </graph>
+  `,
+        });
+
+        // just checking if direction component sugar is correctly.
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[
+                resolveComponentName("l")
+            ].stateValues.slope.evaluate_to_constant(),
+        ).eq(-1);
+    });
+
     it("just parallel to expression", async () => {
         const { core, resolveComponentName } = await setupScene({
             lineProperties: `parallelTo="$parallelTo"`,

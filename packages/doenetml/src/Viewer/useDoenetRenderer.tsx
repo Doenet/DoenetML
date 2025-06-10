@@ -104,8 +104,6 @@ export default function useDoenetRenderer(
                 setRenderersToLoad((old: Promise<any>[]) => {
                     let rendererPromises = { ...old };
                     if (!(childInstructions.rendererType in rendererPromises)) {
-                        // XXX: these import file extensions aren't correct for components that have been converted to .tsx
-                        // but this shouldn't really be used right now. It should be cleaned up at some point.
                         rendererPromises[childInstructions.rendererType] =
                             import(
                                 `./renderers/${childInstructions.rendererType}.tsx`
