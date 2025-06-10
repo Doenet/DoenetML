@@ -1353,11 +1353,8 @@ export default class Core {
                 //     serializedComponent,
                 // );
 
-                // XXX: is this the right approach for adding new components?
-                // One flaw: if we add components via sugar and we need references between then,
-                // and so we specify componentIdx on some of them, the pre-assigned
-                // component indices will conflict. So if we do that,
-                // then we need to expand `_components` to account for that.
+                // Note: ideally this condition is never met, as sugar and generation of serialized replacements
+                // should create component indices for all components
                 componentIdx = this._components.length;
                 this._components[componentIdx] = undefined;
                 console.log(
@@ -2208,7 +2205,7 @@ export default class Core {
             let childType =
                 typeof child !== "object" ? typeof child : child.componentType;
 
-            if (childType == undefined) {
+            if (childType === undefined) {
                 success = false;
                 unmatchedChildren.push(child);
                 continue;
