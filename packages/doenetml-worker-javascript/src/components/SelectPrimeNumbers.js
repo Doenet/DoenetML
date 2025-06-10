@@ -248,9 +248,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         let errorMessage = await component.stateValues.errorMessage;
         if (errorMessage) {
-            errors.push({
-                message: errorMessage,
-            });
             return {
                 replacements: [
                     {

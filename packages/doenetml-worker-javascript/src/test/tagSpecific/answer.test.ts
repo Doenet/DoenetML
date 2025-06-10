@@ -5286,7 +5286,7 @@ Enter any letter:
     it("derivative works without award", async () => {
         const doenetML = `
 What is the derivative of <function name="f">x^2</function>?
-<answer name="answer1"><derivative>$f</derivative</answer>
+<answer name="answer1"><derivative>$f</derivative></answer>
   `;
         await test_math_answer({
             doenetML,

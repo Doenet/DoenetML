@@ -1398,6 +1398,12 @@ export default class BaseComponent {
             );
         }
 
+        if (this.childrenPosition) {
+            serializedComponent.childrenPosition = JSON.parse(
+                JSON.stringify(this.childrenPosition),
+            );
+        }
+
         if (parameters.copyVariants) {
             if (this.state.generatedVariantInfo) {
                 serializedComponent.variants = {

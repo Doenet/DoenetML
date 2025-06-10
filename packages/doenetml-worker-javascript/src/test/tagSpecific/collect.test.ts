@@ -1250,7 +1250,6 @@ describe("Collect tag tests", async () => {
       <repeat name="repeat2" itemName="pt" for="$collect1">
         <point name="p">($pt.x+1, 1.5*$pt.y)</point>
       </repeat>
-    </map>
 
     </graph>
     </panel>

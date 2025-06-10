@@ -1265,7 +1265,7 @@ describe("Graph tag tests", async () => {
             <constrainToGraph />
           </constraints>
         </point>
-      </graph
+      </graph>
     </graph>
     
     <graph xmin="-15" xmax="15" ymin="-15" ymax="15" name="g2">

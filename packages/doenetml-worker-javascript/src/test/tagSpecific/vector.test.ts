@@ -2018,7 +2018,7 @@ describe("Vector Tag Tests", function () {
         <vector name="u" tail="(1,5)" head="(7,3)" />
     </graph>
     <p>x coordinate of u is <math extend="$u.x" name="ux" /></p>
-    <p>y coordinate of u is <math extend="$u.y" name="uy"}< />p>  
+    <p>y coordinate of u is <math extend="$u.y" name="uy" />p>  
     <p>x1 coordinate of u is <math extend="$u.x1" name="ux1" /></p>
     <p>x2 coordinate of u is <math extend="$u.x2" name="ux2" /></p>
 

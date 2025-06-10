@@ -167,14 +167,10 @@ ${theDoenetML1}
         ).eq(theDoenetML3);
     });
 
-    // Note: copying a <displayDoenetML> directly with link="false" no longer works,
-    // given changes made to make the following work:
-    // "doenetML of copySource shows the doenetML of the copy" (see below)
-    // We could work to fix it if there is a compelling reason to do so.
     it("copying displayDoenetML, with or without linking", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <section name="s1" newNamespace>
+  <section name="s1">
     <pre><displayDoenetML name="ddml">
       <text>hello!</text>
     </displayDoenetML></pre>
@@ -186,78 +182,62 @@ ${theDoenetML1}
   </section>
 
   <section name="s2" extend="$s1" />
-  <section extend="$s1" name="s3" />
-  <section name="s4" extend="$s1" link="false" />
-  <section extend="$s1" name="s5" link="false" />
+  <section name="s3" copy="$s1" />
 
   
-  <section name="s1a" newNamespace>
+  <section name="s1a">
     <title>$s1.title</title>
-    <p name="p1">Copy: $/s1/ddml</p>
-    <!--<p name="p2">Copy, no link: $(/s1/ddml{link="false"})</p>-->
+    <p name="p1">Copy: $s1.ddml</p>
+    <p name="p2">Copy, no link: <displayDoenetML copy="$s1.ddml" /></p>
     <p name="p3">Copy text: $s1.ddml.text</p>
-    <p name="p4">Copy text, no link: $s1/ddml.text{link="false"}</p>
+    <p name="p4">Copy text, no link: <text copy="$s1.ddml.text" /></p>
   </section>
 
-  <section name="s2a" newNamespace>
+  <section name="s2a">
     <title>$s2.title</title>
     <p name="p1">Copy: $s2.ddml</p>
-    <!--<p name="p2">Copy, no link: $s2.ddml{link="false"}</p>-->
+    <p name="p2">Copy, no link: <displayDoenetML copy="$s2.ddml" /></p>
     <p name="p3">Copy text: $s2.ddml.text</p>
-    <p name="p4">Copy text, no link: $s2.ddml.text{link="false"}</p>
+    <p name="p4">Copy text, no link: <text copy="$s2.ddml.text" /></p>
   </section>
 
-  <section name="s3a" newNamespace>
+  <section name="s3a">
     <title>$s3.title</title>
     <p name="p1">Copy: $s3.ddml</p>
-    <!--<p name="p2">Copy, no link: $s3.ddml{link="false"}</p>-->
+    <p name="p2">Copy, no link: <displayDoenetML copy="$s3.ddml" /></p>
     <p name="p3">Copy text: $s3.ddml.text</p>
-    <p name="p4">Copy text, no link: $s3.ddml.text{link="false"}</p>
+    <p name="p4">Copy text, no link: <text copy="$s3.ddml.text" /></p>
   </section>
 
-  <section name="s4a" newNamespace>
-    <title>$s4.title</title>
-    <p name="p1">Copy: $s4.ddml</p>
-    <!--<p name="p2">Copy, no link: $s4.ddml{link="false"}</p>-->
-    <p name="p3">Copy text: $s4.ddml.text</p>
-    <p name="p4">Copy text, no link: $s4.ddml.text{link="false"}</p>
-  </section>
-
-  <section name="s5a" newNamespace>
-    <title>$s5.title</title>
-    <p name="p1">Copy: $s5.ddml</p>
-    <!--<p name="p2">Copy, no link: $s5.ddml{link="false"}</p>-->
-    <p name="p3">Copy text: $s5.ddml.text</p>
-    <p name="p4">Copy text, no link: $s5.ddml.text{link="false"}</p>
-  </section>
 
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        for (let i = 1; i < 5; i++) {
+        for (let i = 1; i < 3; i++) {
             expect(
-                stateVariables[resolveComponentName(`s${i}/ddml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.ddml`)].stateValues
                     .value,
             ).eq(`<text>hello!</text>`);
             expect(
-                stateVariables[resolveComponentName(`s${i}/pd`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.pd`)].stateValues
                     .text,
             ).eq(`DoenetML: <p name="p1">A sentence</p>`);
 
             expect(
-                stateVariables[resolveComponentName(`s${i}a/p1`)].stateValues
+                stateVariables[resolveComponentName(`s${i}a.p1`)].stateValues
                     .text,
             ).eq(`Copy: <text>hello!</text>`);
-            // expect(stateVariables[resolveComponentName(`s${i}a/p2`)].stateValues.text).eq(
-            //     `Copy, no link: <text>hello!</text>`,
-            // );
             expect(
-                stateVariables[resolveComponentName(`s${i}a/p3`)].stateValues
+                stateVariables[resolveComponentName(`s${i}a.p2`)].stateValues
+                    .text,
+            ).eq(`Copy, no link: <text>hello!</text>`);
+            expect(
+                stateVariables[resolveComponentName(`s${i}a.p3`)].stateValues
                     .text,
             ).eq(`Copy text: <text>hello!</text>`);
             expect(
-                stateVariables[resolveComponentName(`s${i}a/p4`)].stateValues
+                stateVariables[resolveComponentName(`s${i}a.p4`)].stateValues
                     .text,
             ).eq(`Copy text, no link: <text>hello!</text>`);
         }
@@ -319,7 +299,7 @@ ${theDoenetML1}
     </section>
 
     <section name="s2" extend="$s1" />
-    <section name="s3" extend="$s1" link="false" />
+    <section name="s3" copy="$s1"  />
   `,
         });
 
@@ -335,19 +315,19 @@ ${theDoenetML1}
 
         for (let i = 1; i <= 3; i++) {
             expect(
-                stateVariables[resolveComponentName(`s${i}/pdml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.pdml`)].stateValues
                     .text,
             ).eq(pdml);
             expect(
-                stateVariables[resolveComponentName(`s${i}/p2dml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.p2dml`)].stateValues
                     .text,
             ).eq(p2dml);
             expect(
-                stateVariables[resolveComponentName(`s${i}/mdml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.mdml`)].stateValues
                     .text,
             ).eq(mdml);
             expect(
-                stateVariables[resolveComponentName(`s${i}/m2dml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.m2dml`)].stateValues
                     .text,
             ).eq(m2dml);
         }
@@ -372,7 +352,7 @@ ${theDoenetML1}
     </section>
 
     <section name="s2" extend="$s1" />
-    <section name="s3" extend="$s1" link="false" />
+    <section name="s3" copy="$s1" />
   `,
         });
 
@@ -392,19 +372,19 @@ ${theDoenetML1}
 
         for (let i = 1; i <= 3; i++) {
             expect(
-                stateVariables[resolveComponentName(`s${i}/p1dml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.p1dml`)].stateValues
                     .text,
             ).eq(p1dml);
             expect(
-                stateVariables[resolveComponentName(`s${i}/p2dml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.p2dml`)].stateValues
                     .text,
             ).eq(p2dml);
             expect(
-                stateVariables[resolveComponentName(`s${i}/p3dml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.p3dml`)].stateValues
                     .text,
             ).eq(p3dml);
             expect(
-                stateVariables[resolveComponentName(`s${i}/p4dml`)].stateValues
+                stateVariables[resolveComponentName(`s${i}.p4dml`)].stateValues
                     .text,
             ).eq(p4dml);
         }

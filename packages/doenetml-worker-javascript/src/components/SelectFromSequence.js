@@ -234,9 +234,6 @@ export default class SelectFromSequence extends Sequence {
 
         let errorMessage = await component.stateValues.errorMessage;
         if (errorMessage) {
-            errors.push({
-                message: errorMessage,
-            });
             return {
                 replacements: [
                     {

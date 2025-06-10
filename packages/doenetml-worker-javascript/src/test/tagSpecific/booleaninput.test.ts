@@ -437,7 +437,7 @@ describe("BooleanInput tag tests", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Original boolean: <boolean name="b1">can't <text>update</text> <text>me</text></boolean></p>
-    <p>booleanInput based on boolean: <booleanInput name="bi1" >$b1</boolean></p>
+    <p>booleanInput based on boolean: <booleanInput name="bi1" >$b1</booleanInput></p>
     `,
         });
 

@@ -5,8 +5,8 @@ import {
     evaluateLogic,
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
-import { deepCompare } from "@doenet/utils";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
+import { comparePathsIgnorePosition } from "../utils/dast/path";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -136,7 +136,7 @@ export default class Award extends BaseComponent {
         };
 
         attributes.referencesAreResponses = {
-            createResponses: true,
+            createReferences: true,
         };
 
         attributes.splitSymbols = {
@@ -158,18 +158,10 @@ export default class Award extends BaseComponent {
         return attributes;
     }
 
-    static preprocessSerializedChildren({
-        serializedChildren,
-        attributes,
-        componentIdx,
-    }) {
-        if (attributes.referencesAreResponses?.type === "unresolved") {
-            const references = attributes.referencesAreResponses.children
-                .filter(
-                    (child) =>
-                        child.type === "unflattened" &&
-                        child.componentType === "_copy",
-                )
+    static preprocessSerializedChildren({ serializedChildren, attributes }) {
+        if (attributes.referencesAreResponses?.type === "references") {
+            const references = attributes.referencesAreResponses.references
+                .filter((child) => child.componentType === "_copy")
                 .map((child) => child.extending.Ref);
 
             for (let reference of references) {
@@ -833,7 +825,7 @@ function addResponsesToDescendantsWithReference(components, reference) {
 
                 if (
                     refResolution.nodeIdx === reference.nodeIdx &&
-                    deepCompare(
+                    comparePathsIgnorePosition(
                         refResolution.unresolvedPath,
                         reference.unresolvedPath,
                     )
