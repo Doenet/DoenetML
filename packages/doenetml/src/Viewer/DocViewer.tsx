@@ -11,7 +11,6 @@ import { nanoid } from "nanoid";
 import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
-    cesc,
     data_format_version,
     cidFromText,
 } from "@doenet/utils";
@@ -23,7 +22,12 @@ import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
-import { mainThunks, useAppDispatch } from "../state";
+import {
+    actionIdentifier,
+    mainThunks,
+    UniqueActionIdentifier,
+    useAppDispatch,
+} from "../state";
 
 export const DocContext = createContext<{
     linkSettings?: { viewURL: string; editURL: string };
@@ -93,7 +97,9 @@ export function DocViewer({
     // Sometimes components eagerly update before waiting for core to determine their exact state
     // This map from event ids to event values helps keep track of the updates that need to be ignored
     // so we don't clobber the component's state.
-    const updatesToIgnoreRef = useRef<Map<string, string>>(new Map());
+    const updatesToIgnoreRef = useRef<Map<UniqueActionIdentifier, string>>(
+        new Map(),
+    );
     const dispatch = useAppDispatch();
 
     const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -105,7 +111,13 @@ export function DocViewer({
     const lastAttemptNumber = useRef<number | null>(null);
     const lastRequestedVariantIndex = useRef<number | null>(null);
 
-    const [stage, setStage] = useState("initial");
+    const [stage, setStage] = useState<
+        | "initial"
+        | "readyToCreateCore"
+        | "coreCreated"
+        | "wait"
+        | "waitingOnCore"
+    >("initial");
 
     const [documentRenderer, setDocumentRenderer] =
         useState<ReactElement | null>(null);
@@ -146,10 +158,10 @@ export function DocViewer({
         Record<string, { animationFrameID?: number; timeoutId?: number }>
     >({});
 
-    const resolveActionPromises = useRef<Record<string, (value: any) => void>>(
-        {},
+    const onActionCallbacks = useRef(
+        new Map<string, (value: boolean) => void>(),
     );
-    const actionTentativelySkipped = useRef<{
+    const lastSkippableAction = useRef<{
         action: { actionName: string; componentIdx?: number };
         args: Record<string, any>;
         baseVariableValue?: any;
@@ -196,12 +208,6 @@ export function DocViewer({
         showAnswerResponseMenu,
         answerResponseCounts,
     };
-
-    const postfixForWindowFunctions =
-        prefixForIds
-            .replaceAll("/", "")
-            .replaceAll("\\", "")
-            .replaceAll("-", "_") || "1";
 
     useEffect(() => {
         return () => {
@@ -259,6 +265,12 @@ export function DocViewer({
             return;
         }
         if (docId !== null) {
+            const postfixForWindowFunctions =
+                prefixForIds
+                    .replaceAll("/", "")
+                    .replaceAll("\\", "")
+                    .replaceAll("-", "_") || "1";
+
             (window as any)[
                 "returnAllStateVariables" + postfixForWindowFunctions
             ] = async function () {
@@ -289,7 +301,7 @@ export function DocViewer({
                     });
                 };
         }
-    }, [docId, coreWorker.current]);
+    }, [docId, coreWorker.current, prefixForIds]);
 
     useEffect(() => {
         return () => {
@@ -419,19 +431,15 @@ export function DocViewer({
             }
         }
 
-        if (actionTentativelySkipped.current) {
-            // we are for sure skipping the actionTentativelySkipped,
+        if (lastSkippableAction.current) {
+            // we are for sure skipping the lastSkippableAction,
             // so resolve its promise as false
-            actionTentativelySkipped.current.promiseResolve?.(false);
-            actionTentativelySkipped.current = null;
+            lastSkippableAction.current.promiseResolve?.(false);
+            lastSkippableAction.current = null;
         }
 
         if (args?.skippable) {
-            let nActionsInProgress = Object.keys(
-                resolveActionPromises.current,
-            ).length;
-
-            if (nActionsInProgress > 0) {
+            if (onActionCallbacks.current.size > 0) {
                 // Since another action is currently in progress,
                 // we will (at least initially) skip this skippable action.
                 // If the currently running action is resolved while this action
@@ -448,7 +456,7 @@ export function DocViewer({
                     });
                 }
 
-                actionTentativelySkipped.current = {
+                lastSkippableAction.current = {
                     action,
                     args,
                     baseVariableValue,
@@ -480,7 +488,7 @@ export function DocViewer({
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
             updatesToIgnoreRef.current.set(
-                `${actionId}|${componentIdx}`,
+                actionIdentifier(actionId, componentIdx),
                 baseVariableValue,
             );
         }
@@ -499,11 +507,11 @@ export function DocViewer({
             // and we are just being called inside resolveAction
             // (where the return is being ignored).
             // Simply set it up so that promiseResolve will be called when the action is resolved
-            resolveActionPromises.current[actionId] = promiseResolve;
+            onActionCallbacks.current.set(actionId, promiseResolve);
             return;
         } else {
             return new Promise((resolve, reject) => {
-                resolveActionPromises.current[actionId] = resolve;
+                onActionCallbacks.current.set(actionId, resolve);
             });
         }
     }
@@ -594,7 +602,7 @@ export function DocViewer({
                 dispatch(
                     mainThunks.updateRendererSVs({
                         coreId: coreId.current,
-                        componentIdx: componentIdx,
+                        componentIdx: componentIdx as any,
                         stateValues:
                             args.rendererState[componentIdx].stateValues,
                         childrenInstructions:
@@ -740,18 +748,22 @@ export function DocViewer({
     }
 
     function resolveAction({ actionId }: { actionId?: string }) {
-        if (actionId) {
-            resolveActionPromises.current[actionId]?.(true);
-            delete resolveActionPromises.current[actionId];
+        if (!actionId) {
+            return;
+        }
+        const callback = onActionCallbacks.current.get(actionId);
+        if (callback) {
+            callback(true);
+            onActionCallbacks.current.delete(actionId);
+        }
 
-            if (
-                actionTentativelySkipped.current &&
-                Object.keys(resolveActionPromises.current).length === 0
-            ) {
-                let actionToCall = actionTentativelySkipped.current;
-                actionTentativelySkipped.current = null;
-                callAction(actionToCall);
-            }
+        if (
+            lastSkippableAction.current &&
+            onActionCallbacks.current.size === 0
+        ) {
+            let actionToCall = lastSkippableAction.current;
+            lastSkippableAction.current = null;
+            callAction(actionToCall);
         }
     }
 
@@ -996,7 +1008,7 @@ export function DocViewer({
             }
         }
 
-        resolveActionPromises.current = {};
+        onActionCallbacks.current.clear();
 
         coreCreationInProgress.current = true;
 
@@ -1297,6 +1309,7 @@ export function DocViewer({
 
     if (stage === "readyToCreateCore" && render) {
         startCore();
+        // XXX: this state never occurs
     } else if (stage === "waitingOnCore" && !render && !coreCreated.current) {
         // we've moved off this doc, but core is still being created
         // so reinitialize core
@@ -1411,111 +1424,4 @@ class ErrorBoundary extends React.Component<ErrorProps, ErrorState> {
         }
         return this.props.children;
     }
-}
-
-// TODO: fix this function as it assume conventions that are no longer valid
-export function getURLFromRef({
-    cid,
-    activityId,
-    variantIndex,
-    edit,
-    hash,
-    givenUri,
-    targetName = "",
-    linkSettings,
-    search = "",
-    id = "",
-}: {
-    cid?: string;
-    activityId?: string;
-    variantIndex?: number;
-    edit?: boolean;
-    hash?: string;
-    givenUri?: string;
-    targetName?: string;
-    linkSettings: Record<string, any>;
-    search?: string;
-    id?: string;
-}) {
-    // possible linkSettings
-    // - viewURL
-    // - editURL
-    // - useQueryParameters
-
-    let url = "";
-    let targetForATag: string | null = "_blank";
-    let haveValidTarget = false;
-    let externalUri = false;
-
-    if (cid || activityId) {
-        if (cid) {
-            if (linkSettings.useQueryParameters) {
-                url = `cid=${cid}`;
-            } else {
-                // TODO: make this URL work for create another URL to reference by cid
-                url = `/${cid}`;
-            }
-        } else {
-            if (linkSettings.useQueryParameters) {
-                url = `doenetId=${activityId}`;
-            } else {
-                url = `/${activityId}`;
-            }
-        }
-        if (variantIndex) {
-            // TODO: how to specify variant if don't useQueryParameters
-            if (linkSettings.useQueryParameters) {
-                url += `&variant=${variantIndex}`;
-            }
-        }
-
-        if (linkSettings.useQueryParameters) {
-            let baseUrl =
-                edit == true ? linkSettings.editURL : linkSettings.viewURL;
-            if (baseUrl.includes("?")) {
-                if (baseUrl[baseUrl.length - 1] !== "?") {
-                    baseUrl += "&";
-                }
-            } else {
-                baseUrl += "?";
-            }
-            url = baseUrl + url;
-        } else {
-            if (edit == true) {
-                url = linkSettings.editURL + url;
-            } else {
-                url = linkSettings.viewURL + url;
-            }
-        }
-
-        haveValidTarget = true;
-
-        if (hash) {
-            url += hash;
-        } else {
-            if (targetName) {
-                url += "#" + cesc(targetName);
-            }
-        }
-    } else if (givenUri) {
-        url = givenUri;
-        if (
-            url.substring(0, 8) === "https://" ||
-            url.substring(0, 7) === "http://" ||
-            url.substring(0, 7) === "mailto:"
-        ) {
-            haveValidTarget = true;
-            externalUri = true;
-        }
-    } else {
-        url = search;
-
-        let firstSlash = id.indexOf("\\/");
-        let prefix = id.substring(0, firstSlash);
-        url += "#" + prefix;
-        url += cesc(targetName);
-        targetForATag = null;
-        haveValidTarget = true;
-    }
-    return { targetForATag, url, haveValidTarget, externalUri };
 }

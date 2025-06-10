@@ -18,6 +18,19 @@ export type ComponentInfo = {
     prefixForIds: string;
 };
 
+/**
+ * Type alias to make sure that the type of an action identifier is unique.
+ */
+export type UniqueActionIdentifier = string & {
+    readonly __brand: unique symbol;
+};
+export function actionIdentifier(
+    actionId: string,
+    componentIdx: number,
+): UniqueActionIdentifier {
+    return `${actionId}|${componentIdx}` as UniqueActionIdentifier;
+}
+
 // Define a type for the slice state
 export interface MainSlice {
     /**
@@ -79,7 +92,9 @@ export const mainThunks = {
                 sourceOfUpdate?: Record<string, any>;
                 baseStateVariable?: string;
                 actionId?: string;
-                updatesToIgnoreRef: React.MutableRefObject<Map<string, string>>;
+                updatesToIgnoreRef: React.RefObject<
+                    Map<UniqueActionIdentifier, string>
+                >;
                 prefixForIds: string;
             },
             { dispatch, getState },
@@ -93,7 +108,7 @@ export const mainThunks = {
 
                 if (updatesToIgnore.size > 0) {
                     let valueFromRenderer = updatesToIgnore.get(
-                        `${actionId}|${componentIdx}`,
+                        actionIdentifier(actionId || "", componentIdx),
                     );
                     let valueFromCore = stateValues[baseStateVariable];
                     if (
@@ -109,7 +124,9 @@ export const mainThunks = {
                         ignoreUpdate = true;
                         // We've decided to ignore the update. Every update has a unique id,
                         // so we should safely be able to remove it from the ignore map.
-                        updatesToIgnore.delete(`${actionId}|${componentIdx}`);
+                        updatesToIgnore.delete(
+                            actionIdentifier(actionId || "", componentIdx),
+                        );
                     } else {
                         // since value was changed from the time the update was created
                         // don't ignore the remaining pending changes in updatesToIgnore
