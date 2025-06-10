@@ -28,13 +28,23 @@ export default class Split extends CompositeComponent {
             validValues: ["letter", "word", "comma"],
         };
 
+        attributes.asList = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "asList",
+            defaultValue: true,
+        };
+
         return attributes;
     }
 
     static returnSugarInstructions() {
         let sugarInstructions = [];
 
-        function addType({ matchedChildren, componentAttributes }) {
+        function addType({
+            matchedChildren,
+            componentAttributes,
+            nComponents,
+        }) {
             let type = componentAttributes.type;
             if (!["text"].includes(type)) {
                 type = "text";
@@ -44,10 +54,16 @@ export default class Split extends CompositeComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType: type,
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
+                nComponents,
             };
         }
 
@@ -113,7 +129,7 @@ export default class Split extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.splitValues = {
+        stateVariableDefinitions.allSplitValues = {
             returnDependencies: () => ({
                 type: {
                     dependencyType: "stateVariable",
@@ -131,34 +147,86 @@ export default class Split extends CompositeComponent {
             definition({ dependencyValues }) {
                 if (dependencyValues.originalValue === null) {
                     return {
-                        setValue: { splitValues: [] },
+                        setValue: { allSplitValues: [] },
                     };
                 }
 
-                let splitValues = [];
+                let allSplitValues = [];
 
                 if (dependencyValues.splitBy === "letter") {
-                    splitValues = [...dependencyValues.originalValue];
+                    allSplitValues = [...dependencyValues.originalValue];
                 } else if (dependencyValues.splitBy === "word") {
-                    splitValues = dependencyValues.originalValue.split(/\s+/);
+                    allSplitValues =
+                        dependencyValues.originalValue.split(/\s+/);
                 } else if (dependencyValues.splitBy === "comma") {
-                    splitValues =
+                    allSplitValues =
                         dependencyValues.originalValue.split(/\s*,\s*/);
                 } else {
-                    splitValues = [dependencyValues.originalValue];
+                    allSplitValues = [dependencyValues.originalValue];
                 }
 
                 return {
-                    setValue: { splitValues },
+                    setValue: { allSplitValues },
                 };
+            },
+        };
+
+        stateVariableDefinitions.numValues = {
+            returnDependencies: () => ({
+                allSplitValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "allSplitValues",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        numValues: dependencyValues.allSplitValues.length,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.values = {
+            isArray: true,
+            entryPrefixes: ["value"],
+            returnArraySizeDependencies: () => ({
+                numValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "numValues",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numValues];
+            },
+
+            returnArrayDependenciesByKey() {
+                let globalDependencies = {
+                    allSplitValues: {
+                        dependencyType: "stateVariable",
+                        variableName: "allSplitValues",
+                    },
+                };
+
+                return { globalDependencies };
+            },
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                let values = {};
+
+                for (let arrayKey of arrayKeys) {
+                    values[arrayKey] =
+                        globalDependencyValues.allSplitValues[arrayKey];
+                }
+
+                return { setValue: { values } };
             },
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
-                splitValues: {
+                values: {
                     dependencyType: "stateVariable",
-                    variableName: "splitValues",
+                    variableName: "values",
                 },
             }),
             // when this state variable is marked stale
@@ -176,29 +244,85 @@ export default class Split extends CompositeComponent {
 
     static async createSerializedReplacements({
         component,
-        componentInfoObjects,
+        nComponents,
+        workspace,
     }) {
-        let errors = [];
-        let warnings = [];
+        const errors = [];
+        const warnings = [];
 
-        let serializedReplacement = {
-            componentType: "textList",
-            state: { textsShadow: await component.stateValues.splitValues },
+        const values = await component.stateValues.values;
+
+        const replacements = values.map((value, i) => ({
+            type: "serialized",
+            componentType: "text",
+            componentIdx: nComponents++,
+            attributes: {},
+            doenetAttributes: {},
+            children: [],
+            state: { value },
             downstreamDependencies: {
                 [component.componentIdx]: [
                     {
                         dependencyType: "referenceShadow",
                         compositeIdx: component.componentIdx,
-                        propVariable: "splitValues",
+                        propVariable: `value${i + 1}`,
                     },
                 ],
             },
-        };
+        }));
+
+        workspace.values = [...values];
 
         return {
-            replacements: [serializedReplacement],
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
+    }
+
+    static async calculateReplacementChanges({
+        component,
+        components,
+        workspace,
+        nComponents,
+    }) {
+        // TODO: don't yet have a way to return errors and warnings!
+        let errors = [];
+        let warnings = [];
+
+        const values = await component.stateValues.values;
+
+        if (
+            values.length === workspace.values.length &&
+            workspace.values.every((s, i) => s === values[i])
+        ) {
+            return { replacementChanges: [] };
+        }
+
+        // recreate if something changed
+        let replacementResults = await this.createSerializedReplacements({
+            component,
+            components,
+            workspace,
+            nComponents,
+        });
+
+        let replacements = replacementResults.replacements;
+        errors.push(...replacementResults.errors);
+        warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
+
+        let replacementChanges = [
+            {
+                changeType: "add",
+                changeTopLevelReplacements: true,
+                firstReplacementInd: 0,
+                numberReplacementsToReplace: component.replacements.length,
+                serializedReplacements: replacements,
+            },
+        ];
+
+        return { replacementChanges, nComponents };
     }
 }
