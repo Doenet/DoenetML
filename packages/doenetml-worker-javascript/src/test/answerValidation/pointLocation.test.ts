@@ -20,7 +20,7 @@ async function run_tests({
         credit: number;
     }[];
 }) {
-    const core = await createTestCore({ doenetML });
+    const { core, resolveComponentName } = await createTestCore({ doenetML });
 
     for (let responseObj of responseCredits) {
         await submit_check(responseObj);
@@ -36,21 +36,35 @@ async function run_tests({
         for (let name in responses) {
             let resp = responses[name];
             if (typeof resp === "number") {
-                await updateMathInputValue({ latex: `${resp}`, name, core });
+                await updateMathInputValue({
+                    latex: `${resp}`,
+                    componentIdx: resolveComponentName(name),
+                    core,
+                });
             } else {
-                await movePoint({ name, ...resp, core });
+                await movePoint({
+                    componentIdx: resolveComponentName(name),
+                    ...resp,
+                    core,
+                });
             }
         }
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/ans`].stateValues.justSubmitted).eq(false);
+        expect(
+            stateVariables[resolveComponentName(`ans`)].stateValues
+                .justSubmitted,
+        ).eq(false);
 
-        await submitAnswer({ name: `/ans`, core });
+        await submitAnswer({ componentIdx: resolveComponentName(`ans`), core });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/ans`].stateValues.creditAchieved).eq(
-            credit,
-            `credit for response ${JSON.stringify(responses)}`,
-        );
-        expect(stateVariables[`/ans`].stateValues.justSubmitted).eq(true);
+        expect(
+            stateVariables[resolveComponentName(`ans`)].stateValues
+                .creditAchieved,
+        ).eq(credit, `credit for response ${JSON.stringify(responses)}`);
+        expect(
+            stateVariables[resolveComponentName(`ans`)].stateValues
+                .justSubmitted,
+        ).eq(true);
     }
 }
 
@@ -74,23 +88,23 @@ describe("point location validation tests", async () => {
                     credit: 0,
                 },
                 {
-                    responses: { "/P": { x: 5.9, y: 3.5 } },
+                    responses: { P: { x: 5.9, y: 3.5 } },
                     credit: 1,
                 },
                 {
-                    responses: { "/P": { x: -8.8, y: 1.3 } },
+                    responses: { P: { x: -8.8, y: 1.3 } },
                     credit: 0,
                 },
                 {
-                    responses: { "/P": { x: -9.4, y: -5.1 } },
+                    responses: { P: { x: -9.4, y: -5.1 } },
                     credit: 0,
                 },
                 {
-                    responses: { "/P": { x: 4.2, y: -2.9 } },
+                    responses: { P: { x: 4.2, y: -2.9 } },
                     credit: 0,
                 },
                 {
-                    responses: { "/P": { x: 4.6, y: 0.1 } },
+                    responses: { P: { x: 4.6, y: 0.1 } },
                     credit: 1,
                 },
             ],
@@ -122,15 +136,15 @@ describe("point location validation tests", async () => {
                     credit: 0,
                 },
                 {
-                    responses: { "/A": { x: -4, y: 7.6 } },
+                    responses: { A: { x: -4, y: 7.6 } },
                     credit: 1,
                 },
                 {
-                    responses: { "/A": { x: -3.7, y: 7 } },
+                    responses: { A: { x: -3.7, y: 7 } },
                     credit: 0,
                 },
                 {
-                    responses: { "/A": { x: -3.8, y: 7.1 } },
+                    responses: { A: { x: -3.8, y: 7.1 } },
                     credit: 1,
                 },
             ],
@@ -172,31 +186,31 @@ describe("point location validation tests", async () => {
                     credit: 0,
                 },
                 {
-                    responses: { "/A": { x: -5, y: 6 } },
+                    responses: { A: { x: -5, y: 6 } },
                     credit: 1,
                 },
                 {
-                    responses: { "/criterion": 1 },
+                    responses: { criterion: 1 },
                     credit: 0.6,
                 },
                 {
-                    responses: { "/A": { x: -5, y: 7 } },
+                    responses: { A: { x: -5, y: 7 } },
                     credit: 1,
                 },
                 {
-                    responses: { "/A": { x: -2.8, y: 9 } },
+                    responses: { A: { x: -2.8, y: 9 } },
                     credit: 0.6,
                 },
                 {
-                    responses: { "/partialCriterion": 2 },
+                    responses: { partialCriterion: 2 },
                     credit: 0,
                 },
                 {
-                    responses: { "/A": { x: -3, y: 9 } },
+                    responses: { A: { x: -3, y: 9 } },
                     credit: 0.6,
                 },
                 {
-                    responses: { "/A": { x: -3.5, y: 8 } },
+                    responses: { A: { x: -3.5, y: 8 } },
                     credit: 1,
                 },
             ],
@@ -212,35 +226,35 @@ describe("point location validation tests", async () => {
                     credit: 0,
                 },
                 {
-                    responses: { "/A": { x: -4, y: 7.6 } }, // A near first goal
+                    responses: { A: { x: -4, y: 7.6 } }, // A near first goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A": { x: -3.7, y: 7 } }, // A away
+                    responses: { A: { x: -3.7, y: 7 } }, // A away
                     credit: 0,
                 },
                 {
-                    responses: { "/B": { x: -3.8, y: 7.1 } }, // B near first goal
+                    responses: { B: { x: -3.8, y: 7.1 } }, // B near first goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A": { x: 6.9, y: 9.0 } }, // A near second goal
+                    responses: { A: { x: 6.9, y: 9.0 } }, // A near second goal
                     credit: ordered ? 0.5 : 1,
                 },
                 {
-                    responses: { "/B": { x: -9.9, y: -8.8 } }, // B away
+                    responses: { B: { x: -9.9, y: -8.8 } }, // B away
                     credit: 0.5,
                 },
                 {
-                    responses: { "/B": { x: 6.7, y: 9 } }, // B near second goal
+                    responses: { B: { x: 6.7, y: 9 } }, // B near second goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A": { x: 0.1, y: -1.1 } }, // A away
+                    responses: { A: { x: 0.1, y: -1.1 } }, // A away
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A": { x: -3.8, y: 7.6 } }, // A near first goal
+                    responses: { A: { x: -3.8, y: 7.6 } }, // A near first goal
                     credit: 1,
                 },
             ],
@@ -267,7 +281,7 @@ describe("point location validation tests", async () => {
       </point>
     </graph>
     <p><answer name="ans">
-      <award matchPartial unorderedCompare sourcesAreResponses="A B">
+      <award matchPartial unorderedCompare referencesAreResponses="$A $B">
         <when>
           ($A, $B) = ($goal1, $goal2)
         </when>
@@ -298,7 +312,7 @@ describe("point location validation tests", async () => {
       </point>
     </graph>
     <p><answer name="ans">
-      <award matchPartial sourcesAreResponses="A B">
+      <award matchPartial referencesAreResponses="$A $B">
         <when>
           ($A, $B) = ($goal1, $goal2)
         </when>
@@ -329,7 +343,7 @@ describe("point location validation tests", async () => {
       </point>
     </graph>
     <p><answer name="ans">
-      <award matchPartial unorderedCompare sourcesAreResponses="A B">
+      <award matchPartial unorderedCompare referencesAreResponses="$A $B">
         <when>
           ($A, $B) = ((-4.1, 7.4), (6.8, 9.1))
         </when>
@@ -360,7 +374,7 @@ describe("point location validation tests", async () => {
       </point>
     </graph>
     <p><answer name="ans">
-      <award matchPartial sourcesAreResponses="A B">
+      <award matchPartial referencesAreResponses="$A $B">
         <when>
           ($A, $B) = ((-4.1, 7.4), (6.8, 9.1))
         </when>
@@ -391,7 +405,7 @@ describe("point location validation tests", async () => {
       </point>
     </graph>
     <p><answer name="ans">
-      <award matchPartial unorderedCompare sourcesAreResponses="A B">
+      <award matchPartial unorderedCompare referencesAreResponses="$A $B">
         <when>
           <mathList>$A $B</mathList> = <mathList>$goal1 $goal2</mathList>
         </when>
@@ -410,22 +424,21 @@ describe("point location validation tests", async () => {
     <p>Move points to $goal1.coords $goal2.coords</p>
     <p>Number of points: <mathInput prefill="0" name="n" /></p>
     <graph>
-      <map name="map1" assignNames="(A) (B) (C)">
-        <template>
-          <point x='$i' y='1'>
-            <constraints>
-              <attractTo>$goal1</attractTo>
-              <attractTo>$goal2</attractTo>
-            </constraints>
-          </point>
-        </template>
-        <sources alias="i"><sequence fixed='false' from="1" to="$n" /></sources>
-      </map>
+      <setup><sequence fixed='false' from="1" to="$n" name="seq" /></setup>
+      <repeat name="r" for="$seq" itemName="i">
+        <point x='$i' y='1' name="P">
+          <constraints>
+            <attractTo>$goal1</attractTo>
+            <attractTo>$goal2</attractTo>
+          </constraints>
+        </point>
+      </repeat>
+      
     </graph>
     <p><answer name="ans">
-      <award matchPartial unorderedCompare sourcesAreResponses="map1">
+      <award matchPartial unorderedCompare referencesAreResponses="$r">
         <when>
-          <mathList>$map1</mathList> = <mathList>$goal1 $goal2</mathList>
+          <mathList>$r</mathList> = <mathList>$goal1 $goal2</mathList>
         </when>
       </award>
     </answer></p>
@@ -439,62 +452,62 @@ describe("point location validation tests", async () => {
                     credit: 0,
                 },
                 {
-                    responses: { "/n": 1 }, // create A
+                    responses: { n: 1 }, // create A
                     credit: 0,
                 },
                 {
-                    responses: { "/A": { x: -4, y: 7.6 } }, // A near first goal
+                    responses: { "r[1].P": { x: -4, y: 7.6 } }, // A near first goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A": { x: -3.7, y: 7 } }, // A away
+                    responses: { "r[1].P": { x: -3.7, y: 7 } }, // A away
                     credit: 0,
                 },
                 {
-                    responses: { "/n": 2 }, // create B
+                    responses: { n: 2 }, // create B
                     credit: 0,
                 },
                 {
-                    responses: { "/B": { x: -3.8, y: 7.1 } }, // B near first goal
+                    responses: { "r[2].P": { x: -3.8, y: 7.1 } }, // B near first goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A": { x: 6.9, y: 9.0 } }, // A near second goal
+                    responses: { "r[1].P": { x: 6.9, y: 9.0 } }, // A near second goal
                     credit: 1,
                 },
                 {
-                    responses: { "/B": { x: -9.9, y: -8.8 } }, // B away
+                    responses: { "r[2].P": { x: -9.9, y: -8.8 } }, // B away
                     credit: 0.5,
                 },
                 {
-                    responses: { "/B": { x: 6.7, y: 9 } }, // B near second goal
+                    responses: { "r[2].P": { x: 6.7, y: 9 } }, // B near second goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A": { x: 0.1, y: -1.1 } }, // A away
+                    responses: { "r[1].P": { x: 0.1, y: -1.1 } }, // A away
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A": { x: -3.8, y: 7.6 } }, // A near first goal
+                    responses: { "r[1].P": { x: -3.8, y: 7.6 } }, // A near first goal
                     credit: 1,
                 },
                 {
-                    responses: { "/n": 3 }, // create C
+                    responses: { n: 3 }, // create C
                     credit: 2 / 3,
                 },
                 {
-                    responses: { "/C": { x: -3.8, y: 7.6 } }, // C near first goal
+                    responses: { "r[3].P": { x: -3.8, y: 7.6 } }, // C near first goal
                     credit: 2 / 3,
                 },
                 {
-                    responses: { "/n": 2 }, // remove C
+                    responses: { n: 2 }, // remove C
                     credit: 1,
                 },
             ],
         });
     });
 
-    it("dynamical number of points, double map, partial match", async () => {
+    it("dynamical number of points, double repeat, partial match", async () => {
         const doenetML = `
     <point name="goal1">(-4.1, 7.4)</point>
     <point name="goal2">(6.8, 9.1)</point>
@@ -502,33 +515,29 @@ describe("point location validation tests", async () => {
     <p>Number of points: <mathInput prefill="0" name="n" /></p>
     <p>Number of points 2: <mathInput prefill="0" name="m" /></p>
     <graph>
-      <map name="map1" assignNames="(A1 ((A2))) (B1 ((B2)))">
-        <template>
-          <point x='$i' y='1'>
+      <setup><sequence name="seq1" fixed='false' from="1" to="$n" /></setup>
+      <repeat name="r" for="$seq1" itemName="i">
+        <point x='$i' y='1' name="P">
+          <constraints>
+            <attractTo>$goal1</attractTo>
+            <attractTo>$goal2</attractTo>
+          </constraints>
+        </point>
+        <setup><sequence name="seq2" fixed='false' from="1" to="$m" /></setup>
+        <repeat name="r2" for="$seq2" itemName="j">
+          <point x='$j' y='2' name="Q">
             <constraints>
               <attractTo>$goal1</attractTo>
               <attractTo>$goal2</attractTo>
             </constraints>
           </point>
-          <map>
-            <template>
-              <point x='$j' y='2'>
-                <constraints>
-                  <attractTo>$goal1</attractTo>
-                  <attractTo>$goal2</attractTo>
-                </constraints>
-              </point>
-            </template>
-            <sources alias="j"><sequence fixed='false' from="1" to="$m" /></sources>
-          </map>
-        </template>
-        <sources alias="i"><sequence fixed='false' from="1" to="$n" /></sources>
-      </map>
+        </repeat>
+      </repeat>
     </graph>
     <p><answer name="ans">
-      <award matchPartial unorderedCompare sourcesAreResponses="map1">
+      <award matchPartial unorderedCompare referencesAreResponses="$r">
         <when>
-          <mathList>$map1</mathList> = <mathList>$goal1 $goal2</mathList>
+          <mathList>$r</mathList> = <mathList>$goal1 $goal2</mathList>
         </when>
       </award>
     </answer></p>
@@ -542,55 +551,55 @@ describe("point location validation tests", async () => {
                     credit: 0,
                 },
                 {
-                    responses: { "/n": 1 }, // create A1
+                    responses: { n: 1 }, // create A1
                     credit: 0,
                 },
                 {
-                    responses: { "/A1": { x: -4, y: 7.6 } }, // A1 near first goal
+                    responses: { "r[1].P": { x: -4, y: 7.6 } }, // A1 near first goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A1": { x: -3.7, y: 7 } }, // A1 away
+                    responses: { "r[1].P": { x: -3.7, y: 7 } }, // A1 away
                     credit: 0,
                 },
                 {
-                    responses: { "/m": 1 }, // create A2
+                    responses: { m: 1 }, // create A2
                     credit: 0,
                 },
                 {
-                    responses: { "/A2": { x: -3.8, y: 7.1 } }, // A2 near first goal
+                    responses: { "r[1].r2[1].Q": { x: -3.8, y: 7.1 } }, // A2 near first goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A1": { x: 6.9, y: 9.0 } }, // A1 near second goal
+                    responses: { "r[1].P": { x: 6.9, y: 9.0 } }, // A1 near second goal
                     credit: 1,
                 },
                 {
-                    responses: { "/A2": { x: -9.9, y: -8.8 } }, // A2 away
+                    responses: { "r[1].r2[1].Q": { x: -9.9, y: -8.8 } }, // A2 away
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A2": { x: 6.7, y: 9 } }, // A2 near second goal
+                    responses: { "r[1].r2[1].Q": { x: 6.7, y: 9 } }, // A2 near second goal
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A1": { x: 0.1, y: -1.1 } }, // A1 away
+                    responses: { "r[1].P": { x: 0.1, y: -1.1 } }, // A1 away
                     credit: 0.5,
                 },
                 {
-                    responses: { "/A1": { x: -3.8, y: 7.6 } }, // A1 near first goal
+                    responses: { "r[1].P": { x: -3.8, y: 7.6 } }, // A1 near first goal
                     credit: 1,
                 },
                 {
-                    responses: { "/n": 2 }, // create B1 and B2
+                    responses: { n: 2 }, // create B1 and B2
                     credit: 1 / 2,
                 },
                 {
-                    responses: { "/B1": { x: 7, y: 9 } }, // B1 near second goal
+                    responses: { "r[2].P": { x: 7, y: 9 } }, // B1 near second goal
                     credit: 1 / 2,
                 },
                 {
-                    responses: { "/m": 0 }, // remove A2 and B2
+                    responses: { m: 0 }, // remove A2 and B2
                     credit: 1,
                 },
             ],

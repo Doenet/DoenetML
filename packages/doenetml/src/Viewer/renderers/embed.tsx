@@ -5,7 +5,7 @@ import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function Figure(props) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
 
     const ref = useRef(null);
 

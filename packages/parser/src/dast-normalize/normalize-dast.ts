@@ -10,6 +10,9 @@ import {
 } from "../types";
 import { visit } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
+import { repeatSugar } from "./component-sugar/repeat";
+import { conditionalContentSugar } from "./component-sugar/conditionalContent";
+import { selectSugar } from "./component-sugar/select";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -28,6 +31,7 @@ export function normalizeDocumentDast(
     if (addCompatibilityNames) {
         processor = processor.use(pluginAddCompatibilityNames);
     }
+    processor = processor.use(pluginComponentSugar);
 
     return processor.runSync(dast);
 }
@@ -155,6 +159,31 @@ const pluginAddCompatibilityNames: Plugin<[], DastRoot, DastRoot> = () => {
                         children: [{ type: "text", value: name }],
                     };
                 }
+            }
+        });
+    };
+};
+
+/**
+ * Perform substitutions for syntactic sugar based on the component type
+ */
+const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
+    return (tree) => {
+        visit(tree, (node) => {
+            if (!isDastElement(node)) {
+                return;
+            }
+            switch (node.name) {
+                case "repeat":
+                case "repeatForSequence":
+                    repeatSugar(node);
+                    break;
+                case "conditionalContent":
+                    conditionalContentSugar(node);
+                    break;
+                case "select":
+                    selectSugar(node);
+                    break;
             }
         });
     };

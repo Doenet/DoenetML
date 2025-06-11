@@ -114,7 +114,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.parMin = {
             createComponentOfType: "math",
@@ -148,10 +148,21 @@ export default class Curve extends GraphicalComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakIntoFunctionsByCommas = function (childrenToBreak) {
-            let childrenToComponentFunction = (x) => ({
-                componentType: "function",
-                children: x,
+        let breakIntoFunctionsByCommas = function (
+            childrenToBreak,
+            nComponents,
+        ) {
+            let childrenToComponentFunction = (x, nComponents) => ({
+                component: {
+                    type: "serialized",
+                    componentType: "function",
+                    componentIdx: nComponents++,
+                    children: x,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                },
+                nComponents,
             });
 
             let breakFunction = returnBreakStringsSugarFunction({
@@ -159,23 +170,33 @@ export default class Curve extends GraphicalComponent {
                 mustStripOffOuterParentheses: true,
             });
 
-            let result = breakFunction({ matchedChildren: childrenToBreak });
+            let result = breakFunction({
+                matchedChildren: childrenToBreak,
+                nComponents,
+            });
 
             let functionChildren = [];
 
             if (result.success) {
                 functionChildren = result.newChildren;
+                nComponents = result.nComponents;
             } else {
                 // if didn't succeed,
                 // then just wrap children with a function
                 functionChildren = [
                     {
+                        type: "serialized",
                         componentType: "function",
+                        componentIdx: nComponents++,
                         children: childrenToBreak,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ];
             }
-            return functionChildren;
+
+            return { newChildren: functionChildren, nComponents };
         };
 
         sugarInstructions.push({
@@ -1231,6 +1252,7 @@ export default class Curve extends GraphicalComponent {
                     }
                 },
             },
+            indexAliases: [[], [], ["x", "y", "z"]],
             entryPrefixes: [
                 "controlVectorX",
                 "controlVector",
@@ -3991,14 +4013,14 @@ export default class Curve extends GraphicalComponent {
 
     async curveClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -4008,14 +4030,14 @@ export default class Curve extends GraphicalComponent {
 
     async curveFocused({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

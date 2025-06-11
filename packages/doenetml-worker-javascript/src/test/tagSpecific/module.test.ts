@@ -15,170 +15,96 @@ vi.mock("hyperformula");
 
 describe("Module tag tests", async () => {
     it("module with sentence", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p name="p1"><module name="m">
-      <setup>
-        <customAttribute componentType="text" attribute="item" defaultValue="who?" assignNames="item" />
-      </setup>
-      Hello $item!
-    </module>
-    </p>
-
-    <p name="p2">Hello $item!</p>
-
-    <p name="p3">$m{item="plant"}</p>
-
-    <p><textInput name="item2" prefill="animal" /></p>
-    <p name="p4">$m{item="$item2"}</p>
-    <p name="p5">$m</p>
-
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).contain("Hello who?!");
-        expect(stateVariables["/p2"].stateValues.text).contain("Hello who?!");
-        expect(stateVariables["/p3"].stateValues.text).contain("Hello plant!");
-        expect(stateVariables["/p4"].stateValues.text).contain("Hello animal!");
-        expect(stateVariables["/p5"].stateValues.text).contain("Hello who?!");
-
-        await updateTextInputValue({ text: "rock", name: "/item2", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p4"].stateValues.text).contain("Hello rock!");
-        expect(stateVariables["/p1"].stateValues.text).contain("Hello who?!");
-        expect(stateVariables["/p2"].stateValues.text).contain("Hello who?!");
-        expect(stateVariables["/p3"].stateValues.text).contain("Hello plant!");
-        expect(stateVariables["/p5"].stateValues.text).contain("Hello who?!");
-    });
-
-    it("module with sentence, newnamespace", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <module name="m" newNamespace>
-      <setup>
-        <customAttribute componentType="text" attribute="item" defaultValue="who?" assignNames="item" />
-      </setup>
+    <module name="m">
+      <moduleAttributes>
+        <text name="item">who?</text>
+      </moduleAttributes>
       <p name="p">Hello $item!</p>
     </module>
+    
+    <p name="p2">Hello $item!</p>
+    <p name="p2a">Hello $m.item!</p>
 
-    <p name="p2">Hello $(m/item)!</p>
+    <module copy="$m" item="plant" name="m2" />
 
-    $m{item="plant" name="m2"}
-    <p><textInput name="item" prefill="animal" /></p>
-    $m{item="$item" name="m3"}
-    $m{name="m4"}
+    <p><textInput name="item2" prefill="animal" /></p>
+    <module copy="$m" item="$item2" name="m3" />
+    <module copy="$m" name="m4" />
+
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
-        expect(stateVariables["/m3/p"].stateValues.text).eq("Hello animal!");
-        expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
 
-        await updateTextInputValue({ text: "rock", name: "/item", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m3/p"].stateValues.text).eq("Hello rock!");
-        expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
-        expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
-    });
+        expect(stateVariables[resolveComponentName("m.p")].stateValues.text).eq(
+            "Hello who?!",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "Hello who?!",
+        );
+        expect(stateVariables[resolveComponentName("p2a")].stateValues.text).eq(
+            "Hello who?!",
+        );
+        expect(
+            stateVariables[resolveComponentName("m2.p")].stateValues.text,
+        ).eq("Hello plant!");
+        expect(
+            stateVariables[resolveComponentName("m3.p")].stateValues.text,
+        ).eq("Hello animal!");
+        expect(
+            stateVariables[resolveComponentName("m4.p")].stateValues.text,
+        ).eq("Hello who?!");
 
-    it("module with sentence, nested newnamespaces", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <module name="m" newNamespace>
-      <setup newNamespace name="mads">
-        <customAttribute componentType="text" attribute="item" defaultValue="who?" assignNames="item" />
-      </setup>
-      <p name="p">Hello $(mads/item)!</p>
-    </module>
-
-    <p name="p2">Hello $(m/mads/item)!</p>
-
-    $m{item="plant" name="m2"}
-    <p><textInput name="item" prefill="animal" /></p>
-    $m{item="$item" name="m3"}
-    $m{name="m4"}
-    `,
+        await updateTextInputValue({
+            text: "rock",
+            componentIdx: resolveComponentName("item2"),
+            core,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
-        expect(stateVariables["/m3/p"].stateValues.text).eq("Hello animal!");
-        expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
-
-        await updateTextInputValue({ text: "rock", name: "/item", core });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m3/p"].stateValues.text).eq("Hello rock!");
-        expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
-        expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
+        expect(
+            stateVariables[resolveComponentName("m3.p")].stateValues.text,
+        ).eq("Hello rock!");
+        expect(stateVariables[resolveComponentName("m.p")].stateValues.text).eq(
+            "Hello who?!",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "Hello who?!",
+        );
+        expect(
+            stateVariables[resolveComponentName("m2.p")].stateValues.text,
+        ).eq("Hello plant!");
+        expect(
+            stateVariables[resolveComponentName("m4.p")].stateValues.text,
+        ).eq("Hello who?!");
     });
 
-    it("module with sentence, triple nested newnamespaces", async () => {
-        let core = await createTestCore({
+    it("module with graph", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <module name="m" newNamespace>
-      <setup newNamespace name="mads">
-        <customAttribute componentType="text" attribute="item" defaultValue="who?" assignNames="item" newNamespace name="ma" />
-      </setup>
-      <p name="p">Hello $(mads/ma/item)!</p>
-    </module>
+    <module name="m">
+      <moduleAttributes>
+        <math name="x">3</math>
+        <math name="y">5</math>
+        <text name="size">medium</text>
+        <number name="aspectRatio">1</number>
+      </moduleAttributes>
 
-    <p name="p2">Hello $(m/mads/ma/item)!</p>
-
-    $m{item="plant" name="m2"}
-    <p><textInput name="item" prefill="animal" /></p>
-    $m{item="$item" name="m3"}
-    $m{name="m4"}
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
-        expect(stateVariables["/m3/p"].stateValues.text).eq("Hello animal!");
-        expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
-
-        await updateTextInputValue({ text: "rock", name: "/item", core });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m3/p"].stateValues.text).eq("Hello rock!");
-        expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
-        expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
-        expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
-    });
-    it("module with graph, newnamespace", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <module name="m" newNamespace>
-      <setup>
-        <customAttribute componentType="math" attribute="x" defaultValue="3" assignNames="pointX" />
-        <customAttribute componentType="math" attribute="y" defaultValue="5" assignNames="pointY" />
-        <customAttribute componentType="text" attribute="size" defaultValue="medium" assignNames="graphSize" />
-        <customAttribute componentType="number" attribute="aspectRatio" defaultValue="300px" assignNames="graphAspectRatio" />
-      </setup>
-      <graph size="$graphSize" aspectRatio="$graphAspectRatio" name="g">
-        <point name="p" x="$pointX" y="$pointY" />
+      <graph size="$size" aspectRatio="$aspectRatio" name="g">
+        <point name="p" x="$x" y="$y" />
       </graph>
       <p>Point coords:
-        <mathInput name="x2" bindValueTo="$(p.x)" />
-        <mathInput name="y2" bindValueTo="$(p.y)" />
+        <mathInput name="x2">$p.x</mathInput>
+        <mathInput name="y2">$p.y</mathInput>
       </p>
     </module>
 
-    <p>Point coords: <mathInput name="x" prefill="7" /> <mathInput name="y" prefill='-7' /></p>
+    <p>Point coords: <mathInput name="px" prefill="7" /> <mathInput name="py" prefill='-7' /></p>
     <p>Graph size: <textInput name="s" prefill="small" /> <mathInput name="ar" prefill="1/2" /></p>
     
-    $m{x="$x" y="$y" size="$s" aspectRatio="$ar" name="m2"}
+    <module copy="$m" x="$px" y="$py" size="$s" aspectRatio="$ar" name="m2" />
     `,
         });
 
@@ -197,21 +123,37 @@ describe("Module tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/m/g"].stateValues.size).eq("medium");
-            expect(stateVariables["/m/g"].stateValues.width.size).eq(
-                widthsBySize["medium"],
-            );
-            expect(stateVariables["/m/g"].stateValues.aspectRatio).eq(1);
             expect(
-                stateVariables["/m/p"].stateValues.xs.map((v) => v.tree),
+                stateVariables[resolveComponentName("m.g")].stateValues.size,
+            ).eq("medium");
+            expect(
+                stateVariables[resolveComponentName("m.g")].stateValues.width
+                    .size,
+            ).eq(widthsBySize["medium"]);
+            expect(
+                stateVariables[resolveComponentName("m.g")].stateValues
+                    .aspectRatio,
+            ).eq(1);
+            expect(
+                stateVariables[resolveComponentName("m.p")].stateValues.xs.map(
+                    (v) => v.tree,
+                ),
             ).eqls(p1);
-            expect(stateVariables["/m2/g"].stateValues.size).eq(size);
-            expect(stateVariables["/m2/g"].stateValues.width.size).eq(
-                widthsBySize[size],
-            );
-            expect(stateVariables["/m2/g"].stateValues.aspectRatio).eq(ar);
             expect(
-                stateVariables["/m2/p"].stateValues.xs.map((v) => v.tree),
+                stateVariables[resolveComponentName("m2.g")].stateValues.size,
+            ).eq(size);
+            expect(
+                stateVariables[resolveComponentName("m2.g")].stateValues.width
+                    .size,
+            ).eq(widthsBySize[size]);
+            expect(
+                stateVariables[resolveComponentName("m2.g")].stateValues
+                    .aspectRatio,
+            ).eq(ar);
+            expect(
+                stateVariables[resolveComponentName("m2.p")].stateValues.xs.map(
+                    (v) => v.tree,
+                ),
             ).eqls(p2);
         }
 
@@ -225,12 +167,12 @@ describe("Module tag tests", async () => {
         p1 = [-6, 9];
         await updateMathInputValue({
             latex: p1[0].toString(),
-            name: "/m/x2",
+            componentIdx: resolveComponentName("m.x2"),
             core,
         });
         await updateMathInputValue({
             latex: p1[1].toString(),
-            name: "/m/y2",
+            componentIdx: resolveComponentName("m.y2"),
             core,
         });
         await check_items({ p1, p2, size, ar });
@@ -240,69 +182,87 @@ describe("Module tag tests", async () => {
         ar = 3 / 2;
         await updateMathInputValue({
             latex: p2[0].toString(),
-            name: "/x",
+            componentIdx: resolveComponentName("px"),
             core,
         });
         await updateMathInputValue({
             latex: p2[1].toString(),
-            name: "/y",
+            componentIdx: resolveComponentName("py"),
             core,
         });
-        await updateTextInputValue({ text: size, name: "/s", core });
-        await updateMathInputValue({ latex: "3/2", name: "/ar", core });
+        await updateTextInputValue({
+            text: size,
+            componentIdx: resolveComponentName("s"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "3/2",
+            componentIdx: resolveComponentName("ar"),
+            core,
+        });
         await check_items({ p1, p2, size, ar });
 
         p2 = [-3, 4];
 
         await updateMathInputValue({
             latex: p2[0].toString(),
-            name: "/m2/x2",
+            componentIdx: resolveComponentName("m2.x2"),
             core,
         });
         await updateMathInputValue({
             latex: p2[1].toString(),
-            name: "/m2/y2",
+            componentIdx: resolveComponentName("m2.y2"),
             core,
         });
         await check_items({ p1, p2, size, ar });
 
         p1 = [-8, 9];
-        await movePoint({ name: "/m/p", x: p1[0], y: p1[1], core });
+        await movePoint({
+            componentIdx: resolveComponentName("m.p"),
+            x: p1[0],
+            y: p1[1],
+            core,
+        });
         await check_items({ p1, p2, size, ar });
 
         p2 = [6, -10];
-        await movePoint({ name: "/m2/p", x: p2[0], y: p2[1], core });
+        await movePoint({
+            componentIdx: resolveComponentName("m2.p"),
+            x: p2[0],
+            y: p2[1],
+            core,
+        });
         await check_items({ p1, p2, size, ar });
     });
 
     it("module inside a module", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <module name="m" newNamespace>
-      <setup>
-        <customAttribute componentType="math" attribute="x" defaultValue="3" assignNames="pointX" />
-        <customAttribute componentType="math" attribute="y" defaultValue="5" assignNames="pointY" />
-      </setup>
+    <module name="m">
+      <moduleAttributes>
+        <math name="x">3</math>
+        <math name="y">5</math>
+      </moduleAttributes>
       <graph>
-        <point name="p" x="$pointX" y="$pointY" />
+        <point name="p" x="$x" y="$y" />
       </graph>
     </module>
 
-    <module name="n" newNamespace>
-      <setup>
-        <customAttribute componentType="math" attribute="u" defaultValue="1" assignNames="u" />
-        <customAttribute componentType="math" attribute="v" defaultValue="-2" assignNames="v" />
-      </setup>
+    <module name="n">
+      <moduleAttributes>
+        <math name="u">1</math>
+        <math name="v">-2</math>
+      </moduleAttributes>
       <graph>
         <point name="p" x="$u" y="$v" />
       </graph>
       <math name="vfixed" modifyIndirectly="false" hide>$v</math>
-      $(../m{x="$u+$vfixed" y="9" name="m"})
+      <module copy="$m" x="$u+$vfixed" y="9" name="m2" />
       
     </module>
 
-    <p>Point coords: <mathInput name="x" prefill="7" /> <mathInput name="y" prefill='-7' /></p>
-    $n{u="$x" v="$y" name="n2"}
+    <p>Point coords: <mathInput name="px" prefill="7" /> <mathInput name="py" prefill='-7' /></p>
+    <module copy="$n" u="$px" v="$py" name="n2" />
 
     `,
         });
@@ -331,19 +291,29 @@ describe("Module tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables["/m/p"].stateValues.xs.map((v) => v.tree),
+                stateVariables[resolveComponentName("m.p")].stateValues.xs.map(
+                    (v) => v.tree,
+                ),
             ).eqls([mx, my]);
             expect(
-                stateVariables["/n/p"].stateValues.xs.map((v) => v.tree),
+                stateVariables[resolveComponentName("n.p")].stateValues.xs.map(
+                    (v) => v.tree,
+                ),
             ).eqls([nx, ny]);
             expect(
-                stateVariables["/n/m/p"].stateValues.xs.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("n.m2.p")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([nx + ny, nmy]);
             expect(
-                stateVariables["/n2/p"].stateValues.xs.map((v) => v.tree),
+                stateVariables[resolveComponentName("n2.p")].stateValues.xs.map(
+                    (v) => v.tree,
+                ),
             ).eqls([n2x, n2y]);
             expect(
-                stateVariables["/n2/m/p"].stateValues.xs.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("n2.m2.p")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([n2x + n2y, n2my]);
         }
 
@@ -360,312 +330,215 @@ describe("Module tag tests", async () => {
 
         n2x = -6;
         n2y = 8;
-        await updateMathInputValue({ latex: n2x.toString(), name: "/x", core });
-        await updateMathInputValue({ latex: n2y.toString(), name: "/y", core });
+        await updateMathInputValue({
+            latex: n2x.toString(),
+            componentIdx: resolveComponentName("px"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: n2y.toString(),
+            componentIdx: resolveComponentName("py"),
+            core,
+        });
         await check_items({ mx, my, nx, ny, nmy, n2x, n2y, n2my });
 
         mx = -2;
         my = -4;
-        await movePoint({ name: "/m/p", x: mx, y: my, core });
+        await movePoint({
+            componentIdx: resolveComponentName("m.p"),
+            x: mx,
+            y: my,
+            core,
+        });
         await check_items({ mx, my, nx, ny, nmy, n2x, n2y, n2my });
 
         nx = 7;
         ny = -3;
-        await movePoint({ name: "/n/p", x: nx, y: ny, core });
+        await movePoint({
+            componentIdx: resolveComponentName("n.p"),
+            x: nx,
+            y: ny,
+            core,
+        });
         await check_items({ mx, my, nx, ny, nmy, n2x, n2y, n2my });
 
         nx = -2;
         nmy = -7;
-        await movePoint({ name: "/n/m/p", x: nx + ny, y: nmy, core });
+        await movePoint({
+            componentIdx: resolveComponentName("n.m2.p"),
+            x: nx + ny,
+            y: nmy,
+            core,
+        });
         await check_items({ mx, my, nx, ny, nmy, n2x, n2y, n2my });
 
         n2x = 4;
         n2y = 5;
-        await movePoint({ name: "/n2/p", x: n2x, y: n2y, core });
+        await movePoint({
+            componentIdx: resolveComponentName("n2.p"),
+            x: n2x,
+            y: n2y,
+            core,
+        });
         await check_items({ mx, my, nx, ny, nmy, n2x, n2y, n2my });
 
         n2x = -10;
         n2my = -6;
-        await movePoint({ name: "/n2/m/p", x: n2x + n2y, y: n2my, core });
+        await movePoint({
+            componentIdx: resolveComponentName("n2.m2.p"),
+            x: n2x + n2y,
+            y: n2my,
+            core,
+        });
         await check_items({ mx, my, nx, ny, nmy, n2x, n2y, n2my });
     });
 
     it("apply sugar in module attributes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <module name="m" newNamespace>
-      <setup>
-        <customAttribute componentType="point" attribute="P" defaultValue="(1,2)" assignNames="P" />
-      </setup>
-      <p>Point: $P{name="p"}</p>
+    <module name="m">
+      <moduleAttributes>
+        <point name="P">(1,2)</point>
+      </moduleAttributes>
+      <p>Point: <point extend="$P" name="p" /></p>
     </module>
     
-    $m{P="(3,4)" name="m2"}
+    <module copy="$m" P="(3,4)" name="m2" />
 
     <graph>
       <point name="Q">(5,6)</point>
     </graph>
-    $m{P="$Q" name="m3"}
+    <module copy="$m" P="$Q" name="m3" />
     
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m/p"].stateValues.xs.map((v) => v.tree)).eqls([
-            1, 2,
-        ]);
-        expect(stateVariables["/m2/p"].stateValues.xs.map((v) => v.tree)).eqls([
-            3, 4,
-        ]);
-        expect(stateVariables["/m3/p"].stateValues.xs.map((v) => v.tree)).eqls([
-            5, 6,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("m.p")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([1, 2]);
+        expect(
+            stateVariables[resolveComponentName("m2.p")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([3, 4]);
+        expect(
+            stateVariables[resolveComponentName("m3.p")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([5, 6]);
 
-        await movePoint({ name: "/Q", x: 7, y: 8, core });
-        expect(stateVariables["/m3/p"].stateValues.xs.map((v) => v.tree)).eqls([
-            7, 8,
-        ]);
+        await movePoint({
+            componentIdx: resolveComponentName("Q"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        expect(
+            stateVariables[resolveComponentName("m3.p")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([7, 8]);
     });
 
     it("invalid attributes ignored in module", async () => {
         // disabled is already an attribute on all components, so we can't add a custom attribute with that name
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <module name='m' newNamespace>
-      <setup>
-        <customAttribute componentType="boolean" attribute="disabled" defaultValue="true" assignNames="disabled" />
-      </setup>
+    <module name='m'>
+      <moduleAttributes>
+        <boolean name="disabled">true</boolean>
+      </moduleAttributes>
       <p name="p">Disabled? $disabled</p>
     </module>
     
-    $m{name="m1"}
-    $m{disabled="true" name="m2"}
-    $m{disabled="false" name="m3"}
+    <module copy="$m" name="m1" />
+    <module copy="$m" disabled="true" name="m2" />
+    <module copy="$m" disabled="false" name="m3" />
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m/p"].stateValues.text).eq("Disabled? ");
-        expect(stateVariables["/m1/p"].stateValues.text).eq("Disabled? ");
-        expect(stateVariables["/m2/p"].stateValues.text).eq("Disabled? ");
-        expect(stateVariables["/m3/p"].stateValues.text).eq("Disabled? ");
+        expect(stateVariables[resolveComponentName("m.p")].stateValues.text).eq(
+            "Disabled? true",
+        );
+        expect(
+            stateVariables[resolveComponentName("m1.p")].stateValues.text,
+        ).eq("Disabled? true");
+        expect(
+            stateVariables[resolveComponentName("m2.p")].stateValues.text,
+        ).eq("Disabled? true");
+        expect(
+            stateVariables[resolveComponentName("m3.p")].stateValues.text,
+        ).eq("Disabled? true");
 
         let errorWarnings = core.core!.errorWarnings;
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(4);
-        for (let i = 0; i < 4; i++) {
+        expect(errorWarnings.warnings.length).eq(2);
+        for (let i = 0; i < 2; i++) {
             expect(errorWarnings.warnings[i].message).contain(
-                `Cannot add attribute "disabled" to a <module> because the <module> component type already has a "disabled" attribute defined`,
+                `The component <boolean name="disabled"> cannot be used as an attribute for a module because the <module> component type already has a "disabled" attribute defined`,
             );
         }
     });
 
-    it("handle error in custom attributes", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <module name='m'>
-      <setup>
-        <customAttribute componentType="boolean" attribute="a1" defaultValue="true" assignNames="duplicate" />
-        
-        <customAttribute componentType="text" attribute="a2" defaultValue="yes" assignNames="duplicate" />
-      </setup>
-    </module>
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let errorChild =
-            stateVariables[
-                stateVariables["/_document1"].activeChildren[0].componentIdx
-            ];
-        expect(errorChild.componentType).eq("_error");
-        expect(errorChild.stateValues.message).eq(
-            "Duplicate component name: duplicate.",
-        );
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            "Duplicate component name: duplicate",
-        );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(6);
-        expect(errorWarnings.errors[0].position.charBegin).eq(9);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(6);
-        expect(errorWarnings.errors[0].position.charEnd).eq(106);
-    });
-
-    it("warnings in custom attributes", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <module name='m' newNamespace>
-      <setup>
-        <customAttribute componentType="boolean" defaultValue="true" attribute="disabled" assignNames="disabled" />
-        
-        <customAttribute componentType="bad" defaultValue="yes" attribute="a" assignNames="a" />
-
-        <customAttribute componentType="text" attribute="b" assignNames="b" />
-
-        <customAttribute />
-
-      </setup>
-
-      <customAttribute componentType="boolean" defaultValue="true" attribute="outside" assignNames="outside" />
-    
-      <p name="p">b: $b</p>
-    </module>
-
-    <module copySource="m" b="hello" name="m1" />
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/m/p"].stateValues.text).eq("b: ");
-        expect(stateVariables["/m1/p"].stateValues.text).eq("b: hello");
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(9);
-
-        expect(errorWarnings.warnings[0].message).contain(
-            "Could not create <customAttribute>. It must be inside a <setup> component that is inside a <module> or similar component",
-        );
-        expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.lineBegin).eq(14);
-        expect(errorWarnings.warnings[0].position.charBegin).eq(7);
-        expect(errorWarnings.warnings[0].position.lineEnd).eq(14);
-        expect(errorWarnings.warnings[0].position.charEnd).eq(111);
-
-        expect(errorWarnings.warnings[1].message).contain(
-            "Could not create <customAttribute>. It must be inside a <setup> component that is inside a <module> or similar component",
-        );
-        expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.lineBegin).eq(14);
-        expect(errorWarnings.warnings[1].position.charBegin).eq(7);
-        expect(errorWarnings.warnings[1].position.lineEnd).eq(14);
-        expect(errorWarnings.warnings[1].position.charEnd).eq(111);
-
-        expect(errorWarnings.warnings[2].message).contain(
-            `Cannot add attribute "disabled" to a <module> because the <module> component type already has a "disabled" attribute defined`,
-        );
-        expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].position.lineBegin).eq(4);
-        expect(errorWarnings.warnings[2].position.charBegin).eq(9);
-        expect(errorWarnings.warnings[2].position.lineEnd).eq(4);
-        expect(errorWarnings.warnings[2].position.charEnd).eq(115);
-
-        expect(errorWarnings.warnings[3].message).contain(
-            "<customAttribute> contains an invalid component type: <bad>",
-        );
-        expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].position.lineBegin).eq(6);
-        expect(errorWarnings.warnings[3].position.charBegin).eq(9);
-        expect(errorWarnings.warnings[3].position.lineEnd).eq(6);
-        expect(errorWarnings.warnings[3].position.charEnd).eq(96);
-
-        expect(errorWarnings.warnings[4].message).contain(
-            `Since a default value was not supplied for <customAttribute> with attribute="b", it will not be created unless a value is specified`,
-        );
-        expect(errorWarnings.warnings[4].level).eq(1);
-        expect(errorWarnings.warnings[4].position.lineBegin).eq(8);
-        expect(errorWarnings.warnings[4].position.charBegin).eq(9);
-        expect(errorWarnings.warnings[4].position.lineEnd).eq(8);
-        expect(errorWarnings.warnings[4].position.charEnd).eq(78);
-
-        expect(errorWarnings.warnings[5].message).contain(
-            `<customAttribute> must contain a componentType attribute`,
-        );
-        expect(errorWarnings.warnings[5].level).eq(1);
-        expect(errorWarnings.warnings[5].position.lineBegin).eq(10);
-        expect(errorWarnings.warnings[5].position.charBegin).eq(9);
-        expect(errorWarnings.warnings[5].position.lineEnd).eq(10);
-        expect(errorWarnings.warnings[5].position.charEnd).eq(27);
-
-        expect(errorWarnings.warnings[6].message).contain(
-            `Cannot add attribute "disabled" to a <module> because the <module> component type already has a "disabled" attribute defined`,
-        );
-        expect(errorWarnings.warnings[6].level).eq(1);
-        expect(errorWarnings.warnings[6].position.lineBegin).eq(4);
-        expect(errorWarnings.warnings[6].position.charBegin).eq(9);
-        expect(errorWarnings.warnings[6].position.lineEnd).eq(4);
-        expect(errorWarnings.warnings[6].position.charEnd).eq(115);
-
-        expect(errorWarnings.warnings[7].message).contain(
-            "<customAttribute> contains an invalid component type: <bad>",
-        );
-        expect(errorWarnings.warnings[7].level).eq(1);
-        expect(errorWarnings.warnings[7].position.lineBegin).eq(6);
-        expect(errorWarnings.warnings[7].position.charBegin).eq(9);
-        expect(errorWarnings.warnings[7].position.lineEnd).eq(6);
-        expect(errorWarnings.warnings[7].position.charEnd).eq(96);
-
-        expect(errorWarnings.warnings[8].message).contain(
-            `<customAttribute> must contain a componentType attribute`,
-        );
-        expect(errorWarnings.warnings[8].level).eq(1);
-        expect(errorWarnings.warnings[8].position.lineBegin).eq(10);
-        expect(errorWarnings.warnings[8].position.charBegin).eq(9);
-        expect(errorWarnings.warnings[8].position.lineEnd).eq(10);
-        expect(errorWarnings.warnings[8].position.charEnd).eq(27);
-    });
-
     it("copy module and overwrite attribute values", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <module name="md" newNamespace>
-      <setup>
-        <customAttribute attribute="n" componentType="number" defaultValue="2" assignNames="n" />
-        <customAttribute attribute="m" componentType="number" defaultValue="1" assignNames="m" />
-      </setup>
+    <module name="md">
+      <moduleAttributes>
+        <number name="n">2</number>
+        <number name="m">1</number>
+      </moduleAttributes>
       <p name="p1">The first number is $m; the second number is $n.</p>
-      <p name="p2">Next value? <mathInput name="q" />  OK $q{name="q2"} it is.</p>
+      <p name="p2">Next value? <mathInput name="q" />  OK <math extend="$q" name="q2" /> it is.</p>
     </module>
     
-    $md{name="md1"}
-    $md1{n="10" name="md2"}
-    $md2{m="100" name="md3"}
-    $md3{n="0" name="md4"}
+    <module copy="$md" name="md1" />
+    <module copy="$md1" n="10" name="md2" />
+    <module copy="$md2" m="100" name="md3" />
+    <module copy="$md3" n="0" name="md4" />
 
-    $md{m="13" n="17" name="md5"}
-    $md5{m="" n="a" name="md6"}
-    $md6{m="3" n="4" name="md7"}
+    <module copy="$md" m="13" n="17" name="md5" />
+    <module copy="$md5" m="" n="a" name="md6" />
+    <module copy="$md6" m="3" n="4" name="md7" />
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/md/p1"].stateValues.text).eq(
-            "The first number is 1; the second number is 2.",
-        );
-        expect(stateVariables["/md1/p1"].stateValues.text).eq(
-            "The first number is 1; the second number is 2.",
-        );
-        expect(stateVariables["/md2/p1"].stateValues.text).eq(
-            "The first number is 1; the second number is 10.",
-        );
-        expect(stateVariables["/md3/p1"].stateValues.text).eq(
-            "The first number is 100; the second number is 10.",
-        );
-        expect(stateVariables["/md4/p1"].stateValues.text).eq(
-            "The first number is 100; the second number is 0.",
-        );
-        expect(stateVariables["/md5/p1"].stateValues.text).eq(
-            "The first number is 13; the second number is 17.",
-        );
-        expect(stateVariables["/md6/p1"].stateValues.text).eq(
-            "The first number is NaN; the second number is NaN.",
-        );
-        expect(stateVariables["/md7/p1"].stateValues.text).eq(
-            "The first number is 3; the second number is 4.",
-        );
+        expect(
+            stateVariables[resolveComponentName("md.p1")].stateValues.text,
+        ).eq("The first number is 1; the second number is 2.");
+        expect(
+            stateVariables[resolveComponentName("md1.p1")].stateValues.text,
+        ).eq("The first number is 1; the second number is 2.");
+        expect(
+            stateVariables[resolveComponentName("md2.p1")].stateValues.text,
+        ).eq("The first number is 1; the second number is 10.");
+        expect(
+            stateVariables[resolveComponentName("md3.p1")].stateValues.text,
+        ).eq("The first number is 100; the second number is 10.");
+        expect(
+            stateVariables[resolveComponentName("md4.p1")].stateValues.text,
+        ).eq("The first number is 100; the second number is 0.");
+        expect(
+            stateVariables[resolveComponentName("md5.p1")].stateValues.text,
+        ).eq("The first number is 13; the second number is 17.");
+        expect(
+            stateVariables[resolveComponentName("md6.p1")].stateValues.text,
+        ).eq("The first number is NaN; the second number is NaN.");
+        expect(
+            stateVariables[resolveComponentName("md7.p1")].stateValues.text,
+        ).eq("The first number is 3; the second number is 4.");
 
         for (let i = 0; i <= 7; i++) {
             expect(
-                stateVariables[`/md${i || ""}/q2`].stateValues.value.tree,
+                stateVariables[resolveComponentName(`md${i || ""}.q2`)]
+                    .stateValues.value.tree,
             ).eq("\uff3f");
         }
 
@@ -674,7 +547,7 @@ describe("Module tag tests", async () => {
         for (let [i, v] of qs.entries()) {
             await updateMathInputValue({
                 latex: v,
-                name: `/md${i || ""}/q`,
+                componentIdx: resolveComponentName(`md${i || ""}.q`),
                 core,
             });
         }
@@ -682,41 +555,42 @@ describe("Module tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let [i, v] of qs.entries()) {
             expect(
-                stateVariables[`/md${i || ""}/q2`].stateValues.value.tree,
+                stateVariables[resolveComponentName(`md${i || ""}.q2`)]
+                    .stateValues.value.tree,
             ).eq(v);
         }
     });
 
-    it("copy sourcesAreResponses with parent namespace target", async () => {
-        let core = await createTestCore({
+    it("copy referencesAreResponses with parent target", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <setup>
-      <module name="mod" newNamespace>
-        <setup>
-          <customAttribute componentType="text" attribute="title" defaultValue="Find point" assignNames="title" />
-          <customAttribute componentType="math" attribute="initialx" defaultValue="0" assignNames="initialx" />
-          <customAttribute componentType="math" attribute="initialy" defaultValue="0" assignNames="initialy" />
-          <customAttribute componentType="math" attribute="goalx" defaultValue="3" assignNames="goalx" />
-          <customAttribute componentType="math" attribute="goaly" defaultValue="4" assignNames="goaly" />
-          <customAttribute componentType="_componentSize" attribute="width" defaultValue="300px" assignNames="width" />
-          <customAttribute componentType="number" attribute="aspectRatio" defaultValue="1" assignNames="aspectRatio" />
-        </setup>
+      <module name="mod">
+        <moduleAttributes>
+          <text name="title">Find point</text>
+          <math name="initialx">0</math>
+          <math name="initialy">0</math>
+          <math name="goalx">3</math>
+          <math name="goaly">4</math>
+          <number name="width">300</number>
+          <number name="aspectRatio">1</number>
+        </moduleAttributes>
       
         <problem name="prob"><title>$title</title>
       
-          <p>Move the point to <m name="m1">($goalx, $goaly)</m>.</p>
+          <p>Move the point to <m name="m">($goalx, $goaly)</m>.</p>
           <graph width="$width" aspectRatio="$aspectRatio">
-            <point x="$(initialx{link='false'})" y="$(initialy{link='false'})" name="P">
+            <point x="$initialx" y="$initialy" name="P">
               <constraints>
                 <attractTo><point x="$goalx" y="$goaly" ></point></attractTo>
               </constraints>
             </point>
           </graph>
       
-          <answer name="ans" newNamespace>
-            <award sourcesAreResponses="../P">
+          <answer name="ans" >
+            <award referencesAreResponses="$P">
               <when>
-                $(../P) = ($(../goalx), $(../goaly))
+                $P = ($goalx, $goaly)
               </when>
             </award>
           </answer>
@@ -726,10 +600,10 @@ describe("Module tag tests", async () => {
 
 
     <section><title>First one</title>
-    $mod{name="m1"}
+    <module copy="$mod" name="m1" />
 
-    <p>Submitted response for problem 1: <math name="sr1">$(m1/ans.submittedResponse)</math></p>
-    <p>Credit for problem 1: $(m1/prob.creditAchieved{assignNames="ca1"})</p>
+    <p>Submitted response for problem 1: <math name="sr1">$m1.ans.submittedResponse</math></p>
+    <p>Credit for problem 1: <number extend="$m1.prob.creditAchieved" name="ca1"/></p>
     </section>
 
     <section><title>Second one</title>
@@ -737,79 +611,153 @@ describe("Module tag tests", async () => {
     <p>Now, let's use initial point <m name="coordsa">(<math name="xa">-3</math>, <math name="ya">3</math>)</m> and the goal point <m name="coordsb">(<math name="xb">7</math>, <math name="yb">-5</math>)</m> </p>
 
     
-    $mod{title="Find point again" goalX="$xb" GoaLy="$yb" initialX="$xa" initialy="$ya" width="200px" aspectRatio="1" name="m2"}
-    <p>Submitted response for problem 2: <math name="sr2">$(m2/ans.submittedResponse)</math></p>
-    <p>Credit for problem 2: $(m2/prob.creditAchieved{assignNames="ca2"})</p>
+    <module copy="$mod" title="Find point again" goalX="$xb" GoaLy="$yb" initialX="$xa" initialy="$ya" width="200px" aspectRatio="1" name="m2" />
+    <p>Submitted response for problem 2: <math name="sr2">$m2.ans.submittedResponse</math></p>
+    <p>Credit for problem 2: <number extend="$m2.prob.creditAchieved" name="ca2" /></p>
     </section>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(cleanLatex(stateVariables["/m1/m1"].stateValues.latex)).eq(
-            "(3,4)",
-        );
-        expect(cleanLatex(stateVariables["/coordsa"].stateValues.latex)).eq(
-            "(-3,3)",
-        );
-        expect(cleanLatex(stateVariables["/coordsb"].stateValues.latex)).eq(
-            "(7,-5)",
-        );
-        expect(cleanLatex(stateVariables["/m2/m1"].stateValues.latex)).eq(
-            "(7,-5)",
-        );
-        expect(cleanLatex(stateVariables["/sr1"].stateValues.latex)).eq("＿");
-        expect(stateVariables["/ca1"].stateValues.value).eq(0);
-        expect(cleanLatex(stateVariables["/sr2"].stateValues.latex)).eq("＿");
-        expect(stateVariables["/ca2"].stateValues.value).eq(0);
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("m1.m")].stateValues.latex,
+            ),
+        ).eq("(3,4)");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("coordsa")].stateValues
+                    .latex,
+            ),
+        ).eq("(-3,3)");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("coordsb")].stateValues
+                    .latex,
+            ),
+        ).eq("(7,-5)");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("m2.m")].stateValues.latex,
+            ),
+        ).eq("(7,-5)");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("sr1")].stateValues.latex,
+            ),
+        ).eq("＿");
+        expect(
+            stateVariables[resolveComponentName("ca1")].stateValues.value,
+        ).eq(0);
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("sr2")].stateValues.latex,
+            ),
+        ).eq("＿");
+        expect(
+            stateVariables[resolveComponentName("ca2")].stateValues.value,
+        ).eq(0);
 
-        expect(stateVariables["/m1/P"].stateValues.xs.map((v) => v.tree)).eqls([
-            0, 0,
-        ]);
-        expect(stateVariables["/m2/P"].stateValues.xs.map((v) => v.tree)).eqls([
-            -3, 3,
-        ]);
+        expect(
+            stateVariables[resolveComponentName("m1.P")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([0, 0]);
+        expect(
+            stateVariables[resolveComponentName("m2.P")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
+        ).eqls([-3, 3]);
 
         // submit answers
-        await submitAnswer({ name: "/m1/ans", core });
-        await submitAnswer({ name: "/m2/ans", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("m1.ans"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: resolveComponentName("m2.ans"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(cleanLatex(stateVariables["/sr1"].stateValues.latex)).eq(
-            "(0,0)",
-        );
-        expect(stateVariables["/ca1"].stateValues.value).eq(0);
-        expect(cleanLatex(stateVariables["/sr2"].stateValues.latex)).eq(
-            "(-3,3)",
-        );
-        expect(stateVariables["/ca2"].stateValues.value).eq(0);
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("sr1")].stateValues.latex,
+            ),
+        ).eq("(0,0)");
+        expect(
+            stateVariables[resolveComponentName("ca1")].stateValues.value,
+        ).eq(0);
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("sr2")].stateValues.latex,
+            ),
+        ).eq("(-3,3)");
+        expect(
+            stateVariables[resolveComponentName("ca2")].stateValues.value,
+        ).eq(0);
 
         // move near correct answers
-        await movePoint({ name: "/m1/P", x: 3.2, y: 3.9, core });
-        await movePoint({ name: "/m2/P", x: 7.2, y: -4.9, core });
-        expect(cleanLatex(stateVariables["/m1/m1"].stateValues.latex)).eq(
-            "(3,4)",
-        );
-        expect(cleanLatex(stateVariables["/coordsa"].stateValues.latex)).eq(
-            "(-3,3)",
-        );
-        expect(cleanLatex(stateVariables["/coordsb"].stateValues.latex)).eq(
-            "(7,-5)",
-        );
-        expect(cleanLatex(stateVariables["/m2/m1"].stateValues.latex)).eq(
-            "(7,-5)",
-        );
+        await movePoint({
+            componentIdx: resolveComponentName("m1.P"),
+            x: 3.2,
+            y: 3.9,
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("m2.P"),
+            x: 7.2,
+            y: -4.9,
+            core,
+        });
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("m1.m")].stateValues.latex,
+            ),
+        ).eq("(3,4)");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("coordsa")].stateValues
+                    .latex,
+            ),
+        ).eq("(-3,3)");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("coordsb")].stateValues
+                    .latex,
+            ),
+        ).eq("(7,-5)");
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("m2.m")].stateValues.latex,
+            ),
+        ).eq("(7,-5)");
 
         // submit answers
-        await submitAnswer({ name: "/m1/ans", core });
-        await submitAnswer({ name: "/m2/ans", core });
+        await submitAnswer({
+            componentIdx: resolveComponentName("m1.ans"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: resolveComponentName("m2.ans"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(cleanLatex(stateVariables["/sr1"].stateValues.latex)).eq(
-            "(3,4)",
-        );
-        expect(stateVariables["/ca1"].stateValues.value).eq(1);
-        expect(cleanLatex(stateVariables["/sr2"].stateValues.latex)).eq(
-            "(7,-5)",
-        );
-        expect(stateVariables["/ca2"].stateValues.value).eq(1);
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("sr1")].stateValues.latex,
+            ),
+        ).eq("(3,4)");
+        expect(
+            stateVariables[resolveComponentName("ca1")].stateValues.value,
+        ).eq(1);
+        expect(
+            cleanLatex(
+                stateVariables[resolveComponentName("sr2")].stateValues.latex,
+            ),
+        ).eq("(7,-5)");
+        expect(
+            stateVariables[resolveComponentName("ca2")].stateValues.value,
+        ).eq(1);
     });
 });

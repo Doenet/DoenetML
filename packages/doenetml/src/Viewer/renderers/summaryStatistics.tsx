@@ -6,8 +6,7 @@ import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function Tabular(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
 
     const ref = useRef(null);
 

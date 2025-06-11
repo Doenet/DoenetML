@@ -6,8 +6,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import Measure from "react-measure";
 
 export default React.memo(function Figure(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
 
     const ref = useRef(null);
 

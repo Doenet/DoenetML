@@ -1,8 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
-import me from "math-expressions";
-import { processAssignNames } from "../utils/naming";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import { createNewComponentIndices } from "../utils/componentIndices";
 
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
@@ -11,14 +10,9 @@ export default class Sort extends CompositeComponent {
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
-    static assignNamesToReplacements = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
 
         attributes.sortVectorsBy = {
             createComponentOfType: "text",
@@ -60,21 +54,22 @@ export default class Sort extends CompositeComponent {
             matchedChildren,
             componentAttributes,
             componentInfoObjects,
+            nComponents,
         }) {
             // only if all children are strings or macros
             if (
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro,
+                        (child.extending && "Ref" in child.extending),
                 )
             ) {
                 return { success: false };
             }
 
             let type;
-            if (componentAttributes.type) {
-                type = componentAttributes.type;
+            if (componentAttributes.type?.value) {
+                type = componentAttributes.type.value;
             } else {
                 return { success: false };
             }
@@ -93,21 +88,16 @@ export default class Sort extends CompositeComponent {
             let result = groupIntoComponentTypesSeparatedBySpaces({
                 matchedChildren,
                 componentInfoObjects,
+                nComponents,
             });
 
             if (result.success) {
                 let newChildren = result.newChildren;
 
-                let newAttributes = {
-                    addLevelToAssignNames: {
-                        primitive: true,
-                    },
-                };
-
                 return {
                     success: true,
                     newChildren,
-                    newAttributes,
+                    nComponents: result.nComponents,
                 };
             } else {
                 return { success: false };
@@ -389,6 +379,7 @@ export default class Sort extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -411,39 +402,33 @@ export default class Sort extends CompositeComponent {
             if (replacementSource) {
                 componentsCopied.push(replacementSource.componentIdx);
 
-                replacements.push(
-                    await replacementSource.serialize({
-                        primitiveSourceAttributesToIgnore: ["isResponse"],
-                    }),
+                const serializedComponent = await replacementSource.serialize({
+                    primitiveSourceAttributesToIgnore: ["isResponse"],
+                });
+
+                const res = createNewComponentIndices(
+                    [serializedComponent],
+                    nComponents,
                 );
+                nComponents = res.nComponents;
+                replacements.push(res.components[0]);
             }
         }
 
-        workspace.uniqueIdentifiersUsed = [];
         replacements = postProcessCopy({
             serializedComponents: replacements,
             componentIdx: component.componentIdx,
-            uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
             addShadowDependencies: true,
             markAsPrimaryShadow: true,
         });
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: await component.stateValues.newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         workspace.componentsCopied = componentsCopied;
 
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
@@ -452,6 +437,7 @@ export default class Sort extends CompositeComponent {
         components,
         componentInfoObjects,
         workspace,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -481,7 +467,7 @@ export default class Sort extends CompositeComponent {
                 (x, i) => x === componentsToCopy[i],
             )
         ) {
-            return [];
+            return { replacementChanges: [], nComponents };
         }
 
         // for now, just recreated
@@ -490,11 +476,13 @@ export default class Sort extends CompositeComponent {
             components,
             componentInfoObjects,
             workspace,
+            nComponents,
         });
 
         let replacements = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacements.nComponents;
 
         let replacementChanges = [
             {
@@ -506,6 +494,6 @@ export default class Sort extends CompositeComponent {
             },
         ];
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 }

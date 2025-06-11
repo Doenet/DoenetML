@@ -9,7 +9,7 @@ use crate::{
     },
     core::document_model::DocumentModel,
     dast::{
-        flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
+        flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefElementContent,
         ElementRefAnnotation, FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue,
         ForRenderPropValueOrContent, ForRenderProps,
     },
@@ -232,7 +232,7 @@ impl DocumentRenderer {
                             .iter()
                             .filter_map(|c| match c {
                                 UntaggedContent::Text(s) => {
-                                    Some(DastTextRefContent::Text(DastText {
+                                    Some(DastTextRefElementContent::Text(DastText {
                                         value: s.clone(),
                                         data: None,
                                         position: None,

@@ -20,29 +20,39 @@ function createDoenetML(polyString: string) {
     <text name="div">/</text>
     <text name="pow">^</text>
     <text name="add">+</text>
-    <conditionalContent assignNames="(respNoMinus postMinusOperator)">
+    <conditionalContent name="cc1">
       <case condition="$originalOperator=$minus">
-        <extractMath type="operand" operandNumber="1" name="temp">$respSimplify</extractMath>
-        <extractMathOperator>$temp</extractMathOperator>
+        <extractMath type="operand" operandNumber="1" name="respNoMinus">$respSimplify</extractMath>
+        <extractMathOperator name="postMinusOperator">$respNoMinus</extractMathOperator>
       </case>
-      <else>$respSimplify $originalOperator</else>
+      <else>
+        <math name="respNoMinus" extend="$respSimplify" />
+        <text name="postMinusOperator" extend="$originalOperator" />
+        </else>
     </conditionalContent>
-    <conditionalContent assignNames="(numerator denominator numeratorOperator)">
-      <case condition="$postMinusOperator=$div">
-        <extractMath type="operand" operandNumber="1" name="temp2">$respNoMinus</extractMath>
-        <extractMath type="operand" operandNumber="2">$respNoMinus</extractMath>
-        <extractMathOperator>$temp2</extractMathOperator>
+    <conditionalContent name="cc2">
+      <case condition="$cc1.postMinusOperator=$div">
+        <extractMath type="operand" operandNumber="1" name="numerator">$cc1.respNoMinus</extractMath>
+        <extractMath type="operand" operandNumber="2" name="denominator">$cc1.respNoMinus</extractMath>
+        <extractMathOperator name="numeratorOperator">$numerator</extractMathOperator>
       </case>
-      <else>$respNoMinus <math>1</math> $postMinusOperator</else>
+      <else>
+        <math name="numerator" extend="$cc1.respNoMinus" />
+        <math name="denominator">1</math>
+        <text name="numeratorOperator" extend="$cc1.postMinusOperator" />
+      </else>
     </conditionalContent>
-    <extractMath type="operand" operandNumber="1" name="numeratorOperand1">$numerator</extractMath>
-    <extractMath type="numOperands" name="numeratorNumOperands">$numerator</extractMath>
-    <conditionalContent assignNames="(innerPiece innerOperator)">
-      <case condition="$numeratorOperator=$mult and isnumber($numeratorOperand1) and $numeratorNumOperands = 2" >
-        <extractMath type="operand" operandNumber="2" name="temp3">$numerator</extractMath>
-        <extractMathOperator>$temp3</extractMathOperator>
+    <extractMath type="operand" operandNumber="1" name="numeratorOperand1">$cc2.numerator</extractMath>
+    <extractMath type="numOperands" name="numeratorNumOperands">$cc2.numerator</extractMath>
+    <conditionalContent name="cc3">
+      <case condition="$cc2.numeratorOperator=$mult and isnumber($numeratorOperand1) and $numeratorNumOperands = 2" >
+        <extractMath type="operand" operandNumber="2" name="innerPiece">$cc2.numerator</extractMath>
+        <extractMathOperator name="innerOperator">$innerPiece</extractMathOperator>
       </case>
-      <else>$numerator $numeratorOperator</else>
+      <else>
+        <math name="innerPiece" extend="$cc2.numerator" />
+        <text name="innerOperator" extend="$cc2.numeratorOperator" />
+      </else>
     </conditionalContent>
   </setup>
 
@@ -57,19 +67,19 @@ function createDoenetML(polyString: string) {
         and
         (
           (
-            $innerOperator = $pow 
+            $cc3.innerOperator = $pow 
             and
-            <extractMathOperator><extractMath type="operand" operandNumber="1">$innerPiece</extractMath></extractMathOperator> = $add
+            <extractMathOperator><extractMath type="operand" operandNumber="1">$cc3.innerPiece</extractMath></extractMathOperator> = $add
           )
           or
-          $innerOperator = $mult
+          $cc3.innerOperator = $mult
           and
-          <isNumber>$denominator</isNumber>
+          <isNumber>$cc2.denominator</isNumber>
           and
           (
-            <extractMath type="numOperands">$innerPiece</extractMath> = 3
+            <extractMath type="numOperands">$cc3.innerPiece</extractMath> = 3
             or 
-            not <isNumber><extractMath type="operand" operandNumber="1">$innerPiece</extractMath></isNumber>
+            not <isNumber><extractMath type="operand" operandNumber="1">$cc3.innerPiece</extractMath></isNumber>
           )
         )
       </when>
@@ -86,7 +96,7 @@ async function run_tests({
     polyString: string;
     responseCredits: { response: string; credit: number }[];
 }) {
-    const core = await createTestCore({
+    const { core, resolveComponentName } = await createTestCore({
         doenetML: createDoenetML(polyString),
     });
 
@@ -109,15 +119,18 @@ async function run_tests({
     }) {
         await updateMathInputValue({
             latex: response,
-            name: "/resp",
+            componentIdx: resolveComponentName("resp"),
             core,
         });
-        await submitAnswer({ name: `/check`, core });
+        await submitAnswer({
+            componentIdx: resolveComponentName(`check`),
+            core,
+        });
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[`/check`].stateValues.creditAchieved).eq(
-            creditAchieved,
-            `credit for response ${response}`,
-        );
+        expect(
+            stateVariables[resolveComponentName(`check`)].stateValues
+                .creditAchieved,
+        ).eq(creditAchieved, `credit for response ${response}`);
     }
 }
 

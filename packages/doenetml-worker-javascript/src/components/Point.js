@@ -37,6 +37,7 @@ export default class Point extends GraphicalComponent {
     // and use wrapping components to create points from those
     static primaryStateVariableForDefinition = "coordsShadow";
     static stateVariableToBeShadowed = "coords";
+    static variableForIndexAsProp = "xs";
 
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["number", "math", "string"];
@@ -109,6 +110,7 @@ export default class Point extends GraphicalComponent {
         let breakIntoXsOrCoords = function ({
             matchedChildren,
             componentInfoObjects,
+            nComponents,
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
@@ -183,24 +185,39 @@ export default class Point extends GraphicalComponent {
                 if (breakResult.success) {
                     // wrap maths around each piece, wrap whole thing in mathList
                     // and use for xs attribute
-                    return {
-                        success: true,
-                        newAttributes: {
-                            xs: {
-                                component: {
-                                    componentType: "mathList",
-                                    children: breakResult.pieces.map((x) => ({
-                                        componentType: "math",
-                                        children: x,
-                                    })),
-                                    skipSugar: true,
-                                },
+                    const newAttributes = {
+                        xs: {
+                            type: "component",
+                            name: "xs",
+                            component: {
+                                type: "serialized",
+                                componentType: "mathList",
+                                componentIdx: nComponents++,
+                                children: breakResult.pieces.map((x, i) => ({
+                                    type: "serialized",
+                                    componentType: "math",
+                                    componentIdx: nComponents++,
+                                    children: x,
+                                    attributes: {},
+                                    doenetAttributes: {},
+                                    state: {},
+                                })),
+                                skipSugar: true,
+                                attributes: {},
+                                state: {},
+                                doenetAttributes: {},
                             },
                         },
+                    };
+
+                    return {
+                        success: true,
+                        newAttributes,
                         newChildren: [
                             ...nonComponentChildrenBegin,
                             ...nonComponentChildrenEnd,
                         ],
+                        nComponents,
                     };
                 }
             }
@@ -210,9 +227,16 @@ export default class Point extends GraphicalComponent {
                 success: true,
                 newAttributes: {
                     coords: {
+                        type: "component",
+                        name: "coords",
                         component: {
+                            type: "serialized",
                             componentType: "coords",
+                            componentIdx: nComponents + 1,
                             children: componentChildren,
+                            state: {},
+                            attributes: {},
+                            doenetAttributes: {},
                         },
                     },
                 },
@@ -220,6 +244,7 @@ export default class Point extends GraphicalComponent {
                     ...nonComponentChildrenBegin,
                     ...nonComponentChildrenEnd,
                 ],
+                nComponents: nComponents + 2,
             };
         };
 
@@ -1331,14 +1356,14 @@ export default class Point extends GraphicalComponent {
 
     async pointClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1348,14 +1373,14 @@ export default class Point extends GraphicalComponent {
 
     async pointFocused({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

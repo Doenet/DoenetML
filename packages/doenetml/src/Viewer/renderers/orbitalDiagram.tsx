@@ -13,7 +13,7 @@ const Box = styled.svg`
 `;
 
 export default React.memo(function orbitalDiagram(props) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
     // console.log("orbitalDiagramInput SVs ", SVs);
 
     // use ref for fixed so changed value appears in callbacks

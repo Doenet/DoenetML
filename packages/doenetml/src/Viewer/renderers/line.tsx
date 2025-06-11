@@ -8,7 +8,8 @@ import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function Line(props) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
+    let { componentIdx, id, SVs, actions, callAction } =
+        useDoenetRenderer(props);
 
     Line.ignoreActionsWithoutCore = () => true;
 
@@ -232,12 +233,12 @@ export default React.memo(function Line(props) {
                     });
                     callAction({
                         action: actions.lineClicked,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 } else {
                     callAction({
                         action: actions.lineClicked,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 }
             }
@@ -269,7 +270,7 @@ export default React.memo(function Line(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.lineFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -282,7 +283,7 @@ export default React.memo(function Line(props) {
             ];
             callAction({
                 action: actions.lineFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -304,12 +305,12 @@ export default React.memo(function Line(props) {
                     });
                     callAction({
                         action: actions.lineClicked,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 } else {
                     callAction({
                         action: actions.lineClicked,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 }
             }

@@ -1,6 +1,5 @@
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
-import { processAssignNames } from "../utils/naming";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 
@@ -16,8 +15,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["integer"];
 
-    static assignNamesToReplacements = true;
-
     static createsVariants = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -28,9 +25,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numSamples = {
             createComponentOfType: "number",
             createStateVariable: "numSamples",
@@ -229,11 +223,10 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         component,
         componentInfoObjects,
         startNum = 0,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let replacements = [];
 
@@ -241,26 +234,21 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             startNum,
         )) {
             replacements.push({
+                type: "serialized",
                 componentType: "integer",
-                state: { value },
+                componentIdx: nComponents++,
+                state: { value, fixed: true },
+                attributes: {},
+                doenetAttributes: {},
+                children: [],
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            indOffset: startNum,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
@@ -268,6 +256,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         component,
         componentInfoObjects,
         flags,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -305,9 +294,11 @@ export default class SamplePrimeNumbers extends CompositeComponent {
                     componentInfoObjects,
                     startNum: component.replacements.length,
                     flags,
+                    nComponents,
                 });
                 errors.push(...result.errors);
                 warnings.push(...result.warnings);
+                nComponents = result.nComponents;
 
                 let replacementInstruction = {
                     changeType: "add",
@@ -315,7 +306,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
                     firstReplacementInd: component.replacements.length,
                     numberReplacementsToReplace: 0,
                     serializedReplacements: result.replacements,
-                    assignNamesOffset: component.replacements.length,
                 };
                 replacementChanges.push(replacementInstruction);
             }
@@ -336,7 +326,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
         }
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 
     static setUpVariant({
@@ -362,7 +352,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         componentInfoObjects,
     }) {
         let variantDeterminesSeed =
-            serializedComponent.attributes.variantDeterminesSeed.primitive;
+            serializedComponent.attributes.variantDeterminesSeed.primitive
+                .value;
 
         if (variantDeterminesSeed) {
             return { success: false };

@@ -7,7 +7,7 @@ import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function Vector(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     Vector.ignoreActionsWithoutCore = () => true;
@@ -173,7 +173,7 @@ export default React.memo(function Vector(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.vectorClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             downOnPoint.current = null;
@@ -188,7 +188,7 @@ export default React.memo(function Vector(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.vectorClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             downOnPoint.current = null;
@@ -211,7 +211,7 @@ export default React.memo(function Vector(props) {
                 // Note: counting on fact that up on vector will trigger before up on points
                 callAction({
                     action: actions.vectorClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -261,7 +261,7 @@ export default React.memo(function Vector(props) {
             if (tailDraggable.current) {
                 callAction({
                     action: actions.vectorFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -271,7 +271,7 @@ export default React.memo(function Vector(props) {
             tailBeingDragged.current = false;
             callAction({
                 action: actions.vectorFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -285,7 +285,7 @@ export default React.memo(function Vector(props) {
             if (headDraggable.current) {
                 callAction({
                     action: actions.vectorFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -295,7 +295,7 @@ export default React.memo(function Vector(props) {
             tailBeingDragged.current = false;
             callAction({
                 action: actions.vectorFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -314,7 +314,7 @@ export default React.memo(function Vector(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.vectorFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -324,7 +324,7 @@ export default React.memo(function Vector(props) {
             tailBeingDragged.current = false;
             callAction({
                 action: actions.vectorFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -340,7 +340,7 @@ export default React.memo(function Vector(props) {
                 tailBeingDragged.current = false;
                 callAction({
                     action: actions.vectorClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -356,7 +356,7 @@ export default React.memo(function Vector(props) {
                 tailBeingDragged.current = false;
                 callAction({
                     action: actions.vectorClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -375,7 +375,7 @@ export default React.memo(function Vector(props) {
                 tailBeingDragged.current = false;
                 callAction({
                     action: actions.vectorClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -585,9 +585,9 @@ export default React.memo(function Vector(props) {
 
             if (
                 sourceOfUpdate.sourceInformation &&
-                name in sourceOfUpdate.sourceInformation
+                componentIdx in sourceOfUpdate.sourceInformation
             ) {
-                let sourceInfo = sourceOfUpdate.sourceInformation[name];
+                let sourceInfo = sourceOfUpdate.sourceInformation[componentIdx];
                 if (sourceInfo.vertex === 0) {
                     board.updateInfobox(point1JXG.current);
                 } else if (sourceInfo.vertex === 1) {

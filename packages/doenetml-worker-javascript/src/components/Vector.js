@@ -31,6 +31,7 @@ export default class Vector extends GraphicalComponent {
     static canBeInList = true;
 
     static primaryStateVariableForDefinition = "displacementShadow";
+    static variableForIndexAsProp = "displacement";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -100,6 +101,7 @@ export default class Vector extends GraphicalComponent {
         let breakIntoXsOrCoords = function ({
             matchedChildren,
             componentInfoObjects,
+            nComponents,
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
@@ -176,24 +178,38 @@ export default class Vector extends GraphicalComponent {
                 if (breakResult.success) {
                     // wrap maths around each piece, wrap whole thing in mathList
                     // and use for xs attribute
-                    return {
-                        success: true,
-                        newAttributes: {
-                            xs: {
-                                component: {
-                                    componentType: "mathList",
-                                    children: breakResult.pieces.map((x) => ({
-                                        componentType: "math",
-                                        children: x,
-                                    })),
-                                    skipSugar: true,
-                                },
+                    const newAttributes = {
+                        xs: {
+                            type: "component",
+                            name: "xs",
+                            component: {
+                                type: "serialized",
+                                componentType: "mathList",
+                                componentIdx: nComponents++,
+                                children: breakResult.pieces.map((x) => ({
+                                    type: "serialized",
+                                    componentType: "math",
+                                    componentIdx: nComponents++,
+                                    children: x,
+                                    attributes: {},
+                                    doenetAttributes: {},
+                                    state: {},
+                                })),
+                                skipSugar: true,
+                                state: {},
+                                attributes: {},
+                                doenetAttributes: {},
                             },
                         },
+                    };
+                    return {
+                        success: true,
+                        newAttributes,
                         newChildren: [
                             ...nonComponentChildrenBegin,
                             ...nonComponentChildrenEnd,
                         ],
+                        nComponents,
                     };
                 }
             }
@@ -203,9 +219,16 @@ export default class Vector extends GraphicalComponent {
                 success: true,
                 newAttributes: {
                     displacement: {
+                        type: "component",
+                        name: "displacement",
                         component: {
+                            type: "serialized",
                             componentType: "coords",
+                            componentIdx: nComponents++,
                             children: componentChildren,
+                            state: {},
+                            attributes: {},
+                            doenetAttributes: {},
                         },
                     },
                 },
@@ -213,6 +236,7 @@ export default class Vector extends GraphicalComponent {
                     ...nonComponentChildrenBegin,
                     ...nonComponentChildrenEnd,
                 ],
+                nComponents,
             };
         };
 
@@ -1131,6 +1155,7 @@ export default class Vector extends GraphicalComponent {
                 },
             },
             isArray: true,
+            indexAliases: [["x", "y", "z"]],
             entryPrefixes: ["x"],
             hasEssential: true,
             essentialVarName: "displacement2", // since "displacement" used for displacementShadow
@@ -1579,6 +1604,7 @@ export default class Vector extends GraphicalComponent {
                 },
             },
             isArray: true,
+            indexAliases: [["x", "y", "z"]],
             entryPrefixes: ["headX"],
             set: convertValueToMathExpression,
             stateVariablesDeterminingDependencies: ["basedOnHead"],
@@ -1785,6 +1811,7 @@ export default class Vector extends GraphicalComponent {
                 },
             },
             isArray: true,
+            indexAliases: [["x", "y", "z"]],
             entryPrefixes: ["tailX"],
             hasEssential: true,
             defaultValueByArrayKey: () => me.fromAst(0),
@@ -2652,14 +2679,14 @@ export default class Vector extends GraphicalComponent {
 
     async vectorClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -2669,14 +2696,14 @@ export default class Vector extends GraphicalComponent {
 
     async vectorFocused({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

@@ -1,61 +1,15 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { deepClone, createUniqueName } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
+import { deepClone } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
-    static includeBlankStringChildren = true;
-
-    static assignNamesToReplacements = true;
-
     static createsVariants = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
-
-    // keep serialized all children other othan cases or else
-    static keepChildrenSerialized({
-        serializedComponent,
-        componentInfoObjects,
-    }) {
-        if (serializedComponent.children === undefined) {
-            return [];
-        }
-
-        let componentIsSpecifiedType =
-            componentInfoObjects.componentIsSpecifiedType;
-
-        let keepSerializedInds = [];
-        for (let [ind, child] of serializedComponent.children.entries()) {
-            if (
-                !(
-                    componentIsSpecifiedType(child, "case") ||
-                    componentIsSpecifiedType(child, "else")
-                )
-            ) {
-                keepSerializedInds.push(ind);
-            }
-        }
-
-        return keepSerializedInds;
-    }
-
-    static createAttributesObject() {
-        let attributes = super.createAttributesObject();
-
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
-
-        attributes.condition = {
-            createComponentOfType: "boolean",
-        };
-
-        return attributes;
-    }
 
     static returnChildGroups() {
         return [
@@ -63,38 +17,11 @@ export default class ConditionalContent extends CompositeComponent {
                 group: "cases",
                 componentTypes: ["case"],
             },
-            {
-                group: "elses",
-                componentTypes: ["else"],
-            },
-            {
-                group: "anything",
-                componentTypes: ["_base"],
-            },
         ];
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.baseConditionSatisfied = {
-            returnDependencies: () => ({
-                conditionAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "condition",
-                    variableNames: ["value"],
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let baseConditionSatisfied = true;
-                if (dependencyValues.conditionAttr) {
-                    baseConditionSatisfied =
-                        dependencyValues.conditionAttr.stateValues.value;
-                }
-
-                return { setValue: { baseConditionSatisfied } };
-            },
-        };
 
         stateVariableDefinitions.numCases = {
             additionalStateVariablesDefined: ["caseChildren"],
@@ -114,52 +41,12 @@ export default class ConditionalContent extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.elseChild = {
-            returnDependencies: () => ({
-                elseChild: {
-                    dependencyType: "child",
-                    childGroups: ["elses"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                let elseChild = null;
-                if (dependencyValues.elseChild.length > 0) {
-                    elseChild = dependencyValues.elseChild[0];
-                }
-                return { setValue: { elseChild } };
-            },
-        };
-
-        stateVariableDefinitions.haveCasesOrElse = {
-            returnDependencies: () => ({
-                numCases: {
-                    dependencyType: "stateVariable",
-                    variableName: "numCases",
-                },
-                elseChild: {
-                    dependencyType: "stateVariable",
-                    variableName: "elseChild",
-                },
-            }),
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    haveCasesOrElse:
-                        dependencyValues.numCases > 0 ||
-                        dependencyValues.elseChild !== null,
-                },
-            }),
-        };
-
         stateVariableDefinitions.selectedIndex = {
             returnDependencies: () => ({
                 caseChildren: {
                     dependencyType: "child",
                     childGroups: ["cases"],
                     variableNames: ["conditionSatisfied"],
-                },
-                elseChild: {
-                    dependencyType: "stateVariable",
-                    variableName: "elseChild",
                 },
             }),
             definition({ dependencyValues }) {
@@ -173,9 +60,6 @@ export default class ConditionalContent extends CompositeComponent {
                         break;
                     }
                 }
-                if (selectedIndex === null && dependencyValues.elseChild) {
-                    selectedIndex = dependencyValues.caseChildren.length;
-                }
 
                 return {
                     setValue: {
@@ -187,14 +71,6 @@ export default class ConditionalContent extends CompositeComponent {
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
-                baseConditionSatisfied: {
-                    dependencyType: "stateVariable",
-                    variableName: "baseConditionSatisfied",
-                },
-                haveCasesOrElse: {
-                    dependencyType: "stateVariable",
-                    variableName: "haveCasesOrElse",
-                },
                 selectedIndex: {
                     dependencyType: "stateVariable",
                     variableName: "selectedIndex",
@@ -275,130 +151,74 @@ export default class ConditionalContent extends CompositeComponent {
         component,
         components,
         workspace,
-        componentInfoObjects,
+        nComponents,
     }) {
         let replacementResults = await this.getReplacements(
             component,
             components,
-            componentInfoObjects,
+            nComponents,
         );
 
         workspace.previousSelectedIndex =
             await component.stateValues.selectedIndex;
-        workspace.previousBaseConditionSatisfied =
-            await component.stateValues.baseConditionSatisfied;
 
-        // console.log(`replacements for ${component.componentIdx}`)
-        // console.log(JSON.parse(JSON.stringify(replacements)));
+        // console.log(`replacements for ${component.componentIdx}`);
+        // console.log(JSON.parse(JSON.stringify(replacementResults)));
         // console.log(replacements);
 
         return replacementResults;
     }
 
-    static async getReplacements(component, components, componentInfoObjects) {
+    static async getReplacements(component, components, nComponents) {
         let errors = [];
         let warnings = [];
 
-        if (!(await component.stateValues.baseConditionSatisfied)) {
-            return { replacements: [], errors, warnings };
-        }
-
         let replacements = [];
 
-        if (!(await component.stateValues.haveCasesOrElse)) {
-            replacements = deepClone(component.serializedChildren);
-        } else {
-            let caseChildren = await component.stateValues.caseChildren;
+        let caseChildren = await component.stateValues.caseChildren;
 
-            let selectedIndex = await component.stateValues.selectedIndex;
+        let selectedIndex = await component.stateValues.selectedIndex;
 
-            if (selectedIndex !== null) {
-                let selectedChildComponentIdx,
-                    childComponentType,
-                    newNameForSelectedChild;
-                if (selectedIndex < (await component.stateValues.numCases)) {
-                    selectedChildComponentIdx =
-                        caseChildren[selectedIndex].componentIdx;
-                    newNameForSelectedChild = createUniqueName(
-                        "case",
-                        `${component.componentIdx}|replacement|${selectedIndex}`,
-                    );
-                    childComponentType = "case";
-                } else {
-                    selectedChildComponentIdx = (
-                        await component.stateValues.elseChild
-                    ).componentIdx;
-                    newNameForSelectedChild = createUniqueName(
-                        "else",
-                        `${component.componentIdx}|replacement|${selectedIndex}`,
-                    );
-                    childComponentType = "else";
-                }
+        if (selectedIndex !== null) {
+            const selectedChildComponentIdx =
+                caseChildren[selectedIndex].componentIdx;
 
-                let lastSlash = selectedChildComponentIdx.lastIndexOf("/");
-                let originalNamespace = selectedChildComponentIdx.substring(
-                    0,
-                    lastSlash,
-                );
-                newNameForSelectedChild =
-                    originalNamespace + "/" + newNameForSelectedChild;
+            // use state, not stateValues, as read only proxy messes up internal
+            // links between descendant variant components and the components themselves
 
-                // use state, not stateValues, as read only proxy messes up internal
-                // links between descendant variant components and the components themselves
-
-                let serializedGrandchildren = deepClone(
-                    await components[selectedChildComponentIdx].state
-                        .serializedChildren.value,
-                );
-                let serializedChild = {
-                    componentType: childComponentType,
-                    state: { rendered: true },
-                    doenetAttributes: Object.assign(
-                        {},
-                        components[selectedChildComponentIdx].doenetAttributes,
-                    ),
-                    children: serializedGrandchildren,
-                    originalIdx: newNameForSelectedChild,
-                    variants: {
-                        desiredVariant: {
-                            seed:
-                                component.sharedParameters.variantSeed +
-                                "|" +
-                                selectedIndex.toString(),
-                        },
+            let serializedGrandchildren = deepClone(
+                await components[selectedChildComponentIdx].state
+                    .serializedChildren.value,
+            );
+            let serializedChild = {
+                type: "serialized",
+                componentType: "group",
+                componentIdx: nComponents++,
+                state: { rendered: true },
+                attributes: {},
+                doenetAttributes: Object.assign(
+                    {},
+                    components[selectedChildComponentIdx].doenetAttributes,
+                ),
+                children: serializedGrandchildren,
+                variants: {
+                    desiredVariant: {
+                        seed:
+                            component.sharedParameters.variantSeed +
+                            "|" +
+                            selectedIndex.toString(),
                     },
-                };
+                },
+            };
 
-                if (
-                    components[selectedChildComponentIdx].attributes
-                        .newNamespace
-                ) {
-                    serializedChild.attributes = {
-                        newNamespace: { primitive: true },
-                    };
-                }
-
-                replacements.push(serializedChild);
-            }
+            replacements.push(serializedChild);
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-            originalNamesAreConsistent: true,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
@@ -406,7 +226,7 @@ export default class ConditionalContent extends CompositeComponent {
         component,
         components,
         workspace,
-        componentInfoObjects,
+        nComponents,
     }) {
         // console.log(`calculate replacement changes for selectByCondition ${component.componentIdx}`)
         // console.log(workspace.previousSelectedIndex);
@@ -417,45 +237,9 @@ export default class ConditionalContent extends CompositeComponent {
         let warnings = [];
 
         let selectedIndex = await component.stateValues.selectedIndex;
-        let baseConditionSatisfied =
-            await component.stateValues.baseConditionSatisfied;
 
         if (workspace.previousSelectedIndex === selectedIndex) {
-            if (
-                workspace.previousBaseConditionSatisfied ===
-                baseConditionSatisfied
-            ) {
-                return [];
-            } else {
-                if (baseConditionSatisfied) {
-                    if (
-                        component.replacements.length ===
-                        component.serializedChildren.length
-                    ) {
-                        // just stop withholding replacements
-                        // stop withholding replacements
-
-                        let replacementInstruction = {
-                            changeType: "changeReplacementsToWithhold",
-                            replacementsToWithhold: 0,
-                        };
-
-                        workspace.previousBaseConditionSatisfied =
-                            baseConditionSatisfied;
-                        return [replacementInstruction];
-                    }
-                } else {
-                    let replacementsToWithhold = component.replacements.length;
-                    let replacementInstruction = {
-                        changeType: "changeReplacementsToWithhold",
-                        replacementsToWithhold,
-                    };
-
-                    workspace.previousBaseConditionSatisfied =
-                        baseConditionSatisfied;
-                    return [replacementInstruction];
-                }
-            }
+            return { replacementChanges: [], nComponents };
         }
 
         // delete previous replacements and create new ones
@@ -467,10 +251,11 @@ export default class ConditionalContent extends CompositeComponent {
         let replacementResults = await this.getReplacements(
             component,
             components,
-            componentInfoObjects,
+            nComponents,
         );
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        nComponents = replacementResults.nComponents;
 
         let replacementInstruction = {
             changeType: "add",
@@ -484,9 +269,8 @@ export default class ConditionalContent extends CompositeComponent {
         replacementChanges.push(replacementInstruction);
 
         workspace.previousSelectedIndex = selectedIndex;
-        workspace.previousBaseConditionSatisfied = baseConditionSatisfied;
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 
     static setUpVariant({

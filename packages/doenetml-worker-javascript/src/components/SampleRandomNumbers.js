@@ -1,10 +1,8 @@
-import { convertAttributesForComponentType } from "../utils/copy";
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { processAssignNames } from "../utils/naming";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class SampleRandomNumbers extends CompositeComponent {
     constructor(args) {
         super(args);
@@ -17,8 +15,6 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["number"];
 
-    static assignNamesToReplacements = true;
-
     static createsVariants = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -29,9 +25,6 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numSamples = {
             createComponentOfType: "number",
             createStateVariable: "numSamples",
@@ -626,11 +619,10 @@ export default class SampleRandomNumbers extends CompositeComponent {
         component,
         componentInfoObjects,
         startNum = 0,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let attributesToConvert = {};
         for (let attr of Object.keys(returnRoundingAttributes())) {
@@ -647,42 +639,40 @@ export default class SampleRandomNumbers extends CompositeComponent {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite = convertAttributesForComponentType({
+                const res = convertUnresolvedAttributesForComponentType({
                     attributes: attributesToConvert,
                     componentType: "number",
                     componentInfoObjects,
-                    compositeCreatesNewNamespace: newNamespace,
+                    nComponents,
                 });
+
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
             }
 
             replacements.push({
+                type: "serialized",
                 componentType: "number",
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
-                state: { value },
+                state: { value, fixed: true },
+                doenetAttributes: {},
+                children: [],
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            indOffset: startNum,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static async calculateReplacementChanges({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -719,9 +709,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     component,
                     componentInfoObjects,
                     startNum: component.replacements.length,
+                    nComponents,
                 });
                 errors.push(...result.errors);
                 warnings.push(...result.warnings);
+                nComponents = result.nComponents;
 
                 let replacementInstruction = {
                     changeType: "add",
@@ -729,7 +721,6 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     firstReplacementInd: component.replacements.length,
                     numberReplacementsToReplace: 0,
                     serializedReplacements: result.replacements,
-                    assignNamesOffset: component.replacements.length,
                 };
                 replacementChanges.push(replacementInstruction);
             }
@@ -750,7 +741,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
         }
 
-        return replacementChanges;
+        return { replacementChanges, nComponents };
     }
 
     static setUpVariant({
@@ -777,7 +768,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
         componentInfoObjects,
     }) {
         let variantDeterminesSeed =
-            serializedComponent.attributes.variantDeterminesSeed.primitive;
+            serializedComponent.attributes.variantDeterminesSeed.primitive
+                .value;
 
         if (variantDeterminesSeed) {
             return { success: false };

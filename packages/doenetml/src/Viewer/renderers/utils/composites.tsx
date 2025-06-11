@@ -1,5 +1,4 @@
 import React from "react";
-import { cesc } from "@doenet/utils";
 
 // If consecutive children are from a composite with asList set,
 // then display those children separated by commas.
@@ -175,7 +174,7 @@ function addCommasForCompositeRangesSub({
             if (childrenInRange.length > 0) {
                 // Whether or not we added commas, we still add a span and a anchor with the id of the composite
                 // so that links to the composite name will scroll to the right location.
-                let compositeId = cesc(String(range.compositeIdx));
+                let compositeId = String(range.compositeIdx);
                 childrenInRange = [
                     <React.Fragment key={compositeId}>
                         <span id={compositeId}>{childrenInRange}</span>

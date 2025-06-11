@@ -12,7 +12,7 @@ export default class TextListFromString extends InlineComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakStringsBySpaces = function ({ matchedChildren }) {
+        let breakStringsBySpaces = function ({ matchedChildren, nComponents }) {
             // break any string by white space
 
             let newChildren = matchedChildren.reduce(function (a, c) {
@@ -26,6 +26,7 @@ export default class TextListFromString extends InlineComponent {
             return {
                 success: true,
                 newChildren: newChildren,
+                nComponents,
             };
         };
 

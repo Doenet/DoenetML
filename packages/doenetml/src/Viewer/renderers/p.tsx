@@ -7,8 +7,7 @@ import { addCommasForCompositeRanges } from "./utils/composites";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function P(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
 
     const ref = useRef(null);
 

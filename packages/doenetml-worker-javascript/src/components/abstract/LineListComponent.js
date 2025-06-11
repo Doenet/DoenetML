@@ -11,7 +11,10 @@ export default class LineListComponent extends BaseComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakStringsIntoLinesBySpaces = function ({ matchedChildren }) {
+        let breakStringsIntoLinesBySpaces = function ({
+            matchedChildren,
+            nComponents,
+        }) {
             // break any string by white space and wrap pieces with line
 
             let newChildren = matchedChildren.reduce(function (a, c) {
@@ -22,8 +25,13 @@ export default class LineListComponent extends BaseComponent {
                             .split(/\s+/)
                             .filter((s) => s)
                             .map((s) => ({
+                                type: "serialized",
                                 componentType: "line",
+                                componentIdx: nComponents++,
                                 children: [s],
+                                attributes: {},
+                                doenetAttributes: {},
+                                state: {},
                             })),
                     ];
                 } else {
@@ -34,6 +42,7 @@ export default class LineListComponent extends BaseComponent {
             return {
                 success: true,
                 newChildren: newChildren,
+                nComponents,
             };
         };
 

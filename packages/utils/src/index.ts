@@ -1,5 +1,4 @@
 export * from "./ast/logging";
-export * from "./ast/ast";
 export * from "./errors/errorWarning";
 export * from "./media/cid";
 export * from "./media/retrieveTextFile";
@@ -8,7 +7,6 @@ export * from "./copy/parseStringify";
 export * from "./components/domain";
 export * from "./components/enumeration";
 export * from "./components/function";
-export * from "./components/naming";
 export * from "./components/sequence";
 export * from "./components/size";
 export * from "./math/array";

@@ -13,7 +13,10 @@ export default class ListOfNumberLists extends InlineComponent {
     static returnSugarInstructions() {
         let sugarInstructions = [];
 
-        let breakIntoNumberListsByParens = function ({ matchedChildren }) {
+        let breakIntoNumberListsByParens = function ({
+            matchedChildren,
+            nComponents,
+        }) {
             let results = breakEmbeddedStringsIntoParensPieces({
                 componentList: matchedChildren,
                 removeParens: true,
@@ -26,9 +29,15 @@ export default class ListOfNumberLists extends InlineComponent {
             return {
                 success: true,
                 newChildren: results.pieces.map((x) => ({
+                    type: "serialized",
                     componentType: "numberList",
+                    componentIdx: nComponents++,
                     children: x,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
                 })),
+                nComponents,
             };
         };
 

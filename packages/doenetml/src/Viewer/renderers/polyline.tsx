@@ -5,7 +5,7 @@ import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function Polyline(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     Polyline.ignoreActionsWithoutCore = () => true;
@@ -319,7 +319,7 @@ export default React.memo(function Polyline(props) {
                 // Note: counting on fact that down on polyline itself will trigger after down on points
                 callAction({
                     action: actions.polylineFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointsAtDown.current = polylineJXG.current.points.map((x) => [
@@ -329,7 +329,7 @@ export default React.memo(function Polyline(props) {
             if (!verticesFixed.current) {
                 callAction({
                     action: actions.polylineFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             downOnPoint.current = i;
@@ -344,7 +344,7 @@ export default React.memo(function Polyline(props) {
         draggedPoint.current = null;
         callAction({
             action: actions.polylineFocused,
-            args: { name }, // send name so get original name if adapted
+            args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
         });
     }
 
@@ -374,7 +374,7 @@ export default React.memo(function Polyline(props) {
             // Note: counting on fact that up on polyline itself (i===-1) will trigger before up on points
             callAction({
                 action: actions.polylineClicked,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         }
 
@@ -431,7 +431,7 @@ export default React.memo(function Polyline(props) {
             draggedPoint.current = null;
             callAction({
                 action: actions.polylineClicked,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         }
     }
@@ -635,10 +635,10 @@ export default React.memo(function Polyline(props) {
 
             if (
                 sourceOfUpdate.sourceInformation &&
-                name in sourceOfUpdate.sourceInformation
+                componentIdx in sourceOfUpdate.sourceInformation
             ) {
                 let vertexUpdated =
-                    sourceOfUpdate.sourceInformation[name].vertex;
+                    sourceOfUpdate.sourceInformation[componentIdx].vertex;
 
                 if (Number.isFinite(vertexUpdated)) {
                     board.updateInfobox(pointsJXG.current[vertexUpdated]);

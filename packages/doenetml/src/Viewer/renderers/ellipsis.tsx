@@ -4,7 +4,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 
 export default React.memo(function Ellipsis(props: UseDoenetRendererProps) {
-    let { name, id, SVs } = useDoenetRenderer(props);
+    let { id, SVs } = useDoenetRenderer(props);
 
     if (SVs.hidden) {
         return null;

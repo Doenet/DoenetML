@@ -17,13 +17,13 @@ describe("Unique variant tests", async () => {
     it("single select", async () => {
         let values = ["u", "v", "w", "x", "y", "z"];
         let doenetML = `
-        <select assignNames="x">u v w x y z</select>
+        <select name="x">u v w x y z</select>
       `;
 
         // get all values before they repeat in next variants
         const sampledValues: string[] = [];
         for (let ind = 1; ind <= 18; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -32,10 +32,13 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            sampledValues.push(stateVariables["/x"].stateValues.value.tree);
+            sampledValues.push(
+                stateVariables[resolveComponentName("x[1][1]")].stateValues
+                    .value.tree,
+            );
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
         }
 
@@ -48,13 +51,13 @@ describe("Unique variant tests", async () => {
 
     it("single selectFromSequence", async () => {
         let doenetML = `
-        <selectFromSequence assignNames="x" length="5" />
+        <selectFromSequence name="x" length="5" />
       `;
 
         // get all values before they repeat in next variants
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 15; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -63,10 +66,12 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            sampledValues.push(stateVariables["/x"].stateValues.value);
+            sampledValues.push(
+                stateVariables[resolveComponentName("x[1]")].stateValues.value,
+            );
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e"]);
         }
 
@@ -79,14 +84,14 @@ describe("Unique variant tests", async () => {
 
     it("selectFromSequence with excludes", async () => {
         let doenetML = `
-        <selectFromSequence assignNames="x" type="letters" from="c" to="m" step="2" exclude="g k" />
+        <selectFromSequence name="x" type="letters" from="c" to="m" step="2" exclude="g k" />
       `;
         let letters = ["c", "e", "i", "m"];
 
         // get all values before they repeat in next variants
         const sampledValues: string[] = [];
         for (let ind = 1; ind <= 12; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -94,7 +99,9 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            sampledValues.push(stateVariables["/x"].stateValues.value);
+            sampledValues.push(
+                stateVariables[resolveComponentName("x[1]")].stateValues.value,
+            );
         }
 
         // first four are in a random order
@@ -132,16 +139,16 @@ describe("Unique variant tests", async () => {
 
         let doenetML = `
       <asList>
-        <selectFromSequence type="letters" assignNames="w" from="m" to="n" />
-        <select assignNames="x">x y z</select>
-        <selectFromSequence assignNames="y" from="2" to="4" />
-        <select assignNames="z">3 7</select>
+        <selectFromSequence type="letters" name="w" from="m" to="n" />
+        <select name="x">x y z</select>
+        <selectFromSequence name="y" from="2" to="4" />
+        <select name="z">3 7</select>
       </asList>
       `;
 
         // get all values in variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -150,10 +157,16 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newW = stateVariables["/w"].stateValues.value;
-            let newX = stateVariables["/x"].stateValues.value.tree;
-            let newY = stateVariables["/y"].stateValues.value;
-            let newZ = stateVariables["/z"].stateValues.value.tree;
+            let newW =
+                stateVariables[resolveComponentName("w[1]")].stateValues.value;
+            let newX =
+                stateVariables[resolveComponentName("x[1][1]")].stateValues
+                    .value.tree;
+            let newY =
+                stateVariables[resolveComponentName("y[1]")].stateValues.value;
+            let newZ =
+                stateVariables[resolveComponentName("z[1][1]")].stateValues
+                    .value.tree;
             let newValue = [newW, newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -173,7 +186,7 @@ describe("Unique variant tests", async () => {
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 15; ind += 3) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -182,10 +195,16 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newW = stateVariables["/w"].stateValues.value;
-            let newX = stateVariables["/x"].stateValues.value.tree;
-            let newY = stateVariables["/y"].stateValues.value;
-            let newZ = stateVariables["/z"].stateValues.value.tree;
+            let newW =
+                stateVariables[resolveComponentName("w[1]")].stateValues.value;
+            let newX =
+                stateVariables[resolveComponentName("x[1][1]")].stateValues
+                    .value.tree;
+            let newY =
+                stateVariables[resolveComponentName("y[1]")].stateValues.value;
+            let newZ =
+                stateVariables[resolveComponentName("z[1][1]")].stateValues
+                    .value.tree;
             let newValue = [newW, newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -217,12 +236,12 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <select assignNames="x y z" numToSelect="3">w x y z</select>
+        <select name="xs" numToSelect="3">w x y z</select>
       `;
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -231,9 +250,15 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value.tree;
-            let newY = stateVariables["/y"].stateValues.value.tree;
-            let newZ = stateVariables["/z"].stateValues.value.tree;
+            let newX =
+                stateVariables[resolveComponentName("xs[1][1]")].stateValues
+                    .value.tree;
+            let newY =
+                stateVariables[resolveComponentName("xs[2][1]")].stateValues
+                    .value.tree;
+            let newZ =
+                stateVariables[resolveComponentName("xs[3][1]")].stateValues
+                    .value.tree;
             let newValue = [newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -251,7 +276,7 @@ describe("Unique variant tests", async () => {
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -260,9 +285,15 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value.tree;
-            let newY = stateVariables["/y"].stateValues.value.tree;
-            let newZ = stateVariables["/z"].stateValues.value.tree;
+            let newX =
+                stateVariables[resolveComponentName("xs[1][1]")].stateValues
+                    .value.tree;
+            let newY =
+                stateVariables[resolveComponentName("xs[2][1]")].stateValues
+                    .value.tree;
+            let newZ =
+                stateVariables[resolveComponentName("xs[3][1]")].stateValues
+                    .value.tree;
             let newValue = [newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -287,12 +318,12 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <select assignNames="x y z" numToSelect="3" withReplacement>x y z</select>
+        <select name="xs" numToSelect="3" withReplacement>x y z</select>
       `;
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -301,9 +332,15 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value.tree;
-            let newY = stateVariables["/y"].stateValues.value.tree;
-            let newZ = stateVariables["/z"].stateValues.value.tree;
+            let newX =
+                stateVariables[resolveComponentName("xs[1][1]")].stateValues
+                    .value.tree;
+            let newY =
+                stateVariables[resolveComponentName("xs[2][1]")].stateValues
+                    .value.tree;
+            let newZ =
+                stateVariables[resolveComponentName("xs[3][1]")].stateValues
+                    .value.tree;
             let newValue = [newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -321,7 +358,7 @@ describe("Unique variant tests", async () => {
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -330,9 +367,15 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value.tree;
-            let newY = stateVariables["/y"].stateValues.value.tree;
-            let newZ = stateVariables["/z"].stateValues.value.tree;
+            let newX =
+                stateVariables[resolveComponentName("xs[1][1]")].stateValues
+                    .value.tree;
+            let newY =
+                stateVariables[resolveComponentName("xs[2][1]")].stateValues
+                    .value.tree;
+            let newZ =
+                stateVariables[resolveComponentName("xs[3][1]")].stateValues
+                    .value.tree;
             let newValue = [newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -363,12 +406,12 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <selectFromSequence type="letters" assignNames="x y z" numToSelect="3" from="w" to="z" />
+        <selectFromSequence type="letters" name="xs" numToSelect="3" from="w" to="z" />
       `;
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -377,9 +420,12 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value;
-            let newY = stateVariables["/y"].stateValues.value;
-            let newZ = stateVariables["/z"].stateValues.value;
+            let newX =
+                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+            let newY =
+                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+            let newZ =
+                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
             let newValue = [newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -396,7 +442,7 @@ describe("Unique variant tests", async () => {
         expect([...new Set(zsFound.slice(0, 10))].sort()).eqls(valuesSingle);
 
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -405,9 +451,12 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value;
-            let newY = stateVariables["/y"].stateValues.value;
-            let newZ = stateVariables["/z"].stateValues.value;
+            let newX =
+                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+            let newY =
+                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+            let newZ =
+                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
             let newValue = [newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -432,12 +481,12 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <selectFromSequence type="letters" assignNames="x y z" numToSelect="3" withReplacement from="x" to="z" />
+        <selectFromSequence type="letters" name="xs" numToSelect="3" withReplacement from="x" to="z" />
       `;
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -446,9 +495,12 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value;
-            let newY = stateVariables["/y"].stateValues.value;
-            let newZ = stateVariables["/z"].stateValues.value;
+            let newX =
+                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+            let newY =
+                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+            let newZ =
+                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
             let newValue = [newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -466,7 +518,7 @@ describe("Unique variant tests", async () => {
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -475,9 +527,12 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value;
-            let newY = stateVariables["/y"].stateValues.value;
-            let newZ = stateVariables["/z"].stateValues.value;
+            let newX =
+                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+            let newY =
+                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+            let newZ =
+                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
             let newValue = [newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -506,12 +561,12 @@ describe("Unique variant tests", async () => {
 
         let doenetML = `
         <variantControl numVariants="10" />
-        <selectFromSequence type="letters" assignNames="w x y z" numToSelect="4" withReplacement from="u" to="z" />
+        <selectFromSequence type="letters" name="xs" numToSelect="4" withReplacement from="u" to="z" />
       `;
 
         // get unique values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -520,10 +575,14 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newW = stateVariables["/w"].stateValues.value;
-            let newX = stateVariables["/x"].stateValues.value;
-            let newY = stateVariables["/y"].stateValues.value;
-            let newZ = stateVariables["/z"].stateValues.value;
+            let newW =
+                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+            let newX =
+                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+            let newY =
+                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
+            let newZ =
+                stateVariables[resolveComponentName("xs[4]")].stateValues.value;
             let newValue = [newW, newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -543,7 +602,7 @@ describe("Unique variant tests", async () => {
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= 2 * numVariants + 3; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -553,10 +612,14 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newW = stateVariables["/w"].stateValues.value;
-            let newX = stateVariables["/x"].stateValues.value;
-            let newY = stateVariables["/y"].stateValues.value;
-            let newZ = stateVariables["/z"].stateValues.value;
+            let newW =
+                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+            let newX =
+                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+            let newY =
+                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
+            let newZ =
+                stateVariables[resolveComponentName("xs[4]")].stateValues.value;
             let newValue = [newW, newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -569,7 +632,7 @@ describe("Unique variant tests", async () => {
         let numVariants = values.length;
 
         let doenetML = `
-      <select assignNames="((x))">
+      <select name="x">
         <option>
           <selectFromSequence from="1" to="2" />
         </option>
@@ -584,7 +647,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -593,19 +656,21 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newValue = stateVariables["/x"].stateValues.value;
+            let newValue =
+                stateVariables[resolveComponentName("x[1][1][1]")].stateValues
+                    .value;
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
         }
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -614,7 +679,9 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newValue = stateVariables["/x"].stateValues.value;
+            let newValue =
+                stateVariables[resolveComponentName("x[1][1][1]")].stateValues
+                    .value;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
     });
@@ -625,7 +692,7 @@ describe("Unique variant tests", async () => {
         let numVariants = values.length;
 
         let doenetML = `
-      <select assignNames="((x))">
+      <select name="x">
         <option>
           <select>1 2</select>
         </option>
@@ -639,7 +706,7 @@ describe("Unique variant tests", async () => {
       `;
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -648,19 +715,21 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newValue = stateVariables["/x"].stateValues.value.tree;
+            let newValue =
+                stateVariables[resolveComponentName("x[1][1][1][1]")]
+                    .stateValues.value.tree;
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
         }
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -669,7 +738,9 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newValue = stateVariables["/x"].stateValues.value.tree;
+            let newValue =
+                stateVariables[resolveComponentName("x[1][1][1][1]")]
+                    .stateValues.value.tree;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
     });
@@ -680,21 +751,21 @@ describe("Unique variant tests", async () => {
         let numVariants = values.length;
 
         let doenetML = `
-      <select assignNames="x">
-        <option newNamespace>
-          <p><select assignNames="n">1 2</select></p>
+      <select name="x">
+        <option>
+          <p><select name="n">1 2</select></p>
         </option>
-        <option newNamespace>
-         <p><selectFromSequence assignNames="n" from="101" to="103"/></p>
+        <option>
+         <p><selectFromSequence name="n" from="101" to="103"/></p>
         </option>
-        <option newNamespace>
-          <p><select assignNames="n">201 202 203 204</select></p>
+        <option>
+          <p><select name="n">201 202 203 204</select></p>
         </option>
       </select>
       `;
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -703,7 +774,14 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newValue = stateVariables["/x/n"].stateValues.value;
+            let mathOrNumberComponent =
+                stateVariables[resolveComponentName("x.n[1]")];
+            if (mathOrNumberComponent.componentType === "group") {
+                mathOrNumberComponent =
+                    stateVariables[resolveComponentName("x.n[1][1]")];
+            }
+
+            let newValue = mathOrNumberComponent.stateValues.value;
             if (newValue.tree !== undefined) {
                 newValue = newValue.tree;
             }
@@ -711,14 +789,14 @@ describe("Unique variant tests", async () => {
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
         }
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -727,7 +805,14 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newValue = stateVariables["/x/n"].stateValues.value;
+            let mathOrNumberComponent =
+                stateVariables[resolveComponentName("x.n[1]")];
+            if (mathOrNumberComponent.componentType === "group") {
+                mathOrNumberComponent =
+                    stateVariables[resolveComponentName("x.n[1][1]")];
+            }
+
+            let newValue = mathOrNumberComponent.stateValues.value;
             if (newValue.tree !== undefined) {
                 newValue = newValue.tree;
             }
@@ -750,7 +835,7 @@ describe("Unique variant tests", async () => {
 
         let doenetML = `
       <asList>
-        <select assignNames="((x)) ((y))" numToSelect="2">
+        <select name="xs" numToSelect="2">
           <option>
             <select>1 2</select>
           </option>
@@ -766,7 +851,7 @@ describe("Unique variant tests", async () => {
 
         // get unique values in first variants
         for (let ind = 1; ind <= 20; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -775,8 +860,12 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value.tree;
-            let newY = stateVariables["/y"].stateValues.value.tree;
+            let newX =
+                stateVariables[resolveComponentName("xs[1][1][1][1]")]
+                    .stateValues.value.tree;
+            let newY =
+                stateVariables[resolveComponentName("xs[2][1][1][1]")]
+                    .stateValues.value.tree;
             let newValue = [newX, newY].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -785,7 +874,7 @@ describe("Unique variant tests", async () => {
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 20; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -794,8 +883,12 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let newX = stateVariables["/x"].stateValues.value.tree;
-            let newY = stateVariables["/y"].stateValues.value.tree;
+            let newX =
+                stateVariables[resolveComponentName("xs[1][1][1][1]")]
+                    .stateValues.value.tree;
+            let newY =
+                stateVariables[resolveComponentName("xs[2][1][1][1]")]
+                    .stateValues.value.tree;
             let newValue = [newX, newY].join(",");
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
@@ -804,9 +897,9 @@ describe("Unique variant tests", async () => {
     it("deeper nesting of selects/selectFromSequence", async () => {
         let doenetML = `
     <variantControl numVariants="24" />
-    <select assignNames="(p)">
+    <select name="s">
       <option>
-        <p>Favorite color:
+        <p name="p">Favorite color:
           <select>
             <option>
               <select type="text">red orange yellow magenta maroon fuchsia scarlet</select>
@@ -821,7 +914,7 @@ describe("Unique variant tests", async () => {
         </p>
       </option>
       <option>
-        <p>Selected number:
+        <p name="p">Selected number:
           <select>
             <option><selectFromSequence from="1000" to="1010" /></option>
             <option><selectFromSequence from="-1000" to="-995" /></option>
@@ -829,10 +922,10 @@ describe("Unique variant tests", async () => {
         </p>
       </option>
       <option>
-        <p>Chosen letter: <selectFromSequence type="letters" from="a" to="o" /></p>
+        <p name="p">Chosen letter: <selectFromSequence type="letters" from="a" to="o" /></p>
       </option>
       <option>
-        <p>Variable:
+        <p name="p">Variable:
           <select>u v w x y z</select>
         </p>
       </option>
@@ -877,7 +970,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -886,14 +979,18 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let category = stateVariables["/p"].activeChildren[0].trim();
+            let category =
+                stateVariables[
+                    resolveComponentName("s.p")
+                ].activeChildren[0].trim();
             expect(categories.includes(category)).eq(true);
 
             let component =
                 stateVariables[
-                    stateVariables["/p"].activeChildren.filter(
-                        (x) => x.componentIdx,
-                    )[0].componentIdx
+                    stateVariables[
+                        resolveComponentName("s.p")
+                    ].activeChildren.filter((x) => x.componentIdx)[0]
+                        .componentIdx
                 ];
             let newValue = component.stateValues.value;
             if (category === categories[0]) {
@@ -944,7 +1041,7 @@ describe("Unique variant tests", async () => {
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -953,12 +1050,16 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let category = stateVariables["/p"].activeChildren[0].trim();
+            let category =
+                stateVariables[
+                    resolveComponentName("s.p")
+                ].activeChildren[0].trim();
             let component =
                 stateVariables[
-                    stateVariables["/p"].activeChildren.filter(
-                        (x) => x.componentIdx,
-                    )[0].componentIdx
+                    stateVariables[
+                        resolveComponentName("s.p")
+                    ].activeChildren.filter((x) => x.componentIdx)[0]
+                        .componentIdx
                 ];
             let newValue = component.stateValues.value;
             if (newValue.tree !== undefined) {
@@ -972,37 +1073,37 @@ describe("Unique variant tests", async () => {
     it("select problems of selects/selectFromSequence", async () => {
         let doenetML = `
     <variantControl numVariants="6"/>
-    <select assignNames="(problem)">
+    <select name="s">
       <option>
-        <problem newNamespace><title>Favorite color</title>
-          <select assignNames="(p)">
+        <problem name="problem"><title>Favorite color</title>
+          <select name="s2">
             <option>
-              <p newNamespace>I like 
-                <select type="text" assignNames="color">red orange yellow magenta maroon fuchsia scarlet</select>
+              <p name="p">I like 
+                <select type="text" name="color">red orange yellow magenta maroon fuchsia scarlet</select>
               </p>
             </option>
             <option>
-              <p newNamespace>You like
-                <select type="text" assignNames="color">green chartreuse turquoise</select>
+              <p name="p">You like
+                <select type="text" name="color">green chartreuse turquoise</select>
               </p>
             </option>
           </select>
-          <p>Enter the color $(p/color): <answer name="ans" type="text">$(p/color)</answer></p>
+          <p>Enter the color $s2.p.color: <answer name="ans" type="text">$s2.p.color</answer></p>
         </problem>
       </option>
       <option>
-        <problem newNamespace><title>Selected word</title>
-          <select assignNames="(p)">
-            <option><p newNamespace>Verb: <select type="text" assignNames="word">run walk jump skip</select></p></option>
-            <option><p newNamespace>Adjective: <select type="text" assignNames="word">soft scary large empty residual limitless</select></p></option>
+        <problem name="problem"><title>Selected word</title>
+          <select name="s2">
+            <option><p name="p">Verb: <select type="text" name="word">run walk jump skip</select></p></option>
+            <option><p name="p">Adjective: <select type="text" name="word">soft scary large empty residual limitless</select></p></option>
           </select>
-          <p>Enter the word $(p/word): <answer name="ans" type="text">$(p/word)</answer></p>
+          <p>Enter the word $s2.p.p.word: <answer name="ans" type="text">$s2.p.word</answer></p>
         </problem>
       </option>
       <option>
-        <problem newNamespace><title>Chosen letter</title>
+        <problem name="problem"><title>Chosen letter</title>
           <p>Letter
-            <selectFromSequence  assignNames="l" type="letters" from="a" to="j" />
+            <selectFromSequence  name="l" type="letters" from="a" to="j" />
           </p>
           <p>Enter the letter $l: <answer name="ans" type="text">$l</answer></p>
         </problem>
@@ -1050,7 +1151,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1060,18 +1161,21 @@ describe("Unique variant tests", async () => {
                 true,
             );
 
-            let textinputName =
-                stateVariables[`/problem/ans`].stateValues.inputChildren[0]
-                    .componentIdx;
-            let category = stateVariables["/problem"].stateValues.title;
+            let textinputIdx =
+                stateVariables[resolveComponentName(`s.problem.ans`)]
+                    .stateValues.inputChildren[0].componentIdx;
+            let category =
+                stateVariables[resolveComponentName("s.problem")].stateValues
+                    .title;
             expect(categories.includes(category)).eq(true);
 
             let component =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/problem"].activeChildren.filter(
-                            (x) => x.componentIdx,
-                        )[1].componentIdx
+                        stateVariables[
+                            resolveComponentName("s.problem")
+                        ].activeChildren.filter((x) => x.componentIdx)[1]
+                            .componentIdx
                     ].activeChildren[1].componentIdx
                 ];
             let newValue = component.stateValues.value;
@@ -1095,64 +1199,75 @@ describe("Unique variant tests", async () => {
             valuesFound.push(combinedValue);
 
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
             categoriesFound.push(category);
 
             await updateTextInputValue({
                 text: `${newValue}`,
-                name: textinputName,
+                componentIdx: textinputIdx,
                 core,
             });
-            await submitAnswer({ name: `/problem/ans`, core });
+            await submitAnswer({
+                componentIdx: resolveComponentName(`s.problem.ans`),
+                core,
+            });
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables["/problem/ans"].stateValues.creditAchieved,
+                stateVariables[resolveComponentName("s.problem.ans")]
+                    .stateValues.creditAchieved,
             ).eq(1);
             expect(
-                stateVariables["/problem/ans"].stateValues.submittedResponses,
+                stateVariables[resolveComponentName("s.problem.ans")]
+                    .stateValues.submittedResponses,
             ).eqls([newValue]);
-            expect(stateVariables[textinputName].stateValues.value).eq(
-                newValue,
-            );
+            expect(stateVariables[textinputIdx].stateValues.value).eq(newValue);
 
             await updateTextInputValue({
                 text: `${newValue}X`,
-                name: textinputName,
+                componentIdx: textinputIdx,
                 core,
             });
-            await submitAnswer({ name: `/problem/ans`, core });
+            await submitAnswer({
+                componentIdx: resolveComponentName(`s.problem.ans`),
+                core,
+            });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables["/problem/ans"].stateValues.creditAchieved,
+                stateVariables[resolveComponentName("s.problem.ans")]
+                    .stateValues.creditAchieved,
             ).eq(0);
             expect(
-                stateVariables["/problem/ans"].stateValues.submittedResponses,
+                stateVariables[resolveComponentName("s.problem.ans")]
+                    .stateValues.submittedResponses,
             ).eqls([newValue + "X"]);
-            expect(stateVariables[textinputName].stateValues.value).eq(
+            expect(stateVariables[textinputIdx].stateValues.value).eq(
                 newValue + "X",
             );
 
             await updateTextInputValue({
                 text: `${newValue}`,
-                name: textinputName,
+                componentIdx: textinputIdx,
                 core,
             });
-            await submitAnswer({ name: `/problem/ans`, core });
+            await submitAnswer({
+                componentIdx: resolveComponentName(`s.problem.ans`),
+                core,
+            });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables["/problem/ans"].stateValues.creditAchieved,
+                stateVariables[resolveComponentName("s.problem.ans")]
+                    .stateValues.creditAchieved,
             ).eq(1);
             expect(
-                stateVariables["/problem/ans"].stateValues.submittedResponses,
+                stateVariables[resolveComponentName("s.problem.ans")]
+                    .stateValues.submittedResponses,
             ).eqls([newValue]);
-            expect(stateVariables[textinputName].stateValues.value).eq(
-                newValue,
-            );
+            expect(stateVariables[textinputIdx].stateValues.value).eq(newValue);
         }
 
         let colorsFoundSet = new Set(colorsFound);
@@ -1166,7 +1281,7 @@ describe("Unique variant tests", async () => {
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 6; ind += 2) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1175,13 +1290,16 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let category = stateVariables["/problem"].stateValues.title;
+            let category =
+                stateVariables[resolveComponentName("s.problem")].stateValues
+                    .title;
             let component =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/problem"].activeChildren.filter(
-                            (x) => x.componentIdx,
-                        )[1].componentIdx
+                        stateVariables[
+                            resolveComponentName("s.problem")
+                        ].activeChildren.filter((x) => x.componentIdx)[1]
+                            .componentIdx
                     ].activeChildren[1].componentIdx
                 ];
             let newValue = component.stateValues.value;
@@ -1190,24 +1308,20 @@ describe("Unique variant tests", async () => {
         }
     });
 
-    it("can get unique with map without variants", async () => {
+    it("can get unique with repeat without variants", async () => {
         let doenetML = `
-    <selectFromSequence assignNames="x" length="3" />
-    <map assignNames="(p1) (p2) (p3) (p4)">
-      <template>
-        <p>letter: $v</p>
-      </template>
-      <sources alias="v">
-        <sequence type="letters" length="$n" />
-      </sources>
-    </map>
+    <selectFromSequence name="x" length="3" />
+    <setup><sequence name="seq" type="letters" length="$n" /></setup>
+    <repeat for="$seq" name="r" itemName="v">
+        <p name="p">letter: $v</p>
+    </repeat>
     <p>N: <mathInput name="n" prefill="1" /></p>
     `;
 
         // get all values before they repeat in next variants
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 4; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1216,46 +1330,75 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            sampledValues.push(stateVariables["/x"].stateValues.value);
-            expect(stateVariables["/p1"].stateValues.text).eq("letter: a");
-            expect(stateVariables["/p2"]).be.undefined;
-
-            await updateMathInputValue({ latex: "3", name: "/n", core });
-            stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/p1"].stateValues.text).eq("letter: a");
-            expect(stateVariables["/p2"].stateValues.text).eq("letter: b");
-            expect(stateVariables["/p3"].stateValues.text).eq("letter: c");
-
-            expect(stateVariables["/x"].stateValues.value).eq(
-                sampledValues[ind - 1],
+            sampledValues.push(
+                stateVariables[resolveComponentName("x[1]")].stateValues.value,
             );
             expect(
+                stateVariables[resolveComponentName("r[1].p")].stateValues.text,
+            ).eq("letter: a");
+            expect(stateVariables[resolveComponentName("r[2].p")]).be.undefined;
+
+            await updateMathInputValue({
+                latex: "3",
+                componentIdx: resolveComponentName("n"),
+                core,
+            });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[resolveComponentName("r[1].p")].stateValues.text,
+            ).eq("letter: a");
+            expect(
+                stateVariables[resolveComponentName("r[2].p")].stateValues.text,
+            ).eq("letter: b");
+            expect(
+                stateVariables[resolveComponentName("r[3].p")].stateValues.text,
+            ).eq("letter: c");
+
+            expect(
+                stateVariables[resolveComponentName("x[1]")].stateValues.value,
+            ).eq(sampledValues[ind - 1]);
+            expect(
                 stateVariables[
-                    stateVariables["/p1"].activeChildren[1].componentIdx
+                    stateVariables[resolveComponentName("r[1].p")]
+                        .activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("a");
             expect(
                 stateVariables[
-                    stateVariables["/p2"].activeChildren[1].componentIdx
+                    stateVariables[resolveComponentName("r[2].p")]
+                        .activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("b");
             expect(
                 stateVariables[
-                    stateVariables["/p3"].activeChildren[1].componentIdx
+                    stateVariables[resolveComponentName("r[3].p")]
+                        .activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("c");
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c"]);
 
-            await updateMathInputValue({ latex: "4", name: "/n", core });
+            await updateMathInputValue({
+                latex: "4",
+                componentIdx: resolveComponentName("n"),
+                core,
+            });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/p1"].stateValues.text).eq("letter: a");
-            expect(stateVariables["/p2"].stateValues.text).eq("letter: b");
-            expect(stateVariables["/p3"].stateValues.text).eq("letter: c");
-            expect(stateVariables["/p4"].stateValues.text).eq("letter: d");
+            expect(
+                stateVariables[resolveComponentName("r[1].p")].stateValues.text,
+            ).eq("letter: a");
+            expect(
+                stateVariables[resolveComponentName("r[2].p")].stateValues.text,
+            ).eq("letter: b");
+            expect(
+                stateVariables[resolveComponentName("r[3].p")].stateValues.text,
+            ).eq("letter: c");
+            expect(
+                stateVariables[resolveComponentName("r[4].p")].stateValues.text,
+            ).eq("letter: d");
         }
         // first three are in a random order
         expect(sampledValues.slice(0, 3).sort()).eqls([1, 2, 3]);
@@ -1272,7 +1415,7 @@ describe("Unique variant tests", async () => {
 
         // get all orders in first 6 variants
         for (let ind = 1; ind <= 6; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1281,25 +1424,27 @@ describe("Unique variant tests", async () => {
                 true,
             );
 
-            let ciName = "/ci";
+            let ciIdx;
             if (insiderAnswer) {
-                ciName =
-                    stateVariables["/ans"].stateValues.inputChildren[0]
-                        .componentIdx;
+                ciIdx =
+                    stateVariables[resolveComponentName("ans")].stateValues
+                        .inputChildren[0].componentIdx;
+            } else {
+                ciIdx = resolveComponentName("ci");
             }
 
-            let choiceOrder = stateVariables[ciName].stateValues.choiceOrder;
+            let choiceOrder = stateVariables[ciIdx].stateValues.choiceOrder;
             let selectedOrder = choiceOrder.join(",");
             expect(ordersFound.includes(selectedOrder)).eq(false);
             ordersFound.push(selectedOrder);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
             for (let i = 0; i < 3; i++) {
                 await updateSelectedIndices({
-                    name: ciName,
+                    componentIdx: ciIdx,
                     selectedIndices: [i + 1],
                     core,
                 });
@@ -1307,38 +1452,40 @@ describe("Unique variant tests", async () => {
                     false,
                     true,
                 );
-                expect(stateVariables[ciName].stateValues.selectedValues).eqls([
+                expect(stateVariables[ciIdx].stateValues.selectedValues).eqls([
                     choices[choiceOrder[i] - 1],
                 ]);
             }
 
             await updateSelectedIndices({
-                name: ciName,
+                componentIdx: ciIdx,
                 selectedIndices: [1],
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables[ciName].stateValues.selectedValues).eqls([
+            expect(stateVariables[ciIdx].stateValues.selectedValues).eqls([
                 choices[choiceOrder[0] - 1],
             ]);
         }
 
         // 7th variant repeats first order
         let ind = 7;
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML,
             requestedVariantIndex: ind,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let ciName = "/ci";
+        let ciIdx;
         if (insiderAnswer) {
-            ciName =
-                stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentIdx;
+            ciIdx =
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .inputChildren[0].componentIdx;
+        } else {
+            ciIdx = resolveComponentName("ci");
         }
-        let choiceOrder = stateVariables[ciName].stateValues.choiceOrder;
+        let choiceOrder = stateVariables[ciIdx].stateValues.choiceOrder;
         let selectedOrder = choiceOrder.join(",");
         expect(selectedOrder).eq(ordersFound[0]);
     }
@@ -1359,14 +1506,13 @@ describe("Unique variant tests", async () => {
     it("single shuffled choiceInput, choices copied in", async () => {
         let doenetML = `
     <choice name="red">red</choice>
-    <group name="twoChoices">
-      <choice>blue</choice>
-      <choice>green</choice>
-    </group>
+    <choice name="blue">blue</choice>
+    <choice name="green">green</choice>
 
     <choiceInput name="ci" shuffleOrder>
-      <choice copySource="red" />
-      <copy source="twoChoices" createComponentOfType="choice" numComponents="2" />
+      <choice extend="$red" />
+      <choice extend="$blue" />
+      <choice extend="$green" />
     </choiceInput>
     `;
 
@@ -1389,8 +1535,8 @@ describe("Unique variant tests", async () => {
     it("shuffled choiceInput with selectFromSequence in choices", async () => {
         let doenetML = `
     <choiceInput name="ci" shuffleOrder>
-      <choice><selectFromSequence from="1" to="2" assignNames="n" /></choice>
-      <choice><selectFromSequence type="letters" from="a" to="b" assignNames="l" /></choice>
+      <choice><selectFromSequence from="1" to="2" name="n" /></choice>
+      <choice><selectFromSequence type="letters" from="a" to="b" name="l" /></choice>
     </choiceInput>
     `;
 
@@ -1398,7 +1544,7 @@ describe("Unique variant tests", async () => {
 
         // get all options in first 8 variants
         for (let ind = 1; ind <= 8; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1407,21 +1553,25 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
-            let n = stateVariables["/n"].stateValues.value;
-            let l = stateVariables["/l"].stateValues.value;
+            let choiceOrder =
+                stateVariables[resolveComponentName("ci")].stateValues
+                    .choiceOrder;
+            let n =
+                stateVariables[resolveComponentName("n[1]")].stateValues.value;
+            let l =
+                stateVariables[resolveComponentName("l[1]")].stateValues.value;
             let choices = [n.toString(), l];
             let selectedOption = [...choiceOrder, ...choices].join(",");
             expect(selectionsFound.includes(selectedOption)).eq(false);
             selectionsFound.push(selectedOption);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h"]);
 
             for (let i = 0; i < 2; i++) {
                 await updateSelectedIndices({
-                    name: "/ci",
+                    componentIdx: resolveComponentName("ci"),
                     selectedIndices: [i + 1],
                     core,
                 });
@@ -1430,33 +1580,36 @@ describe("Unique variant tests", async () => {
                     false,
                     true,
                 );
-                expect(stateVariables["/ci"].stateValues.selectedValues).eqls([
-                    choices[choiceOrder[i] - 1],
-                ]);
+                expect(
+                    stateVariables[resolveComponentName("ci")].stateValues
+                        .selectedValues,
+                ).eqls([choices[choiceOrder[i] - 1]]);
             }
 
             await updateSelectedIndices({
-                name: "/ci",
+                componentIdx: resolveComponentName("ci"),
                 selectedIndices: [1],
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/ci"].stateValues.selectedValues).eqls([
-                choices[choiceOrder[0] - 1],
-            ]);
+            expect(
+                stateVariables[resolveComponentName("ci")].stateValues
+                    .selectedValues,
+            ).eqls([choices[choiceOrder[0] - 1]]);
         }
 
         let ind = 9;
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML,
             requestedVariantIndex: ind,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
-        let n = stateVariables["/n"].stateValues.value;
-        let l = stateVariables["/l"].stateValues.value;
+        let choiceOrder =
+            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+        let n = stateVariables[resolveComponentName("n[1]")].stateValues.value;
+        let l = stateVariables[resolveComponentName("l[1]")].stateValues.value;
         let choices = [n.toString(), l];
         let selectedOption = [...choiceOrder, ...choices].join(",");
         expect(selectedOption).eq(selectionsFound[0]);
@@ -1468,7 +1621,7 @@ describe("Unique variant tests", async () => {
 
         // get all orders in first 6 variants
         for (let ind = 1; ind <= 6; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1478,37 +1631,40 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let componentOrder =
-                stateVariables["/sh"].stateValues.componentOrder;
+                stateVariables[resolveComponentName("sh")].stateValues
+                    .componentOrder;
             expect([...componentOrder].sort()).eqls([1, 2, 3]);
 
             let selectedOrder = componentOrder.join(",");
             expect(ordersFound.includes(selectedOrder)).eq(false);
             ordersFound.push(selectedOrder);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
-            expect(stateVariables["/pList"].stateValues.text).eq(
-                componentOrder.map((x) => colors[x - 1]).join(", "),
-            );
+            expect(
+                stateVariables[resolveComponentName("pList")].stateValues.text,
+            ).eq(componentOrder.map((x) => colors[x - 1]).join(", "));
         }
 
         // 7th variant repeats first order
         let ind = 7;
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML,
             requestedVariantIndex: ind,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let componentOrder = stateVariables["/sh"].stateValues.componentOrder;
+        let componentOrder =
+            stateVariables[resolveComponentName("sh")].stateValues
+                .componentOrder;
         let selectedOrder = componentOrder.join(",");
         expect(selectedOrder).eq(ordersFound[0]);
 
-        expect(stateVariables["/pList"].stateValues.text).eq(
-            componentOrder.map((x) => colors[x - 1]).join(", "),
-        );
+        expect(
+            stateVariables[resolveComponentName("pList")].stateValues.text,
+        ).eq(componentOrder.map((x) => colors[x - 1]).join(", "));
     }
 
     it("shuffle", async () => {
@@ -1526,14 +1682,15 @@ describe("Unique variant tests", async () => {
 
     it("shuffle, copy in components", async () => {
         let doenetML = `
+
     <text name="red">red</text>
-    <group name="twoColors">
-      <text>blue</text>
-      <text>green</text>
-    </group>
+    <text name="blue">blue</text>
+    <text name="green">green</text>
+
     <p name="pList"><shuffle name="sh">
-      <text copySource="red" />
-      <copy source="twoColors" createComponentOfType="text" numComponents="2" />
+      <text extend="$red" />
+      <text extend="$blue" />
+      <text extend="$green" />
     </shuffle></p>
 
     `;
@@ -1558,7 +1715,7 @@ describe("Unique variant tests", async () => {
         const nsFound: number[] = [];
 
         for (let ind = 1; ind <= 12; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1568,91 +1725,135 @@ describe("Unique variant tests", async () => {
                 true,
             );
 
-            let mathInputName =
-                stateVariables["/ans1"].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathInput2Name =
-                stateVariables["/ans2"].stateValues.inputChildren[0]
-                    .componentIdx;
+            let mathInputIdx =
+                stateVariables[resolveComponentName("ans1")].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput2Idx =
+                stateVariables[resolveComponentName("ans2")].stateValues
+                    .inputChildren[0].componentIdx;
 
-            const m = stateVariables["/m"].stateValues.value;
+            const m =
+                stateVariables[resolveComponentName("m[1]")].stateValues.value;
             msFound.push(m);
-            const n = stateVariables["/n"].stateValues.value;
+            const n =
+                stateVariables[resolveComponentName("n[1]")].stateValues.value;
             nsFound.push(n);
 
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
             await updateMathInputValue({
                 latex: `${m}`,
-                name: mathInputName,
+                componentIdx: mathInputIdx,
                 core,
             });
-            await submitAnswer({ name: "/ans1", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans1"),
+                core,
+            });
             await updateMathInputValue({
                 latex: `${n}`,
-                name: mathInput2Name,
+                componentIdx: mathInput2Idx,
                 core,
             });
-            await submitAnswer({ name: "/ans2", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans2"),
+                core,
+            });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
-            expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
             expect(
-                stateVariables["/ans1"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans1")].stateValues
+                    .creditAchieved,
+            ).eq(1);
+            expect(
+                stateVariables[resolveComponentName("ans2")].stateValues
+                    .creditAchieved,
+            ).eq(1);
+            expect(
+                stateVariables[resolveComponentName("ans1")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(m);
             expect(
-                stateVariables["/ans2"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans2")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(n);
 
             await updateMathInputValue({
                 latex: `${m}1`,
-                name: mathInputName,
+                componentIdx: mathInputIdx,
                 core,
             });
-            await submitAnswer({ name: "/ans1", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans1"),
+                core,
+            });
             await updateMathInputValue({
                 latex: `${n}1`,
-                name: mathInput2Name,
+                componentIdx: mathInput2Idx,
                 core,
             });
-            await submitAnswer({ name: "/ans2", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans2"),
+                core,
+            });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
-            expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
+            expect(
+                stateVariables[resolveComponentName("ans1")].stateValues
+                    .creditAchieved,
+            ).eq(0);
+            expect(
+                stateVariables[resolveComponentName("ans2")].stateValues
+                    .creditAchieved,
+            ).eq(0);
 
             expect(
-                stateVariables["/ans1"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans1")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(m * 10 + 1);
             expect(
-                stateVariables["/ans2"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans2")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(n * 10 + 1);
 
             await updateMathInputValue({
                 latex: `${m}`,
-                name: mathInputName,
+                componentIdx: mathInputIdx,
                 core,
             });
-            await submitAnswer({ name: "/ans1", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans1"),
+                core,
+            });
             await updateMathInputValue({
                 latex: `${n}`,
-                name: mathInput2Name,
+                componentIdx: mathInput2Idx,
                 core,
             });
-            await submitAnswer({ name: "/ans2", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans2"),
+                core,
+            });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
-            expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
             expect(
-                stateVariables["/ans1"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans1")].stateValues
+                    .creditAchieved,
+            ).eq(1);
+            expect(
+                stateVariables[resolveComponentName("ans2")].stateValues
+                    .creditAchieved,
+            ).eq(1);
+            expect(
+                stateVariables[resolveComponentName("ans1")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(m);
             expect(
-                stateVariables["/ans2"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans2")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(n);
         }
 
@@ -1678,13 +1879,13 @@ describe("Unique variant tests", async () => {
     <variantControl uniqueVariants />
     <problem>
       <variantControl uniqueVariants />
-      <p>Enter <selectFromSequence from="1" to="2" assignNames="m" />:
+      <p>Enter <selectFromSequence from="1" to="2" name="m" />:
         <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
       <variantControl uniqueVariants />
-      <p>Enter <selectFromSequence from="3" to="5" assignNames="n" />:
+      <p>Enter <selectFromSequence from="3" to="5" name="n" />:
         <answer name="ans2">$n</answer>
       </p>
     </problem>
@@ -1701,13 +1902,13 @@ describe("Unique variant tests", async () => {
         let doenetML = `
     <problem>
       <variantControl />
-      <p>Enter <selectFromSequence from="1" to="2" assignNames="m" />:
+      <p>Enter <selectFromSequence from="1" to="2" name="m" />:
         <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
       <variantControl />
-      <p>Enter <selectFromSequence from="3" to="5" assignNames="n" />:
+      <p>Enter <selectFromSequence from="3" to="5" name="n" />:
         <answer name="ans2">$n</answer>
       </p>
     </problem>
@@ -1723,12 +1924,12 @@ describe("Unique variant tests", async () => {
     it("document and problems with unique variants, even without specifying in document or problem", async () => {
         let doenetML = `
     <problem>
-      <p>Enter <selectFromSequence from="1" to="2" assignNames="m" />:
+      <p>Enter <selectFromSequence from="1" to="2" name="m" />:
         <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
-      <p>Enter <selectFromSequence from="3" to="5" assignNames="n" />:
+      <p>Enter <selectFromSequence from="3" to="5" name="n" />:
         <answer name="ans2">$n</answer>
       </p>
     </problem>
@@ -1745,13 +1946,13 @@ describe("Unique variant tests", async () => {
         let doenetML = `
     <problem>
       <variantControl numVariants="2" uniqueVariants="false" />
-      <p>Enter <selectFromSequence from="1000000" to="2000000" assignNames="m" />:
+      <p>Enter <selectFromSequence from="1000000" to="2000000" name="m" />:
         <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
       <variantControl numVariants="3" uniqueVariants="false" />
-      <p>Enter <selectFromSequence from="3000000" to="5000000" assignNames="n" />:
+      <p>Enter <selectFromSequence from="3000000" to="5000000" name="n" />:
         <answer name="ans2">$n</answer>
       </p>
     </problem>
@@ -1764,7 +1965,7 @@ describe("Unique variant tests", async () => {
         let doenetML = `
         <problem>
           <variantControl variantNames="first second third" />
-          <p>Enter <selectFromSequence from="5" to="7" assignNames="m" />:
+          <p>Enter <selectFromSequence from="5" to="7" name="m" />:
             <answer name="ans">$m</answer>
           </p>
         </problem>
@@ -1773,7 +1974,7 @@ describe("Unique variant tests", async () => {
         // get all 3 options before they repeat
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 4; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1783,56 +1984,79 @@ describe("Unique variant tests", async () => {
                 true,
             );
 
-            let mathInputName =
-                stateVariables["/ans"].stateValues.inputChildren[0]
-                    .componentIdx;
+            let mathInputIdx =
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .inputChildren[0].componentIdx;
 
-            const m = stateVariables["/m"].stateValues.value;
+            const m =
+                stateVariables[resolveComponentName("m[1]")].stateValues.value;
             sampledValues.push(m);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["first", "second", "third"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.variantName,
             ).eq(["first", "second", "third"][(ind - 1) % 3]);
 
             await updateMathInputValue({
                 latex: `${m}`,
-                name: mathInputName,
+                componentIdx: mathInputIdx,
                 core,
             });
-            await submitAnswer({ name: "/ans", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans"),
+                core,
+            });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
             expect(
-                stateVariables["/ans"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .creditAchieved,
+            ).eq(1);
+            expect(
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(m);
 
             await updateMathInputValue({
                 latex: `${m}1`,
-                name: mathInputName,
+                componentIdx: mathInputIdx,
                 core,
             });
-            await submitAnswer({ name: "/ans", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans"),
+                core,
+            });
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
             expect(
-                stateVariables["/ans"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .creditAchieved,
+            ).eq(0);
+            expect(
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(m * 10 + 1);
 
             await updateMathInputValue({
                 latex: `${m}`,
-                name: mathInputName,
+                componentIdx: mathInputIdx,
                 core,
             });
-            await submitAnswer({ name: "/ans", core });
+            await submitAnswer({
+                componentIdx: resolveComponentName("ans"),
+                core,
+            });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
             expect(
-                stateVariables["/ans"].stateValues.submittedResponses[0].tree,
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .creditAchieved,
+            ).eq(1);
+            expect(
+                stateVariables[resolveComponentName("ans")].stateValues
+                    .submittedResponses[0].tree,
             ).eq(m);
         }
         // first three are in a random order
@@ -1842,22 +2066,25 @@ describe("Unique variant tests", async () => {
     });
 
     it("no variant control, 1 unique variant", async () => {
-        let core = await createTestCore({ doenetML: "hello" });
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: "hello",
+        });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
+            stateVariables[resolveComponentName("_document1")].sharedParameters
+                .allPossibleVariants,
         ).eqls(["a"]);
     });
 
     it("no variant control, single select", async () => {
-        let doenetML = `<select assignNames="x">u v w</select>`;
+        let doenetML = `<select name="x">u v w</select>`;
         let values = ["u", "v", "w"];
 
         // get all values before they repeat in next variants
         const sampledValues: string[] = [];
         for (let ind = 1; ind <= 4; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1866,10 +2093,13 @@ describe("Unique variant tests", async () => {
                 true,
             );
 
-            sampledValues.push(stateVariables["/x"].stateValues.value.tree);
+            sampledValues.push(
+                stateVariables[resolveComponentName("x[1][1]")].stateValues
+                    .value.tree,
+            );
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c"]);
         }
 
@@ -1881,8 +2111,8 @@ describe("Unique variant tests", async () => {
 
     it("no variant control, select and selectFromSequence", async () => {
         let doenetML = `
-        <select assignNames="x">u v w</select>
-        <selectFromSequence assignNames="n" length="3" />
+        <select name="x">u v w</select>
+        <selectFromSequence name="n" length="3" />
       `;
         let values = ["u", "v", "w"];
 
@@ -1890,7 +2120,7 @@ describe("Unique variant tests", async () => {
         const sampledLetters: string[] = [];
         const sampledNumbers: number[] = [];
         for (let ind = 1; ind <= 18; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1899,11 +2129,16 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            sampledLetters.push(stateVariables["/x"].stateValues.value.tree);
-            sampledNumbers.push(stateVariables["/n"].stateValues.value);
+            sampledLetters.push(
+                stateVariables[resolveComponentName("x[1][1]")].stateValues
+                    .value.tree,
+            );
+            sampledNumbers.push(
+                stateVariables[resolveComponentName("n[1]")].stateValues.value,
+            );
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(9);
         }
 
@@ -1920,12 +2155,12 @@ describe("Unique variant tests", async () => {
 
     it("no variant control, 100 is still unique variants", async () => {
         let doenetML = `
-        <selectFromSequence assignNames="n" length="100" />
+        <selectFromSequence name="n" length="100" />
       `;
         // first 100 values are not repeated, then order repeats
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 102; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1934,7 +2169,8 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            const n = stateVariables["/n"].stateValues.value;
+            const n =
+                stateVariables[resolveComponentName("n[1]")].stateValues.value;
             expect(n).gte(1).lte(100);
             if (ind <= 100) {
                 expect(sampledValues.includes(n)).eq(false);
@@ -1943,21 +2179,21 @@ describe("Unique variant tests", async () => {
             }
             sampledValues.push(n);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(100);
         }
     });
 
     it("no variant control, 101 is still unique, though random selection", async () => {
         let doenetML = `
-        <selectFromSequence assignNames="n" length="101" />
+        <selectFromSequence name="n" length="101" />
       `;
 
         // first 100 values are not repeated, then order repeats
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 102; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1966,7 +2202,8 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            const n = stateVariables["/n"].stateValues.value;
+            const n =
+                stateVariables[resolveComponentName("n[1]")].stateValues.value;
             expect(n).gte(1).lte(101);
             if (ind <= 100) {
                 expect(sampledValues.includes(n)).eq(false);
@@ -1975,21 +2212,21 @@ describe("Unique variant tests", async () => {
             }
             sampledValues.push(n);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(100);
         }
     });
 
     it("no variant control, 1000 is still unique, values spread out", async () => {
         let doenetML = `
-        <selectFromSequence assignNames="n" length="1000" />
+        <selectFromSequence name="n" length="1000" />
       `;
 
         // first 100 values are not repeated, then order repeats
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 102; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1998,7 +2235,8 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            const n = stateVariables["/n"].stateValues.value;
+            const n =
+                stateVariables[resolveComponentName("n[1]")].stateValues.value;
             expect(n).gte(1).lte(1000);
             if (ind <= 100) {
                 expect(sampledValues.includes(n)).eq(false);
@@ -2007,8 +2245,8 @@ describe("Unique variant tests", async () => {
             }
             sampledValues.push(n);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(100);
         }
 
@@ -2023,13 +2261,13 @@ describe("Unique variant tests", async () => {
     it("limit variants from 100, still unique, values spread out", async () => {
         let doenetML = `
         <variantControl numVariants="10" />
-        <selectFromSequence assignNames="n" length="100" />
+        <selectFromSequence name="n" length="100" />
       `;
 
         // first 10 values are not repeated, then order repeats
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 20; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2038,7 +2276,8 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            const n = stateVariables["/n"].stateValues.value;
+            const n =
+                stateVariables[resolveComponentName("n[1]")].stateValues.value;
             expect(n).gte(1).lte(100);
             if (ind <= 10) {
                 expect(sampledValues.includes(n)).eq(false);
@@ -2047,8 +2286,8 @@ describe("Unique variant tests", async () => {
             }
             sampledValues.push(n);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(10);
         }
 
@@ -2063,21 +2302,21 @@ describe("Unique variant tests", async () => {
     it("increasing variant limit preserves the identity of original variants", async () => {
         let doenetML4 = `
         <variantControl numVariants="4" />
-        <selectFromSequence assignNames="n" length="100" />
+        <selectFromSequence name="n" length="100" />
       `;
 
         let doenetML6 = `
       <variantControl numVariants="6" />
-      <selectFromSequence assignNames="n" length="100" />
+      <selectFromSequence name="n" length="100" />
     `;
 
         let doenetML100 = `
-  <selectFromSequence assignNames="n" length="100" />
+  <selectFromSequence name="n" length="100" />
 `;
 
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 4; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML: doenetML4,
                 requestedVariantIndex: ind,
             });
@@ -2086,17 +2325,19 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            sampledValues.push(stateVariables["/n"].stateValues.value);
+            sampledValues.push(
+                stateVariables[resolveComponentName("n[1]")].stateValues.value,
+            );
 
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(4);
         }
 
         // first four variants match numVariants=4 case
         for (let ind = 1; ind <= 6; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML: doenetML6,
                 requestedVariantIndex: ind,
             });
@@ -2106,21 +2347,25 @@ describe("Unique variant tests", async () => {
                 true,
             );
             if (ind <= 4) {
-                expect(stateVariables["/n"].stateValues.value).eq(
-                    sampledValues[ind - 1],
-                );
+                expect(
+                    stateVariables[resolveComponentName("n[1]")].stateValues
+                        .value,
+                ).eq(sampledValues[ind - 1]);
             } else {
-                sampledValues.push(stateVariables["/n"].stateValues.value);
+                sampledValues.push(
+                    stateVariables[resolveComponentName("n[1]")].stateValues
+                        .value,
+                );
             }
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(6);
         }
 
         // first six variants match numVariants=6 case
         for (let ind = 1; ind <= 6; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML: doenetML100,
                 requestedVariantIndex: ind,
             });
@@ -2129,13 +2374,13 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/n"].stateValues.value).eq(
-                sampledValues[ind - 1],
-            );
+            expect(
+                stateVariables[resolveComponentName("n[1]")].stateValues.value,
+            ).eq(sampledValues[ind - 1]);
 
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(100);
         }
     });
@@ -2146,9 +2391,9 @@ describe("Unique variant tests", async () => {
 
         let doenetML = `
         <problem>
-          <select type="number" assignNames="a">1 2</select>
-          <select type="number" assignNames="b">3 4</select>
-          <select type="number" assignNames="c">5 6</select>
+          <select type="number" name="a">1 2</select>
+          <select type="number" name="b">3 4</select>
+          <select type="number" name="c">5 6</select>
         </problem>
       `;
 
@@ -2157,7 +2402,7 @@ describe("Unique variant tests", async () => {
         // get each value exactly one
         let valuesFound: number[] = [];
         for (let ind = 1; ind <= 8; ind++) {
-            let core = await createTestCore({
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2166,15 +2411,21 @@ describe("Unique variant tests", async () => {
                 false,
                 true,
             );
-            let a = stateVariables["/a"].stateValues.value;
-            let b = stateVariables["/b"].stateValues.value;
-            let c = stateVariables["/c"].stateValues.value;
+            let a =
+                stateVariables[resolveComponentName("a[1][1]")].stateValues
+                    .value;
+            let b =
+                stateVariables[resolveComponentName("b[1][1]")].stateValues
+                    .value;
+            let c =
+                stateVariables[resolveComponentName("c[1][1]")].stateValues
+                    .value;
 
             let val = a * 100 + b * 10 + c;
             valuesFound.push(val);
             expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length,
+                stateVariables[resolveComponentName("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
             ).eq(8);
         }
 
@@ -2183,54 +2434,63 @@ describe("Unique variant tests", async () => {
 
     it("unless variant determines seed, sample random/prime numbers does not add variants", async () => {
         // no other variants so get 1 variant
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-        <sampleRandomNumbers type="uniform" from="1" to="10" assignNames="n" />
+        <sampleRandomNumbers type="uniform" from="1" to="10" name="n" />
         `,
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/n"].stateValues.value).gte(1).lte(10);
+        expect(stateVariables[resolveComponentName("n[1]")].stateValues.value)
+            .gte(1)
+            .lte(10);
         expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
+            stateVariables[resolveComponentName("_document1")].sharedParameters
+                .allPossibleVariants,
         ).eqls(["a"]);
 
         // just get 10 variants from select
-        core = await createTestCore({
+        ({ core, resolveComponentName } = await createTestCore({
             doenetML: `
-        <samplePrimeNumbers minValue="1" maxValue="10000" assignNames="n" />
+        <samplePrimeNumbers minValue="1" maxValue="10000" name="n" />
         <selectFromSequence from="1" to="10" />
         `,
-        });
+        }));
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/n"].stateValues.value).gte(1).lte(10000);
+        expect(stateVariables[resolveComponentName("n[1]")].stateValues.value)
+            .gte(1)
+            .lte(10000);
         expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants
-                .length,
+            stateVariables[resolveComponentName("_document1")].sharedParameters
+                .allPossibleVariants.length,
         ).eq(10);
 
         // when variant determines seed, get 100 different variants
-        core = await createTestCore({
+        ({ core, resolveComponentName } = await createTestCore({
             doenetML: `
-                <sampleRandomNumbers type="uniform" from="1" to="10" variantDeterminesSeed assignNames="n" />
+                <sampleRandomNumbers type="uniform" from="1" to="10" variantDeterminesSeed name="n" />
                 `,
-        });
+        }));
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/n"].stateValues.value).gte(1).lte(10);
+        expect(stateVariables[resolveComponentName("n[1]")].stateValues.value)
+            .gte(1)
+            .lte(10);
         expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants
-                .length,
+            stateVariables[resolveComponentName("_document1")].sharedParameters
+                .allPossibleVariants.length,
         ).eq(100);
 
-        core = await createTestCore({
+        ({ core, resolveComponentName } = await createTestCore({
             doenetML: `
-                <samplePrimeNumbers minValue="1" maxValue="10000" variantDeterminesSeed assignNames="n" />
+                <samplePrimeNumbers minValue="1" maxValue="10000" variantDeterminesSeed name="n" />
                 `,
-        });
+        }));
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/n"].stateValues.value).gte(1).lte(10000);
+        expect(stateVariables[resolveComponentName("n[1]")].stateValues.value)
+            .gte(1)
+            .lte(10000);
         expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants
-                .length,
+            stateVariables[resolveComponentName("_document1")].sharedParameters
+                .allPossibleVariants.length,
         ).eq(100);
     });
 });

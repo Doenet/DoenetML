@@ -8,14 +8,13 @@ import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
-import { cesc } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function MathComponent(
     props: UseDoenetRendererProps,
 ) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     // @ts-ignore
@@ -175,7 +174,7 @@ export default React.memo(function MathComponent(
             if (!fixed.current) {
                 callAction({
                     action: actions.mathFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -191,7 +190,7 @@ export default React.memo(function MathComponent(
             dragged.current = false;
             callAction({
                 action: actions.mathFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -208,7 +207,7 @@ export default React.memo(function MathComponent(
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.mathClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -340,7 +339,7 @@ export default React.memo(function MathComponent(
                 }
                 callAction({
                     action: actions.mathClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -545,10 +544,10 @@ export default React.memo(function MathComponent(
     let latexWithDelims = beginDelim + SVs.latex + endDelim;
 
     let anchors = [<a key={id} />];
-    if (SVs.mrowChildNames) {
+    if (SVs.mrowChildIndices) {
         anchors.push(
-            ...SVs.mrowChildNames.map((x: string) => {
-                let rowId = cesc(x);
+            ...SVs.mrowChildIndices.map((x: string) => {
+                let rowId = x;
                 return <a key={rowId} id={rowId} />;
             }),
         );

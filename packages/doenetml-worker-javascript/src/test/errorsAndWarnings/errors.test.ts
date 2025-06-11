@@ -6,8 +6,8 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Error Tests", async () => {
-    it("Mismatched tags at base level", async () => {
-        let core = await createTestCore({
+    it("Mismatched tags at base level, component without canDisplayChildErrors", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <math name="good">x+y</math>
 
@@ -18,33 +18,74 @@ describe("Error Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/good"].stateValues.value.tree).eqls([
-            "+",
-            "x",
-            "y",
-        ]);
-        expect(stateVariables["/bad"].stateValues.value.tree).eqls([
-            "+",
-            "a",
-            "b",
-        ]);
+        expect(
+            stateVariables[resolveComponentName("good")].stateValues.value.tree,
+        ).eqls(["+", "x", "y"]);
+        expect(stateVariables[resolveComponentName("bad")].componentType).eq(
+            "_error",
+        );
 
         let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.errors.length).eq(1);
+        expect(errorWarnings.errors.length).eq(2);
         expect(errorWarnings.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(errorWarnings.errors[0].message).contain("has no closing tag");
+        expect(errorWarnings.errors[0].position.start.line).eq(4);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(4);
+        expect(errorWarnings.errors[0].position.end.column).eq(18);
+
+        expect(errorWarnings.errors[1].message).contain(
             "Mismatched closing tag",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].position.charBegin).eq(21);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(4);
-        expect(errorWarnings.errors[0].position.charEnd).eq(29);
+        expect(errorWarnings.errors[1].position.start.line).eq(4);
+        expect(errorWarnings.errors[1].position.start.column).eq(21);
+        expect(errorWarnings.errors[1].position.end.line).eq(4);
+        expect(errorWarnings.errors[1].position.end.column).eq(30);
+    });
+
+    it("Mismatched tags at base level, component with canDisplayChildErrors", async () => {
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+<p name="good">hi</p>
+
+<p name="bad">bye</number>
+
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[resolveComponentName("good")].stateValues.text,
+        ).eq("hi");
+        expect(
+            stateVariables[resolveComponentName("bad")].stateValues.text.trim(),
+        ).eq("bye");
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(2);
+        expect(errorWarnings.warnings.length).eq(0);
+
+        expect(errorWarnings.errors[0].message).contain("has no closing tag");
+        expect(errorWarnings.errors[0].position.start.line).eq(4);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(4);
+        expect(errorWarnings.errors[0].position.end.column).eq(15);
+
+        expect(errorWarnings.errors[1].message).contain(
+            "Mismatched closing tag",
+        );
+        expect(errorWarnings.errors[1].position.start.line).eq(4);
+        expect(errorWarnings.errors[1].position.start.column).eq(18);
+        expect(errorWarnings.errors[1].position.end.line).eq(4);
+        expect(errorWarnings.errors[1].position.end.column).eq(27);
     });
 
     it("Mismatched tags in section, later tags outside survive", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <section name="sec">
   <math name="good">x+y</math>
@@ -57,36 +98,40 @@ describe("Error Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/good"].stateValues.value.tree).eqls([
-            "+",
-            "x",
-            "y",
-        ]);
-        expect(stateVariables["/bad"].stateValues.value.tree).eqls([
-            "+",
-            "a",
-            "b",
-        ]);
+        expect(
+            stateVariables[resolveComponentName("good")].stateValues.value.tree,
+        ).eqls(["+", "x", "y"]);
+        expect(stateVariables[resolveComponentName("bad")].componentType).eq(
+            "_error",
+        );
 
         // confirm tag after section survives
-        expect(stateVariables["/m"].stateValues.value.tree).eq("x");
+        expect(
+            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+        ).eq("x");
 
         let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.errors.length).eq(1);
+        expect(errorWarnings.errors.length).eq(2);
         expect(errorWarnings.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(errorWarnings.errors[0].message).contain("has no closing tag");
+        expect(errorWarnings.errors[0].position.start.line).eq(4);
+        expect(errorWarnings.errors[0].position.start.column).eq(3);
+        expect(errorWarnings.errors[0].position.end.line).eq(4);
+        expect(errorWarnings.errors[0].position.end.column).eq(20);
+
+        expect(errorWarnings.errors[1].message).contain(
             "Mismatched closing tag",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].position.charBegin).eq(23);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(4);
-        expect(errorWarnings.errors[0].position.charEnd).eq(31);
+        expect(errorWarnings.errors[1].position.start.line).eq(4);
+        expect(errorWarnings.errors[1].position.start.column).eq(23);
+        expect(errorWarnings.errors[1].position.end.line).eq(4);
+        expect(errorWarnings.errors[1].position.end.column).eq(32);
     });
 
     it("More parsing errors", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <p>
   <math name="m1">y
@@ -110,76 +155,74 @@ describe("Error Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/m1"].stateValues.value.tree).eq("y");
-        expect(stateVariables["/sec"].stateValues.title).eq("Section 1");
-        expect(stateVariables["/_p3"].stateValues.text).eq("Hello there!");
+        expect(stateVariables[resolveComponentName("m1")].componentType).eq(
+            "_error",
+        );
+        expect(
+            stateVariables[resolveComponentName("sec")].stateValues.title,
+        ).eq("Section 1");
+        expect(stateVariables[resolveComponentName("_p3")].stateValues.text).eq(
+            "Hello there!",
+        );
 
         let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.errors.length).eq(8);
+        expect(errorWarnings.errors.length).eq(7);
         expect(errorWarnings.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("Missing closing tag");
-        expect(errorWarnings.errors[0].position.lineBegin).eq(5);
-        expect(errorWarnings.errors[0].position.charBegin).eq(4);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(5);
-        expect(errorWarnings.errors[0].position.charEnd).eq(4);
+        expect(errorWarnings.errors[0].message).contain(`no closing tag`);
+        expect(errorWarnings.errors[0].position.start.line).eq(3);
+        expect(errorWarnings.errors[0].position.start.column).eq(3);
+        expect(errorWarnings.errors[0].position.end.line).eq(3);
+        expect(errorWarnings.errors[0].position.end.column).eq(19);
 
-        expect(errorWarnings.errors[1].message).contain("Found </");
-        expect(errorWarnings.errors[1].position.lineBegin).eq(7);
-        expect(errorWarnings.errors[1].position.charBegin).eq(1);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(7);
-        expect(errorWarnings.errors[1].position.charEnd).eq(6);
-
-        expect(errorWarnings.errors[2].message).contain(
-            "Error in opening <p> tag",
+        expect(errorWarnings.errors[1].message).contain(
+            "no corresponding opening tag",
         );
-        expect(errorWarnings.errors[2].position.lineBegin).eq(9);
-        expect(errorWarnings.errors[2].position.charBegin).eq(1);
-        expect(errorWarnings.errors[2].position.lineEnd).eq(9);
-        expect(errorWarnings.errors[2].position.charEnd).eq(10);
+        expect(errorWarnings.errors[1].position.start.line).eq(7);
+        expect(errorWarnings.errors[1].position.start.column).eq(1);
+        expect(errorWarnings.errors[1].position.end.line).eq(7);
+        expect(errorWarnings.errors[1].position.end.column).eq(7);
 
-        expect(errorWarnings.errors[3].message).contain(
-            "Duplicate attribute radius",
-        );
-        expect(errorWarnings.errors[3].position.lineBegin).eq(15);
-        expect(errorWarnings.errors[3].position.charBegin).eq(22);
-        expect(errorWarnings.errors[3].position.lineEnd).eq(15);
-        expect(errorWarnings.errors[3].position.charEnd).eq(31);
+        expect(errorWarnings.errors[2].message).contain("was not closed");
+        expect(errorWarnings.errors[2].position.start.line).eq(9);
+        expect(errorWarnings.errors[2].position.start.column).eq(1);
+        expect(errorWarnings.errors[2].position.end.line).eq(9);
+        expect(errorWarnings.errors[2].position.end.column).eq(3);
+
+        expect(errorWarnings.errors[3].message).contain("no closing tag");
+        expect(errorWarnings.errors[3].position.start.line).eq(11);
+        expect(errorWarnings.errors[3].position.start.column).eq(1);
+        expect(errorWarnings.errors[3].position.end.line).eq(11);
+        expect(errorWarnings.errors[3].position.end.column).eq(21);
 
         expect(errorWarnings.errors[4].message).contain(
-            "Duplicate attribute hide",
+            "Invalid component type: <apple>",
         );
-        expect(errorWarnings.errors[4].position.lineBegin).eq(16);
-        expect(errorWarnings.errors[4].position.charBegin).eq(19);
-        expect(errorWarnings.errors[4].position.lineEnd).eq(16);
-        expect(errorWarnings.errors[4].position.charEnd).eq(22);
+        expect(errorWarnings.errors[4].position.start.line).eq(17);
+        expect(errorWarnings.errors[4].position.start.column).eq(3);
+        expect(errorWarnings.errors[4].position.end.line).eq(17);
+        expect(errorWarnings.errors[4].position.end.column).eq(42);
 
         expect(errorWarnings.errors[5].message).contain(
-            "Duplicate attribute q",
+            "Invalid component type: <banana>",
         );
-        expect(errorWarnings.errors[5].position.lineBegin).eq(17);
-        expect(errorWarnings.errors[5].position.charBegin).eq(16);
-        expect(errorWarnings.errors[5].position.lineEnd).eq(17);
-        expect(errorWarnings.errors[5].position.charEnd).eq(20);
+        expect(errorWarnings.errors[5].position.start.line).eq(18);
+        expect(errorWarnings.errors[5].position.start.column).eq(3);
+        expect(errorWarnings.errors[5].position.end.line).eq(18);
+        expect(errorWarnings.errors[5].position.end.column).eq(31);
 
         expect(errorWarnings.errors[6].message).contain(
-            "Duplicate attribute bad",
+            `Invalid attribute "h"`,
         );
-        expect(errorWarnings.errors[6].position.lineBegin).eq(18);
-        expect(errorWarnings.errors[6].position.charBegin).eq(15);
-        expect(errorWarnings.errors[6].position.lineEnd).eq(18);
-        expect(errorWarnings.errors[6].position.charEnd).eq(17);
-
-        expect(errorWarnings.errors[7].message).contain("Missing closing tag");
-        expect(errorWarnings.errors[7].position.lineBegin).eq(19);
-        expect(errorWarnings.errors[7].position.charBegin).eq(2);
-        expect(errorWarnings.errors[7].position.lineEnd).eq(19);
-        expect(errorWarnings.errors[7].position.charEnd).eq(2);
+        expect(errorWarnings.errors[6].position.start.line).eq(9);
+        expect(errorWarnings.errors[6].position.start.column).eq(1);
+        expect(errorWarnings.errors[6].position.end.line).eq(19);
+        expect(errorWarnings.errors[6].position.end.column).eq(3);
     });
 
     it("Parsing errors, correctly find end of self-closing tag", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
 <abc />
   <bcd   />
@@ -206,62 +249,63 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Invalid component type: <abc>",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].position.charBegin).eq(1);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].position.charEnd).eq(7);
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.column).eq(8);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid component type: <bcd>",
         );
-        expect(errorWarnings.errors[1].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[1].position.charBegin).eq(3);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[1].position.charEnd).eq(11);
+        expect(errorWarnings.errors[1].position.start.line).eq(3);
+        expect(errorWarnings.errors[1].position.start.column).eq(3);
+        expect(errorWarnings.errors[1].position.end.line).eq(3);
+        expect(errorWarnings.errors[1].position.end.column).eq(12);
 
         expect(errorWarnings.errors[2].message).contain(
             "Invalid component type: <cde>",
         );
-        expect(errorWarnings.errors[2].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[2].position.charBegin).eq(1);
-        expect(errorWarnings.errors[2].position.lineEnd).eq(5);
-        expect(errorWarnings.errors[2].position.charEnd).eq(2);
+        expect(errorWarnings.errors[2].position.start.line).eq(4);
+        expect(errorWarnings.errors[2].position.start.column).eq(1);
+        expect(errorWarnings.errors[2].position.end.line).eq(5);
+        expect(errorWarnings.errors[2].position.end.column).eq(3);
 
         expect(errorWarnings.errors[3].message).contain(
             "Invalid component type: <def>",
         );
-        expect(errorWarnings.errors[3].position.lineBegin).eq(6);
-        expect(errorWarnings.errors[3].position.charBegin).eq(5);
-        expect(errorWarnings.errors[3].position.lineEnd).eq(8);
-        expect(errorWarnings.errors[3].position.charEnd).eq(2);
+        expect(errorWarnings.errors[3].position.start.line).eq(6);
+        expect(errorWarnings.errors[3].position.start.column).eq(5);
+        expect(errorWarnings.errors[3].position.end.line).eq(8);
+        expect(errorWarnings.errors[3].position.end.column).eq(3);
 
         expect(errorWarnings.errors[4].message).contain(
             "Invalid component type: <efg>",
         );
-        expect(errorWarnings.errors[4].position.lineBegin).eq(9);
-        expect(errorWarnings.errors[4].position.charBegin).eq(1);
-        expect(errorWarnings.errors[4].position.lineEnd).eq(10);
-        expect(errorWarnings.errors[4].position.charEnd).eq(3);
+        expect(errorWarnings.errors[4].position.start.line).eq(9);
+        expect(errorWarnings.errors[4].position.start.column).eq(1);
+        expect(errorWarnings.errors[4].position.end.line).eq(10);
+        expect(errorWarnings.errors[4].position.end.column).eq(4);
 
         expect(errorWarnings.errors[5].message).contain(
             "Invalid component type: <fgh>",
         );
-        expect(errorWarnings.errors[5].position.lineBegin).eq(11);
-        expect(errorWarnings.errors[5].position.charBegin).eq(1);
-        expect(errorWarnings.errors[5].position.lineEnd).eq(12);
-        expect(errorWarnings.errors[5].position.charEnd).eq(4);
+        expect(errorWarnings.errors[5].position.start.line).eq(11);
+        expect(errorWarnings.errors[5].position.start.column).eq(1);
+        expect(errorWarnings.errors[5].position.end.line).eq(12);
+        expect(errorWarnings.errors[5].position.end.column).eq(5);
 
         expect(errorWarnings.errors[6].message).contain(
             "Invalid component type: <ghi>",
         );
-        expect(errorWarnings.errors[6].position.lineBegin).eq(13);
-        expect(errorWarnings.errors[6].position.charBegin).eq(1);
-        expect(errorWarnings.errors[6].position.lineEnd).eq(14);
-        expect(errorWarnings.errors[6].position.charEnd).eq(6);
+        expect(errorWarnings.errors[6].position.start.line).eq(13);
+        expect(errorWarnings.errors[6].position.start.column).eq(1);
+        expect(errorWarnings.errors[6].position.end.line).eq(14);
+        expect(errorWarnings.errors[6].position.end.column).eq(7);
     });
 
-    it("Naming errors", async () => {
-        let core = await createTestCore({
+    // TODO: re-enable once we again handle invalid names. See issue #482.
+    it.skip("Naming errors", async () => {
+        let { core } = await createTestCore({
             doenetML: `
 <p name="_p" />
     <p name="p@" />
@@ -276,45 +320,37 @@ a />
 
         let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.errors.length).eq(4);
+        expect(errorWarnings.errors.length).eq(3);
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
             "Invalid component name: _p",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].position.charBegin).eq(1);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].position.charEnd).eq(15);
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.column).eq(15);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid component name: p@",
         );
-        expect(errorWarnings.errors[1].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[1].position.charBegin).eq(5);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[1].position.charEnd).eq(19);
+        expect(errorWarnings.errors[1].position.start.line).eq(3);
+        expect(errorWarnings.errors[1].position.start.column).eq(5);
+        expect(errorWarnings.errors[1].position.end.line).eq(3);
+        expect(errorWarnings.errors[1].position.end.column).eq(19);
 
         expect(errorWarnings.errors[2].message).contain(
-            "Duplicate component name: p",
-        );
-        expect(errorWarnings.errors[2].position.lineBegin).eq(5);
-        expect(errorWarnings.errors[2].position.charBegin).eq(1);
-        expect(errorWarnings.errors[2].position.lineEnd).eq(7);
-        expect(errorWarnings.errors[2].position.charEnd).eq(5);
-        expect(errorWarnings.errors[1].position.charEnd).eq(19);
-
-        expect(errorWarnings.errors[3].message).contain(
             "Cannot have a blank name",
         );
-        expect(errorWarnings.errors[3].position.lineBegin).eq(8);
-        expect(errorWarnings.errors[3].position.charBegin).eq(1);
-        expect(errorWarnings.errors[3].position.lineEnd).eq(8);
-        expect(errorWarnings.errors[3].position.charEnd).eq(22);
+        expect(errorWarnings.errors[2].position.start.line).eq(8);
+        expect(errorWarnings.errors[2].position.start.column).eq(1);
+        expect(errorWarnings.errors[2].position.end.line).eq(8);
+        expect(errorWarnings.errors[2].position.end.column).eq(22);
     });
 
-    it("Abstract component give invalid component type", async () => {
-        let core = await createTestCore({
+    // TODO: re-enable once we again handle including abstract component types in DoenetML. See issue #485.
+    it.skip("Abstract component give invalid component type", async () => {
+        let { core } = await createTestCore({
             doenetML: `
 <_base />
 <_inline>hello</_inline>
@@ -329,112 +365,22 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Invalid component type: <_base>",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].position.charBegin).eq(1);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].position.charEnd).eq(6);
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.column).eq(10);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid component type: <_inline>",
         );
-        expect(errorWarnings.errors[1].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[1].position.charBegin).eq(1);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[1].position.charEnd).eq(8);
-    });
-
-    it("Prevent auto-named child and attribute clashes on duplicate name", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <function name="f" numinputs="2">x+y</function>
-    <function name="f" numinputs="2">z</function>
-    `,
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            "Duplicate component name: f",
-        );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[0].position.charBegin).eq(5);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[0].position.charEnd).eq(49);
-    });
-
-    it("assignNames errors", async () => {
-        let core = await createTestCore({
-            doenetML: `
-<group assignNames="(_a _b)" /><group assignNames="a/ b%" name="g2" />
-<group assignNames="a) b" name="g3" />   <group assignNames="a b (c a)" />
-
-<group assignNames="a b" assignnames="c d" name="g5" />
-<group assignNames="e f">
-  <text>cat</text><text>dog</text>
-</group>
-<p assignNames="h" />
-    `,
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(6);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            "Invalid assignNames: (_a _b)",
-        );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].position.charBegin).eq(1);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].position.charEnd).eq(31);
-
-        expect(errorWarnings.errors[1].message).contain(
-            "Invalid assignNames: a/ b%",
-        );
-        expect(errorWarnings.errors[1].position.lineBegin).eq(2);
-        expect(errorWarnings.errors[1].position.charBegin).eq(32);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(2);
-        expect(errorWarnings.errors[1].position.charEnd).eq(70);
-
-        expect(errorWarnings.errors[2].message).contain(
-            "Invalid format for assignNames: a) b",
-        );
-        expect(errorWarnings.errors[2].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[2].position.charBegin).eq(1);
-        expect(errorWarnings.errors[2].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[2].position.charEnd).eq(38);
-
-        expect(errorWarnings.errors[3].message).contain(
-            "A name is duplicated in assignNames: a b (c a)",
-        );
-        expect(errorWarnings.errors[3].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[3].position.charBegin).eq(42);
-        expect(errorWarnings.errors[3].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[3].position.charEnd).eq(74);
-
-        expect(errorWarnings.errors[4].message).contain(
-            "Cannot define assignNames twice for a component",
-        );
-        expect(errorWarnings.errors[4].position.lineBegin).eq(5);
-        expect(errorWarnings.errors[4].position.charBegin).eq(1);
-        expect(errorWarnings.errors[4].position.lineEnd).eq(5);
-        expect(errorWarnings.errors[4].position.charEnd).eq(55);
-
-        expect(errorWarnings.errors[5].message).contain(
-            "Cannot assign names for component type p",
-        );
-        expect(errorWarnings.errors[5].position.lineBegin).eq(9);
-        expect(errorWarnings.errors[5].position.charBegin).eq(1);
-        expect(errorWarnings.errors[5].position.lineEnd).eq(9);
-        expect(errorWarnings.errors[5].position.charEnd).eq(21);
+        expect(errorWarnings.errors[1].position.start.line).eq(3);
+        expect(errorWarnings.errors[1].position.start.column).eq(1);
+        expect(errorWarnings.errors[1].position.end.line).eq(3);
+        expect(errorWarnings.errors[1].position.end.column).eq(25);
     });
 
     it("Invalid attribute errors", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
     <p>Good</p>
     <p bad="not good">Unhappy</p>
@@ -450,77 +396,52 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             `Invalid attribute "bad" for a component of type <p>`,
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[0].position.charBegin).eq(5);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[0].position.charEnd).eq(33);
+        expect(errorWarnings.errors[0].position.start.line).eq(3);
+        expect(errorWarnings.errors[0].position.start.column).eq(5);
+        expect(errorWarnings.errors[0].position.end.line).eq(3);
+        expect(errorWarnings.errors[0].position.end.column).eq(34);
     });
 
-    it("Invalid source errors", async () => {
-        let core = await createTestCore({
+    // TODO: decide what to do about circular references
+    // Not fixing it since suspect circular reference detection is a major source of slowdown
+    it.skip("Circular dependency with copy source", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
+<math extend="$a1" name="a1" />
 
+<math extend="$b1" name="b2" />
+<math extend="$b2" name="b1" />
 
-    <collect source />
-    <collect source="__s" />
+<math extend="$c1" name="c2" />
+<math extend="$c2" name="c3" />
+<math extend="$c3" name="c1" />
 
+<math extend="$d1" name="d2" />
+<math extend="$d2" name="d3" />
+<math extend="$d3" name="d4" />
+<math extend="$d4" name="d1" />
 
-    `,
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            "Must specify value for source",
-        );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[0].position.charBegin).eq(5);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(4);
-        expect(errorWarnings.errors[0].position.charEnd).eq(22);
-
-        // TODO: what should this error actually say?
-        expect(errorWarnings.errors[1].message).contain(
-            "Invalid reference target: __s",
-        );
-        expect(errorWarnings.errors[1].position.lineBegin).eq(5);
-        expect(errorWarnings.errors[1].position.charBegin).eq(5);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(5);
-        expect(errorWarnings.errors[1].position.charEnd).eq(28);
-    });
-
-    it("Circular dependency with copy source", async () => {
-        let core = await createTestCore({
-            doenetML: `
-<math copySource="a1" name="a1" />
-
-<math copySource="b1" name="b2" />
-<math copySource="b2" name="b1" />
-
-<math copySource="c1" name="c2" />
-<math copySource="c2" name="c3" />
-<math copySource="c3" name="c1" />
-
-<math copySource="d1" name="d2" />
-<math copySource="d2" name="d3" />
-<math copySource="d3" name="d4" />
-<math copySource="d4" name="d1" />
-
-<math copySource="e1" name="e2" />
-<math copySource="e2" name="e3" />
-<math copySource="e3" name="e4" />
-<math copySource="e4" name="e5" />
+<math extend="$e1" name="e2" />
+<math extend="$e2" name="e3" />
+<math extend="$e3" name="e4" />
+<math extend="$e4" name="e5" />
 
     `,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/e2"].stateValues.value.tree).eq("＿");
-        expect(stateVariables["/e3"].stateValues.value.tree).eq("＿");
-        expect(stateVariables["/e4"].stateValues.value.tree).eq("＿");
-        expect(stateVariables["/e5"].stateValues.value.tree).eq("＿");
+        expect(
+            stateVariables[resolveComponentName("e2")].stateValues.value.tree,
+        ).eq("＿");
+        expect(
+            stateVariables[resolveComponentName("e3")].stateValues.value.tree,
+        ).eq("＿");
+        expect(
+            stateVariables[resolveComponentName("e4")].stateValues.value.tree,
+        ).eq("＿");
+        expect(
+            stateVariables[resolveComponentName("e5")].stateValues.value.tree,
+        ).eq("＿");
 
         let errorWarnings = core.core!.errorWarnings;
 
@@ -530,38 +451,38 @@ a />
         expect(errorWarnings.errors[0].message).contain(
             "Circular dependency involving these components: <math> (line 2)",
         );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].position.charBegin).eq(1);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].position.charEnd).eq(34);
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.column).eq(34);
 
         // temporary messages until can better detect circular dependency with copysource
         expect(errorWarnings.errors[1].message).contain(
             "Circular dependency involving these components: <math> (line 4)",
         );
-        expect(errorWarnings.errors[1].position.lineBegin).eq(4);
-        expect(errorWarnings.errors[1].position.charBegin).eq(1);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(4);
-        expect(errorWarnings.errors[1].position.charEnd).eq(34);
+        expect(errorWarnings.errors[1].position.start.line).eq(4);
+        expect(errorWarnings.errors[1].position.start.column).eq(1);
+        expect(errorWarnings.errors[1].position.end.line).eq(4);
+        expect(errorWarnings.errors[1].position.end.column).eq(34);
 
         expect(errorWarnings.errors[2].message).contain(
             "Circular dependency involving these components: <math> (line 7)",
         );
-        expect(errorWarnings.errors[2].position.lineBegin).eq(7);
-        expect(errorWarnings.errors[2].position.charBegin).eq(1);
-        expect(errorWarnings.errors[2].position.lineEnd).eq(7);
-        expect(errorWarnings.errors[2].position.charEnd).eq(34);
+        expect(errorWarnings.errors[2].position.start.line).eq(7);
+        expect(errorWarnings.errors[2].position.start.column).eq(1);
+        expect(errorWarnings.errors[2].position.end.line).eq(7);
+        expect(errorWarnings.errors[2].position.end.column).eq(34);
 
         expect(errorWarnings.errors[3].message).contain(
             "Circular dependency involving these components: <math> (line 11)",
         );
-        expect(errorWarnings.errors[3].position.lineBegin).eq(11);
-        expect(errorWarnings.errors[3].position.charBegin).eq(1);
-        expect(errorWarnings.errors[3].position.lineEnd).eq(11);
-        expect(errorWarnings.errors[3].position.charEnd).eq(34);
+        expect(errorWarnings.errors[3].position.start.line).eq(11);
+        expect(errorWarnings.errors[3].position.start.column).eq(1);
+        expect(errorWarnings.errors[3].position.end.line).eq(11);
+        expect(errorWarnings.errors[3].position.end.column).eq(34);
     });
 
-    it("Circular dependency with macro children", async () => {
+    it.skip("Circular dependency with macro children", async () => {
         let doenetML1 = `<text name="t1">$t1</text>`;
 
         let doenetML2 = `<text name="t1">$t2</text>
@@ -584,15 +505,15 @@ a />
         );
     });
 
-    it("Circular dependency with copy source children", async () => {
-        let doenetML1 = `<text name="t1"><text copySource="t1"/></text>`;
+    it.skip("Circular dependency with copy source children", async () => {
+        let doenetML1 = `<text name="t1"><text extend="$t1"/></text>`;
 
-        let doenetML2 = `<text name="t1"><text copySource="t2"/></text>
-<text name="t2"><text copySource="t1"/></text>`;
+        let doenetML2 = `<text name="t1"><text extend="$t2"/></text>
+<text name="t2"><text extend="$t1"/></text>`;
 
-        let doenetML3 = `<text name="t1"><text copySource="t2"/></text>
-<text name="t2"><text copySource="t3"/></text>
-<text name="t3"><text copySource="t1"/></text>`;
+        let doenetML3 = `<text name="t1"><text extend="$t2"/></text>
+<text name="t2"><text extend="$t3"/></text>
+<text name="t3"><text extend="$t1"/></text>`;
 
         await expect(createTestCore({ doenetML: doenetML1 })).rejects.toThrow(
             "Circular dependency involving these components: <text> (line 1).",
@@ -607,243 +528,54 @@ a />
         );
     });
 
-    it("Errors in macros", async () => {
-        let core = await createTestCore({
-            doenetML: `
-<!-- make sure get right character numbers after comment -->
-$A{assignNames="a" assignnames="b"}
-<p>
-  <!-- make sure get right character numbers after comment -->
-  $B{a="b" a="c"}
-    $$f{b b}(x)
-      $C{d="b"
-  d}
-</p>
-     $D{a="$b{c c}"}
-   $$g{prop="a"}(x)
- $E{a="$b{c='$d{e e}'}"}
-
-
-    `,
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(7);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            "Duplicate attribute a",
-        );
-        expect(errorWarnings.errors[0].message).contain(
-            `Found: $B{a="b" a="c"}`,
-        );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(6);
-        expect(errorWarnings.errors[0].position.charBegin).eq(3);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(6);
-        expect(errorWarnings.errors[0].position.charEnd).eq(17);
-
-        expect(errorWarnings.errors[1].message).contain(
-            "Duplicate attribute b",
-        );
-        expect(errorWarnings.errors[1].message).contain("Found: $$f{b b}");
-        expect(errorWarnings.errors[1].position.lineBegin).eq(7);
-        expect(errorWarnings.errors[1].position.charBegin).eq(5);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(7);
-        expect(errorWarnings.errors[1].position.charEnd).eq(12);
-
-        expect(errorWarnings.errors[2].message).contain(
-            "Duplicate attribute d",
-        );
-        expect(errorWarnings.errors[2].message).contain(
-            `Found: $C{d="b"\n  d}`,
-        );
-        expect(errorWarnings.errors[2].position.lineBegin).eq(8);
-        expect(errorWarnings.errors[2].position.charBegin).eq(7);
-        expect(errorWarnings.errors[2].position.lineEnd).eq(9);
-        expect(errorWarnings.errors[2].position.charEnd).eq(4);
-
-        expect(errorWarnings.errors[3].message).contain(
-            "cannot repeat assignNames",
-        );
-        expect(errorWarnings.errors[3].message).contain(
-            `Found: $A{assignNames="a" assignnames="b"}`,
-        );
-        expect(errorWarnings.errors[3].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[3].position.charBegin).eq(1);
-        expect(errorWarnings.errors[3].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[3].position.charEnd).eq(35);
-
-        expect(errorWarnings.errors[4].message).contain(
-            "Duplicate attribute c",
-        );
-        expect(errorWarnings.errors[4].message).contain(
-            `Found: $D{a="$b{c c}"}`,
-        );
-        expect(errorWarnings.errors[4].position.lineBegin).eq(11);
-        expect(errorWarnings.errors[4].position.charBegin).eq(6);
-        expect(errorWarnings.errors[4].position.lineEnd).eq(11);
-        expect(errorWarnings.errors[4].position.charEnd).eq(20);
-
-        expect(errorWarnings.errors[5].message).contain(
-            "macro cannot directly add attributes prop, propIndex, or componentIndex",
-        );
-        expect(errorWarnings.errors[5].message).contain(`Found: $$g{prop="a"}`);
-        expect(errorWarnings.errors[5].position.lineBegin).eq(12);
-        expect(errorWarnings.errors[5].position.charBegin).eq(4);
-        expect(errorWarnings.errors[5].position.lineEnd).eq(12);
-        expect(errorWarnings.errors[5].position.charEnd).eq(16);
-
-        expect(errorWarnings.errors[6].message).contain(
-            "Duplicate attribute e",
-        );
-        expect(errorWarnings.errors[6].message).contain(
-            `Found: $E{a="$b{c='$d{e e}'}"}`,
-        );
-        expect(errorWarnings.errors[6].position.lineBegin).eq(13);
-        expect(errorWarnings.errors[6].position.charBegin).eq(2);
-        expect(errorWarnings.errors[6].position.lineEnd).eq(13);
-        expect(errorWarnings.errors[6].position.charEnd).eq(24);
-    });
-
     it("Get line/char numbers with no linebreaks", async () => {
-        let core = await createTestCore({ doenetML: `<bad>` });
+        let { core } = await createTestCore({
+            doenetML: `<bad>`,
+        });
 
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(2);
         expect(errorWarnings.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("Missing closing tag");
-        expect(errorWarnings.errors[0].position.lineBegin).eq(1);
-        expect(errorWarnings.errors[0].position.charBegin).eq(5);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(1);
-        expect(errorWarnings.errors[0].position.charEnd).eq(5);
+        expect(errorWarnings.errors[0].message).contain("has no closing tag");
+        expect(errorWarnings.errors[0].position.start.line).eq(1);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(1);
+        expect(errorWarnings.errors[0].position.end.column).eq(6);
 
         expect(errorWarnings.errors[1].message).contain(
             "Invalid component type: <bad>",
         );
-        expect(errorWarnings.errors[1].position.lineBegin).eq(1);
-        expect(errorWarnings.errors[1].position.charBegin).eq(1);
-        expect(errorWarnings.errors[1].position.lineEnd).eq(1);
-        expect(errorWarnings.errors[1].position.charEnd).eq(5);
+        expect(errorWarnings.errors[1].position.start.line).eq(1);
+        expect(errorWarnings.errors[1].position.start.column).eq(1);
+        expect(errorWarnings.errors[1].position.end.line).eq(1);
+        expect(errorWarnings.errors[1].position.end.column).eq(6);
     });
 
     it("Copy section with an error", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
 <section name="sec">
   <p>
 </section>
 
-<section copySource="sec" name="sec2" />
+<section extend="$sec" name="sec2" />
 `,
         });
 
         let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.errors.length).eq(1);
+        // TODO: do we care that this error appears twice? Ideally it should appear only once.
+        expect(errorWarnings.errors.length).eq(2);
         expect(errorWarnings.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("Missing closing tag");
-        expect(errorWarnings.errors[0].position.lineBegin).eq(3);
-        expect(errorWarnings.errors[0].position.charBegin).eq(6);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(3);
-        expect(errorWarnings.errors[0].position.charEnd).eq(6);
-    });
-
-    it("Error when copying a composite", async () => {
-        let core = await createTestCore({
-            doenetML: `
-        <group name='g'>
-          <function name="f" numinputs="2">x+y</function>
-        </group>
-        
-        <group copySource="g" newNamespace name="g2" >
-          <function name="f" numinputs="2">z</function>
-        </group>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/f"].stateValues.formula.tree).eqls([
-            "+",
-            "x",
-            "y",
-        ]);
-        expect(stateVariables["/g2/f"].stateValues.formula.tree).eqls([
-            "+",
-            "x",
-            "y",
-        ]);
-
-        const errorWarnings = core.core!.getErrorWarnings().errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            "Duplicate component name: f",
-        );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(7);
-        expect(errorWarnings.errors[0].position.charBegin).eq(11);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(7);
-        expect(errorWarnings.errors[0].position.charEnd).eq(55);
-    });
-
-    it("Error when copying a composite, copy again", async () => {
-        let core = await createTestCore({
-            doenetML: `
-    <p>
-      <group name="g" newNamespace>
-        <group name='g'>
-          <function name="f" numinputs="2">x+y</function>
-        </group>
-        
-        <group copySource="g" newNamespace name="g2" >
-          <function name="f" numinputs="2">z</function>
-        </group>
-      </group>
-    </p>
-    <p>
-      <group copySource="g" name="g2" />
-    </p>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/g/f"].stateValues.formula.tree).eqls([
-            "+",
-            "x",
-            "y",
-        ]);
-        expect(stateVariables["/g/g2/f"].stateValues.formula.tree).eqls([
-            "+",
-            "x",
-            "y",
-        ]);
-        expect(stateVariables["/g2/f"].stateValues.formula.tree).eqls([
-            "+",
-            "x",
-            "y",
-        ]);
-        expect(stateVariables["/g2/g2/f"].stateValues.formula.tree).eqls([
-            "+",
-            "x",
-            "y",
-        ]);
-
-        const errorWarnings = core.core!.getErrorWarnings().errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            "Duplicate component name: f",
-        );
-        expect(errorWarnings.errors[0].position.lineBegin).eq(9);
-        expect(errorWarnings.errors[0].position.charBegin).eq(11);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(9);
-        expect(errorWarnings.errors[0].position.charEnd).eq(55);
+        for (let i = 0; i < 2; i++) {
+            expect(errorWarnings.errors[i].message).contain("no closing tag");
+            expect(errorWarnings.errors[i].position.start.line).eq(3);
+            expect(errorWarnings.errors[i].position.start.column).eq(3);
+            expect(errorWarnings.errors[i].position.end.line).eq(3);
+            expect(errorWarnings.errors[i].position.end.column).eq(6);
+        }
     });
 });

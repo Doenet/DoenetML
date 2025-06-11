@@ -134,7 +134,7 @@ describe("DAST", async () => {
             {
                 type: "element",
                 name: "m",
-                attributes: [],
+                attributes: {},
                 children: [{ type: "text", value: "alpha" }],
             },
             { type: "text", value: ") bar" },
@@ -150,7 +150,7 @@ describe("DAST", async () => {
                         "value": "foo",
                       },
                       {
-                        "attributes": [],
+                        "attributes": {},
                         "children": [
                           {
                             "type": "text",

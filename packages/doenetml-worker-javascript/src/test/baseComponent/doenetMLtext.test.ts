@@ -7,13 +7,13 @@ vi.mock("hyperformula");
 
 describe("DoenetML text tests", async () => {
     it("doenetML state variable", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
         <p name="theP">
           Did you know that
           <math name="m">1 + 1</math>
           =
-          $m{simplify}?
+          <math extend="$m" simplify />?
         </p>
       
         <pre name="theDoenetML">$theP.doenetML</pre>
@@ -25,25 +25,29 @@ describe("DoenetML text tests", async () => {
   Did you know that
   <math name="m">1 + 1</math>
   =
-  $m{simplify}?
+  <math extend="$m" simplify />?
 </p>`;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/theP"].stateValues.text).eq(`
+        expect(stateVariables[resolveComponentName("theP")].stateValues.text)
+            .eq(`
           Did you know that
           1 + 1
           =
           2?
         `);
-        expect(stateVariables["/theP"].stateValues.doenetML).eqls(thePDoenetML);
+        expect(
+            stateVariables[resolveComponentName("theP")].stateValues.doenetML,
+        ).eqls(thePDoenetML);
 
         let preChild =
-            stateVariables["/theDoenetML"].activeChildren[0].componentIdx;
+            stateVariables[resolveComponentName("theDoenetML")]
+                .activeChildren[0].componentIdx;
         expect(stateVariables[preChild].stateValues.value).eqls(thePDoenetML);
     });
 
     it("doenetML from displayDoenetML", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
         <pre name="theDoenetML"><displayDoenetML name="ddml1">
           <p>A graph of a point</p>
@@ -71,19 +75,25 @@ describe("DoenetML text tests", async () => {
 A string by itself!`;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/ddml1"].stateValues.value).eq(thePDoenetML);
-        expect(stateVariables["/ddml1"].stateValues.text).eq(thePDoenetML);
-        expect(stateVariables["/ddml2"].stateValues.value).eq(
-            "String with no space.",
-        );
-        expect(stateVariables["/ddml3"].stateValues.value).eq("$f");
-        expect(stateVariables["/pMacro"].stateValues.text).eq(
-            "This is a macro: $f.",
-        );
+        expect(
+            stateVariables[resolveComponentName("ddml1")].stateValues.value,
+        ).eq(thePDoenetML);
+        expect(
+            stateVariables[resolveComponentName("ddml1")].stateValues.text,
+        ).eq(thePDoenetML);
+        expect(
+            stateVariables[resolveComponentName("ddml2")].stateValues.value,
+        ).eq("String with no space.");
+        expect(
+            stateVariables[resolveComponentName("ddml3")].stateValues.value,
+        ).eq("$f");
+        expect(
+            stateVariables[resolveComponentName("pMacro")].stateValues.text,
+        ).eq("This is a macro: $f.");
     });
 
     it("doenetML from displayDoenetML, remove preceding spacing in pre", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
         <pre name="preDoenetML1">
           <displayDoenetML name="ddml1">
@@ -137,22 +147,30 @@ ${theDoenetML1}
 </p>`;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/ddml1"].stateValues.value).eq(theDoenetML1);
-        expect(stateVariables["/ddml1"].stateValues.text).eq(theDoenetML1);
-        expect(stateVariables["/ddml2"].stateValues.value).eq(theDoenetML2);
-        expect(stateVariables["/ddml2"].stateValues.text).eq(theDoenetML2);
-        expect(stateVariables["/ddml3"].stateValues.value).eq(theDoenetML3);
-        expect(stateVariables["/ddml3"].stateValues.text).eq(theDoenetML3);
+        expect(
+            stateVariables[resolveComponentName("ddml1")].stateValues.value,
+        ).eq(theDoenetML1);
+        expect(
+            stateVariables[resolveComponentName("ddml1")].stateValues.text,
+        ).eq(theDoenetML1);
+        expect(
+            stateVariables[resolveComponentName("ddml2")].stateValues.value,
+        ).eq(theDoenetML2);
+        expect(
+            stateVariables[resolveComponentName("ddml2")].stateValues.text,
+        ).eq(theDoenetML2);
+        expect(
+            stateVariables[resolveComponentName("ddml3")].stateValues.value,
+        ).eq(theDoenetML3);
+        expect(
+            stateVariables[resolveComponentName("ddml3")].stateValues.text,
+        ).eq(theDoenetML3);
     });
 
-    // Note: copying a <displayDoenetML> directly with link="false" no longer works,
-    // given changes made to make the following work:
-    // "doenetML of copySource shows the doenetML of the copy" (see below)
-    // We could work to fix it if there is a compelling reason to do so.
     it("copying displayDoenetML, with or without linking", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <section name="s1" newNamespace>
+  <section name="s1">
     <pre><displayDoenetML name="ddml">
       <text>hello!</text>
     </displayDoenetML></pre>
@@ -163,153 +181,162 @@ ${theDoenetML1}
 
   </section>
 
-  <section name="s2" copySource="s1" />
-  $s1{name="s3"}
-  <section name="s4" copySource="s1" link="false" />
-  $s1{name="s5" link="false"}
+  <section name="s2" extend="$s1" />
+  <section name="s3" copy="$s1" />
 
   
-  <section name="s1a" newNamespace>
-    <title>$(/s1.title)</title>
-    <p name="p1">Copy: $(/s1/ddml)</p>
-    <!--<p name="p2">Copy, no link: $(/s1/ddml{link="false"})</p>-->
-    <p name="p3">Copy text: $(/s1/ddml.text)</p>
-    <p name="p4">Copy text, no link: $(/s1/ddml.text{link="false"})</p>
+  <section name="s1a">
+    <title>$s1.title</title>
+    <p name="p1">Copy: $s1.ddml</p>
+    <p name="p2">Copy, no link: <displayDoenetML copy="$s1.ddml" /></p>
+    <p name="p3">Copy text: $s1.ddml.text</p>
+    <p name="p4">Copy text, no link: <text copy="$s1.ddml.text" /></p>
   </section>
 
-  <section name="s2a" newNamespace>
-    <title>$(/s2.title)</title>
-    <p name="p1">Copy: $(/s2/ddml)</p>
-    <!--<p name="p2">Copy, no link: $(/s2/ddml{link="false"})</p>-->
-    <p name="p3">Copy text: $(/s2/ddml.text)</p>
-    <p name="p4">Copy text, no link: $(/s2/ddml.text{link="false"})</p>
+  <section name="s2a">
+    <title>$s2.title</title>
+    <p name="p1">Copy: $s2.ddml</p>
+    <p name="p2">Copy, no link: <displayDoenetML copy="$s2.ddml" /></p>
+    <p name="p3">Copy text: $s2.ddml.text</p>
+    <p name="p4">Copy text, no link: <text copy="$s2.ddml.text" /></p>
   </section>
 
-  <section name="s3a" newNamespace>
-    <title>$(/s3.title)</title>
-    <p name="p1">Copy: $(/s3/ddml)</p>
-    <!--<p name="p2">Copy, no link: $(/s3/ddml{link="false"})</p>-->
-    <p name="p3">Copy text: $(/s3/ddml.text)</p>
-    <p name="p4">Copy text, no link: $(/s3/ddml.text{link="false"})</p>
+  <section name="s3a">
+    <title>$s3.title</title>
+    <p name="p1">Copy: $s3.ddml</p>
+    <p name="p2">Copy, no link: <displayDoenetML copy="$s3.ddml" /></p>
+    <p name="p3">Copy text: $s3.ddml.text</p>
+    <p name="p4">Copy text, no link: <text copy="$s3.ddml.text" /></p>
   </section>
 
-  <section name="s4a" newNamespace>
-    <title>$(/s4.title)</title>
-    <p name="p1">Copy: $(/s4/ddml)</p>
-    <!--<p name="p2">Copy, no link: $(/s4/ddml{link="false"})</p>-->
-    <p name="p3">Copy text: $(/s4/ddml.text)</p>
-    <p name="p4">Copy text, no link: $(/s4/ddml.text{link="false"})</p>
-  </section>
-
-  <section name="s5a" newNamespace>
-    <title>$(/s5.title)</title>
-    <p name="p1">Copy: $(/s5/ddml)</p>
-    <!--<p name="p2">Copy, no link: $(/s5/ddml{link="false"})</p>-->
-    <p name="p3">Copy text: $(/s5/ddml.text)</p>
-    <p name="p4">Copy text, no link: $(/s5/ddml.text{link="false"})</p>
-  </section>
 
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        for (let i = 1; i < 5; i++) {
-            expect(stateVariables[`/s${i}/ddml`].stateValues.value).eq(
-                `<text>hello!</text>`,
-            );
-            expect(stateVariables[`/s${i}/pd`].stateValues.text).eq(
-                `DoenetML: <p name="p1">A sentence</p>`,
-            );
+        for (let i = 1; i < 3; i++) {
+            expect(
+                stateVariables[resolveComponentName(`s${i}.ddml`)].stateValues
+                    .value,
+            ).eq(`<text>hello!</text>`);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.pd`)].stateValues
+                    .text,
+            ).eq(`DoenetML: <p name="p1">A sentence</p>`);
 
-            expect(stateVariables[`/s${i}a/p1`].stateValues.text).eq(
-                `Copy: <text>hello!</text>`,
-            );
-            // expect(stateVariables[`/s${i}a/p2`].stateValues.text).eq(
-            //     `Copy, no link: <text>hello!</text>`,
-            // );
-            expect(stateVariables[`/s${i}a/p3`].stateValues.text).eq(
-                `Copy text: <text>hello!</text>`,
-            );
-            expect(stateVariables[`/s${i}a/p4`].stateValues.text).eq(
-                `Copy text, no link: <text>hello!</text>`,
-            );
+            expect(
+                stateVariables[resolveComponentName(`s${i}a.p1`)].stateValues
+                    .text,
+            ).eq(`Copy: <text>hello!</text>`);
+            expect(
+                stateVariables[resolveComponentName(`s${i}a.p2`)].stateValues
+                    .text,
+            ).eq(`Copy, no link: <text>hello!</text>`);
+            expect(
+                stateVariables[resolveComponentName(`s${i}a.p3`)].stateValues
+                    .text,
+            ).eq(`Copy text: <text>hello!</text>`);
+            expect(
+                stateVariables[resolveComponentName(`s${i}a.p4`)].stateValues
+                    .text,
+            ).eq(`Copy text, no link: <text>hello!</text>`);
         }
     });
 
     it("doenetML inside groups", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
         <group name='g'>
           <p name="p">Hello</p>
-          <p><text copySource="p.doenetML" name="dml" /></p>
+          <p><text extend="$p.doenetML" name="dml" /></p>
         </group>
         
-        <text copySource="p.doenetML" name="pdml" />
+        <text extend="$p.doenetML" name="pdml" />
         
-        <group copySource="g" newNamespace name="g2" >
+        <group extend="$g" name="g2" >
           <p name="p2">Bye</p>
         </group>
         
-        <text name="g2pdml" copySource="g2/p.doenetML" />
-        <text name="g2p2dml" copySource="g2/p2.doenetML" />
+        <text name="g2pdml" extend="$g2.p.doenetML" />
+        <text name="g2p2dml" extend="$g2.p2.doenetML" />
   `,
         });
 
         let pdml = `<p name="p">Hello</p>`;
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/dml"].stateValues.text).eq(pdml);
-        expect(stateVariables["/pdml"].stateValues.text).eq(pdml);
-        expect(stateVariables["/g2/dml"].stateValues.text).eq(pdml);
-        expect(stateVariables["/g2pdml"].stateValues.text).eq(pdml);
-        expect(stateVariables["/g2p2dml"].stateValues.text).eq(
-            `<p name="p2">Bye</p>`,
+        expect(stateVariables[resolveComponentName("dml")].stateValues.text).eq(
+            pdml,
         );
+        expect(
+            stateVariables[resolveComponentName("pdml")].stateValues.text,
+        ).eq(pdml);
+        expect(
+            stateVariables[resolveComponentName("g2.dml")].stateValues.text,
+        ).eq(pdml);
+        expect(
+            stateVariables[resolveComponentName("g2pdml")].stateValues.text,
+        ).eq(pdml);
+        expect(
+            stateVariables[resolveComponentName("g2p2dml")].stateValues.text,
+        ).eq(`<p name="p2">Bye</p>`);
     });
 
     it("doenetML of copySource shows the doenetML of the copy", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <section name="s1" newNamespace>
+    <section name="s1">
       <p name="p"><text>Hello</text></p>
-      <p name="p2" copySource="p">
+      <p name="p2" extend="$p">
         <text>world</text>
       </p>
           
-      <text name="pdml" copySource="p.doenetML" />
-      <text name="p2dml" copySource="p2.doenetML" />
+      <text name="pdml" extend="$p.doenetML" />
+      <text name="p2dml" extend="$p2.doenetML" />
           
-      <p><math name="m">x+x</math> <math name="m2" simplify copySource="m" /></p>
-      <text name="mdml" copySource="m.doenetML" />
-      <text name="m2dml" copySource="m2.doenetML" />
+      <p><math name="m">x+x</math> <math name="m2" simplify extend="$m" /></p>
+      <text name="mdml" extend="$m.doenetML" />
+      <text name="m2dml" extend="$m2.doenetML" />
     </section>
 
-    <section name="s2" copySource="s1" />
-    <section name="s3" copySource="s1" link="false" />
+    <section name="s2" extend="$s1" />
+    <section name="s3" copy="$s1"  />
   `,
         });
 
         let pdml = `<p name="p"><text>Hello</text></p>`;
-        let p2dml = `<p name="p2" copySource="p">\n  <text>world</text>\n</p>`;
+        let p2dml = `<p name="p2" extend="$p">\n  <text>world</text>\n</p>`;
 
         let mdml = `<math name="m">x+x</math>`;
-        let m2dml = `<math name="m2" simplify copySource="m" />`;
+        let m2dml = `<math name="m2" simplify extend="$m" />`;
 
         // check original
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 1; i <= 3; i++) {
-            expect(stateVariables[`/s${i}/pdml`].stateValues.text).eq(pdml);
-            expect(stateVariables[`/s${i}/p2dml`].stateValues.text).eq(p2dml);
-            expect(stateVariables[`/s${i}/mdml`].stateValues.text).eq(mdml);
-            expect(stateVariables[`/s${i}/m2dml`].stateValues.text).eq(m2dml);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.pdml`)].stateValues
+                    .text,
+            ).eq(pdml);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.p2dml`)].stateValues
+                    .text,
+            ).eq(p2dml);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.mdml`)].stateValues
+                    .text,
+            ).eq(mdml);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.m2dml`)].stateValues
+                    .text,
+            ).eq(m2dml);
         }
     });
 
     it("doenetML of self-closing tags", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <section name="s1" newNamespace>
+    <section name="s1">
       <p name="p1"/>
       <p name="p2" />
       <p name="p3"
@@ -318,14 +345,14 @@ ${theDoenetML1}
      
       />
           
-      <text name="p1dml" copySource="p1.doenetML" />
-      <text name="p2dml" copySource="p2.doenetML" />
-      <text name="p3dml" copySource="p3.doenetML" />
-      <text name="p4dml" copySource="p4.doenetML" />
+      <text name="p1dml" extend="$p1.doenetML" />
+      <text name="p2dml" extend="$p2.doenetML" />
+      <text name="p3dml" extend="$p3.doenetML" />
+      <text name="p4dml" extend="$p4.doenetML" />
     </section>
 
-    <section name="s2" copySource="s1" />
-    <section name="s3" copySource="s1" link="false" />
+    <section name="s2" extend="$s1" />
+    <section name="s3" copy="$s1" />
   `,
         });
 
@@ -344,10 +371,22 @@ ${theDoenetML1}
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 1; i <= 3; i++) {
-            expect(stateVariables[`/s${i}/p1dml`].stateValues.text).eq(p1dml);
-            expect(stateVariables[`/s${i}/p2dml`].stateValues.text).eq(p2dml);
-            expect(stateVariables[`/s${i}/p3dml`].stateValues.text).eq(p3dml);
-            expect(stateVariables[`/s${i}/p4dml`].stateValues.text).eq(p4dml);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.p1dml`)].stateValues
+                    .text,
+            ).eq(p1dml);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.p2dml`)].stateValues
+                    .text,
+            ).eq(p2dml);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.p3dml`)].stateValues
+                    .text,
+            ).eq(p3dml);
+            expect(
+                stateVariables[resolveComponentName(`s${i}.p4dml`)].stateValues
+                    .text,
+            ).eq(p4dml);
         }
     });
 });

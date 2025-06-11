@@ -70,8 +70,7 @@ const Button = styled.button`
 `;
 
 export default React.memo(function MatrixInput(props) {
-    let { name, id, SVs, actions, children, callAction } =
-        useDoenetRenderer(props);
+    let { id, SVs, actions, children, callAction } = useDoenetRenderer(props);
 
     let validationState = useRef(null);
 

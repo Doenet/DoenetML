@@ -4,7 +4,6 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import styled from "styled-components";
-import { cesc } from "@doenet/utils";
 
 const RefButton = styled.button`
     position: relative;
@@ -37,7 +36,7 @@ const RefButton = styled.button`
 `;
 
 export default React.memo(function Ref(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer(props);
 
     let { linkSettings } = useContext(DocContext) || {};
 
@@ -61,7 +60,7 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
         edit: SVs.edit,
         hash: SVs.hash,
         givenUri: SVs.uri,
-        targetName: SVs.targetName,
+        targetIdx: SVs.targetIdx,
         linkSettings: linkSettings || {},
         search,
         id,
@@ -128,7 +127,7 @@ export function getURLFromRef({
     edit,
     hash,
     givenUri,
-    targetName = "",
+    targetIdx = -1,
     linkSettings,
     search = "",
     id = "",
@@ -139,7 +138,7 @@ export function getURLFromRef({
     edit?: boolean;
     hash?: string;
     givenUri?: string;
-    targetName?: string;
+    targetIdx?: number;
     linkSettings: Record<string, any>;
     search?: string;
     id?: string;
@@ -200,8 +199,8 @@ export function getURLFromRef({
         if (hash) {
             url += hash;
         } else {
-            if (targetName) {
-                url += "#" + cesc(targetName);
+            if (targetIdx) {
+                url += "#" + targetIdx.toString();
             }
         }
     } else if (givenUri) {
@@ -220,7 +219,7 @@ export function getURLFromRef({
         let firstSlash = id.indexOf("\\/");
         let prefix = id.substring(0, firstSlash);
         url += "#" + prefix;
-        url += cesc(targetName);
+        url += targetIdx.toString();
         targetForATag = null;
         haveValidTarget = true;
     }

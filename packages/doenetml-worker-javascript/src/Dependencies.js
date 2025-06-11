@@ -1,4 +1,3 @@
-import readOnlyProxyHandler from "./ReadOnlyProxyHandler";
 import {
     ancestorsIncludingComposites,
     gatherDescendants,
@@ -609,13 +608,13 @@ export class DependencyHandler {
 
                     for (let [
                         ind,
-                        cname,
+                        cIdx,
                     ] of downstreamComponentIndices.entries()) {
                         let varNames =
                             mappedDownstreamVariableNamesByComponent[ind];
                         for (let vname of varNames) {
                             this.checkForCircularDependency({
-                                componentIdx: cname,
+                                componentIdx: cIdx,
                                 varName: vname,
                                 previouslyVisited,
                             });
@@ -1307,7 +1306,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = blockerCode.split("|");
+                            ] =
+                                typeof blockerCode === "string"
+                                    ? blockerCode.split("|")
+                                    : [blockerCode];
                             this.deleteFromResolveBlockedBy({
                                 blockerComponentIdx,
                                 blockerType,
@@ -1328,7 +1330,10 @@ export class DependencyHandler {
                                     blockerComponentIdx,
                                     blockerStateVariable,
                                     blockerDependency,
-                                ] = code.split("|");
+                                ] =
+                                    typeof code === "string"
+                                        ? code.split("|")
+                                        : [code];
                                 this.deleteFromResolveBlockedBy({
                                     blockerComponentIdx,
                                     blockerType,
@@ -1353,7 +1358,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
                             this.deleteFromResolveBlockedBy({
                                 blockerComponentIdx,
                                 blockerType: type,
@@ -1559,7 +1567,11 @@ export class DependencyHandler {
                                 componentIdxBlocked,
                                 stateVariableBlocked,
                                 dependencyBlocked,
-                            ] = codeBlocked.split("|");
+                            ] =
+                                typeof codeBlocked === "string"
+                                    ? codeBlocked.split("|")
+                                    : [codeBlocked];
+
                             this.deleteFromNeededToResolve({
                                 componentIdxBlocked,
                                 typeBlocked,
@@ -1578,7 +1590,10 @@ export class DependencyHandler {
                                     componentIdxBlocked,
                                     stateVariableBlocked,
                                     dependencyBlocked,
-                                ] = code.split("|");
+                                ] =
+                                    typeof code === "string"
+                                        ? code.split("|")
+                                        : [code];
                                 this.deleteFromNeededToResolve({
                                     componentIdxBlocked,
                                     typeBlocked,
@@ -1605,7 +1620,10 @@ export class DependencyHandler {
                                 componentIdxBlocked,
                                 stateVariableBlocked,
                                 dependencyBlocked,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
                             this.deleteFromNeededToResolve({
                                 componentIdxBlocked,
                                 typeBlocked: type,
@@ -1935,7 +1953,10 @@ export class DependencyHandler {
                                 blockerComponentIdx,
                                 blockerStateVariable,
                                 blockerDependency,
-                            ] = code.split("|");
+                            ] =
+                                typeof code === "string"
+                                    ? code.split("|")
+                                    : [code];
 
                             if (
                                 this.checkIfHaveNeededToResolve({
@@ -2072,7 +2093,8 @@ export class DependencyHandler {
                 });
 
                 if (recurseUpstream) {
-                    let [cIdx, vName, depName] = code.split("|");
+                    let [cIdx, vName, depName] =
+                        typeof code === "string" ? code.split("|") : [code];
 
                     await this.resolveIfReady({
                         componentIdx: cIdx,
@@ -2107,35 +2129,40 @@ export class DependencyHandler {
         }
 
         for (let varName of stateVariables) {
-            let stateVarObj = component.state[varName];
+            // TODO: remove this commented out code if it turns out we don't need `determineDependenciesImmediately`
 
-            if (stateVarObj && stateVarObj.determineDependenciesImmediately) {
-                let neededForItem = this.getNeededToResolve({
-                    componentIdx,
-                    type: "stateVariable",
-                    stateVariable: varName,
-                });
+            // let stateVarObj = component.state[varName];
 
-                let determineDepsBlockers = neededForItem.determineDependencies;
-                if (determineDepsBlockers) {
-                    for (let blockerCode of determineDepsBlockers) {
-                        let [
-                            blockerComponentIdx,
-                            blockerStateVariable,
-                            blockerDependency,
-                        ] = blockerCode.split("|");
+            // if (stateVarObj && stateVarObj.determineDependenciesImmediately) {
+            //     let neededForItem = this.getNeededToResolve({
+            //         componentIdx,
+            //         type: "stateVariable",
+            //         stateVariable: varName,
+            //     });
 
-                        await this.resolveIfReady({
-                            componentIdx: blockerComponentIdx,
-                            type: "determineDependencies",
-                            stateVariable: blockerStateVariable,
-                            dependency: blockerDependency,
-                            expandComposites: true, // TODO: why is this true?
-                            // recurseUpstream: true
-                        });
-                    }
-                }
-            }
+            //     let determineDepsBlockers = neededForItem.determineDependencies;
+            //     if (determineDepsBlockers) {
+            //         for (let blockerCode of determineDepsBlockers) {
+            //             let [
+            //                 blockerComponentIdx,
+            //                 blockerStateVariable,
+            //                 blockerDependency,
+            //             ] =
+            //                 typeof blockerCode === "string"
+            //                     ? blockerCode.split("|")
+            //                     : [blockerCode];
+
+            //             await this.resolveIfReady({
+            //                 componentIdx: blockerComponentIdx,
+            //                 type: "determineDependencies",
+            //                 stateVariable: blockerStateVariable,
+            //                 dependency: blockerDependency,
+            //                 expandComposites: true, // TODO: why is this true?
+            //                 // recurseUpstream: true
+            //             });
+            //         }
+            //     }
+            // }
             await this.resolveIfReady({
                 componentIdx,
                 type: "stateVariable",
@@ -2234,7 +2261,10 @@ export class DependencyHandler {
                     blockerComponentIdx,
                     blockerStateVariable,
                     blockerDependency,
-                ] = blockerCode.split("|");
+                ] =
+                    typeof blockerCode === "string"
+                        ? blockerCode.split("|")
+                        : [blockerCode];
 
                 let result = await this.resolveItem({
                     componentIdx: blockerComponentIdx,
@@ -2297,7 +2327,7 @@ export class DependencyHandler {
                         blockerComponentIdx,
                         blockerStateVariable,
                         blockerDependency,
-                    ] = code.split("|");
+                    ] = typeof code === "string" ? code.split("|") : [code];
 
                     let result = await this.resolveItem({
                         componentIdx: blockerComponentIdx,
@@ -2347,7 +2377,7 @@ export class DependencyHandler {
                             blockerComponentIdx,
                             blockerStateVariable,
                             blockerDependency,
-                        ] = code.split("|");
+                        ] = typeof code === "string" ? code.split("|") : [code];
 
                         let result = await this.resolveItem({
                             componentIdx: blockerComponentIdx,
@@ -2476,7 +2506,10 @@ export class DependencyHandler {
                         blockerComponentIdx,
                         blockerStateVariable,
                         blockerDependency,
-                    ] = blockerCode.split("|");
+                    ] =
+                        typeof blockerCode === "string"
+                            ? blockerCode.split("|")
+                            : [blockerCode];
 
                     this.checkForCircularResolveBlocker({
                         componentIdx: blockerComponentIdx,
@@ -2495,19 +2528,18 @@ export class DependencyHandler {
         let componentTypesForUniqueNames = [];
         let linesForUniqueNames = [];
 
-        // remove namespaces and internally created component names
+        // remove internally created component names
         // and deduplicate while keeping order (so don't use Set)
         for (let comp of componentsInvolved) {
             let name = comp.componentIdx;
             let relativeName = name;
             if (relativeName) {
-                let lastSlash = name.lastIndexOf("/");
-                relativeName = name.slice(lastSlash + 1);
+                // XXX: what do do for name here?
             } else {
                 relativeName = comp.doenetAttributes?.prescribedName;
             }
 
-            if (relativeName && relativeName.slice(0, 2) !== "__") {
+            if (relativeName) {
                 if (!uniqueComponentNames.includes(relativeName)) {
                     uniqueComponentNames.push(relativeName);
                     componentTypesForUniqueNames.push(comp.componentType);
@@ -2516,7 +2548,7 @@ export class DependencyHandler {
                     if (position) {
                         if (
                             position.doenetMLId === 0 &&
-                            position.lineBegin === undefined
+                            position.start.line === undefined
                         ) {
                             Object.assign(
                                 position,
@@ -2526,10 +2558,10 @@ export class DependencyHandler {
                                 ),
                             );
                         }
-                        let lineBegin = position.lineBegin;
+                        let lineBegin = position.start.line;
                         if (lineBegin) {
                             addedLine = true;
-                            let lineEnd = position.lineEnd;
+                            let lineEnd = position.end.line;
                             if (lineEnd === lineBegin) {
                                 linesForUniqueNames.push(`line ${lineBegin}`);
                             } else {
@@ -2552,8 +2584,7 @@ export class DependencyHandler {
             let name = comp.componentIdx;
             let relativeName = name;
             if (relativeName) {
-                let lastSlash = name.lastIndexOf("/");
-                relativeName = name.slice(lastSlash + 1);
+                // XXX: what about names?
             } else {
                 relativeName = comp.doenetAttributes?.prescribedName;
             }
@@ -2615,7 +2646,10 @@ export class DependencyHandler {
                         componentIdxBlocked,
                         stateVariableBlocked,
                         dependencyBlocked,
-                    ] = codeBlocked.split("|");
+                    ] =
+                        typeof codeBlocked === "string"
+                            ? codeBlocked.split("|")
+                            : [codeBlocked];
 
                     this.resetCircularResolveBlockerCheckPassed({
                         componentIdx: componentIdxBlocked,
@@ -2923,7 +2957,7 @@ class Dependency {
                             this.dependencyHandler.core.checkIfArrayEntry({
                                 stateVariable: downVar,
                                 component: downComponent,
-                            }),
+                            }).isArrayEntry,
                     );
                 }
 
@@ -3573,20 +3607,185 @@ class Dependency {
 
         return { success: newDownComponents.success };
     }
+
+    /**
+     * Add resolve blockers to this dependency due to the component with `componentIdx`
+     * not existing as well as update triggers that will attempt to resolve
+     * this dependency when the component is created.
+     */
+    async addBlockerUpdateTriggerForMissingComponent(componentIdx) {
+        this.addUpdateTriggerForMissingComponent(componentIdx);
+
+        for (const varName of this.upstreamVariableNames) {
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: componentIdx,
+                blockerType: "componentIdentity",
+                componentIdxBlocked: this.upstreamComponentIdx,
+                typeBlocked: "recalculateDownstreamComponents",
+                stateVariableBlocked: varName,
+                dependencyBlocked: this.dependencyName,
+            });
+
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: this.upstreamComponentIdx,
+                blockerType: "recalculateDownstreamComponents",
+                blockerStateVariable: varName,
+                blockerDependency: this.dependencyName,
+                componentIdxBlocked: this.upstreamComponentIdx,
+                typeBlocked: "stateVariable",
+                stateVariableBlocked: varName,
+            });
+        }
+    }
+
+    /**
+     * Add update triggers to the component with `componentIdx`
+     * that will update this dependency when the component is created.
+     */
+    async addUpdateTriggerForMissingComponent(componentIdx) {
+        let dependenciesMissingComponent =
+            this.dependencyHandler.updateTriggers
+                .dependenciesMissingComponentBySpecifiedName[componentIdx];
+        if (!dependenciesMissingComponent) {
+            dependenciesMissingComponent =
+                this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
+                    componentIdx
+                ] = [];
+        }
+        if (!dependenciesMissingComponent.includes(this)) {
+            dependenciesMissingComponent.push(this);
+        }
+    }
+
+    /**
+     * Delete any update triggers for this component based on `componentIdx` not yet existing
+     */
+    async deleteUpdateTriggerForMissingComponent(componentIdx) {
+        const dependenciesMissingComponent =
+            this.dependencyHandler.updateTriggers
+                .dependenciesMissingComponentBySpecifiedName[componentIdx];
+        if (dependenciesMissingComponent) {
+            const ind = dependenciesMissingComponent.indexOf(this);
+            if (ind !== -1) {
+                dependenciesMissingComponent.splice(ind, 1);
+            }
+        }
+    }
+
+    /**
+     * Add a resolve blocker to this dependency based on `varName` of `componentIdx`
+     * not yet being resolved.
+     */
+    async addBlockerForUnresolvedStateVariable(componentIdx, varName) {
+        for (const vName of this.upstreamVariableNames) {
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: componentIdx,
+                blockerType: "stateVariable",
+                blockerStateVariable: varName,
+                componentIdxBlocked: this.upstreamComponentIdx,
+                typeBlocked: "recalculateDownstreamComponents",
+                stateVariableBlocked: vName,
+                dependencyBlocked: this.dependencyName,
+            });
+
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: this.upstreamComponentIdx,
+                blockerType: "recalculateDownstreamComponents",
+                blockerStateVariable: vName,
+                blockerDependency: this.dependencyName,
+                componentIdxBlocked: this.upstreamComponentIdx,
+                typeBlocked: "stateVariable",
+                stateVariableBlocked: vName,
+            });
+        }
+    }
+
+    /**
+     * Add a resolve blocker to this dependency based on `composite`
+     * not yet being expanded.
+     */
+    async addBlockerForUnexpandedComposite(composite) {
+        for (const varName of this.upstreamVariableNames) {
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: this.upstreamComponentIdx,
+                blockerType: "recalculateDownstreamComponents",
+                blockerStateVariable: varName,
+                blockerDependency: this.dependencyName,
+                componentIdxBlocked: this.upstreamComponentIdx,
+                typeBlocked: "stateVariable",
+                stateVariableBlocked: varName,
+            });
+
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: composite.componentIdx,
+                blockerType: "expandComposite",
+                componentIdxBlocked: this.upstreamComponentIdx,
+                typeBlocked: "recalculateDownstreamComponents",
+                stateVariableBlocked: varName,
+                dependencyBlocked: this.dependencyName,
+            });
+        }
+
+        if (!composite.state.readyToExpandWhenResolved.isResolved) {
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: composite.componentIdx,
+                blockerType: "stateVariable",
+                blockerStateVariable: "readyToExpandWhenResolved",
+                componentIdxBlocked: composite.componentIdx,
+                typeBlocked: "expandComposite",
+            });
+        }
+    }
+
+    /** Add an update trigger to this dependency that will update it
+     * if the replacements of any composite in `composites` are changed. */
+    addUpdateTriggersForCompositeReplacements(composites) {
+        for (let cIdx of composites) {
+            let replacementDependencies =
+                this.dependencyHandler.updateTriggers
+                    .replacementDependenciesByComposite[cIdx];
+            if (!replacementDependencies) {
+                replacementDependencies =
+                    this.dependencyHandler.updateTriggers.replacementDependenciesByComposite[
+                        cIdx
+                    ] = [];
+            }
+            if (!replacementDependencies.includes(this)) {
+                replacementDependencies.push(this);
+            }
+        }
+    }
+
+    /**
+     * Delete any update triggers for this dependency based on the replacements of `composites`.
+     */
+    deleteUpdateTriggersForCompositeReplacements(composites) {
+        for (let compositeIdx of composites) {
+            let replacementDeps =
+                this.dependencyHandler.updateTriggers
+                    .replacementDependenciesByComposite[compositeIdx];
+            if (replacementDeps) {
+                let ind = replacementDeps.indexOf(this);
+                if (ind !== -1) {
+                    replacementDeps.splice(ind, 1);
+                }
+            }
+        }
+    }
 }
 
 class StateVariableDependency extends Dependency {
     static dependencyType = "stateVariable";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
             this.componentIdx = this.upstreamComponentIdx;
         }
 
-        if (this.definition.variableName === undefined) {
+        if (this.definition.variableName == undefined) {
             throw Error(
                 `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: variableName is not defined`,
             );
@@ -3594,7 +3793,7 @@ class StateVariableDependency extends Dependency {
         this.originalDownstreamVariableNames = [this.definition.variableName];
 
         // In order to be allowed to set a value in an inverse definition,
-        // we must create a dependency (as that was we can detect circular dependencies)
+        // we must create a dependency (as that way we can detect circular dependencies)
         // However, if the value won't be used in the definition, add the flag onlyToSetInInverseDefinition,
         // which we prevent its value from being calculated or marked stale
         // due to this dependency (or included in recursive dependency values)
@@ -3613,41 +3812,7 @@ class StateVariableDependency extends Dependency {
         let component = this.dependencyHandler._components[this.componentIdx];
 
         if (!component) {
-            let dependenciesMissingComponent =
-                this.dependencyHandler.updateTriggers
-                    .dependenciesMissingComponentBySpecifiedName[
-                    this.componentIdx
-                ];
-            if (!dependenciesMissingComponent) {
-                dependenciesMissingComponent =
-                    this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
-                        this.componentIdx
-                    ] = [];
-            }
-            if (!dependenciesMissingComponent.includes(this)) {
-                dependenciesMissingComponent.push(this);
-            }
-
-            for (let varName of this.upstreamVariableNames) {
-                await this.dependencyHandler.addBlocker({
-                    blockerComponentIdx: this.componentIdx,
-                    blockerType: "componentIdentity",
-                    componentIdxBlocked: this.upstreamComponentIdx,
-                    typeBlocked: "recalculateDownstreamComponents",
-                    stateVariableBlocked: varName,
-                    dependencyBlocked: this.dependencyName,
-                });
-
-                await this.dependencyHandler.addBlocker({
-                    blockerComponentIdx: this.upstreamComponentIdx,
-                    blockerType: "recalculateDownstreamComponents",
-                    blockerStateVariable: varName,
-                    blockerDependency: this.dependencyName,
-                    componentIdxBlocked: this.upstreamComponentIdx,
-                    typeBlocked: "stateVariable",
-                    stateVariableBlocked: varName,
-                });
-            }
+            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
 
             return {
                 success: false,
@@ -3665,28 +3830,212 @@ class StateVariableDependency extends Dependency {
 
     deleteFromUpdateTriggers() {
         if (this.specifiedComponentName) {
-            let dependenciesMissingComponent =
-                this.dependencyHandler.updateTriggers
-                    .dependenciesMissingComponentBySpecifiedName[
-                    this.specifiedComponentName
-                ];
-            if (dependenciesMissingComponent) {
-                let ind = dependenciesMissingComponent.indexOf(this);
-                if (ind !== -1) {
-                    dependenciesMissingComponent.splice(ind, 1);
-                }
-            }
+            this.deleteUpdateTriggerForMissingComponent(
+                this.specifiedComponentName,
+            );
         }
     }
 }
 
 dependencyTypeArray.push(StateVariableDependency);
 
+/**
+ * A dependency to return the value of the state variable given an `unresolvedPath`.
+ *
+ * Only the first component of `unresolvedPath` {name, index} is used.
+ *
+ * If only `name` is provided, then return the value of the state variable `name`.
+ *
+ * If only `index` is provided, then the component must have `variableForIndexAsProp` set to an array state variable.
+ * The value of the index from the array state variable is returned.
+ *
+ * If both `name` and `index` are provided, then `name` must be an array state variable.
+ * The value of the index from the array state variable is returned.
+ */
+class StateVariableFromUnresolvedPathDependency extends Dependency {
+    static dependencyType = "stateVariableFromUnresolvedPath";
+
+    setUpParameters() {
+        if (this.definition.componentIdx != undefined) {
+            this.componentIdx = this.definition.componentIdx;
+            this.specifiedComponentName = this.componentIdx;
+        } else {
+            this.componentIdx = this.upstreamComponentIdx;
+        }
+
+        if (!this.definition.unresolvedPath) {
+            throw Error(
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: unresolvedPath is not defined`,
+            );
+        }
+
+        this.originalDownstreamVariableNames = [];
+
+        if (this.definition.returnAsComponentObject) {
+            this.returnSingleComponent = true;
+        } else {
+            this.returnSingleVariableValue = true;
+        }
+    }
+
+    async determineDownstreamComponents() {
+        const component = this.dependencyHandler._components[this.componentIdx];
+
+        if (!component) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        let unresolvedPath = [...this.definition.unresolvedPath];
+        let nextPart = unresolvedPath.shift();
+
+        let variableName = nextPart.name;
+
+        if (variableName === "") {
+            variableName = component.constructor.variableForIndexAsProp;
+            if (!variableName) {
+                // if refer to index on a component that doesn't have variableForIndexAsProp,
+                // then return nothing
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+        }
+
+        this.originalDownstreamVariableNames = [variableName];
+
+        let propIndex = [];
+        let foundBadIndex = false;
+        if (nextPart.index.length > 0) {
+            propIndex = nextPart.index.map((index_part) =>
+                Math.round(Number(index_part.value[0])),
+            );
+            if (!propIndex.every(Number.isFinite)) {
+                foundBadIndex = true;
+            }
+        }
+
+        nextPart = unresolvedPath.shift();
+
+        if (
+            foundBadIndex ||
+            unresolvedPath.length > 0 ||
+            nextPart?.index.length > 0
+        ) {
+            // At this point, we haven't implement searching an entire path.
+            // Hence, we regard the reference as invalid and return nothing if
+            // 1. we have a bad index
+            // 2. we have a third part of the unresolved path, or
+            // 3. the second part of the unresolved path as an index.
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        if (nextPart != undefined) {
+            let foundMatchToNextName = false;
+
+            const stateVarInfo =
+                this.dependencyHandler.componentInfoObjects
+                    .publicStateVariableInfo[component.componentType]
+                    .stateVariableDescriptions[variableName];
+
+            if (stateVarInfo?.indexAliases) {
+                const dim = propIndex.length;
+                const aliases = stateVarInfo.indexAliases[dim];
+
+                const aliasIdx = aliases.indexOf(nextPart.name);
+                if (aliasIdx !== -1) {
+                    propIndex.push(aliasIdx + 1);
+                    foundMatchToNextName = true;
+                }
+            } else {
+                const arrayEntryCheck =
+                    this.dependencyHandler.core.checkIfArrayEntry({
+                        stateVariable: variableName,
+                        component,
+                    });
+
+                if (arrayEntryCheck.isArrayEntry) {
+                    const arrayVariableName = arrayEntryCheck.arrayVariableName;
+                    const arrayEntryPrefix = arrayEntryCheck.arrayEntryPrefix;
+
+                    const arrayStateVarObj = component.state[arrayVariableName];
+
+                    if (arrayStateVarObj.indexAliases) {
+                        const arrayDimensions = arrayStateVarObj.numDimensions;
+                        const entryDimensions =
+                            arrayStateVarObj.returnEntryDimensions(
+                                arrayEntryPrefix,
+                            );
+
+                        // If we have a 3D array and a 1D entry, that means we've used up 2 dimensions to get to the entry,
+                        // and we have to skip two dimensions of the array to get to the dimension corresponding to the entries components.
+                        const dimensionInArray =
+                            arrayDimensions - entryDimensions;
+
+                        const dim = propIndex.length;
+                        const aliases =
+                            arrayStateVarObj.indexAliases[
+                                dim + dimensionInArray
+                            ];
+
+                        const aliasIdx = aliases.indexOf(nextPart.name);
+                        if (aliasIdx !== -1) {
+                            propIndex.push(aliasIdx + 1);
+                            foundMatchToNextName = true;
+                        }
+                    }
+                }
+            }
+
+            // If the name to the second part of the unresolved path did not match,
+            // then we regard the reference as invalid and return nothing
+            if (!foundMatchToNextName) {
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+        }
+
+        if (propIndex.length > 0) {
+            this.propIndex = propIndex;
+        }
+
+        return {
+            success: true,
+            downstreamComponentIndices: [this.componentIdx],
+            downstreamComponentTypes: [component.componentType],
+        };
+    }
+
+    deleteFromUpdateTriggers() {
+        if (this.specifiedComponentName) {
+            this.deleteUpdateTriggerForMissingComponent(
+                this.specifiedComponentName,
+            );
+        }
+    }
+}
+
+dependencyTypeArray.push(StateVariableFromUnresolvedPathDependency);
+
 class MultipleStateVariablesDependency extends Dependency {
     static dependencyType = "multipleStateVariables";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -3938,7 +4287,7 @@ class RecursiveDependencyValuesDependency extends Dependency {
     static dependencyType = "recursiveDependencyValues";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -3988,7 +4337,8 @@ class RecursiveDependencyValuesDependency extends Dependency {
         let downstreamComponentIndices = [];
         let downstreamComponentTypes = [];
 
-        for (let componentIdx in result.components) {
+        for (const componentIdxStr in result.components) {
+            const componentIdx = Number(componentIdxStr);
             if (this.includeOnlyEssentialValues) {
                 let essentialVarNames = [];
                 let component =
@@ -4256,12 +4606,13 @@ class RecursiveDependencyValuesDependency extends Dependency {
                 }
             }
 
-            for (let cIdx in this.varsWithUpdatedDeps) {
-                let compAccumulated = accumulatedVarsWithUpdatedDeps[cIdx];
+            for (const cIdxStr in this.varsWithUpdatedDeps) {
+                let compAccumulated = accumulatedVarsWithUpdatedDeps[cIdxStr];
                 if (!compAccumulated) {
-                    compAccumulated = accumulatedVarsWithUpdatedDeps[cIdx] = [];
+                    compAccumulated = accumulatedVarsWithUpdatedDeps[cIdxStr] =
+                        [];
                 }
-                for (let vName of this.varsWithUpdatedDeps[cIdx]) {
+                for (let vName of this.varsWithUpdatedDeps[cIdxStr]) {
                     if (!compAccumulated.includes(vName)) {
                         compAccumulated.push(vName);
                         foundNewUpdated = true;
@@ -4302,7 +4653,7 @@ class ComponentIdentityDependency extends Dependency {
     static dependencyType = "componentIdentity";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -4389,7 +4740,7 @@ class AttributeComponentDependency extends Dependency {
     static dependencyType = "attributeComponent";
 
     setUpParameters() {
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.parentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.parentIdx;
         } else {
@@ -4626,7 +4977,7 @@ class ChildDependency extends Dependency {
     static dependencyType = "child";
 
     setUpParameters() {
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.parentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.parentIdx;
         } else {
@@ -4779,7 +5130,7 @@ class ChildDependency extends Dependency {
                     // which one can do even with placeholders
                     canProceedWithPlaceholders = true;
                 } else {
-                    // if need to include componentIndices or variables,
+                    // if need to include component indices or variables,
                     // then we can proceed only if we aren't asking for any placeholder children
 
                     canProceedWithPlaceholders = activeChildrenIndices.every(
@@ -5002,7 +5353,8 @@ class ChildDependency extends Dependency {
                     if (translatedLastInd !== undefined) {
                         this.compositeReplacementRange.push({
                             compositeIdx: compositeInfo.compositeIdx,
-                            target: compositeInfo.target,
+                            extendIdx: compositeInfo.extendIdx,
+                            unresolvedPath: compositeInfo.unresolvedPath,
                             firstInd: translatedFirstInd,
                             lastInd: translatedLastInd,
                             asList: compositeInfo.asList,
@@ -5188,7 +5540,7 @@ class DescendantDependency extends Dependency {
     static dependencyType = "descendant";
 
     setUpParameters() {
-        if (this.definition.ancestorIdx) {
+        if (this.definition.ancestorIdx != undefined) {
             this.ancestorIdx = this.definition.ancestorIdx;
             this.specifiedComponentName = this.ancestorIdx;
         } else {
@@ -5226,13 +5578,13 @@ class DescendantDependency extends Dependency {
             this.definition.ignoreReplacementsOfEncounteredComposites;
 
         if (
-            this.definition.componentIndex !== null &&
-            this.definition.componentIndex !== undefined
+            this.definition.sourceIndex !== null &&
+            this.definition.sourceIndex !== undefined
         ) {
-            if (Number.isInteger(this.definition.componentIndex)) {
-                this.componentIndex = this.definition.componentIndex;
+            if (Number.isInteger(this.definition.sourceIndex)) {
+                this.sourceIndex = this.definition.sourceIndex;
             } else {
-                this.componentIndex = NaN;
+                this.sourceIndex = NaN;
             }
         }
     }
@@ -5316,7 +5668,8 @@ class DescendantDependency extends Dependency {
                     stateVariableBlocked: varName,
                 });
 
-                for (let parentIdx in result.unexpandedCompositesReadyByParentName) {
+                for (const parentIdxStr in result.unexpandedCompositesReadyByParentName) {
+                    const parentIdx = Number(parentIdxStr);
                     await this.dependencyHandler.addBlocker({
                         blockerComponentIdx: parentIdx,
                         blockerType: "childMatches",
@@ -5328,7 +5681,8 @@ class DescendantDependency extends Dependency {
                     });
                 }
 
-                for (let parentIdx in result.unexpandedCompositesNotReadyByParentName) {
+                for (const parentIdxStr in result.unexpandedCompositesNotReadyByParentName) {
+                    const parentIdx = Number(parentIdxStr);
                     await this.dependencyHandler.addBlocker({
                         blockerComponentIdx: parentIdx,
                         blockerType: "childMatches",
@@ -5382,8 +5736,8 @@ class DescendantDependency extends Dependency {
             componentInfoObjects: this.dependencyHandler.componentInfoObjects,
         });
 
-        if (this.componentIndex !== undefined) {
-            let theDescendant = descendants[this.componentIndex - 1];
+        if (this.sourceIndex !== undefined) {
+            let theDescendant = descendants[this.sourceIndex - 1];
             if (theDescendant) {
                 descendants = [theDescendant];
             } else {
@@ -5404,7 +5758,7 @@ class DescendantDependency extends Dependency {
         let haveUnexpandedCompositeReady = false;
         let haveCompositesNotReady = false;
 
-        // if we don't need componentIndices or variables,
+        // if we don't need component indices or variables,
         // then gathering a placeholder descendant is fine
         let placeholdersOKForMatchedDescendants =
             this.skipComponentIndices &&
@@ -5454,8 +5808,8 @@ class DescendantDependency extends Dependency {
             }
         }
 
-        for (let childIdx in component.allChildren) {
-            let child = component.allChildren[childIdx].component;
+        for (const childIdxStr in component.allChildren) {
+            let child = component.allChildren[childIdxStr].component;
             if (typeof child === "object") {
                 let result = this.gatherUnexpandedComposites(child);
                 if (result.haveUnexpandedCompositeReady) {
@@ -5494,7 +5848,7 @@ class DescendantDependency extends Dependency {
                 let placeholderType =
                     this.dependencyHandler.componentInfoObjects
                         .componentTypeLowerCaseMapping[
-                        composite.attributes.createComponentOfType.primitive.toLowerCase()
+                        composite.attributes.createComponentOfType.primitive.value.toLowerCase()
                     ];
 
                 let matches = this.componentTypes.some((ct) =>
@@ -5558,7 +5912,7 @@ class ParentDependency extends Dependency {
     static dependencyType = "parentStateVariable";
 
     setUpParameters() {
-        if (this.definition.childIdx) {
+        if (this.definition.childIdx != undefined) {
             this.childIdx = this.definition.childIdx;
             this.specifiedComponentName = this.childIdx;
         } else {
@@ -5632,7 +5986,7 @@ class ParentDependency extends Dependency {
             };
         }
 
-        if (!child.parentIdx) {
+        if (child.parentIdx == undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -5773,7 +6127,7 @@ class ParentIdentityDependency extends Dependency {
     static dependencyType = "parentIdentity";
 
     setUpParameters() {
-        if (this.definition.childIdx) {
+        if (this.definition.childIdx != undefined) {
             this.childIdx = this.definition.childIdx;
             this.specifiedComponentName = this.childIdx;
         } else {
@@ -5832,7 +6186,7 @@ class ParentIdentityDependency extends Dependency {
             };
         }
 
-        if (!child.parentIdx) {
+        if (child.parentIdx == undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -5973,7 +6327,7 @@ class AncestorDependency extends Dependency {
     static dependencyType = "ancestor";
 
     setUpParameters() {
-        if (this.definition.descendantIdx) {
+        if (this.definition.descendantIdx != undefined) {
             this.descendantIdx = this.definition.descendantIdx;
             this.specifiedComponentName = this.descendantIdx;
         } else {
@@ -6047,10 +6401,9 @@ class AncestorDependency extends Dependency {
         }
 
         if (
-            !(
-                this.dependencyHandler.core.documentIdx in
-                this.dependencyHandler._components
-            )
+            this.dependencyHandler._components[
+                this.dependencyHandler.core.documentIdx
+            ] == undefined
         ) {
             // if document hasn't been created yet, then don't match ancestors
             // until have created document
@@ -6228,7 +6581,7 @@ class AncestorDependency extends Dependency {
                         this.dependencyHandler.core.checkIfArrayEntry({
                             stateVariable: vName,
                             component: ancestorComponent,
-                        })
+                        }).isArrayEntry
                     )
                 ) {
                     foundAllVarNames = false;
@@ -6247,14 +6600,16 @@ class AncestorDependency extends Dependency {
     }
 
     deleteFromUpdateTriggers() {
-        for (let ancestorIdx of this.ancestorResults.ancestorsExamined) {
-            let ancestorDeps =
-                this.dependencyHandler.updateTriggers
-                    .ancestorDependenciesByPotentialAncestor[ancestorIdx];
-            if (ancestorDeps) {
-                let ind = ancestorDeps.indexOf(this);
-                if (ind !== -1) {
-                    ancestorDeps.splice(ind, 1);
+        if (this.ancestorResults) {
+            for (let ancestorIdx of this.ancestorResults.ancestorsExamined) {
+                let ancestorDeps =
+                    this.dependencyHandler.updateTriggers
+                        .ancestorDependenciesByPotentialAncestor[ancestorIdx];
+                if (ancestorDeps) {
+                    let ind = ancestorDeps.indexOf(this);
+                    if (ind !== -1) {
+                        ancestorDeps.splice(ind, 1);
+                    }
                 }
             }
         }
@@ -6273,7 +6628,7 @@ class AncestorDependency extends Dependency {
             }
         }
 
-        if (this.ancestorResults && this.ancestorResults.missingComponentName) {
+        if (this.ancestorResults?.missingComponentName) {
             let dependenciesMissingComponent =
                 this.dependencyHandler.updateTriggers
                     .dependenciesMissingComponentBySpecifiedName[
@@ -6295,7 +6650,7 @@ class ReplacementDependency extends Dependency {
     static dependencyType = "replacement";
 
     setUpParameters() {
-        if (this.definition.compositeIdx) {
+        if (this.definition.compositeIdx != undefined) {
             this.compositeIdx = this.definition.compositeIdx;
             this.specifiedComponentName = this.compositeIdx;
         } else {
@@ -6320,33 +6675,19 @@ class ReplacementDependency extends Dependency {
             this.definition.recurseNonStandardComposites;
 
         if (
-            this.definition.componentIndex !== null &&
-            this.definition.componentIndex !== undefined
+            this.definition.sourceIndex !== null &&
+            this.definition.sourceIndex !== undefined
         ) {
-            if (Number.isInteger(this.definition.componentIndex)) {
-                this.componentIndex = this.definition.componentIndex;
+            if (Number.isInteger(this.definition.sourceIndex)) {
+                this.sourceIndex = this.definition.sourceIndex;
             } else {
-                this.componentIndex = NaN;
+                this.sourceIndex = NaN;
             }
         }
 
-        if (this.definition.targetSubnames) {
-            this.targetSubnames = this.definition.targetSubnames;
-        }
-
-        // Note: it appears that targetSubnamesComponentIndex is not yet implemented
-        if (this.definition.targetSubnamesComponentIndex) {
-            if (
-                this.definition.targetSubnamesComponentIndex.every(
-                    Number.isInteger,
-                )
-            ) {
-                this.targetSubnamesComponentIndex =
-                    this.definition.targetSubnamesComponentIndex;
-            } else {
-                this.targetSubnamesComponentIndex = [NaN];
-            }
-        }
+        // If we encounter a composite that has a public state variable matching `stopIfHaveProp`
+        // then we won't returns its replacements but instead return the composite itself.
+        this.stopIfHaveProp = this.definition.stopIfHaveProp;
 
         this.includeWithheldReplacements =
             this.definition.includeWithheldReplacements;
@@ -6411,6 +6752,27 @@ class ReplacementDependency extends Dependency {
             };
         }
 
+        if (this.stopIfHaveProp) {
+            const checkForPublic =
+                this.dependencyHandler.core.matchPublicStateVariables({
+                    stateVariables: [this.stopIfHaveProp],
+                    componentClass: composite.constructor,
+                })[0];
+
+            if (!checkForPublic.startsWith("__not_public_")) {
+                // We found that the composite has a public state variable matching `stopIfHaveProp`.
+                // Therefore, we treat the composite itself as the "replacement",
+                // and don't even check if the composite is expanded or get its replacements.
+                this.replacementPrimitives.push(null);
+
+                return {
+                    success: true,
+                    downstreamComponentIndices: [composite.componentIdx],
+                    downstreamComponentTypes: [composite.componentType],
+                };
+            }
+        }
+
         if (!composite.isExpanded) {
             for (let varName of this.upstreamVariableNames) {
                 await this.dependencyHandler.addBlocker({
@@ -6471,6 +6833,7 @@ class ReplacementDependency extends Dependency {
                             this.recurseNonStandardComposites,
                         includeWithheldReplacements:
                             this.includeWithheldReplacements,
+                        stopIfHaveProp: this.stopIfHaveProp,
                     },
                 );
 
@@ -6540,8 +6903,8 @@ class ReplacementDependency extends Dependency {
             }
         }
 
-        if (this.componentIndex !== undefined) {
-            // Note: strings that are not blank do take up a slot for component index.
+        if (this.sourceIndex !== undefined) {
+            // Note: strings that are not blank do take up a slot for source index.
             // However, this non-blank strings that do take up a slot
             // will not be returned as a replacement (instead the replacement will be empty).
             // Rationale: we do not have a mechanism for linking a string to its replacement source,
@@ -6550,7 +6913,7 @@ class ReplacementDependency extends Dependency {
                 (x) => typeof x !== "string" || x.trim() !== "",
             );
             let theReplacement =
-                nonBlankStringReplacements[this.componentIndex - 1];
+                nonBlankStringReplacements[this.sourceIndex - 1];
             if (theReplacement && typeof theReplacement !== "string") {
                 replacements = [theReplacement];
             } else {
@@ -6558,63 +6921,6 @@ class ReplacementDependency extends Dependency {
             }
         }
 
-        if (this.targetSubnames) {
-            let replaceComponentsUsingSubname = function ({
-                components,
-                subNames,
-                subNamesComponentIndex,
-                dep,
-            }) {
-                if (subNames.length === 0) {
-                    return components;
-                }
-                let remainingSubnames = subNames.slice(1);
-
-                let newComponents = [];
-
-                for (let comp of components) {
-                    let newCidx = comp.componentIdx + "/" + subNames[0];
-
-                    let newComp = dep.dependencyHandler._components[newCidx];
-                    if (!newComp) {
-                        let dependenciesMissingComponent =
-                            dep.dependencyHandler.updateTriggers
-                                .dependenciesMissingComponentBySpecifiedName[
-                                newCidx
-                            ];
-                        if (!dependenciesMissingComponent) {
-                            dependenciesMissingComponent =
-                                dep.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
-                                    newCidx
-                                ] = [];
-                        }
-                        if (!dependenciesMissingComponent.includes(dep)) {
-                            dependenciesMissingComponent.push(dep);
-                        }
-                    } else {
-                        // TODO: implement subNamesComponentIndex and additional subNames
-                        // (as well as allowing componentIndex/subNamesComponentIndex to be multi-dimensional).
-                        // These additional levels would involve recursing to the replacements
-                        // of additional composites.
-
-                        // For now, we return newComponet only if we don't have additional subNames
-                        // and we ignore subNamesComponentIndex
-                        if (remainingSubnames.length === 0) {
-                            newComponents.push(newComp);
-                        }
-                    }
-                }
-
-                return newComponents;
-            };
-
-            replacements = replaceComponentsUsingSubname({
-                components: replacements,
-                subNames: this.targetSubnames,
-                subNamesComponentIndex: this.targetSubnamesComponentIndex,
-                dep: this,
-            });
-        }
         let downstreamComponentIndices = [];
         let downstreamComponentTypes = [];
 
@@ -6710,11 +7016,701 @@ class ReplacementDependency extends Dependency {
 
 dependencyTypeArray.push(ReplacementDependency);
 
+/**
+ * A dependency that iterates through the unresolved path of a composite,
+ * expands any composite encountered within an index,
+ * and returns a list of all the component indices of the "integer" components
+ * that are the indices of the unresolved path
+ */
+class RefResolutionIndexDependencies extends Dependency {
+    static dependencyType = "refResolutionIndexDependencies";
+
+    setUpParameters() {
+        if (this.definition.compositeIdx != undefined) {
+            this.compositeIdx = this.definition.compositeIdx;
+            this.specifiedComponentName = this.compositeIdx;
+        } else {
+            this.compositeIdx = this.upstreamComponentIdx;
+        }
+
+        this.missingComponentBlockers = [];
+    }
+
+    async determineDownstreamComponents() {
+        this.compositeReplacementDependencies = [];
+
+        let composite = this.dependencyHandler._components[this.compositeIdx];
+
+        if (!composite) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            this.missingComponentBlockers.push(this.compositeIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        this.componentList = [];
+
+        if (composite.refResolution.unresolvedPath == null) {
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        const gatherResult = await this.gatherComponentsInPath(
+            composite.refResolution.unresolvedPath,
+        );
+
+        if (gatherResult.success) {
+            this.componentList = gatherResult.componentList;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        } else {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+    }
+
+    // Iterate through all indices of `unresolvedPath`.
+    // If encounter unexpanded composites, set up resolve blockers
+    // so that this dependency will be resolved again once the composites are expanded.
+    // Otherwise, gather all the component indices of the "integer" components into `componentList`.
+    // If encountered unexpanded composites, return
+    // - success: false
+    // If successfully found all integer components return
+    // - success: true,
+    // - componentList: a list of the component indices of the "integer" components found in the unresolved path
+    // Throw an error if an index of unresolved path does not contain either a string or a single integer component
+    async gatherComponentsInPath(unresolvedPath) {
+        const componentList = [];
+        let foundUnexpanded = false;
+        for (const path_part of unresolvedPath) {
+            for (const index_part of path_part.index) {
+                if (typeof index_part.value[0] !== "string") {
+                    let indexComponent = index_part.value[0];
+
+                    const haveComposite =
+                        this.dependencyHandler.componentInfoObjects.isCompositeComponent(
+                            {
+                                componentType: indexComponent.componentType,
+                                includeNonStandard: true,
+                            },
+                        );
+
+                    if (haveComposite) {
+                        if (!indexComponent.isExpanded) {
+                            this.addBlockerForUnexpandedComposite(
+                                indexComponent,
+                            );
+
+                            foundUnexpanded = true;
+                        } else {
+                            this.addUpdateTriggersForCompositeReplacements([
+                                indexComponent.componentIdx,
+                            ]);
+                            this.compositeReplacementDependencies.push(
+                                indexComponent.componentIdx,
+                            );
+
+                            if (indexComponent.replacements.length !== 1) {
+                                throw Error(
+                                    "Something went wrong as path index is not an integer",
+                                );
+                            }
+                            indexComponent = indexComponent.replacements[0];
+                        }
+                    }
+
+                    if (
+                        !foundUnexpanded &&
+                        indexComponent.componentType !== "integer"
+                    ) {
+                        throw Error(
+                            "Something went wrong as path index is not an integer",
+                        );
+                    }
+
+                    componentList.push(indexComponent.componentIdx);
+                }
+            }
+        }
+
+        if (foundUnexpanded) {
+            return { success: false };
+        } else {
+            return {
+                success: true,
+                componentList,
+            };
+        }
+    }
+
+    async getValue() {
+        const result = await super.getValue();
+
+        result.value = this.componentList;
+
+        // since value was not determined using actual `downstreamComponentIndices`
+        // we need to manually mark it as changed each time it is computed.
+        result.changes.componentIdentitiesChanged = true;
+
+        return result;
+    }
+
+    deleteFromUpdateTriggers() {
+        for (const componentIdx of this.missingComponentBlockers) {
+            this.deleteUpdateTriggerForMissingComponent(componentIdx);
+        }
+
+        this.deleteUpdateTriggersForCompositeReplacements(
+            this.compositeReplacementDependencies,
+        );
+    }
+}
+
+dependencyTypeArray.push(RefResolutionIndexDependencies);
+
+/**
+ * A dependency that attempts to resolve any unresolvedPath of a `refResolution` on a composite component.
+ *
+ * If `refResolution.nodeIdx` has any composite descendants
+ * or any indices of the unresolved path have composites, these composites are first expanded.
+ * Then, the unresolved path is resolved against the descendants of `refResolution.nodeIdx`.
+ *
+ * The rust resolver is called to match the unresolved path on the descendants of `nodeIdx,
+ * `nodeIdx` is updated to the matched component, and `unresolvedPath` is updated to any remaining unresolved path.
+ *
+ * If an index is encountered (which halts the rust resolver), then
+ * - if the current `nodeIdx` is a composite, then `nodeIdx` is set to the corresponding replacement of the composite
+ *   and the algorithm recurses
+ * - else, the algorithm terminates with the current `nodeIdx` and `unresolvedPath`.
+ *
+ * The dependency value returned is
+ * - extendIdx: the resulting `nodeIdx`
+ * - unresolvedPath: any remaining `unresolvedPath`
+ * - originalPath: the original path
+ */
+class RefResolutionDependency extends Dependency {
+    static dependencyType = "refResolution";
+
+    setUpParameters() {
+        if (this.definition.compositeIdx != undefined) {
+            this.compositeIdx = this.definition.compositeIdx;
+            this.specifiedComponentName = this.compositeIdx;
+        } else {
+            this.compositeIdx = this.upstreamComponentIdx;
+        }
+
+        this.indexDependencyValues = this.definition.indexDependencyValues;
+        this.missingComponentBlockers = [];
+    }
+
+    async determineDownstreamComponents({ force = false } = {}) {
+        this.compositeReplacementDependencies = [];
+
+        let composite = this.dependencyHandler._components[this.compositeIdx];
+
+        if (!composite) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            this.missingComponentBlockers.push(this.compositeIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        let nodeIdx = composite.refResolution.nodeIdx;
+        this.originalPath = composite.refResolution.originalPath;
+
+        // If `nodeIdx` is a component that was created via an `extend` or `copy` attribute,
+        // then it was (or will be) created from a copy that has a `createComponentIdx` attribute
+        // set to `nodeIdx`. In this case, we find that copy using the `createComponentIdxMapping`
+        // and create blockers/triggers to potentially postpone creating this dependency
+        // and update it when `nodeIdx` is created or updated.
+        const componentCreatingExtendIdx =
+            this.dependencyHandler.core.createComponentIdxMapping[nodeIdx];
+
+        if (componentCreatingExtendIdx != null) {
+            const compositeCreating =
+                this.dependencyHandler._components[componentCreatingExtendIdx];
+
+            if (!compositeCreating) {
+                this.addUpdateTriggerForMissingComponent(
+                    componentCreatingExtendIdx,
+                );
+                this.missingComponentBlockers.push(componentCreatingExtendIdx);
+
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
+            if (!compositeCreating.isExpanded) {
+                this.addBlockerForUnexpandedComposite(compositeCreating);
+
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
+            this.compositeReplacementDependencies.push(
+                compositeCreating.componentIdx,
+            );
+            this.addUpdateTriggersForCompositeReplacements([
+                compositeCreating.componentIdx,
+            ]);
+        }
+
+        if (composite.refResolution.unresolvedPath == null) {
+            this.extendIdx = nodeIdx;
+            this.unresolvedPath = null;
+            return this.foundExtend();
+        }
+
+        // Resolve all components in the unresolved path to integer values
+        const resolveComponentResult = await this.resolveComponentsInPath(
+            composite.refResolution.unresolvedPath,
+            force,
+        );
+
+        if (!resolveComponentResult.success) {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        let unresolvedPath = resolveComponentResult.unresolvedPath;
+
+        while (unresolvedPath?.length > 0) {
+            const refComponent = this.dependencyHandler._components[nodeIdx];
+
+            if (!refComponent) {
+                this.addUpdateTriggerForMissingComponent(nodeIdx);
+                this.missingComponentBlockers.push(nodeIdx);
+
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
+            const haveComposite =
+                this.dependencyHandler.componentInfoObjects.isCompositeComponent(
+                    {
+                        componentType: refComponent.componentType,
+                        includeNonStandard: true,
+                    },
+                );
+
+            if (haveComposite) {
+                // make sure that the composite refComponent is expanded
+                if (!refComponent.isExpanded) {
+                    this.addBlockerForUnexpandedComposite(refComponent);
+
+                    return {
+                        success: false,
+                        downstreamComponentIndices: [],
+                        downstreamComponentTypes: [],
+                    };
+                }
+
+                this.compositeReplacementDependencies.push(
+                    refComponent.componentIdx,
+                );
+                this.addUpdateTriggersForCompositeReplacements([
+                    refComponent.componentIdx,
+                ]);
+            }
+
+            const nextPathPart = unresolvedPath[0];
+
+            if (nextPathPart.name !== "") {
+                // see if we can resolve `name` starting from `nodeIdx`
+
+                const refResolution = this.dependencyHandler.core.resolvePath(
+                    this.dependencyHandler.core.resolver,
+                    { path: unresolvedPath },
+                    nodeIdx,
+                    true,
+                );
+
+                if (
+                    refResolution.unresolvedPath?.length ===
+                        unresolvedPath.length &&
+                    refResolution.unresolvedPath[0].name !== ""
+                ) {
+                    // The resolver didn't make any progress.
+                    // As a sanity check, make sure the node index and name didn't change
+                    if (
+                        refResolution.nodeIdx !== nodeIdx ||
+                        refResolution.unresolvedPath[0].name !==
+                            nextPathPart.name
+                    ) {
+                        throw Error(
+                            "Something went wrong with resolver as it changed the index or name without making progress",
+                        );
+                    }
+
+                    // Since name didn't match, return the result
+                    this.extendIdx = nodeIdx;
+                    this.unresolvedPath = unresolvedPath;
+
+                    return this.foundExtend();
+                }
+
+                // some progress was made so continue to next loop
+                nodeIdx = refResolution.nodeIdx;
+                unresolvedPath = refResolution.unresolvedPath;
+                continue;
+            }
+
+            // Don't have a name for the next path part, so we just have an index
+
+            if (!haveComposite) {
+                // Since don't have a composite, return the result
+                this.extendIdx = nodeIdx;
+                this.unresolvedPath = unresolvedPath;
+
+                return this.foundExtend();
+            }
+
+            const index = nextPathPart.index;
+            if (index.length === 0) {
+                throw Error(
+                    "Something went wrong as we have a ref resolution without a name or an index",
+                );
+            }
+
+            const replacementIdx = index[0].value;
+
+            // Note: strings that are not blank do take up a slot for replacement index.
+            // However, this non-blank strings that do take up a slot
+            // will not be returned as a replacement (instead the replacement will be empty).
+            // Rationale: we do not have a mechanism for linking a string to its replacement source,
+            // so returning the string would it unlinked and inconsistent with other cases.
+            const nonBlankStringReplacements = refComponent.replacements.filter(
+                (x) => typeof x !== "string" || x.trim() !== "",
+            );
+
+            // Replace all copies with their replacements so that copies don't take up an index
+            // but are treated as though they were not an intermediary
+
+            // Reverse the replacements so that we can use them as a queue
+            nonBlankStringReplacements.reverse();
+
+            let foundUnexpandedCopy = false;
+            const replacementsWithoutCopies = [];
+
+            let elt = nonBlankStringReplacements.pop();
+
+            while (elt) {
+                if (elt.componentType === "_copy") {
+                    // make sure that the copy is expanded
+                    if (!elt.isExpanded) {
+                        this.addBlockerForUnexpandedComposite(elt);
+
+                        foundUnexpandedCopy = true;
+                    } else {
+                        this.compositeReplacementDependencies.push(
+                            elt.componentIdx,
+                        );
+                        this.addUpdateTriggersForCompositeReplacements([
+                            elt.componentIdx,
+                        ]);
+
+                        // Add the replacements of the copy to the queue (in reverse order)
+                        const newNonBlankReplacements = elt.replacements.filter(
+                            (x) => typeof x !== "string" || x.trim() !== "",
+                        );
+                        newNonBlankReplacements.reverse();
+                        nonBlankStringReplacements.push(
+                            ...newNonBlankReplacements,
+                        );
+                    }
+                } else {
+                    replacementsWithoutCopies.push(elt);
+                }
+
+                elt = nonBlankStringReplacements.pop();
+            }
+
+            if (foundUnexpandedCopy) {
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
+            const theReplacement =
+                replacementsWithoutCopies[replacementIdx - 1];
+            if (theReplacement && typeof theReplacement !== "string") {
+                // found a replacement component that matches
+                nodeIdx = theReplacement.componentIdx;
+
+                if (index.length === 1) {
+                    // we finished off this path part
+                    unresolvedPath.shift();
+                } else {
+                    nextPathPart.index.shift();
+                }
+
+                // We made progress so continue in the loop
+                continue;
+            } else {
+                // No replacement at the given replacement index, so we should return nothing
+                this.extendIdx = -1;
+                this.unresolvedPath = null;
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+        }
+
+        // No unresolved path left
+        this.extendIdx = nodeIdx;
+        this.unresolvedPath = null;
+
+        return this.foundExtend();
+    }
+
+    foundExtend() {
+        let extendedComponent =
+            this.dependencyHandler._components[this.extendIdx];
+
+        if (!extendedComponent) {
+            this.addUpdateTriggerForMissingComponent(this.extendIdx);
+            this.missingComponentBlockers.push(this.extendIdx);
+
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        return {
+            success: true,
+            downstreamComponentIndices: [this.extendIdx],
+            downstreamComponentTypes: [extendedComponent.componentType],
+        };
+    }
+
+    /**
+     * Iterate through all indices of `unresolvedPath`.
+     * If any component is found, it must be an "integer".
+     * Resolve its `value` state variable, which should be an integer,
+     * and use its string value instead of the component.
+     *
+     * Note: we use strings rather than numbers for the literal indices
+     * so that the unresolved path follows the `FlatPathPart` assumed by the rust resolver.
+     */
+    async resolveComponentsInPath(unresolvedPath) {
+        const unresolvedPathWithResolvedComponents = [];
+        for (const path_part of unresolvedPath) {
+            let index = [];
+            for (const index_part of path_part.index) {
+                if (typeof index_part.value[0] === "string") {
+                    index.push(index_part);
+                } else {
+                    let indexComponent = index_part.value[0];
+
+                    const haveComposite =
+                        this.dependencyHandler.componentInfoObjects.isCompositeComponent(
+                            {
+                                componentType: indexComponent.componentType,
+                                includeNonStandard: true,
+                            },
+                        );
+
+                    if (haveComposite) {
+                        if (!indexComponent.isExpanded) {
+                            this.addBlockerForUnexpandedComposite(
+                                indexComponent,
+                            );
+
+                            return {
+                                success: false,
+                            };
+                        }
+
+                        this.addUpdateTriggersForCompositeReplacements([
+                            indexComponent.componentIdx,
+                        ]);
+                        this.compositeReplacementDependencies.push(
+                            indexComponent.componentIdx,
+                        );
+
+                        if (indexComponent.replacements.length !== 1) {
+                            throw Error(
+                                "Something went wrong as path index is not an integer",
+                            );
+                        }
+                        indexComponent = indexComponent.replacements[0];
+                    }
+
+                    if (indexComponent.componentType !== "integer") {
+                        throw Error(
+                            "Something went wrong as path index is not an integer",
+                        );
+                    }
+
+                    // save index as a literal string
+                    index.push({
+                        value: [
+                            this.indexDependencyValues[
+                                indexComponent.componentIdx
+                            ].toString(),
+                        ],
+                        position: index_part.position,
+                    });
+                }
+            }
+
+            unresolvedPathWithResolvedComponents.push({
+                name: path_part.name,
+                index,
+                position: path_part.position,
+            });
+        }
+
+        return {
+            success: true,
+            unresolvedPath: unresolvedPathWithResolvedComponents,
+        };
+    }
+
+    async getValue() {
+        const result = await super.getValue();
+
+        result.value = {
+            extendIdx: this.extendIdx,
+            unresolvedPath: this.unresolvedPath,
+            originalPath: this.originalPath,
+        };
+
+        return result;
+    }
+
+    deleteFromUpdateTriggers() {
+        for (const componentIdx of this.missingComponentBlockers) {
+            this.deleteUpdateTriggerForMissingComponent(componentIdx);
+        }
+
+        this.deleteUpdateTriggersForCompositeReplacements(
+            this.compositeReplacementDependencies,
+        );
+    }
+}
+
+dependencyTypeArray.push(RefResolutionDependency);
+
+class AttributeRefResolutions extends Dependency {
+    static dependencyType = "attributeRefResolutions";
+
+    setUpParameters() {
+        if (this.definition.parentIdx != undefined) {
+            this.parentIdx = this.definition.parentIdx;
+            this.specifiedComponentName = this.parentIdx;
+        } else {
+            this.parentIdx = this.upstreamComponentIdx;
+        }
+
+        this.attributeName = this.definition.attributeName;
+
+        this.originalDownstreamVariableNames = [
+            "extendIdx",
+            "unresolvedPath",
+            "originalPath",
+        ];
+
+        this.missingComponentBlockers = [];
+    }
+
+    async determineDownstreamComponents() {
+        let parent = this.dependencyHandler._components[this.parentIdx];
+
+        if (!parent) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            this.missingComponentBlockers.push(this.parentIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        let attribute = parent.attributes[this.attributeName];
+
+        if (attribute?.references) {
+            this.foundAttribute = true;
+            return {
+                success: true,
+                downstreamComponentIndices: attribute.references.map(
+                    (comp) => comp.componentIdx,
+                ),
+                downstreamComponentTypes: attribute.references.map(
+                    (comp) => comp.componentType,
+                ),
+            };
+        } else {
+            this.foundAttribute = false;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+    }
+    async getValue() {
+        const result = await super.getValue();
+
+        result.value = result.value.map((comp) => ({
+            componentIdx: comp.stateValues.extendIdx,
+            unresolvedPath: comp.stateValues.unresolvedPath,
+        }));
+        result.usedDefault = !this.foundAttribute;
+
+        return result;
+    }
+
+    deleteFromUpdateTriggers() {
+        for (const componentIdx of this.missingComponentBlockers) {
+            this.deleteUpdateTriggerForMissingComponent(componentIdx);
+        }
+    }
+}
+
+dependencyTypeArray.push(AttributeRefResolutions);
+
 class SourceCompositeStateVariableDependency extends Dependency {
     static dependencyType = "sourceCompositeStateVariable";
 
     setUpParameters() {
-        if (this.definition.replacementIdx) {
+        if (this.definition.replacementIdx != undefined) {
             this.replacementIdx = this.definition.replacementIdx;
             this.specifiedComponentName = this.replacementIdx;
         } else {
@@ -6853,7 +7849,7 @@ class SourceCompositeIdentityDependency extends Dependency {
     static dependencyType = "sourceCompositeIdentity";
 
     setUpParameters() {
-        if (this.definition.replacementIdx) {
+        if (this.definition.replacementIdx != undefined) {
             this.replacementIdx = this.definition.replacementIdx;
             this.specifiedComponentName = this.replacementIdx;
         } else {
@@ -6947,30 +7943,28 @@ class SourceCompositeIdentityDependency extends Dependency {
 
 dependencyTypeArray.push(SourceCompositeIdentityDependency);
 
-class ShadowSourceDependency extends Dependency {
-    static dependencyType = "shadowSource";
+class ShadowSourceStateVariableDependency extends Dependency {
+    static dependencyType = "shadowSourceStateVariable";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
             this.componentIdx = this.upstreamComponentIdx;
         }
 
-        if (this.definition.variableNames) {
-            if (!Array.isArray(this.definition.variableNames)) {
-                throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: variableNames must be an array`,
-                );
-            }
-            this.originalDownstreamVariableNames =
-                this.definition.variableNames;
+        if (!this.definition.variableName) {
+            throw Error(
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: must have a variableName`,
+            );
         } else {
-            this.originalDownstreamVariableNames = [];
+            this.originalDownstreamVariableNames = [
+                this.definition.variableName,
+            ];
         }
 
-        this.returnSingleComponent = true;
+        this.returnSingleVariableValue = true;
 
         // for shadow source
         // always make variables optional so that don't get error
@@ -7033,12 +8027,11 @@ class ShadowSourceDependency extends Dependency {
             };
         }
 
-        // only get sources that are shadowed without propVariable
-        // unless from implicit prop
-        if (
-            component.shadows.propVariable &&
-            !component.shadows.fromImplicitProp
-        ) {
+        let shadowSourceComponentIdx = component.shadows.componentIdx;
+        let shadowSource =
+            this.dependencyHandler._components[shadowSourceComponentIdx];
+
+        if (!shadowSource) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -7046,9 +8039,151 @@ class ShadowSourceDependency extends Dependency {
             };
         }
 
-        let shadowSourceComponentName = component.shadows.componentIdx;
+        return {
+            success: true,
+            downstreamComponentIndices: [shadowSource.componentIdx],
+            downstreamComponentTypes: [shadowSource.componentType],
+        };
+    }
+
+    deleteFromUpdateTriggers() {
+        if (this.specifiedComponentName) {
+            let dependenciesMissingComponent =
+                this.dependencyHandler.updateTriggers
+                    .dependenciesMissingComponentBySpecifiedName[
+                    this.specifiedComponentName
+                ];
+            if (dependenciesMissingComponent) {
+                let ind = dependenciesMissingComponent.indexOf(this);
+                if (ind !== -1) {
+                    dependenciesMissingComponent.splice(ind, 1);
+                }
+            }
+        }
+    }
+}
+
+dependencyTypeArray.push(ShadowSourceStateVariableDependency);
+
+class ShadowSourceDependency extends Dependency {
+    static dependencyType = "shadowSource";
+
+    setUpParameters() {
+        if (this.definition.componentIdx != undefined) {
+            this.componentIdx = this.definition.componentIdx;
+            this.specifiedComponentName = this.componentIdx;
+        } else {
+            this.componentIdx = this.upstreamComponentIdx;
+        }
+
+        if (this.definition.variableNames) {
+            if (!Array.isArray(this.definition.variableNames)) {
+                throw Error(
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: variableNames must be an array`,
+                );
+            }
+            this.originalDownstreamVariableNames =
+                this.definition.variableNames;
+        } else {
+            this.originalDownstreamVariableNames = [];
+        }
+
+        this.returnSingleComponent = true;
+
+        // for shadow source
+        // always make variables optional so that don't get error
+        // depending on shadow source (which a component can't control)
+        this.variablesOptional = true;
+
+        this.givePropVariableValue = this.definition.givePropVariableValue;
+    }
+
+    async determineDownstreamComponents() {
+        let component = this.dependencyHandler._components[this.componentIdx];
+
+        if (!component) {
+            let dependenciesMissingComponent =
+                this.dependencyHandler.updateTriggers
+                    .dependenciesMissingComponentBySpecifiedName[
+                    this.componentIdx
+                ];
+            if (!dependenciesMissingComponent) {
+                dependenciesMissingComponent =
+                    this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
+                        this.componentIdx
+                    ] = [];
+            }
+            if (!dependenciesMissingComponent.includes(this)) {
+                dependenciesMissingComponent.push(this);
+            }
+
+            for (let varName of this.upstreamVariableNames) {
+                await this.dependencyHandler.addBlocker({
+                    blockerComponentIdx: this.componentIdx,
+                    blockerType: "componentIdentity",
+                    componentIdxBlocked: this.upstreamComponentIdx,
+                    typeBlocked: "recalculateDownstreamComponents",
+                    stateVariableBlocked: varName,
+                    dependencyBlocked: this.dependencyName,
+                });
+
+                await this.dependencyHandler.addBlocker({
+                    blockerComponentIdx: this.upstreamComponentIdx,
+                    blockerType: "recalculateDownstreamComponents",
+                    blockerStateVariable: varName,
+                    blockerDependency: this.dependencyName,
+                    componentIdxBlocked: this.upstreamComponentIdx,
+                    typeBlocked: "stateVariable",
+                    stateVariableBlocked: varName,
+                });
+            }
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        if (!component.shadows) {
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        if (
+            component.shadows.propVariable &&
+            !component.shadows.fromImplicitProp
+        ) {
+            if (!this.givePropVariableValue) {
+                // If `givePropVariableValue` not specified,
+                // only get sources that are shadowed without propVariable
+                // unless from implicit prop
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            } else {
+                // if `givePropVariableValue` is specified,
+                // then add prop variable to variable names
+                if (
+                    !this.originalDownstreamVariableNames.includes(
+                        component.shadows.propVariable,
+                    )
+                ) {
+                    this.originalDownstreamVariableNames.push(
+                        component.shadows.propVariable,
+                    );
+                }
+            }
+        }
+
+        let shadowSourceComponentIdx = component.shadows.componentIdx;
         let shadowSource =
-            this.dependencyHandler._components[shadowSourceComponentName];
+            this.dependencyHandler._components[shadowSourceComponentIdx];
 
         if (!shadowSource) {
             return {
@@ -7088,7 +8223,7 @@ class UnlinkedCopySourceDependency extends Dependency {
     static dependencyType = "unlinkedCopySource";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7212,7 +8347,7 @@ class PrimaryShadowDependency extends Dependency {
     static dependencyType = "primaryShadow";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7350,7 +8485,7 @@ class AdapterSourceStateVariableDependency extends Dependency {
     static dependencyType = "adapterSourceStateVariable";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7462,7 +8597,7 @@ class AdapterSourceDependency extends Dependency {
     static dependencyType = "adapterSource";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7576,7 +8711,7 @@ class CountAmongSiblingsDependency extends Dependency {
     static dependencyType = "countAmongSiblings";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -7640,7 +8775,7 @@ class CountAmongSiblingsDependency extends Dependency {
             };
         }
 
-        if (!component.parentIdx) {
+        if (component.parentIdx == undefined) {
             console.warn(
                 `component ${this.componentIdx} does not have a parent for state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}.`,
             );
@@ -7929,160 +9064,6 @@ class CountAmongSiblingsDependency extends Dependency {
 
 dependencyTypeArray.push(CountAmongSiblingsDependency);
 
-class AttributeTargetComponentNamesDependency extends StateVariableDependency {
-    static dependencyType = "attributeTargetComponentNames";
-
-    setUpParameters() {
-        this.attributeName = this.definition.attributeName;
-
-        if (this.definition.parentIdx) {
-            this.componentIdx = this.definition.parentIdx;
-            this.specifiedComponentName = this.componentIdx;
-        } else {
-            this.componentIdx = this.upstreamComponentIdx;
-        }
-    }
-
-    async getValue() {
-        let value = null;
-        let changes = {};
-
-        if (this.componentIdentitiesChanged) {
-            changes.componentIdentitiesChanged = true;
-            this.componentIdentitiesChanged = false;
-        }
-
-        if (this.downstreamComponentIndices.length === 1) {
-            let parent = this.dependencyHandler.components[this.componentIdx];
-
-            if (parent) {
-                value = parent.attributes[this.attributeName];
-                if (value) {
-                    value = value.targetComponentNames;
-                } else {
-                    value = null;
-                }
-            }
-        }
-
-        // if (!this.doNotProxy && value !== null && typeof value === 'object') {
-        //   value = new Proxy(value, readOnlyProxyHandler)
-        // }
-
-        return { value, changes };
-    }
-}
-
-dependencyTypeArray.push(AttributeTargetComponentNamesDependency);
-
-class TargetComponentDependency extends Dependency {
-    static dependencyType = "targetComponent";
-
-    setUpParameters() {
-        let component =
-            this.dependencyHandler._components[this.upstreamComponentIdx];
-
-        this.target = component.doenetAttributes.target;
-
-        if (this.target) {
-            this.targetComponentIdx = this.specifiedComponentName =
-                component.doenetAttributes.targetComponentIdx;
-        }
-
-        if (this.definition.variableNames) {
-            if (!Array.isArray(this.definition.variableNames)) {
-                throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: variableNames must be an array`,
-                );
-            }
-            this.originalDownstreamVariableNames =
-                this.definition.variableNames;
-        } else {
-            this.originalDownstreamVariableNames = [];
-        }
-
-        this.returnSingleComponent = true;
-    }
-
-    async determineDownstreamComponents() {
-        if (!this.target) {
-            return {
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
-        }
-
-        let targetComponent =
-            this.dependencyHandler._components[this.targetComponentIdx];
-
-        if (!targetComponent) {
-            let dependenciesMissingComponent =
-                this.dependencyHandler.updateTriggers
-                    .dependenciesMissingComponentBySpecifiedName[
-                    this.targetComponentIdx
-                ];
-            if (!dependenciesMissingComponent) {
-                dependenciesMissingComponent =
-                    this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[
-                        this.targetComponentIdx
-                    ] = [];
-            }
-            if (!dependenciesMissingComponent.includes(this)) {
-                dependenciesMissingComponent.push(this);
-            }
-
-            for (let varName of this.upstreamVariableNames) {
-                await this.dependencyHandler.addBlocker({
-                    blockerComponentIdx: this.targetComponentIdx,
-                    blockerType: "componentIdentity",
-                    componentIdxBlocked: this.upstreamComponentIdx,
-                    typeBlocked: "recalculateDownstreamComponents",
-                    stateVariableBlocked: varName,
-                    dependencyBlocked: this.dependencyName,
-                });
-
-                await this.dependencyHandler.addBlocker({
-                    blockerComponentIdx: this.upstreamComponentIdx,
-                    blockerType: "recalculateDownstreamComponents",
-                    blockerStateVariable: varName,
-                    blockerDependency: this.dependencyName,
-                    componentIdxBlocked: this.upstreamComponentIdx,
-                    typeBlocked: "stateVariable",
-                    stateVariableBlocked: varName,
-                });
-            }
-
-            return {
-                success: false,
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
-        }
-
-        return {
-            success: true,
-            downstreamComponentIndices: [this.targetComponentIdx],
-            downstreamComponentTypes: [targetComponent.componentType],
-        };
-    }
-
-    deleteFromUpdateTriggers() {
-        let dependenciesMissingComponent =
-            this.dependencyHandler.updateTriggers
-                .dependenciesMissingComponentBySpecifiedName[
-                this.specifiedComponentName
-            ];
-        if (dependenciesMissingComponent) {
-            let ind = dependenciesMissingComponent.indexOf(this);
-            if (ind !== -1) {
-                dependenciesMissingComponent.splice(ind, 1);
-            }
-        }
-    }
-}
-
-dependencyTypeArray.push(TargetComponentDependency);
-
 class ValueDependency extends Dependency {
     static dependencyType = "value";
 
@@ -8117,7 +9098,7 @@ class DoenetAttributeDependency extends StateVariableDependency {
     setUpParameters() {
         this.attributeName = this.definition.attributeName;
 
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8153,13 +9134,51 @@ class DoenetAttributeDependency extends StateVariableDependency {
 
 dependencyTypeArray.push(DoenetAttributeDependency);
 
+// TODO: added this dependency but then didn't use it.
+// Delete if don't end up using it.
+class ExtendingDependency extends StateVariableDependency {
+    static dependencyType = "extending";
+
+    setUpParameters() {
+        if (this.definition.componentIdx != undefined) {
+            this.componentIdx = this.definition.componentIdx;
+            this.specifiedComponentName = this.componentIdx;
+        } else {
+            this.componentIdx = this.upstreamComponentIdx;
+        }
+    }
+
+    async getValue() {
+        let value = null;
+        let changes = {};
+
+        if (this.componentIdentitiesChanged) {
+            changes.componentIdentitiesChanged = true;
+            this.componentIdentitiesChanged = false;
+        }
+
+        if (this.downstreamComponentIndices.length === 1) {
+            let depComponent =
+                this.dependencyHandler.components[
+                    this.downstreamComponentIndices[0]
+                ];
+
+            value = depComponent.extending;
+        }
+
+        return { value, changes };
+    }
+}
+
+dependencyTypeArray.push(ExtendingDependency);
+
 class AttributePrimitiveDependency extends StateVariableDependency {
     static dependencyType = "attributePrimitive";
 
     setUpParameters() {
         this.attributeName = this.definition.attributeName;
 
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.componentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8182,7 +9201,7 @@ class AttributePrimitiveDependency extends StateVariableDependency {
             if (parent) {
                 value = parent.attributes[this.attributeName];
                 if (value) {
-                    value = value.primitive;
+                    value = value.primitive.value;
                 } else {
                     value = null;
                 }
@@ -8203,7 +9222,7 @@ class SerializedChildrenDependency extends Dependency {
     static dependencyType = "serializedChildren";
 
     setUpParameters() {
-        if (this.definition.parentIdx) {
+        if (this.definition.parentIdx != undefined) {
             this.parentIdx = this.definition.parentIdx;
             this.specifiedComponentName = this.parentIdx;
         } else {
@@ -8297,7 +9316,7 @@ class DoenetMLDependency extends Dependency {
     static dependencyType = "doenetML";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8396,7 +9415,7 @@ class DoenetMLRangeDependency extends Dependency {
     static dependencyType = "position";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8461,26 +9480,12 @@ class DoenetMLRangeDependency extends Dependency {
     async getValue() {
         let component = this.dependencyHandler._components[this.componentIdx];
 
-        let position = component.position;
-        if (position?.doenetMLId === 0) {
-            if (position.lineBegin === undefined) {
-                let allNewlines = this.dependencyHandler.core.doenetMLNewlines;
-                Object.assign(
-                    position,
-                    getLineCharRange(position, allNewlines),
-                );
-            }
+        // TODO: address doenetmlId
 
-            return {
-                value: position,
-                changes: {},
-            };
-        } else {
-            return {
-                value: {},
-                changes: {},
-            };
-        }
+        return {
+            value: component.position ?? null,
+            changes: {},
+        };
     }
 
     deleteFromUpdateTriggers() {
@@ -8506,7 +9511,7 @@ class VariantsDependency extends Dependency {
     static dependencyType = "variants";
 
     setUpParameters() {
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
             this.specifiedComponentName = this.componentIdx;
         } else {
@@ -8652,7 +9657,7 @@ class DetermineDependenciesDependency extends Dependency {
         // and turned off after dependencies are recalculated
         this.recalculateDependencies = true;
 
-        if (this.definition.componentIdx) {
+        if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
         } else {
             this.componentIdx = this.upstreamComponentIdx;

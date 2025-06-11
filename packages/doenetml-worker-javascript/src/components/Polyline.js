@@ -37,7 +37,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.vertices = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
 
         attributes.showCoordsWhenDragging = {
@@ -865,6 +865,7 @@ export default class Polyline extends GraphicalComponent {
             },
             isArray: true,
             numDimensions: 2,
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["vertexX", "vertex"],
             returnEntryDimensions: (prefix) => (prefix === "vertex" ? 1 : 0),
             getArrayKeysFromVarName({
@@ -2180,14 +2181,14 @@ export default class Polyline extends GraphicalComponent {
 
     async polylineClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -2197,14 +2198,14 @@ export default class Polyline extends GraphicalComponent {
 
     async polylineFocused({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

@@ -14,17 +14,17 @@ vi.mock("hyperformula");
 
 describe("Graph Reference Test", async () => {
     it("graph referenced multiple ways", async () => {
-        const core = await createTestCore({
+        const { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="graphA">
       <point name="pointA">(1,2)</point>
       <point name="pointB">(-2,4)</point>
       <line name="lineA">y=x+1</line>
       <line name="lineB" through="$pointA $pointB" />
-      $pointA{name="pointC"}
+      <point extend="$pointA" name="pointC" />
       <point name="pointD" x="$pointA.x" y="$pointB.y" />
-      $lineA{name="lineC"}
-      $lineB{name="lineD"}
+      <line extend="$lineA" name="lineC" />
+      <line extend="$lineB" name="lineD" />
       <intersection name="pointE">$lineA$lineB</intersection>
     </graph>
 
@@ -32,26 +32,26 @@ describe("Graph Reference Test", async () => {
       $pointA$pointB$lineA$lineB$pointC$pointD$lineC$lineD$pointE
     </graph>
 
-    $graphA{name="graphC"}
+    <graph extend="$graphA" name="graphC" />
 
-    $graphB{name="graphD"}
+    <graph extend="$graphB" name="graphD" />
 
-    $graphC{name="graphE"}
+    <graph extend="$graphC" name="graphE" />
 
-    $graphD{name="graphF"}
+    <graph extend="$graphD" name="graphF" />
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let graphB = stateVariables["/graphB"];
-        let graphC = stateVariables["/graphC"];
-        let graphD = stateVariables["/graphD"];
-        let graphE = stateVariables["/graphE"];
-        let graphF = stateVariables["/graphF"];
+        let graphB = stateVariables[resolveComponentName("graphB")];
+        let graphC = stateVariables[resolveComponentName("graphC")];
+        let graphD = stateVariables[resolveComponentName("graphD")];
+        let graphE = stateVariables[resolveComponentName("graphE")];
+        let graphF = stateVariables[resolveComponentName("graphF")];
         let pointsA = [
-            "/pointA",
-            "/pointC",
+            resolveComponentName("pointA"),
+            resolveComponentName("pointC"),
             graphB.activeChildren[0].componentIdx,
             graphB.activeChildren[4].componentIdx,
             graphC.activeChildren[0].componentIdx,
@@ -65,7 +65,7 @@ describe("Graph Reference Test", async () => {
         ];
 
         let pointsB = [
-            "/pointB",
+            resolveComponentName("pointB"),
             graphB.activeChildren[1].componentIdx,
             graphC.activeChildren[1].componentIdx,
             graphD.activeChildren[1].componentIdx,
@@ -74,7 +74,7 @@ describe("Graph Reference Test", async () => {
         ];
 
         let pointsD = [
-            "/pointD",
+            resolveComponentName("pointD"),
             graphB.activeChildren[5].componentIdx,
             graphC.activeChildren[5].componentIdx,
             graphD.activeChildren[5].componentIdx,
@@ -83,7 +83,8 @@ describe("Graph Reference Test", async () => {
         ];
 
         let pointsE = [
-            stateVariables["/pointE"].replacements![0].componentIdx,
+            stateVariables[resolveComponentName("pointE")].replacements![0]
+                .componentIdx,
             graphB.activeChildren[8].componentIdx,
             graphC.activeChildren[8].componentIdx,
             graphD.activeChildren[8].componentIdx,
@@ -92,8 +93,8 @@ describe("Graph Reference Test", async () => {
         ];
 
         let linesA = [
-            "/lineA",
-            "/lineC",
+            resolveComponentName("lineA"),
+            resolveComponentName("lineC"),
             graphB.activeChildren[2].componentIdx,
             graphB.activeChildren[6].componentIdx,
             graphC.activeChildren[2].componentIdx,
@@ -107,8 +108,8 @@ describe("Graph Reference Test", async () => {
         ];
 
         let linesB = [
-            "/lineB",
-            "/lineD",
+            resolveComponentName("lineB"),
+            resolveComponentName("lineD"),
             graphB.activeChildren[3].componentIdx,
             graphB.activeChildren[7].componentIdx,
             graphC.activeChildren[3].componentIdx,
@@ -263,23 +264,37 @@ describe("Graph Reference Test", async () => {
         pointAy = 6;
         pointBx = 4;
         pointBy = -2;
-        await movePoint({ name: "/pointA", x: pointAx, y: pointAy, core });
-        await movePoint({ name: "/pointB", x: pointBx, y: pointBy, core });
+        await movePoint({
+            componentIdx: resolveComponentName("pointA"),
+            x: pointAx,
+            y: pointAy,
+            core,
+        });
+        await movePoint({
+            componentIdx: resolveComponentName("pointB"),
+            x: pointBx,
+            y: pointBy,
+            core,
+        });
 
         let moveUp = -3;
         let point1coords = [
-            stateVariables["/lineA"].stateValues.points[0][0].tree,
-            stateVariables["/lineA"].stateValues.points[0][1].tree,
+            stateVariables[resolveComponentName("lineA")].stateValues
+                .points[0][0].tree,
+            stateVariables[resolveComponentName("lineA")].stateValues
+                .points[0][1].tree,
         ];
         let point2coords = [
-            stateVariables["/lineA"].stateValues.points[1][0].tree,
-            stateVariables["/lineA"].stateValues.points[1][1].tree,
+            stateVariables[resolveComponentName("lineA")].stateValues
+                .points[1][0].tree,
+            stateVariables[resolveComponentName("lineA")].stateValues
+                .points[1][1].tree,
         ];
         point1coords[1] = point1coords[1] + moveUp;
         point2coords[1] = point2coords[1] + moveUp;
 
         await moveLine({
-            name: "/lineA",
+            componentIdx: resolveComponentName("lineA"),
             point1coords: point1coords,
             point2coords: point2coords,
             core,
@@ -312,8 +327,18 @@ describe("Graph Reference Test", async () => {
         let pointDy = 2;
         let pointCy = -9;
 
-        await movePoint({ name: pointsD[1], x: pointDx, y: pointDy, core });
-        await movePoint({ name: pointsA[3], x: pointDx, y: pointCy, core });
+        await movePoint({
+            componentIdx: pointsD[1],
+            x: pointDx,
+            y: pointDy,
+            core,
+        });
+        await movePoint({
+            componentIdx: pointsA[3],
+            x: pointDx,
+            y: pointCy,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -330,7 +355,7 @@ describe("Graph Reference Test", async () => {
         point1coords[1] = point1coords[1] + moveUp;
         point2coords[1] = point2coords[1] + moveUp;
         await moveLine({
-            name: linesA[3],
+            componentIdx: linesA[3],
             point1coords: point1coords,
             point2coords: point2coords,
             core,
@@ -371,7 +396,7 @@ describe("Graph Reference Test", async () => {
         point1coords[1] = point1coords[1] + moveUp;
         point2coords[1] = point2coords[1] + moveUp;
         await moveLine({
-            name: linesA[5],
+            componentIdx: linesA[5],
             point1coords: point1coords,
             point2coords: point2coords,
             core,
@@ -393,7 +418,7 @@ describe("Graph Reference Test", async () => {
         point2coords[0] = point2coords[0] + moveX;
         point2coords[1] = point2coords[1] + moveY;
         await moveLine({
-            name: linesB[5],
+            componentIdx: linesB[5],
             point1coords: point1coords,
             point2coords: point2coords,
             core,
@@ -432,8 +457,18 @@ describe("Graph Reference Test", async () => {
         pointDy = -1;
         pointCy = 5;
 
-        await movePoint({ name: pointsA[7], x: pointDx, y: pointCy, core });
-        await movePoint({ name: pointsD[3], x: pointDx, y: pointDy, core });
+        await movePoint({
+            componentIdx: pointsA[7],
+            x: pointDx,
+            y: pointCy,
+            core,
+        });
+        await movePoint({
+            componentIdx: pointsD[3],
+            x: pointDx,
+            y: pointDy,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -450,7 +485,7 @@ describe("Graph Reference Test", async () => {
         point1coords[1] = point1coords[1] + moveUp;
         point2coords[1] = point2coords[1] + moveUp;
         await moveLine({
-            name: linesA[7],
+            componentIdx: linesA[7],
             point1coords: point1coords,
             point2coords: point2coords,
             core,
@@ -486,8 +521,18 @@ describe("Graph Reference Test", async () => {
         pointAy = -7;
         pointBx = -8;
         pointBy = 9;
-        await movePoint({ name: pointsA[8], x: pointAx, y: pointAy, core });
-        await movePoint({ name: pointsB[4], x: pointBx, y: pointBy, core });
+        await movePoint({
+            componentIdx: pointsA[8],
+            x: pointAx,
+            y: pointAy,
+            core,
+        });
+        await movePoint({
+            componentIdx: pointsB[4],
+            x: pointBx,
+            y: pointBy,
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -500,7 +545,7 @@ describe("Graph Reference Test", async () => {
         point1coords[1] = point1coords[1] + moveUp;
         point2coords[1] = point2coords[1] + moveUp;
         await moveLine({
-            name: linesA[8],
+            componentIdx: linesA[8],
             point1coords: point1coords,
             point2coords: point2coords,
             core,
@@ -543,7 +588,7 @@ describe("Graph Reference Test", async () => {
         point1coords[1] = point1coords[1] + moveUp;
         point2coords[1] = point2coords[1] + moveUp;
         await moveLine({
-            name: linesA[11],
+            componentIdx: linesA[11],
             point1coords: point1coords,
             point2coords: point2coords,
             core,
@@ -566,7 +611,7 @@ describe("Graph Reference Test", async () => {
         point2coords[0] = point2coords[0] + moveX;
         point2coords[1] = point2coords[1] + moveY;
         await moveLine({
-            name: linesB[11],
+            componentIdx: linesB[11],
             point1coords: point1coords,
             point2coords: point2coords,
             core,
@@ -602,53 +647,53 @@ describe("Graph Reference Test", async () => {
     });
 
     it("graph referenced multiple ways 2", async () => {
-        const core = await createTestCore({
+        const { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <text>a</text>
-    <sbsgroup>
+    <sbsGroup>
     <sideBySide>
-    <graph width="150px" height="150px" name="graph1">
+    <graph width="150px" name="graph1">
     <vector head="(-4,2)" tail="(3,5)" />
     </graph>
   
-    <graph width="150px" height="150px" name="graph2">
+    <graph width="150px" name="graph2">
     $_vector1.tail
     $_vector1.head
-    $_vector1.displacement{name="d1"}
-    $_vector1{name="rv1"}
+    <vector extend="$_vector1.displacement" name="d1" />
+    <vector extend="$_vector1" name="rv1" />
     </graph>
 
-    <graph width="150px" height="150px" name="graph3">
+    <graph width="150px" name="graph3">
     $d1.tail
     $d1.head
     $d1.displacement
     $d1
     </graph>
   
-    <graph width="150px" height="150px" name="graph4">
+    <graph width="150px" name="graph4">
     $rv1.tail
     $rv1.head
     $rv1.displacement
-    $rv1{name="rv2"}
+    <vector extend="$rv1" name="rv2" />
     </graph>
-    </sidebyside>
-
-    <sidebyside>
-    $graph1{width="150px" height="150px" name="graph5"}
-    $graph2{width="150px" height="150px" name="graph6"}
-    $graph3{width="150px" height="150px" name="graph7"}
-    $graph4{width="150px" height="150px" name="graph8"}
-    </sidebyside>
-
-    <sidebyside>
-    $graph5{width="150px" height="150px" name="graph9"}
-    $graph6{width="150px" height="150px" name="graph10"}
-    $graph7{width="150px" height="150px" name="graph11"}
-    $graph8{width="150px" height="150px" name="graph12"}
     </sideBySide>
-    </sbsgroup>
 
-    $_sbsgroup1{name="sbsgroup2"}
+    <sideBySide>
+      <graph extend="$graph1" width="150px" name="graph5" />
+      <graph extend="$graph2" width="150px" name="graph6" />
+      <graph extend="$graph3" width="150px" name="graph7" />
+      <graph extend="$graph4" width="150px" name="graph8" />
+    </sideBySide>
+
+    <sideBySide>
+      <graph extend="$graph5" width="150px" name="graph9" />
+      <graph extend="$graph6" width="150px" name="graph10" />
+      <graph extend="$graph7" width="150px" name="graph11" />
+      <graph extend="$graph8" width="150px" name="graph12" />
+    </sideBySide>
+    </sbsGroup>
+
+    <sbsGroup extend="$_sbsGroup1" name="sbsGroup2" />
   
     `,
         });
@@ -667,89 +712,101 @@ describe("Graph Reference Test", async () => {
         // let pointShift = 6;
         // let nShifts = 6;
 
-        let graph1 = stateVariables["/graph1"];
-        let graph2 = stateVariables["/graph2"];
-        let graph3 = stateVariables["/graph3"];
-        let graph4 = stateVariables["/graph4"];
-        let graph5 = stateVariables["/graph5"];
-        let graph6 = stateVariables["/graph6"];
-        let graph7 = stateVariables["/graph7"];
-        let graph8 = stateVariables["/graph8"];
-        let graph9 = stateVariables["/graph9"];
-        let graph10 = stateVariables["/graph10"];
-        let graph11 = stateVariables["/graph11"];
-        let graph12 = stateVariables["/graph12"];
+        let graph1 = stateVariables[resolveComponentName("graph1")];
+        let graph2 = stateVariables[resolveComponentName("graph2")];
+        let graph3 = stateVariables[resolveComponentName("graph3")];
+        let graph4 = stateVariables[resolveComponentName("graph4")];
+        let graph5 = stateVariables[resolveComponentName("graph5")];
+        let graph6 = stateVariables[resolveComponentName("graph6")];
+        let graph7 = stateVariables[resolveComponentName("graph7")];
+        let graph8 = stateVariables[resolveComponentName("graph8")];
+        let graph9 = stateVariables[resolveComponentName("graph9")];
+        let graph10 = stateVariables[resolveComponentName("graph10")];
+        let graph11 = stateVariables[resolveComponentName("graph11")];
+        let graph12 = stateVariables[resolveComponentName("graph12")];
 
         let graph1A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[0].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[0].componentIdx
                 ].activeChildren[0].componentIdx
             ];
         let graph2A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[0].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[0].componentIdx
                 ].activeChildren[1].componentIdx
             ];
         let graph3A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[0].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[0].componentIdx
                 ].activeChildren[2].componentIdx
             ];
         let graph4A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[0].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[0].componentIdx
                 ].activeChildren[3].componentIdx
             ];
         let graph5A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[1].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[1].componentIdx
                 ].activeChildren[0].componentIdx
             ];
         let graph6A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[1].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[1].componentIdx
                 ].activeChildren[1].componentIdx
             ];
         let graph7A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[1].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[1].componentIdx
                 ].activeChildren[2].componentIdx
             ];
         let graph8A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[1].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[1].componentIdx
                 ].activeChildren[3].componentIdx
             ];
         let graph9A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[2].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[2].componentIdx
                 ].activeChildren[0].componentIdx
             ];
         let graph10A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[2].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[2].componentIdx
                 ].activeChildren[1].componentIdx
             ];
         let graph11A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[2].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[2].componentIdx
                 ].activeChildren[2].componentIdx
             ];
         let graph12A =
             stateVariables[
                 stateVariables[
-                    stateVariables["/sbsgroup2"].activeChildren[2].componentIdx
+                    stateVariables[resolveComponentName("sbsGroup2")]
+                        .activeChildren[2].componentIdx
                 ].activeChildren[3].componentIdx
             ];
 
@@ -1015,7 +1072,7 @@ describe("Graph Reference Test", async () => {
         d3_h = d3_t.map((x, i) => x + d[i]);
 
         await moveVector({
-            name: vectors[8],
+            componentIdx: vectors[8],
             tailcoords: ov_t,
             headcoords: ov_h,
             core,
@@ -1046,7 +1103,7 @@ describe("Graph Reference Test", async () => {
         d3_h = d3_t.map((x, i) => x + d[i]);
 
         await moveVector({
-            name: displacementsA[1],
+            componentIdx: displacementsA[1],
             tailcoords: d1_t,
             headcoords: d1_h,
             core,
@@ -1077,7 +1134,7 @@ describe("Graph Reference Test", async () => {
         d3_h = d3_t.map((x, i) => x + d[i]);
 
         await moveVector({
-            name: displacementsB[2],
+            componentIdx: displacementsB[2],
             tailcoords: d2_t,
             headcoords: d2_h,
             core,
@@ -1108,7 +1165,7 @@ describe("Graph Reference Test", async () => {
         d2_h = d2_t.map((x, i) => x + d[i]);
 
         await moveVector({
-            name: displacementsC[5],
+            componentIdx: displacementsC[5],
             tailcoords: d3_t,
             headcoords: d3_h,
             core,

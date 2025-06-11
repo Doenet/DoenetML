@@ -7,7 +7,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import me from "math-expressions";
 
 export default React.memo(function Image(props) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(
+    let { componentIdx, id, SVs, actions, callAction } = useDoenetRenderer(
         props,
         false,
     );
@@ -197,7 +197,7 @@ export default React.memo(function Image(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.imageFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -207,7 +207,7 @@ export default React.memo(function Image(props) {
             dragged.current = false;
             callAction({
                 action: actions.imageFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -224,7 +224,7 @@ export default React.memo(function Image(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.imageClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -351,7 +351,7 @@ export default React.memo(function Image(props) {
                 }
                 callAction({
                     action: actions.imageClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });

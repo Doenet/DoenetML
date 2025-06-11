@@ -10,23 +10,23 @@ fn can_compactify() {
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     // Add several nodes that aren't connected to the root
     flat_root.merge_content(&dast_root2.children[0], Some(0));
-    flat_root.compactify();
+    flat_root.compactify(None);
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "a",
                 "parent": 0,
                 "children": [2],
@@ -34,7 +34,7 @@ fn can_compactify() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "b",
                 "parent": 1,
                 "children": [],
@@ -53,31 +53,31 @@ fn can_compactify() {
     flat_root.children = vec![UntaggedContent::Ref(2), UntaggedContent::Ref(3)];
     flat_root.nodes[2].set_parent(None);
     flat_root.nodes[3].set_parent(None);
-    flat_root.compactify();
+    flat_root.compactify(None);
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0, 1],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "b",
                 "children": [],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [2],
                 "attributes": [],
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "x",
                 "parent": 1,
                 "children": [3],
@@ -85,7 +85,7 @@ fn can_compactify() {
                 "idx": 2
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "y",
                 "parent": 2,
                 "children": [],
@@ -99,35 +99,36 @@ fn can_compactify() {
 }
 
 #[test]
-fn compactify_adjusts_extending_refs_and_attributes() {
+fn compactify_adjusts_extending_refs_attributes_and_resolver() {
     let dast_root = dast_root_no_position(
-        r#"<text name="t">hello</text><text extend="$t"> world</text><textInput name="ti" /><text extend="$ti.immediateValue"> world</text>"#,
+        r#"<text name="t">hello</text><text extend="$t"> world</text><textInput name="ti" /><p><text name="tiv" extend="$ti.immediateValue"> world</text></p>"#,
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
-    Expander::expand(&mut flat_root);
-    flat_root.compactify();
+    let mut resolver = Expander::expand(&mut flat_root);
+    flat_root.compactify(Some(&mut resolver));
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1, 2, 3, 4],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "text",
                 "parent": 0,
                 "children": ["hello"],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 1,
                     "children": ["t"]
@@ -136,26 +137,28 @@ fn compactify_adjusts_extending_refs_and_attributes() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "text",
                 "parent": 0,
                 "children": [" world"],
                 "attributes": [],
                 "idx": 2,
                 "extending": {
-                  "Attribute": {
-                    "node_idx": 1,
-                    "unresolved_path": null
+                  "ExtendAttribute": {
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "t", "index": [] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "textInput",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 3,
                     "children": ["ti"]
@@ -164,21 +167,40 @@ fn compactify_adjusts_extending_refs_and_attributes() {
                 "idx": 3
               },
               {
-                "type": "Element",
-                "name": "text",
+                "type": "element",
+                "name": "p",
                 "parent": 0,
-                "children": [" world"],
+                "children": [5],
                 "attributes": [],
-                "idx": 4,
+                "idx": 4
+              },
+              {
+                "type": "element",
+                "name": "text",
+                "parent": 4,
+                "children": [" world"],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 5,
+                    "children": ["tiv"]
+                  }
+                ],
+                "idx": 5,
                 "extending": {
-                  "Attribute": {
-                    "node_idx": 3,
-                    "unresolved_path": [
+                  "ExtendAttribute": {
+                    "nodeIdx": 3,
+                    "unresolvedPath": [
                       {
                         "type": "flatPathPart",
                         "name": "immediateValue",
                         "index": []
                       }
+                    ],
+                    "originalPath": [
+                      { "type": "flatPathPart", "name": "ti", "index": [] },
+                      { "type": "flatPathPart", "name": "immediateValue", "index": [] },
                     ]
                   }
                 }
@@ -187,6 +209,303 @@ fn compactify_adjusts_extending_refs_and_attributes() {
           }
         )
     );
+
+    assert_json_eq!(
+        serde_json::to_value(&resolver).unwrap(),
+        json!({
+          "node_parent": [
+            null,
+            0,
+            1,
+            1,
+            1,
+            1,
+            5
+          ],
+          "resolution_algorithm": [
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren"
+          ],
+          "name_map": [
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {},
+            {},
+            {},
+            {
+              "tiv": { "Unique": 5 }
+            },
+            {},
+          ]
+        })
+    );
+}
+
+#[test]
+fn compactify_adjusts_copying_refs_attributes_and_resolver() {
+    let dast_root = dast_root_no_position(
+        r#"<text name="t">hello</text><text copy="$t"> world</text><textInput name="ti" /><p><text name="tiv" copy="$ti.immediateValue"> world</text></p>"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let mut resolver = Expander::expand(&mut flat_root);
+    flat_root.compactify(Some(&mut resolver));
+
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "flatRoot",
+            "children": [0],
+            "nodes": [
+              {
+                "type": "element",
+                "name": "document",
+                "children": [1, 2, 3, 4],
+                "attributes": [],
+                "idx": 0
+              },
+              {
+                "type": "element",
+                "name": "text",
+                "parent": 0,
+                "children": ["hello"],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 1,
+                    "children": ["t"]
+                  }
+                ],
+                "idx": 1
+              },
+              {
+                "type": "element",
+                "name": "text",
+                "parent": 0,
+                "children": [" world"],
+                "attributes": [],
+                "idx": 2,
+                "extending": {
+                  "CopyAttribute": {
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "t", "index": [] }]
+                  }
+                }
+              },
+              {
+                "type": "element",
+                "name": "textInput",
+                "parent": 0,
+                "children": [],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 3,
+                    "children": ["ti"]
+                  }
+                ],
+                "idx": 3
+              },
+              {
+                "type": "element",
+                "name": "p",
+                "parent": 0,
+                "children": [5],
+                "attributes": [],
+                "idx": 4
+              },
+              {
+                "type": "element",
+                "name": "text",
+                "parent": 4,
+                "children": [" world"],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 5,
+                    "children": ["tiv"]
+                  }
+                ],
+                "idx": 5,
+                "extending": {
+                  "CopyAttribute": {
+                    "nodeIdx": 3,
+                    "unresolvedPath": [
+                      {
+                        "type": "flatPathPart",
+                        "name": "immediateValue",
+                        "index": []
+                      }
+                    ],
+                    "originalPath": [
+                      { "type": "flatPathPart", "name": "ti", "index": [] },
+                      { "type": "flatPathPart", "name": "immediateValue", "index": [] },
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        )
+    );
+
+    assert_json_eq!(
+        serde_json::to_value(&resolver).unwrap(),
+        json!({
+          "node_parent": [
+            null,
+            0,
+            1,
+            1,
+            1,
+            1,
+            5
+          ],
+          "resolution_algorithm": [
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren"
+          ],
+          "name_map": [
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {
+              "t": { "Unique": 1 },
+              "ti": { "Unique": 3 },
+              "tiv": { "Unique": 5 }
+            },
+            {},
+            {},
+            {},
+            {
+              "tiv": { "Unique": 5 }
+            },
+            {},
+          ]
+        })
+    );
+}
+
+#[test]
+fn compactify_adjusts_refs_to_document() {
+    let dast_root = dast_root_no_position(
+        r#"<document name="doc"><number extend="$doc.creditAchieved" /><number copy="$doc.creditAchieved" /></document>"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let mut resolver = Expander::expand(&mut flat_root);
+    flat_root.compactify(Some(&mut resolver));
+
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "flatRoot",
+            "children": [0],
+            "nodes": [
+              {
+                "type": "element",
+                "name": "document",
+                "children": [1, 2],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 0,
+                    "children": ["doc"]
+                  }
+                ],
+                "idx": 0
+              },
+              {
+                "type": "element",
+                "name": "number",
+                "parent": 0,
+                "children": [],
+                "attributes": [],
+                "idx": 1,
+                "extending": {
+                  "ExtendAttribute": {
+                    "nodeIdx": 0,
+                    "unresolvedPath": [{ "type": "flatPathPart", "name": "creditAchieved", "index": [] }],
+                    "originalPath": [
+                        { "type": "flatPathPart", "name": "doc", "index": [] },
+                        { "type": "flatPathPart", "name": "creditAchieved", "index": [] }
+                      ]
+                  }
+                }
+              },
+              {
+                "type": "element",
+                "name": "number",
+                "parent": 0,
+                "children": [],
+                "attributes": [],
+                "idx": 2,
+                "extending": {
+                  "CopyAttribute": {
+                    "nodeIdx": 0,
+                    "unresolvedPath": [{ "type": "flatPathPart", "name": "creditAchieved", "index": [] }],
+                    "originalPath": [
+                        { "type": "flatPathPart", "name": "doc", "index": [] },
+                        { "type": "flatPathPart", "name": "creditAchieved", "index": [] }
+                      ]
+                  }
+                }
+              },
+            ]
+          }
+        )
+    );
+
+    assert_json_eq!(
+        serde_json::to_value(&resolver).unwrap(),
+        json!({
+          "node_parent": [
+            null,
+            0,
+            1,
+            1,
+          ],
+          "resolution_algorithm": [
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+            "SearchChildren",
+          ],
+          "name_map": [
+            {
+              "doc": { "Unique": 0 },
+            },
+            {},
+            {},
+            {},
+          ]
+        })
+    );
 }
 
 #[test]
@@ -194,29 +513,30 @@ fn compactify_preserves_refs_in_path_parts() {
     let dast_root = dast_root_no_position(r#"<number name="n"/><point name="p"/>$p[$n]"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
-    flat_root.compactify();
+    flat_root.compactify(None);
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1, 2, 3],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "number",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 1,
                     "children": ["n"]
@@ -225,12 +545,13 @@ fn compactify_preserves_refs_in_path_parts() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 2,
                     "children": ["p"]
@@ -239,7 +560,7 @@ fn compactify_preserves_refs_in_path_parts() {
                 "idx": 2,
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
@@ -247,8 +568,8 @@ fn compactify_preserves_refs_in_path_parts() {
                 "idx": 3,
                 "extending": {
                   "Ref": {
-                    "node_idx": 2,
-                    "unresolved_path": [
+                    "nodeIdx": 2,
+                    "unresolvedPath": [
                       {
                         "type": "flatPathPart",
                         "name": "",
@@ -258,12 +579,13 @@ fn compactify_preserves_refs_in_path_parts() {
                           }
                         ]
                       }
-                    ]
+                    ],
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [{ "value": [4] }] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "number",
                 "parent": 3,
                 "children": [],
@@ -271,8 +593,9 @@ fn compactify_preserves_refs_in_path_parts() {
                 "idx": 4,
                 "extending": {
                   "Ref": {
-                    "node_idx": 1,
-                    "unresolved_path": null
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }]
                   }
                 }
               }
@@ -288,29 +611,30 @@ fn compactify_shifts_refs_in_path_parts() {
         dast_root_no_position(r#"<number name="n"/><point name="p"/><point extend="$p" />$p[$n]"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
-    flat_root.compactify();
+    flat_root.compactify(None);
 
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
           {
-            "type": "FlatRoot",
+            "type": "flatRoot",
             "children": [0],
             "nodes": [
               {
-                "type": "Element",
+                "type": "element",
                 "name": "document",
                 "children": [1, 2, 3, 4],
                 "attributes": [],
                 "idx": 0
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "number",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 1,
                     "children": ["n"]
@@ -319,12 +643,13 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 1
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
                 "attributes": [
                   {
+                    "type": "attribute",
                     "name": "name",
                     "parent": 2,
                     "children": ["p"]
@@ -333,21 +658,22 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 2,
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
                 "attributes": [],
                 "idx": 3,
                 "extending": {
-                  "Attribute": {
-                    "node_idx": 2,
-                    "unresolved_path": null
+                  "ExtendAttribute": {
+                    "nodeIdx": 2,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "point",
                 "parent": 0,
                 "children": [],
@@ -355,8 +681,8 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 4,
                 "extending": {
                   "Ref": {
-                    "node_idx": 2,
-                    "unresolved_path": [
+                    "nodeIdx": 2,
+                    "unresolvedPath": [
                       {
                         "type": "flatPathPart",
                         "name": "",
@@ -366,12 +692,13 @@ fn compactify_shifts_refs_in_path_parts() {
                           }
                         ]
                       }
-                    ]
+                    ],
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [{ "value" : [5]}] }]
                   }
                 }
               },
               {
-                "type": "Element",
+                "type": "element",
                 "name": "number",
                 "parent": 4,
                 "children": [],
@@ -379,8 +706,9 @@ fn compactify_shifts_refs_in_path_parts() {
                 "idx": 5,
                 "extending": {
                   "Ref": {
-                    "node_idx": 1,
-                    "unresolved_path": null
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }]
                   }
                 }
               }

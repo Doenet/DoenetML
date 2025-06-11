@@ -25,7 +25,7 @@ export default class Circle extends Curve {
         let attributes = super.createAttributesObject();
 
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.center = {
             createComponentOfType: "point",
@@ -445,6 +445,7 @@ export default class Circle extends Curve {
             },
             isArray: true,
             numDimensions: 2,
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["throughPointX", "throughPoint"],
             returnEntryDimensions: (prefix) =>
                 prefix === "throughPoint" ? 1 : 0,
@@ -2447,6 +2448,7 @@ export default class Circle extends Curve {
             },
             isArray: true,
             entryPrefixes: ["centerX"],
+            indexAliases: [["x", "y", "z"]],
             stateVariablesDeterminingDependencies: [
                 "numThroughPoints",
                 "havePrescribedCenter",
@@ -3198,14 +3200,14 @@ export default class Circle extends Curve {
 
     async circleClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -3215,14 +3217,14 @@ export default class Circle extends Curve {
 
     async circleFocused({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

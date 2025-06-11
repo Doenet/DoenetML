@@ -16,12 +16,12 @@ vi.mock("hyperformula");
 
 describe("MathInput tag tests", async () => {
     it("no arguments, copy matrixInput", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Matrix 1: <matrixInput name="mi1" /></p>
-    <p>Matrix 2: <matrixInput copySource="mi1" name="mi2" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
-    <p>Matrix 4: $mi1.immediateValue{assignNames="m2"}</p>
+    <p>Matrix 2: <matrixInput extend="$mi1" name="mi2" /></p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
+    <p>Matrix 4: <matrix extend="$mi1.immediateValue" name="m2" /></p>
     `,
         });
 
@@ -34,18 +34,30 @@ describe("MathInput tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/mi1"].stateValues.immediateValue.tree).eqls(
-                immediateValue,
-            );
-            expect(stateVariables["/mi1"].stateValues.value.tree).eqls(value);
-            expect(stateVariables["/mi2"].stateValues.immediateValue.tree).eqls(
-                immediateValue,
-            );
-            expect(stateVariables["/mi2"].stateValues.value.tree).eqls(value);
-            expect(stateVariables["/m1"].stateValues.value.tree).eqls(value);
-            expect(stateVariables["/m2"].stateValues.value.tree).eqls(
-                immediateValue,
-            );
+            expect(
+                stateVariables[resolveComponentName("mi1")].stateValues
+                    .immediateValue.tree,
+            ).eqls(immediateValue);
+            expect(
+                stateVariables[resolveComponentName("mi1")].stateValues.value
+                    .tree,
+            ).eqls(value);
+            expect(
+                stateVariables[resolveComponentName("mi2")].stateValues
+                    .immediateValue.tree,
+            ).eqls(immediateValue);
+            expect(
+                stateVariables[resolveComponentName("mi2")].stateValues.value
+                    .tree,
+            ).eqls(value);
+            expect(
+                stateVariables[resolveComponentName("m1")].stateValues.value
+                    .tree,
+            ).eqls(value);
+            expect(
+                stateVariables[resolveComponentName("m2")].stateValues.value
+                    .tree,
+            ).eqls(immediateValue);
         }
 
         let matrixValue = [
@@ -61,7 +73,7 @@ describe("MathInput tag tests", async () => {
             latex: "a",
             rowInd: 0,
             colInd: 0,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
 
@@ -77,14 +89,18 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 0,
             colInd: 0,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
         matrixValue = matrixImmediateValue;
         await check_items(matrixValue);
 
         // add row to mi1
-        await updateMatrixInputNumRows({ numRows: 2, name: "/mi1", core });
+        await updateMatrixInputNumRows({
+            numRows: 2,
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
 
         matrixValue = [
             "matrix",
@@ -98,7 +114,7 @@ describe("MathInput tag tests", async () => {
             latex: "b",
             rowInd: 1,
             colInd: 0,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
 
@@ -113,7 +129,7 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 1,
             colInd: 0,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
         matrixValue = matrixImmediateValue;
@@ -122,7 +138,7 @@ describe("MathInput tag tests", async () => {
         // add column to mi2
         await updateMatrixInputNumColumns({
             numColumns: 2,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
 
@@ -138,14 +154,14 @@ describe("MathInput tag tests", async () => {
             latex: "c",
             rowInd: 0,
             colInd: 1,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
         await updateMatrixInputImmediateValue({
             latex: "d",
             rowInd: 1,
             colInd: 1,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
 
@@ -166,14 +182,18 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 1,
             colInd: 1,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
         matrixValue = matrixImmediateValue;
         await check_items(matrixValue);
 
         // remove row in mi2
-        await updateMatrixInputNumRows({ numRows: 1, name: "/mi2", core });
+        await updateMatrixInputNumRows({
+            numRows: 1,
+            componentIdx: resolveComponentName("mi2"),
+            core,
+        });
 
         matrixValue = [
             "matrix",
@@ -187,7 +207,7 @@ describe("MathInput tag tests", async () => {
             latex: "e",
             rowInd: 0,
             colInd: 1,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
 
@@ -201,7 +221,7 @@ describe("MathInput tag tests", async () => {
         // remove column in mi1
         await updateMatrixInputNumColumns({
             numColumns: 1,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
 
@@ -214,7 +234,7 @@ describe("MathInput tag tests", async () => {
             latex: "f",
             rowInd: 0,
             colInd: 0,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
 
@@ -224,10 +244,14 @@ describe("MathInput tag tests", async () => {
         // values remembered when add back row and column
         await updateMatrixInputNumColumns({
             numColumns: 2,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
-        await updateMatrixInputNumRows({ numRows: 2, name: "/mi2", core });
+        await updateMatrixInputNumRows({
+            numRows: 2,
+            componentIdx: resolveComponentName("mi2"),
+            core,
+        });
 
         matrixValue = [
             "matrix",
@@ -242,7 +266,7 @@ describe("MathInput tag tests", async () => {
             latex: "g",
             rowInd: 0,
             colInd: 0,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             stateVariables,
             core,
         });
@@ -250,7 +274,7 @@ describe("MathInput tag tests", async () => {
             latex: "h",
             rowInd: 0,
             colInd: 1,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             stateVariables,
             core,
         });
@@ -258,7 +282,7 @@ describe("MathInput tag tests", async () => {
             latex: "i",
             rowInd: 1,
             colInd: 0,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             stateVariables,
             core,
         });
@@ -266,7 +290,7 @@ describe("MathInput tag tests", async () => {
             latex: "j",
             rowInd: 1,
             colInd: 1,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             stateVariables,
             core,
         });
@@ -281,6 +305,7 @@ describe("MathInput tag tests", async () => {
 
     async function test_matrix_input({
         core,
+        resolveComponentName,
         initialValues,
         initialNumRows,
         initialNumColumns,
@@ -292,6 +317,7 @@ describe("MathInput tag tests", async () => {
         defaultEntry = "\uff3f",
     }: {
         core: PublicDoenetMLCore;
+        resolveComponentName: (name: string, origin?: number) => number;
         initialValues: (string | number)[][];
         initialNumRows?: number;
         initialNumColumns?: number;
@@ -307,16 +333,23 @@ describe("MathInput tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/mi1"].stateValues.value.tree).eqls(ast);
-            expect(stateVariables["/m1"].stateValues.value.tree).eqls(ast);
+            expect(
+                stateVariables[resolveComponentName("mi1")].stateValues.value
+                    .tree,
+            ).eqls(ast);
+            expect(
+                stateVariables[resolveComponentName("m1")].stateValues.value
+                    .tree,
+            ).eqls(ast);
             if (boundValueName) {
+                const boundValueIdx = resolveComponentName(boundValueName);
                 if (
                     boundValueFormat === "tuple" ||
                     boundValueFormat === "vector" ||
                     boundValueFormat === "altvector"
                 ) {
                     let vectorAst =
-                        stateVariables[boundValueName].stateValues.value.tree;
+                        stateVariables[boundValueIdx].stateValues.value.tree;
                     expect(vectorAst).eqls([
                         boundValueFormat,
                         ...ast[2].slice(1).map((v) => v[1]),
@@ -331,7 +364,7 @@ describe("MathInput tag tests", async () => {
                         boundValueFormat.length - 5,
                     );
                     let vectorAst =
-                        stateVariables[boundValueName].stateValues.value.tree;
+                        stateVariables[boundValueIdx].stateValues.value.tree;
                     expect(vectorAst).eqls([
                         "^",
                         [operator, ...ast[2][1].slice(1)],
@@ -347,14 +380,14 @@ describe("MathInput tag tests", async () => {
                         boundValueFormat.length - 5,
                     );
                     let vectorAst =
-                        stateVariables[boundValueName].stateValues.value.tree;
+                        stateVariables[boundValueIdx].stateValues.value.tree;
                     expect(vectorAst).eqls([
                         "prime",
                         [operator, ...ast[2][1].slice(1)],
                     ]);
                 } else {
                     expect(
-                        stateVariables[boundValueName].stateValues.value.tree,
+                        stateVariables[boundValueIdx].stateValues.value.tree,
                     ).eqls(ast);
                 }
             }
@@ -416,7 +449,11 @@ describe("MathInput tag tests", async () => {
             ) {
                 // bound value stays a vector if add or delete a row
                 numRows++;
-                await updateMatrixInputNumRows({ numRows, name: "/mi1", core });
+                await updateMatrixInputNumRows({
+                    numRows,
+                    componentIdx: resolveComponentName("mi1"),
+                    core,
+                });
                 values = expandValuesToFit(values, numRows, numColumns);
                 await check_items(
                     astFromValues(values, numRows, numColumns),
@@ -429,7 +466,7 @@ describe("MathInput tag tests", async () => {
                     latex: values[numRows - 1][0].toString(),
                     rowInd: numRows - 1,
                     colInd: 0,
-                    name: "/mi1",
+                    componentIdx: resolveComponentName("mi1"),
                     core,
                 });
                 await check_items(
@@ -438,7 +475,11 @@ describe("MathInput tag tests", async () => {
                 );
 
                 numRows--;
-                await updateMatrixInputNumRows({ numRows, name: "/mi1", core });
+                await updateMatrixInputNumRows({
+                    numRows,
+                    componentIdx: resolveComponentName("mi1"),
+                    core,
+                });
                 await check_items(
                     astFromValues(values, numRows, numColumns),
                     boundValueStartsAs,
@@ -448,7 +489,7 @@ describe("MathInput tag tests", async () => {
                 numColumns++;
                 await updateMatrixInputNumColumns({
                     numColumns,
-                    name: "/mi1",
+                    componentIdx: resolveComponentName("mi1"),
                     core,
                 });
                 values = expandValuesToFit(values, numRows, numColumns);
@@ -466,7 +507,7 @@ describe("MathInput tag tests", async () => {
                 numColumns++;
                 await updateMatrixInputNumColumns({
                     numColumns,
-                    name: "/mi1",
+                    componentIdx: resolveComponentName("mi1"),
                     core,
                 });
                 values = expandValuesToFit(values, numRows, numColumns);
@@ -481,7 +522,7 @@ describe("MathInput tag tests", async () => {
                     latex: values[0][numColumns - 1].toString(),
                     rowInd: 0,
                     colInd: numColumns - 1,
-                    name: "/mi1",
+                    componentIdx: resolveComponentName("mi1"),
                     core,
                 });
                 await check_items(
@@ -492,7 +533,7 @@ describe("MathInput tag tests", async () => {
                 numColumns--;
                 await updateMatrixInputNumColumns({
                     numColumns,
-                    name: "/mi1",
+                    componentIdx: resolveComponentName("mi1"),
                     core,
                 });
                 await check_items(
@@ -504,7 +545,7 @@ describe("MathInput tag tests", async () => {
                 numRows++;
                 await updateMatrixInputNumRows({
                     numRows,
-                    name: "/mi1",
+                    componentIdx: resolveComponentName("mi1"),
                     core,
                 });
                 values = expandValuesToFit(values, numRows, numColumns);
@@ -519,14 +560,18 @@ describe("MathInput tag tests", async () => {
         let newValues = ["x", "y", "z"];
         for (let i = 0; i < numToAdd; i++) {
             numRows++;
-            await updateMatrixInputNumRows({ numRows, name: "/mi1", core });
+            await updateMatrixInputNumRows({
+                numRows,
+                componentIdx: resolveComponentName("mi1"),
+                core,
+            });
             values = expandValuesToFit(values, numRows, numColumns);
             await check_items(astFromValues(values, numRows, numColumns));
 
             numColumns++;
             await updateMatrixInputNumColumns({
                 numColumns,
-                name: "/mi1",
+                componentIdx: resolveComponentName("mi1"),
                 core,
             });
             values = expandValuesToFit(values, numRows, numColumns);
@@ -537,7 +582,7 @@ describe("MathInput tag tests", async () => {
                 latex: values[numRows - 1][numColumns - 1].toString(),
                 rowInd: numRows - 1,
                 colInd: numColumns - 1,
-                name: "/mi1",
+                componentIdx: resolveComponentName("mi1"),
                 core,
             });
 
@@ -547,13 +592,17 @@ describe("MathInput tag tests", async () => {
         // progressively remove those rows and columns
         for (let i = 0; i < numToAdd; i++) {
             numRows--;
-            await updateMatrixInputNumRows({ numRows, name: "/mi1", core });
+            await updateMatrixInputNumRows({
+                numRows,
+                componentIdx: resolveComponentName("mi1"),
+                core,
+            });
             await check_items(astFromValues(values, numRows, numColumns));
 
             numColumns--;
             await updateMatrixInputNumColumns({
                 numColumns,
-                name: "/mi1",
+                componentIdx: resolveComponentName("mi1"),
                 core,
             });
             await check_items(astFromValues(values, numRows, numColumns));
@@ -561,16 +610,26 @@ describe("MathInput tag tests", async () => {
 
         // set size to zero
         numRows = 0;
-        await updateMatrixInputNumRows({ numRows, name: "/mi1", core });
-        await check_items(astFromValues(values, numRows, numColumns));
+        await updateMatrixInputNumRows({
+            numRows,
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
+        await check_items(
+            astFromValues(values, numRows, numColumns),
+            undefined,
+        );
 
         numColumns = 0;
         await updateMatrixInputNumColumns({
             numColumns,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
-        await check_items(astFromValues(values, numRows, numColumns));
+        await check_items(
+            astFromValues(values, numRows, numColumns),
+            undefined,
+        );
 
         // add two rows and columns with inputs, if exist and aren't ignored, else add via actions
         numColumns = 2;
@@ -579,24 +638,28 @@ describe("MathInput tag tests", async () => {
         if (numColumnsName && !ignoreInputSizes) {
             await updateMathInputValue({
                 latex: numColumns.toString(),
-                name: numColumnsName,
+                componentIdx: resolveComponentName(numColumnsName),
                 core,
             });
         } else {
             await updateMatrixInputNumColumns({
                 numColumns,
-                name: "/mi1",
+                componentIdx: resolveComponentName("mi1"),
                 core,
             });
         }
         if (numRowsName && !ignoreInputSizes) {
             await updateMathInputValue({
                 latex: numRows.toString(),
-                name: numRowsName,
+                componentIdx: resolveComponentName(numRowsName),
                 core,
             });
         } else {
-            await updateMatrixInputNumRows({ numRows, name: "/mi1", core });
+            await updateMatrixInputNumRows({
+                numRows,
+                componentIdx: resolveComponentName("mi1"),
+                core,
+            });
         }
         await check_items(astFromValues(values, numRows, numColumns));
 
@@ -612,7 +675,7 @@ describe("MathInput tag tests", async () => {
             for (let j = 0; j < 2; j++) {
                 await updateMatrixInputValue({
                     latex: values[i][j].toString(),
-                    name: "/mi1",
+                    componentIdx: resolveComponentName("mi1"),
                     rowInd: i,
                     colInd: j,
                     core,
@@ -625,10 +688,12 @@ describe("MathInput tag tests", async () => {
 
         // if are to ignore inputs determining sizes, verify that they are ignored
         if (ignoreInputSizes && numRowsName && numColumnsName) {
-            expect(stateVariables[numRowsName].stateValues.value.tree).eq(
+            const numRowsIdx = resolveComponentName(numRowsName);
+            const numColumnsIdx = resolveComponentName(numColumnsName);
+            expect(stateVariables[numRowsIdx].stateValues.value.tree).eq(
                 numRows,
             );
-            expect(stateVariables[numColumnsName].stateValues.value.tree).eq(
+            expect(stateVariables[numColumnsIdx].stateValues.value.tree).eq(
                 numColumns,
             );
 
@@ -637,21 +702,21 @@ describe("MathInput tag tests", async () => {
 
             await updateMathInputValue({
                 latex: ignoredNumColumns.toString(),
-                name: numColumnsName,
+                componentIdx: numColumnsIdx,
                 core,
             });
 
             await updateMathInputValue({
                 latex: ignoredNumRows.toString(),
-                name: numRowsName,
+                componentIdx: numRowsIdx,
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
-            expect(stateVariables[numRowsName].stateValues.value.tree).eq(
+            expect(stateVariables[numRowsIdx].stateValues.value.tree).eq(
                 ignoredNumRows,
             );
-            expect(stateVariables[numColumnsName].stateValues.value.tree).eq(
+            expect(stateVariables[numColumnsIdx].stateValues.value.tree).eq(
                 ignoredNumColumns,
             );
 
@@ -660,15 +725,16 @@ describe("MathInput tag tests", async () => {
     }
 
     it("prefill with matrix", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Matrix 1: <matrixInput name="mi1" format="latex" prefill="\\begin{matrix}a & b\\\\c & d\\end{matrix}" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 ["a", "b"],
                 ["c", "d"],
@@ -677,677 +743,700 @@ describe("MathInput tag tests", async () => {
     });
 
     it("prefill with matrix, start smaller", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" /></p>
     <p>Number of columns: <mathInput name="numColumns" /></p>
 
     <p>Matrix 1: <matrixInput name="mi1" format="latex" prefill="\\begin{matrix}a & b\\\\c & d\\end{matrix}" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 ["a", "b"],
                 ["c", "d"],
             ],
             initialNumRows: 0,
             initialNumColumns: 0,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
         });
     });
 
     it("prefill with vector", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Matrix 1: <matrixInput name="mi1" prefill="(a,b)" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"]],
         });
     });
 
     it("prefill with altvector", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Matrix 1: <matrixInput name="mi1" prefill="⟨a,b⟩" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"]],
         });
     });
 
     it("prefill with vector, start smaller", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" /></p>
     <p>Number of columns: <mathInput name="numColumns" /></p>
 
     <p>Matrix 1: <matrixInput name="mi1" prefill="(a,b)" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"]],
             initialNumRows: 0,
             initialNumColumns: 0,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
         });
     });
 
     it("prefill with vector, start smaller", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" /></p>
     <p>Number of columns: <mathInput name="numColumns" /></p>
 
     <p>Matrix 1: <matrixInput name="mi1" prefill="(a,b)" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"]],
             initialNumRows: 0,
             initialNumColumns: 0,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
         });
     });
 
     it("prefill with transpose of vector", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Matrix 1: <matrixInput name="mi1" prefill="(a,b)^T" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
         });
     });
 
     it("prefill with transpose of altvector", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Matrix 1: <matrixInput name="mi1" prefill="⟨a,b⟩^T" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
         });
     });
 
     it("prefill with transpose of vector, start smaller", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" /></p>
     <p>Number of columns: <mathInput name="numColumns" /></p>
 
     <p>Matrix 1: <matrixInput name="mi1" prefill="(a,b)^T" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 0,
             initialNumColumns: 0,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
         });
     });
 
     it("prefill with transpose of altvector, start smaller", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" /></p>
     <p>Number of columns: <mathInput name="numColumns" /></p>
 
     <p>Matrix 1: <matrixInput name="mi1" prefill="⟨a,b⟩^T" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 0,
             initialNumColumns: 0,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
         });
     });
 
     it("prefill with transpose of vector, start smaller, alternative format", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" /></p>
     <p>Number of columns: <mathInput name="numColumns" /></p>
 
     <p>Matrix 1: <matrixInput name="mi1" prefill="(a,b)'" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 0,
             initialNumColumns: 0,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
         });
     });
 
     it("prefill with transpose of altvector, start smaller, alternative format", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" /></p>
     <p>Number of columns: <mathInput name="numColumns" /></p>
 
     <p>Matrix 1: <matrixInput name="mi1" prefill="⟨a,b⟩'" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 0,
             initialNumColumns: 0,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
         });
     });
 
     it("bind to matrix", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Matrix 1: <math name="m0" format="latex">\\begin{matrix}a & b\\\\c & d\\end{matrix}</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 ["a", "b"],
                 ["c", "d"],
             ],
             initialNumRows: 2,
             initialNumColumns: 2,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
         });
     });
 
     it("bind to matrix, ignore size via definition", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" prefill="7" /></p>
     <p>Number of columns: <mathInput name="numColumns" prefill="5" /></p>
 
     <p>Matrix 1: <math name="m0" format="latex">\\begin{matrix}a & b\\\\c & d\\end{matrix}</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
 
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 ["a", "b"],
                 ["c", "d"],
             ],
             initialNumRows: 2,
             initialNumColumns: 2,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
             ignoreInputSizes: true,
-            boundValueName: "/m0",
+            boundValueName: "m0",
         });
     });
 
     it("bind to tuple", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Tuple 1: <math name="m0">(a,b)</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"]],
             initialNumRows: 2,
             initialNumColumns: 1,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "tuple",
         });
     });
 
     it("bind to vector", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Vector 1: <math name="m0" createVectors>(a,b)</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"]],
             initialNumRows: 2,
             initialNumColumns: 1,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "vector",
         });
     });
 
     it("bind to altvector", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Vector 1: <math name="m0">⟨a,b⟩</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"]],
             initialNumRows: 2,
             initialNumColumns: 1,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "altvector",
         });
     });
 
     it("bind to tuple, ignore size via definition", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" prefill="1" /></p>
     <p>Number of columns: <mathInput name="numColumns" prefill="7" /></p>
 
     <p>Tuple 1: <math name="m0">(a,b,c)</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
 
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"], ["c"]],
             initialNumRows: 3,
             initialNumColumns: 1,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
             ignoreInputSizes: true,
-            boundValueName: "/m0",
+            boundValueName: "m0",
             boundValueStartsAs: "tuple",
         });
     });
 
     it("bind to vector, ignore size via definition", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" prefill="1" /></p>
     <p>Number of columns: <mathInput name="numColumns" prefill="7" /></p>
 
     <p>Vector 1: <math name="m0" createVectors>(a,b,c)</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
 
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"], ["c"]],
             initialNumRows: 3,
             initialNumColumns: 1,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
             ignoreInputSizes: true,
-            boundValueName: "/m0",
+            boundValueName: "m0",
             boundValueStartsAs: "vector",
         });
     });
 
     it("bind to altvector, ignore size via definition", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" prefill="1" /></p>
     <p>Number of columns: <mathInput name="numColumns" prefill="7" /></p>
 
     <p>Vector 1: <math name="m0">⟨a,b,c⟩</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
 
     `,
         });
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a"], ["b"], ["c"]],
             initialNumRows: 3,
             initialNumColumns: 1,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
             ignoreInputSizes: true,
-            boundValueName: "/m0",
+            boundValueName: "m0",
             boundValueStartsAs: "altvector",
         });
     });
 
     it("bind to transpose of tuple", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Tuple 1: <math name="m0">(a,b)^T</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 1,
             initialNumColumns: 2,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "tupleTrans",
         });
     });
 
     it("bind to transpose of vector", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Vector 1: <math name="m0" createVectors>(a,b)^T</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 1,
             initialNumColumns: 2,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "vectorTrans",
         });
     });
 
     it("bind to transpose of altvector", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Vector 1: <math name="m0">⟨a,b⟩^T</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 1,
             initialNumColumns: 2,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "altvectorTrans",
         });
     });
 
     it("bind to transpose of tuple, alternative format", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Tuple 1: <math name="m0">(a,b)'</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 1,
             initialNumColumns: 2,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "tuplePrime",
         });
     });
 
     it("bind to transpose of vector, alternative format", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Vector 1: <math name="m0" createVectors>(a,b)'</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 1,
             initialNumColumns: 2,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "vectorPrime",
         });
     });
 
     it("bind to transpose of altvector, alternative format", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>Number of rows: <mathInput name="numRows" bindValueTo="$(mi1.numRows)" /></p>
-    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$(mi1.numColumns)" /></p>
+    <p>Number of rows: <mathInput name="numRows" bindValueTo="$mi1.numRows" /></p>
+    <p>Number of columns: <mathInput name="numColumns" bindValueTo="$mi1.numColumns" /></p>
 
     <p>Vector 1: <math name="m0">⟨a,b⟩'</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b"]],
             initialNumRows: 1,
             initialNumColumns: 2,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
-            boundValueName: "/m0",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
+            boundValueName: "m0",
             boundValueStartsAs: "altvectorPrime",
         });
     });
 
     it("bind to transpose of tuple, ignore size via definition", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of rows: <mathInput name="numRows" prefill="7" /></p>
     <p>Number of columns: <mathInput name="numColumns" prefill="1" /></p>
 
     <p>Tuple 1: <math name="m0">(a,b,c)^T</math></p>
     <p>Matrix 2: <matrixInput name="mi1" bindValueTo="$m0" numRows="$numRows" numColumns="$numColumns" /></p>
-    <p>Matrix 3: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 3: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [["a", "b", "c"]],
             initialNumRows: 1,
             initialNumColumns: 3,
-            numRowsName: "/numRows",
-            numColumnsName: "/numColumns",
+            numRowsName: "numRows",
+            numColumnsName: "numColumns",
             ignoreInputSizes: true,
-            boundValueName: "/m0",
+            boundValueName: "m0",
             boundValueStartsAs: "tupleTrans",
         });
     });
 
     it("matrixInput and splitting symbols", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <math name="varWithNum">x2</math>
     <math name="noSplit" splitSymbols="false">xyz</math>
     <matrixInput name="varWithNum2" bindValueTo="$varWithNum" />
     <matrixInput name="noSplit2" splitSymbols="false" bindValueTo="$noSplit" />
-    $varWithNum2.value{assignNames="varWithNum3"}
-    $noSplit2.value{assignNames="noSplit3"}
+    <matrix extend="$varWithNum2.value" name="varWithNum3" />
+    <matrix extend="$noSplit2.value" name="noSplit3" />
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/varWithNum"].stateValues.value.tree).eq("x2");
-        expect(stateVariables["/varWithNum2"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "x2"]],
-        ]);
-        expect(stateVariables["/varWithNum3"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "x2"]],
-        ]);
-        expect(stateVariables["/noSplit"].stateValues.value.tree).eq("xyz");
-        expect(stateVariables["/noSplit2"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "xyz"]],
-        ]);
-        expect(stateVariables["/noSplit3"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "xyz"]],
-        ]);
+        expect(
+            stateVariables[resolveComponentName("varWithNum")].stateValues.value
+                .tree,
+        ).eq("x2");
+        expect(
+            stateVariables[resolveComponentName("varWithNum2")].stateValues
+                .value.tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "x2"]]]);
+        expect(
+            stateVariables[resolveComponentName("varWithNum3")].stateValues
+                .value.tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "x2"]]]);
+        expect(
+            stateVariables[resolveComponentName("noSplit")].stateValues.value
+                .tree,
+        ).eq("xyz");
+        expect(
+            stateVariables[resolveComponentName("noSplit2")].stateValues.value
+                .tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "xyz"]]]);
+        expect(
+            stateVariables[resolveComponentName("noSplit3")].stateValues.value
+                .tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "xyz"]]]);
 
         await updateMatrixInputValue({
             latex: "xu9j",
             rowInd: 0,
             colInd: 0,
-            name: "/varWithNum2",
+            componentIdx: resolveComponentName("varWithNum2"),
             core,
         });
         await updateMatrixInputValue({
             latex: "xyuv",
             rowInd: 0,
             colInd: 0,
-            name: "/noSplit2",
+            componentIdx: resolveComponentName("noSplit2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/varWithNum"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "xu9j"]],
-        ]);
-        expect(stateVariables["/varWithNum2"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "xu9j"]],
-        ]);
-        expect(stateVariables["/varWithNum3"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "xu9j"]],
-        ]);
-        expect(stateVariables["/noSplit"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "xyuv"]],
-        ]);
-        expect(stateVariables["/noSplit2"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "xyuv"]],
-        ]);
-        expect(stateVariables["/noSplit3"].stateValues.value.tree).eqls([
-            "matrix",
-            ["tuple", 1, 1],
-            ["tuple", ["tuple", "xyuv"]],
-        ]);
+        expect(
+            stateVariables[resolveComponentName("varWithNum")].stateValues.value
+                .tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "xu9j"]]]);
+        expect(
+            stateVariables[resolveComponentName("varWithNum2")].stateValues
+                .value.tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "xu9j"]]]);
+        expect(
+            stateVariables[resolveComponentName("varWithNum3")].stateValues
+                .value.tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "xu9j"]]]);
+        expect(
+            stateVariables[resolveComponentName("noSplit")].stateValues.value
+                .tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "xyuv"]]]);
+        expect(
+            stateVariables[resolveComponentName("noSplit2")].stateValues.value
+                .tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "xyuv"]]]);
+        expect(
+            stateVariables[resolveComponentName("noSplit3")].stateValues.value
+                .tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", "xyuv"]]]);
     });
 
     it("default entry", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Matrix 1: <matrixInput name="mi1" numRows="2" numColumns="2" defaultEntry="0" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 [0, 0],
                 [0, 0],
@@ -1357,19 +1446,20 @@ describe("MathInput tag tests", async () => {
     });
 
     it("no default entry, prefill sparse matrix", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <p>Sparse matrix: <math name="sparse" format="latex">
     \\begin{matrix}\\\\ & 3\\end{matrix}
     </math></p>
     <p>Matrix 1: <matrixInput name="mi1" prefill="$sparse" numRows="3" numColumns="3" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 [0, 0, "\uff3f"],
                 [0, 3, "\uff3f"],
@@ -1379,19 +1469,20 @@ describe("MathInput tag tests", async () => {
     });
 
     it("default entry, prefill sparse matrix", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <p>Sparse matrix: <math name="sparse" format="latex">
     \\begin{matrix}\\\\ & 3\\end{matrix}
     </math></p>
     <p>Matrix 1: <matrixInput name="mi1" prefill="$sparse" numRows="3" numColumns="3" defaultEntry="0" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 [0, 0, 0],
                 [0, 3, 0],
@@ -1402,18 +1493,19 @@ describe("MathInput tag tests", async () => {
     });
 
     it("no default entry, bind value to sparse matrix", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Sparse matrix: <math name="sparse1" format="latex">
     \\begin{matrix}\\\\ & 3\\end{matrix}
     </math></p>
     <p>Matrix 1: <matrixInput name="mi1" bindValueTo="$sparse1" numRows="3" numColumns="3" /></p>
-    <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 2: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 [0, 0],
                 [0, 3],
@@ -1422,18 +1514,19 @@ describe("MathInput tag tests", async () => {
     });
 
     it("default entry, bind value to sparse matrix", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Sparse matrix: <math name="sparse1" format="latex">
     \\begin{matrix}\\\\ & 3\\end{matrix}
     </math></p>
     <p>Matrix 1: <matrixInput name="mi1" bindValueTo="$sparse1" numRows="3" numColumns="3" defaultEntry="0" /></p>
-    <p>Matrix 21: $mi1.value{assignNames="m1"}</p>
+    <p>Matrix 21: <matrix extend="$mi1.value" name="m1" /></p>
     `,
         });
 
         await test_matrix_input({
             core,
+            resolveComponentName,
             initialValues: [
                 [0, 0],
                 [0, 3],
@@ -1443,7 +1536,7 @@ describe("MathInput tag tests", async () => {
     });
 
     it("values from matrix prop using array notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <setup>
     <matrix name="prefill">
@@ -1456,107 +1549,161 @@ describe("MathInput tag tests", async () => {
   <p>Row number: <mathInput name="rNum" /></p>
   <p>Column number: <mathInput name="cNum" /></p>
   <p name="pRow">Row: $mi.matrix[$rNum]</p>
-  <p name="pEntry">Entry: $mi.matrix[$rNum][$cNum]{assignNames="entry"}</p>
+  <p name="pEntry">Entry: <math extend="$mi.matrix[$rNum][$cNum]" name="entry" /></p>
   <p>Change entry: <mathInput name="mi_entry">$entry</mathInput></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/pMatrix"].stateValues.text).eq(
-            "Matrix: [ [ a, b ], [ c, d ] ]",
-        );
-        expect(stateVariables["/pRow"].stateValues.text).eq("Row: ");
-        expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: ");
+        expect(
+            stateVariables[resolveComponentName("pMatrix")].stateValues.text,
+        ).eq("Matrix: [ [ a, b ], [ c, d ] ]");
+        expect(
+            stateVariables[resolveComponentName("pRow")].stateValues.text,
+        ).eq("Row: ");
+        expect(
+            stateVariables[resolveComponentName("pEntry")].stateValues.text,
+        ).eq("Entry: ＿");
 
         // pick second row
-        await updateMathInputValue({ latex: "2", name: "/rNum", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("rNum"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pRow"].stateValues.text).eq(
-            "Row: [ [ c, d ] ]",
-        );
-        expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: ");
+        expect(
+            stateVariables[resolveComponentName("pRow")].stateValues.text,
+        ).eq("Row: [ [ c, d ] ]");
+        expect(
+            stateVariables[resolveComponentName("pEntry")].stateValues.text,
+        ).eq("Entry: ＿");
 
         // pick first column
-        await updateMathInputValue({ latex: "1", name: "/cNum", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("cNum"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: c");
+        expect(
+            stateVariables[resolveComponentName("pEntry")].stateValues.text,
+        ).eq("Entry: c");
 
         // change entry from bound value
-        await updateMathInputValue({ latex: "x", name: "/mi_entry", core });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: resolveComponentName("mi_entry"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pMatrix"].stateValues.text).eq(
-            "Matrix: [ [ a, b ], [ x, d ] ]",
-        );
-        expect(stateVariables["/pRow"].stateValues.text).eq(
-            "Row: [ [ x, d ] ]",
-        );
-        expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: x");
+        expect(
+            stateVariables[resolveComponentName("pMatrix")].stateValues.text,
+        ).eq("Matrix: [ [ a, b ], [ x, d ] ]");
+        expect(
+            stateVariables[resolveComponentName("pRow")].stateValues.text,
+        ).eq("Row: [ [ x, d ] ]");
+        expect(
+            stateVariables[resolveComponentName("pEntry")].stateValues.text,
+        ).eq("Entry: x");
 
         // change row
-        await updateMathInputValue({ latex: "1", name: "/rNum", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("rNum"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pRow"].stateValues.text).eq(
-            "Row: [ [ a, b ] ]",
-        );
-        expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: a");
+        expect(
+            stateVariables[resolveComponentName("pRow")].stateValues.text,
+        ).eq("Row: [ [ a, b ] ]");
+        expect(
+            stateVariables[resolveComponentName("pEntry")].stateValues.text,
+        ).eq("Entry: a");
 
         // change value from matrix input
         await updateMatrixInputValue({
             latex: "y",
-            name: "/mi",
+            componentIdx: resolveComponentName("mi"),
             rowInd: 0,
             colInd: 0,
             core,
             stateVariables,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pMatrix"].stateValues.text).eq(
-            "Matrix: [ [ y, b ], [ x, d ] ]",
-        );
-        expect(stateVariables["/pRow"].stateValues.text).eq(
-            "Row: [ [ y, b ] ]",
-        );
-        expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: y");
+        expect(
+            stateVariables[resolveComponentName("pMatrix")].stateValues.text,
+        ).eq("Matrix: [ [ y, b ], [ x, d ] ]");
+        expect(
+            stateVariables[resolveComponentName("pRow")].stateValues.text,
+        ).eq("Row: [ [ y, b ] ]");
+        expect(
+            stateVariables[resolveComponentName("pEntry")].stateValues.text,
+        ).eq("Entry: y");
 
         // change column
-        await updateMathInputValue({ latex: "2", name: "/cNum", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("cNum"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: b");
+        expect(
+            stateVariables[resolveComponentName("pEntry")].stateValues.text,
+        ).eq("Entry: b");
 
         // change entry from bound value
-        await updateMathInputValue({ latex: "z", name: "/mi_entry", core });
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: resolveComponentName("mi_entry"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/pMatrix"].stateValues.text).eq(
-            "Matrix: [ [ y, z ], [ x, d ] ]",
-        );
-        expect(stateVariables["/pRow"].stateValues.text).eq(
-            "Row: [ [ y, z ] ]",
-        );
-        expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: z");
+        expect(
+            stateVariables[resolveComponentName("pMatrix")].stateValues.text,
+        ).eq("Matrix: [ [ y, z ], [ x, d ] ]");
+        expect(
+            stateVariables[resolveComponentName("pRow")].stateValues.text,
+        ).eq("Row: [ [ y, z ] ]");
+        expect(
+            stateVariables[resolveComponentName("pEntry")].stateValues.text,
+        ).eq("Entry: z");
     });
 
     it("parse scientific notation", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <p><matrixInput name="mi1" prefill="5E+1" /> <math name="m1" copySource="mi1" /></p>
-  <p><matrixInput name="mi2" prefill="5E+1" parseScientificNotation /> <math name="m2" copySource="mi2" /></p>
+  <p><matrixInput name="mi1" prefill="5E+1" /> <math name="m1" extend="$mi1" /></p>
+  <p><matrixInput name="mi2" prefill="5E+1" parseScientificNotation /> <math name="m2" extend="$mi2" /></p>
 
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let entryName1 = stateVariables["/mi1"].activeChildren[0].componentIdx;
-        let entryName2 = stateVariables["/mi2"].activeChildren[0].componentIdx;
+        let entryName1 =
+            stateVariables[resolveComponentName("mi1")].activeChildren[0]
+                .componentIdx;
+        let entryName2 =
+            stateVariables[resolveComponentName("mi2")].activeChildren[0]
+                .componentIdx;
 
-        expect(stateVariables["/mi1"].stateValues.text).eq("[ [ 5 E + 1 ] ]");
-        expect(stateVariables["/m1"].stateValues.text).eq("[ [ 5 E + 1 ] ]");
+        expect(stateVariables[resolveComponentName("mi1")].stateValues.text).eq(
+            "[ [ 5 E + 1 ] ]",
+        );
+        expect(stateVariables[resolveComponentName("m1")].stateValues.text).eq(
+            "[ [ 5 E + 1 ] ]",
+        );
         expect(stateVariables[entryName1].stateValues.rawRendererValue).eq(
             "5 E + 1",
         );
         expect(stateVariables[entryName1].stateValues.text).eq("5 E + 1");
-        expect(stateVariables["/mi2"].stateValues.text).eq("[ [ 50 ] ]");
-        expect(stateVariables["/m2"].stateValues.text).eq("[ [ 50 ] ]");
+        expect(stateVariables[resolveComponentName("mi2")].stateValues.text).eq(
+            "[ [ 50 ] ]",
+        );
+        expect(stateVariables[resolveComponentName("m2")].stateValues.text).eq(
+            "[ [ 50 ] ]",
+        );
         expect(stateVariables[entryName2].stateValues.rawRendererValue).eq(
             "50",
         );
@@ -1564,7 +1711,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMatrixInputValue({
             latex: "2x-3E+2",
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -1572,10 +1719,10 @@ describe("MathInput tag tests", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/mi1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("mi1")].stateValues.text).eq(
             "[ [ 2 x - 3 E + 2 ] ]",
         );
-        expect(stateVariables["/m1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("m1")].stateValues.text).eq(
             "[ [ 2 x - 3 E + 2 ] ]",
         );
         expect(stateVariables[entryName1].stateValues.rawRendererValue).eq(
@@ -1585,7 +1732,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMatrixInputValue({
             latex: "2x-3E+2",
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -1593,8 +1740,12 @@ describe("MathInput tag tests", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/mi2"].stateValues.text).eq("[ [ 2 x - 300 ] ]");
-        expect(stateVariables["/m2"].stateValues.text).eq("[ [ 2 x - 300 ] ]");
+        expect(stateVariables[resolveComponentName("mi2")].stateValues.text).eq(
+            "[ [ 2 x - 300 ] ]",
+        );
+        expect(stateVariables[resolveComponentName("m2")].stateValues.text).eq(
+            "[ [ 2 x - 300 ] ]",
+        );
         expect(stateVariables[entryName2].stateValues.rawRendererValue).eq(
             "2x-3E+2",
         );
@@ -1602,7 +1753,7 @@ describe("MathInput tag tests", async () => {
     });
 
     it("minComponentWidth attribute", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
       <p>Specify min component width: <mathInput name="mcw" prefill="0" /></p>
 
@@ -1613,44 +1764,66 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let entry11OriginalName =
-            stateVariables["/original"].activeChildren[0].componentIdx;
+            stateVariables[resolveComponentName("original")].activeChildren[0]
+                .componentIdx;
         let entry11ResultName =
-            stateVariables["/result"].activeChildren[0].componentIdx;
+            stateVariables[resolveComponentName("result")].activeChildren[0]
+                .componentIdx;
 
-        expect(stateVariables["/mcw"].stateValues.minWidth).eq(50);
+        expect(
+            stateVariables[resolveComponentName("mcw")].stateValues.minWidth,
+        ).eq(50);
         expect(stateVariables[entry11OriginalName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(0);
 
-        await updateMathInputValue({ latex: "100", name: "/mcw", core });
+        await updateMathInputValue({
+            latex: "100",
+            componentIdx: resolveComponentName("mcw"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(100);
 
-        await updateMatrixInputNumRows({ numRows: 2, name: "/original", core });
-        await updateMatrixInputNumColumns({
-            numColumns: 2,
-            name: "/original",
+        await updateMatrixInputNumRows({
+            numRows: 2,
+            componentIdx: resolveComponentName("original"),
             core,
         });
-        await updateMatrixInputNumRows({ numRows: 2, name: "/result", core });
         await updateMatrixInputNumColumns({
             numColumns: 2,
-            name: "/result",
+            componentIdx: resolveComponentName("original"),
+            core,
+        });
+        await updateMatrixInputNumRows({
+            numRows: 2,
+            componentIdx: resolveComponentName("result"),
+            core,
+        });
+        await updateMatrixInputNumColumns({
+            numColumns: 2,
+            componentIdx: resolveComponentName("result"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let entry12OriginalName =
-            stateVariables["/original"].activeChildren[1].componentIdx;
+            stateVariables[resolveComponentName("original")].activeChildren[1]
+                .componentIdx;
         let entry21OriginalName =
-            stateVariables["/original"].activeChildren[2].componentIdx;
+            stateVariables[resolveComponentName("original")].activeChildren[2]
+                .componentIdx;
         let entry22OriginalName =
-            stateVariables["/original"].activeChildren[3].componentIdx;
+            stateVariables[resolveComponentName("original")].activeChildren[3]
+                .componentIdx;
         let entry12ResultName =
-            stateVariables["/result"].activeChildren[1].componentIdx;
+            stateVariables[resolveComponentName("result")].activeChildren[1]
+                .componentIdx;
         let entry21ResultName =
-            stateVariables["/result"].activeChildren[2].componentIdx;
+            stateVariables[resolveComponentName("result")].activeChildren[2]
+                .componentIdx;
         let entry22ResultName =
-            stateVariables["/result"].activeChildren[3].componentIdx;
+            stateVariables[resolveComponentName("result")].activeChildren[3]
+                .componentIdx;
 
         expect(stateVariables[entry11OriginalName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry12OriginalName].stateValues.minWidth).eq(0);
@@ -1661,21 +1834,33 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables[entry21ResultName].stateValues.minWidth).eq(100);
         expect(stateVariables[entry22ResultName].stateValues.minWidth).eq(100);
 
-        await updateMathInputValue({ latex: "100x", name: "/mcw", core });
+        await updateMathInputValue({
+            latex: "100x",
+            componentIdx: resolveComponentName("mcw"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry12ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry21ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry22ResultName].stateValues.minWidth).eq(0);
 
-        await updateMathInputValue({ latex: "17", name: "/mcw", core });
+        await updateMathInputValue({
+            latex: "17",
+            componentIdx: resolveComponentName("mcw"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(17);
         expect(stateVariables[entry12ResultName].stateValues.minWidth).eq(17);
         expect(stateVariables[entry21ResultName].stateValues.minWidth).eq(17);
         expect(stateVariables[entry22ResultName].stateValues.minWidth).eq(17);
 
-        await updateMathInputValue({ latex: "-20", name: "/mcw", core });
+        await updateMathInputValue({
+            latex: "-20",
+            componentIdx: resolveComponentName("mcw"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry12ResultName].stateValues.minWidth).eq(0);
@@ -1685,10 +1870,10 @@ describe("MathInput tag tests", async () => {
 
     it("valueChanged", async () => {
         let doenetML = `
-    <p><matrixInput name="mi1" /> <math copySource="mi1" name="mi1a" /> <boolean copysource="mi1.valueChanged" name="mi1changed" /> <math copySource="mi1.immediateValue" name="mi1iva" /> <boolean copysource="mi1.immediateValueChanged" name="mi1ivchanged" /></p>
-    <p><matrixInput name="mi2" prefill="(x,y)" /> <math copySource="mi2" name="mi2a" /> <boolean copysource="mi2.valueChanged" name="mi2changed" /> <math copySource="mi2.immediateValue" name="mi2iva" /> <boolean copysource="mi2.immediateValueChanged" name="mi2ivchanged" /></p>
-    <p><matrixInput name="mi3" bindValueTo="$mi1" /> <math copySource="mi3" name="mi3a" /> <boolean copysource="mi3.valueChanged" name="mi3changed" /> <math copySource="mi3.immediateValue" name="mi3iva" /> <boolean copysource="mi3.immediateValueChanged" name="mi3ivchanged" /></p>
-    <p><matrixInput name="mi4">$mi2.immediateValue</matrixInput> <math copySource="mi4" name="mi4a" /> <boolean copysource="mi4.valueChanged" name="mi4changed" /> <math copySource="mi4.immediateValue" name="mi4iva" /> <boolean copysource="mi4.immediateValueChanged" name="mi4ivchanged" /></p>
+    <p><matrixInput name="mi1" /> <math extend="$mi1" name="mi1a" /> <boolean extend="$mi1.valueChanged" name="mi1changed" /> <math extend="$mi1.immediateValue" name="mi1iva" /> <boolean extend="$mi1.immediateValueChanged" name="mi1ivchanged" /></p>
+    <p><matrixInput name="mi2" prefill="(x,y)" /> <math extend="$mi2" name="mi2a" /> <boolean extend="$mi2.valueChanged" name="mi2changed" /> <math extend="$mi2.immediateValue" name="mi2iva" /> <boolean extend="$mi2.immediateValueChanged" name="mi2ivchanged" /></p>
+    <p><matrixInput name="mi3" bindValueTo="$mi1" /> <math extend="$mi3" name="mi3a" /> <boolean extend="$mi3.valueChanged" name="mi3changed" /> <math extend="$mi3.immediateValue" name="mi3iva" /> <boolean extend="$mi3.immediateValueChanged" name="mi3ivchanged" /></p>
+    <p><matrixInput name="mi4">$mi2.immediateValue</matrixInput> <math extend="$mi4" name="mi4a" /> <boolean extend="$mi4.valueChanged" name="mi4changed" /> <math extend="$mi4.immediateValue" name="mi4iva" /> <boolean extend="$mi4.immediateValueChanged" name="mi4ivchanged" /></p>
 
     `;
 
@@ -1722,49 +1907,81 @@ describe("MathInput tag tests", async () => {
                 false,
                 true,
             );
-            expect(stateVariables["/mi1"].stateValues.text).eq(mi1);
-            expect(stateVariables["/mi2"].stateValues.text).eq(mi2);
-            expect(stateVariables["/mi3"].stateValues.text).eq(mi3);
-            expect(stateVariables["/mi4"].stateValues.text).eq(mi4);
+            expect(
+                stateVariables[resolveComponentName("mi1")].stateValues.text,
+            ).eq(mi1);
+            expect(
+                stateVariables[resolveComponentName("mi2")].stateValues.text,
+            ).eq(mi2);
+            expect(
+                stateVariables[resolveComponentName("mi3")].stateValues.text,
+            ).eq(mi3);
+            expect(
+                stateVariables[resolveComponentName("mi4")].stateValues.text,
+            ).eq(mi4);
 
-            expect(stateVariables["/mi1a"].stateValues.text).eq(mi1);
-            expect(stateVariables["/mi2a"].stateValues.text).eq(mi2);
-            expect(stateVariables["/mi3a"].stateValues.text).eq(mi3);
-            expect(stateVariables["/mi4a"].stateValues.text).eq(mi4);
+            expect(
+                stateVariables[resolveComponentName("mi1a")].stateValues.text,
+            ).eq(mi1);
+            expect(
+                stateVariables[resolveComponentName("mi2a")].stateValues.text,
+            ).eq(mi2);
+            expect(
+                stateVariables[resolveComponentName("mi3a")].stateValues.text,
+            ).eq(mi3);
+            expect(
+                stateVariables[resolveComponentName("mi4a")].stateValues.text,
+            ).eq(mi4);
 
-            expect(stateVariables["/mi1iva"].stateValues.text).eq(mi1iv);
-            expect(stateVariables["/mi2iva"].stateValues.text).eq(mi2iv);
-            expect(stateVariables["/mi3iva"].stateValues.text).eq(mi3iv);
-            expect(stateVariables["/mi4iva"].stateValues.text).eq(mi4iv);
+            expect(
+                stateVariables[resolveComponentName("mi1iva")].stateValues.text,
+            ).eq(mi1iv);
+            expect(
+                stateVariables[resolveComponentName("mi2iva")].stateValues.text,
+            ).eq(mi2iv);
+            expect(
+                stateVariables[resolveComponentName("mi3iva")].stateValues.text,
+            ).eq(mi3iv);
+            expect(
+                stateVariables[resolveComponentName("mi4iva")].stateValues.text,
+            ).eq(mi4iv);
 
-            expect(stateVariables["/mi1changed"].stateValues.value).eq(
-                mi1changed,
-            );
-            expect(stateVariables["/mi2changed"].stateValues.value).eq(
-                mi2changed,
-            );
-            expect(stateVariables["/mi3changed"].stateValues.value).eq(
-                mi3changed,
-            );
-            expect(stateVariables["/mi4changed"].stateValues.value).eq(
-                mi4changed,
-            );
+            expect(
+                stateVariables[resolveComponentName("mi1changed")].stateValues
+                    .value,
+            ).eq(mi1changed);
+            expect(
+                stateVariables[resolveComponentName("mi2changed")].stateValues
+                    .value,
+            ).eq(mi2changed);
+            expect(
+                stateVariables[resolveComponentName("mi3changed")].stateValues
+                    .value,
+            ).eq(mi3changed);
+            expect(
+                stateVariables[resolveComponentName("mi4changed")].stateValues
+                    .value,
+            ).eq(mi4changed);
 
-            expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(
-                mi1ivchanged,
-            );
-            expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(
-                mi2ivchanged,
-            );
-            expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(
-                mi3ivchanged,
-            );
-            expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(
-                mi4ivchanged,
-            );
+            expect(
+                stateVariables[resolveComponentName("mi1ivchanged")].stateValues
+                    .value,
+            ).eq(mi1ivchanged);
+            expect(
+                stateVariables[resolveComponentName("mi2ivchanged")].stateValues
+                    .value,
+            ).eq(mi2ivchanged);
+            expect(
+                stateVariables[resolveComponentName("mi3ivchanged")].stateValues
+                    .value,
+            ).eq(mi3ivchanged);
+            expect(
+                stateVariables[resolveComponentName("mi4ivchanged")].stateValues
+                    .value,
+            ).eq(mi4ivchanged);
         }
 
-        let core = await createTestCore({ doenetML });
+        let { core, resolveComponentName } = await createTestCore({ doenetML });
 
         let mi1 = "[ [ \uff3f ] ]",
             mi2 = "[ [ x ], [ y ] ]",
@@ -1798,7 +2015,7 @@ describe("MathInput tag tests", async () => {
             latex: "z",
             rowInd: 0,
             colInd: 0,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
 
@@ -1815,7 +2032,7 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 0,
             colInd: 0,
-            name: "/mi1",
+            componentIdx: resolveComponentName("mi1"),
             core,
         });
         await check_items(
@@ -1833,7 +2050,7 @@ describe("MathInput tag tests", async () => {
             latex: "a",
             rowInd: 0,
             colInd: 0,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
 
@@ -1850,7 +2067,7 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 0,
             colInd: 0,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
 
@@ -1868,7 +2085,7 @@ describe("MathInput tag tests", async () => {
             latex: "b",
             rowInd: 0,
             colInd: 0,
-            name: "/mi3",
+            componentIdx: resolveComponentName("mi3"),
             core,
         });
 
@@ -1886,7 +2103,7 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 0,
             colInd: 0,
-            name: "/mi3",
+            componentIdx: resolveComponentName("mi3"),
             core,
         });
         await check_items(
@@ -1904,7 +2121,7 @@ describe("MathInput tag tests", async () => {
             latex: "c",
             rowInd: 1,
             colInd: 0,
-            name: "/mi4",
+            componentIdx: resolveComponentName("mi4"),
             core,
         });
 
@@ -1921,7 +2138,7 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 1,
             colInd: 0,
-            name: "/mi4",
+            componentIdx: resolveComponentName("mi4"),
             core,
         });
 
@@ -1934,7 +2151,7 @@ describe("MathInput tag tests", async () => {
 
         // reload
 
-        core = await createTestCore({ doenetML });
+        ({ core, resolveComponentName } = await createTestCore({ doenetML }));
 
         mi1 = "[ [ \uff3f ] ]";
         mi2 = "[ [ x ], [ y ] ]";
@@ -1968,7 +2185,7 @@ describe("MathInput tag tests", async () => {
             latex: "z",
             rowInd: 0,
             colInd: 0,
-            name: "/mi3",
+            componentIdx: resolveComponentName("mi3"),
             core,
         });
         await check_items(
@@ -1987,7 +2204,7 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 0,
             colInd: 0,
-            name: "/mi3",
+            componentIdx: resolveComponentName("mi3"),
             core,
         });
         await check_items(
@@ -2006,7 +2223,7 @@ describe("MathInput tag tests", async () => {
             latex: "a",
             rowInd: 0,
             colInd: 0,
-            name: "/mi4",
+            componentIdx: resolveComponentName("mi4"),
             core,
         });
         await check_items(
@@ -2024,7 +2241,7 @@ describe("MathInput tag tests", async () => {
         await updateMatrixInputValueToImmediateValue({
             rowInd: 0,
             colInd: 0,
-            name: "/mi4",
+            componentIdx: resolveComponentName("mi4"),
             core,
         });
         await check_items(
@@ -2036,7 +2253,7 @@ describe("MathInput tag tests", async () => {
 
         // reload
 
-        core = await createTestCore({ doenetML });
+        ({ core, resolveComponentName } = await createTestCore({ doenetML }));
         mi1 = "[ [ \uff3f ] ]";
         mi2 = "[ [ x ], [ y ] ]";
         mi3 = "[ [ \uff3f ] ]";
@@ -2065,7 +2282,11 @@ describe("MathInput tag tests", async () => {
 
         mi1 = mi3 = mi3iv = mi1iv = "[ [ \uff3f ], [ \uff3f ] ]";
         mi1changed = mi1ivchanged = true;
-        await updateMatrixInputNumRows({ numRows: 2, name: "/mi1", core });
+        await updateMatrixInputNumRows({
+            numRows: 2,
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_items(
             [mi1, mi2, mi3, mi4],
             [mi1iv, mi2iv, mi3iv, mi4iv],
@@ -2079,7 +2300,7 @@ describe("MathInput tag tests", async () => {
         mi2changed = mi2ivchanged = true;
         await updateMatrixInputNumColumns({
             numColumns: 2,
-            name: "/mi2",
+            componentIdx: resolveComponentName("mi2"),
             core,
         });
         await check_items(
@@ -2091,7 +2312,7 @@ describe("MathInput tag tests", async () => {
 
         // reload
 
-        core = await createTestCore({ doenetML });
+        ({ core, resolveComponentName } = await createTestCore({ doenetML }));
         mi1 = "[ [ \uff3f ] ]";
         mi2 = "[ [ x ], [ y ] ]";
         mi3 = "[ [ \uff3f ] ]";
@@ -2119,7 +2340,11 @@ describe("MathInput tag tests", async () => {
         // adding column to third marks first and third value/immediateValue as changed
         mi1 = mi3 = mi3iv = mi1iv = "[ [ \uff3f ], [ \uff3f ] ]";
         mi3changed = mi3ivchanged = mi1changed = mi1ivchanged = true;
-        await updateMatrixInputNumRows({ numRows: 2, name: "/mi3", core });
+        await updateMatrixInputNumRows({
+            numRows: 2,
+            componentIdx: resolveComponentName("mi3"),
+            core,
+        });
         await check_items(
             [mi1, mi2, mi3, mi4],
             [mi1iv, mi2iv, mi3iv, mi4iv],
@@ -2132,7 +2357,7 @@ describe("MathInput tag tests", async () => {
         mi4changed = mi4ivchanged = mi2changed = mi2ivchanged = true;
         await updateMatrixInputNumRows({
             numRows: 1,
-            name: "/mi4",
+            componentIdx: resolveComponentName("mi4"),
             core,
         });
         await check_items(

@@ -274,6 +274,11 @@ export default class Cell extends BaseComponent {
             },
             hasEssential: true,
             forRenderer: true,
+            // Note: even though the default value isn't used in the definition, below,
+            // it needed because `text` is the `primaryStateVariableForDefinition`, defined above.
+            // When `cell` is extended from a prop, this definition is overwritten
+            // with a definition that assumes a default value.
+            defaultValue: "",
             returnDependencies: () => ({
                 children: {
                     dependencyType: "child",

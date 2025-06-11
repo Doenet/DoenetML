@@ -93,11 +93,21 @@ export default class NumberComponent extends InlineComponent {
             replacementFunction: ({
                 matchedChildren,
                 componentAttributes,
+                nComponents,
             }) => ({
                 success: !componentAttributes.convertBoolean,
                 newChildren: [
-                    { componentType: "math", children: matchedChildren },
+                    {
+                        type: "serialized",
+                        componentType: "math",
+                        componentIdx: nComponents++,
+                        children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
+                    },
                 ],
+                nComponents,
             }),
         });
 
@@ -503,7 +513,10 @@ export default class NumberComponent extends InlineComponent {
                                 },
                             };
                         }
-                        let number = Number(dependencyValues.stringChild[0]);
+                        // Convert string child to number, but don't let empty string be converted to 0
+                        let number = Number(
+                            dependencyValues.stringChild[0] || undefined,
+                        );
                         if (Number.isNaN(number)) {
                             try {
                                 number = me
@@ -1089,14 +1102,14 @@ export default class NumberComponent extends InlineComponent {
 
     async numberClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1106,14 +1119,14 @@ export default class NumberComponent extends InlineComponent {
 
     async numberFocused({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

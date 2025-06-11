@@ -1,4 +1,17 @@
-export type DoenetMLRange = {
+import { Position } from "@doenet/parser";
+
+export function printDoenetMLrange(position: Position) {
+    if (position.start.line === position.end.line) {
+        return `line ${position.start.line}`;
+    } else {
+        return `lines ${position.start.line}–${position.end.line}`;
+    }
+}
+
+// XXX: the remaining functions are using the position types from the old parser.
+// Change to the new parser Position, along with changing other calls in the code to use the new parser.
+
+export type position = {
     begin?: number;
     end?: number;
     selfCloseBegin?: number;
@@ -13,20 +26,7 @@ export type DoenetMLRange = {
     attrEnd?: number;
 };
 
-export function printDoenetMLrange(position: DoenetMLRange) {
-    if (position.lineBegin === undefined) {
-        return "";
-    } else if (position.lineBegin === position.lineEnd) {
-        return `line ${position.lineBegin}`;
-    } else {
-        return `lines ${position.lineBegin}–${position.lineEnd}`;
-    }
-}
-
-export function getLineCharRange(
-    position: DoenetMLRange,
-    allNewlines: number[],
-) {
+export function getLineCharRange(position: position, allNewlines: number[]) {
     let { begin, end } = getBeginEndFromDoenetMLRange(position);
 
     if (begin === undefined || end === undefined) {
@@ -45,7 +45,7 @@ export function getLineCharRange(
     return { lineBegin, charBegin, lineEnd, charEnd };
 }
 
-function getBeginEndFromDoenetMLRange(position: DoenetMLRange) {
+function getBeginEndFromDoenetMLRange(position: position) {
     let begin, end;
     if (position) {
         if (position.begin !== undefined) {
@@ -91,10 +91,10 @@ function findLineCharInfo(pos: number, allNewlines: number[]) {
     };
 }
 
-// Assign doenetMLRange to components or to error/warnings objects
+// Assign position to components or to error/warnings objects
 export function assignDoenetMLRange(
     components: any[],
-    position: DoenetMLRange,
+    position: position,
     init = true,
 ) {
     for (let comp of components) {
@@ -118,7 +118,7 @@ export function assignDoenetMLRange(
 }
 
 // convert attrBegin/attrEnd if exist to begin/end
-export function convertDoenetMLAttrRange(position: DoenetMLRange) {
+export function convertDoenetMLAttrRange(position: position) {
     if (position?.attrBegin) {
         return {
             begin: position.attrBegin,

@@ -5,7 +5,7 @@ import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function Polygon(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     Polygon.ignoreActionsWithoutCore = () => true;
@@ -313,7 +313,7 @@ export default React.memo(function Polygon(props) {
                 // Note: counting on fact that down on polygon itself will trigger after down on points
                 callAction({
                     action: actions.polygonFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointsAtDown.current = polygonJXG.current.vertices.map((x) => [
@@ -323,7 +323,7 @@ export default React.memo(function Polygon(props) {
             if (!verticesFixed.current) {
                 callAction({
                     action: actions.polygonFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             downOnPoint.current = i;
@@ -338,7 +338,7 @@ export default React.memo(function Polygon(props) {
         draggedPoint.current = null;
         callAction({
             action: actions.polygonFocused,
-            args: { name }, // send name so get original name if adapted
+            args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
         });
     }
 
@@ -368,7 +368,7 @@ export default React.memo(function Polygon(props) {
             // Note: counting on fact that up on polygon itself (i===-1) will trigger before up on points
             callAction({
                 action: actions.polygonClicked,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         }
 
@@ -425,7 +425,7 @@ export default React.memo(function Polygon(props) {
             draggedPoint.current = null;
             callAction({
                 action: actions.polygonClicked,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         }
     }
@@ -532,9 +532,9 @@ export default React.memo(function Polygon(props) {
 
             if (
                 sourceOfUpdate.sourceInformation &&
-                name in sourceOfUpdate.sourceInformation
+                componentIdx in sourceOfUpdate.sourceInformation
             ) {
-                let ind = sourceOfUpdate.sourceInformation[name].vertex;
+                let ind = sourceOfUpdate.sourceInformation[componentIdx].vertex;
                 if (ind !== undefined) {
                     board.updateInfobox(polygonJXG.current.vertices[ind]);
                 }

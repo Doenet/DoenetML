@@ -5,7 +5,7 @@ import { BoardContext } from "./graph";
 import { deepCompare } from "@doenet/utils";
 
 export default React.memo(function Legend(props) {
-    let { name, id, SVs } = useDoenetRenderer(props);
+    let { id, SVs } = useDoenetRenderer(props);
 
     const board = useContext(BoardContext);
 

@@ -4,20 +4,13 @@ import {
     enumerateSelectionCombinations,
     enumerateCombinations,
 } from "@doenet/utils";
-import {
-    processAssignNames,
-    markToCreateAllUniqueNames,
-} from "../utils/naming";
 import { gatherVariantComponents } from "../utils/variants";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import { createNewComponentIndices } from "../utils/componentIndices";
 
 export default class Select extends CompositeComponent {
     static componentType = "select";
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
-
-    // static assignNewNamespaceToAllChildrenExcept = Object.keys(this.createAttributesObject()).map(x => x.toLowerCase());
-    static assignNamesToReplacements = true;
 
     static createsVariants = true;
 
@@ -26,9 +19,6 @@ export default class Select extends CompositeComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numToSelect = {
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -44,11 +34,6 @@ export default class Select extends CompositeComponent {
         attributes.type = {
             createPrimitiveOfType: "string",
         };
-        attributes.addLevelToAssignNames = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "addLevelToAssignNames",
-            defaultValue: false,
-        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -61,82 +46,6 @@ export default class Select extends CompositeComponent {
 
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["string"];
-
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        function breakStringsMacrosIntoOptionsBySpaces({
-            matchedChildren,
-            componentAttributes,
-            componentInfoObjects,
-        }) {
-            // only if all children are strings or macros
-            if (
-                !matchedChildren.every(
-                    (child) =>
-                        typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro,
-                )
-            ) {
-                return { success: false };
-            }
-
-            let type;
-            let warnings = [];
-            if (componentAttributes.type) {
-                type = componentAttributes.type;
-            } else {
-                type = "math";
-            }
-
-            if (!["math", "text", "number", "boolean"].includes(type)) {
-                warnings.push({
-                    message: `Invalid type for select: ${type}.`,
-                    level: 1,
-                });
-                type = "math";
-            }
-
-            // break any string by white space and wrap pieces with option and type
-            let groupIntoComponentTypesSeparatedBySpaces =
-                returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                    componentType: type,
-                    forceComponentType: true,
-                });
-            let result = groupIntoComponentTypesSeparatedBySpaces({
-                matchedChildren,
-                componentInfoObjects,
-            });
-
-            if (result.success) {
-                let newChildren = result.newChildren.map((child) => ({
-                    componentType: "option",
-                    children: [child],
-                }));
-
-                let newAttributes = {
-                    addLevelToAssignNames: {
-                        primitive: true,
-                    },
-                };
-
-                return {
-                    success: true,
-                    newChildren,
-                    newAttributes,
-                    warnings,
-                };
-            } else {
-                return { success: false, warnings };
-            }
-        }
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsMacrosIntoOptionsBySpaces,
-        });
-
-        return sugarInstructions;
-    }
 
     static returnChildGroups() {
         return [
@@ -356,7 +265,7 @@ export default class Select extends CompositeComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // console.log(`definition of selected Indices`)
+                // console.log(`definition of selected Indices`);
                 // console.log(dependencyValues);
 
                 if (dependencyValues.errorMessageVariants) {
@@ -383,7 +292,7 @@ export default class Select extends CompositeComponent {
                     };
                 }
 
-                // if desiredIndices is specfied, use those
+                // if desiredIndices is specified, use those
                 if (
                     dependencyValues.variants &&
                     dependencyValues.variants.desiredVariant !== undefined
@@ -642,6 +551,7 @@ export default class Select extends CompositeComponent {
         component,
         components,
         componentInfoObjects,
+        nComponents,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
@@ -650,18 +560,21 @@ export default class Select extends CompositeComponent {
 
         let errorMessage = await component.stateValues.errorMessage;
         if (errorMessage) {
-            errors.push({
-                message: errorMessage,
-            });
             return {
                 replacements: [
                     {
+                        type: "serialized",
                         componentType: "_error",
+                        componentIdx: nComponents++,
                         state: { message: errorMessage },
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
                     },
                 ],
                 errors,
                 warnings,
+                nComponents,
             };
         }
 
@@ -678,9 +591,19 @@ export default class Select extends CompositeComponent {
             let serializedGrandchildren = deepClone(
                 await selectedChild.stateValues.serializedChildren,
             );
+
+            const idxResult = createNewComponentIndices(
+                serializedGrandchildren,
+                nComponents,
+            );
+            serializedGrandchildren = idxResult.components;
+            nComponents = idxResult.nComponents;
+
             let serializedChild = {
-                componentType: "option",
-                state: { rendered: true },
+                type: "serialized",
+                componentType: "group",
+                componentIdx: nComponents++,
+                attributes: {},
                 doenetAttributes: Object.assign(
                     {},
                     selectedChild.doenetAttributes,
@@ -688,12 +611,6 @@ export default class Select extends CompositeComponent {
                 children: serializedGrandchildren,
                 originalIdx: selectedChildComponentIdx,
             };
-
-            if (selectedChild.attributes.newNamespace) {
-                serializedChild.attributes = {
-                    newNamespace: { primitive: true },
-                };
-            }
 
             replacements.push(serializedChild);
         }
@@ -724,45 +641,11 @@ export default class Select extends CompositeComponent {
             }
         }
 
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
-        let assignNames = component.doenetAttributes.assignNames;
-
-        if (
-            assignNames &&
-            (await component.stateValues.addLevelToAssignNames)
-        ) {
-            assignNames = assignNames.map((x) => [x]);
-        }
-
-        for (let rep of replacements) {
-            if (!rep.attributes?.newNamespace?.primitive && rep.children) {
-                markToCreateAllUniqueNames(rep.children);
-            }
-        }
-
-        let newReplacements = [];
-
-        for (let [ind, rep] of replacements.entries()) {
-            let processResult = processAssignNames({
-                assignNames,
-                serializedComponents: [rep],
-                parentIdx: component.componentIdx,
-                parentCreatesNewNamespace: newNamespace,
-                componentInfoObjects,
-                indOffset: ind,
-            });
-            errors.push(...processResult.errors);
-            warnings.push(...processResult.warnings);
-
-            newReplacements.push(processResult.serializedComponents[0]);
-        }
-
-        return { replacements: newReplacements, errors, warnings };
+        return { replacements, errors, warnings, nComponents };
     }
 
     static calculateReplacementChanges() {
-        return [];
+        return { replacementChanges: [] };
     }
 
     static determineNumberOfUniqueVariants({

@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("When tag tests", async () => {
     it("value, fractionSatisfied, conditionSatisfied are public", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <text>a</text>
   <mathInput name="n" />
@@ -16,43 +16,79 @@ describe("When tag tests", async () => {
     $n > 0 and $n > 1
   </when>
 
-  <p>Value: $w.value{assignNames="v"}</p>
-  <p>Condition satisfied: $w.conditionSatisfied{assignNames="cs"}</p>
-  <p>Fraction satisfied: $w.fractionSatisfied{assignNames="fs"}</p>
+  <p>Value: <when extend="$w.value" name="v" /></p>
+  <p>Condition satisfied: <boolean extend="$w.conditionSatisfied" name="cs" /></p>
+  <p>Fraction satisfied: <number extend="$w.fractionSatisfied" name="fs" /></p>
 
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/v"].stateValues.value).eq(false);
-        expect(stateVariables["/cs"].stateValues.value).eq(false);
-        expect(stateVariables["/fs"].stateValues.value).eq(0);
+        expect(stateVariables[resolveComponentName("v")].stateValues.value).eq(
+            false,
+        );
+        expect(stateVariables[resolveComponentName("cs")].stateValues.value).eq(
+            false,
+        );
+        expect(stateVariables[resolveComponentName("fs")].stateValues.value).eq(
+            0,
+        );
 
-        await updateMathInputValue({ latex: "1", name: "/n", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/v"].stateValues.value).eq(false);
-        expect(stateVariables["/cs"].stateValues.value).eq(false);
-        expect(stateVariables["/fs"].stateValues.value).eq(0.5);
+        expect(stateVariables[resolveComponentName("v")].stateValues.value).eq(
+            false,
+        );
+        expect(stateVariables[resolveComponentName("cs")].stateValues.value).eq(
+            false,
+        );
+        expect(stateVariables[resolveComponentName("fs")].stateValues.value).eq(
+            0.5,
+        );
 
-        await updateMathInputValue({ latex: "11", name: "/n", core });
+        await updateMathInputValue({
+            latex: "11",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/v"].stateValues.value).eq(true);
-        expect(stateVariables["/cs"].stateValues.value).eq(true);
-        expect(stateVariables["/fs"].stateValues.value).eq(1);
+        expect(stateVariables[resolveComponentName("v")].stateValues.value).eq(
+            true,
+        );
+        expect(stateVariables[resolveComponentName("cs")].stateValues.value).eq(
+            true,
+        );
+        expect(stateVariables[resolveComponentName("fs")].stateValues.value).eq(
+            1,
+        );
 
-        await updateMathInputValue({ latex: "-11", name: "/n", core });
+        await updateMathInputValue({
+            latex: "-11",
+            componentIdx: resolveComponentName("n"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/v"].stateValues.value).eq(false);
-        expect(stateVariables["/cs"].stateValues.value).eq(false);
-        expect(stateVariables["/fs"].stateValues.value).eq(0);
+        expect(stateVariables[resolveComponentName("v")].stateValues.value).eq(
+            false,
+        );
+        expect(stateVariables[resolveComponentName("cs")].stateValues.value).eq(
+            false,
+        );
+        expect(stateVariables[resolveComponentName("fs")].stateValues.value).eq(
+            0,
+        );
     });
 
     it("fraction satisfied on 2x2 matrix compare", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <math name="A" format="latex">\\begin{pmatrix}1 & 2\\\\ 3 & 4\\end{pmatrix}</math>
   <math name="B" format="latex">\\begin{pmatrix}5 & 6\\\\ 7 & 8\\end{pmatrix}</math>
@@ -76,51 +112,83 @@ describe("When tag tests", async () => {
   <when matchPartial name="DC">$D = $C</when>
   <when matchPartial name="DD">$D = $D</when>
 
-  <p>Fraction satisfied AA: <number name="fsAA" copySource="AA.fractionSatisfied" /></p>
-  <p>Fraction satisfied AB: <number name="fsAB" copySource="AB.fractionSatisfied" /></p>
-  <p>Fraction satisfied AC: <number name="fsAC" copySource="AC.fractionSatisfied" /></p>
-  <p>Fraction satisfied AD: <number name="fsAD" copySource="AD.fractionSatisfied" /></p>
-  <p>Fraction satisfied BA: <number name="fsBA" copySource="BA.fractionSatisfied" /></p>
-  <p>Fraction satisfied BB: <number name="fsBB" copySource="BB.fractionSatisfied" /></p>
-  <p>Fraction satisfied BC: <number name="fsBC" copySource="BC.fractionSatisfied" /></p>
-  <p>Fraction satisfied BD: <number name="fsBD" copySource="BD.fractionSatisfied" /></p>
-  <p>Fraction satisfied CA: <number name="fsCA" copySource="CA.fractionSatisfied" /></p>
-  <p>Fraction satisfied CB: <number name="fsCB" copySource="CB.fractionSatisfied" /></p>
-  <p>Fraction satisfied CC: <number name="fsCC" copySource="CC.fractionSatisfied" /></p>
-  <p>Fraction satisfied CD: <number name="fsCD" copySource="CD.fractionSatisfied" /></p>
-  <p>Fraction satisfied DA: <number name="fsDA" copySource="DA.fractionSatisfied" /></p>
-  <p>Fraction satisfied DB: <number name="fsDB" copySource="DB.fractionSatisfied" /></p>
-  <p>Fraction satisfied DC: <number name="fsDC" copySource="DC.fractionSatisfied" /></p>
-  <p>Fraction satisfied DD: <number name="fsDD" copySource="DD.fractionSatisfied" /></p>
+  <p>Fraction satisfied AA: <number name="fsAA" extend="$AA.fractionSatisfied" /></p>
+  <p>Fraction satisfied AB: <number name="fsAB" extend="$AB.fractionSatisfied" /></p>
+  <p>Fraction satisfied AC: <number name="fsAC" extend="$AC.fractionSatisfied" /></p>
+  <p>Fraction satisfied AD: <number name="fsAD" extend="$AD.fractionSatisfied" /></p>
+  <p>Fraction satisfied BA: <number name="fsBA" extend="$BA.fractionSatisfied" /></p>
+  <p>Fraction satisfied BB: <number name="fsBB" extend="$BB.fractionSatisfied" /></p>
+  <p>Fraction satisfied BC: <number name="fsBC" extend="$BC.fractionSatisfied" /></p>
+  <p>Fraction satisfied BD: <number name="fsBD" extend="$BD.fractionSatisfied" /></p>
+  <p>Fraction satisfied CA: <number name="fsCA" extend="$CA.fractionSatisfied" /></p>
+  <p>Fraction satisfied CB: <number name="fsCB" extend="$CB.fractionSatisfied" /></p>
+  <p>Fraction satisfied CC: <number name="fsCC" extend="$CC.fractionSatisfied" /></p>
+  <p>Fraction satisfied CD: <number name="fsCD" extend="$CD.fractionSatisfied" /></p>
+  <p>Fraction satisfied DA: <number name="fsDA" extend="$DA.fractionSatisfied" /></p>
+  <p>Fraction satisfied DB: <number name="fsDB" extend="$DB.fractionSatisfied" /></p>
+  <p>Fraction satisfied DC: <number name="fsDC" extend="$DC.fractionSatisfied" /></p>
+  <p>Fraction satisfied DD: <number name="fsDD" extend="$DD.fractionSatisfied" /></p>
 
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/fsAA"].stateValues.value).eq(1);
-        expect(stateVariables["/fsAB"].stateValues.value).eq(0);
-        expect(stateVariables["/fsAC"].stateValues.value).eq(0.25);
-        expect(stateVariables["/fsAD"].stateValues.value).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsAA")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("fsAB")].stateValues.value,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("fsAC")].stateValues.value,
+        ).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsAD")].stateValues.value,
+        ).eq(0.25);
 
-        expect(stateVariables["/fsBA"].stateValues.value).eq(0);
-        expect(stateVariables["/fsBB"].stateValues.value).eq(1);
-        expect(stateVariables["/fsBC"].stateValues.value).eq(0.75);
-        expect(stateVariables["/fsBD"].stateValues.value).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsBA")].stateValues.value,
+        ).eq(0);
+        expect(
+            stateVariables[resolveComponentName("fsBB")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("fsBC")].stateValues.value,
+        ).eq(0.75);
+        expect(
+            stateVariables[resolveComponentName("fsBD")].stateValues.value,
+        ).eq(0.25);
 
-        expect(stateVariables["/fsCA"].stateValues.value).eq(0.25);
-        expect(stateVariables["/fsCB"].stateValues.value).eq(0.75);
-        expect(stateVariables["/fsCC"].stateValues.value).eq(1);
-        expect(stateVariables["/fsCD"].stateValues.value).eq(0.5);
+        expect(
+            stateVariables[resolveComponentName("fsCA")].stateValues.value,
+        ).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsCB")].stateValues.value,
+        ).eq(0.75);
+        expect(
+            stateVariables[resolveComponentName("fsCC")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("fsCD")].stateValues.value,
+        ).eq(0.5);
 
-        expect(stateVariables["/fsDA"].stateValues.value).eq(0.25);
-        expect(stateVariables["/fsDB"].stateValues.value).eq(0.25);
-        expect(stateVariables["/fsDC"].stateValues.value).eq(0.5);
-        expect(stateVariables["/fsDD"].stateValues.value).eq(1);
+        expect(
+            stateVariables[resolveComponentName("fsDA")].stateValues.value,
+        ).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsDB")].stateValues.value,
+        ).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsDC")].stateValues.value,
+        ).eq(0.5);
+        expect(
+            stateVariables[resolveComponentName("fsDD")].stateValues.value,
+        ).eq(1);
     });
 
     it("fraction satisfied on mismatched size matrix compare", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <math name="A" format="latex">\\begin{pmatrix}1\\end{pmatrix}</math>
   <math name="B" format="latex">\\begin{pmatrix}1 & 8\\end{pmatrix}</math>
@@ -144,46 +212,78 @@ describe("When tag tests", async () => {
   <when matchPartial name="DC">$D = $C</when>
   <when matchPartial name="DD">$D = $D</when>
 
-  <p>Fraction satisfied AA: <number name="fsAA" copySource="AA.fractionSatisfied" /></p>
-  <p>Fraction satisfied AB: <number name="fsAB" copySource="AB.fractionSatisfied" /></p>
-  <p>Fraction satisfied AC: <number name="fsAC" copySource="AC.fractionSatisfied" /></p>
-  <p>Fraction satisfied AD: <number name="fsAD" copySource="AD.fractionSatisfied" /></p>
-  <p>Fraction satisfied BA: <number name="fsBA" copySource="BA.fractionSatisfied" /></p>
-  <p>Fraction satisfied BB: <number name="fsBB" copySource="BB.fractionSatisfied" /></p>
-  <p>Fraction satisfied BC: <number name="fsBC" copySource="BC.fractionSatisfied" /></p>
-  <p>Fraction satisfied BD: <number name="fsBD" copySource="BD.fractionSatisfied" /></p>
-  <p>Fraction satisfied CA: <number name="fsCA" copySource="CA.fractionSatisfied" /></p>
-  <p>Fraction satisfied CB: <number name="fsCB" copySource="CB.fractionSatisfied" /></p>
-  <p>Fraction satisfied CC: <number name="fsCC" copySource="CC.fractionSatisfied" /></p>
-  <p>Fraction satisfied CD: <number name="fsCD" copySource="CD.fractionSatisfied" /></p>
-  <p>Fraction satisfied DA: <number name="fsDA" copySource="DA.fractionSatisfied" /></p>
-  <p>Fraction satisfied DB: <number name="fsDB" copySource="DB.fractionSatisfied" /></p>
-  <p>Fraction satisfied DC: <number name="fsDC" copySource="DC.fractionSatisfied" /></p>
-  <p>Fraction satisfied DD: <number name="fsDD" copySource="DD.fractionSatisfied" /></p>
+  <p>Fraction satisfied AA: <number name="fsAA" extend="$AA.fractionSatisfied" /></p>
+  <p>Fraction satisfied AB: <number name="fsAB" extend="$AB.fractionSatisfied" /></p>
+  <p>Fraction satisfied AC: <number name="fsAC" extend="$AC.fractionSatisfied" /></p>
+  <p>Fraction satisfied AD: <number name="fsAD" extend="$AD.fractionSatisfied" /></p>
+  <p>Fraction satisfied BA: <number name="fsBA" extend="$BA.fractionSatisfied" /></p>
+  <p>Fraction satisfied BB: <number name="fsBB" extend="$BB.fractionSatisfied" /></p>
+  <p>Fraction satisfied BC: <number name="fsBC" extend="$BC.fractionSatisfied" /></p>
+  <p>Fraction satisfied BD: <number name="fsBD" extend="$BD.fractionSatisfied" /></p>
+  <p>Fraction satisfied CA: <number name="fsCA" extend="$CA.fractionSatisfied" /></p>
+  <p>Fraction satisfied CB: <number name="fsCB" extend="$CB.fractionSatisfied" /></p>
+  <p>Fraction satisfied CC: <number name="fsCC" extend="$CC.fractionSatisfied" /></p>
+  <p>Fraction satisfied CD: <number name="fsCD" extend="$CD.fractionSatisfied" /></p>
+  <p>Fraction satisfied DA: <number name="fsDA" extend="$DA.fractionSatisfied" /></p>
+  <p>Fraction satisfied DB: <number name="fsDB" extend="$DB.fractionSatisfied" /></p>
+  <p>Fraction satisfied DC: <number name="fsDC" extend="$DC.fractionSatisfied" /></p>
+  <p>Fraction satisfied DD: <number name="fsDD" extend="$DD.fractionSatisfied" /></p>
 
   `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables["/fsAA"].stateValues.value).eq(1);
-        expect(stateVariables["/fsAB"].stateValues.value).eq(0.5);
-        expect(stateVariables["/fsAC"].stateValues.value).eq(0.5);
-        expect(stateVariables["/fsAD"].stateValues.value).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsAA")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("fsAB")].stateValues.value,
+        ).eq(0.5);
+        expect(
+            stateVariables[resolveComponentName("fsAC")].stateValues.value,
+        ).eq(0.5);
+        expect(
+            stateVariables[resolveComponentName("fsAD")].stateValues.value,
+        ).eq(0.25);
 
-        expect(stateVariables["/fsBA"].stateValues.value).eq(0.5);
-        expect(stateVariables["/fsBB"].stateValues.value).eq(1);
-        expect(stateVariables["/fsBC"].stateValues.value).eq(0.25);
-        expect(stateVariables["/fsBD"].stateValues.value).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsBA")].stateValues.value,
+        ).eq(0.5);
+        expect(
+            stateVariables[resolveComponentName("fsBB")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("fsBC")].stateValues.value,
+        ).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsBD")].stateValues.value,
+        ).eq(0.25);
 
-        expect(stateVariables["/fsCA"].stateValues.value).eq(0.5);
-        expect(stateVariables["/fsCB"].stateValues.value).eq(0.25);
-        expect(stateVariables["/fsCC"].stateValues.value).eq(1);
-        expect(stateVariables["/fsCD"].stateValues.value).eq(0.5);
+        expect(
+            stateVariables[resolveComponentName("fsCA")].stateValues.value,
+        ).eq(0.5);
+        expect(
+            stateVariables[resolveComponentName("fsCB")].stateValues.value,
+        ).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsCC")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[resolveComponentName("fsCD")].stateValues.value,
+        ).eq(0.5);
 
-        expect(stateVariables["/fsDA"].stateValues.value).eq(0.25);
-        expect(stateVariables["/fsDB"].stateValues.value).eq(0.25);
-        expect(stateVariables["/fsDC"].stateValues.value).eq(0.5);
-        expect(stateVariables["/fsDD"].stateValues.value).eq(1);
+        expect(
+            stateVariables[resolveComponentName("fsDA")].stateValues.value,
+        ).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsDB")].stateValues.value,
+        ).eq(0.25);
+        expect(
+            stateVariables[resolveComponentName("fsDC")].stateValues.value,
+        ).eq(0.5);
+        expect(
+            stateVariables[resolveComponentName("fsDD")].stateValues.value,
+        ).eq(1);
     });
 });

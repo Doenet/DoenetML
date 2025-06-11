@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { renderersLoadComponent } from "./DocViewer";
-import { cesc } from "@doenet/utils";
 import { ComponentInfo, mainSlice, useAppSelector } from "../state";
 
 export type UseDoenetRendererProps = {
@@ -8,7 +7,7 @@ export type UseDoenetRendererProps = {
     componentInstructions: {
         actions: Record<string, { actionName: string; componentIdx: number }>;
         componentIdx: number;
-        effectiveName: string;
+        effectiveIdx: number;
         componentType: string;
         rendererType: string;
     };
@@ -30,7 +29,7 @@ export default function useDoenetRenderer(
 ) {
     const actions = props.componentInstructions.actions;
     const componentIdx = props.componentInstructions.componentIdx;
-    const effectiveName = props.componentInstructions.effectiveName;
+    const effectiveIdx = props.componentInstructions.effectiveIdx;
     const rendererName = props.coreId + componentIdx;
     const [renderersToLoad, setRenderersToLoad] = useState({});
     const componentInfo = useAppSelector(
@@ -105,8 +104,6 @@ export default function useDoenetRenderer(
                 setRenderersToLoad((old: Promise<any>[]) => {
                     let rendererPromises = { ...old };
                     if (!(childInstructions.rendererType in rendererPromises)) {
-                        // XXX: these import file extensions aren't correct for components that have been converted to .tsx
-                        // but this shouldn't really be used right now. It should be cleaned up at some point.
                         rendererPromises[childInstructions.rendererType] =
                             import(
                                 `./renderers/${childInstructions.rendererType}.tsx`
@@ -137,8 +134,8 @@ export default function useDoenetRenderer(
     };
 
     return {
-        name: effectiveName,
-        id: prefixForIds + cesc(effectiveName),
+        componentIdx: effectiveIdx,
+        id: prefixForIds + effectiveIdx,
         SVs: stateValues,
         docId: props.docId,
         activityId: props.activityId,

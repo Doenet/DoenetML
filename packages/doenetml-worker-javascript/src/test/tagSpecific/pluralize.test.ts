@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("Pluralize tag tests", async () => {
     it("number followed by noun", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <p name="p1"><pluralize>one dog</pluralize></p>
@@ -24,19 +24,37 @@ describe("Pluralize tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq("one dog");
-        expect(stateVariables["/p2"].stateValues.text).eq("two dogs");
-        expect(stateVariables["/p3"].stateValues.text).eq("zero dogs");
-        expect(stateVariables["/p4"].stateValues.text).eq("1 mouse");
-        expect(stateVariables["/p5"].stateValues.text).eq("2 mice");
-        expect(stateVariables["/p6"].stateValues.text).eq("0 mice");
-        expect(stateVariables["/p7"].stateValues.text).eq("one thousand buses");
-        expect(stateVariables["/p8"].stateValues.text).eq("0.5 buses");
-        expect(stateVariables["/p9"].stateValues.text).eq("1 bus");
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            "one dog",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "two dogs",
+        );
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
+            "zero dogs",
+        );
+        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
+            "1 mouse",
+        );
+        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
+            "2 mice",
+        );
+        expect(stateVariables[resolveComponentName("p6")].stateValues.text).eq(
+            "0 mice",
+        );
+        expect(stateVariables[resolveComponentName("p7")].stateValues.text).eq(
+            "one thousand buses",
+        );
+        expect(stateVariables[resolveComponentName("p8")].stateValues.text).eq(
+            "0.5 buses",
+        );
+        expect(stateVariables[resolveComponentName("p9")].stateValues.text).eq(
+            "1 bus",
+        );
     });
 
     it("single word", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <p name="p1"><pluralize>dog</pluralize></p>
@@ -49,16 +67,28 @@ describe("Pluralize tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq("dogs");
-        expect(stateVariables["/p2"].stateValues.text).eq("mice");
-        expect(stateVariables["/p3"].stateValues.text).eq("buses");
-        expect(stateVariables["/p4"].stateValues.text).eq("geese");
-        expect(stateVariables["/p5"].stateValues.text).eq("ponies");
-        expect(stateVariables["/p6"].stateValues.text).eq("only");
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            "dogs",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "mice",
+        );
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
+            "buses",
+        );
+        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
+            "geese",
+        );
+        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
+            "ponies",
+        );
+        expect(stateVariables[resolveComponentName("p6")].stateValues.text).eq(
+            "only",
+        );
     });
 
     it("number followed by noun with plural form", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   
       <p name="p1"><pluralize pluralForm="cheetahs">one dog</pluralize></p>
@@ -74,21 +104,37 @@ describe("Pluralize tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq("one dog");
-        expect(stateVariables["/p2"].stateValues.text).eq("two cheetahs");
-        expect(stateVariables["/p3"].stateValues.text).eq("zero cheetahs");
-        expect(stateVariables["/p4"].stateValues.text).eq("1 mouse");
-        expect(stateVariables["/p5"].stateValues.text).eq("2 cheetahs");
-        expect(stateVariables["/p6"].stateValues.text).eq("0 cheetahs");
-        expect(stateVariables["/p7"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            "one dog",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "two cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
+            "zero cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
+            "1 mouse",
+        );
+        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
+            "2 cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p6")].stateValues.text).eq(
+            "0 cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p7")].stateValues.text).eq(
             "one thousand cheetahs",
         );
-        expect(stateVariables["/p8"].stateValues.text).eq("0.5 cheetahs");
-        expect(stateVariables["/p9"].stateValues.text).eq("1 bus");
+        expect(stateVariables[resolveComponentName("p8")].stateValues.text).eq(
+            "0.5 cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p9")].stateValues.text).eq(
+            "1 bus",
+        );
     });
 
     it("single word, with plural form", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <p name="p1"><pluralize pluralForm="cheetahs">dog</pluralize></p>
@@ -101,16 +147,28 @@ describe("Pluralize tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq("cheetahs");
-        expect(stateVariables["/p2"].stateValues.text).eq("cheetahs");
-        expect(stateVariables["/p3"].stateValues.text).eq("cheetahs");
-        expect(stateVariables["/p4"].stateValues.text).eq("cheetahs");
-        expect(stateVariables["/p5"].stateValues.text).eq("cheetahs");
-        expect(stateVariables["/p6"].stateValues.text).eq("cheetahs");
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            "cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
+            "cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
+            "cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
+            "cheetahs",
+        );
+        expect(stateVariables[resolveComponentName("p6")].stateValues.text).eq(
+            "cheetahs",
+        );
     });
 
     it("number followed by noun, based on number", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <p name="p1"><pluralize basedOnNumber="3">one dog</pluralize></p>
@@ -126,19 +184,37 @@ describe("Pluralize tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq("one dogs");
-        expect(stateVariables["/p2"].stateValues.text).eq("two dog");
-        expect(stateVariables["/p3"].stateValues.text).eq("zero dogs");
-        expect(stateVariables["/p4"].stateValues.text).eq("1 mice");
-        expect(stateVariables["/p5"].stateValues.text).eq("2 mice");
-        expect(stateVariables["/p6"].stateValues.text).eq("0 mouse");
-        expect(stateVariables["/p7"].stateValues.text).eq("one thousand bus");
-        expect(stateVariables["/p8"].stateValues.text).eq("0.5 buses");
-        expect(stateVariables["/p9"].stateValues.text).eq("1 buses");
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            "one dogs",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "two dog",
+        );
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
+            "zero dogs",
+        );
+        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
+            "1 mice",
+        );
+        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
+            "2 mice",
+        );
+        expect(stateVariables[resolveComponentName("p6")].stateValues.text).eq(
+            "0 mouse",
+        );
+        expect(stateVariables[resolveComponentName("p7")].stateValues.text).eq(
+            "one thousand bus",
+        );
+        expect(stateVariables[resolveComponentName("p8")].stateValues.text).eq(
+            "0.5 buses",
+        );
+        expect(stateVariables[resolveComponentName("p9")].stateValues.text).eq(
+            "1 buses",
+        );
     });
 
     it("single word, based on number", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <p name="p1"><pluralize basedOnNumber="7">dog</pluralize></p>
@@ -157,22 +233,46 @@ describe("Pluralize tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq("dogs");
-        expect(stateVariables["/p2"].stateValues.text).eq("dog");
-        expect(stateVariables["/p3"].stateValues.text).eq("mice");
-        expect(stateVariables["/p4"].stateValues.text).eq("mouse");
-        expect(stateVariables["/p5"].stateValues.text).eq("buses");
-        expect(stateVariables["/p6"].stateValues.text).eq("bus");
-        expect(stateVariables["/p7"].stateValues.text).eq("geese");
-        expect(stateVariables["/p8"].stateValues.text).eq("goose");
-        expect(stateVariables["/p9"].stateValues.text).eq("ponies");
-        expect(stateVariables["/p10"].stateValues.text).eq("pony");
-        expect(stateVariables["/p11"].stateValues.text).eq("only");
-        expect(stateVariables["/p12"].stateValues.text).eq("only");
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            "dogs",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "dog",
+        );
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
+            "mice",
+        );
+        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
+            "mouse",
+        );
+        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
+            "buses",
+        );
+        expect(stateVariables[resolveComponentName("p6")].stateValues.text).eq(
+            "bus",
+        );
+        expect(stateVariables[resolveComponentName("p7")].stateValues.text).eq(
+            "geese",
+        );
+        expect(stateVariables[resolveComponentName("p8")].stateValues.text).eq(
+            "goose",
+        );
+        expect(stateVariables[resolveComponentName("p9")].stateValues.text).eq(
+            "ponies",
+        );
+        expect(stateVariables[resolveComponentName("p10")].stateValues.text).eq(
+            "pony",
+        );
+        expect(stateVariables[resolveComponentName("p11")].stateValues.text).eq(
+            "only",
+        );
+        expect(stateVariables[resolveComponentName("p12")].stateValues.text).eq(
+            "only",
+        );
     });
 
     it("phrases", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><pluralize>one dog three cat two squirrel or 1 cat plus 7 goose</pluralize></p>
     <p name="p2"><pluralize>one hundred green plane flew through one big sky, rather than six shiny sky</pluralize></p>
@@ -180,16 +280,16 @@ describe("Pluralize tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
             "one dog three cats two squirrels or 1 cat plus 7 geese",
         );
-        expect(stateVariables["/p2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
             "one hundred green planes flew through one big sky, rather than six shiny skies",
         );
     });
 
     it("dynamic", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>How many geese? <textInput name="nGeese" prefill="1" /></p>
     <p>How many teeth? <textInput name="nTeeth" prefill="1" /></p>
@@ -199,47 +299,67 @@ describe("Pluralize tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             "I have 1 goose even if one doesn't have 1 tooth",
         );
 
-        await updateTextInputValue({ name: "/nGeese", text: "three", core });
+        await updateTextInputValue({
+            componentIdx: resolveComponentName("nGeese"),
+            text: "three",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             "I have three geese even if one doesn't have 1 tooth",
         );
 
-        await updateTextInputValue({ name: "/nTeeth", text: "0", core });
+        await updateTextInputValue({
+            componentIdx: resolveComponentName("nTeeth"),
+            text: "0",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             "I have three geese even if one doesn't have 0 teeth",
         );
 
-        await updateTextInputValue({ name: "/nTeeth", text: "one", core });
+        await updateTextInputValue({
+            componentIdx: resolveComponentName("nTeeth"),
+            text: "one",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             "I have three geese even if one doesn't have one tooth",
         );
 
         await updateTextInputValue({
-            name: "/nTeeth",
+            componentIdx: resolveComponentName("nTeeth"),
             text: "one thousand",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             "I have three geese even if one doesn't have one thousand teeth",
         );
 
-        await updateTextInputValue({ name: "/nGeese", text: "-1", core });
+        await updateTextInputValue({
+            componentIdx: resolveComponentName("nGeese"),
+            text: "-1",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             "I have -1 geese even if one doesn't have one thousand teeth",
         );
 
-        await updateTextInputValue({ name: "/nGeese", text: "-2", core });
+        await updateTextInputValue({
+            componentIdx: resolveComponentName("nGeese"),
+            text: "-2",
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             "I have -2 geese even if one doesn't have one thousand teeth",
         );
     });

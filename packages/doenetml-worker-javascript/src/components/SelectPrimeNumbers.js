@@ -1,5 +1,4 @@
 import { enumerateSelectionCombinations } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -14,8 +13,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     static componentType = "selectPrimeNumbers";
 
     static allowInSchemaAsComponent = ["integer"];
-
-    static assignNamesToReplacements = true;
 
     static createsVariants = true;
 
@@ -42,9 +39,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             public: true,
         };
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numToSelect = {
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -247,57 +241,55 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
 
         let errorMessage = await component.stateValues.errorMessage;
         if (errorMessage) {
-            errors.push({
-                message: errorMessage,
-            });
             return {
                 replacements: [
                     {
+                        type: "serialized",
                         componentType: "_error",
+                        componentIdx: nComponents++,
                         state: { message: errorMessage },
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
                     },
                 ],
                 errors,
                 warnings,
+                nComponents,
             };
         }
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let replacements = [];
 
         for (let value of await component.stateValues.selectedValues) {
             replacements.push({
+                type: "serialized",
                 componentType: "integer",
+                componentIdx: nComponents++,
                 state: { value, fixed: true },
+                attributes: {},
+                doenetAttributes: {},
+                children: [],
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 
     static calculateReplacementChanges() {
-        return [];
+        return { replacementChanges: [] };
     }
 
     static determineNumberOfUniqueVariants({ serializedComponent }) {

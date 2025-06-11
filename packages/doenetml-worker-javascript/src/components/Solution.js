@@ -27,15 +27,21 @@ export class Solution extends BlockComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let wrapWithContainer = function ({ matchedChildren }) {
+        let wrapWithContainer = function ({ matchedChildren, nComponents }) {
             return {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType: "_postponeRenderContainer",
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
+                nComponents,
             };
         };
 

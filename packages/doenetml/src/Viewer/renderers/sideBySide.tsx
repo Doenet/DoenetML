@@ -7,10 +7,7 @@ import useDoenetRenderer, {
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props);
-    // console.log(">>>name: ", name, " value: ", SVs);
-    // console.log(">>>children",children)
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
     const ref = useRef(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);

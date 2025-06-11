@@ -44,8 +44,8 @@ export default class Row extends BaseComponent {
         attributes.functionSymbols = {
             createComponentOfType: "textList",
         };
-        attributes.sourcesAreFunctionSymbols = {
-            createComponentOfType: "textList",
+        attributes.referencesAreFunctionSymbols = {
+            createReferences: true,
         };
         attributes.splitSymbols = {
             createComponentOfType: "boolean",

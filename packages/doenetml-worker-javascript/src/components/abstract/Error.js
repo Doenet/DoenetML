@@ -58,7 +58,7 @@ export default class ErrorComponent extends BlockComponent {
                 let rangeMessage = "";
 
                 let position = dependencyValues.position;
-                if (position.lineBegin !== undefined) {
+                if (position?.start.line !== undefined) {
                     rangeMessage =
                         "Found on " + printDoenetMLrange(position) + ".";
                 }

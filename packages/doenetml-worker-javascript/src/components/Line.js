@@ -41,7 +41,7 @@ export default class Line extends GraphicalComponent {
             createComponentOfType: "math",
         };
         attributes.through = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
         attributes.slope = {
             createComponentOfType: "number",
@@ -599,6 +599,7 @@ export default class Line extends GraphicalComponent {
             },
             isArray: true,
             numDimensions: 2,
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["pointX", "point"],
             returnEntryDimensions: (prefix) => (prefix === "point" ? 1 : 0),
             getArrayKeysFromVarName({
@@ -2287,14 +2288,14 @@ export default class Line extends GraphicalComponent {
 
     async lineClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -2304,14 +2305,14 @@ export default class Line extends GraphicalComponent {
 
     async lineFocused({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

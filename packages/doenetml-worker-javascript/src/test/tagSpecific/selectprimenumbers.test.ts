@@ -12,21 +12,23 @@ vi.mock("hyperformula");
 describe("selectPrimeNumbers tag tests", async () => {
     async function test_values_separately({
         doenetML,
-        componentNames,
+        componentName,
         valid_values,
-        num_samples,
+        num_to_select,
+        num_variants_to_test,
         must_be_distinct = false,
         is_math = false,
     }: {
         doenetML: string;
-        componentNames: string[];
+        componentName: string;
         valid_values: any[][];
-        num_samples: number;
+        num_to_select: number;
+        num_variants_to_test: number;
         must_be_distinct?: boolean;
         is_math?: boolean;
     }) {
-        for (let i = 0; i < num_samples; i++) {
-            let core = await createTestCore({
+        for (let i = 0; i < num_variants_to_test; i++) {
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: i,
             });
@@ -34,21 +36,34 @@ describe("selectPrimeNumbers tag tests", async () => {
                 false,
                 true,
             );
-            for (let [ind, name] of componentNames.entries()) {
-                let value = stateVariables[name].stateValues.value;
+            for (let idx = 0; idx < num_to_select; idx++) {
+                let value =
+                    stateVariables[
+                        resolveComponentName(`${componentName}[${idx + 1}]`)
+                    ].stateValues.value;
                 expect(
                     is_math
-                        ? valid_values[ind].some((v) => v.equals(value))
-                        : valid_values[ind].includes(value),
-                ).eq(true, `Expected ${value} to be in ${valid_values[ind]}`);
+                        ? valid_values[idx].some((v) => v.equals(value))
+                        : valid_values[idx].includes(value),
+                ).eq(true, `Expected ${value} to be in ${valid_values[idx]}`);
             }
 
             if (must_be_distinct) {
-                for (let name1 of componentNames) {
-                    let val1 = stateVariables[name1].stateValues.value;
-                    for (let name2 of componentNames) {
-                        if (name2 !== name1) {
-                            let val2 = stateVariables[name2].stateValues.value;
+                for (let idx1 = 0; idx1 < num_to_select; idx1++) {
+                    let val1 =
+                        stateVariables[
+                            resolveComponentName(
+                                `${componentName}[${idx1 + 1}]`,
+                            )
+                        ].stateValues.value;
+                    for (let idx2 = 0; idx2 < num_to_select; idx2++) {
+                        if (idx2 !== idx1) {
+                            let val2 =
+                                stateVariables[
+                                    resolveComponentName(
+                                        `${componentName}[${idx2 + 1}]`,
+                                    )
+                                ].stateValues.value;
                             if (is_math) {
                                 expect(val2.equals(val1)).eq(false);
                             } else {
@@ -63,19 +78,21 @@ describe("selectPrimeNumbers tag tests", async () => {
 
     async function test_combined_values({
         doenetML,
-        componentNames,
+        componentName,
         valid_combinations,
-        num_samples,
+        num_to_select,
+        num_variants_to_test,
         is_math = false,
     }: {
         doenetML: string;
-        componentNames: string[];
+        componentName: string;
         valid_combinations: any[][];
-        num_samples: number;
+        num_to_select: number;
+        num_variants_to_test: number;
         is_math?: boolean;
     }) {
-        for (let i = 0; i < num_samples; i++) {
-            let core = await createTestCore({
+        for (let i = 0; i < num_variants_to_test; i++) {
+            let { core, resolveComponentName } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: i,
             });
@@ -83,9 +100,14 @@ describe("selectPrimeNumbers tag tests", async () => {
                 false,
                 true,
             );
-            let values = componentNames.map(
-                (name) => stateVariables[name].stateValues.value,
-            );
+            const values: any[] = [];
+            for (let idx = 0; idx < num_to_select; idx++) {
+                values.push(
+                    stateVariables[
+                        resolveComponentName(`${componentName}[${idx + 1}]`)
+                    ].stateValues.value,
+                );
+            }
 
             expect(
                 valid_combinations.some((comb) =>
@@ -101,93 +123,99 @@ describe("selectPrimeNumbers tag tests", async () => {
     }
 
     it("no parameters, select single prime number from 2 to 100", async () => {
-        const doenetML = `<selectPrimeNumbers assignNames="res"/>`;
+        const doenetML = `<selectPrimeNumbers name="res"/>`;
         const valid_values = [
             [
                 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
                 61, 67, 71, 73, 79, 83, 89, 97,
             ],
         ];
-        const componentNames = ["/res"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 30,
+            componentName,
+            num_to_select: 1,
+            num_variants_to_test: 30,
         });
     });
 
     it("select single prime number from 2 to 6", async () => {
-        const doenetML = `<selectPrimeNumbers assignNames="res" maxValue="6"/>`;
+        const doenetML = `<selectPrimeNumbers name="res" maxValue="6"/>`;
         const valid_values = [[2, 3, 5]];
-        const componentNames = ["/res"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 30,
+            componentName,
+            num_to_select: 1,
+            num_variants_to_test: 30,
         });
     });
 
     it("select single prime number from 9 to 39", async () => {
-        const doenetML = `<selectPrimeNumbers assignNames="res" minValue="9" maxValue="39" />`;
+        const doenetML = `<selectPrimeNumbers name="res" minValue="9" maxValue="39" />`;
         const valid_values = [[11, 13, 17, 19, 23, 29, 31, 37]];
-        const componentNames = ["/res"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 30,
+            componentName,
+            num_to_select: 1,
+            num_variants_to_test: 30,
         });
     });
 
     it("select single prime number from 9 to 39, excluding 19", async () => {
-        const doenetML = `<selectPrimeNumbers assignNames="res" minValue="9" maxValue="39" exclude="19" />`;
+        const doenetML = `<selectPrimeNumbers name="res" minValue="9" maxValue="39" exclude="19" />`;
         const valid_values = [[11, 13, 17, 23, 29, 31, 37]];
-        const componentNames = ["/res"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 30,
+            componentName,
+            num_to_select: 1,
+            num_variants_to_test: 30,
         });
     });
 
     it("select two prime numbers from 1020 to 1050, excluding 1031 and 1049", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="2" assignNames="res1 res2" minValue="1020" maxValue="1050" exclude="1031 1049" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" minValue="1020" maxValue="1050" exclude="1031 1049" />`;
         const valid_values = [
             [1021, 1033, 1039],
             [1021, 1033, 1039],
         ];
-        const componentNames = ["/res1", "/res2"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 10,
+            componentName,
+            num_to_select: 2,
+            num_variants_to_test: 10,
             must_be_distinct: true,
         });
     });
 
     it("select two prime numbers from 1020 to 1050, excluding 1031 and 1049 and combinations", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="2" assignNames="res1 res2" minValue="1020" maxValue="1050" exclude="1031 1049"  excludeCombinations="(1021 1033) (1033 1039) (1039 1021)"/>`;
+        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" minValue="1020" maxValue="1050" exclude="1031 1049"  excludeCombinations="(1021 1033) (1033 1039) (1039 1021)"/>`;
         const valid_combinations = [
             [1021, 1039],
             [1033, 1021],
             [1039, 1033],
         ];
-        const componentNames = ["/res1", "/res2"];
+        const componentName = "res";
 
         await test_combined_values({
             doenetML,
             valid_combinations,
-            componentNames,
-            num_samples: 10,
+            componentName,
+            num_to_select: 2,
+            num_variants_to_test: 10,
         });
     });
 
@@ -200,41 +228,43 @@ describe("selectPrimeNumbers tag tests", async () => {
     <numberList name="ec2">1021 1033</numberList>
     <numberList name="ec3">1033 1039</numberList>
     <mathList name="ec4">1039 1021</mathList>
-    <selectPrimeNumbers numToSelect="2" assignNames="res1 res2" minValue="1020" maxValue="1050" exclude="1031 1049"  excludeCombinations="$ec ($e1 1039) ($e2 $e3)"/>`;
+    <selectPrimeNumbers numToSelect="2" name="res" minValue="1020" maxValue="1050" exclude="1031 1049"  excludeCombinations="$ec ($e1 1039) ($e2 $e3)"/>`;
         const valid_combinations = [
             [1021, 1039],
             [1033, 1021],
             [1039, 1033],
         ];
-        const componentNames = ["/res1", "/res2"];
+        const componentName = "res";
 
         await test_combined_values({
             doenetML,
             valid_combinations,
-            componentNames,
-            num_samples: 10,
+            componentName,
+            num_to_select: 2,
+            num_variants_to_test: 10,
         });
     });
 
     it("select two prime numbers from 1020 to 1050, excluding 1031 and 1049 and combinations, exclude extras", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="2" assignNames="res1 res2" minValue="1020" maxValue="1050" exclude="19 1031 1036 1037 1038 1049 1050 1061" excludeCombinations="(1021 1033) (1033 1039) (1039 1021)"/>`;
+        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" minValue="1020" maxValue="1050" exclude="19 1031 1036 1037 1038 1049 1050 1061" excludeCombinations="(1021 1033) (1033 1039) (1039 1021)"/>`;
         const valid_combinations = [
             [1021, 1039],
             [1033, 1021],
             [1039, 1033],
         ];
-        const componentNames = ["/res1", "/res2"];
+        const componentName = "res";
 
         await test_combined_values({
             doenetML,
             valid_combinations,
-            componentNames,
-            num_samples: 10,
+            componentName,
+            num_to_select: 2,
+            num_variants_to_test: 10,
         });
     });
 
     it("select three prime numbers up to 5, exclude combinations with two 2s", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="3" withReplacement assignNames="res1 res2 res3" maxValue="5" excludeCombinations="(2 2 _) (2 _ 2) (_ 2 2)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="3" withReplacement name="res" maxValue="5" excludeCombinations="(2 2 _) (2 _ 2) (_ 2 2)" />`;
         const valid_combinations = [
             [2, 3, 3],
             [2, 3, 5],
@@ -257,18 +287,19 @@ describe("selectPrimeNumbers tag tests", async () => {
             [3, 5, 5],
             [5, 5, 5],
         ];
-        const componentNames = ["/res1", "/res2", "/res3"];
+        const componentName = "res";
 
         await test_combined_values({
             doenetML,
             valid_combinations,
-            componentNames,
-            num_samples: 10,
+            componentName,
+            num_to_select: 3,
+            num_variants_to_test: 10,
         });
     });
 
     it("select three prime numbers up to 5, exclude combinations with two 2s, duplicate excludes", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="3" withReplacement assignNames="res1 res2 res3" maxValue="5" excludeCombinations="(2 2 _) (2 _ 2) (_ 2 2) (5 2 2) (3 2 2) (2 2 2) (_ 2 2) (_ 2 2) (_ 2 2) (2 2 _) (2 _ 2) (2 2 _) (2 5 2) (2 3 2) (2 2 2)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="3" withReplacement name="res" maxValue="5" excludeCombinations="(2 2 _) (2 _ 2) (_ 2 2) (5 2 2) (3 2 2) (2 2 2) (_ 2 2) (_ 2 2) (_ 2 2) (2 2 _) (2 _ 2) (2 2 _) (2 5 2) (2 3 2) (2 2 2)" />`;
         const valid_combinations = [
             [2, 3, 3],
             [2, 3, 5],
@@ -291,18 +322,19 @@ describe("selectPrimeNumbers tag tests", async () => {
             [3, 5, 5],
             [5, 5, 5],
         ];
-        const componentNames = ["/res1", "/res2", "/res3"];
+        const componentName = "res";
 
         await test_combined_values({
             doenetML,
             valid_combinations,
-            componentNames,
-            num_samples: 10,
+            componentName,
+            num_to_select: 3,
+            num_variants_to_test: 10,
         });
     });
 
     it("select four prime numbers from 3 to 11, exclude positions of each number", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="4" withReplacement assignNames="res1 res2 res3 res4" minValue="3" maxValue="11" excludeCombinations="(3 _ _ _) (_ 5 _ _) (_ _ 7 _) (_ _ _ 11)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="4" withReplacement name="res" minValue="3" maxValue="11" excludeCombinations="(3 _ _ _) (_ 5 _ _) (_ _ 7 _) (_ _ _ 11)" />`;
         const valid_values = [
             [5, 7, 11],
             [3, 7, 11],
@@ -310,39 +342,41 @@ describe("selectPrimeNumbers tag tests", async () => {
             [3, 5, 7],
         ];
 
-        const componentNames = ["/res1", "/res2", "/res3", "/res4"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 10,
+            componentName,
+            num_to_select: 4,
+            num_variants_to_test: 10,
         });
     });
 
     it("select three prime numbers up to 5, without replacement exclude positions of each number", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="3" assignNames="res1 res2 res3" maxValue="5" excludeCombinations="(2 _ _) (_ 3 _) (_ _ 5)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="3" name="res" maxValue="5" excludeCombinations="(2 _ _) (_ 3 _) (_ _ 5)" />`;
         const valid_values = [
             [3, 5],
             [2, 5],
             [2, 3],
         ];
 
-        const componentNames = ["/res1", "/res2", "/res3"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 10,
+            componentName,
+            num_to_select: 3,
+            num_variants_to_test: 10,
             must_be_distinct: true,
         });
     });
 
     it("select three prime numbers up to 5, without replacement, exclude any place for 2", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
-    <selectPrimeNumbers numToSelect="3" assignNames="res1 res2 res3" maxValue="5" excludeCombinations="(2 _ _) (_ 2 _) (_ _ 2)" />
+    <selectPrimeNumbers numToSelect="3" name="res" maxValue="5" excludeCombinations="(2 _ _) (_ 2 _) (_ _ 2)" />
     `,
         });
 
@@ -352,16 +386,16 @@ describe("selectPrimeNumbers tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain("Excluded over 70%");
-        expect(errorWarnings.errors[0].position.lineBegin).eq(2);
-        expect(errorWarnings.errors[0].position.charBegin).eq(5);
-        expect(errorWarnings.errors[0].position.lineEnd).eq(2);
-        expect(errorWarnings.errors[0].position.charEnd).eq(130);
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.start.column).eq(5);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.column).eq(113);
     });
 
     it("select 10 prime numbers from the first 10, without replacement, exclude positions of each number", async () => {
         // make sure that exclude combinations does not enumerate all combinations excluded
         // to count them
-        const doenetML = `<selectPrimeNumbers numToSelect="10" assignNames="res1 res2 res3 res4 res5 res6 res7 res8 res9 res10" maxValue="30" excludeCombinations="(2 _ _ _ _ _ _ _ _ _) (_ 3 _ _ _ _ _ _ _ _) (_ _ 5 _ _ _ _ _ _ _) (_ _ _ 7 _ _ _ _ _ _) (_ _ _ _ 11 _ _ _ _ _) (_ _ _ _ _ 13 _ _ _ _) (_ _ _ _ _ _ 17 _ _ _) (_ _ _ _ _ _ _ 19 _ _) (_ _ _ _ _ _ _ _ 23 _) (_ _ _ _ _ _ _ _ _ 29)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="10" name="res" maxValue="30" excludeCombinations="(2 _ _ _ _ _ _ _ _ _) (_ 3 _ _ _ _ _ _ _ _) (_ _ 5 _ _ _ _ _ _ _) (_ _ _ 7 _ _ _ _ _ _) (_ _ _ _ 11 _ _ _ _ _) (_ _ _ _ _ 13 _ _ _ _) (_ _ _ _ _ _ 17 _ _ _) (_ _ _ _ _ _ _ 19 _ _) (_ _ _ _ _ _ _ _ 23 _) (_ _ _ _ _ _ _ _ _ 29)" />`;
 
         const allNumbers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
         const valid_values: number[][] = [];
@@ -372,30 +406,20 @@ describe("selectPrimeNumbers tag tests", async () => {
             valid_values.push(validNs);
         }
 
-        const componentNames = [
-            "/res1",
-            "/res2",
-            "/res3",
-            "/res4",
-            "/res5",
-            "/res6",
-            "/res7",
-            "/res8",
-            "/res9",
-            "/res10",
-        ];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 5,
+            componentName,
+            num_to_select: 10,
+            num_variants_to_test: 5,
             must_be_distinct: true,
         });
     });
 
     it("select five prime numbers with replacement from 1020 to 1050, excluding 1031 and 1049", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="5" withReplacement assignNames="res1 res2 res3 res4 res5" minValue="1020" maxValue="1050" exclude="1031 1049" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="5" withReplacement name="res" minValue="1020" maxValue="1050" exclude="1031 1049" />`;
         const valid_values = [
             [1021, 1033, 1039, 1051],
             [1021, 1033, 1039, 1051],
@@ -404,24 +428,25 @@ describe("selectPrimeNumbers tag tests", async () => {
             [1021, 1033, 1039, 1051],
         ];
 
-        const componentNames = ["/res1", "/res2", "/res3", "/res4", "/res5"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 5,
+            componentName,
+            num_to_select: 5,
+            num_variants_to_test: 5,
         });
     });
 
     it("select five (number initially unresolved) prime numbers with replacement from 1020 to 1050, excluding 1031 and 1049", async () => {
         const doenetML = `
-    <selectPrimeNumbers numToSelect="$n" withReplacement assignNames="res1 res2 res3 res4 res5" minValue="1020" maxValue="1050" exclude="1031 1049" />
-    $n3{name="n2"}
-    $num1{name="n"}
+    <selectPrimeNumbers numToSelect="$n" withReplacement name="res" minValue="1020" maxValue="1050" exclude="1031 1049" />
+    <number extend="$n3" name="n2" />
+    <math extend="$num1" name="n" />
     <math name="num1">$n2+$num2+2</math>
     <math name="num2">$n3+$num3</math>
-    $num3{name="n3"}
+    <number extend="$num3" name="n3" />
     <number name="num3">1</number>`;
 
         const valid_values = [
@@ -432,18 +457,19 @@ describe("selectPrimeNumbers tag tests", async () => {
             [1021, 1033, 1039, 1051],
         ];
 
-        const componentNames = ["/res1", "/res2", "/res3", "/res4", "/res5"];
+        const componentName = "res";
 
         await test_values_separately({
             doenetML,
             valid_values,
-            componentNames,
-            num_samples: 5,
+            componentName,
+            num_to_select: 5,
+            num_variants_to_test: 5,
         });
     });
 
     it("select 100 large prime numbers, check that are prime", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <selectPrimeNumbers numToSelect="100" name="sample" maxValue="1000000" />
     `,
@@ -452,9 +478,8 @@ describe("selectPrimeNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 0; ind < 100; ind++) {
             let num =
-                stateVariables[
-                    stateVariables["/sample"].replacements![ind].componentIdx
-                ].stateValues.value;
+                stateVariables[resolveComponentName(`sample[${ind + 1}]`)]
+                    .stateValues.value;
 
             expect(Number.isInteger(num) && num >= 2 && num <= 1000000).eq(
                 true,
@@ -473,10 +498,10 @@ describe("selectPrimeNumbers tag tests", async () => {
     });
 
     it("asList", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p name="p1"><selectPrimeNumbers name="s" minValue="175" maxValue="205" assignNames="u v w x y" numToSelect="5" /></p>
-    <p name="p2"><selectPrimeNumbers copySource="s" name="s2" asList="false" /></p>
+    <p name="p1"><selectPrimeNumbers name="s" minValue="175" maxValue="205" numToSelect="5" /></p>
+    <p name="p2"><selectPrimeNumbers extend="$s" name="s2" asList="false" /></p>
     `,
         });
 
@@ -484,44 +509,63 @@ describe("selectPrimeNumbers tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        results.push(stateVariables["/u"].stateValues.value);
-        results.push(stateVariables["/v"].stateValues.value);
-        results.push(stateVariables["/w"].stateValues.value);
-        results.push(stateVariables["/x"].stateValues.value);
-        results.push(stateVariables["/y"].stateValues.value);
+        results.push(
+            stateVariables[resolveComponentName("s[1]")].stateValues.value,
+        );
+        results.push(
+            stateVariables[resolveComponentName("s[2]")].stateValues.value,
+        );
+        results.push(
+            stateVariables[resolveComponentName("s[3]")].stateValues.value,
+        );
+        results.push(
+            stateVariables[resolveComponentName("s[4]")].stateValues.value,
+        );
+        results.push(
+            stateVariables[resolveComponentName("s[5]")].stateValues.value,
+        );
 
         for (let num of results) {
             expect([179, 181, 191, 193, 197, 199].includes(num));
         }
-        expect(stateVariables["/p1"].stateValues.text).eq(results.join(", "));
-        expect(stateVariables["/p2"].stateValues.text).eq(results.join(""));
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            results.join(", "),
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            results.join(""),
+        );
     });
 
     it("copies don't resample", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1">
-    <selectPrimeNumbers name="sample1" maxValue="100" assignNames="n1" />
-    <selectPrimeNumbers name="sample2" maxValue="100" assignNames="n2" />
+    <selectPrimeNumbers name="sample1" maxValue="100" />
+    <selectPrimeNumbers name="sample2" maxValue="100" />
     </p>
+
 
     <p>
-    $sample1{name="noresample1"}
-    $sample2{name="noresample2"}
-    $noresample1{name="noreresample1"}
-    $noresample2{name="noreresample2"}
+    <selectPrimeNumbers extend="$sample1" name="noresample1" />
+    <selectPrimeNumbers extend="$sample2" name="noresample2" />
+    <selectPrimeNumbers extend="$noresample1" name="noreresample1" />
+    <selectPrimeNumbers extend="$noresample2" name="noreresample2" />
     </p>
 
-    <p copySource="p1" name="noresamplep"/>
+    <p extend="$p1" name="noresamplep"/>
 
-    <p copySource="noresamplep" name="noreresamplep"/>
+    <p extend="$noresamplep" name="noreresamplep"/>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let num1 = stateVariables["/n1"].stateValues.value;
-        let num2 = stateVariables["/n2"].stateValues.value;
+        let num1 =
+            stateVariables[resolveComponentName("sample1[1]")].stateValues
+                .value;
+        let num2 =
+            stateVariables[resolveComponentName("sample2[1]")].stateValues
+                .value;
         expect(Number.isInteger(num1) && num1 >= 2 && num1 <= 100).eq(true);
         expect(Number.isInteger(num2) && num2 >= 2 && num2 <= 100).eq(true);
         // check numbers are prime
@@ -534,49 +578,57 @@ describe("selectPrimeNumbers tag tests", async () => {
 
         expect(
             stateVariables[
-                stateVariables["/noresample1"].replacements![0].componentIdx
+                stateVariables[resolveComponentName("noresample1")]
+                    .replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables["/noresample2"].replacements![0].componentIdx
+                stateVariables[resolveComponentName("noresample2")]
+                    .replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num2);
         expect(
             stateVariables[
-                stateVariables["/noreresample1"].replacements![0].componentIdx
+                stateVariables[resolveComponentName("noreresample1")]
+                    .replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables["/noreresample2"].replacements![0].componentIdx
+                stateVariables[resolveComponentName("noreresample2")]
+                    .replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num2);
 
         expect(
             stateVariables[
-                stateVariables["/noresamplep"].activeChildren[1].componentIdx
+                stateVariables[resolveComponentName("noresamplep")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables["/noresamplep"].activeChildren[3].componentIdx
+                stateVariables[resolveComponentName("noresamplep")]
+                    .activeChildren[3].componentIdx
             ].stateValues.value,
         ).eq(num2);
         expect(
             stateVariables[
-                stateVariables["/noreresamplep"].activeChildren[1].componentIdx
+                stateVariables[resolveComponentName("noreresamplep")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables["/noreresamplep"].activeChildren[3].componentIdx
+                stateVariables[resolveComponentName("noreresamplep")]
+                    .activeChildren[3].componentIdx
             ].stateValues.value,
         ).eq(num2);
     });
 
     it("select doesn't change dynamically", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <mathInput prefill="5" name="numToSelect"/>
     <mathInput prefill="3" name="maxNum"/>
@@ -589,13 +641,14 @@ describe("selectPrimeNumbers tag tests", async () => {
     <p>
     <selectPrimeNumbers name="sample2" withReplacement maxValue="$maxNum2" numToSelect="$numToSelect2" />
     </p>
-    <p>$maxNum2.value{assignNames="maxNum2a"}</p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements = stateVariables["/sample1"].replacements!;
-        let sample2replacements = stateVariables["/sample2"].replacements!;
+        let sample1replacements =
+            stateVariables[resolveComponentName("sample1")].replacements!;
+        let sample2replacements =
+            stateVariables[resolveComponentName("sample2")].replacements!;
         expect(sample1replacements.length).eq(5);
         expect(sample2replacements.length).eq(2);
         let sample1numbers = sample1replacements.map(
@@ -615,28 +668,30 @@ describe("selectPrimeNumbers tag tests", async () => {
         // Nothing changes when change mathInputs
         await updateMathInputValue({
             latex: "7",
-            name: "/numToSelect",
+            componentIdx: resolveComponentName("numToSelect"),
             core,
         });
         await updateMathInputValue({
             latex: "11",
-            name: "/maxNum",
+            componentIdx: resolveComponentName("maxNum"),
             core,
         });
         await updateMathInputValue({
             latex: "16",
-            name: "/numToSelect2",
+            componentIdx: resolveComponentName("numToSelect2"),
             core,
         });
         await updateMathInputValue({
             latex: "18",
-            name: "/maxNum2",
+            componentIdx: resolveComponentName("maxNum2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        sample1replacements = stateVariables["/sample1"].replacements!;
-        sample2replacements = stateVariables["/sample2"].replacements!;
+        sample1replacements =
+            stateVariables[resolveComponentName("sample1")].replacements!;
+        sample2replacements =
+            stateVariables[resolveComponentName("sample2")].replacements!;
 
         expect(
             sample1replacements.map(
@@ -650,24 +705,24 @@ describe("selectPrimeNumbers tag tests", async () => {
         ).eqls(sample2numbers);
     });
 
-    it("select doesn't resample in dynamic map", async () => {
-        let core = await createTestCore({
+    it("select doesn't resample in dynamic repeat", async () => {
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     How many numbers do you want? <mathInput name="mi1" />
-    <p name="p1"><map assignNames="a b c d e f" name="map1">
-      <template newNamespace><selectPrimeNumbers assignNames="n" maxValue="100" /></template>
-      <sources>
-          <sequence length="$mi1" />
-      </sources>
-    </map></p>
+    <setup>
+        <sequence name="seq" length="$mi1" />
+    </setup>
+    <p name="p1"><repeat for="$seq" name="repeat1">
+      <selectPrimeNumbers name="n" maxValue="100" />
+    </repeat></p>
     
-    <p name="p2">$map1</p>
+    <p name="p2">$repeat1</p>
 
-    $p1{name="p3"}
-    $p2{name="p4"}
+    <p extend="$p1" name="p3" />
+    <p extend="$p2" name="p4" />
 
-    $p3{name="p5"}
-    $p4{name="p6"}
+    <p extend="$p3" name="p5" />
+    <p extend="$p4" name="p6" />
     `,
         });
 
@@ -678,42 +733,42 @@ describe("selectPrimeNumbers tag tests", async () => {
             );
 
             expect(
-                stateVariables["/p1"].activeChildren.map(
+                stateVariables[resolveComponentName("p1")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p2"].activeChildren.map(
+                stateVariables[resolveComponentName("p2")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p3"].activeChildren.map(
+                stateVariables[resolveComponentName("p3")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p4"].activeChildren.map(
+                stateVariables[resolveComponentName("p4")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p5"].activeChildren.map(
+                stateVariables[resolveComponentName("p5")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables["/p6"].activeChildren.map(
+                stateVariables[resolveComponentName("p6")].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
@@ -726,50 +781,99 @@ describe("selectPrimeNumbers tag tests", async () => {
         await check_sampled_numbers([]);
 
         // sample one variable
-        await updateMathInputValue({ latex: "1", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
+        sampledNumbers.push(
+            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
+                .value,
+        );
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers([]);
 
         // get same number back
-        await updateMathInputValue({ latex: "1", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers(sampledNumbers);
 
         // get two more samples
-        await updateMathInputValue({ latex: "3", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 = stateVariables["/a/n"].stateValues.value;
-        let n2 = stateVariables["/b/n"].stateValues.value;
-        let n3 = stateVariables["/c/n"].stateValues.value;
+        let n1 =
+            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
+                .value;
+        let n2 =
+            stateVariables[resolveComponentName("repeat1[2].n[1]")].stateValues
+                .value;
+        let n3 =
+            stateVariables[resolveComponentName("repeat1[3].n[1]")].stateValues
+                .value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers([]);
 
         // get first two numbers back
-        await updateMathInputValue({ latex: "2", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers(sampledNumbers.slice(0, 2));
 
         // get six total samples
-        await updateMathInputValue({ latex: "6", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        n1 = stateVariables["/a/n"].stateValues.value;
-        n2 = stateVariables["/b/n"].stateValues.value;
-        n3 = stateVariables["/c/n"].stateValues.value;
-        let n4 = stateVariables["/d/n"].stateValues.value;
-        let n5 = stateVariables["/e/n"].stateValues.value;
-        let n6 = stateVariables["/f/n"].stateValues.value;
+        n1 =
+            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
+                .value;
+        n2 =
+            stateVariables[resolveComponentName("repeat1[2].n[1]")].stateValues
+                .value;
+        n3 =
+            stateVariables[resolveComponentName("repeat1[3].n[1]")].stateValues
+                .value;
+        let n4 =
+            stateVariables[resolveComponentName("repeat1[4].n[1]")].stateValues
+                .value;
+        let n5 =
+            stateVariables[resolveComponentName("repeat1[5].n[1]")].stateValues
+                .value;
+        let n6 =
+            stateVariables[resolveComponentName("repeat1[6].n[1]")].stateValues
+                .value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -779,29 +883,41 @@ describe("selectPrimeNumbers tag tests", async () => {
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers([]);
 
         // get all six back
-        await updateMathInputValue({ latex: "6", name: "/mi1", core });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: resolveComponentName("mi1"),
+            core,
+        });
         await check_sampled_numbers(sampledNumbers);
     });
 
     it("select prime numbers and sort", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><selectPrimeNumbers numToSelect="20" sortResults="true" withReplacement="true" maxValue="100" /></p>
 
-    $p1{name="p2"}
+    <p extend="$p1" name="p2" />
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let originalNumbers = stateVariables["/p1"].activeChildren.map(
+        let originalNumbers = stateVariables[
+            resolveComponentName("p1")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let secondNumbers = stateVariables["/p2"].activeChildren.map(
+        let secondNumbers = stateVariables[
+            resolveComponentName("p2")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
@@ -817,20 +933,24 @@ describe("selectPrimeNumbers tag tests", async () => {
         // (Currently we have turned off unique variants for sort results
         // but this test should still pass if we implement it)
 
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1"><selectPrimeNumbers numToSelect="3" sortResults="true" withReplacement="true" maxValue="100" /></p>
 
-    $p1{name="p2"}
+    <p extend="$p1" name="p2" />
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let originalNumbers = stateVariables["/p1"].activeChildren.map(
+        let originalNumbers = stateVariables[
+            resolveComponentName("p1")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let secondNumbers = stateVariables["/p2"].activeChildren.map(
+        let secondNumbers = stateVariables[
+            resolveComponentName("p2")
+        ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
@@ -844,7 +964,7 @@ describe("selectPrimeNumbers tag tests", async () => {
     // When this issue is resolved, change this test to make sure the references
     // are hidden when the selectPrimeNumbers is hidden
     it("selectPrimeNumbers hides dynamically", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 
     <booleanInput name='h1' prefill="false" >
@@ -853,97 +973,128 @@ describe("selectPrimeNumbers tag tests", async () => {
     <booleanInput name='h2' prefill="true" >
       <label>Hide second select</label>
     </booleanInput>
-    <p name="p1"><selectPrimeNumbers assignNames="c" hide="$h1" maxValue="10" />, <selectPrimeNumbers assignnames="d" hide="$h2" maxValue="10"/></p>
+    <p name="p1"><selectPrimeNumbers name="c" hide="$h1" maxValue="10" />, <selectPrimeNumbers name="d" hide="$h2" maxValue="10"/></p>
     <p name="p2">$c, $d</p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let c = await stateVariables["/c"].stateValues.value;
-        let d = await stateVariables["/d"].stateValues.value;
+        let c =
+            await stateVariables[resolveComponentName("c[1]")].stateValues
+                .value;
+        let d =
+            await stateVariables[resolveComponentName("d[1]")].stateValues
+                .value;
         expect([2, 3, 5, 7].includes(c)).eq(true);
         expect([2, 3, 5, 7].includes(d)).eq(true);
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
-        expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `${c}, `,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            `${c}, ${d}`,
+        );
 
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h1",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            name: "/h2",
+            componentIdx: resolveComponentName("h2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq(`, ${d}`);
-        expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `, ${d}`,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            `${c}, ${d}`,
+        );
 
         await updateBooleanInputValue({
             boolean: false,
-            name: "/h1",
+            componentIdx: resolveComponentName("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            name: "/h2",
+            componentIdx: resolveComponentName("h2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
-        expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            `${c}, `,
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            `${c}, ${d}`,
+        );
     });
 
     it("numToSelect from selectFromSequence", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-    <p>n1 = <selectFromSequence from="1" to="5" assignNames="n1" /></p>
-    <p>nums = <selectPrimeNumbers name="nums1" maxValue="30" numToSelect="$n1" assignNames="a1 b1 c1 d1 e1" /></p>
-    <p name="p1">a1=$a1, b1=$b1, c1=$c1, d1=$d1, e1=$e1</p>
+    <p>n1 = <selectFromSequence from="1" to="5" name="n1" /></p>
+    <p>nums = <selectPrimeNumbers name="nums1" maxValue="30" numToSelect="$n1" /></p>
+    <p name="p1">a1=$nums1[1], b1=$nums1[2], c1=$nums1[3], d1=$nums1[4], e1=$nums1[5]</p>
 
-    <p>n2 = <selectFromSequence from="1" to="5" assignNames="n2" /></p>
-    <p>nums = <selectPrimeNumbers name="nums2" maxValue="30" numToSelect="$n2" assignNames="a2 b2 c2 d2 e2" /></p>
-    <p name="p2">a2=$a2, b2=$b2, c2=$c2, d2=$d2, e2=$e2</p>
+    <p>n2 = <selectFromSequence from="1" to="5" name="n2" /></p>
+    <p>nums = <selectPrimeNumbers name="nums2" maxValue="30" numToSelect="$n2" /></p>
+    <p name="p2">a2=$nums2[1], b2=$nums2[2], c2=$nums2[3], d2=$nums2[4], e2=$nums2[5]</p>
 
-    <p>n3 = <selectFromSequence from="1" to="5" assignNames="n3" /></p>
-    <p>nums = <selectPrimeNumbers name="nums3" maxValue="30" numToSelect="$n3" assignNames="a3 b3 c3 d3 e3" /></p>
-    <p name="p3">a3=$a3, b3=$b3, c3=$c3, d3=$d3, e3=$e3</p>
+    <p>n3 = <selectFromSequence from="1" to="5" name="n3" /></p>
+    <p>nums = <selectPrimeNumbers name="nums3" maxValue="30" numToSelect="$n3" /></p>
+    <p name="p3">a3=$nums3[1], b3=$nums3[2], c3=$nums3[3], d3=$nums3[4], e3=$nums3[5]</p>
 
-    <p>n4 = <selectFromSequence from="1" to="5" assignNames="n4" /></p>
-    <p>nums = <selectPrimeNumbers name="nums4" maxValue="30" numToSelect="$n4" assignNames="a4 b4 c4 d4 e4" /></p>
-    <p name="p4">a4=$a4, b4=$b4, c4=$c4, d4=$d4, e4=$e4</p>
+    <p>n4 = <selectFromSequence from="1" to="5" name="n4" /></p>
+    <p>nums = <selectPrimeNumbers name="nums4" maxValue="30" numToSelect="$n4" /></p>
+    <p name="p4">a4=$nums4[1], b4=$nums4[2], c4=$nums4[3], d4=$nums4[4], e4=$nums4[5]</p>
 
-    <p>n5 = <selectFromSequence from="1" to="5" assignNames="n5" /></p>
-    <p>nums = <selectPrimeNumbers name="nums5" maxValue="30" numToSelect="$n5" assignNames="a5 b5 c5 d5 e5" /></p>
-    <p name="p5">a5=$a5, b5=$b5, c5=$c5, d5=$d5, e5=$e5</p>
+    <p>n5 = <selectFromSequence from="1" to="5" name="n5" /></p>
+    <p>nums = <selectPrimeNumbers name="nums5" maxValue="30" numToSelect="$n5" /></p>
+    <p name="p5">a5=$nums5[1], b5=$nums5[2], c5=$nums5[3], d5=$nums5[4], e5=$nums5[5]</p>
       `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 = stateVariables["/n1"].stateValues.value;
-        let n2 = stateVariables["/n2"].stateValues.value;
-        let n3 = stateVariables["/n3"].stateValues.value;
-        let n4 = stateVariables["/n4"].stateValues.value;
-        let n5 = stateVariables["/n5"].stateValues.value;
+        let n1 =
+            stateVariables[resolveComponentName("n1[1]")].stateValues.value;
+        let n2 =
+            stateVariables[resolveComponentName("n2[1]")].stateValues.value;
+        let n3 =
+            stateVariables[resolveComponentName("n3[1]")].stateValues.value;
+        let n4 =
+            stateVariables[resolveComponentName("n4[1]")].stateValues.value;
+        let n5 =
+            stateVariables[resolveComponentName("n5[1]")].stateValues.value;
 
-        let nums1 = stateVariables["/nums1"].replacements!.map(
+        let nums1 = stateVariables[
+            resolveComponentName("nums1")
+        ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let nums2 = stateVariables["/nums2"].replacements!.map(
+        let nums2 = stateVariables[
+            resolveComponentName("nums2")
+        ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let nums3 = stateVariables["/nums3"].replacements!.map(
+        let nums3 = stateVariables[
+            resolveComponentName("nums3")
+        ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let nums4 = stateVariables["/nums4"].replacements!.map(
+        let nums4 = stateVariables[
+            resolveComponentName("nums4")
+        ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let nums5 = stateVariables["/nums5"].replacements!.map(
+        let nums5 = stateVariables[
+            resolveComponentName("nums5")
+        ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
@@ -967,19 +1118,19 @@ describe("selectPrimeNumbers tag tests", async () => {
 
         let l = ["a", "b", "c", "d", "e"];
 
-        expect(stateVariables["/p1"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
             nums1.map((v, i) => `${l[i]}1=${v}`).join(", "),
         );
-        expect(stateVariables["/p2"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
             nums2.map((v, i) => `${l[i]}2=${v}`).join(", "),
         );
-        expect(stateVariables["/p3"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
             nums3.map((v, i) => `${l[i]}3=${v}`).join(", "),
         );
-        expect(stateVariables["/p4"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
             nums4.map((v, i) => `${l[i]}4=${v}`).join(", "),
         );
-        expect(stateVariables["/p5"].stateValues.text).eq(
+        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
             nums5.map((v, i) => `${l[i]}5=${v}`).join(", "),
         );
     });

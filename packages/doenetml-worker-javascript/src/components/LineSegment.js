@@ -36,7 +36,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         attributes.endpoints = {
-            createComponentOfType: "_pointListComponent",
+            createComponentOfType: "pointList",
         };
 
         attributes.showCoordsWhenDragging = {
@@ -455,6 +455,7 @@ export default class LineSegment extends GraphicalComponent {
             },
             isArray: true,
             numDimensions: 2,
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["endpointX", "endpoint"],
             returnEntryDimensions: (prefix) => (prefix === "endpoint" ? 1 : 0),
             hasEssential: true,
@@ -1324,14 +1325,14 @@ export default class LineSegment extends GraphicalComponent {
 
     async lineSegmentClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1341,14 +1342,14 @@ export default class LineSegment extends GraphicalComponent {
 
     async lineSegmentFocused({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "focus",
-                componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
+                componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

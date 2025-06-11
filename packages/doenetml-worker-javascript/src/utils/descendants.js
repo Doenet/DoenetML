@@ -60,7 +60,7 @@ export function gatherDescendants({
             } else {
                 // must have a placeholder
                 // look in activeChildren
-                // include the placedholders adapted into the activeChildren
+                // include the placeholders adapted into the activeChildren
                 for (let aChild of ancestor.activeChildren) {
                     if (aChild.placeholderInd === childIdx) {
                         child = aChild;
@@ -77,7 +77,7 @@ export function gatherDescendants({
                         break;
                     } else if (
                         aChild.adaptedFrom &&
-                        achild.adaptedFrom.placeholderInd === childIdx
+                        aChild.adaptedFrom.placeholderInd === childIdx
                     ) {
                         child = aChild.adaptedFrom;
                         break;
@@ -111,7 +111,7 @@ export function gatherDescendants({
             ) {
                 // we explicitly will not ignore replacements of copies of external content
                 checkChildForReplacements = !(
-                    child.componentType === "copy" &&
+                    child.componentType === "_copy" &&
                     child.doenetAttributes.copiedURI
                 );
             }

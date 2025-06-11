@@ -36,7 +36,10 @@ export class ComponentSize extends InlineComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let addNumberAroundMultipleComponents = function ({ matchedChildren }) {
+        let addNumberAroundMultipleComponents = function ({
+            matchedChildren,
+            nComponents,
+        }) {
             // if last child is a string, extract unit if it exists
             let lastChild = matchedChildren[matchedChildren.length - 1];
             if (typeof lastChild === "string") {
@@ -60,8 +63,13 @@ export class ComponentSize extends InlineComponent {
 
                         let newChildren = [
                             {
+                                type: "serialized",
                                 componentType: "number",
+                                componentIdx: nComponents++,
                                 children: childrenForNumber,
+                                attributes: {},
+                                doenetAttributes: {},
+                                state: {},
                             },
                             unit,
                         ];
@@ -69,6 +77,7 @@ export class ComponentSize extends InlineComponent {
                         return {
                             success: true,
                             newChildren,
+                            nComponents,
                         };
                     }
                 }
@@ -513,6 +522,7 @@ export class ComponentSizeList extends BaseComponent {
 
         let breakIntoComponentSizesByEmbeddedSpaces = function ({
             matchedChildren,
+            nComponents,
         }) {
             // break components into pieces by any spaces in a string
             // and wrap pieces with componentSize
@@ -523,8 +533,13 @@ export class ComponentSizeList extends BaseComponent {
             let createNewChildFromPiece = function () {
                 if (piece.length > 0) {
                     newChildren.push({
+                        type: "serialized",
                         componentType: "_componentSize",
+                        componentIdx: nComponents++,
                         children: piece,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     });
                     piece = [];
                 }
@@ -568,6 +583,7 @@ export class ComponentSizeList extends BaseComponent {
             return {
                 success: true,
                 newChildren,
+                nComponents,
             };
         };
 

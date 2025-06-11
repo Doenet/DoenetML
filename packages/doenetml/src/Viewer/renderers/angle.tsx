@@ -9,7 +9,7 @@ import { MathJax } from "better-react-mathjax";
 import { JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function Angle(props: UseDoenetRendererProps) {
-    let { name, id, SVs } = useDoenetRenderer(props);
+    let { id, SVs } = useDoenetRenderer(props);
 
     const board = useContext(BoardContext);
 

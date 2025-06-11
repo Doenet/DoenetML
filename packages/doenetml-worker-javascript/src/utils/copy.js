@@ -1,24 +1,17 @@
-import { getUniqueIdentifierFromBase } from "@doenet/utils";
 import {
-    applyMacros,
-    applySugar,
-    componentFromAttribute,
-    removeBlankStringChildren,
-} from "./expandDoenetML";
-import { processAssignNames } from "./naming";
+    convertUnresolvedAttributesForComponentType,
+    unwrapSource,
+} from "./dast/convertNormalizedDast";
 
 export function postProcessCopy({
     serializedComponents,
     componentIdx,
     addShadowDependencies = true,
     markAsPrimaryShadow = false,
-    uniqueIdentifiersUsed = [],
     identifierPrefix = "",
     unlinkExternalCopies = false,
-    copiesByTargetComponentName = {},
-    componentNamesFound = [],
-    assignNamesFound = [],
-    activeAliases = [],
+    copiesByRefIdx = {},
+    componentIndicesFound = [],
     init = true,
 }) {
     // recurse through serializedComponents
@@ -32,53 +25,17 @@ export function postProcessCopy({
             continue;
         }
 
-        let uniqueIdentifierBase;
-        if (component.originalIdx) {
-            if (unlinkExternalCopies) {
-                componentNamesFound.push(component.originalIdx);
-                if (
-                    component.originalDoenetAttributes &&
-                    component.originalDoenetAttributes.assignNames
-                ) {
-                    let originalNamespace;
-                    if (component.attributes.newNamespace?.primitive) {
-                        originalNamespace = component.originalIdx;
-                    } else {
-                        let lastSlash = component.originalIdx.lastIndexOf("/");
-                        originalNamespace = component.originalIdx.substring(
-                            0,
-                            lastSlash,
-                        );
-                    }
-                    for (let cIdx of component.originalDoenetAttributes
-                        .assignNames) {
-                        componentNamesFound.push(
-                            originalNamespace + "/" + cIdx,
-                        );
-                        assignNamesFound.push(originalNamespace + "/" + cIdx);
-                    }
-                }
-                if (component.attributes) {
-                    if (component.attributes.alias) {
-                        activeAliases.push(
-                            component.attributes.alias.primitive,
-                        );
-                    }
-                    if (component.attributes.indexAlias) {
-                        activeAliases.push(
-                            component.attributes.indexAlias.primitive,
-                        );
-                    }
-                }
-            }
+        if (unlinkExternalCopies) {
+            componentIndicesFound.push(component.componentIdx);
+        }
 
+        if (component.originalIdx != undefined) {
             // preserializedNamesFound[component.originalIdx] = component;
-            uniqueIdentifierBase =
-                identifierPrefix + component.originalIdx + "|shadow";
 
-            if (!component.originalNameFromSerializedComponent) {
-                // if originalNameFromSerializedComponent, then was copied from a serialized component
+            if (!component.dontShadowOriginalIndex) {
+                // if dontShadowOriginalIndex, then was copied from a serialized component
                 // so copy cannot shadow anything
+
                 if (addShadowDependencies) {
                     let downDep = {
                         [component.originalIdx]: [
@@ -104,47 +61,22 @@ export function postProcessCopy({
                     component.unlinkedCopySource = component.originalIdx;
                 }
             }
-        } else {
-            uniqueIdentifierBase =
-                identifierPrefix + component.componentType + "|shadowUnnamed";
         }
 
-        if (component.componentType === "copy" && unlinkExternalCopies) {
-            let targetComponentIdx =
-                component.doenetAttributes.targetComponentIdx;
-            if (!targetComponentIdx) {
+        if (component.componentType === "_copy" && unlinkExternalCopies) {
+            const refResolution = unwrapSource(component.extending);
+            const nodeIdx = refResolution.nodeIdx;
+            if (nodeIdx == null) {
                 if (!component.attributes.uri) {
-                    throw Error(
-                        "we need to create a targetComponentIdx here, then.",
-                    );
+                    throw Error("we need to create a nodeIdx here, then.");
                 }
             } else {
-                if (activeAliases.includes(component.doenetAttributes.target)) {
-                    // TODO: is the this right thing to do?
-                    // Not clear if following the same rules for when a match would override an alias
-                    // Setting targetComponentIdx to a relative name presumably prevents the targetComponentIdx
-                    // from ever matching anything.  Is that what we want?
-                    component.doenetAttributes.targetComponentIdx =
-                        component.doenetAttributes.target;
-                } else {
-                    // don't create if matches an alias
-                    if (
-                        copiesByTargetComponentName[targetComponentIdx] ===
-                        undefined
-                    ) {
-                        copiesByTargetComponentName[targetComponentIdx] = [];
-                    }
-                    copiesByTargetComponentName[targetComponentIdx].push(
-                        component,
-                    );
+                if (copiesByRefIdx[nodeIdx] === undefined) {
+                    copiesByRefIdx[nodeIdx] = [];
                 }
+                copiesByRefIdx[nodeIdx].push(component);
             }
         }
-
-        component.uniqueIdentifier = getUniqueIdentifierFromBase(
-            uniqueIdentifierBase,
-            uniqueIdentifiersUsed,
-        );
     }
 
     // recurse after processing all components
@@ -161,13 +93,10 @@ export function postProcessCopy({
             componentIdx,
             addShadowDependencies,
             markAsPrimaryShadow,
-            uniqueIdentifiersUsed,
             identifierPrefix,
             unlinkExternalCopies,
-            copiesByTargetComponentName,
-            componentNamesFound,
-            assignNamesFound,
-            activeAliases: [...activeAliases], // don't add values from children
+            copiesByRefIdx,
+            componentIndicesFound,
             init: false,
         });
 
@@ -179,13 +108,10 @@ export function postProcessCopy({
                     componentIdx,
                     addShadowDependencies,
                     markAsPrimaryShadow,
-                    uniqueIdentifiersUsed,
                     identifierPrefix,
                     unlinkExternalCopies,
-                    copiesByTargetComponentName,
-                    componentNamesFound,
-                    assignNamesFound,
-                    activeAliases: [...activeAliases], // don't add values from children
+                    copiesByRefIdx,
+                    componentIndicesFound,
                     init: false,
                 })[0];
             }
@@ -197,43 +123,26 @@ export function postProcessCopy({
                 componentIdx,
                 addShadowDependencies,
                 markAsPrimaryShadow,
-                uniqueIdentifiersUsed,
                 identifierPrefix,
                 unlinkExternalCopies,
-                copiesByTargetComponentName,
-                componentNamesFound,
-                assignNamesFound,
-                activeAliases: [...activeAliases], // don't add values from children
+                copiesByRefIdx,
+                componentIndicesFound,
                 init: false,
             });
         }
     }
 
     if (init && unlinkExternalCopies) {
-        for (let targetComponentIdx in copiesByTargetComponentName) {
-            if (!componentNamesFound.includes(targetComponentIdx)) {
-                let foundMatchViaAssignNames = false;
-                for (let cIdx of assignNamesFound) {
-                    let namespace = cIdx + "/";
-                    let nSpaceLen = namespace.length;
-                    if (
-                        targetComponentIdx.substring(0, nSpaceLen) === namespace
-                    ) {
-                        foundMatchViaAssignNames = true;
-                        break;
+        for (let extendIdxStr in copiesByRefIdx) {
+            if (!componentIndicesFound.includes(Number(extendIdxStr))) {
+                for (let copyComponent of copiesByRefIdx[extendIdxStr]) {
+                    if (!copyComponent.attributes) {
+                        copyComponent.attributes = {};
                     }
-                }
-                if (!foundMatchViaAssignNames) {
-                    for (let copyComponent of copiesByTargetComponentName[
-                        targetComponentIdx
-                    ]) {
-                        if (!copyComponent.attributes) {
-                            copyComponent.attributes = {};
-                        }
-                        copyComponent.attributes.link = { primitive: false };
-                        copyComponent.doenetAttributes.target =
-                            copyComponent.doenetAttributes.targetComponentIdx;
-                    }
+                    copyComponent.attributes.link = {
+                        type: "primitive",
+                        primitive: { type: "boolean", value: false },
+                    };
                 }
             }
         }
@@ -242,102 +151,15 @@ export function postProcessCopy({
     return serializedComponents;
 }
 
-export function convertAttributesForComponentType({
-    attributes,
-    componentType,
-    componentInfoObjects,
-    compositeAttributesObj = {},
-    dontSkipAttributes = [],
-    compositeCreatesNewNamespace,
-}) {
-    let errors = [];
-    let warnings = [];
-
-    let newClass = componentInfoObjects.allComponentClasses[componentType];
-    let newAttributesObj = newClass.createAttributesObject();
-    let attributeLowerCaseMapping = {};
-    for (let propName in newAttributesObj) {
-        attributeLowerCaseMapping[propName.toLowerCase()] = propName;
-    }
-
-    let newAttributes = {};
-
-    for (let attrName in attributes) {
-        if (
-            attrName in compositeAttributesObj &&
-            !compositeAttributesObj[attrName].leaveRaw &&
-            !dontSkipAttributes.includes(attrName)
-        ) {
-            // skip any attributes in the composite itself
-            // unless specifically marked to not be processed for the composite
-            // or argument is passed in to not skip
-            continue;
-        }
-
-        let propName = attributeLowerCaseMapping[attrName.toLowerCase()];
-        let attrObj = newAttributesObj[propName];
-        if (attrObj) {
-            if (propName in newAttributes) {
-                throw Error(`Cannot repeat prop ${propName}`);
-            }
-
-            let res = componentFromAttribute({
-                attrObj,
-                value: JSON.parse(JSON.stringify(attributes[attrName])),
-                componentInfoObjects,
-            });
-            newAttributes[propName] = res.attribute;
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
-
-            if (newAttributes[propName].component?.children) {
-                let serializedComponents = [newAttributes[propName].component];
-
-                applyMacros(serializedComponents, componentInfoObjects);
-
-                removeBlankStringChildren(
-                    serializedComponents,
-                    componentInfoObjects,
-                );
-
-                applySugar({
-                    serializedComponents,
-                    componentInfoObjects,
-                    isAttributeComponent: true,
-                });
-
-                if (compositeCreatesNewNamespace) {
-                    // modify targets to go back one namespace
-                    for (let child of newAttributes[propName].component
-                        .children) {
-                        if (child.componentType === "copy") {
-                            let target = child.doenetAttributes.target;
-                            if (/[a-zA-Z_]/.test(target[0])) {
-                                child.doenetAttributes.target = "../" + target;
-                            }
-                        }
-                    }
-                }
-            }
-        } else if (newClass.acceptAnyAttribute) {
-            newAttributes[attrName] = JSON.parse(
-                JSON.stringify(attributes[attrName]),
-            );
-        }
-    }
-
-    return newAttributes;
-}
-
 export async function verifyReplacementsMatchSpecifiedType({
     component,
     replacements,
     replacementChanges,
-    assignNames,
     workspace = {},
     componentInfoObjects,
     compositeAttributesObj,
     components,
+    nComponents,
     publicCaseInsensitiveAliasSubstitutions,
 }) {
     let errors = [];
@@ -347,7 +169,13 @@ export async function verifyReplacementsMatchSpecifiedType({
         !component.attributes.createComponentOfType?.primitive &&
         !component.sharedParameters.compositesMustHaveAReplacement
     ) {
-        return { replacements, replacementChanges, errors, warnings };
+        return {
+            replacements,
+            replacementChanges,
+            errors,
+            warnings,
+            nComponents,
+        };
     }
 
     let replacementsToWithhold = component.replacementsToWithhold;
@@ -355,12 +183,7 @@ export async function verifyReplacementsMatchSpecifiedType({
 
     if (!replacementChanges) {
         // if have a group, filter out blank strings
-        if (
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: component.componentType,
-                baseComponentType: "group",
-            })
-        ) {
+        if (component.componentType === "group") {
             replacements = replacements.filter(
                 (x) => x.componentType || x.trim().length > 0,
             );
@@ -377,61 +200,21 @@ export async function verifyReplacementsMatchSpecifiedType({
                 .filter((x) => x.componentType || x.trim().length > 0)
                 .map((x) => x.componentType);
         }
-    } else {
-        replacementTypes = component.replacements.map((x) => x.componentType);
 
-        // apply any replacement changes to replacementTypes and replacementsToWithhold
-        for (let change of replacementChanges) {
-            if (change.changeType === "add") {
-                if (change.replacementsToWithhold !== undefined) {
-                    replacementsToWithhold = change.replacementsToWithhold;
-                }
-
-                if (!change.changeTopLevelReplacements) {
-                    continue;
-                }
-
-                if (change.serializedReplacements) {
-                    let numberToDelete = change.numberReplacementsToReplace;
-                    if (!(numberToDelete > 0)) {
-                        numberToDelete = 0;
-                    }
-
-                    let firstIndex = change.firstReplacementInd;
-
-                    let newTypes = change.serializedReplacements.map(
-                        (x) => x.componentType,
-                    );
-
-                    replacementTypes.splice(
-                        firstIndex,
-                        numberToDelete,
-                        ...newTypes,
-                    );
-                }
-            } else if (change.changeType === "delete") {
-                if (change.replacementsToWithhold !== undefined) {
-                    replacementsToWithhold = change.replacementsToWithhold;
-                }
-
-                if (change.changeTopLevelReplacements) {
-                    let firstIndex = change.firstReplacementInd;
-                    let numberToDelete = change.numberReplacementsToDelete;
-                    replacementTypes.splice(firstIndex, numberToDelete);
-                }
-            } else if (change.changeType === "changeReplacementsToWithhold") {
-                if (change.replacementsToWithhold !== undefined) {
-                    replacementsToWithhold = change.replacementsToWithhold;
-                }
-            }
+        if (replacementsToWithhold > 0) {
+            replacementTypes = replacementTypes.slice(
+                0,
+                replacementTypes.length - replacementsToWithhold,
+            );
         }
-    }
-
-    if (replacementsToWithhold > 0) {
-        replacementTypes = replacementTypes.slice(
-            0,
-            replacementTypes.length - replacementsToWithhold,
+    } else {
+        const res = calculateReplacementTypesFromChanges(
+            component,
+            replacementChanges,
         );
+
+        replacementTypes = res.replacementTypes;
+        replacementsToWithhold = res.replacementsToWithhold;
     }
 
     if (
@@ -442,11 +225,17 @@ export async function verifyReplacementsMatchSpecifiedType({
         // no changes since only reason we got this far was that
         // composites must have a replacement
         // and we have at least one replacement
-        return { replacements, replacementChanges, errors, warnings };
+        return {
+            replacements,
+            replacementChanges,
+            errors,
+            warnings,
+            nComponents,
+        };
     }
 
     let requiredComponentType =
-        component.attributes.createComponentOfType?.primitive;
+        component.attributes.createComponentOfType?.primitive.value;
 
     let requiredLength = await component.stateValues.numComponentsSpecified;
 
@@ -471,27 +260,101 @@ export async function verifyReplacementsMatchSpecifiedType({
         replacementTypes.length !== requiredLength ||
         !replacementTypes.every((x) => x === requiredComponentType)
     ) {
-        // console.warn(`Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType and numComponents`);
+        // console.warn(
+        //     `Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType and numComponents`,
+        // );
 
-        // if only replacement is a group
-        // then give the group the createComponentOfType and numComponentsSpecified
+        // if only replacement is a group or a _copy
+        // then give the group/_copy the createComponentOfType and numComponentsSpecified
         if (
             replacements?.length === 1 &&
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: replacements[0].componentType,
-                baseComponentType: "group",
-            })
+            requiredLength === 1 &&
+            (replacements[0].componentType === "group" ||
+                replacements[0].componentType === "_copy")
         ) {
             if (!replacements[0].attributes) {
                 replacements[0].attributes = {};
             }
             replacements[0].attributes.createComponentOfType = {
-                primitive: requiredComponentType,
+                type: "primitive",
+                primitive: { type: "string", value: requiredComponentType },
             };
             replacements[0].attributes.numComponents = {
-                primitive: requiredLength,
+                type: "primitive",
+                primitive: { type: "string", value: requiredLength },
             };
-            return { replacements, replacementChanges, errors, warnings };
+
+            if (component.attributes.createComponentName?.primitive) {
+                replacements[0].attributes.createComponentName = JSON.parse(
+                    JSON.stringify(component.attributes.createComponentName),
+                );
+                delete replacements[0].attributes.name;
+            }
+            if (component.attributes.createComponentIdx?.primitive) {
+                replacements[0].attributes.createComponentIdx = JSON.parse(
+                    JSON.stringify(component.attributes.createComponentIdx),
+                );
+                replacements[0].componentIdx = nComponents++;
+            }
+
+            return {
+                replacements,
+                replacementChanges,
+                errors,
+                warnings,
+                nComponents,
+            };
+        } else if (
+            replacementChanges?.length === 1 &&
+            replacementChanges[0].changeType === "add" &&
+            replacementChanges[0].changeTopLevelReplacements &&
+            replacementChanges[0].serializedReplacements.length === 1 &&
+            (replacementChanges[0].serializedReplacements[0].componentType ==
+                "group" ||
+                replacementChanges[0].serializedReplacements[0]
+                    .componentType === "_copy") &&
+            requiredLength === 1 &&
+            replacementChanges[0].numberReplacementsToReplace >=
+                component.replacements.length
+        ) {
+            // if we are changing replacements so that only replacement is a group/_copy
+            // then give the group/_copy the createComponentOfType and numComponentsSpecified
+
+            const theReplacement =
+                replacementChanges[0].serializedReplacements[0];
+
+            if (!theReplacement.attributes) {
+                theReplacement.attributes = {};
+            }
+            theReplacement.attributes.createComponentOfType = {
+                type: "primitive",
+                primitive: { type: "string", value: requiredComponentType },
+            };
+            theReplacement.attributes.numComponents = {
+                type: "primitive",
+                primitive: { type: "string", value: requiredLength },
+            };
+
+            if (component.attributes.createComponentName?.primitive) {
+                theReplacement.attributes.createComponentName = JSON.parse(
+                    JSON.stringify(component.attributes.createComponentName),
+                );
+                delete theReplacement.attributes.name;
+            }
+            if (component.attributes.createComponentIdx?.primitive) {
+                theReplacement.attributes.createComponentIdx = JSON.parse(
+                    JSON.stringify(component.attributes.createComponentIdx),
+                );
+                theReplacement.componentIdx = nComponents++;
+            }
+
+            return {
+                replacements,
+                replacementChanges,
+                errors,
+                warnings,
+                nComponents,
+            };
         }
 
         // if the only discrepancy is the components are the wrong type,
@@ -502,9 +365,8 @@ export async function verifyReplacementsMatchSpecifiedType({
         let wrapExistingReplacements =
             replacementTypes.length === requiredLength &&
             !(replacementsToWithhold > 0) &&
-            workspace.sourceNames?.length === requiredLength;
+            workspace.sourceIndices?.length === requiredLength;
 
-        // let uniqueIdentifiersUsed;
         let originalReplacements;
 
         if (wrapExistingReplacements && replacementChanges) {
@@ -513,7 +375,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             if (
                 replacementChanges.length === 1 &&
                 replacementChanges[0].numberReplacementsToReplace ===
-                    requiredLength
+                    component.replacements.length
             ) {
                 originalReplacements =
                     replacementChanges[0].serializedReplacements;
@@ -531,34 +393,29 @@ export async function verifyReplacementsMatchSpecifiedType({
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
             workspace.propVariablesCopiedBySource = [];
-            workspace.sourceNames = [];
-            workspace.uniqueIdentifiersUsedBySource = {};
-
-            workspace.uniqueIdentifiersUsedBySource[0] = [];
-            // uniqueIdentifiersUsed = workspace.uniqueIdentifiersUsedBySource[0] = [];
+            workspace.sourceIndices = [];
         }
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         replacements = [];
         for (let i = 0; i < requiredLength; i++) {
-            let attributesFromComposite = convertAttributesForComponentType({
+            const res = convertUnresolvedAttributesForComponentType({
                 attributes: component.attributes,
                 componentType: requiredComponentType,
                 componentInfoObjects,
                 compositeAttributesObj,
-                compositeCreatesNewNamespace: newNamespace,
+                nComponents,
             });
 
-            let uniqueIdentifierBase = requiredComponentType + "|empty" + i;
-            let uniqueIdentifier = getUniqueIdentifierFromBase(
-                uniqueIdentifierBase,
-                workspace.uniqueIdentifiersUsedBySource[0],
-            );
+            const attributesFromComposite = res.attributes;
+            nComponents = res.nComponents;
+
             replacements.push({
                 componentType: requiredComponentType,
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
-                uniqueIdentifier,
+                doenetAttributes: {},
+                state: {},
+                children: [],
             });
         }
 
@@ -572,6 +429,9 @@ export async function verifyReplacementsMatchSpecifiedType({
         // via the copy we are now creating.
         // Since we don't see a use case for non-arrays,
         // this is only implemented for arrays
+
+        // XXX: haven't reviewed this for non new namespace regime
+
         if (replacementTypes.length === 0 && requiredLength === 1) {
             let targetInactive = await component.stateValues.targetInactive;
 
@@ -583,69 +443,68 @@ export async function verifyReplacementsMatchSpecifiedType({
                 let replacementSources =
                     await component.stateValues.replacementSourceIdentities;
 
-                if (replacementSources === undefined) {
-                    // check if based on extract
-                    replacementSources =
-                        await component.stateValues.sourceComponents;
-                }
-
                 let replacementSource = replacementSources[0];
 
                 let target = components[replacementSource.componentIdx];
 
-                let propVariable = publicCaseInsensitiveAliasSubstitutions({
-                    stateVariables: [propName],
-                    componentClass: target.constructor,
-                })[0];
+                if (target) {
+                    let propVariable = publicCaseInsensitiveAliasSubstitutions({
+                        stateVariables: [propName],
+                        componentClass: target.constructor,
+                    })[0];
 
-                let stateVarObj = target.state[propVariable];
-                if (stateVarObj?.isArray || stateVarObj?.isArrayEntry) {
-                    let arrayStateVarObj, arrayKeys;
-                    if (stateVarObj.isArray) {
-                        arrayStateVarObj = stateVarObj;
-                        let arraySize = await stateVarObj.arraySize;
-                        arrayKeys = stateVarObj.getAllArrayKeys(arraySize);
+                    let stateVarObj = target.state[propVariable];
+                    if (stateVarObj?.isArray || stateVarObj?.isArrayEntry) {
+                        let arrayStateVarObj, arrayKeys;
+                        if (stateVarObj.isArray) {
+                            arrayStateVarObj = stateVarObj;
+                            let arraySize = await stateVarObj.arraySize;
+                            arrayKeys = stateVarObj.getAllArrayKeys(arraySize);
+                        } else {
+                            arrayStateVarObj =
+                                target.state[stateVarObj.arrayStateVariable];
+                            // use getArrayKeysFromVarName without specifying arraySize
+                            // so that get keys for the entry that might occur
+                            // if the array size were increased
+                            arrayKeys =
+                                arrayStateVarObj.getArrayKeysFromVarName({
+                                    arrayEntryPrefix: stateVarObj.entryPrefix,
+                                    varEnding: stateVarObj.varEnding,
+                                    numDimensions:
+                                        arrayStateVarObj.numDimensions,
+                                });
+                        }
+
+                        // want the prop variable corresponding to just the first entry
+                        // of the array or the array entry
+                        propVariable =
+                            arrayStateVarObj.arrayVarNameFromArrayKey(
+                                arrayKeys[0] ||
+                                    Array(arrayStateVarObj.numDimensions)
+                                        .fill("0")
+                                        .join(","),
+                            );
                     } else {
-                        arrayStateVarObj =
-                            target.state[stateVarObj.arrayStateVariable];
-                        // use getArrayKeysFromVarName without specifying arraySize
-                        // so that get keys for the entry that might occur
-                        // if the array size were increased
-                        arrayKeys = arrayStateVarObj.getArrayKeysFromVarName({
-                            arrayEntryPrefix: stateVarObj.entryPrefix,
-                            varEnding: stateVarObj.varEnding,
-                            numDimensions: arrayStateVarObj.numDimensions,
-                        });
+                        // Since we don't currently see a use case for non-arrays,
+                        // we are setting stateVarObj to undefined
+                        // so that dependencies are not added
+                        stateVarObj = undefined;
                     }
 
-                    // want the prop variable corresponding to just the first entry
-                    // of the array or the array entry
-                    propVariable = arrayStateVarObj.arrayVarNameFromArrayKey(
-                        arrayKeys[0] ||
-                            Array(arrayStateVarObj.numDimensions)
-                                .fill("0")
-                                .join(","),
-                    );
-                } else {
-                    // Since we don't currently see a use case for non-arrays,
-                    // we are setting stateVarObj to undefined
-                    // so that dependencies are not added
-                    stateVarObj = undefined;
-                }
-
-                if (stateVarObj) {
-                    replacements[0].downstreamDependencies = {
-                        [replacementSource.componentIdx]: [
-                            {
-                                dependencyType: "referenceShadow",
-                                compositeIdx: component.componentIdx,
-                                propVariable,
-                                additionalStateVariableShadowing:
-                                    stateVarObj.shadowingInstructions
-                                        .addStateVariablesShadowingStateVariables,
-                            },
-                        ],
-                    };
+                    if (stateVarObj) {
+                        replacements[0].downstreamDependencies = {
+                            [replacementSource.componentIdx]: [
+                                {
+                                    dependencyType: "referenceShadow",
+                                    compositeIdx: component.componentIdx,
+                                    propVariable,
+                                    additionalStateVariableShadowing:
+                                        stateVarObj.shadowingInstructions
+                                            .addStateVariablesShadowingStateVariables,
+                                },
+                            ],
+                        };
+                    }
                 }
             }
         }
@@ -656,17 +515,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             }
         }
 
-        let processResult = processAssignNames({
-            assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
-        replacements = processResult.serializedComponents;
+        workspace.wrapExistingReplacements = wrapExistingReplacements;
 
         if (!wrapExistingReplacements) {
             workspace.numReplacementsBySource.push(replacements.length);
@@ -699,124 +548,73 @@ export async function verifyReplacementsMatchSpecifiedType({
         }
     }
 
-    return { replacements, replacementChanges, errors, warnings };
+    return { replacements, replacementChanges, errors, warnings, nComponents };
 }
 
-export function countRegularComponentTypesInNamespace(
-    serializedComponents,
-    componentCounts = {},
+export function calculateReplacementTypesFromChanges(
+    component,
+    replacementChanges,
 ) {
-    for (let serializedComponent of serializedComponents) {
-        if (typeof serializedComponent === "object") {
-            let componentType = serializedComponent.componentType;
+    let replacementsToWithhold = component.replacementsToWithhold;
+    let replacementTypes = component.replacements.map((x) => x.componentType);
 
-            let count = componentCounts[componentType];
-            if (count === undefined) {
-                count = 0;
+    // apply any replacement changes to replacementTypes and replacementsToWithhold
+    for (const change of replacementChanges) {
+        if (change.changeType === "add") {
+            if (change.replacementsToWithhold !== undefined) {
+                replacementsToWithhold = change.replacementsToWithhold;
             }
 
-            let doenetAttributes = serializedComponent.doenetAttributes;
-
-            // if created from a attribute/sugar/macro, don't include in component counts
-            if (
-                !(
-                    doenetAttributes?.isAttributeChildFor ||
-                    doenetAttributes?.createdFromSugar ||
-                    doenetAttributes?.createdFromMacro ||
-                    doenetAttributes?.excludeFromComponentCounts
-                )
-            ) {
-                componentCounts[componentType] = ++count;
+            if (!change.changeTopLevelReplacements) {
+                continue;
             }
 
-            if (
-                serializedComponent.children &&
-                !serializedComponent.attributes?.newNamespace?.primitive
-            ) {
-                // if don't have new namespace, recurse to children
-                componentCounts = countRegularComponentTypesInNamespace(
-                    serializedComponent.children,
-                    componentCounts,
-                );
-            }
-        }
-    }
-
-    return componentCounts;
-}
-
-export function renameAutonameBasedOnNewCounts(
-    serializedComponents,
-    newComponentCounts = {},
-) {
-    let componentCounts = { ...newComponentCounts };
-
-    for (let serializedComponent of serializedComponents) {
-        if (typeof serializedComponent === "object") {
-            let componentType = serializedComponent.componentType;
-
-            let count = componentCounts[componentType];
-            if (count === undefined) {
-                count = 0;
-            }
-
-            let doenetAttributes = serializedComponent.doenetAttributes;
-
-            // if created from a attribute/sugar/macro, don't include in component counts
-            if (
-                !(
-                    doenetAttributes?.isAttributeChildFor ||
-                    doenetAttributes?.createdFromSugar ||
-                    doenetAttributes?.createdFromMacro ||
-                    doenetAttributes?.excludeFromComponentCounts
-                )
-            ) {
-                componentCounts[componentType] = ++count;
-
-                // check if name was created from counting components
-
-                if (serializedComponent.componentIdx) {
-                    let lastSlash =
-                        serializedComponent.componentIdx.lastIndexOf("/");
-                    let originalIdx =
-                        serializedComponent.componentIdx.substring(
-                            lastSlash + 1,
-                        );
-                    let nameStartFromComponentType =
-                        "_" + componentType.toLowerCase();
-                    if (
-                        originalIdx.substring(
-                            0,
-                            nameStartFromComponentType.length,
-                        ) === nameStartFromComponentType
-                    ) {
-                        // recreate using new count
-                        serializedComponent.componentIdx =
-                            serializedComponent.componentIdx.substring(
-                                0,
-                                lastSlash + 1,
-                            ) +
-                            nameStartFromComponentType +
-                            count;
-                    }
+            if (change.serializedReplacements) {
+                let numberToDelete = change.numberReplacementsToReplace;
+                if (!(numberToDelete > 0)) {
+                    numberToDelete = 0;
                 }
+
+                const firstIndex = change.firstReplacementInd;
+
+                const newTypes = change.serializedReplacements.map(
+                    (x) => x.componentType,
+                );
+
+                replacementTypes.splice(
+                    firstIndex,
+                    numberToDelete,
+                    ...newTypes,
+                );
+            }
+        } else if (change.changeType === "delete") {
+            if (change.replacementsToWithhold !== undefined) {
+                replacementsToWithhold = change.replacementsToWithhold;
             }
 
-            if (
-                serializedComponent.children &&
-                !serializedComponent.attributes?.newNamespace?.primitive
-            ) {
-                // if don't have new namespace, recurse to children
-                componentCounts = renameAutonameBasedOnNewCounts(
-                    serializedComponent.children,
-                    componentCounts,
-                );
+            if (change.changeTopLevelReplacements) {
+                const firstIndex = change.firstReplacementInd;
+                const numberToDelete = change.numberReplacementsToDelete;
+                replacementTypes.splice(firstIndex, numberToDelete);
+            }
+        } else if (change.changeType === "changeReplacementsToWithhold") {
+            if (change.replacementsToWithhold !== undefined) {
+                replacementsToWithhold = change.replacementsToWithhold;
             }
         }
     }
 
-    return componentCounts;
+    if (replacementsToWithhold > 0) {
+        replacementTypes = replacementTypes.slice(
+            0,
+            replacementTypes.length - replacementsToWithhold,
+        );
+    }
+    return { replacementTypes, replacementsToWithhold };
 }
+
+// XXX: this function was used to keep reference external copies from reaching outside.
+// Determine how to recreating this restriction
 
 export function restrictTNamesToNamespace({
     components,
@@ -929,7 +727,7 @@ export function restrictTNamesToNamespace({
             let namespaceForChildren = parentNamespace;
             if (
                 component.attributes &&
-                component.attributes.newNamespace?.primitive
+                component.attributes.newNamespace?.primitive.value
             ) {
                 namespaceForChildren = component.componentIdx;
             }
@@ -937,7 +735,7 @@ export function restrictTNamesToNamespace({
                 components: component.children,
                 namespace: adjustedNamespace,
                 parentNamespace: namespaceForChildren,
-                parentIsCopy: component.componentType === "copy",
+                parentIsCopy: component.componentType === "_copy",
                 invalidateReferencesToBaseNamespace,
             });
         }
@@ -959,6 +757,158 @@ export function restrictTNamesToNamespace({
                         invalidateReferencesToBaseNamespace,
                     });
                 }
+            }
+        }
+    }
+}
+
+/**
+ * If there is a single replacement and the copy has `createComponentName` or `createComponentIdx`,
+ * then add the name or component index to the replacement
+ */
+export function addAttributesToSingleReplacement(
+    replacements,
+    component,
+    componentInfoObjects,
+) {
+    if (replacements.length === 1 && typeof replacements[0] === "object") {
+        // If the replacement is a group or copy that was created by verify replacements
+        // where it received the `createComponentIdx` attribute from the copy already,
+        // then don't also give it the name and index
+        if (
+            replacements[0].componentType === "group" ||
+            replacements[0].componentType === "_copy"
+        ) {
+            if (replacements[0].attributes?.createComponentIdx != null) {
+                return;
+            }
+        }
+
+        if (
+            component.attributes.createComponentName?.primitive.value !=
+            undefined
+        ) {
+            replacements[0].attributes.name = {
+                type: "primitive",
+                name: "name",
+                primitive: {
+                    type: "string",
+                    value: component.attributes.createComponentName.primitive
+                        .value,
+                },
+            };
+        }
+        if (
+            component.attributes.createComponentIdx?.primitive.value !=
+            undefined
+        ) {
+            const prevComponentIdx = replacements[0].componentIdx;
+            const newComponentIdx =
+                component.attributes.createComponentIdx.primitive.value;
+
+            substituteComponentIdx(
+                replacements,
+                prevComponentIdx,
+                newComponentIdx,
+            );
+        }
+    }
+}
+
+/**
+ * Recurse through all `components` and substitute `newComponentIdx` for `prevComponentIdx`,
+ * both for a component's `componentIdx` and also for any `nodeIdx` in an `extending` attribute.
+ */
+function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
+    for (const component of components) {
+        if (typeof component === "string") {
+            continue;
+        }
+
+        if (component.componentIdx === prevComponentIdx) {
+            component.componentIdx = newComponentIdx;
+        }
+
+        if (component.extending) {
+            const refResolution = unwrapSource(component.extending);
+            if (refResolution.nodeIdx === prevComponentIdx) {
+                refResolution.nodeIdx = newComponentIdx;
+            }
+        }
+
+        substituteComponentIdx(
+            component.children,
+            prevComponentIdx,
+            newComponentIdx,
+        );
+
+        for (const attrName in component.attributes) {
+            const attribute = component.attributes[attrName];
+            if (attribute.type === "component") {
+                substituteComponentIdx(
+                    [attribute.component],
+                    prevComponentIdx,
+                    newComponentIdx,
+                );
+            }
+        }
+    }
+}
+
+/** If, after changes, we have a single component that has a componentName and componentIdx
+ * given by the Copy, then assign those to the replacement
+ * We have dealt just with the special case that we arrive at one replacement with a single "add" change.
+ * We could generalize if we need to.
+ */
+export function addAttributesToSingleReplacementChange(
+    component,
+    replacementChanges,
+    componentInfoObjects,
+) {
+    const { replacementTypes, replacementsToWithhold } =
+        calculateReplacementTypesFromChanges(component, replacementChanges);
+    if (replacementTypes.length === 1 && !(replacementsToWithhold > 0)) {
+        if (
+            replacementChanges.length === 1 &&
+            replacementChanges[0].changeType === "add" &&
+            replacementChanges[0].serializedReplacements.length === 1 &&
+            typeof replacementChanges[0].serializedReplacements[0] === "object"
+        ) {
+            const theNewReplacement =
+                replacementChanges[0].serializedReplacements[0];
+
+            // If the replacement is a group/_copy that was created by verify replacements
+            // where it received the `createComponentIdx` attribute from the copy already,
+            // then don't also give it the name and index
+            if (
+                theNewReplacement.componentType === "group" ||
+                theNewReplacement.componentType === "_copy"
+            ) {
+                if (theNewReplacement.attributes?.createComponentIdx != null) {
+                    return;
+                }
+            }
+
+            if (
+                component.attributes.createComponentName?.primitive.value !=
+                undefined
+            ) {
+                theNewReplacement.attributes.name = {
+                    type: "primitive",
+                    name: "name",
+                    primitive: {
+                        type: "string",
+                        value: component.attributes.createComponentName
+                            .primitive.value,
+                    },
+                };
+            }
+            if (
+                component.attributes.createComponentIdx?.primitive.value !=
+                undefined
+            ) {
+                theNewReplacement.componentIdx =
+                    component.attributes.createComponentIdx.primitive.value;
             }
         }
     }

@@ -1239,11 +1239,14 @@ export class SbsGroup extends BlockComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        maxNPanelsPerRow: me.math.max(
-                            dependencyValues.sideBySideChildren.map(
-                                (x) => x.stateValues.numPanels,
-                            ),
-                        ),
+                        maxNPanelsPerRow:
+                            dependencyValues.sideBySideChildren.length === 0
+                                ? 0
+                                : me.math.max(
+                                      dependencyValues.sideBySideChildren.map(
+                                          (x) => x.stateValues.numPanels,
+                                      ),
+                                  ),
                     },
                     checkForActualChange: { maxNPanelsPerRow: true },
                 };

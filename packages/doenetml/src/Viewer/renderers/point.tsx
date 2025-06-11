@@ -17,7 +17,7 @@ import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function Point(props: UseDoenetRendererProps) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     // @ts-ignore
@@ -217,7 +217,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             if (!fixed.current) {
                 callAction({
                     action: actions.pointFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -226,7 +226,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             dragged.current = false;
             callAction({
                 action: actions.pointFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -247,12 +247,12 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     });
                     callAction({
                         action: actions.pointClicked,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 } else {
                     callAction({
                         action: actions.pointClicked,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 }
             }
@@ -409,12 +409,12 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     });
                     callAction({
                         action: actions.pointClicked,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 } else {
                     callAction({
                         action: actions.pointClicked,
-                        args: { name }, // send name so get original name if adapted
+                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                     });
                 }
             }

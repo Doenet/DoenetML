@@ -5,7 +5,7 @@ import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
 
 export default React.memo(function Ray(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     Ray.ignoreActionsWithoutCore = () => true;
@@ -190,7 +190,7 @@ export default React.memo(function Ray(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.rayClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -221,7 +221,7 @@ export default React.memo(function Ray(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.rayFocused,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -230,7 +230,7 @@ export default React.memo(function Ray(props) {
             dragged.current = false;
             callAction({
                 action: actions.rayFocused,
-                args: { name }, // send name so get original name if adapted
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -249,7 +249,7 @@ export default React.memo(function Ray(props) {
 
                 callAction({
                     action: actions.rayClicked,
-                    args: { name }, // send name so get original name if adapted
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });

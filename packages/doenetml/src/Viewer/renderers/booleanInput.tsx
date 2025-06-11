@@ -43,7 +43,7 @@ const Button = styled.button`
 `;
 
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
-    let { name, id, SVs, actions, ignoreUpdate, rendererName, callAction } =
+    let { id, SVs, actions, ignoreUpdate, callAction } =
         useDoenetRenderer(props);
 
     // @ts-ignore

@@ -1,11 +1,11 @@
 use crate::dast::{
     DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
-    DastTextRefContent, PathPart,
+    DastTextRefElementContent, PathPart, Position,
 };
 
 use super::{
     FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatIndex, FlatNode, FlatPathPart,
-    FlatRef, FlatRoot, Index, ParentIterator, UntaggedContent,
+    FlatRef, FlatRoot, Index, UntaggedContent,
 };
 
 impl FlatRoot {
@@ -14,13 +14,6 @@ impl FlatRoot {
         let mut flat = Self::new();
         flat.merge_dast_root(dast);
         flat
-    }
-
-    /// Iterate over the parent elements of a node.
-    /// If for some reason the node has a non-element parent, the iterator will panic.
-    pub fn parent_iter(&self, start_idx: Index) -> ParentIterator {
-        let start = &self.nodes[start_idx];
-        ParentIterator::new(start, self)
     }
 
     /// Merge the content of a `DastRoot` into `FlatRoot`.
@@ -61,14 +54,17 @@ impl FlatRoot {
                             .children
                             .iter()
                             .map(|child| match child {
-                                DastTextRefContent::Text(txt) => {
+                                DastTextRefElementContent::Text(txt) => {
                                     DastElementContent::Text(txt.clone())
                                 }
-                                DastTextRefContent::Ref(ref_) => {
+                                DastTextRefElementContent::Ref(ref_) => {
                                     DastElementContent::Ref(ref_.clone())
                                 }
-                                DastTextRefContent::FunctionRef(function_ref) => {
+                                DastTextRefElementContent::FunctionRef(function_ref) => {
                                     DastElementContent::FunctionRef(function_ref.clone())
+                                }
+                                DastTextRefElementContent::Element(element) => {
+                                    DastElementContent::Element(element.clone())
                                 }
                             })
                             .map(|child| self.merge_content(&child, Some(idx)))
@@ -178,6 +174,18 @@ impl FlatRoot {
             children: Vec::new(),
             attributes: Vec::new(),
             position: node.position.clone(),
+            // Calculate the position of the vector of children before the position of text nodes is discarded
+            children_position: node.children.iter().fold(None::<Position>, |acc, x| {
+                if let Some(pos) = acc {
+                    let mut new_pos = pos.clone();
+                    if let Some(child_pos) = x.position() {
+                        new_pos.end = child_pos.end.clone()
+                    }
+                    Some(new_pos)
+                } else {
+                    x.position().cloned()
+                }
+            }),
             parent,
             idx,
             // It is impossible to directly set `extending` in DAST; it is computed later.
@@ -190,6 +198,8 @@ impl FlatRoot {
     fn set_error(&mut self, node: &DastError, idx: Index, parent: Option<Index>) -> usize {
         self.nodes[idx] = FlatNode::Error(FlatError {
             message: node.message.clone(),
+            unresolved_path: None,
+            error_type: node.error_type.unwrap_or_default(),
             position: node.position.clone(),
             parent,
             idx,
@@ -214,14 +224,17 @@ impl FlatRoot {
                             .value
                             .iter()
                             .map(|val| match val {
-                                DastTextRefContent::Text(txt) => {
+                                DastTextRefElementContent::Text(txt) => {
                                     DastElementContent::Text(txt.clone())
                                 }
-                                DastTextRefContent::Ref(ref_) => {
+                                DastTextRefElementContent::Ref(ref_) => {
                                     DastElementContent::Ref(ref_.clone())
                                 }
-                                DastTextRefContent::FunctionRef(function_ref) => {
+                                DastTextRefElementContent::FunctionRef(function_ref) => {
                                     DastElementContent::FunctionRef(function_ref.clone())
+                                }
+                                DastTextRefElementContent::Element(element) => {
+                                    DastElementContent::Element(element.clone())
                                 }
                             })
                             .map(|val| self.merge_content(&val, Some(parent_idx)))

@@ -1,4 +1,3 @@
-import { processAssignNames } from "../utils/naming";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
@@ -171,6 +170,7 @@ export default class Graph extends BlockComponent {
         };
         attributes.grid = {
             createComponentOfType: "text",
+            valueForTrue: "medium",
         };
 
         Object.assign(attributes, returnRoundingAttributes());
@@ -1683,24 +1683,12 @@ export default class Graph extends BlockComponent {
         skipRendererUpdate = false,
     }) {
         if (serializedComponents && serializedComponents.length > 0) {
-            let processResult = processAssignNames({
-                serializedComponents,
-                parentIdx: this.componentIdx,
-                parentCreatesNewNamespace:
-                    this.attributes.newNamespace?.primitive,
-                componentInfoObjects: this.componentInfoObjects,
-                indOffset: await this.stateValues.numChildrenAdded,
-            });
-
             return await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {
                         updateType: "addComponents",
-                        serializedComponents:
-                            processResult.serializedComponents,
+                        serializedComponents,
                         parentIdx: this.componentIdx,
-                        assignNamesOffset:
-                            await this.stateValues.numChildrenAdded,
                     },
                     {
                         updateType: "updateValue",
@@ -1708,7 +1696,7 @@ export default class Graph extends BlockComponent {
                         stateVariable: "numChildrenAdded",
                         value:
                             (await this.stateValues.numChildrenAdded) +
-                            processResult.serializedComponents.length,
+                            serializedComponents.length,
                     },
                 ],
                 actionId,

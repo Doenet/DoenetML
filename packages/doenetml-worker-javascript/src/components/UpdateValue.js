@@ -29,12 +29,14 @@ export default class UpdateValue extends InlineComponent {
     static componentType = "updateValue";
     static rendererType = "button";
 
-    static acceptTarget = true;
-
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         // attributes.width = {default: 300};
         // attributes.height = {default: 50};
+
+        attributes.target = {
+            createReferences: true,
+        };
 
         attributes.type = {
             createPrimitiveOfType: "string",
@@ -44,44 +46,8 @@ export default class UpdateValue extends InlineComponent {
             validValues: ["math", "number", "boolean", "text"],
         };
 
-        attributes.prop = {
-            createPrimitiveOfType: "string",
-            excludeFromSchema: true,
-        };
-
         attributes.newValue = {
             createComponentOfType: "_componentWithSelectableType",
-        };
-
-        attributes.componentIndex = {
-            createComponentOfType: "integer",
-            createStateVariable: "componentIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-
-        attributes.propIndex = {
-            createComponentOfType: "numberList",
-            createStateVariable: "propIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-
-        attributes.targetSubnames = {
-            createPrimitiveOfType: "stringArray",
-            createStateVariable: "targetSubnames",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-        attributes.targetSubnamesComponentIndex = {
-            createComponentOfType: "numberList",
-            createStateVariable: "targetSubnamesComponentIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
         };
 
         attributes.draggable = {
@@ -110,7 +76,8 @@ export default class UpdateValue extends InlineComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
         };
 
@@ -151,25 +118,48 @@ export default class UpdateValue extends InlineComponent {
             definition: () => ({ setValue: { clickAction: "updateValue" } }),
         };
 
-        stateVariableDefinitions.target = {
+        stateVariableDefinitions.targetComponentIdx = {
+            additionalStateVariablesDefined: ["unresolvedPath"],
             returnDependencies: () => ({
                 target: {
-                    dependencyType: "doenetAttribute",
+                    dependencyType: "attributeRefResolutions",
                     attributeName: "target",
                 },
             }),
-            definition: ({ dependencyValues }) => ({
-                setValue: { target: dependencyValues.target },
-            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.target?.length === 1) {
+                    const target = dependencyValues.target[0];
+
+                    return {
+                        setValue: {
+                            targetComponentIdx: target.componentIdx,
+                            unresolvedPath: target.unresolvedPath,
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            targetComponentIdx: null,
+                            unresolvedPath: null,
+                        },
+                    };
+                }
+            },
         };
 
         stateVariableDefinitions.targetComponent = {
-            returnDependencies() {
-                return {
-                    targetComponent: {
-                        dependencyType: "targetComponent",
-                    },
-                };
+            stateVariablesDeterminingDependencies: ["targetComponentIdx"],
+            returnDependencies({ stateValues }) {
+                if (stateValues.targetComponentIdx != null) {
+                    return {
+                        targetComponent: {
+                            dependencyType: "componentIdentity",
+                            componentIdx: stateValues.targetComponentIdx,
+                        },
+                    };
+                } else {
+                    return {};
+                }
             },
             definition: function ({ dependencyValues }) {
                 let targetComponent = null;
@@ -183,25 +173,8 @@ export default class UpdateValue extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.propName = {
-            returnDependencies: () => ({
-                propName: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "prop",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                return { setValue: { propName: dependencyValues.propName } };
-            },
-        };
-
         stateVariableDefinitions.targetIdentities = {
-            stateVariablesDeterminingDependencies: [
-                "targetComponent",
-                "componentIndex",
-                "targetSubnames",
-                "targetSubnamesComponentIndex",
-            ],
+            stateVariablesDeterminingDependencies: ["targetComponent"],
             returnDependencies: function ({
                 stateValues,
                 componentInfoObjects,
@@ -214,36 +187,15 @@ export default class UpdateValue extends InlineComponent {
                             componentType:
                                 stateValues.targetComponent.componentType,
                             includeNonStandard: false,
-                        }) ||
-                        (componentInfoObjects.isCompositeComponent({
-                            componentType:
-                                stateValues.targetComponent.componentType,
-                            includeNonStandard: true,
-                        }) &&
-                            stateValues.componentIndex !== null)
+                        })
                     ) {
-                        let targetSubnamesComponentIndex =
-                            stateValues.targetSubnamesComponentIndex;
-                        if (targetSubnamesComponentIndex) {
-                            targetSubnamesComponentIndex = [
-                                ...targetSubnamesComponentIndex,
-                            ];
-                        }
-
                         dependencies.targets = {
                             dependencyType: "replacement",
                             compositeIdx:
                                 stateValues.targetComponent.componentIdx,
                             recursive: true,
-                            componentIndex: stateValues.componentIndex,
-                            targetSubnames: stateValues.targetSubnames,
-                            targetSubnamesComponentIndex,
                         };
-                    } else if (
-                        stateValues.componentIndex === null ||
-                        stateValues.componentIndex === 1
-                    ) {
-                        // if we don't have a composite, componentIndex can only match if it is 1
+                    } else {
                         dependencies.targets = {
                             dependencyType: "stateVariable",
                             variableName: "targetComponent",
@@ -282,8 +234,7 @@ export default class UpdateValue extends InlineComponent {
         stateVariableDefinitions.targets = {
             stateVariablesDeterminingDependencies: [
                 "targetIdentities",
-                "propName",
-                "propIndex",
+                "unresolvedPath",
             ],
             returnDependencies: function ({ stateValues }) {
                 let dependencies = {
@@ -291,13 +242,9 @@ export default class UpdateValue extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "targetIdentities",
                     },
-                    propName: {
+                    unresolvedPath: {
                         dependencyType: "stateVariable",
-                        variableName: "propName",
-                    },
-                    propIndex: {
-                        dependencyType: "stateVariable",
-                        variableName: "propIndex",
+                        variableName: "unresolvedPath",
                     },
                 };
 
@@ -308,7 +255,7 @@ export default class UpdateValue extends InlineComponent {
                     ] of stateValues.targetIdentities.entries()) {
                         let thisTarget;
 
-                        if (stateValues.propName) {
+                        if (stateValues.unresolvedPath) {
                             let propIndex = stateValues.propIndex;
                             if (propIndex) {
                                 // make propIndex be a shallow copy
@@ -316,13 +263,14 @@ export default class UpdateValue extends InlineComponent {
                                 // when update dependencies
                                 propIndex = [...propIndex];
                             }
+
                             thisTarget = {
-                                dependencyType: "stateVariable",
+                                dependencyType:
+                                    "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
-                                variableName: stateValues.propName,
+                                unresolvedPath: stateValues.unresolvedPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                propIndex,
                                 caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
@@ -352,12 +300,29 @@ export default class UpdateValue extends InlineComponent {
 
                     for (let ind in dependencyValues.targetIdentities) {
                         let target = dependencyValues["target" + ind];
+                        if (target == null) {
+                            let message =
+                                "Invalid target for <updateValue>: cannot find target.";
+
+                            warnings.push({
+                                message,
+                                level: 1,
+                            });
+                            continue;
+                        }
                         targets.push(target);
                         if (Object.keys(target.stateValues)[0] === undefined) {
-                            if (dependencyValues.propName) {
-                                let prop = dependencyValues.propName;
-                                if (dependencyValues.propIndex) {
-                                    prop = `prop[${dependencyValues.propIndex}]`;
+                            if (dependencyValues.unresolvedPath) {
+                                let prop =
+                                    dependencyValues.unresolvedPath[0].name;
+                                if (
+                                    dependencyValues.unresolvedPath[0].index
+                                        .length > 0
+                                ) {
+                                    for (const idx of dependencyValues
+                                        .unresolvedPath[0].index) {
+                                        prop += `[idx]`;
+                                    }
                                 }
                                 let message = `Invalid target for <updateValue>: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
                                 warnings.push({

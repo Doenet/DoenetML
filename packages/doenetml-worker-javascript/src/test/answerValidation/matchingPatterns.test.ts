@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("matching patterns answer tests", async () => {
     it("enter any quadratic", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <setup>
       <math name="pattern1">()$var^2+()$var+()</math>
@@ -16,7 +16,7 @@ describe("matching patterns answer tests", async () => {
     </setup>
 
     <p><mathInput name="var" /></p>
-    <p>Enter a quadratic expression in the variable <math name="var2" copySource="var" />:
+    <p>Enter a quadratic expression in the variable <math name="var2" extend="$var" />:
     <answer name="ans">
       <mathInput name="resp" />
       <award><when>
@@ -29,18 +29,18 @@ describe("matching patterns answer tests", async () => {
         </matchesPattern>
       </when></award>
       <considerAsResponses>
-        <conditionalContent maximumNumberToShow="1">
-          <case condition="$excludeX1">$excludeX1.patternMatches[1]{assignNamesSkip="1"} $excludeX1.patternMatches[2]{assignNamesSkip="1"} $excludeX1.patternMatch3{assignNamesSkip="1"}</case>
-          <case condition="$excludeX2">$excludeX2.patternMatches[1]{assignNamesSkip="1"} <math>0</math> $excludeX2.patternMatch2</case>
+        <conditionalContent>
+          <case condition="$excludeX1">$excludeX1.patternMatches[1] $excludeX1.patternMatches[2] $excludeX1.patternMatch3</case>
+          <case condition="$excludeX2">$excludeX2.patternMatches[1] <math>0</math> $excludeX2.patternMatch2</case>
         </conditionalContent>
       </considerAsResponses>
     </answer>
     </p>
 
-    <p name="p_sub">Submitted answer: $ans.submittedResponse{assignNames="sub"}</p>
-    <p name="p_quad">Quadratic coeff: $ans.submittedResponse2{assignNames="quad"}</p>
-    <p name="p_lin">Linear coeff: $ans.submittedResponse3{assignNames="lin"}</p>
-    <p name="p_const">Constant term: $ans.submittedResponse4{assignNames="const"}</p>
+    <p name="p_sub">Submitted answer: <mathList extend="$ans.submittedResponse" name="sub" /></p>
+    <p name="p_quad">Quadratic coeff: <mathList extend="$ans.submittedResponse2" name="quad" /></p>
+    <p name="p_lin">Linear coeff: <mathList extend="$ans.submittedResponse3" name="lin" /></p>
+    <p name="p_const">Constant term: <mathList extend="$ans.submittedResponse4" name="const" /></p>
     
 
     `,
@@ -164,16 +164,23 @@ describe("matching patterns answer tests", async () => {
         };
 
         for (let varName in desiredResults) {
-            await updateMathInputValue({ latex: varName, name: "/var", core });
+            await updateMathInputValue({
+                latex: varName,
+                componentIdx: resolveComponentName("var"),
+                core,
+            });
 
             let resultsForVar = desiredResults[varName];
             for (let expr in resultsForVar) {
                 await updateMathInputValue({
                     latex: expr,
-                    name: "/resp",
+                    componentIdx: resolveComponentName("resp"),
                     core,
                 });
-                await submitAnswer({ name: "/ans", core });
+                await submitAnswer({
+                    componentIdx: resolveComponentName("ans"),
+                    core,
+                });
                 let stateVariables = await core.returnAllStateVariables(
                     false,
                     true,
@@ -183,58 +190,71 @@ describe("matching patterns answer tests", async () => {
 
                 if (res.correct) {
                     expect(
-                        stateVariables["/ans"].stateValues.creditAchieved,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .creditAchieved,
                     ).eq(1);
-                    expect(stateVariables["/sub"].stateValues.value.tree).eqls(
-                        res.response,
-                    );
-                    expect(stateVariables["/quad"].stateValues.value.tree).eqls(
-                        res.matches[0],
-                    );
-                    expect(stateVariables["/lin"].stateValues.value.tree).eqls(
-                        res.matches[1],
-                    );
                     expect(
-                        stateVariables["/const"].stateValues.value.tree,
-                    ).eqls(res.matches[2]);
-                    expect(
-                        stateVariables["/ans"].stateValues.submittedResponse1
-                            .tree,
+                        stateVariables[resolveComponentName("sub[1]")]
+                            .stateValues.value.tree,
                     ).eqls(res.response);
                     expect(
-                        stateVariables["/ans"].stateValues.submittedResponse2
-                            .tree,
+                        stateVariables[resolveComponentName("quad[1]")]
+                            .stateValues.value.tree,
                     ).eqls(res.matches[0]);
                     expect(
-                        stateVariables["/ans"].stateValues.submittedResponse3
-                            .tree,
+                        stateVariables[resolveComponentName("lin[1]")]
+                            .stateValues.value.tree,
                     ).eqls(res.matches[1]);
                     expect(
-                        stateVariables["/ans"].stateValues.submittedResponse4
-                            .tree,
+                        stateVariables[resolveComponentName("const[1]")]
+                            .stateValues.value.tree,
+                    ).eqls(res.matches[2]);
+                    expect(
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .submittedResponse1.tree,
+                    ).eqls(res.response);
+                    expect(
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .submittedResponse2.tree,
+                    ).eqls(res.matches[0]);
+                    expect(
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .submittedResponse3.tree,
+                    ).eqls(res.matches[1]);
+                    expect(
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .submittedResponse4.tree,
                     ).eqls(res.matches[2]);
                 } else {
                     expect(
-                        stateVariables["/ans"].stateValues.creditAchieved,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .creditAchieved,
                     ).eq(0);
-                    expect(stateVariables["/sub"].stateValues.value.tree).eqls(
-                        res.response,
-                    );
-                    expect(stateVariables["/quad"]).be.undefined;
-                    expect(stateVariables["/lin"]).be.undefined;
-                    expect(stateVariables["/const"]).be.undefined;
                     expect(
-                        stateVariables["/ans"].stateValues.submittedResponse1
-                            .tree,
+                        stateVariables[resolveComponentName("sub[1]")]
+                            .stateValues.value.tree,
+                    ).eqls(res.response);
+                    expect(stateVariables[resolveComponentName("quad[1]")]).be
+                        .undefined;
+                    expect(stateVariables[resolveComponentName("lin[1]")]).be
+                        .undefined;
+                    expect(stateVariables[resolveComponentName("const[1]")]).be
+                        .undefined;
+                    expect(
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .submittedResponse1.tree,
                     ).eqls(res.response);
                     expect(
-                        stateVariables["/ans"].stateValues.submittedResponse2,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .submittedResponse2,
                     ).be.undefined;
                     expect(
-                        stateVariables["/ans"].stateValues.submittedResponse3,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .submittedResponse3,
                     ).be.undefined;
                     expect(
-                        stateVariables["/ans"].stateValues.submittedResponse4,
+                        stateVariables[resolveComponentName("ans")].stateValues
+                            .submittedResponse4,
                     ).be.undefined;
                 }
             }

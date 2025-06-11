@@ -5,7 +5,7 @@ import useDoenetRenderer, {
 import { addCommasForCompositeRanges } from "./utils/composites";
 
 export default React.memo(function Q(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children } = useDoenetRenderer(props);
+    let { componentIdx: name, id, SVs, children } = useDoenetRenderer(props);
 
     if (SVs.hidden) {
         return null;

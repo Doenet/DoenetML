@@ -1,3 +1,5 @@
+use crate::dast::ref_resolve::Resolver;
+
 use super::{FlatNode, FlatRoot, Index, UntaggedContent};
 
 impl FlatNode {
@@ -84,14 +86,25 @@ impl FlatNode {
 
                     // extending might also have indices that are references that also need fixing.
                     let resolution = extending.get_resolution_mut();
-                    resolution.unresolved_path.iter_mut().for_each(|paths| {
-                        paths.iter_mut().for_each(|path_part| {
+                    resolution
+                        .unresolved_path
+                        .iter_mut()
+                        .flatten()
+                        .for_each(|path_part| {
                             path_part.index.iter_mut().for_each(|index| {
                                 index.value.iter_mut().for_each(|node| {
                                     if let UntaggedContent::Ref(idx) = node {
                                         *idx = ref_index_map[*idx];
                                     }
                                 })
+                            });
+                        });
+                    resolution.original_path.iter_mut().for_each(|path_part| {
+                        path_part.index.iter_mut().for_each(|index| {
+                            index.value.iter_mut().for_each(|node| {
+                                if let UntaggedContent::Ref(idx) = node {
+                                    *idx = ref_index_map[*idx];
+                                }
                             })
                         });
                     });
@@ -131,7 +144,7 @@ impl FlatNode {
 impl FlatRoot {
     /// Remove any unreferenced nodes and shrink the `nodes` array to fit.
     /// Indices are adjusted to reflect the new positions of the nodes.
-    pub fn compactify(&mut self) {
+    pub fn compactify(&mut self, resolver: Option<&mut Resolver>) {
         let mut is_referenced: Vec<bool> = std::iter::repeat_n(false, self.nodes.len()).collect();
         let mut to_visit = self
             .children
@@ -184,6 +197,10 @@ impl FlatRoot {
                 *idx = old_to_new_indices[*idx];
             }
         });
+
+        if let Some(resolve) = resolver {
+            resolve.compactify(&is_referenced, &old_to_new_indices);
+        }
     }
 }
 

@@ -1,24 +1,16 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { convertAttributesForComponentType } from "../utils/copy";
 import me from "math-expressions";
-import { processAssignNames } from "../utils/naming";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Intersection extends CompositeComponent {
     static componentType = "intersection";
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
-
-    static assignNamesToReplacements = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
 
         attributes.styleNumber = {
             leaveRaw: true,
@@ -142,6 +134,7 @@ export default class Intersection extends CompositeComponent {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
@@ -164,14 +157,14 @@ export default class Intersection extends CompositeComponent {
         let totNums = numLines + numCircles + numPolys;
 
         if (totNums < 2) {
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         } else if (totNums > 2) {
             warnings.push({
                 message:
                     "Haven't implemented intersection for more than two items",
                 level: 1,
             });
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         }
 
         let points = [];
@@ -195,19 +188,22 @@ export default class Intersection extends CompositeComponent {
         }
 
         if (points.length === 0) {
-            return { replacements: [], errors, warnings };
+            return { replacements: [], errors, warnings, nComponents };
         }
 
         let serializedReplacements = points.map((pt) => ({
+            type: "serialized",
             componentType: "point",
+            componentIdx: nComponents++,
             state: {
                 coords: me.fromAst(["vector", ...pt]),
                 draggable: false,
                 fixed: true,
             },
+            attributes: {},
+            doenetAttributes: {},
+            children: [],
         }));
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let attributesToConvert = {};
         if (component.attributes.styleNumber) {
@@ -216,14 +212,15 @@ export default class Intersection extends CompositeComponent {
 
         if (Object.keys(attributesToConvert).length > 0) {
             for (let repl of serializedReplacements) {
-                let attributesFromComposite = convertAttributesForComponentType(
-                    {
-                        attributes: attributesToConvert,
-                        componentType: repl.componentType,
-                        componentInfoObjects,
-                        compositeCreatesNewNamespace: newNamespace,
-                    },
-                );
+                const res = convertUnresolvedAttributesForComponentType({
+                    attributes: attributesToConvert,
+                    componentType: repl.componentType,
+                    componentInfoObjects,
+                    nComponents,
+                });
+
+                const attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
 
                 if (!repl.attributes) {
                     repl.attributes = {};
@@ -232,25 +229,19 @@ export default class Intersection extends CompositeComponent {
             }
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: serializedReplacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
-        serializedReplacements = processResult.serializedComponents;
-
-        return { replacements: serializedReplacements, errors, warnings };
+        return {
+            replacements: serializedReplacements,
+            errors,
+            warnings,
+            nComponents,
+        };
     }
 
     static async calculateReplacementChanges({
         component,
         components,
         componentInfoObjects,
+        nComponents,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -262,11 +253,13 @@ export default class Intersection extends CompositeComponent {
             component,
             components,
             componentInfoObjects,
+            nComponents,
         });
 
         let serializedIntersections = replacementResults.replacements;
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
+        const newNComponents = replacementResults.nComponents;
 
         let nNewIntersections = serializedIntersections.length;
 
@@ -308,7 +301,7 @@ export default class Intersection extends CompositeComponent {
         }
 
         if (recreateReplacements === false) {
-            return replacementChanges;
+            return { replacementChanges, nComponents };
         }
 
         // replace with new intersection
@@ -319,8 +312,9 @@ export default class Intersection extends CompositeComponent {
             numberReplacementsToReplace: component.replacements.length,
             serializedReplacements: serializedIntersections,
         };
+        nComponents = newNComponents;
 
-        return [replacementInstruction];
+        return { replacementChanges: [replacementInstruction], nComponents };
     }
 }
 

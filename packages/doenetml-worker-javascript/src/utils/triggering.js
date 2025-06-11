@@ -7,13 +7,13 @@ export function returnStandardTriggeringAttributes(triggerActionOnChange) {
             triggerActionOnChange,
         },
         triggerWith: {
-            createTargetComponentNames: true,
+            createReferences: true,
         },
         triggerWhenObjectsClicked: {
-            createTargetComponentNames: true,
+            createReferences: true,
         },
         triggerWhenObjectsFocused: {
-            createTargetComponentNames: true,
+            createReferences: true,
         },
     };
 }
@@ -43,15 +43,15 @@ export function addStandardTriggeringStateVariableDefinitions(
     stateVariableDefinitions.triggerWith = {
         returnDependencies: () => ({
             triggerWith: {
-                dependencyType: "attributeTargetComponentNames",
+                dependencyType: "attributeRefResolutions",
                 attributeName: "triggerWith",
             },
             triggerWhenObjectsClicked: {
-                dependencyType: "attributeTargetComponentNames",
+                dependencyType: "attributeRefResolutions",
                 attributeName: "triggerWhenObjectsClicked",
             },
             triggerWhenObjectsFocused: {
-                dependencyType: "attributeTargetComponentNames",
+                dependencyType: "attributeRefResolutions",
                 attributeName: "triggerWhenObjectsFocused",
             },
             triggerWhen: {
@@ -72,24 +72,32 @@ export function addStandardTriggeringStateVariableDefinitions(
             } else {
                 let triggerWith = [];
                 if (dependencyValues.triggerWith !== null) {
-                    for (let nameObj of dependencyValues.triggerWith) {
-                        triggerWith.push({ target: nameObj.absoluteName });
+                    for (let refResolution of dependencyValues.triggerWith) {
+                        if (refResolution.unresolvedPath === null) {
+                            triggerWith.push({
+                                target: refResolution.componentIdx,
+                            });
+                        }
                     }
                 }
                 if (dependencyValues.triggerWhenObjectsClicked !== null) {
-                    for (let nameObj of dependencyValues.triggerWhenObjectsClicked) {
-                        triggerWith.push({
-                            target: nameObj.absoluteName,
-                            triggeringAction: "click",
-                        });
+                    for (let refResolution of dependencyValues.triggerWhenObjectsClicked) {
+                        if (refResolution.unresolvedPath === null) {
+                            triggerWith.push({
+                                target: refResolution.componentIdx,
+                                triggeringAction: "click",
+                            });
+                        }
                     }
                 }
                 if (dependencyValues.triggerWhenObjectsFocused !== null) {
-                    for (let nameObj of dependencyValues.triggerWhenObjectsFocused) {
-                        triggerWith.push({
-                            target: nameObj.absoluteName,
-                            triggeringAction: "focus",
-                        });
+                    for (let refResolution of dependencyValues.triggerWhenObjectsFocused) {
+                        if (refResolution.unresolvedPath === null) {
+                            triggerWith.push({
+                                target: refResolution.componentIdx,
+                                triggeringAction: "focus",
+                            });
+                        }
                     }
                 }
 

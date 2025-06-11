@@ -114,8 +114,8 @@ describe("DAST", async () => {
                 {
                     type: "element",
                     name: "a",
-                    attributes: [
-                        {
+                    attributes: {
+                        attr: {
                             type: "attribute",
                             name: "attr",
                             children: [
@@ -125,7 +125,7 @@ describe("DAST", async () => {
                                 },
                             ],
                         },
-                    ],
+                    },
                     children: [],
                 },
                 {
@@ -161,17 +161,17 @@ describe("DAST", async () => {
         expect(
             mergeAdjacentTextInArray([
                 { type: "text", value: "foo" },
-                { type: "element", children: [], attributes: [], name: "m" },
+                { type: "element", children: [], attributes: {}, name: "m" },
                 { type: "text", value: "bar" },
                 { type: "text", value: "Foo" },
-                { type: "element", children: [], attributes: [], name: "m" },
+                { type: "element", children: [], attributes: {}, name: "m" },
                 { type: "text", value: "foo" },
             ]),
         ).toEqual([
             { type: "text", value: "foo" },
-            { type: "element", children: [], attributes: [], name: "m" },
+            { type: "element", children: [], attributes: {}, name: "m" },
             { type: "text", value: "barFoo" },
-            { type: "element", children: [], attributes: [], name: "m" },
+            { type: "element", children: [], attributes: {}, name: "m" },
             { type: "text", value: "foo" },
         ]);
     });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolveComponentName } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import {
     movePoint,
@@ -24,30 +24,30 @@ describe("Ray Tag Tests", function () {
      * @param d direction
      */
     function check_ray_htd({
-        name,
+        componentIdx,
         h,
         t,
         d,
         stateVariables,
     }: {
-        name: string;
+        componentIdx: number;
         h: number[];
         t: number[];
         d: number[];
         stateVariables: any;
     }) {
         expect(
-            stateVariables[name].stateValues.endpoint.map(
+            stateVariables[componentIdx].stateValues.endpoint.map(
                 (x) => x.simplify().tree,
             ),
         ).eqls(t);
         expect(
-            stateVariables[name].stateValues.through.map(
+            stateVariables[componentIdx].stateValues.through.map(
                 (x) => x.simplify().tree,
             ),
         ).eqls(h);
         expect(
-            stateVariables[name].stateValues.direction.map(
+            stateVariables[componentIdx].stateValues.direction.map(
                 (x) => x.simplify().tree,
             ),
         ).eqls(d);
@@ -60,37 +60,38 @@ describe("Ray Tag Tests", function () {
         endpointy,
         directionEndpointShiftx = 0,
         directionEndpointShifty = 0,
-        rayName = "/ray1",
-        endpointName = "/endpoint",
-        throughName = "/through",
-        directionName = "/direction",
+        rayName = "ray1",
+        endpointName = "endpoint",
+        throughName = "through",
+        directionName = "direction",
         core,
+        resolveComponentName,
     }) {
         function check_vec_htd({
-            name,
+            componentIdx,
             h,
             t,
             d,
             stateVariables,
         }: {
-            name: string;
+            componentIdx: number;
             h: number[];
             t: number[];
             d: number[];
             stateVariables: any;
         }) {
             expect(
-                stateVariables[name].stateValues.tail.map(
+                stateVariables[componentIdx].stateValues.tail.map(
                     (x) => x.simplify().tree,
                 ),
             ).eqls(t);
             expect(
-                stateVariables[name].stateValues.head.map(
+                stateVariables[componentIdx].stateValues.head.map(
                     (x) => x.simplify().tree,
                 ),
             ).eqls(h);
             expect(
-                stateVariables[name].stateValues.displacement.map(
+                stateVariables[componentIdx].stateValues.displacement.map(
                     (x) => x.simplify().tree,
                 ),
             ).eqls(d);
@@ -101,7 +102,7 @@ describe("Ray Tag Tests", function () {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         check_ray_htd({
-            name: rayName,
+            componentIdx: resolveComponentName(rayName),
             h: [throughx, throughy],
             t: [endpointx, endpointy],
             d: [directionx, directiony],
@@ -109,14 +110,18 @@ describe("Ray Tag Tests", function () {
         });
 
         expect(
-            stateVariables[endpointName].stateValues.xs.map((v) => v.tree),
+            stateVariables[
+                resolveComponentName(endpointName)
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([endpointx, endpointy]);
         expect(
-            stateVariables[throughName].stateValues.xs.map((v) => v.tree),
+            stateVariables[
+                resolveComponentName(throughName)
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([throughx, throughy]);
 
         check_vec_htd({
-            name: directionName,
+            componentIdx: resolveComponentName(directionName),
             h: [
                 directionx + directionEndpointShiftx,
                 directiony + directionEndpointShifty,
@@ -129,6 +134,7 @@ describe("Ray Tag Tests", function () {
 
     async function common_test_process({
         core,
+        resolveComponentName,
         initialEndpointX = 0,
         initialEndpointY = 0,
         initialThroughX = -4,
@@ -137,6 +143,7 @@ describe("Ray Tag Tests", function () {
         pointMovesEntireRay = "endpoint",
     }: {
         core: PublicDoenetMLCore;
+        resolveComponentName: ResolveComponentName;
         initialEndpointX?: number;
         initialEndpointY?: number;
         initialThroughX?: number;
@@ -156,13 +163,14 @@ describe("Ray Tag Tests", function () {
                 false,
                 true,
             );
-            expect(stateVariables["/ray1"].stateValues.label).eq(
-                "\\(\\vec{v}\\)",
-            );
+            expect(
+                stateVariables[resolveComponentName("ray1")].stateValues.label,
+            ).eq("\\(\\vec{v}\\)");
         }
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -181,12 +189,13 @@ describe("Ray Tag Tests", function () {
 
         await moveRay({
             core,
-            name: "/ray1",
+            componentIdx: resolveComponentName("ray1"),
             endpointcoords: [endpointx, endpointy],
             throughcoords: [throughx, throughy],
         });
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -206,12 +215,13 @@ describe("Ray Tag Tests", function () {
         }
         await movePoint({
             core,
-            name: "/endpoint",
+            componentIdx: resolveComponentName("endpoint"),
             x: endpointx,
             y: endpointy,
         });
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -231,12 +241,13 @@ describe("Ray Tag Tests", function () {
         }
         await movePoint({
             core,
-            name: "/through",
+            componentIdx: resolveComponentName("through"),
             x: throughx,
             y: throughy,
         });
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -264,7 +275,7 @@ describe("Ray Tag Tests", function () {
 
         await moveVector({
             core,
-            name: "/direction",
+            componentIdx: resolveComponentName("direction"),
 
             tailcoords: [directionEndpointShiftx, directionEndpointShifty],
             headcoords: [directionthroughx, directionthroughy],
@@ -272,6 +283,7 @@ describe("Ray Tag Tests", function () {
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -282,21 +294,22 @@ describe("Ray Tag Tests", function () {
     }
 
     it("ray with no arguments, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <ray name="ray1" />
   </graph>
   <graph>
-      $ray1.endpoint{assignNames="endpoint"}
-      $ray1.through{assignNames="through"}
-      $ray1.direction{assignNames="direction"}
+      <point extend="$ray1.endpoint" name="endpoint" />
+      <point extend="$ray1.through" name="through" />
+      <vector extend="$ray1.direction" name="direction" />
   </grap
   `,
         });
 
         await common_test_process({
             core,
+            resolveComponentName,
             initialThroughX: 1,
             initialThroughY: 0,
             initialEndpointX: 0,
@@ -306,21 +319,22 @@ describe("Ray Tag Tests", function () {
     });
 
     it("ray with just label, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <ray name="ray1"><label><m>\\vec{v}</m></label></ray>
   </graph>
   <graph>
-      $ray1.endpoint{assignNames="endpoint"}
-      $ray1.through{assignNames="through"}
-      $ray1.direction{assignNames="direction"}
+      <point extend="$ray1.endpoint" name="endpoint" />
+      <point extend="$ray1.through" name="through" />
+      <vector extend="$ray1.direction" name="direction" />
   </grap
   `,
         });
 
         await common_test_process({
             core,
+            resolveComponentName,
             initialThroughX: 1,
             initialThroughY: 0,
             initialEndpointX: 0,
@@ -330,25 +344,25 @@ describe("Ray Tag Tests", function () {
     });
 
     it("ray with just direction, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <ray name="ray1" direction ="(-4,2)" />
   </graph>
 
   <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
   </graph>
   `,
         });
 
-        await common_test_process({ core });
+        await common_test_process({ core, resolveComponentName });
     });
 
     it("ray with just direction and label, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <ray name="ray1" direction ="(-4,2)" >
@@ -357,55 +371,61 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
   </graph>
   `,
         });
 
-        await common_test_process({ core, checkLabel: true });
+        await common_test_process({
+            core,
+            resolveComponentName,
+            checkLabel: true,
+        });
     });
 
     it("ray with direction and endpoint, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <ray name="ray1" direction="(-8,1)" endpoint="(4,1)" />
   </graph>
 
   <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
   </graph>
   `,
         });
 
         await common_test_process({
             core,
+            resolveComponentName,
             initialEndpointX: 4,
             initialEndpointY: 1,
         });
     });
 
     it("ray with direction and through, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <ray name="ray1" direction="(-8,1)" through="(-4,2)" />
   </graph>
 
   <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
   </graph>
   `,
         });
 
         await common_test_process({
             core,
+            resolveComponentName,
             initialEndpointX: 4,
             initialEndpointY: 1,
             pointMovesEntireRay: "through",
@@ -413,40 +433,45 @@ describe("Ray Tag Tests", function () {
     });
 
     it("ray with just through, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <ray name="ray1" through="(-4,2)"/>
   </graph>
 
   <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
-  </graph>
-  `,
-        });
-
-        await common_test_process({ core, pointMovesEntireRay: "none" });
-    });
-
-    it("ray with through and endpoint, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
-            doenetML: `
-  <graph>
-  <ray name="ray1" endpoint="(4,1)" through="(-4,2)" />
-  </graph>
-
-  <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
   </graph>
   `,
         });
 
         await common_test_process({
             core,
+            resolveComponentName,
+            pointMovesEntireRay: "none",
+        });
+    });
+
+    it("ray with through and endpoint, through/endpoint/direction copied", async () => {
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+  <graph>
+  <ray name="ray1" endpoint="(4,1)" through="(-4,2)" />
+  </graph>
+
+  <graph>
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
+  </graph>
+  `,
+        });
+
+        await common_test_process({
+            core,
+            resolveComponentName,
             initialEndpointX: 4,
             initialEndpointY: 1,
             pointMovesEntireRay: "none",
@@ -454,22 +479,23 @@ describe("Ray Tag Tests", function () {
     });
 
     it("ray with just endpoint, through/endpoint/direction copied", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <ray name="ray1" endpoint="(3,4)"/>
   </graph>
 
   <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
   </graph>
  `,
         });
 
         await common_test_process({
             core,
+            resolveComponentName,
             initialEndpointX: 3,
             initialEndpointY: 4,
             initialThroughX: 4,
@@ -478,9 +504,9 @@ describe("Ray Tag Tests", function () {
     });
 
     it("copied rays", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph newNamespace name="g1">
+  <graph name="g1">
     <ray name="ray1" endpoint="(-1,2)" through="(-2,3)"/>
     <point name="point1">(-4,7)</point>
     <point name="point2">(3,5)</point>
@@ -488,17 +514,19 @@ describe("Ray Tag Tests", function () {
     <ray name="ray3" endpoint="(-9,-1)" through="(-3,6)"/>
   </graph>
 
-  <graph newNamespace name="g2">
-    $(/g1/ray1{name="ray1"})
-    $(/g1/ray2{name="ray2"})
-    $(/g1/ray3{name="ray3"})
+  <graph name="g2">
+    <ray extend="$g1.ray1" name="ray1" />
+    <ray extend="$g1.ray2" name="ray2" />
+    <ray extend="$g1.ray3" name="ray3" />
   </graph>
 
-  $g2{name="g3"}
+  <graph extend="$g2" name="g3" />
 
-  $(g3/ray1{name="ray1"})
-  $(g3/ray2{name="ray2"})
-  $(g3/ray3{name="ray3"})
+  <section name="s">
+    <ray extend="$g3.ray1" name="ray1" />
+    <ray extend="$g3.ray2" name="ray2" />
+    <ray extend="$g3.ray3" name="ray3" />
+  </section>
   `,
         });
 
@@ -522,37 +550,43 @@ describe("Ray Tag Tests", function () {
                 false,
                 true,
             );
-            const ray1s = ["/g1/ray1", "/g2/ray1", "/g3/ray1", "/ray1"];
-            const ray2s = ["/g1/ray2", "/g2/ray2", "/g3/ray2", "/ray2"];
-            const ray3s = ["/g1/ray3", "/g2/ray3", "/g3/ray3", "/ray3"];
+            const ray1s = ["g1.ray1", "g2.ray1", "g3.ray1", "s.ray1"];
+            const ray2s = ["g1.ray2", "g2.ray2", "g3.ray2", "s.ray2"];
+            const ray3s = ["g1.ray3", "g2.ray3", "g3.ray3", "s.ray3"];
             for (let name of ray1s) {
                 expect(
-                    stateVariables[name].stateValues.endpoint.map(
-                        (v) => v.tree,
-                    ),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.endpoint.map((v) => v.tree),
                 ).eqls([v1tx, v1ty]);
                 expect(
-                    stateVariables[name].stateValues.through.map((v) => v.tree),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.through.map((v) => v.tree),
                 ).eqls([v1hx, v1hy]);
             }
             for (let name of ray2s) {
                 expect(
-                    stateVariables[name].stateValues.endpoint.map(
-                        (v) => v.tree,
-                    ),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.endpoint.map((v) => v.tree),
                 ).eqls([v2tx, v2ty]);
                 expect(
-                    stateVariables[name].stateValues.through.map((v) => v.tree),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.through.map((v) => v.tree),
                 ).eqls([v2hx, v2hy]);
             }
             for (let name of ray3s) {
                 expect(
-                    stateVariables[name].stateValues.endpoint.map(
-                        (v) => v.tree,
-                    ),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.endpoint.map((v) => v.tree),
                 ).eqls([v3tx, v3ty]);
                 expect(
-                    stateVariables[name].stateValues.through.map((v) => v.tree),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.through.map((v) => v.tree),
                 ).eqls([v3hx, v3hy]);
             }
         }
@@ -565,7 +599,7 @@ describe("Ray Tag Tests", function () {
         v1hy = -9;
         await moveRay({
             core,
-            name: "/g1/ray1",
+            componentIdx: resolveComponentName("g1.ray1"),
             endpointcoords: [v1tx, v1ty],
             throughcoords: [v1hx, v1hy],
         });
@@ -578,7 +612,7 @@ describe("Ray Tag Tests", function () {
         v1hy = -4;
         await moveRay({
             core,
-            name: "/g2/ray1",
+            componentIdx: resolveComponentName("g2.ray1"),
             endpointcoords: [v1tx, v1ty],
             throughcoords: [v1hx, v1hy],
         });
@@ -591,7 +625,7 @@ describe("Ray Tag Tests", function () {
         v1hy = -8;
         await moveRay({
             core,
-            name: "/g3/ray1",
+            componentIdx: resolveComponentName("g3.ray1"),
             endpointcoords: [v1tx, v1ty],
             throughcoords: [v1hx, v1hy],
         });
@@ -604,7 +638,7 @@ describe("Ray Tag Tests", function () {
         v2hy = 5;
         await moveRay({
             core,
-            name: "/g1/ray2",
+            componentIdx: resolveComponentName("g1.ray2"),
             endpointcoords: [v2tx, v2ty],
             throughcoords: [v2hx, v2hy],
         });
@@ -617,7 +651,7 @@ describe("Ray Tag Tests", function () {
         v2hy = -7;
         await moveRay({
             core,
-            name: "/g2/ray2",
+            componentIdx: resolveComponentName("g2.ray2"),
             endpointcoords: [v2tx, v2ty],
             throughcoords: [v2hx, v2hy],
         });
@@ -630,7 +664,7 @@ describe("Ray Tag Tests", function () {
         v2hy = -9;
         await moveRay({
             core,
-            name: "/g3/ray2",
+            componentIdx: resolveComponentName("g3.ray2"),
             endpointcoords: [v2tx, v2ty],
             throughcoords: [v2hx, v2hy],
         });
@@ -643,7 +677,7 @@ describe("Ray Tag Tests", function () {
         v3hy = 0;
         await moveRay({
             core,
-            name: "/g1/ray3",
+            componentIdx: resolveComponentName("g1.ray3"),
             endpointcoords: [v3tx, v3ty],
             throughcoords: [v3hx, v3hy],
         });
@@ -656,7 +690,7 @@ describe("Ray Tag Tests", function () {
         v3hy = -2;
         await moveRay({
             core,
-            name: "/g2/ray3",
+            componentIdx: resolveComponentName("g2.ray3"),
             endpointcoords: [v3tx, v3ty],
             throughcoords: [v3hx, v3hy],
         });
@@ -669,7 +703,7 @@ describe("Ray Tag Tests", function () {
         v3hy = -6;
         await moveRay({
             core,
-            name: "/g3/ray3",
+            componentIdx: resolveComponentName("g3.ray3"),
             endpointcoords: [v3tx, v3ty],
             throughcoords: [v3hx, v3hy],
         });
@@ -677,25 +711,25 @@ describe("Ray Tag Tests", function () {
     });
 
     it("copied rays and directions", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
         <ray name="ray1" direction="(1,2)"/>
     </graph>
     <graph>
-        $ray1{name="ray2"}
+        <ray extend="$ray1" name="ray2" />
     </graph>
     <graph>
-        $ray1.direction{assignNames="dir1"}
+        <vector extend="$ray1.direction" name="dir1" />
     </graph>
     <graph>
-        $ray1.direction{assignNames="dir2"}
+        <vector extend="$ray1.direction" name="dir2" />
     </graph>
   `,
         });
 
-        const rays = ["/ray1", "/ray2"];
-        const directions = ["/dir1", "/dir2"]; // these are <vector>s
+        const rays = ["ray1", "ray2"];
+        const directions = ["dir1", "dir2"]; // these are <vector>s
 
         // initial state
         let ray_tx = 0;
@@ -719,32 +753,38 @@ describe("Ray Tag Tests", function () {
 
             for (let name of rays) {
                 expect(
-                    stateVariables[name].stateValues.endpoint.map(
-                        (v) => v.tree,
-                    ),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.endpoint.map((v) => v.tree),
                 ).eqls([ray_tx, ray_ty]);
                 expect(
-                    stateVariables[name].stateValues.through.map((v) => v.tree),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.through.map((v) => v.tree),
                 ).eqls([ray_hx, ray_hy]);
                 expect(
-                    stateVariables[name].stateValues.direction.map(
-                        (v) => v.tree,
-                    ),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.direction.map((v) => v.tree),
                 ).eqls([direction_x, direction_y]);
             }
 
             for (let i = 0; i < directions.length; i++) {
                 let name = directions[i];
                 expect(
-                    stateVariables[name].stateValues.tail.map((v) => v.tree),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.tail.map((v) => v.tree),
                 ).eqls([dtail_xs[i], dtail_ys[i]]);
                 expect(
-                    stateVariables[name].stateValues.head.map((v) => v.tree),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.head.map((v) => v.tree),
                 ).eqls([dhead_xs[i], dhead_ys[i]]);
                 expect(
-                    stateVariables[name].stateValues.displacement.map(
-                        (v) => v.tree,
-                    ),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.displacement.map((v) => v.tree),
                 ).eqls([direction_x, direction_y]);
             }
         }
@@ -763,7 +803,7 @@ describe("Ray Tag Tests", function () {
             ray_hy = hys[i];
             await moveRay({
                 core,
-                name: rays[i],
+                componentIdx: resolveComponentName(rays[i]),
                 endpointcoords: [ray_tx, ray_ty],
                 throughcoords: [ray_hx, ray_hy],
             });
@@ -790,7 +830,7 @@ describe("Ray Tag Tests", function () {
 
             await moveVector({
                 core,
-                name: directions[i],
+                componentIdx: resolveComponentName(directions[i]),
                 tailcoords: [dtail_xs[i], dtail_ys[i]],
                 headcoords: [dthrough_xs[i], dthrough_ys[i]],
             });
@@ -799,7 +839,7 @@ describe("Ray Tag Tests", function () {
     });
 
     it("constrain to ray", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <point name="point1">(1,2)</point>
@@ -829,19 +869,23 @@ describe("Ray Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([tx, ty]);
             expect(
-                stateVariables["/ray1"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([hx, hy]);
-            expect(stateVariables["/point3"].stateValues.xs[0].tree).closeTo(
-                px,
-                1e-12,
-            );
-            expect(stateVariables["/point3"].stateValues.xs[1].tree).closeTo(
-                py,
-                1e-12,
-            );
+            expect(
+                stateVariables[resolveComponentName("point3")].stateValues.xs[0]
+                    .tree,
+            ).closeTo(px, 1e-12);
+            expect(
+                stateVariables[resolveComponentName("point3")].stateValues.xs[1]
+                    .tree,
+            ).closeTo(py, 1e-12);
         }
         await check_items();
 
@@ -862,7 +906,7 @@ describe("Ray Tag Tests", function () {
         [px, py] = calc_snap_45_deg(pxOrig, pyOrig);
         await moveRay({
             core,
-            name: "/ray1",
+            componentIdx: resolveComponentName("ray1"),
             endpointcoords: [tx, ty],
             throughcoords: [hx, hy],
         });
@@ -874,7 +918,7 @@ describe("Ray Tag Tests", function () {
         [px, py] = calc_snap_45_deg(pxOrig, pyOrig);
         await movePoint({
             core,
-            name: "/point3",
+            componentIdx: resolveComponentName("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -886,7 +930,7 @@ describe("Ray Tag Tests", function () {
         [px, py] = calc_snap_45_deg(pxOrig, pyOrig);
         await movePoint({
             core,
-            name: "/point3",
+            componentIdx: resolveComponentName("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -898,7 +942,7 @@ describe("Ray Tag Tests", function () {
         [px, py] = calc_snap_45_deg(pxOrig, pyOrig);
         await movePoint({
             core,
-            name: "/point3",
+            componentIdx: resolveComponentName("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -906,7 +950,7 @@ describe("Ray Tag Tests", function () {
     });
 
     it("attract to ray", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <point name="point1">(1,2)</point>
@@ -936,19 +980,23 @@ describe("Ray Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([tx, ty]);
             expect(
-                stateVariables["/ray1"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([hx, hy]);
-            expect(stateVariables["/point3"].stateValues.xs[0].tree).closeTo(
-                px,
-                1e-12,
-            );
-            expect(stateVariables["/point3"].stateValues.xs[1].tree).closeTo(
-                py,
-                1e-12,
-            );
+            expect(
+                stateVariables[resolveComponentName("point3")].stateValues.xs[0]
+                    .tree,
+            ).closeTo(px, 1e-12);
+            expect(
+                stateVariables[resolveComponentName("point3")].stateValues.xs[1]
+                    .tree,
+            ).closeTo(py, 1e-12);
         }
         await check_items();
 
@@ -959,7 +1007,7 @@ describe("Ray Tag Tests", function () {
         hy = -4;
         await moveRay({
             core,
-            name: "/ray1",
+            componentIdx: resolveComponentName("ray1"),
             endpointcoords: [tx, ty],
             throughcoords: [hx, hy],
         });
@@ -980,7 +1028,7 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/point3",
+            componentIdx: resolveComponentName("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -992,7 +1040,7 @@ describe("Ray Tag Tests", function () {
         [px, py] = calc_snap_45_deg(pxOrig, pyOrig);
         await movePoint({
             core,
-            name: "/point3",
+            componentIdx: resolveComponentName("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1004,7 +1052,7 @@ describe("Ray Tag Tests", function () {
         [px, py] = calc_snap_45_deg(pxOrig, pyOrig);
         await movePoint({
             core,
-            name: "/point3",
+            componentIdx: resolveComponentName("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1016,7 +1064,7 @@ describe("Ray Tag Tests", function () {
         [px, py] = calc_snap_45_deg(pxOrig, pyOrig);
         await movePoint({
             core,
-            name: "/point3",
+            componentIdx: resolveComponentName("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1029,7 +1077,7 @@ describe("Ray Tag Tests", function () {
         py = pyOrig;
         await movePoint({
             core,
-            name: "/point3",
+            componentIdx: resolveComponentName("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1037,7 +1085,7 @@ describe("Ray Tag Tests", function () {
     });
 
     it("constrain to ray, different scales from graph", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
         <ray name="l" through="(-1,-0.05)" endpoint="(1,0.05)"/>
@@ -1047,14 +1095,15 @@ describe("Ray Tag Tests", function () {
         </constraints>
         </point>
     </graph>
-    $P{name="Pa"}
   `,
         });
 
         // test initial state
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let x = stateVariables["/P"].stateValues.xs[0].tree;
-        let y = stateVariables["/P"].stateValues.xs[1].tree;
+        let x =
+            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        let y =
+            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).greaterThan(0);
         expect(y).lessThan(0.01);
         expect(x).closeTo(20 * y, 1e-10);
@@ -1062,13 +1111,13 @@ describe("Ray Tag Tests", function () {
         // move point
         await movePoint({
             core,
-            name: "/P",
+            componentIdx: resolveComponentName("P"),
             x: -100,
             y: 0.05,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).lessThan(0.05);
         expect(y).greaterThan(0.04);
         expect(x).closeTo(20 * y, 1e-10);
@@ -1077,30 +1126,28 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/P",
+            componentIdx: resolveComponentName("P"),
             x: -100,
             y: 0.1,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables["/P"].stateValues.xs[0].tree;
-        y = stateVariables["/P"].stateValues.xs[1].tree;
+        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
         expect(y).eq(0.05);
         expect(x).closeTo(20 * y, 1e-10);
     });
 
     it("two update paths through rays", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <point name="zeroFixed" fixed>(0,0)</point>
-    <mathinput name="a" prefill="2" modifyIndirectly="false" />
+    <mathInput name="a" prefill="2" modifyIndirectly="false" />
     <graph>
         <ray name="original" endpoint="$zeroFixed" through="(1,3)" />
     </graph>
     <graph>
         <ray name="multiplied" endpoint="$zeroFixed" through="($a$(original.throughX1), $a$(original.throughX2))" />
     </graph>
-    $original{name="o2"}
-    $multiplied{name="m2"}
     `,
         });
 
@@ -1116,24 +1163,24 @@ describe("Ray Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables["/original"].stateValues.endpoint.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("original")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([0, 0]);
             expect(
-                stateVariables["/original"].stateValues.through.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("original")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([ohx, ohy]);
             expect(
-                stateVariables["/multiplied"].stateValues.endpoint.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("multiplied")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([0, 0]);
             expect(
-                stateVariables["/multiplied"].stateValues.through.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("multiplied")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([mhx, mhy]);
         }
         await check_items();
@@ -1143,7 +1190,11 @@ describe("Ray Tag Tests", function () {
         ohy = 1;
         mhx = 2 * ohx;
         mhy = 2 * ohy;
-        await moveRay({ core, name: "/original", throughcoords: [ohx, ohy] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("original"),
+            throughcoords: [ohx, ohy],
+        });
         await check_items();
 
         // move multiplied ray
@@ -1151,11 +1202,19 @@ describe("Ray Tag Tests", function () {
         mhy = -8;
         ohx = mhx / 2;
         ohy = mhy / 2;
-        await moveRay({ core, name: "/multiplied", throughcoords: [mhx, mhy] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("multiplied"),
+            throughcoords: [mhx, mhy],
+        });
         await check_items();
 
         // Change factor
-        await updateMathInputValue({ name: "/a", latex: "-3", core });
+        await updateMathInputValue({
+            componentIdx: resolveComponentName("a"),
+            latex: "-3",
+            core,
+        });
         mhx = -3 * ohx;
         mhy = -3 * ohy;
         await check_items();
@@ -1165,12 +1224,16 @@ describe("Ray Tag Tests", function () {
         mhy = -3;
         ohx = mhx / -3;
         ohy = mhy / -3;
-        await moveRay({ core, name: "/multiplied", throughcoords: [-6, -3] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("multiplied"),
+            throughcoords: [-6, -3],
+        });
         await check_items();
     });
 
     it("display ray sum triangle", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
         <ray name="u" through="(1,1)" />
@@ -1198,31 +1261,49 @@ describe("Ray Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables["/u"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("u")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([...uEndpoint]);
             expect(
-                stateVariables["/u"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("u")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([...uThrough]);
             expect(
-                stateVariables["/u"].stateValues.direction.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("u")
+                ].stateValues.direction.map((v) => v.tree),
             ).eqls([...u]);
             expect(
-                stateVariables["/v"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("v")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([...vEndpoint]);
             expect(
-                stateVariables["/v"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("v")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([...vThrough]);
             expect(
-                stateVariables["/v"].stateValues.direction.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("v")
+                ].stateValues.direction.map((v) => v.tree),
             ).eqls([...v]);
             expect(
-                stateVariables["/w"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("w")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([...wEndpoint]);
             expect(
-                stateVariables["/w"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("w")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([...wThrough]);
             expect(
-                stateVariables["/w"].stateValues.direction.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("w")
+                ].stateValues.direction.map((v) => v.tree),
             ).eqls([...w]);
         }
         await check_items();
@@ -1232,7 +1313,11 @@ describe("Ray Tag Tests", function () {
         uThrough = vEndpoint;
         u = uThrough.map((x, i) => x - uEndpoint[i]);
         v = vThrough.map((x, i) => x - vEndpoint[i]);
-        await moveRay({ core, name: "/v", endpointcoords: vEndpoint });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v"),
+            endpointcoords: vEndpoint,
+        });
         await check_items();
 
         // moving through of u keeps v direction fixed
@@ -1243,7 +1328,11 @@ describe("Ray Tag Tests", function () {
         w = u.map((x, i) => x + v[i]);
         wEndpoint = uEndpoint;
         wThrough = w.map((x, i) => x + wEndpoint[i]);
-        await moveRay({ core, name: "/u", throughcoords: uThrough });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("u"),
+            throughcoords: uThrough,
+        });
         await check_items();
 
         // moving endpoint of u moves endpoint of w
@@ -1251,7 +1340,11 @@ describe("Ray Tag Tests", function () {
         u = uThrough.map((x, i) => x - uEndpoint[i]);
         w = u.map((x, i) => x + v[i]);
         wEndpoint = uEndpoint;
-        await moveRay({ core, name: "/u", endpointcoords: uEndpoint });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("u"),
+            endpointcoords: uEndpoint,
+        });
         await check_items();
 
         // moving endpoint of w moves endpoint of u
@@ -1259,7 +1352,11 @@ describe("Ray Tag Tests", function () {
         uEndpoint = wEndpoint;
         u = uThrough.map((x, i) => x - uEndpoint[i]);
         w = u.map((x, i) => x + v[i]);
-        await moveRay({ core, name: "/w", endpointcoords: wEndpoint });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("w"),
+            endpointcoords: wEndpoint,
+        });
         await check_items();
 
         // moving through of w moves through of v
@@ -1267,7 +1364,11 @@ describe("Ray Tag Tests", function () {
         vThrough = wThrough;
         v = vThrough.map((x, i) => x - vEndpoint[i]);
         w = u.map((x, i) => x + v[i]);
-        await moveRay({ core, name: "/w", throughcoords: wThrough });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("w"),
+            throughcoords: wThrough,
+        });
         await check_items();
 
         // moving through of v moves through of w
@@ -1275,17 +1376,21 @@ describe("Ray Tag Tests", function () {
         wThrough = vThrough;
         v = vThrough.map((x, i) => x - vEndpoint[i]);
         w = u.map((x, i) => x + v[i]);
-        await moveRay({ core, name: "/v", throughcoords: vThrough });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v"),
+            throughcoords: vThrough,
+        });
         await check_items();
     });
 
     it("combining components of through and endpoint through copies", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <ray name="v" endpoint="(1,2)" through="(-2,3)" />
-  $v.through{assignNames="vh"}
-  $v.endpoint{assignNames="vt"}
+  <point extend="$v.through" name="vh" />
+  <point extend="$v.endpoint" name="vt" />
   <point name="c" x="$(vh.x)" y="$(vt.y)"/>
   </graph>
   `,
@@ -1304,30 +1409,33 @@ describe("Ray Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables["/v"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("v")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([tx, ty]);
             expect(
-                stateVariables["/v"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("v")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([hx, hy]);
             expect(
-                stateVariables["/v"].stateValues.direction.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("v")
+                ].stateValues.direction.map((v) => v.tree),
             ).eqls([hx - tx, hy - ty]);
 
-            expect(stateVariables["/vt"].stateValues.coords.tree).eqls([
-                "vector",
-                tx,
-                ty,
-            ]);
-            expect(stateVariables["/vh"].stateValues.coords.tree).eqls([
-                "vector",
-                hx,
-                hy,
-            ]);
-            expect(stateVariables["/c"].stateValues.coords.tree).eqls([
-                "vector",
-                hx,
-                ty,
-            ]);
+            expect(
+                stateVariables[resolveComponentName("vt")].stateValues.coords
+                    .tree,
+            ).eqls(["vector", tx, ty]);
+            expect(
+                stateVariables[resolveComponentName("vh")].stateValues.coords
+                    .tree,
+            ).eqls(["vector", hx, hy]);
+            expect(
+                stateVariables[resolveComponentName("c")].stateValues.coords
+                    .tree,
+            ).eqls(["vector", hx, ty]);
         }
         await check_items();
 
@@ -1338,7 +1446,7 @@ describe("Ray Tag Tests", function () {
         hy = 7;
         await moveRay({
             core,
-            name: "/v",
+            componentIdx: resolveComponentName("v"),
             throughcoords: [hx, hy],
             endpointcoords: [tx, ty],
         });
@@ -1349,7 +1457,7 @@ describe("Ray Tag Tests", function () {
         hy = 9;
         await movePoint({
             core,
-            name: "/vh",
+            componentIdx: resolveComponentName("vh"),
             x: hx,
             y: hy,
         });
@@ -1360,7 +1468,7 @@ describe("Ray Tag Tests", function () {
         ty = 10;
         await movePoint({
             core,
-            name: "/vt",
+            componentIdx: resolveComponentName("vt"),
             x: tx,
             y: ty,
         });
@@ -1371,7 +1479,7 @@ describe("Ray Tag Tests", function () {
         ty = 0;
         await movePoint({
             core,
-            name: "/c",
+            componentIdx: resolveComponentName("c"),
             x: hx,
             y: ty,
         });
@@ -1379,7 +1487,7 @@ describe("Ray Tag Tests", function () {
     });
 
     it("updates depending on ray definition", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <graph>
     <point name="tvt">(1,2)</point>
@@ -1403,64 +1511,64 @@ describe("Ray Tag Tests", function () {
 </graph>
 
 <graph>
-    $vt.endpoint{assignNames="tfvt"}
-    $vt.through{assignNames="hfvt"}
-    $vt.direction{assignNames="dfvt"}
+    <point extend="$vt.endpoint" name="tfvt" />
+    <point extend="$vt.through" name="hfvt" />
+    <vector extend="$vt.direction" name="dfvt" />
 
-    $vh.endpoint{assignNames="tfvh"}
-    $vh.through{assignNames="hfvh"}
-    $vh.direction{assignNames="dfvh"}
+    <point extend="$vh.endpoint" name="tfvh" />
+    <point extend="$vh.through" name="hfvh" />
+    <vector extend="$vh.direction" name="dfvh" />
 
-    $vd.endpoint{assignNames="tfvd"}
-    $vd.through{assignNames="hfvd"}
-    $vd.direction{assignNames="dfvd"}
+    <point extend="$vd.endpoint" name="tfvd" />
+    <point extend="$vd.through" name="hfvd" />
+    <vector extend="$vd.direction" name="dfvd" />
 
-    $vth.endpoint{assignNames="tfvth"}
-    $vth.through{assignNames="hfvth"}
-    $vth.direction{assignNames="dfvth"}
+    <point extend="$vth.endpoint" name="tfvth" />
+    <point extend="$vth.through" name="hfvth" />
+    <vector extend="$vth.direction" name="dfvth" />
 
-    $vtd.endpoint{assignNames="tfvtd"}
-    $vtd.through{assignNames="hfvtd"}
-    $vtd.direction{assignNames="dfvtd"}
+    <point extend="$vtd.endpoint" name="tfvtd" />
+    <point extend="$vtd.through" name="hfvtd" />
+    <vector extend="$vtd.direction" name="dfvtd" />
 
-    $vhd.endpoint{assignNames="tfvhd"}
-    $vhd.through{assignNames="hfvhd"}
-    $vhd.direction{assignNames="dfvhd"}
+    <point extend="$vhd.endpoint" name="tfvhd" />
+    <point extend="$vhd.through" name="hfvhd" />
+    <vector extend="$vhd.direction" name="dfvhd" />
 </graph>
 
 <graph>
-    $vt{name="vt2"}
-    $vh{name="vh2"}
-    $vd{name="vd2"}
-    $vth{name="vth2"}
-    $vtd{name="vtd2"}
-    $vhd{name="vhd2"}
+    <ray extend="$vt" name="vt2" />
+    <ray extend="$vh" name="vh2" />
+    <ray extend="$vd" name="vd2" />
+    <ray extend="$vth" name="vth2" />
+    <ray extend="$vtd" name="vtd2" />
+    <ray extend="$vhd" name="vhd2" />
 </graph>
 
 <graph>
-    $vt2.endpoint{assignNames="tfvt2"}
-    $vt2.through{assignNames="hfvt2"}
-    $vt2.direction{assignNames="dfvt2"}
+    <point extend="$vt2.endpoint" name="tfvt2" />
+    <point extend="$vt2.through" name="hfvt2" />
+    <vector extend="$vt2.direction" name="dfvt2" />
 
-    $vh2.endpoint{assignNames="tfvh2"}
-    $vh2.through{assignNames="hfvh2"}
-    $vh2.direction{assignNames="dfvh2"}
+    <point extend="$vh2.endpoint" name="tfvh2" />
+    <point extend="$vh2.through" name="hfvh2" />
+    <vector extend="$vh2.direction" name="dfvh2" />
 
-    $vd2.endpoint{assignNames="tfvd2"}
-    $vd2.through{assignNames="hfvd2"}
-    $vd2.direction{assignNames="dfvd2"}
+    <point extend="$vd2.endpoint" name="tfvd2" />
+    <point extend="$vd2.through" name="hfvd2" />
+    <vector extend="$vd2.direction" name="dfvd2" />
 
-    $vth2.endpoint{assignNames="tfvth2"}
-    $vth2.through{assignNames="hfvth2"}
-    $vth2.direction{assignNames="dfvth2"}
+    <point extend="$vth2.endpoint" name="tfvth2" />
+    <point extend="$vth2.through" name="hfvth2" />
+    <vector extend="$vth2.direction" name="dfvth2" />
 
-    $vtd2.endpoint{assignNames="tfvtd2"}
-    $vtd2.through{assignNames="hfvtd2"}
-    $vtd2.direction{assignNames="dfvtd2"}
+    <point extend="$vtd2.endpoint" name="tfvtd2" />
+    <point extend="$vtd2.through" name="hfvtd2" />
+    <vector extend="$vtd2.direction" name="dfvtd2" />
 
-    $vhd2.endpoint{assignNames="tfvhd2"}
-    $vhd2.through{assignNames="hfvhd2"}
-    $vhd2.direction{assignNames="dfvhd2"}
+    <point extend="$vhd2.endpoint" name="tfvhd2" />
+    <point extend="$vhd2.through" name="hfvhd2" />
+    <vector extend="$vhd2.direction" name="dfvhd2" />
 </graph>
   `,
         });
@@ -1499,161 +1607,163 @@ describe("Ray Tag Tests", function () {
             );
             function check_vec_coords(name: string, coords: number[]) {
                 expect(
-                    stateVariables[name].stateValues.coords.simplify().tree,
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.coords.simplify().tree,
                 ).eqls(["vector", ...coords]);
             }
 
             function check_vec_disp(name: string, disp: number[]) {
                 expect(
-                    stateVariables[name].stateValues.displacement.map(
-                        (x) => x.simplify().tree,
-                    ),
+                    stateVariables[
+                        resolveComponentName(name)
+                    ].stateValues.displacement.map((x) => x.simplify().tree),
                 ).eqls(disp);
             }
 
-            check_vec_coords("/tvt", tvt);
-            check_vec_coords("/hvh", hvh);
-            check_vec_coords("/dvd", dvd);
-            check_vec_coords("/tvth", tvth);
-            check_vec_coords("/hvth", hvth);
-            check_vec_coords("/tvtd", tvtd);
-            check_vec_coords("/dvtd", dvtd);
-            check_vec_coords("/hvhd", hvhd);
-            check_vec_coords("/dvhd", dvhd);
+            check_vec_coords("tvt", tvt);
+            check_vec_coords("hvh", hvh);
+            check_vec_coords("dvd", dvd);
+            check_vec_coords("tvth", tvth);
+            check_vec_coords("hvth", hvth);
+            check_vec_coords("tvtd", tvtd);
+            check_vec_coords("dvtd", dvtd);
+            check_vec_coords("hvhd", hvhd);
+            check_vec_coords("dvhd", dvhd);
 
             check_ray_htd({
-                name: "/vt",
+                componentIdx: resolveComponentName("vt"),
                 t: tvt,
                 h: hvt,
                 d: dvt,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vh",
+                componentIdx: resolveComponentName("vh"),
                 t: tvh,
                 h: hvh,
                 d: dvh,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vd",
+                componentIdx: resolveComponentName("vd"),
                 t: tvd,
                 h: hvd,
                 d: dvd,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vth",
+                componentIdx: resolveComponentName("vth"),
                 t: tvth,
                 h: hvth,
                 d: dvth,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vtd",
+                componentIdx: resolveComponentName("vtd"),
                 t: tvtd,
                 h: hvtd,
                 d: dvtd,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vhd",
+                componentIdx: resolveComponentName("vhd"),
                 t: tvhd,
                 h: hvhd,
                 d: dvhd,
                 stateVariables,
             });
 
-            check_vec_coords("/tfvt", tvt);
-            check_vec_coords("/hfvt", hvt);
-            check_vec_disp("/dfvt", dvt);
+            check_vec_coords("tfvt", tvt);
+            check_vec_coords("hfvt", hvt);
+            check_vec_disp("dfvt", dvt);
 
-            check_vec_coords("/tfvh", tvh);
-            check_vec_coords("/hfvh", hvh);
-            check_vec_disp("/dfvh", dvh);
+            check_vec_coords("tfvh", tvh);
+            check_vec_coords("hfvh", hvh);
+            check_vec_disp("dfvh", dvh);
 
-            check_vec_coords("/tfvd", tvd);
-            check_vec_coords("/hfvd", hvd);
-            check_vec_disp("/dfvd", dvd);
+            check_vec_coords("tfvd", tvd);
+            check_vec_coords("hfvd", hvd);
+            check_vec_disp("dfvd", dvd);
 
-            check_vec_coords("/tfvth", tvth);
-            check_vec_coords("/hfvth", hvth);
-            check_vec_disp("/dfvth", dvth);
+            check_vec_coords("tfvth", tvth);
+            check_vec_coords("hfvth", hvth);
+            check_vec_disp("dfvth", dvth);
 
-            check_vec_coords("/tfvtd", tvtd);
-            check_vec_coords("/hfvtd", hvtd);
-            check_vec_disp("/dfvtd", dvtd);
+            check_vec_coords("tfvtd", tvtd);
+            check_vec_coords("hfvtd", hvtd);
+            check_vec_disp("dfvtd", dvtd);
 
-            check_vec_coords("/tfvhd", tvhd);
-            check_vec_coords("/hfvhd", hvhd);
-            check_vec_disp("/dfvhd", dvhd);
+            check_vec_coords("tfvhd", tvhd);
+            check_vec_coords("hfvhd", hvhd);
+            check_vec_disp("dfvhd", dvhd);
 
             check_ray_htd({
-                name: "/vt2",
+                componentIdx: resolveComponentName("vt2"),
                 t: tvt,
                 h: hvt,
                 d: dvt,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vh2",
+                componentIdx: resolveComponentName("vh2"),
                 t: tvh,
                 h: hvh,
                 d: dvh,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vd2",
+                componentIdx: resolveComponentName("vd2"),
                 t: tvd,
                 h: hvd,
                 d: dvd,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vth2",
+                componentIdx: resolveComponentName("vth2"),
                 t: tvth,
                 h: hvth,
                 d: dvth,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vtd2",
+                componentIdx: resolveComponentName("vtd2"),
                 t: tvtd,
                 h: hvtd,
                 d: dvtd,
                 stateVariables,
             });
             check_ray_htd({
-                name: "/vhd2",
+                componentIdx: resolveComponentName("vhd2"),
                 t: tvhd,
                 h: hvhd,
                 d: dvhd,
                 stateVariables,
             });
 
-            check_vec_coords("/tfvt2", tvt);
-            check_vec_coords("/hfvh2", hvh);
-            check_vec_disp("/dfvh2", dvh);
+            check_vec_coords("tfvt2", tvt);
+            check_vec_coords("hfvh2", hvh);
+            check_vec_disp("dfvh2", dvh);
 
-            check_vec_coords("/tfvh2", tvh);
-            check_vec_coords("/hfvh2", hvh);
-            check_vec_disp("/dfvh2", dvh);
+            check_vec_coords("tfvh2", tvh);
+            check_vec_coords("hfvh2", hvh);
+            check_vec_disp("dfvh2", dvh);
 
-            check_vec_coords("/tfvd2", tvd);
-            check_vec_coords("/hfvd2", hvd);
-            check_vec_disp("/dfvd2", dvd);
+            check_vec_coords("tfvd2", tvd);
+            check_vec_coords("hfvd2", hvd);
+            check_vec_disp("dfvd2", dvd);
 
-            check_vec_coords("/tfvth2", tvth);
-            check_vec_coords("/hfvth2", hvth);
-            check_vec_disp("/dfvth2", dvth);
+            check_vec_coords("tfvth2", tvth);
+            check_vec_coords("hfvth2", hvth);
+            check_vec_disp("dfvth2", dvth);
 
-            check_vec_coords("/tfvtd2", tvtd);
-            check_vec_coords("/hfvtd2", hvtd);
-            check_vec_disp("/dfvtd2", dvtd);
+            check_vec_coords("tfvtd2", tvtd);
+            check_vec_coords("hfvtd2", hvtd);
+            check_vec_disp("dfvtd2", dvtd);
 
-            check_vec_coords("/tfvhd2", tvhd);
-            check_vec_coords("/hfvhd2", hvhd);
-            check_vec_disp("/dfvhd2", dvhd);
+            check_vec_coords("tfvhd2", tvhd);
+            check_vec_coords("hfvhd2", hvhd);
+            check_vec_disp("dfvhd2", dvhd);
         }
 
         await check_items();
@@ -1666,12 +1776,36 @@ describe("Ray Tag Tests", function () {
         tvtd = [5, -9];
         tvhd = [-1, -6];
 
-        await moveRay({ core, name: "/vt", endpointcoords: tvt });
-        await moveRay({ core, name: "/vh", endpointcoords: tvh });
-        await moveRay({ core, name: "/vd", endpointcoords: tvd });
-        await moveRay({ core, name: "/vth", endpointcoords: tvth });
-        await moveRay({ core, name: "/vtd", endpointcoords: tvtd });
-        await moveRay({ core, name: "/vhd", endpointcoords: tvhd });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vt"),
+            endpointcoords: tvt,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vh"),
+            endpointcoords: tvh,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vd"),
+            endpointcoords: tvd,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vth"),
+            endpointcoords: tvth,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vtd"),
+            endpointcoords: tvtd,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vhd"),
+            endpointcoords: tvhd,
+        });
 
         // since moved endpoints directly, throughs stay fixed and direction changes
         dvt = [hvt[0] - tvt[0], hvt[1] - tvt[1]];
@@ -1691,12 +1825,36 @@ describe("Ray Tag Tests", function () {
         hvtd = [-6, -4];
         hvhd = [-4, 8];
 
-        await moveRay({ core, name: "/vt", throughcoords: hvt });
-        await moveRay({ core, name: "/vh", throughcoords: hvh });
-        await moveRay({ core, name: "/vd", throughcoords: hvd });
-        await moveRay({ core, name: "/vth", throughcoords: hvth });
-        await moveRay({ core, name: "/vtd", throughcoords: hvtd });
-        await moveRay({ core, name: "/vhd", throughcoords: hvhd });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vt"),
+            throughcoords: hvt,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vh"),
+            throughcoords: hvh,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vd"),
+            throughcoords: hvd,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vth"),
+            throughcoords: hvth,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vtd"),
+            throughcoords: hvtd,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vhd"),
+            throughcoords: hvhd,
+        });
 
         // since moved throughs directly, endpoints stay fixed and direction changes
         dvt = [hvt[0] - tvt[0], hvt[1] - tvt[1]];
@@ -1715,19 +1873,19 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/tvt",
+            componentIdx: resolveComponentName("tvt"),
             x: tvt[0],
             y: tvt[1],
         });
         await movePoint({
             core,
-            name: "/tvth",
+            componentIdx: resolveComponentName("tvth"),
             x: tvth[0],
             y: tvth[1],
         });
         await movePoint({
             core,
-            name: "/tvtd",
+            componentIdx: resolveComponentName("tvtd"),
             x: tvtd[0],
             y: tvtd[1],
         });
@@ -1748,19 +1906,19 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/hvh",
+            componentIdx: resolveComponentName("hvh"),
             x: hvh[0],
             y: hvh[1],
         });
         await movePoint({
             core,
-            name: "/hvth",
+            componentIdx: resolveComponentName("hvth"),
             x: hvth[0],
             y: hvth[1],
         });
         await movePoint({
             core,
-            name: "/hvhd",
+            componentIdx: resolveComponentName("hvhd"),
             x: hvhd[0],
             y: hvhd[1],
         });
@@ -1781,19 +1939,19 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/dvd",
+            componentIdx: resolveComponentName("dvd"),
             x: dvd[0],
             y: dvd[1],
         });
         await movePoint({
             core,
-            name: "/dvtd",
+            componentIdx: resolveComponentName("dvtd"),
             x: dvtd[0],
             y: dvtd[1],
         });
         await movePoint({
             core,
-            name: "/dvhd",
+            componentIdx: resolveComponentName("dvhd"),
             x: dvhd[0],
             y: dvhd[1],
         });
@@ -1817,37 +1975,37 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/tfvt",
+            componentIdx: resolveComponentName("tfvt"),
             x: tvt[0],
             y: tvt[1],
         });
         await movePoint({
             core,
-            name: "/tfvh",
+            componentIdx: resolveComponentName("tfvh"),
             x: tvh[0],
             y: tvh[1],
         });
         await movePoint({
             core,
-            name: "/tfvd",
+            componentIdx: resolveComponentName("tfvd"),
             x: tvd[0],
             y: tvd[1],
         });
         await movePoint({
             core,
-            name: "/tfvth",
+            componentIdx: resolveComponentName("tfvth"),
             x: tvth[0],
             y: tvth[1],
         });
         await movePoint({
             core,
-            name: "/tfvtd",
+            componentIdx: resolveComponentName("tfvtd"),
             x: tvtd[0],
             y: tvtd[1],
         });
         await movePoint({
             core,
-            name: "/tfvhd",
+            componentIdx: resolveComponentName("tfvhd"),
             x: tvhd[0],
             y: tvhd[1],
         });
@@ -1876,37 +2034,37 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/hfvt",
+            componentIdx: resolveComponentName("hfvt"),
             x: hvt[0],
             y: hvt[1],
         });
         await movePoint({
             core,
-            name: "/hfvh",
+            componentIdx: resolveComponentName("hfvh"),
             x: hvh[0],
             y: hvh[1],
         });
         await movePoint({
             core,
-            name: "/hfvd",
+            componentIdx: resolveComponentName("hfvd"),
             x: hvd[0],
             y: hvd[1],
         });
         await movePoint({
             core,
-            name: "/hfvth",
+            componentIdx: resolveComponentName("hfvth"),
             x: hvth[0],
             y: hvth[1],
         });
         await movePoint({
             core,
-            name: "/hfvtd",
+            componentIdx: resolveComponentName("hfvtd"),
             x: hvtd[0],
             y: hvtd[1],
         });
         await movePoint({
             core,
-            name: "/hfvhd",
+            componentIdx: resolveComponentName("hfvhd"),
             x: hvhd[0],
             y: hvhd[1],
         });
@@ -1931,12 +2089,36 @@ describe("Ray Tag Tests", function () {
         dvtd = [9, -8];
         dvhd = [1, 2];
 
-        await moveVector({ core, name: "/dfvt", headcoords: dvt });
-        await moveVector({ core, name: "/dfvh", headcoords: dvh });
-        await moveVector({ core, name: "/dfvd", headcoords: dvd });
-        await moveVector({ core, name: "/dfvth", headcoords: dvth });
-        await moveVector({ core, name: "/dfvtd", headcoords: dvtd });
-        await moveVector({ core, name: "/dfvhd", headcoords: dvhd });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvt"),
+            headcoords: dvt,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvh"),
+            headcoords: dvh,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvd"),
+            headcoords: dvd,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvth"),
+            headcoords: dvth,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvtd"),
+            headcoords: dvtd,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvhd"),
+            headcoords: dvhd,
+        });
 
         // for most rays, endpoints stay fixed and through changes
         hvt = [tvt[0] + dvt[0], tvt[1] + dvt[1]];
@@ -1958,12 +2140,36 @@ describe("Ray Tag Tests", function () {
         tvtd = [-4, -8];
         tvhd = [-1, 6];
 
-        await moveRay({ core, name: "/vt2", endpointcoords: tvt });
-        await moveRay({ core, name: "/vh2", endpointcoords: tvh });
-        await moveRay({ core, name: "/vd2", endpointcoords: tvd });
-        await moveRay({ core, name: "/vth2", endpointcoords: tvth });
-        await moveRay({ core, name: "/vtd2", endpointcoords: tvtd });
-        await moveRay({ core, name: "/vhd2", endpointcoords: tvhd });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vt2"),
+            endpointcoords: tvt,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vh2"),
+            endpointcoords: tvh,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vd2"),
+            endpointcoords: tvd,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vth2"),
+            endpointcoords: tvth,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vtd2"),
+            endpointcoords: tvtd,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vhd2"),
+            endpointcoords: tvhd,
+        });
 
         // since moved endpoints directly, throughs stay fixed and direction changes
         dvt = [hvt[0] - tvt[0], hvt[1] - tvt[1]];
@@ -1983,12 +2189,36 @@ describe("Ray Tag Tests", function () {
         hvtd = [7, 0];
         hvhd = [-8, -4];
 
-        await moveRay({ core, name: "/vt2", throughcoords: hvt });
-        await moveRay({ core, name: "/vh2", throughcoords: hvh });
-        await moveRay({ core, name: "/vd2", throughcoords: hvd });
-        await moveRay({ core, name: "/vth2", throughcoords: hvth });
-        await moveRay({ core, name: "/vtd2", throughcoords: hvtd });
-        await moveRay({ core, name: "/vhd2", throughcoords: hvhd });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vt2"),
+            throughcoords: hvt,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vh2"),
+            throughcoords: hvh,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vd2"),
+            throughcoords: hvd,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vth2"),
+            throughcoords: hvth,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vtd2"),
+            throughcoords: hvtd,
+        });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("vhd2"),
+            throughcoords: hvhd,
+        });
 
         // since moved throughs directly, endpoints stay fixed and direction changes
         dvt = [hvt[0] - tvt[0], hvt[1] - tvt[1]];
@@ -2010,37 +2240,37 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/tfvt2",
+            componentIdx: resolveComponentName("tfvt2"),
             x: tvt[0],
             y: tvt[1],
         });
         await movePoint({
             core,
-            name: "/tfvh2",
+            componentIdx: resolveComponentName("tfvh2"),
             x: tvh[0],
             y: tvh[1],
         });
         await movePoint({
             core,
-            name: "/tfvd2",
+            componentIdx: resolveComponentName("tfvd2"),
             x: tvd[0],
             y: tvd[1],
         });
         await movePoint({
             core,
-            name: "/tfvth2",
+            componentIdx: resolveComponentName("tfvth2"),
             x: tvth[0],
             y: tvth[1],
         });
         await movePoint({
             core,
-            name: "/tfvtd2",
+            componentIdx: resolveComponentName("tfvtd2"),
             x: tvtd[0],
             y: tvtd[1],
         });
         await movePoint({
             core,
-            name: "/tfvhd2",
+            componentIdx: resolveComponentName("tfvhd2"),
             x: tvhd[0],
             y: tvhd[1],
         });
@@ -2068,37 +2298,37 @@ describe("Ray Tag Tests", function () {
 
         await movePoint({
             core,
-            name: "/hfvt2",
+            componentIdx: resolveComponentName("hfvt2"),
             x: hvt[0],
             y: hvt[1],
         });
         await movePoint({
             core,
-            name: "/hfvh2",
+            componentIdx: resolveComponentName("hfvh2"),
             x: hvh[0],
             y: hvh[1],
         });
         await movePoint({
             core,
-            name: "/hfvd2",
+            componentIdx: resolveComponentName("hfvd2"),
             x: hvd[0],
             y: hvd[1],
         });
         await movePoint({
             core,
-            name: "/hfvth2",
+            componentIdx: resolveComponentName("hfvth2"),
             x: hvth[0],
             y: hvth[1],
         });
         await movePoint({
             core,
-            name: "/hfvtd2",
+            componentIdx: resolveComponentName("hfvtd2"),
             x: hvtd[0],
             y: hvtd[1],
         });
         await movePoint({
             core,
-            name: "/hfvhd2",
+            componentIdx: resolveComponentName("hfvhd2"),
             x: hvhd[0],
             y: hvhd[1],
         });
@@ -2123,12 +2353,36 @@ describe("Ray Tag Tests", function () {
         dvtd = [9, -4];
         dvhd = [-5, 3];
 
-        await moveVector({ core, name: "/dfvt2", headcoords: dvt });
-        await moveVector({ core, name: "/dfvh2", headcoords: dvh });
-        await moveVector({ core, name: "/dfvd2", headcoords: dvd });
-        await moveVector({ core, name: "/dfvth2", headcoords: dvth });
-        await moveVector({ core, name: "/dfvtd2", headcoords: dvtd });
-        await moveVector({ core, name: "/dfvhd2", headcoords: dvhd });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvt2"),
+            headcoords: dvt,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvh2"),
+            headcoords: dvh,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvd2"),
+            headcoords: dvd,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvth2"),
+            headcoords: dvth,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvtd2"),
+            headcoords: dvtd,
+        });
+        await moveVector({
+            core,
+            componentIdx: resolveComponentName("dfvhd2"),
+            headcoords: dvhd,
+        });
 
         // for most rays, endpoints stay fixed and through changes
         hvt = [tvt[0] + dvt[0], tvt[1] + dvt[1]];
@@ -2144,19 +2398,19 @@ describe("Ray Tag Tests", function () {
     });
 
     it("three rays with mutual references", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <graph>
     <ray name="ray1" through="$ray2.through" endpoint="(1,0)" />
     <ray name="ray2" endpoint="$ray3.endpoint" through="(3,2)" />
     <ray name="ray3" through="$ray1.endpoint" endpoint="(-1,4)" />
 </graph>
-$ray1.through{assignNames="v1h"}
-$ray1.endpoint{assignNames="v1t"}
-$ray2.through{assignNames="v2h"}
-$ray2.endpoint{assignNames="v2t"}
-$ray3.through{assignNames="v3h"}
-$ray3.endpoint{assignNames="v3t"}
+<point extend="$ray1.through" name="v1h" />
+<point extend="$ray1.endpoint" name="v1t" />
+<point extend="$ray2.through" name="v2h" />
+<point extend="$ray2.endpoint" name="v2t" />
+<point extend="$ray3.through" name="v3h" />
+<point extend="$ray3.endpoint" name="v3t" />
   `,
         });
 
@@ -2173,22 +2427,34 @@ $ray3.endpoint{assignNames="v3t"}
                 true,
             );
             expect(
-                stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([x1, y1]);
             expect(
-                stateVariables["/ray1"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([x2, y2]);
             expect(
-                stateVariables["/ray2"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray2")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([x3, y3]);
             expect(
-                stateVariables["/ray2"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray2")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([x2, y2]);
             expect(
-                stateVariables["/ray3"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray3")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([x3, y3]);
             expect(
-                stateVariables["/ray3"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray3")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([x1, y1]);
         }
 
@@ -2197,7 +2463,7 @@ $ray3.endpoint{assignNames="v3t"}
         y2 = -3;
         await movePoint({
             core,
-            name: "/v1h",
+            componentIdx: resolveComponentName("v1h"),
             x: x2,
             y: y2,
         });
@@ -2208,7 +2474,7 @@ $ray3.endpoint{assignNames="v3t"}
         y1 = -4;
         await movePoint({
             core,
-            name: "/v1t",
+            componentIdx: resolveComponentName("v1t"),
             x: x1,
             y: y1,
         });
@@ -2219,7 +2485,7 @@ $ray3.endpoint{assignNames="v3t"}
         y3 = -8;
         await movePoint({
             core,
-            name: "/v2t",
+            componentIdx: resolveComponentName("v2t"),
             x: x3,
             y: y3,
         });
@@ -2230,7 +2496,7 @@ $ray3.endpoint{assignNames="v3t"}
         y2 = 2;
         await movePoint({
             core,
-            name: "/v2h",
+            componentIdx: resolveComponentName("v2h"),
             x: x2,
             y: y2,
         });
@@ -2241,7 +2507,7 @@ $ray3.endpoint{assignNames="v3t"}
         y1 = 8;
         await movePoint({
             core,
-            name: "/v3h",
+            componentIdx: resolveComponentName("v3h"),
             x: x1,
             y: y1,
         });
@@ -2252,7 +2518,7 @@ $ray3.endpoint{assignNames="v3t"}
         y3 = -5;
         await movePoint({
             core,
-            name: "/v3t",
+            componentIdx: resolveComponentName("v3t"),
             x: x3,
             y: y3,
         });
@@ -2260,7 +2526,7 @@ $ray3.endpoint{assignNames="v3t"}
     });
 
     it("ray with direction and endpoint, move just endpoint", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <ray name="ray1" direction="(-8,1)" endpoint="(4,1)" />
@@ -2281,15 +2547,19 @@ $ray3.endpoint{assignNames="v3t"}
                 true,
             );
             expect(
-                stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([endpointx, endpointy]);
             expect(
-                stateVariables["/ray1"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([throughx, throughy]);
             expect(
-                stateVariables["/ray1"].stateValues.direction.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.direction.map((v) => v.tree),
             ).eqls([directionx, directiony]);
         }
         await check_items();
@@ -2301,19 +2571,19 @@ $ray3.endpoint{assignNames="v3t"}
         directiony = throughy - endpointy;
         await moveRay({
             core,
-            name: "/ray1",
+            componentIdx: resolveComponentName("ray1"),
             endpointcoords: [endpointx, endpointy],
         });
         await check_items();
     });
 
     it("ray with direction and through, move just through", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <graph>
     <ray name="ray1" direction="(-8,1)" through="(-4,2)" />
 </graph>
-$ray1{name="v1a"}
+<ray extend="$ray1" name="v1a" />
   `,
         });
 
@@ -2330,15 +2600,19 @@ $ray1{name="v1a"}
                 true,
             );
             expect(
-                stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([endpointx, endpointy]);
             expect(
-                stateVariables["/ray1"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([throughx, throughy]);
             expect(
-                stateVariables["/ray1"].stateValues.direction.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.direction.map((v) => v.tree),
             ).eqls([directionx, directiony]);
         }
 
@@ -2351,14 +2625,14 @@ $ray1{name="v1a"}
         directiony = throughy - endpointy;
         await moveRay({
             core,
-            name: "/ray1",
+            componentIdx: resolveComponentName("ray1"),
             throughcoords: [throughx, throughy],
         });
         await check_items();
     });
 
     it("ray with direction, move just endpoint", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <ray name="ray1" direction="(-8,1)" />
@@ -2379,15 +2653,19 @@ $ray1{name="v1a"}
                 true,
             );
             expect(
-                stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.endpoint.map((v) => v.tree),
             ).eqls([endpointx, endpointy]);
             expect(
-                stateVariables["/ray1"].stateValues.through.map((v) => v.tree),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.through.map((v) => v.tree),
             ).eqls([throughx, throughy]);
             expect(
-                stateVariables["/ray1"].stateValues.direction.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    resolveComponentName("ray1")
+                ].stateValues.direction.map((v) => v.tree),
             ).eqls([directionx, directiony]);
         }
 
@@ -2398,7 +2676,7 @@ $ray1{name="v1a"}
         directiony = throughy - endpointy;
         await moveRay({
             core,
-            name: "/ray1",
+            componentIdx: resolveComponentName("ray1"),
             endpointcoords: [endpointx, endpointy],
         });
         await check_items();
@@ -2406,7 +2684,7 @@ $ray1{name="v1a"}
 
     it("mutual dependence among entire through, endpoint, direction", async () => {
         // this could be made more interesting once have operations on rays
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
     <ray name="v1" through="$(v1.endpoint)" endpoint="(3,4)" />
@@ -2444,7 +2722,7 @@ $ray1{name="v1a"}
                 (await core.returnAllStateVariables(false, true));
             const ZEROS = [0, 0];
             check_ray_htd({
-                name,
+                componentIdx: resolveComponentName(name),
                 h: val,
                 t: val,
                 d: ZEROS,
@@ -2462,7 +2740,7 @@ $ray1{name="v1a"}
                 (await core.returnAllStateVariables(false, true));
             const ZEROS = [0, 0];
             check_ray_htd({
-                name,
+                componentIdx: resolveComponentName(name),
                 h: val,
                 t: ZEROS,
                 d: val,
@@ -2479,7 +2757,7 @@ $ray1{name="v1a"}
                 stateVariables ||
                 (await core.returnAllStateVariables(false, true));
             check_ray_htd({
-                name,
+                componentIdx: resolveComponentName(name),
                 h: val.map((v) => 2 * v),
                 t: val,
                 d: val,
@@ -2489,83 +2767,131 @@ $ray1{name="v1a"}
 
         // initial values
         let stateVariables = await core.returnAllStateVariables(false, true);
-        await check_matching_through_endpoint("/v1", [3, 4], stateVariables);
-        await check_matching_through_endpoint("/v3", [3, 4], stateVariables);
-        await check_matching_through_disp("/v2", [3, 4], stateVariables);
-        await check_matching_through_disp("/v5", [3, 4], stateVariables);
-        await check_matching_endpoint_disp("/v4", [3, 4], stateVariables);
-        await check_matching_endpoint_disp("/v6", [3, 4], stateVariables);
+        await check_matching_through_endpoint("v1", [3, 4], stateVariables);
+        await check_matching_through_endpoint("v3", [3, 4], stateVariables);
+        await check_matching_through_disp("v2", [3, 4], stateVariables);
+        await check_matching_through_disp("v5", [3, 4], stateVariables);
+        await check_matching_endpoint_disp("v4", [3, 4], stateVariables);
+        await check_matching_endpoint_disp("v6", [3, 4], stateVariables);
 
         // move v1, through and endpoint should match
-        await moveRay({ core, name: "/v1", throughcoords: [1, 2] });
-        await check_matching_through_endpoint("/v1", [1, 2]);
-        await moveRay({ core, name: "/v1", endpointcoords: [-4, 5] });
-        await check_matching_through_endpoint("/v1", [-4, 5]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v1"),
+            throughcoords: [1, 2],
+        });
+        await check_matching_through_endpoint("v1", [1, 2]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v1"),
+            endpointcoords: [-4, 5],
+        });
+        await check_matching_through_endpoint("v1", [-4, 5]);
 
         // move v3, through and endpoint should match
-        await moveRay({ core, name: "/v3", throughcoords: [1, 2] });
-        await check_matching_through_endpoint("/v3", [1, 2]);
-        await moveRay({ core, name: "/v3", endpointcoords: [-4, 5] });
-        await check_matching_through_endpoint("/v3", [-4, 5]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v3"),
+            throughcoords: [1, 2],
+        });
+        await check_matching_through_endpoint("v3", [1, 2]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v3"),
+            endpointcoords: [-4, 5],
+        });
+        await check_matching_through_endpoint("v3", [-4, 5]);
 
         // move v2, through and direction should match
-        await moveRay({ core, name: "/v2", throughcoords: [1, 2] });
-        await check_matching_through_disp("/v2", [1, 2]);
-        await moveRay({ core, name: "/v2", endpointcoords: [5, 7] });
-        await check_matching_through_disp("/v2", [-4, -5]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v2"),
+            throughcoords: [1, 2],
+        });
+        await check_matching_through_disp("v2", [1, 2]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v2"),
+            endpointcoords: [5, 7],
+        });
+        await check_matching_through_disp("v2", [-4, -5]);
 
         // move v5, through and direction should match
-        await moveRay({ core, name: "/v5", throughcoords: [1, 2] });
-        await check_matching_through_disp("/v5", [1, 2]);
-        await moveRay({ core, name: "/v5", endpointcoords: [5, 7] });
-        await check_matching_through_disp("/v5", [-4, -5]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v5"),
+            throughcoords: [1, 2],
+        });
+        await check_matching_through_disp("v5", [1, 2]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v5"),
+            endpointcoords: [5, 7],
+        });
+        await check_matching_through_disp("v5", [-4, -5]);
 
         // move v4, endpoint and direction should match
         // since based on endpoint and direction
         // Ray sets direction to try to keep through in the same place
-        await moveRay({ core, name: "/v4", throughcoords: [-1, 1] });
-        await check_matching_endpoint_disp("/v4", [-4, -3]);
-        await moveRay({ core, name: "/v4", endpointcoords: [-10, -2] });
-        await check_matching_endpoint_disp("/v4", [2, -4]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v4"),
+            throughcoords: [-1, 1],
+        });
+        await check_matching_endpoint_disp("v4", [-4, -3]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v4"),
+            endpointcoords: [-10, -2],
+        });
+        await check_matching_endpoint_disp("v4", [2, -4]);
 
         // move v6, endpoint and direction should match
         // since based on endpoint and direction
         // Ray sets direction to try to keep through in the same place
-        await moveRay({ core, name: "/v6", throughcoords: [-1, 1] });
-        await check_matching_endpoint_disp("/v6", [-4, -3]);
-        await moveRay({ core, name: "/v6", endpointcoords: [-10, -2] });
-        await check_matching_endpoint_disp("/v6", [2, -4]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v6"),
+            throughcoords: [-1, 1],
+        });
+        await check_matching_endpoint_disp("v6", [-4, -3]);
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("v6"),
+            endpointcoords: [-10, -2],
+        });
+        await check_matching_endpoint_disp("v6", [2, -4]);
     });
 
     it("ray with no arguments, copy and specify attributes", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-  <graph name="g0" newNamespace>
+  <graph name="g0">
     <ray name="v0" />
-    $v0{through="(3,4)" name="v1"}
-    $v1{endpoint="(-1,0)" name="v2"}
-    $v0{endpoint="(2,-6)" name="v3"}
-    $v3{direction="(-3,4)" name="v4"}
-    $v0{direction="(5,-1)" name="v5"}
-    $v5{through="(6,2)" name="v6"}
+    <ray extend="$v0" through="(3,4)" name="v1" />
+    <ray extend="$v1" endpoint="(-1,0)" name="v2" />
+    <ray extend="$v0" endpoint="(2,-6)" name="v3" />
+    <ray extend="$v3" direction="(-3,4)" name="v4" />
+    <ray extend="$v0" direction="(5,-1)" name="v5" />
+    <ray extend="$v5" through="(6,2)" name="v6" />
   </graph>
 
-  $g0{name="g1"}
+  <graph extend="$g0" name="g1" />
 
-  $(g0/v0.endpoint{assignNames="v0t"})
-  $(g0/v0.through{assignNames="v0h"})
-  $(g0/v1.endpoint{assignNames="v1t"})
-  $(g0/v1.through{assignNames="v1h"})
-  $(g0/v2.endpoint{assignNames="v2t"})
-  $(g0/v2.through{assignNames="v2h"})
-  $(g0/v3.endpoint{assignNames="v3t"})
-  $(g0/v3.through{assignNames="v3h"})
-  $(g0/v4.endpoint{assignNames="v4t"})
-  $(g0/v4.through{assignNames="v4h"})
-  $(g0/v5.endpoint{assignNames="v5t"})
-  $(g0/v5.through{assignNames="v5h"})
-  $(g0/v6.endpoint{assignNames="v6t"})
-  $(g0/v6.through{assignNames="v6h"})
+  <point extend="$g0.v0.endpoint" name="v0t" />
+  <point extend="$g0.v0.through" name="v0h" />
+  <point extend="$g0.v1.endpoint" name="v1t" />
+  <point extend="$g0.v1.through" name="v1h" />
+  <point extend="$g0.v2.endpoint" name="v2t" />
+  <point extend="$g0.v2.through" name="v2h" />
+  <point extend="$g0.v3.endpoint" name="v3t" />
+  <point extend="$g0.v3.through" name="v3h" />
+  <point extend="$g0.v4.endpoint" name="v4t" />
+  <point extend="$g0.v4.through" name="v4h" />
+  <point extend="$g0.v5.endpoint" name="v5t" />
+  <point extend="$g0.v5.through" name="v5h" />
+  <point extend="$g0.v6.endpoint" name="v6t" />
+  <point extend="$g0.v6.through" name="v6h" />
 
   `,
         });
@@ -2604,18 +2930,18 @@ $ray1{name="v1a"}
             for (let i = 0; i < 7; i++) {
                 for (let j = 0; j < 2; j++) {
                     expect(
-                        stateVariables[`/g${j}/v${i}`].stateValues.endpoint.map(
-                            (v) => v.tree,
-                        ),
+                        stateVariables[
+                            resolveComponentName(`g${j}.v${i}`)
+                        ].stateValues.endpoint.map((v) => v.tree),
                     ).eqls(endpoints[i]);
                     expect(
-                        stateVariables[`/g${j}/v${i}`].stateValues.through.map(
-                            (v) => v.tree,
-                        ),
+                        stateVariables[
+                            resolveComponentName(`g${j}.v${i}`)
+                        ].stateValues.through.map((v) => v.tree),
                     ).eqls(throughs[i]);
                     expect(
                         stateVariables[
-                            `/g${j}/v${i}`
+                            resolveComponentName(`g${j}.v${i}`)
                         ].stateValues.direction.map((v) => v.tree),
                     ).eqls(directions[i]);
                 }
@@ -2642,7 +2968,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g0/v0", endpointcoords: endpoints[0] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g0.v0"),
+            endpointcoords: endpoints[0],
+        });
         await check_items();
 
         // move through of g1/v0
@@ -2662,7 +2992,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g1/v0", throughcoords: throughs[0] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g1.v0"),
+            throughcoords: throughs[0],
+        });
         await check_items();
 
         // move through of g0/v1
@@ -2674,7 +3008,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g0/v1", throughcoords: throughs[1] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g0.v1"),
+            throughcoords: throughs[1],
+        });
         await check_items();
 
         // move endpoint of g1/v1
@@ -2693,7 +3031,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g1/v1", endpointcoords: endpoints[1] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g1.v1"),
+            endpointcoords: endpoints[1],
+        });
         await check_items();
 
         // move endpoint of g0/v2
@@ -2705,7 +3047,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g0/v2", endpointcoords: endpoints[2] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g0.v2"),
+            endpointcoords: endpoints[2],
+        });
         await check_items();
 
         // move through of g1/v2
@@ -2717,7 +3063,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g1/v2", throughcoords: throughs[2] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g1.v2"),
+            throughcoords: throughs[2],
+        });
         await check_items();
 
         // move through of g0/v3
@@ -2736,7 +3086,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g0/v3", throughcoords: throughs[3] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g0.v3"),
+            throughcoords: throughs[3],
+        });
         await check_items();
 
         // move endpoint of g1/v3
@@ -2760,7 +3114,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g1/v3", endpointcoords: endpoints[3] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g1.v3"),
+            endpointcoords: endpoints[3],
+        });
         await check_items();
 
         // move endpoint of g0/v4
@@ -2776,7 +3134,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g0/v4", endpointcoords: endpoints[4] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g0.v4"),
+            endpointcoords: endpoints[4],
+        });
         await check_items();
 
         // move through of g1/v4
@@ -2788,7 +3150,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g1/v4", throughcoords: throughs[4] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g1.v4"),
+            throughcoords: throughs[4],
+        });
         await check_items();
         // move through of g0/v5
 
@@ -2807,7 +3173,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g0/v5", throughcoords: throughs[5] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g0.v5"),
+            throughcoords: throughs[5],
+        });
         await check_items();
 
         // move endpoint of g1/v5
@@ -2832,7 +3202,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g1/v5", endpointcoords: endpoints[5] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g1.v5"),
+            endpointcoords: endpoints[5],
+        });
         await check_items();
 
         // move endpoint of g0/v6
@@ -2852,7 +3226,11 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g0/v6", endpointcoords: endpoints[6] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g0.v6"),
+            endpointcoords: endpoints[6],
+        });
         await check_items();
 
         // move through of g1/v6
@@ -2872,26 +3250,30 @@ $ray1{name="v1a"}
             v[1] - endpoints[i][1],
         ]);
 
-        await moveRay({ core, name: "/g1/v6", throughcoords: throughs[6] });
+        await moveRay({
+            core,
+            componentIdx: resolveComponentName("g1.v6"),
+            throughcoords: throughs[6],
+        });
         await check_items();
     });
 
     it("change ray by binding to values", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <ray name="v" />
-  <ray name="v2" copySource="v" />
+  <ray name="v2" extend="$v" />
 
   <p>
-  <mathinput bindValueTo="$v.through" name="mivh" />
-  <mathinput bindValueTo="$v.endpoint" name="mivt" />
-  <mathinput bindValueTo="$v.direction" name="mivd" />
+  <mathInput bindValueTo="$v.through" name="mivh" />
+  <mathInput bindValueTo="$v.endpoint" name="mivt" />
+  <mathInput bindValueTo="$v.direction" name="mivd" />
   </p>
 
   <p>
-  <mathinput bindValueTo="$v2.through" name="miv2h" />
-  <mathinput bindValueTo="$v2.endpoint" name="miv2t" />
-  <mathinput bindValueTo="$v2.direction" name="miv2d" />
+  <mathInput bindValueTo="$v2.through" name="miv2h" />
+  <mathInput bindValueTo="$v2.endpoint" name="miv2t" />
+  <mathInput bindValueTo="$v2.direction" name="miv2d" />
   </p>
 
   `,
@@ -2906,8 +3288,20 @@ $ray1{name="v1a"}
                 false,
                 true,
             );
-            check_ray_htd({ name: "/v", h, t, d, stateVariables });
-            check_ray_htd({ name: "/v2", h, t, d, stateVariables });
+            check_ray_htd({
+                componentIdx: resolveComponentName("v"),
+                h,
+                t,
+                d,
+                stateVariables,
+            });
+            check_ray_htd({
+                componentIdx: resolveComponentName("v2"),
+                h,
+                t,
+                d,
+                stateVariables,
+            });
         }
         await check_items();
 
@@ -2915,7 +3309,7 @@ $ray1{name="v1a"}
         h = [6, 9];
         d = [6, 9];
         await updateMathInputValue({
-            name: "/mivh",
+            componentIdx: resolveComponentName("mivh"),
             latex: "\\langle 6,9 \\rangle",
             core,
         });
@@ -2926,7 +3320,7 @@ $ray1{name="v1a"}
         h[0] = t[0] + d[0];
         h[1] = t[1] + d[1];
         await updateMathInputValue({
-            name: "/mivt",
+            componentIdx: resolveComponentName("mivt"),
             latex: "\\langle -3,7 \\rangle",
             core,
         });
@@ -2937,14 +3331,18 @@ $ray1{name="v1a"}
         h[0] = t[0] + d[0];
         h[1] = t[1] + d[1];
         await updateMathInputValue({
-            name: "/mivd",
+            componentIdx: resolveComponentName("mivd"),
             latex: "\\langle -4,1 \\rangle",
             core,
         });
         await check_items();
 
         // cannot change dimnension through direction
-        await updateMathInputValue({ name: "/mivd", latex: "(9,8,7)", core });
+        await updateMathInputValue({
+            componentIdx: resolveComponentName("mivd"),
+            latex: "(9,8,7)",
+            core,
+        });
         d = [9, 8];
         h[0] = t[0] + d[0];
         h[1] = t[1] + d[1];
@@ -2952,7 +3350,7 @@ $ray1{name="v1a"}
 
         // cannot change dimnension through endpoint
         await updateMathInputValue({
-            name: "/mivt",
+            componentIdx: resolveComponentName("mivt"),
             latex: "(-5,-6,-7)",
             core,
         });
@@ -2962,7 +3360,11 @@ $ray1{name="v1a"}
         await check_items();
 
         // cannot change dimnension through through
-        await updateMathInputValue({ name: "/mivh", latex: "(9,-9,7)", core });
+        await updateMathInputValue({
+            componentIdx: resolveComponentName("mivh"),
+            latex: "(9,-9,7)",
+            core,
+        });
         h = [9, -9];
         d[0] = h[0] - t[0];
         d[1] = h[1] - t[1];
@@ -2970,7 +3372,7 @@ $ray1{name="v1a"}
 
         // cannot change dimnension through copied through
         await updateMathInputValue({
-            name: "/miv2h",
+            componentIdx: resolveComponentName("miv2h"),
             latex: "(0,1,2,3)",
             core,
         });
@@ -2981,7 +3383,7 @@ $ray1{name="v1a"}
 
         // cannot change dimnension through copied endpoint
         await updateMathInputValue({
-            name: "/miv2t",
+            componentIdx: resolveComponentName("miv2t"),
             latex: "\\langle 2, 4, 6, 8 \\rangle",
             core,
         });
@@ -2993,7 +3395,7 @@ $ray1{name="v1a"}
         // cannot change dimnension through copied direction
         // Note: =4 as third component is intentional
         await updateMathInputValue({
-            name: "/miv2d",
+            componentIdx: resolveComponentName("miv2d"),
             latex: "\\langle -8, -6, =4, -2 \\rangle",
             core,
         });
@@ -3004,7 +3406,7 @@ $ray1{name="v1a"}
     });
 
     it("ray with through and endpoint, endpoint constrained to grid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <point name="P">(4,1)
@@ -3017,9 +3419,9 @@ $ray1{name="v1a"}
   </graph>
 
   <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
   </graph>
   `,
         });
@@ -3033,6 +3435,7 @@ $ray1{name="v1a"}
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3052,7 +3455,7 @@ $ray1{name="v1a"}
 
         await moveRay({
             core,
-            name: "/ray1",
+            componentIdx: resolveComponentName("ray1"),
 
             endpointcoords: [endpointx, endpointy],
             throughcoords: [throughx, throughy],
@@ -3068,6 +3471,7 @@ $ray1{name="v1a"}
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3083,13 +3487,14 @@ $ray1{name="v1a"}
 
         await movePoint({
             core,
-            name: "/through",
+            componentIdx: resolveComponentName("through"),
             x: throughx,
             y: throughy,
         });
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3105,7 +3510,7 @@ $ray1{name="v1a"}
 
         await movePoint({
             core,
-            name: "/endpoint",
+            componentIdx: resolveComponentName("endpoint"),
             x: endpointx,
             y: endpointy,
         });
@@ -3116,6 +3521,7 @@ $ray1{name="v1a"}
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3140,7 +3546,7 @@ $ray1{name="v1a"}
 
         await moveVector({
             core,
-            name: "/direction",
+            componentIdx: resolveComponentName("direction"),
 
             tailcoords: [directionEndpointShiftx, directionEndpointShifty],
             headcoords: [directionthroughx, directionthroughy],
@@ -3148,6 +3554,7 @@ $ray1{name="v1a"}
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3158,7 +3565,7 @@ $ray1{name="v1a"}
     });
 
     it("ray with through and endpoint, through constrained to grid", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
   <graph>
   <point name="P">(4,1)</point>
@@ -3171,9 +3578,9 @@ $ray1{name="v1a"}
   </graph>
 
   <graph>
-  $ray1.endpoint{assignNames="endpoint"}
-  $ray1.through{assignNames="through"}
-  $ray1.direction{assignNames="direction"}
+  <point extend="$ray1.endpoint" name="endpoint" />
+  <point extend="$ray1.through" name="through" />
+  <vector extend="$ray1.direction" name="direction" />
   </graph>
   `,
         });
@@ -3187,6 +3594,7 @@ $ray1{name="v1a"}
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3206,7 +3614,7 @@ $ray1{name="v1a"}
 
         await moveRay({
             core,
-            name: "/ray1",
+            componentIdx: resolveComponentName("ray1"),
 
             endpointcoords: [endpointx, endpointy],
             throughcoords: [throughx, throughy],
@@ -3222,6 +3630,7 @@ $ray1{name="v1a"}
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3237,7 +3646,7 @@ $ray1{name="v1a"}
 
         await movePoint({
             core,
-            name: "/through",
+            componentIdx: resolveComponentName("through"),
             x: throughx,
             y: throughy,
         });
@@ -3248,6 +3657,7 @@ $ray1{name="v1a"}
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3263,13 +3673,14 @@ $ray1{name="v1a"}
 
         await movePoint({
             core,
-            name: "/endpoint",
+            componentIdx: resolveComponentName("endpoint"),
             x: endpointx,
             y: endpointy,
         });
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3294,7 +3705,7 @@ $ray1{name="v1a"}
 
         await moveVector({
             core,
-            name: "/direction",
+            componentIdx: resolveComponentName("direction"),
 
             tailcoords: [directionEndpointShiftx, directionEndpointShifty],
             headcoords: [directionthroughx, directionthroughy],
@@ -3309,6 +3720,7 @@ $ray1{name="v1a"}
 
         await testRayCopiedHTD({
             core,
+            resolveComponentName,
             throughx,
             throughy,
             endpointx,
@@ -3319,51 +3731,59 @@ $ray1{name="v1a"}
     });
 
     it("round ray", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
 <ray endpoint="(2.58106823,510.523950183)" through="(5.2164162,623.5234601)" name="v1"/>
-<p name="p1d">$v1.direction{assignNames="v1d"}</p>
-<p name="p1t">$v1.endpoint{assignNames="v1t"}</p>
-<p name="p1h">$v1.through{assignNames="v1h"}</p>
+<p name="p1d"><vector extend="$v1.direction" name="v1d" /></p>
+<p name="p1t"><point extend="$v1.endpoint" name="v1t" /></p>
+<p name="p1h"><point extend="$v1.through" name="v1h" /></p>
 
-<ray copysource="v1" name="v2" displayDigits="6" />
-<p name="p2d" >$v2.direction{assignNames="v2d"}</p>
-<p name="p2t" >$v2.endpoint{assignNames="v2t"}</p>
-<p name="p2h" >$v2.through{assignNames="v2h"}</p>
+<ray extend="$v1" name="v2" displayDigits="6" />
+<p name="p2d" ><vector extend="$v2.direction" name="v2d" /></p>
+<p name="p2t" ><point extend="$v2.endpoint" name="v2t" /></p>
+<p name="p2h" ><point extend="$v2.through" name="v2h" /></p>
 
-<ray copysource="v1" name="v3" displayDecimals="0" />
-<p name="p3d" >$v3.direction{assignNames="v3d"}</p>
-<p name="p3t" >$v3.endpoint{assignNames="v3t"}</p>
-<p name="p3h" >$v3.through{assignNames="v3h"}</p>
+<ray extend="$v1" name="v3" displayDecimals="0" />
+<p name="p3d" ><vector extend="$v3.direction" name="v3d" /></p>
+<p name="p3t" ><point extend="$v3.endpoint" name="v3t" /></p>
+<p name="p3h" ><point extend="$v3.through" name="v3h" /></p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/p1d"].stateValues.text).eqls("( 2.64, 113 )");
-        expect(stateVariables["/p1t"].stateValues.text).eqls(
-            "( 2.58, 510.52 )",
-        );
-        expect(stateVariables["/p1h"].stateValues.text).eqls(
-            "( 5.22, 623.52 )",
-        );
+        expect(
+            stateVariables[resolveComponentName("p1d")].stateValues.text,
+        ).eqls("( 2.64, 113 )");
+        expect(
+            stateVariables[resolveComponentName("p1t")].stateValues.text,
+        ).eqls("( 2.58, 510.52 )");
+        expect(
+            stateVariables[resolveComponentName("p1h")].stateValues.text,
+        ).eqls("( 5.22, 623.52 )");
 
-        expect(stateVariables["/p2d"].stateValues.text).eqls(
-            "( 2.63535, 113 )",
-        );
-        expect(stateVariables["/p2t"].stateValues.text).eqls(
-            "( 2.58107, 510.524 )",
-        );
-        expect(stateVariables["/p2h"].stateValues.text).eqls(
-            "( 5.21642, 623.523 )",
-        );
+        expect(
+            stateVariables[resolveComponentName("p2d")].stateValues.text,
+        ).eqls("( 2.63535, 113 )");
+        expect(
+            stateVariables[resolveComponentName("p2t")].stateValues.text,
+        ).eqls("( 2.58107, 510.524 )");
+        expect(
+            stateVariables[resolveComponentName("p2h")].stateValues.text,
+        ).eqls("( 5.21642, 623.523 )");
 
-        expect(stateVariables["/p3d"].stateValues.text).eqls("( 3, 113 )");
-        expect(stateVariables["/p3t"].stateValues.text).eqls("( 3, 511 )");
-        expect(stateVariables["/p3h"].stateValues.text).eqls("( 5, 624 )");
+        expect(
+            stateVariables[resolveComponentName("p3d")].stateValues.text,
+        ).eqls("( 3, 113 )");
+        expect(
+            stateVariables[resolveComponentName("p3t")].stateValues.text,
+        ).eqls("( 3, 511 )");
+        expect(
+            stateVariables[resolveComponentName("p3h")].stateValues.text,
+        ).eqls("( 5, 624 )");
     });
 
     it("warnings", async () => {
-        let core = await createTestCore({
+        let { core } = await createTestCore({
             doenetML: `
 <graph>
     <ray through="(1,2)" endpoint="(3,4)" direction="(5,6)" name="ray1" />
@@ -3383,41 +3803,41 @@ $ray1{name="v1a"}
             "Ray is prescribed by through, endpoint, and direction.  Ignoring specified through",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.lineBegin).eq(3);
-        expect(errorWarnings.warnings[0].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].position.lineEnd).eq(3);
-        expect(errorWarnings.warnings[0].position.charEnd).eq(74);
+        expect(errorWarnings.warnings[0].position.start.line).eq(3);
+        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.end.line).eq(3);
+        expect(errorWarnings.warnings[0].position.end.column).eq(75);
 
         expect(errorWarnings.warnings[1].message).contain(
             "numDimensions mismatch in ray",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.lineBegin).eq(4);
-        expect(errorWarnings.warnings[1].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[1].position.lineEnd).eq(4);
-        expect(errorWarnings.warnings[1].position.charEnd).eq(58);
+        expect(errorWarnings.warnings[1].position.start.line).eq(4);
+        expect(errorWarnings.warnings[1].position.start.column).eq(5);
+        expect(errorWarnings.warnings[1].position.end.line).eq(4);
+        expect(errorWarnings.warnings[1].position.end.column).eq(59);
 
         expect(errorWarnings.warnings[2].message).contain(
             "numDimensions mismatch in ray",
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].position.lineBegin).eq(5);
-        expect(errorWarnings.warnings[2].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[2].position.lineEnd).eq(5);
-        expect(errorWarnings.warnings[2].position.charEnd).eq(59);
+        expect(errorWarnings.warnings[2].position.start.line).eq(5);
+        expect(errorWarnings.warnings[2].position.start.column).eq(5);
+        expect(errorWarnings.warnings[2].position.end.line).eq(5);
+        expect(errorWarnings.warnings[2].position.end.column).eq(60);
 
         expect(errorWarnings.warnings[3].message).contain(
             "numDimensions mismatch in ray",
         );
         expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].position.lineBegin).eq(6);
-        expect(errorWarnings.warnings[3].position.charBegin).eq(5);
-        expect(errorWarnings.warnings[3].position.lineEnd).eq(6);
-        expect(errorWarnings.warnings[3].position.charEnd).eq(60);
+        expect(errorWarnings.warnings[3].position.start.line).eq(6);
+        expect(errorWarnings.warnings[3].position.start.column).eq(5);
+        expect(errorWarnings.warnings[3].position.end.line).eq(6);
+        expect(errorWarnings.warnings[3].position.end.column).eq(61);
     });
 
     it("handle bad through/endpoint", async () => {
-        let core = await createTestCore({
+        let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph>
       <ray name="ray1" through="A" endpoint="B" />
@@ -3426,7 +3846,7 @@ $ray1{name="v1a"}
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables["/ray1"]).not.eq(undefined);
+        expect(stateVariables[resolveComponentName("ray1")]).not.eq(undefined);
     });
 
     it("style description changes with theme", async () => {
@@ -3448,7 +3868,10 @@ $ray1{name="v1a"}
     `;
 
         async function test_items(theme: "dark" | "light") {
-            const core = await createTestCore({ doenetML, theme });
+            const { core, resolveComponentName } = await createTestCore({
+                doenetML,
+                theme,
+            });
 
             const AColor = theme === "dark" ? "yellow" : "brown";
             const BShade = theme === "dark" ? "light" : "dark";
@@ -3459,15 +3882,18 @@ $ray1{name="v1a"}
                 true,
             );
 
-            expect(stateVariables["/ADescription"].stateValues.text).eq(
-                `Ray A is thick ${AColor}.`,
-            );
-            expect(stateVariables["/BDescription"].stateValues.text).eq(
-                `B is a ${BShade} red ray.`,
-            );
-            expect(stateVariables["/CDescription"].stateValues.text).eq(
-                `C is a thin ${CColor} ray.`,
-            );
+            expect(
+                stateVariables[resolveComponentName("ADescription")].stateValues
+                    .text,
+            ).eq(`Ray A is thick ${AColor}.`);
+            expect(
+                stateVariables[resolveComponentName("BDescription")].stateValues
+                    .text,
+            ).eq(`B is a ${BShade} red ray.`);
+            expect(
+                stateVariables[resolveComponentName("CDescription")].stateValues
+                    .text,
+            ).eq(`C is a thin ${CColor} ray.`);
         }
 
         await test_items("light");

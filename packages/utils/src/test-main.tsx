@@ -1,5 +1,5 @@
 /*
- * This file is for running a dev test of the codemirror component.
+ * This file is for running a dev test.
  * It does not show up in the bundled package.
  */
 

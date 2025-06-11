@@ -1,9 +1,7 @@
-import { convertAttributesForComponentType } from "../utils/copy";
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { processAssignNames } from "../utils/naming";
 import SampleRandomNumbers from "./SampleRandomNumbers";
-
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     static componentType = "selectRandomNumbers";
 
@@ -17,9 +15,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         delete attributes.numSamples;
         delete attributes.variantDeterminesSeed;
 
-        attributes.assignNamesSkip = {
-            createPrimitiveOfType: "number",
-        };
         attributes.numToSelect = {
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -188,11 +183,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        nComponents,
     }) {
         let errors = [];
         let warnings = [];
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
 
         let attributesToConvert = {};
         for (let attr of Object.keys(returnRoundingAttributes())) {
@@ -207,35 +201,32 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             let attributesFromComposite = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
-                attributesFromComposite = convertAttributesForComponentType({
+                const res = convertUnresolvedAttributesForComponentType({
                     attributes: attributesToConvert,
                     componentType: "number",
                     componentInfoObjects,
-                    compositeCreatesNewNamespace: newNamespace,
+                    nComponents,
                 });
-            }
 
+                attributesFromComposite = res.attributes;
+                nComponents = res.nComponents;
+            }
             replacements.push({
+                type: "serialized",
                 componentType: "number",
+                componentIdx: nComponents++,
                 attributes: attributesFromComposite,
-                state: { value },
+                state: { value, fixed: true },
+                doenetAttributes: {},
+                children: [],
             });
         }
 
-        let processResult = processAssignNames({
-            assignNames: component.doenetAttributes.assignNames,
-            serializedComponents: replacements,
-            parentIdx: component.componentIdx,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-        errors.push(...processResult.errors);
-        warnings.push(...processResult.warnings);
-
         return {
-            replacements: processResult.serializedComponents,
+            replacements,
             errors,
             warnings,
+            nComponents,
         };
     }
 

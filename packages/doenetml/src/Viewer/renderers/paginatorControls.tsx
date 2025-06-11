@@ -7,10 +7,7 @@ import { Button } from "@doenet/ui-components";
 export default React.memo(function PaginatorControls(
     props: UseDoenetRendererProps,
 ) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(
-        props,
-        false,
-    );
+    let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
 
     if (SVs.hidden) {
         return null;

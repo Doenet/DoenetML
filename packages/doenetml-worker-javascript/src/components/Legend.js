@@ -73,7 +73,7 @@ export default class Legend extends GraphicalComponent {
                         variableNames: [
                             "value",
                             "hasLatex",
-                            "forObjectComponentName",
+                            "forObjectComponentIdx",
                         ],
                     },
                     displayClosedSwatches: {
@@ -136,50 +136,56 @@ export default class Legend extends GraphicalComponent {
                             ];
                         if (adapter) {
                             // if have adapter, use that componentIdx instead,
-                            // since that would be the name used in forObjectComponentName
+                            // since that would be the name used in forObjectComponentIdx
                             graphicalElement = { ...graphicalElement };
                             graphicalElement.componentIdx =
                                 adapter.componentIdx;
                         }
-                        if (
-                            graphicalElement.componentIdx.slice(0, 3) === "/__"
-                        ) {
-                            let shadowSource =
-                                dependencyValues[
-                                    `graphicalElement${ind}ShadowSource`
-                                ];
-                            if (shadowSource) {
-                                // if have shadow source, use that componentIdx instead,
-                                graphicalElement = { ...graphicalElement };
-                                graphicalElement.componentIdx =
-                                    shadowSource.componentIdx;
-                            }
+
+                        // XXX: this is not a perfect solution to the fact that we cannot tell
+                        // if we are from a reference by looking that the name starts with "__".
+                        // Really, we should use the shadow source only if we have reference like $P
+                        // but not if we extend such <point extend="P" name="P2" styleNumber="4" />!!!
+                        // Adding both an imperfect stopgap
+                        let shadowSource =
+                            dependencyValues[
+                                `graphicalElement${ind}ShadowSource`
+                            ];
+                        if (shadowSource) {
+                            // if have shadow source, use that componentIdx as well,
+                            const graphicalElement2 = JSON.parse(
+                                JSON.stringify(graphicalElement),
+                            );
+                            graphicalElement2.componentIdx =
+                                shadowSource.componentIdx;
+                            graphicalDescendantsLeft.push(graphicalElement2);
                         }
+
                         graphicalDescendantsLeft.push(graphicalElement);
                     }
 
-                    let graphicalDescendantComponentNamesLeft =
+                    let graphicalDescendantComponentIndicesLeft =
                         graphicalDescendantsLeft.map((x) => x.componentIdx);
 
                     let labelsInOrder = [];
-                    let labelsByComponentName = {};
+                    let labelsByComponentIdx = {};
                     for (let labelChild of dependencyValues.labelChildren) {
                         let labelInfo = {
                             value: labelChild.stateValues.value,
                             hasLatex: labelChild.stateValues.hasLatex,
                         };
-                        if (labelChild.stateValues.forObjectComponentName) {
-                            labelsByComponentName[
-                                labelChild.stateValues.forObjectComponentName
+                        if (labelChild.stateValues.forObjectComponentIdx) {
+                            labelsByComponentIdx[
+                                labelChild.stateValues.forObjectComponentIdx
                             ] = labelInfo;
 
                             // in this first pass, we only mark the styleNumber as being taken
                             // so that in the second pass, undesignated labels skip this style number
                             // even if they come before this label
                             let ind =
-                                graphicalDescendantComponentNamesLeft.indexOf(
+                                graphicalDescendantComponentIndicesLeft.indexOf(
                                     labelChild.stateValues
-                                        .forObjectComponentName,
+                                        .forObjectComponentIdx,
                                 );
                             if (ind !== -1) {
                                 let comp = graphicalDescendantsLeft[ind];
@@ -214,7 +220,7 @@ export default class Legend extends GraphicalComponent {
                         labelsInOrder.push({
                             labelInfo,
                             forObject:
-                                labelChild.stateValues.forObjectComponentName,
+                                labelChild.stateValues.forObjectComponentIdx,
                         });
                     }
 
@@ -224,14 +230,14 @@ export default class Legend extends GraphicalComponent {
                         let componentForLabel;
                         if (label.forObject) {
                             let ind =
-                                graphicalDescendantComponentNamesLeft.indexOf(
+                                graphicalDescendantComponentIndicesLeft.indexOf(
                                     label.forObject,
                                 );
                             if (ind !== -1) {
                                 componentForLabel =
                                     graphicalDescendantsLeft[ind];
                                 graphicalDescendantsLeft.splice(ind, 1);
-                                graphicalDescendantComponentNamesLeft.splice(
+                                graphicalDescendantComponentIndicesLeft.splice(
                                     ind,
                                     1,
                                 );
@@ -244,10 +250,7 @@ export default class Legend extends GraphicalComponent {
                             ) {
                                 let comp = graphicalDescendantsLeft[ind];
                                 if (
-                                    !(
-                                        comp.componentIdx in
-                                        labelsByComponentName
-                                    )
+                                    !(comp.componentIdx in labelsByComponentIdx)
                                 ) {
                                     if (
                                         componentInfoObjects.isInheritedComponentType(

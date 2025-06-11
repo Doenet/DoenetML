@@ -11,7 +11,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 registerAllModules();
 
 export default React.memo(function SpreadsheetRenderer(props) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
 
     const ref = useRef(null);
 

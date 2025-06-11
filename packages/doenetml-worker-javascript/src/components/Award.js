@@ -5,7 +5,8 @@ import {
     evaluateLogic,
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
-import { getNamespaceFromName } from "@doenet/utils";
+import { unwrapSource } from "../utils/dast/convertNormalizedDast";
+import { comparePathsIgnorePosition } from "../utils/dast/path";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -24,7 +25,7 @@ export default class Award extends BaseComponent {
             createStateVariable: "credit",
             defaultValue: 1,
             public: true,
-            attributesForCreatedComponent: { convertBoolean: true },
+            attributesForCreatedComponent: { convertBoolean: "true" },
         };
         attributes.matchPartial = {
             createComponentOfType: "boolean",
@@ -52,7 +53,8 @@ export default class Award extends BaseComponent {
             createStateVariable: "simplifyOnCompare",
             defaultValue: "none",
             toLowerCase: true,
-            valueTransformations: { "": "full", true: "full", false: "none" },
+            valueForTrue: "full",
+            valueForFalse: "none",
             validValues: ["none", "full", "numbers", "numberspreserveorder"],
             public: true,
             fallBackToParentStateVariable: "simplifyOnCompare",
@@ -132,8 +134,9 @@ export default class Award extends BaseComponent {
             defaultValue: null,
             public: true,
         };
-        attributes.sourcesAreResponses = {
-            createPrimitiveOfType: "string",
+
+        attributes.referencesAreResponses = {
+            createReferences: true,
         };
 
         attributes.splitSymbols = {
@@ -155,53 +158,16 @@ export default class Award extends BaseComponent {
         return attributes;
     }
 
-    static preprocessSerializedChildren({
-        serializedChildren,
-        attributes,
-        componentIdx,
-    }) {
-        if (attributes.sourcesAreResponses) {
-            let targetNames = attributes.sourcesAreResponses.primitive
-                .split(/\s+/)
-                .filter((s) => s);
-            let nameSpace;
-            if (attributes.newNamespace?.primitive) {
-                nameSpace = componentIdx + "/";
-            } else {
-                nameSpace = getNamespaceFromName(componentIdx);
-            }
-            for (let target of targetNames) {
-                let absoluteTarget;
-                if (target[0] === "/") {
-                    absoluteTarget = target;
-                } else if (target.slice(0, 3) === "../") {
-                    let adjustedNameSpace = getNamespaceFromName(
-                        nameSpace.slice(0, nameSpace.length - 1),
-                    );
-                    let adjustedTarget = target.slice(3);
-                    while (adjustedTarget.slice(0, 3) === "../") {
-                        if (adjustedNameSpace === "/") {
-                            absoluteTarget = null;
-                            break;
-                        }
-                        adjustedNameSpace = getNamespaceFromName(
-                            adjustedNameSpace.slice(
-                                0,
-                                adjustedNameSpace.length - 1,
-                            ),
-                        );
-                        adjustedTarget = adjustedTarget.slice(3);
-                    }
-                    if (absoluteTarget !== null) {
-                        absoluteTarget = adjustedNameSpace + adjustedTarget;
-                    }
-                } else {
-                    absoluteTarget = nameSpace + target;
-                }
-                addResponsesToDescendantsWithTarget(
+    static preprocessSerializedChildren({ serializedChildren, attributes }) {
+        if (attributes.referencesAreResponses?.type === "references") {
+            const references = attributes.referencesAreResponses.references
+                .filter((child) => child.componentType === "_copy")
+                .map((child) => child.extending.Ref);
+
+            for (let reference of references) {
+                addResponsesToDescendantsWithReference(
                     serializedChildren,
-                    target,
-                    absoluteTarget,
+                    reference,
                 );
             }
         }
@@ -217,6 +183,7 @@ export default class Award extends BaseComponent {
             matchedChildren,
             parentAttributes,
             componentInfoObjects,
+            nComponents,
         }) {
             // wrap with componentType if have more than one child or a single string
 
@@ -275,7 +242,7 @@ export default class Award extends BaseComponent {
 
             let type;
             if (parentAttributes.type) {
-                type = parentAttributes.type;
+                type = parentAttributes.type.value;
                 if (!["math", "text", "boolean"].includes(type)) {
                     // Note: no need to send warning here, as answer sends a warning
                     // (and is the location of the type attribute)
@@ -300,10 +267,16 @@ export default class Award extends BaseComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType: type,
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
+                nComponents,
             };
         };
 
@@ -844,23 +817,18 @@ function evaluateLogicDirectlyFromChildren({ dependencyValues, usedDefault }) {
     });
 }
 
-function addResponsesToDescendantsWithTarget(
-    components,
-    target,
-    absoluteTarget,
-) {
+function addResponsesToDescendantsWithReference(components, reference) {
     for (let component of components) {
-        let propsOrDAttrs = component.props;
-        if (!propsOrDAttrs || Object.keys(propsOrDAttrs).length === 0) {
-            propsOrDAttrs = component.doenetAttributes;
-        }
-        if (propsOrDAttrs) {
-            for (let prop in propsOrDAttrs) {
+        if (component.type === "serialized") {
+            if (component.extending) {
+                const refResolution = unwrapSource(component.extending);
+
                 if (
-                    (prop.toLowerCase() === "target" &&
-                        propsOrDAttrs[prop] === target) ||
-                    (prop.toLowerCase() === "targetcomponentidx" &&
-                        propsOrDAttrs[prop] === absoluteTarget)
+                    refResolution.nodeIdx === reference.nodeIdx &&
+                    comparePathsIgnorePosition(
+                        refResolution.unresolvedPath,
+                        reference.unresolvedPath,
+                    )
                 ) {
                     if (!component.attributes) {
                         component.attributes = {};
@@ -869,21 +837,24 @@ function addResponsesToDescendantsWithTarget(
                         .map((x) => x.toLowerCase())
                         .includes("isresponse");
                     if (!foundIsResponse) {
-                        // Note we don't add the attribute as {primitive: true}
-                        // because the composite don't have the attribute isResponse
+                        // Make it an unresolved attribute
+                        // as the composite don't have the attribute isResponse
                         // but pass it on to their replacements
-                        component.attributes.isResponse = true;
+                        component.attributes.isResponse = {
+                            type: "unresolved",
+                            name: "isResponse",
+                            children: [],
+                        };
                     }
                 }
             }
-        }
 
-        if (component.children) {
-            addResponsesToDescendantsWithTarget(
-                component.children,
-                target,
-                absoluteTarget,
-            );
+            if (component.children) {
+                addResponsesToDescendantsWithReference(
+                    component.children,
+                    reference,
+                );
+            }
         }
     }
 }

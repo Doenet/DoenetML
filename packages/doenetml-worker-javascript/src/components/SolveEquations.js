@@ -11,6 +11,8 @@ export default class SolveEquations extends InlineComponent {
     static componentType = "solveEquations";
     static rendererType = undefined;
 
+    static variableForIndexAsProp = "solutions";
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -43,14 +45,13 @@ export default class SolveEquations extends InlineComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let wrapStringsAndMacros = function ({ matchedChildren }) {
+        let wrapStringsAndMacros = function ({ matchedChildren, nComponents }) {
             // only apply if all children are strings or macros
             if (
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        (child.doenetAttributes &&
-                            child.doenetAttributes.createdFromMacro),
+                        (child.extending && "Ref" in child.extending),
                 )
             ) {
                 return { success: false };
@@ -68,10 +69,16 @@ export default class SolveEquations extends InlineComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType: "math",
+                        componentIdx: nComponents++,
                         children: matchedChildren,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                     },
                 ],
+                nComponents,
             };
         };
 

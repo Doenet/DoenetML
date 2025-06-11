@@ -4,7 +4,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 
 export default React.memo(function AsList(props: UseDoenetRendererProps) {
-    let { name, id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer(props);
 
     if (SVs.hidden) {
         return null;

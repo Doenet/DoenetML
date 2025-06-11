@@ -35,15 +35,19 @@ export default class BezierControls extends InlineComponent {
 
         let createControlVectorsList = function ({
             matchedChildren,
+            nComponents,
             componentInfoObjects,
         }) {
             let results = groupIntoVectorsSeparatedBySpacesOutsideParens({
                 matchedChildren,
+                nComponents,
             });
 
             if (!results.success) {
                 return { success: false };
             }
+
+            nComponents = results.nComponents;
 
             return {
                 success: true,
@@ -55,13 +59,19 @@ export default class BezierControls extends InlineComponent {
                         )
                     ) {
                         return {
+                            type: "serialized",
                             componentType: "controlVectors",
+                            componentIdx: nComponents++,
                             children: [child],
+                            attributes: {},
+                            doenetAttributes: {},
+                            state: {},
                         };
                     } else {
                         return child;
                     }
                 }),
+                nComponents,
             };
         };
 

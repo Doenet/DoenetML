@@ -5,7 +5,7 @@ import { BASE_LAYER_OFFSET, BoardContext } from "./graph";
 import me from "math-expressions";
 
 export default React.memo(function Pegboard(props) {
-    let { name, id, SVs, actions, sourceOfUpdate, callAction } =
+    let { id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
     Pegboard.ignoreActionsWithoutCore = () => true;

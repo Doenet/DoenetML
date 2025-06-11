@@ -12,6 +12,9 @@ import type {
     DastError,
     FlatDastElement,
     NormalizedRoot,
+    Resolver,
+    PathToCheck,
+    FlatFragment,
 } from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
 import {
@@ -169,6 +172,8 @@ export class CoreWorker {
      * Return the dast of the DoenetML source
      * where all references that have matched a target have been expanded
      * to components that extend those targets
+     *
+     * TODO: this function is not yet being used. Delete if it stays unused (May 5, 2025).
      */
     async returnNormalizedRoot(): Promise<NormalizedRoot> {
         const isProcessingPromise = this.isProcessingPromise;
@@ -181,8 +186,9 @@ export class CoreWorker {
             throw Error("Cannot return normalized root before setting source");
         }
         try {
-            let normalized_root = this.doenetCore.return_normalized_dast_root();
-            return normalized_root;
+            let { normalizedRoot } =
+                this.doenetCore.return_normalized_dast_root();
+            return normalizedRoot;
         } catch (err) {
             console.error(err);
             throw err;
@@ -208,19 +214,33 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
-        if (!this.source_set || !this.flags_set || !this.javascriptCore) {
+        if (
+            !this.source_set ||
+            !this.flags_set ||
+            !this.javascriptCore ||
+            !this.doenetCore
+        ) {
             throw Error(
                 "Cannot initialize javascript core before setting source and flags",
             );
         }
 
         try {
+            let { normalizedRoot, resolver } =
+                this.doenetCore.return_normalized_dast_root();
             const initializedResult =
                 await this.javascriptCore.initializeWorker({
                     activityId,
                     docId,
                     requestedVariantIndex,
                     attemptNumber,
+                    normalizedRoot,
+                    resolver,
+                    addNodesToResolver:
+                        PublicDoenetMLCore.add_nodes_to_resolver,
+                    deleteNodesFromResolver:
+                        PublicDoenetMLCore.delete_nodes_from_resolver,
+                    resolvePath: PublicDoenetMLCore.resolve_path,
                 });
             this.javascript_initialized = true;
             return initializedResult;
@@ -357,6 +377,48 @@ export class CoreWorker {
         } finally {
             resolve();
         }
+    }
+
+    // TODO: this function didn't end up being used, as we're calling `PublicDoenetMLCore.resolve_path`
+    // directly from the javascript core. Delete if it remains unused. (May 5, 2025)
+    async resolvePath(
+        resolver: Resolver,
+        path: PathToCheck,
+        origin: 0,
+        skip_parent_search: boolean,
+    ) {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.source_set || !this.flags_set || !this.doenetCore) {
+            throw Error("Cannot resolve path before setting source and flags");
+        }
+
+        try {
+            let path_resolution = PublicDoenetMLCore.resolve_path(
+                resolver,
+                path,
+                origin,
+                skip_parent_search,
+            );
+            return path_resolution;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            resolve();
+        }
+    }
+
+    addNodesToResolver(resolver: Resolver, flatFragment: FlatFragment) {
+        let add_nodes_result = PublicDoenetMLCore.add_nodes_to_resolver(
+            resolver,
+            flatFragment,
+        );
+        return add_nodes_result;
     }
 
     async terminate() {

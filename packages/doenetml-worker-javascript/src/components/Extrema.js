@@ -28,10 +28,21 @@ export class Extremum extends BaseComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakIntoLocationValueByCommas = function ({ matchedChildren }) {
-            let childrenToComponentFunction = (x) => ({
-                componentType: "math",
-                children: x,
+        let breakIntoLocationValueByCommas = function ({
+            matchedChildren,
+            nComponents,
+        }) {
+            let childrenToComponentFunction = (x, nComponents) => ({
+                component: {
+                    type: "serialized",
+                    componentType: "math",
+                    componentIdx: nComponents++,
+                    children: x,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                },
+                nComponents,
             });
 
             let breakFunction = returnBreakStringsSugarFunction({
@@ -39,7 +50,7 @@ export class Extremum extends BaseComponent {
                 mustStripOffOuterParentheses: true,
             });
 
-            let result = breakFunction({ matchedChildren });
+            let result = breakFunction({ matchedChildren, nComponents });
 
             if (!result.success && matchedChildren.length === 1) {
                 // if didn't succeed and just have a single string child,
@@ -48,25 +59,37 @@ export class Extremum extends BaseComponent {
                     success: true,
                     newAttributes: {
                         value: {
+                            type: "component",
+                            name: "value",
                             component: {
+                                type: "serialized",
                                 componentType: "math",
+                                componentIdx: nComponents++,
                                 children: matchedChildren,
+                                attributes: {},
+                                doenetAttributes: {},
+                                state: {},
                             },
                         },
                     },
+                    nComponents,
                 };
             }
 
             if (result.success) {
+                nComponents = result.nComponents;
                 if (result.newChildren.length === 1) {
                     // one component is a value
                     return {
                         success: true,
                         newAttributes: {
                             value: {
+                                type: "component",
+                                name: "value",
                                 component: result.newChildren[0],
                             },
                         },
+                        nComponents,
                     };
                 } else if (result.newChildren.length === 2) {
                     // two components is a location and value
@@ -76,9 +99,13 @@ export class Extremum extends BaseComponent {
 
                     let newAttributes = {
                         location: {
+                            type: "component",
+                            name: "location",
                             component: locationComponent,
                         },
                         value: {
+                            type: "component",
+                            name: "value",
                             component: valueComponent,
                         },
                     };
@@ -105,6 +132,7 @@ export class Extremum extends BaseComponent {
                     return {
                         success: true,
                         newAttributes,
+                        nComponents,
                     };
                 } else {
                     return { success: false };
@@ -257,11 +285,13 @@ export class Extrema extends BaseComponent {
 
     static excludeFromSchema = true;
 
+    static variableForIndexAsProp = "extrema";
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
         let extremaClass = this;
 
-        let createExtremumList = function ({ matchedChildren }) {
+        let createExtremumList = function ({ matchedChildren, nComponents }) {
             let results = breakEmbeddedStringsIntoParensPieces({
                 componentList: matchedChildren,
             });
@@ -275,13 +305,19 @@ export class Extrema extends BaseComponent {
                 newChildren: results.pieces.map(function (piece) {
                     if (piece.length > 1 || typeof piece[0] === "string") {
                         return {
+                            type: "serialized",
                             componentType: extremaClass.componentTypeSingular,
+                            componentIdx: nComponents++,
                             children: piece,
+                            attributes: {},
+                            doenetAttributes: {},
+                            state: {},
                         };
                     } else {
                         return piece[0];
                     }
                 }),
+                nComponents,
             };
         };
 

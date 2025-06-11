@@ -10,14 +10,13 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
     static returnSugarInstructions() {
         let sugarInstructions = [];
 
-        let wrapStringsAndMacros = function ({ matchedChildren }) {
+        let wrapStringsAndMacros = function ({ matchedChildren, nComponents }) {
             // only apply if all children are strings or macros
             if (
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        (child.doenetAttributes &&
-                            child.doenetAttributes.createdFromMacro),
+                        (child.extending && "Ref" in child.extending),
                 )
             ) {
                 return { success: false };
@@ -35,10 +34,16 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
                 success: true,
                 newChildren: [
                     {
+                        type: "serialized",
                         componentType: "math",
+                        componentIdx: nComponents++,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
                         children: matchedChildren,
                     },
                 ],
+                nComponents,
             };
         };
 

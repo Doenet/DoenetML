@@ -3,8 +3,10 @@ use std::{collections::HashMap, mem};
 use anyhow::anyhow;
 
 use super::{
-    flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent},
-    ref_resolve::{RefResolution, Resolver},
+    flat_dast::{
+        ErrorType, FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent,
+    },
+    ref_resolve::{format_error_message, RefResolution, ResolutionError, Resolver},
     DastElement, DastElementContent, DastError,
 };
 
@@ -29,7 +31,7 @@ impl Expander {
     pub fn expand(flat_root: &mut FlatRoot) -> Resolver {
         let resolver = Resolver::from_flat_root(flat_root);
         Expander::expand_refs(flat_root, &resolver);
-        Expander::consume_extend_attributes(flat_root);
+        Expander::consume_extend_and_copy_attributes(flat_root);
         resolver
     }
 
@@ -45,7 +47,7 @@ impl Expander {
                     // Expanding a ref is can be done with a single replacement.
 
                     //flat_root.nodes[idx] = resolved
-                    match resolver.resolve(&ref_.path, ref_.idx) {
+                    match resolver.resolve(&ref_.path, ref_.idx, false) {
                         Ok(ref_resolution) => {
                             // Get the tag name of the referent
                             let name = match &flat_root.nodes[ref_resolution.node_idx] {
@@ -59,13 +61,20 @@ impl Expander {
                                 children: Vec::new(),
                                 name,
                                 position: ref_.position.clone(),
+                                children_position: None,
                                 extending: Some(Source::Ref(ref_resolution)),
                             })
                         }
                         Err(err) => FlatNode::Error(FlatError {
                             idx: ref_.idx,
                             parent: ref_.parent,
-                            message: format!("Ref resolution error: {}", err),
+                            message: format_error_message(err, &ref_.path),
+                            error_type: ErrorType::Warning,
+                            unresolved_path: if let ResolutionError::NoReferent = err {
+                                Some(ref_.path.clone())
+                            } else {
+                                None
+                            },
                             position: ref_.position.clone(),
                         }),
                     }
@@ -73,71 +82,82 @@ impl Expander {
                 FlatNode::FunctionRef(function_ref) => {
                     // A function ref `$$f(x)` becomes `<evaluate extend="f"><ol><li>x</li></ol></evaluate>`
                     // This involves creating multiple new nodes and setting them as children of the `evaluate` node.
-                    let resolved = match resolver.resolve(&function_ref.path, function_ref.idx) {
-                        Ok(ref_resolution) => {
-                            let mut evaluate_node = FlatElement {
-                                idx: function_ref.idx,
-                                parent: function_ref.parent,
-                                attributes: Vec::new(),
-                                children: Vec::new(),
-                                name: "evaluate".to_string(),
-                                position: function_ref.position.clone(),
-                                extending: Some(Source::Ref(ref_resolution)),
-                            };
-                            // An `<evaluate />` node's children are the inputs to the function.
-                            // They take the form of an ordered list of `<li />` nodes.
-                            if let Some(inputs) = &function_ref.input {
-                                // We create the children of `evaluate_node` in two steps. First we create the `<ol />` node
-                                // with the correct number of `<li />` children. Then we set the `<li />` children to be the
-                                // inputs to the function.
-                                let dast_ol = DastElement {
-                                    name: "ol".to_string(),
-                                    attributes: HashMap::new(),
-                                    children: inputs
-                                        .iter()
-                                        .map(|_| DastElementContent::element_with_name("li"))
-                                        .collect(),
+                    let resolved =
+                        match resolver.resolve(&function_ref.path, function_ref.idx, false) {
+                            Ok(ref_resolution) => {
+                                let mut evaluate_node = FlatElement {
+                                    idx: function_ref.idx,
+                                    parent: function_ref.parent,
+                                    attributes: Vec::new(),
+                                    children: Vec::new(),
+                                    name: "evaluate".to_string(),
                                     position: function_ref.position.clone(),
-                                    data: None,
+                                    children_position: None,
+                                    extending: Some(Source::Ref(ref_resolution)),
                                 };
-                                // Insert the `ol` into `flat_root`
-                                let ol = flat_root.merge_content(
-                                    &DastElementContent::Element(dast_ol),
-                                    Some(idx),
-                                );
-                                // The `<li>` tags are the exclusive children of the `<ol>` tag.
-                                // We created the same number of `<li>` tags as there are `inputs`.
-                                let li_node_indices =
-                                    match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
-                                        FlatNode::Element(e) => e,
-                                        _ => panic!("Expected an element"),
-                                    }
-                                    .children
-                                    .iter()
-                                    .map(lookup_idx)
-                                    .collect::<Vec<_>>();
+                                // An `<evaluate />` node's children are the inputs to the function.
+                                // They take the form of an ordered list of `<li />` nodes.
+                                if let Some(inputs) = &function_ref.input {
+                                    // We create the children of `evaluate_node` in two steps. First we create the `<ol />` node
+                                    // with the correct number of `<li />` children. Then we set the `<li />` children to be the
+                                    // inputs to the function.
+                                    let dast_ol = DastElement {
+                                        name: "ol".to_string(),
+                                        attributes: HashMap::new(),
+                                        children: inputs
+                                            .iter()
+                                            .map(|_| DastElementContent::element_with_name("li"))
+                                            .collect(),
+                                        position: function_ref.position.clone(),
+                                        data: None,
+                                    };
+                                    // Insert the `ol` into `flat_root`
+                                    let ol = flat_root.merge_content(
+                                        &DastElementContent::Element(dast_ol),
+                                        Some(idx),
+                                    );
+                                    // The `<li>` tags are the exclusive children of the `<ol>` tag.
+                                    // We created the same number of `<li>` tags as there are `inputs`.
+                                    let li_node_indices =
+                                        match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
+                                            FlatNode::Element(e) => e,
+                                            _ => panic!("Expected an element"),
+                                        }
+                                        .children
+                                        .iter()
+                                        .map(lookup_idx)
+                                        .collect::<Vec<_>>();
 
-                                // Set the inputs as children of the `li` nodes.
-                                for (input_content, li_idx) in inputs.iter().zip(li_node_indices) {
-                                    // `input_content` (the argument to the function) have already been inserted into flat_root.nodes
-                                    // so we can safely clone `input_content` and set it as children. All references contained
-                                    // within should be valid.
-                                    flat_root.set_children(li_idx.unwrap(), input_content.clone());
+                                    // Set the inputs as children of the `li` nodes.
+                                    for (input_content, li_idx) in
+                                        inputs.iter().zip(li_node_indices)
+                                    {
+                                        // `input_content` (the argument to the function) have already been inserted into flat_root.nodes
+                                        // so we can safely clone `input_content` and set it as children. All references contained
+                                        // within should be valid.
+                                        flat_root
+                                            .set_children(li_idx.unwrap(), input_content.clone());
+                                    }
+
+                                    // Set the `ol` as a child of the `evaluate` node.
+                                    evaluate_node.children.push(ol);
                                 }
 
-                                // Set the `ol` as a child of the `evaluate` node.
-                                evaluate_node.children.push(ol);
+                                FlatNode::Element(evaluate_node)
                             }
-
-                            FlatNode::Element(evaluate_node)
-                        }
-                        Err(err) => FlatNode::Error(FlatError {
-                            idx: function_ref.idx,
-                            parent: function_ref.parent,
-                            message: format!("Ref resolution error: {}", err),
-                            position: function_ref.position.clone(),
-                        }),
-                    };
+                            Err(err) => FlatNode::Error(FlatError {
+                                idx: function_ref.idx,
+                                parent: function_ref.parent,
+                                message: format!("Ref resolution error: {}", err),
+                                error_type: ErrorType::Warning,
+                                unresolved_path: if let ResolutionError::NoReferent = err {
+                                    Some(function_ref.path.clone())
+                                } else {
+                                    None
+                                },
+                                position: function_ref.position.clone(),
+                            }),
+                        };
 
                     resolved
                 }
@@ -146,10 +166,11 @@ impl Expander {
         }
     }
 
-    /// Remove any `extend` attributes from nodes,
-    /// and instead set each node's `extending` to a `Source::Attribute` containing the extend's referent.
+    /// Remove any `extend` or `copy` attributes from nodes,
+    /// and instead set each node's `extending` to either a
+    /// `Source::ExtendAttribute` or `Source::CopyAttribute` containing the extend's referent.
     /// This should be called _after_ all refs have been expanded into element form.
-    fn consume_extend_attributes(flat_root: &mut FlatRoot) {
+    fn consume_extend_and_copy_attributes(flat_root: &mut FlatRoot) {
         for i in 0..flat_root.nodes.len() {
             // Skip any cases we don't need to consider.
             if let FlatNode::Element(e) = &flat_root.nodes[i] {
@@ -158,11 +179,10 @@ impl Expander {
                     // nothing to do.
                     continue;
                 }
-                if !e
-                    .attributes
-                    .iter()
-                    .any(|attr| attr.name.eq_ignore_ascii_case("extend"))
-                {
+                if !e.attributes.iter().any(|attr| {
+                    attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy")
+                }) {
                     continue;
                 }
             } else {
@@ -177,15 +197,44 @@ impl Expander {
                 // Should be safe because we already verified we're an element.
                 _ => unreachable!(),
             };
-            let extend = element
+
+            if element
                 .attributes
                 .iter()
-                .find(|attr| attr.name.eq_ignore_ascii_case("extend"))
-                // Should be safe because we already verified we have an `extend` attribute
+                .filter(|attr| {
+                    attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy")
+                })
+                .count()
+                > 1
+            {
+                // We have more than one `extend` or `copy` attribute.
+                // Push an error message as a child of `node`.
+                element.children.push(flat_root.merge_content(
+                    &DastElementContent::Error(DastError {
+                        error_type: Some(ErrorType::Error),
+                        message: "Duplicate `extend` or `copy` attributes".to_string(),
+                        position: element.position.clone(),
+                    }),
+                    Some(element.idx),
+                ));
+
+                // We took this memory earlier, so we need to put it back.
+                flat_root.nodes[i] = node;
+                continue;
+            }
+            let extend_or_copy = element
+                .attributes
+                .iter()
+                .find(|attr| {
+                    attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy")
+                })
+                // Should be safe because we already verified we have an `extend` or `copy` attribute
                 .unwrap();
 
             // All refs should be expanded by now, so we look for a unique child with `extending`
-            // This would arise because `extend="$f"` is replaced with `<foo _extending="f" />` where `_extending`
+            // This would arise because `"$f"` is replaced with `<foo _extending="f" />` where `_extending`
             // is a special, internal attribute.
 
             // There are various bail conditions.
@@ -194,7 +243,8 @@ impl Expander {
             //  3. Multiple elements are present
             let mut is_invalid_attr = false;
             let mut num_element_children = 0;
-            let extend_referent: Option<Source<RefResolution>> = extend
+            let mut error_found: Option<&FlatError> = None;
+            let extend_referent: Option<Source<RefResolution>> = extend_or_copy
                 .children
                 .iter()
                 .flat_map(|child| match child {
@@ -203,6 +253,10 @@ impl Expander {
 
                         match &flat_root.nodes[*idx] {
                             FlatNode::Element(e) => e.extending.clone(),
+                            FlatNode::Error(err) => {
+                                error_found = Some(err);
+                                None
+                            }
                             _ => None,
                         }
                     }
@@ -218,29 +272,54 @@ impl Expander {
             if is_invalid_attr || num_element_children != 1 || extend_referent.is_none() {
                 // We couldn't find a unique `extending` prop, so the `extend` attribute is invalid.
                 // Push an error message as a child of `node`.
+
+                let error_type = if let Some(_err) = error_found {
+                    ErrorType::Warning
+                } else {
+                    ErrorType::Error
+                };
+
+                let message = if let Some(err) = error_found {
+                    format!("In '{}' attribute: {}", extend_or_copy.name, err.message)
+                } else {
+                    format!("Invalid '{}' attribute", extend_or_copy.name)
+                };
+
                 element.children.push(flat_root.merge_content(
                     &DastElementContent::Error(DastError {
-                        message: "Invalid `extend` attribute".to_string(),
-                        position: extend.position.clone(),
+                        message,
+                        error_type: Some(error_type),
+                        position: extend_or_copy.position.clone(),
                     }),
-                    extend.parent,
+                    extend_or_copy.parent,
                 ));
+
+                // Remove the `extend` or `copy` attribute since it has been replaced with an error
+                element.attributes.retain(|attr| {
+                    !(attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy"))
+                });
 
                 // We took this memory earlier, so we need to put it back.
                 flat_root.nodes[i] = node;
                 continue;
             }
 
-            // Since this reference was inside an `extend` attribute,
+            // Since this reference was inside an `extend` or `copy` attribute,
             // we must mark it as such
             // (which indicates that we shouldn't change the component type
             // from the one specified in the element)
-            element.extending = extend_referent.map(|source| source.as_attribute());
+            if extend_or_copy.name.eq_ignore_ascii_case("copy") {
+                element.extending = extend_referent.map(|source| source.as_copy_attribute());
+            } else {
+                element.extending = extend_referent.map(|source| source.as_extend_attribute());
+            }
 
-            // We successfully consumed the `extend` attribute, so remove the `extend` attribute.
-            element
-                .attributes
-                .retain(|attr| !attr.name.eq_ignore_ascii_case("extend"));
+            // We successfully consumed the `extend` or `copy` attribute, so remove the `extend` or `copy` attribute.
+            element.attributes.retain(|attr| {
+                !(attr.name.eq_ignore_ascii_case("extend")
+                    || attr.name.eq_ignore_ascii_case("copy"))
+            });
 
             // Put ourselves back into `flat_root` (we took the memory earlier)
             flat_root.nodes[i] = node;

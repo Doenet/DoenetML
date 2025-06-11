@@ -13,10 +13,7 @@ import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 export default React.memo(function ButtonComponent(
     props: UseDoenetRendererProps,
 ) {
-    let { name, id, SVs, actions, callAction } = useDoenetRenderer(
-        props,
-        false,
-    );
+    let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
 
     // @ts-ignore
     ButtonComponent.ignoreActionsWithoutCore = (actionName) =>
