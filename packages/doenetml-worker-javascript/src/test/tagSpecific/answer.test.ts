@@ -2653,10 +2653,9 @@ The animal is a <answer name="answer1">
 
     <answer name="answer1">
     <choiceInput shuffleOrder>
-      <setup><sequence name="s" from="0" to="$num-1" /></setup>
-      <repeat for="$s" itemName="m">
+      <repeatForSequence from="0" to="$num-1" itemName="m">
           <choice credit="$m/($num-1)">Get <number displayDigits="3">$m/($num-1)</number></choice>
-      </repeat>
+      </repeatForSequence>
     </choiceInput>
     </answer>
   `;

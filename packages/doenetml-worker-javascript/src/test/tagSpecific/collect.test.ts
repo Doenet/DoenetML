@@ -1839,10 +1839,9 @@ describe("Collect tag tests", async () => {
   </p>
  
   <p name="p_original">Enter expressions:
-    <setup><sequence name="s" length="$n" /></setup>
-    <repeat asList="false" for="$s" name="repeat1">
+    <repeatForSequence asList="false" length="$n" name="repeat1">
       <mathInput name="mi" />
-    </repeat>
+    </repeatForSequence>
   </p>
   
   <setup><collect componentType="mathInput" from="$p_original" name="collect1" /></setup>
@@ -2273,10 +2272,9 @@ describe("Collect tag tests", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p name="p1">
-      <setup><sequence name="s" type="letters" from="a" length="$n" /></setup>
-      <repeat for="$s" itemName="l">
+      <repeatForSequence type="letters" from="a" length="$n" itemName="l">
         <text>Hello, $l! </text>
-      </repeat>
+      </repeatForSequence>
     </p>
 
     <booleanInput name='h1' prefill="false" >
@@ -2431,10 +2429,9 @@ describe("Collect tag tests", async () => {
     <p name="p1">
       begin
       <point name="A">(1,2)</point>
-      <setup><sequence name="s" length="$n" /></setup>
-      <repeat name="repeat1" for="$s" itemName="x" indexName="i">
+      <repeatForSequence name="repeat1" length="$n" itemName="x" indexName="i">
         <point>($x, $i)</point>
-      </repeat>
+      </repeatForSequence>
       <point name="B">(3,4)</point>
       end
     </p>

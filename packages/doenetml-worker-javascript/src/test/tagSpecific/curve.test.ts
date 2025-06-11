@@ -939,10 +939,9 @@ describe("Curve tag tests", async () => {
     <p>Number of points: <mathInput name="numPoints" /></p>
     <p>Step size: <mathInput name="step" /></p>
     
-    <setup><sequence name="s" from="0" length="$numPoints" step="$step" /></setup>
-    <repeat hide name="repeat" for="$s" itemName="x">
+    <repeatForSequence hide name="repeat" from="0" length="$numPoints" step="$step" itemName="x">
       <point>($x, sin($x))</point>
-    </repeat>
+    </repeatForSequence>
     <graph>
     <curve name="c" through="$repeat" />
     </graph>

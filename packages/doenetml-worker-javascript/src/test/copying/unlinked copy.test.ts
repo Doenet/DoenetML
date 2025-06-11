@@ -1332,11 +1332,9 @@ describe("Unlinked Copying Tests", async () => {
         await check_items(2, 2, 2, 2);
     }
 
-    it("copy dynamic map no link, check aliases", async () => {
+    it("copy dynamic repeat no link, check aliases", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
-
-
     <section name="section1">
       <setup>
         <number name="n">2</number>
@@ -1363,6 +1361,44 @@ describe("Unlinked Copying Tests", async () => {
     
     <section name="section4">
       <repeat name="r" extend='$section1.r' />
+    </section>
+
+    <section extend='$section1' name="section5" />
+  
+    `,
+        });
+
+        await test_dynamic_map_no_link_alias(core, resolveComponentName);
+    });
+
+    it("copy dynamic repeatForSequence no link, check aliases", async () => {
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+    <section name="section1">
+      <setup>
+        <number name="n">2</number>
+      </setup>
+
+      <updateValue name="addP" target="$n" newValue="$n+1" >
+        <label>Add P</label>
+      </updateValue>
+      <updateValue name="removeP" target="$n" newValue="$n-1" >
+        <label>Remove P</label>
+      </updateValue>
+      <repeatForSequence name="r" length="$n" from="11" indexName="i" itemName="v">
+        <p>i=$i, v=$v</p>
+      </repeatForSequence>
+    </section>
+    
+    <section name="section2">
+      <repeatForSequence name="r" copy='$section1.r' />
+    </section>
+
+
+    <section copy='$section1' name="section3" />
+    
+    <section name="section4">
+      <repeatForSequence name="r" extend='$section1.r' />
     </section>
 
     <section extend='$section1' name="section5" />
@@ -2072,10 +2108,9 @@ describe("Unlinked Copying Tests", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="graph1">
-        <setup><sequence name="s" length="2" /></setup>
-        <repeat name="mp" for="$s" itemName="i">
+        <repeatForSequence name="mp" length="2" itemName="i">
             <point>(1, <number copy="$i" />)</point>
-        </repeat>
+        </repeatForSequence>
         <setup>
           <point extend="$mp[1]" name="P" />
           <point extend="$mp[2]" name="Q" />
@@ -2084,7 +2119,7 @@ describe("Unlinked Copying Tests", async () => {
 
     <callAction name="takeSnapshot" target="$graph2" actionName="addChildren">
         <label>Take snapshot</label>
-        <repeat copy="$mp" />
+        <repeatForSequence copy="$mp" />
     </callAction>
     <updateValue triggerWith="$takeSnapshot" target="$takeSnapshot.disabled" newValue="true" type="boolean" />
 
@@ -2102,15 +2137,14 @@ describe("Unlinked Copying Tests", async () => {
         });
     });
 
-    it("create snapshot of map in a group with conditionalContent", async () => {
+    it("create snapshot of repeat in a group with conditionalContent", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="graph1">
         <group name="gr">
-            <setup><sequence name="s" length="2" /></setup>
-            <repeat name="mp" for="$s" itemName="i">
+            <repeatForSequence name="mp" length="2" itemName="i">
                 <point>(1, <number copy="$i" />)</point>
-            </repeat>
+            </repeatForSequence>
             <setup>
                 <point extend="$mp[1]" name="P" />
                 <point extend="$mp[2]" name="Q" />
@@ -2141,7 +2175,7 @@ describe("Unlinked Copying Tests", async () => {
         });
     });
 
-    it("create snapshot of map in a group with callAction", async () => {
+    it("create snapshot of repeat in a group with callAction", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="graph1">
@@ -2181,12 +2215,11 @@ describe("Unlinked Copying Tests", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <graph name="graph1">
-        <setup><sequence name="s" length="2" /></setup>
-        <repeat name="mp" for="$s" itemName="i">
+        <repeatForSequence name="mp" length="2" itemName="i">
             <group>
                 <point>(1, <number copy="$i" />)</point>
             </group>
-        </repeat>
+        </repeatForSequence>
         <setup>
             <point extend="$mp[1][1][1]" name="P" />
             <point extend="$mp[2][1][1]" name="Q" />
@@ -2201,7 +2234,7 @@ describe("Unlinked Copying Tests", async () => {
 
     <graph name="graph2">
         <conditionalContent condition="$copy">
-            <repeat copy="$mp" />
+            <repeatForSequence copy="$mp" />
         </conditionalContent>
     </graph>
   `,
@@ -2272,15 +2305,3 @@ describe("Unlinked Copying Tests", async () => {
         ).eqls([8, 7]);
     });
 });
-
-// <!-- <setup><sequence name="s" length="1" /></setup>
-
-// <repeat name="mp" for="$s" itemName="i">
-//    <group> <point>(1, <number copy="$i" />)</point> </group>
-// </repeat>
-
-// <point extend="$mp[1]" name="P" />
-
-// <group name="g">hello <text>there</text></group>
-
-// $g -->

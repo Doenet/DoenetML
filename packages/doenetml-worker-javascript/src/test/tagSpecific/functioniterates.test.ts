@@ -20,10 +20,9 @@ describe("FunctionIterates tag tests", async () => {
   Let <m>u = </m> <mathInput name="u" prefill="3v" />.  Let <m>n=</m> <mathInput name="n" prefill="3" />
   Then</p>
   <ul>
-  <setup><sequence length="$n" name="s" /></setup>
-  <repeat name="ls" for="$s" indexName="i">
+  <repeatForSequence name="ls" length="$n" indexName="i">
     <li><m>f^{$i}(u) = <math extend="$iterates[$i]" name="iter" /></m></li>
-  </repeat>
+  </repeatForSequence>
   </ul>
 
   <p hide><function name="f" variables="$x" symbolic simplify expand>$fformula</function><functionIterates function="$f" initialValue="$u" numIterates="$n" name="fis" /><mathList extend="$fis.iterates" name="iterates" /></p>
@@ -133,10 +132,9 @@ describe("FunctionIterates tag tests", async () => {
   Let <m>u = </m> <mathInput name="u" prefill="2" />.  Let <m>n=</m> <mathInput name="n" prefill="3" />
   Then</p>
   <ul>
-  <setup><sequence length="$n" name="s" /></setup>
-  <repeat name="ls" for="$s" indexName="i">
+  <repeatForSequence name="ls" length="$n" indexName="i">
     <li><m>f^{$i}(u) =  <math extend="$iterates[$i]" name="iter" displayDigits="10" /></m></li>
-  </repeat>
+  </repeatForSequence>
   </ul>
 
   <p hide><function name="f" variables="$x" symbolic="false">$fformula</function><functionIterates function="$f" initialValue="$u" numIterates="$n" name="fis" /><mathList extend="$fis.iterates" name="iterates" /></p>

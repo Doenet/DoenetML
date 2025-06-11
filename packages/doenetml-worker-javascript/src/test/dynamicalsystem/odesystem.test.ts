@@ -28,10 +28,9 @@ describe("odeSystem Tag Tests", async () => {
     <point name="point1" x='$zeroFixed' y='$ic' />
 </graph>
 
-<setup><sequence name="seq" from="0" to="5" step="0.5" /></setup>
-<p><asList><repeat for="$seq" name="repeat1" itemName="v">
+<p><repeatForSequence from="0" to="5" step="0.5" name="repeat1" itemName="v">
   <evaluate function="$f" input="$v" />
-</repeat></asList></p>
+</repeatForSequence></asList></p>
 
 <number fixed hide name="zeroFixed">0</number>
 <math extend="$tol.value" name="tol2" />
@@ -295,10 +294,9 @@ describe("odeSystem Tag Tests", async () => {
     <function extend="$ode.numericalSolution" name="f" />
 </graph>
 
-<setup><sequence from="0" to="5" name="seq" /></setup>
-<p><asList><repeat for="$seq" name="repeat1" itemName="v">
+<p><repeatForSequence from="0" to="5" name="repeat1" itemName="v">
   <evaluate function="$f" input="$v" />
-</repeat></asList></p>
+</repeatForSequence></p>
 
   `,
         });
@@ -632,10 +630,9 @@ describe("odeSystem Tag Tests", async () => {
     <point name="point1" x="$ic1" y="$ic2" />
   </graph>
 
-  <setup><sequence from="0" to="10" name="seq" /></setup>
-  <p><asList><repeat name="repeat1" for="$seq" itemName="v">
+  <p><repeatForSequence name="repeat1" from="0" to="10" itemName="v">
     <evaluate function="$f1" input="$v" /><evaluate function="$f2" input="$v" />
-  </repeat></asList></p>
+  </repeatForSequence></p>
 `,
         });
 

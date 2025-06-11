@@ -1334,18 +1334,17 @@ describe("Extend tests", async () => {
         );
     });
 
-    it("copy of repeat source maintained when withheld", async () => {
+    it("copy of repeat item maintained when withheld", async () => {
         let { core, resolveComponentName } = await createTestCore({
             doenetML: `
     <p>Number of points: <mathInput name="n" /></p>
 
     <graph name='g1'>
-      <setup><sequence name="s" from="1" to="$n" /></setup>
-      <repeat name="r" for="$s" itemName="i">
+      <repeatForSequence name="r" from="1" to="$n" itemName="i">
           <point name="A">
             (<number copy="$i" />,1)
           </point>
-      </repeat>
+      </repeatForSequence>
     </graph>
     
     <p><m name="m1">A_1 = <math extend="$r[1].A" displayDigits="3" /></m></p>
@@ -3126,6 +3125,29 @@ describe("Extend tests", async () => {
     <repeat extend="$r1" name="r2" />
 
     <repeat extend="$r2" name="r3" />
+
+
+    `,
+        });
+
+        await test_extend_repeat(core, resolveComponentName);
+    });
+
+    it("extend repeatForSequence", async () => {
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="2" />
+
+    <p>Value: <math extend="$n" name="n2" /></p>
+    <p>Value 2: <number extend="$n2" name="n3" /></p>
+
+    <repeatForSequence name="r1" from="1" to="$n" itemName="v">
+      <p name="p">Hello <number name="n1" extend="$v" />!  <mathInput name="x" /> <math name="m1" extend="$x" /></p>
+    </repeatForSequence>
+
+    <repeatForSequence extend="$r1" name="r2" />
+
+    <repeatForSequence extend="$r2" name="r3" />
 
 
     `,
@@ -5617,12 +5639,11 @@ describe("Extend tests", async () => {
             doenetML: `
     <p>n: <mathInput name="n" prefill="2" /></p>
 
-    <setup><sequence name="s" from="1" to="$n" /></setup>
-    <repeat name="myRepeat" for="$s" itemName="v">
+    <repeatForSequence name="myRepeat" from="1" to="$n" itemName="v">
         <p>The line through 
           <m>P=<point name="P">($v+1,$v+2)</point></m> and <m>Q=<point name="Q">($v+4, $v-1)</point></m>
           is <line name="l" through="$P $Q" />.</p>
-    </repeat>
+    </repeatForSequence>
 
     <p>Template number: <mathInput name="tn" prefill="1" /></p>
     <p>Point number: <mathInput name="pn" prefill="1" /></p>

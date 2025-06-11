@@ -1624,10 +1624,9 @@ describe("ChoiceInput tag tests", async () => {
   <p>m: <mathInput prefill="1" name="m" /></p>
   <p>n: <mathInput prefill="6" name="n" /></p>
   <choiceInput name="ci" shuffleOrder>
-    <setup><sequence name="s" from="$m" to="$n" /></setup>
-    <repeat for="$s" itemName="v">
+    <repeatForSequence from="$m" to="$n" itemName="v">
         <choice>$v</choice>
-    </repeat>
+    </repeatForSequence>
   </choiceInput>
   `;
 
