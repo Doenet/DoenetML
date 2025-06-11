@@ -478,6 +478,10 @@ export default class PointList extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "childIndicesByPoint",
                 },
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
             }),
             // When this state variable is marked stale
             // it indicates we should update replacements.

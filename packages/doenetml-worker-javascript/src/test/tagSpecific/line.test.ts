@@ -6108,4 +6108,29 @@ describe("Line tag tests", async () => {
         await test_items("light");
         await test_items("dark");
     });
+
+    it("line through a point that depends on a function reference", async () => {
+        // Checks to make sure that a function reference such as `$$f(x)`
+        // is considered as a references in the sugar for the point list
+        let { core, resolveComponentName } = await createTestCore({
+            doenetML: `
+
+  <function name="f">sin(x)</function>
+  <graph>
+    <line through="(0, $$f(0)) (pi/2, $$f(pi/2))" name="l" />
+  </graph>
+  <p name="p1">y-intercept: $l.yIntercept</p>
+  <p name="p2">slope: $l.slope</p>
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+            "y-intercept: 0",
+        );
+        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+            "slope: 2/π",
+        );
+    });
 });

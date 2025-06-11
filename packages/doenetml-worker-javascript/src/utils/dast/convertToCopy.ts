@@ -288,7 +288,9 @@ function convertEvaluate({
         ],
     };
 
-    delete evaluateComponent.extending;
+    // Note: we don't delete the `extending` attribute of the `<evaluate>` even though it isn't directly used,
+    // as it is used in sugar to determine whether or not the component is a reference
+    // delete evaluateComponent.extending;
 
     // The child of the evaluate is a list of the form `<ol><li></li><li></li></ol>""
     // The grandchildren become children of the input attribute,
