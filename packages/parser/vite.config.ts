@@ -21,6 +21,7 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/index.ts",
+                [`v06-to-v07`]: "./src/v06-to-v07/index.ts",
             },
             formats: ["es"],
         },
