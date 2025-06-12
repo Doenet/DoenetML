@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("matching patterns answer tests", async () => {
     it("enter any quadratic", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <math name="pattern1">()$var^2+()$var+()</math>
@@ -166,7 +166,7 @@ describe("matching patterns answer tests", async () => {
         for (let varName in desiredResults) {
             await updateMathInputValue({
                 latex: varName,
-                componentIdx: resolveComponentName("var"),
+                componentIdx: await resolvePathToNodeIdx("var"),
                 core,
             });
 
@@ -174,11 +174,11 @@ describe("matching patterns answer tests", async () => {
             for (let expr in resultsForVar) {
                 await updateMathInputValue({
                     latex: expr,
-                    componentIdx: resolveComponentName("resp"),
+                    componentIdx: await resolvePathToNodeIdx("resp"),
                     core,
                 });
                 await submitAnswer({
-                    componentIdx: resolveComponentName("ans"),
+                    componentIdx: await resolvePathToNodeIdx("ans"),
                     core,
                 });
                 let stateVariables = await core.returnAllStateVariables(
@@ -190,71 +190,73 @@ describe("matching patterns answer tests", async () => {
 
                 if (res.correct) {
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .creditAchieved,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.creditAchieved,
                     ).eq(1);
                     expect(
-                        stateVariables[resolveComponentName("sub[1]")]
+                        stateVariables[await resolvePathToNodeIdx("sub[1]")]
                             .stateValues.value.tree,
                     ).eqls(res.response);
                     expect(
-                        stateVariables[resolveComponentName("quad[1]")]
+                        stateVariables[await resolvePathToNodeIdx("quad[1]")]
                             .stateValues.value.tree,
                     ).eqls(res.matches[0]);
                     expect(
-                        stateVariables[resolveComponentName("lin[1]")]
+                        stateVariables[await resolvePathToNodeIdx("lin[1]")]
                             .stateValues.value.tree,
                     ).eqls(res.matches[1]);
                     expect(
-                        stateVariables[resolveComponentName("const[1]")]
+                        stateVariables[await resolvePathToNodeIdx("const[1]")]
                             .stateValues.value.tree,
                     ).eqls(res.matches[2]);
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .submittedResponse1.tree,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.submittedResponse1.tree,
                     ).eqls(res.response);
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .submittedResponse2.tree,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.submittedResponse2.tree,
                     ).eqls(res.matches[0]);
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .submittedResponse3.tree,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.submittedResponse3.tree,
                     ).eqls(res.matches[1]);
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .submittedResponse4.tree,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.submittedResponse4.tree,
                     ).eqls(res.matches[2]);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .creditAchieved,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.creditAchieved,
                     ).eq(0);
                     expect(
-                        stateVariables[resolveComponentName("sub[1]")]
+                        stateVariables[await resolvePathToNodeIdx("sub[1]")]
                             .stateValues.value.tree,
                     ).eqls(res.response);
-                    expect(stateVariables[resolveComponentName("quad[1]")]).be
-                        .undefined;
-                    expect(stateVariables[resolveComponentName("lin[1]")]).be
-                        .undefined;
-                    expect(stateVariables[resolveComponentName("const[1]")]).be
-                        .undefined;
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .submittedResponse1.tree,
+                        stateVariables[await resolvePathToNodeIdx("quad[1]")],
+                    ).be.undefined;
+                    expect(stateVariables[await resolvePathToNodeIdx("lin[1]")])
+                        .be.undefined;
+                    expect(
+                        stateVariables[await resolvePathToNodeIdx("const[1]")],
+                    ).be.undefined;
+                    expect(
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.submittedResponse1.tree,
                     ).eqls(res.response);
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .submittedResponse2,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.submittedResponse2,
                     ).be.undefined;
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .submittedResponse3,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.submittedResponse3,
                     ).be.undefined;
                     expect(
-                        stateVariables[resolveComponentName("ans")].stateValues
-                            .submittedResponse4,
+                        stateVariables[await resolvePathToNodeIdx("ans")]
+                            .stateValues.submittedResponse4,
                     ).be.undefined;
                 }
             }

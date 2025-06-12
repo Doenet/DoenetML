@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("Document tag tests", async () => {
     it("get 1 for document credit with nothing", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <number extend="$_document1.creditAchieved" name="docCa" />
 
@@ -17,12 +17,13 @@ describe("Document tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(1);
     });
 
     it("document credit when have problem with nothing", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <number extend="$_document1.creditAchieved" name="docCa" />
   <p><answer name="ans">x</answer></p>
@@ -35,11 +36,12 @@ describe("Document tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(0.5);
 
         let mathInputIdx =
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .inputChildren[0].componentIdx;
 
         await updateMathInputValue({
@@ -47,16 +49,20 @@ describe("Document tag tests", async () => {
             componentIdx: mathInputIdx,
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(1);
     });
 
     it("get document credit even when have composites as a siblings", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <number extend="$_document1.creditAchieved" name="docCa" />
   <setup>
@@ -72,11 +78,12 @@ describe("Document tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(0);
 
         let mathInputIdx =
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .inputChildren[0].componentIdx;
 
         await updateMathInputValue({
@@ -84,16 +91,20 @@ describe("Document tag tests", async () => {
             componentIdx: mathInputIdx,
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(1);
     });
 
     it(`component credit achieved, don't skip weight 0`, async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <number extend="$_document1.creditAchieved" name="docCa" />
   <p>x: <answer name="x">x</answer></p>
@@ -113,27 +124,28 @@ describe("Document tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("_document1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("_document1")].stateValues
                 .componentCreditAchieved,
         ).eqls([0, 0, 0, 0, 0]);
 
         let mathInputXIdx =
-            stateVariables[resolveComponentName("x")].stateValues
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
                 .inputChildren[0].componentIdx;
         let mathInputYIdx =
-            stateVariables[resolveComponentName("y")].stateValues
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues
                 .inputChildren[0].componentIdx;
         let mathInputZIdx =
-            stateVariables[resolveComponentName("z")].stateValues
+            stateVariables[await resolvePathToNodeIdx("z")].stateValues
                 .inputChildren[0].componentIdx;
         let mathInputAIdx =
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .inputChildren[0].componentIdx;
         let mathInputBIdx =
-            stateVariables[resolveComponentName("b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues
                 .inputChildren[0].componentIdx;
 
         await updateMathInputValue({
@@ -141,18 +153,22 @@ describe("Document tag tests", async () => {
             componentIdx: mathInputXIdx,
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("x"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("x"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(1 / 3);
         expect(
-            stateVariables[resolveComponentName("_document1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("_document1")].stateValues
                 .componentCreditAchieved,
         ).eqls([1, 0, 0, 0, 0]);
 
@@ -161,18 +177,22 @@ describe("Document tag tests", async () => {
             componentIdx: mathInputAIdx,
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("a"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("a"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(1 / 3);
         expect(
-            stateVariables[resolveComponentName("_document1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("_document1")].stateValues
                 .componentCreditAchieved,
         ).eqls([1, 1, 0, 0, 0]);
 
@@ -181,18 +201,22 @@ describe("Document tag tests", async () => {
             componentIdx: mathInputYIdx,
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("y"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("y"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("y")].stateValues
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(2 / 3);
         expect(
-            stateVariables[resolveComponentName("_document1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("_document1")].stateValues
                 .componentCreditAchieved,
         ).eqls([1, 1, 1, 0, 0]);
 
@@ -201,18 +225,22 @@ describe("Document tag tests", async () => {
             componentIdx: mathInputBIdx,
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("b"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(2 / 3);
         expect(
-            stateVariables[resolveComponentName("_document1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("_document1")].stateValues
                 .componentCreditAchieved,
         ).eqls([1, 1, 1, 1, 0]);
 
@@ -221,24 +249,28 @@ describe("Document tag tests", async () => {
             componentIdx: mathInputZIdx,
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("z"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("z"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("z")].stateValues
+            stateVariables[await resolvePathToNodeIdx("z")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("docCa")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_document1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("_document1")].stateValues
                 .componentCreditAchieved,
         ).eqls([1, 1, 1, 1, 1]);
     });
 
     it("explicit document tag, ignore outer blank strings", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
   <document>a</document>
@@ -253,7 +285,8 @@ describe("Document tag tests", async () => {
         expect(Object.keys(stateVariables).length).eq(1);
 
         expect(
-            stateVariables[resolveComponentName("_document1")].activeChildren,
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .activeChildren,
         ).eqls(["a"]);
     });
 });

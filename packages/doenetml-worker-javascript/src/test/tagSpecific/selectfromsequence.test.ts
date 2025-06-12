@@ -30,7 +30,7 @@ describe("SelectFromSequence tag tests", async () => {
         is_math?: boolean;
     }) {
         for (let i = 0; i < num_samples; i++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: i,
             });
@@ -40,7 +40,9 @@ describe("SelectFromSequence tag tests", async () => {
             );
 
             for (let idx = 0; idx < num_to_select; idx++) {
-                let cIdx = resolveComponentName(`${componentName}[${idx + 1}]`);
+                let cIdx = await resolvePathToNodeIdx(
+                    `${componentName}[${idx + 1}]`,
+                );
                 let value = stateVariables[cIdx].stateValues.value;
                 expect(
                     is_math
@@ -51,12 +53,12 @@ describe("SelectFromSequence tag tests", async () => {
 
             if (must_be_distinct) {
                 for (let idx1 = 0; idx1 < num_to_select; idx1++) {
-                    let cIdx1 = resolveComponentName(
+                    let cIdx1 = await resolvePathToNodeIdx(
                         `${componentName}[${idx1 + 1}]`,
                     );
                     let val1 = stateVariables[cIdx1].stateValues.value;
                     for (let idx2 = 0; idx2 < num_to_select; idx2++) {
-                        let cIdx2 = resolveComponentName(
+                        let cIdx2 = await resolvePathToNodeIdx(
                             `${componentName}[${idx2 + 1}]`,
                         );
                         if (cIdx2 !== cIdx1) {
@@ -89,7 +91,7 @@ describe("SelectFromSequence tag tests", async () => {
         is_math?: boolean;
     }) {
         for (let i = 0; i < num_samples; i++) {
-            const { core, resolveComponentName } = await createTestCore({
+            const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: i,
             });
@@ -101,7 +103,7 @@ describe("SelectFromSequence tag tests", async () => {
             const values: any[] = [];
 
             for (let idx = 0; idx < num_to_select; idx++) {
-                const cIdx = resolveComponentName(
+                const cIdx = await resolvePathToNodeIdx(
                     `${componentName}[${idx + 1}]`,
                 );
                 const value = stateVariables[cIdx].stateValues.value;
@@ -391,7 +393,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("display error when select three numbers from 1 to 3, without replacement, exclude any place for 1", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><selectFromSequence numToSelect="3" name="sample1" from="1" to="3" excludeCombinations="(1 _ _) (_ 1 _) (_ _ 1)" /></p>
     `,
@@ -486,7 +488,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("asList", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><selectFromSequence name="s" from="175" to="205" numToSelect="5" /></p>
     <p name="p2"><selectFromSequence extend="$s" name="s2" asList="false" /></p>
@@ -499,34 +501,39 @@ describe("SelectFromSequence tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         results.push(
-            stateVariables[resolveComponentName("s[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[2]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[2]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[3]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[3]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[4]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[4]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[5]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[5]")].stateValues
+                .value,
         );
 
         for (let num of results) {
             expect(num).gte(175).lte(205);
         }
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            results.join(", "),
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            results.join(""),
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(results.join(", "));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(results.join(""));
     });
 
     it("copies don't resample", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1">
     <selectFromSequence name="sample1" to="100" />
@@ -549,66 +556,66 @@ describe("SelectFromSequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let num1 =
-            stateVariables[resolveComponentName("sample1[1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("sample1[1]")].stateValues
                 .value;
         let num2 =
-            stateVariables[resolveComponentName("sample2[1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("sample2[1]")].stateValues
                 .value;
         expect(Number.isInteger(num1) && num1 >= 1 && num1 <= 100).eq(true);
         expect(Number.isInteger(num2) && num2 >= 1 && num2 <= 100).eq(true);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("noresample1")]
+                stateVariables[await resolvePathToNodeIdx("noresample1")]
                     .replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("noresample2")]
+                stateVariables[await resolvePathToNodeIdx("noresample2")]
                     .replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num2);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("noreresample1")]
+                stateVariables[await resolvePathToNodeIdx("noreresample1")]
                     .replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("noreresample2")]
+                stateVariables[await resolvePathToNodeIdx("noreresample2")]
                     .replacements![0].componentIdx
             ].stateValues.value,
         ).eq(num2);
 
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("noresamplep")]
+                stateVariables[await resolvePathToNodeIdx("noresamplep")]
                     .activeChildren[1].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("noresamplep")]
+                stateVariables[await resolvePathToNodeIdx("noresamplep")]
                     .activeChildren[3].componentIdx
             ].stateValues.value,
         ).eq(num2);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("noreresamplep")]
+                stateVariables[await resolvePathToNodeIdx("noreresamplep")]
                     .activeChildren[1].componentIdx
             ].stateValues.value,
         ).eq(num1);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("noreresamplep")]
+                stateVariables[await resolvePathToNodeIdx("noreresamplep")]
                     .activeChildren[3].componentIdx
             ].stateValues.value,
         ).eq(num2);
     });
 
     it("select doesn't change dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput prefill="5" name="numToSelect"/>
     <mathInput prefill="3" name="maxNum"/>
@@ -627,9 +634,9 @@ describe("SelectFromSequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let sample1replacements =
-            stateVariables[resolveComponentName("sample1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
         let sample2replacements =
-            stateVariables[resolveComponentName("sample2")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
         expect(sample1replacements.length).eq(5);
         expect(sample2replacements.length).eq(2);
         let sample1numbers = sample1replacements.map(
@@ -649,30 +656,30 @@ describe("SelectFromSequence tag tests", async () => {
         // Nothing changes when change mathInputs
         await updateMathInputValue({
             latex: "7",
-            componentIdx: resolveComponentName("numToSelect"),
+            componentIdx: await resolvePathToNodeIdx("numToSelect"),
             core,
         });
         await updateMathInputValue({
             latex: "11",
-            componentIdx: resolveComponentName("maxNum"),
+            componentIdx: await resolvePathToNodeIdx("maxNum"),
             core,
         });
         await updateMathInputValue({
             latex: "16",
-            componentIdx: resolveComponentName("numToSelect2"),
+            componentIdx: await resolvePathToNodeIdx("numToSelect2"),
             core,
         });
         await updateMathInputValue({
             latex: "18",
-            componentIdx: resolveComponentName("maxNum2"),
+            componentIdx: await resolvePathToNodeIdx("maxNum2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         sample1replacements =
-            stateVariables[resolveComponentName("sample1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
         sample2replacements =
-            stateVariables[resolveComponentName("sample2")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
 
         expect(
             sample1replacements.map(
@@ -687,7 +694,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select doesn't resample in dynamic repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     How many numbers do you want? <mathInput name="mi1" />
     <setup>
@@ -714,42 +721,54 @@ describe("SelectFromSequence tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("p1")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p1")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p2")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p2")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p3")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p3")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p4")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p4")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p5")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p5")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p6")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p6")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
@@ -764,21 +783,21 @@ describe("SelectFromSequence tag tests", async () => {
         // sample one variable
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value,
         );
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -786,7 +805,7 @@ describe("SelectFromSequence tag tests", async () => {
         // get same number back
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers);
@@ -794,20 +813,20 @@ describe("SelectFromSequence tag tests", async () => {
         // get two more samples
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let n1 =
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value;
         let n2 =
-            stateVariables[resolveComponentName("repeat1[2].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
+                .stateValues.value;
         let n3 =
-            stateVariables[resolveComponentName("repeat1[3].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
+                .stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
@@ -816,7 +835,7 @@ describe("SelectFromSequence tag tests", async () => {
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -824,7 +843,7 @@ describe("SelectFromSequence tag tests", async () => {
         // get first two numbers back
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers.slice(0, 2));
@@ -832,29 +851,29 @@ describe("SelectFromSequence tag tests", async () => {
         // get six total samples
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         n1 =
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value;
         n2 =
-            stateVariables[resolveComponentName("repeat1[2].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
+                .stateValues.value;
         n3 =
-            stateVariables[resolveComponentName("repeat1[3].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
+                .stateValues.value;
         let n4 =
-            stateVariables[resolveComponentName("repeat1[4].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[4].n[1]")]
+                .stateValues.value;
         let n5 =
-            stateVariables[resolveComponentName("repeat1[5].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[5].n[1]")]
+                .stateValues.value;
         let n6 =
-            stateVariables[resolveComponentName("repeat1[6].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[6].n[1]")]
+                .stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -866,7 +885,7 @@ describe("SelectFromSequence tag tests", async () => {
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -874,7 +893,7 @@ describe("SelectFromSequence tag tests", async () => {
         // get all six back
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers);
@@ -916,7 +935,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("selectFromSequence with hide will hide replacements", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p name="p1"><selectFromSequence type="letters" name="c" from="a" to="e" />, <selectFromSequence type="letters" name="d" from="a" to="e" hide /></p>
       <p name="p2">$c, <text extend="$d" hide="false" /></p>
@@ -925,20 +944,20 @@ describe("SelectFromSequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let c =
-            await stateVariables[resolveComponentName("c[1]")].stateValues
+            await stateVariables[await resolvePathToNodeIdx("c[1]")].stateValues
                 .value;
         let d =
-            await stateVariables[resolveComponentName("d[1]")].stateValues
+            await stateVariables[await resolvePathToNodeIdx("d[1]")].stateValues
                 .value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            `${c}, `,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            `${c}, ${d}`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(`${c}, `);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(`${c}, ${d}`);
     });
 
     it("select multiple numbers with excludeCombinations, handles round-off error", async () => {
@@ -1108,7 +1127,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select numbers and sort", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><selectFromSequence numToSelect="20" sortResults="true" withReplacement="true" from="-20" to="20" /></p>
 
@@ -1119,12 +1138,12 @@ describe("SelectFromSequence tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let originalNumbers = stateVariables[
-            resolveComponentName("p1")
+            await resolvePathToNodeIdx("p1")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let secondNumbers = stateVariables[
-            resolveComponentName("p2")
+            await resolvePathToNodeIdx("p2")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -1136,7 +1155,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select letters and sort", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><selectFromSequence type="letters" numToSelect="20" sortResults="true" withReplacement="true" from="a" to="bz" /></p>
 
@@ -1147,12 +1166,12 @@ describe("SelectFromSequence tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let originalNumbers = stateVariables[
-            resolveComponentName("p1")
+            await resolvePathToNodeIdx("p1")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let secondNumbers = stateVariables[
-            resolveComponentName("p2")
+            await resolvePathToNodeIdx("p2")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -1181,7 +1200,7 @@ describe("SelectFromSequence tag tests", async () => {
     // When this issue is resolved, change this test to make sure the references
     // are hidden when the selectFromSequence is hidden
     it("selectFromSequence hides dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
     <booleanInput name='h1' prefill="false" >
@@ -1197,63 +1216,63 @@ describe("SelectFromSequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let c =
-            await stateVariables[resolveComponentName("c[1]")].stateValues
+            await stateVariables[await resolvePathToNodeIdx("c[1]")].stateValues
                 .value;
         let d =
-            await stateVariables[resolveComponentName("d[1]")].stateValues
+            await stateVariables[await resolvePathToNodeIdx("d[1]")].stateValues
                 .value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            `${c}, `,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            `${c}, ${d}`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(`${c}, `);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(`${c}, ${d}`);
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("h1"),
+            componentIdx: await resolvePathToNodeIdx("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("h2"),
+            componentIdx: await resolvePathToNodeIdx("h2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            `, ${d}`,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            `${c}, ${d}`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(`, ${d}`);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(`${c}, ${d}`);
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("h1"),
+            componentIdx: await resolvePathToNodeIdx("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("h2"),
+            componentIdx: await resolvePathToNodeIdx("h2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            `${c}, `,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            `${c}, ${d}`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(`${c}, `);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(`${c}, ${d}`);
     });
 
     it("selectFromSequence defaults to fixed", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name='f1' prefill="false" >
       <label>Fix first select</label>
@@ -1295,220 +1314,238 @@ describe("SelectFromSequence tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let a = stateVariables[resolveComponentName("a[1]")].stateValues.value;
-        let b = stateVariables[resolveComponentName("b[1]")].stateValues.value;
-        let c = stateVariables[resolveComponentName("c[1]")].stateValues.value;
+        let a =
+            stateVariables[await resolvePathToNodeIdx("a[1]")].stateValues
+                .value;
+        let b =
+            stateVariables[await resolvePathToNodeIdx("b[1]")].stateValues
+                .value;
+        let c =
+            stateVariables[await resolvePathToNodeIdx("c[1]")].stateValues
+                .value;
         expect(["a", "b", "c", "d", "e"].includes(a)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(b)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
 
-        expect(stateVariables[resolveComponentName("a2")].stateValues.value).eq(
-            a,
-        );
-        expect(stateVariables[resolveComponentName("b2")].stateValues.value).eq(
-            b,
-        );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.value).eq(
-            c,
-        );
-
-        expect(stateVariables[resolveComponentName("af")].stateValues.value).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("bf")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("cf")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("a2f")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value,
+        ).eq(a);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(b);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value,
+        ).eq(c);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("af")].stateValues.value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("b2f")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bf")].stateValues.value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("c2f")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("cf")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2f")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2f")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2f")].stateValues.value,
         ).eq(true);
 
         await updateTextInputValue({
             text: "f",
-            componentIdx: resolveComponentName("a3"),
+            componentIdx: await resolvePathToNodeIdx("a3"),
             core,
         });
         await updateTextInputValue({
             text: "g",
-            componentIdx: resolveComponentName("b3"),
+            componentIdx: await resolvePathToNodeIdx("b3"),
             core,
         });
         await updateTextInputValue({
             text: "h",
-            componentIdx: resolveComponentName("c3"),
+            componentIdx: await resolvePathToNodeIdx("c3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("a[1]")].stateValues
+                .value,
         ).eq(a);
         expect(
-            stateVariables[resolveComponentName("b[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b[1]")].stateValues
+                .value,
         ).eq("g");
         expect(
-            stateVariables[resolveComponentName("c[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("c[1]")].stateValues
+                .value,
         ).eq(c);
-        expect(stateVariables[resolveComponentName("a2")].stateValues.value).eq(
-            a,
-        );
-        expect(stateVariables[resolveComponentName("b2")].stateValues.value).eq(
-            "g",
-        );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.value).eq(
-            c,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value,
+        ).eq(a);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq("g");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value,
+        ).eq(c);
 
         await updateTextInputValue({
             text: "i",
-            componentIdx: resolveComponentName("a4"),
+            componentIdx: await resolvePathToNodeIdx("a4"),
             core,
         });
         await updateTextInputValue({
             text: "j",
-            componentIdx: resolveComponentName("b4"),
+            componentIdx: await resolvePathToNodeIdx("b4"),
             core,
         });
         await updateTextInputValue({
             text: "k",
-            componentIdx: resolveComponentName("c4"),
+            componentIdx: await resolvePathToNodeIdx("c4"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("a[1]")].stateValues
+                .value,
         ).eq(a);
         expect(
-            stateVariables[resolveComponentName("b[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b[1]")].stateValues
+                .value,
         ).eq("j");
         expect(
-            stateVariables[resolveComponentName("c[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("c[1]")].stateValues
+                .value,
         ).eq(c);
-        expect(stateVariables[resolveComponentName("a2")].stateValues.value).eq(
-            a,
-        );
-        expect(stateVariables[resolveComponentName("b2")].stateValues.value).eq(
-            "j",
-        );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.value).eq(
-            c,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value,
+        ).eq(a);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq("j");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value,
+        ).eq(c);
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("f1"),
+            componentIdx: await resolvePathToNodeIdx("f1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("f2"),
+            componentIdx: await resolvePathToNodeIdx("f2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("af")].stateValues.value).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("bf")].stateValues.value).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("cf")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("a2f")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("af")].stateValues.value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("b2f")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bf")].stateValues.value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("c2f")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("cf")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2f")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2f")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2f")].stateValues.value,
         ).eq(false);
 
         await updateTextInputValue({
             text: "l",
-            componentIdx: resolveComponentName("a3"),
+            componentIdx: await resolvePathToNodeIdx("a3"),
             core,
         });
         await updateTextInputValue({
             text: "m",
-            componentIdx: resolveComponentName("b3"),
+            componentIdx: await resolvePathToNodeIdx("b3"),
             core,
         });
         await updateTextInputValue({
             text: "n",
-            componentIdx: resolveComponentName("c3"),
+            componentIdx: await resolvePathToNodeIdx("c3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("a[1]")].stateValues
+                .value,
         ).eq(a);
         expect(
-            stateVariables[resolveComponentName("b[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b[1]")].stateValues
+                .value,
         ).eq("j");
         expect(
-            stateVariables[resolveComponentName("c[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("c[1]")].stateValues
+                .value,
         ).eq("n");
-        expect(stateVariables[resolveComponentName("a2")].stateValues.value).eq(
-            a,
-        );
-        expect(stateVariables[resolveComponentName("b2")].stateValues.value).eq(
-            "j",
-        );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.value).eq(
-            "n",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value,
+        ).eq(a);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq("j");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value,
+        ).eq("n");
 
         await updateTextInputValue({
             text: "o",
-            componentIdx: resolveComponentName("a4"),
+            componentIdx: await resolvePathToNodeIdx("a4"),
             core,
         });
         await updateTextInputValue({
             text: "p",
-            componentIdx: resolveComponentName("b4"),
+            componentIdx: await resolvePathToNodeIdx("b4"),
             core,
         });
         await updateTextInputValue({
             text: "q",
-            componentIdx: resolveComponentName("c4"),
+            componentIdx: await resolvePathToNodeIdx("c4"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("a[1]")].stateValues
+                .value,
         ).eq(a);
         expect(
-            stateVariables[resolveComponentName("b[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b[1]")].stateValues
+                .value,
         ).eq("j");
         expect(
-            stateVariables[resolveComponentName("c[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("c[1]")].stateValues
+                .value,
         ).eq("q");
-        expect(stateVariables[resolveComponentName("a2")].stateValues.value).eq(
-            a,
-        );
-        expect(stateVariables[resolveComponentName("b2")].stateValues.value).eq(
-            "j",
-        );
-        expect(stateVariables[resolveComponentName("c2")].stateValues.value).eq(
-            "q",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value,
+        ).eq(a);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq("j");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value,
+        ).eq("q");
     });
 
     it("numToSelect from selectFromSequence", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>n1 = <selectFromSequence from="1" to="5" name="n1" /></p>
     <p>nums = <selectFromSequence name="nums1" from="1" to="10" numToSelect="$n1" /></p>
@@ -1534,38 +1571,43 @@ describe("SelectFromSequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let n1 =
-            stateVariables[resolveComponentName("n1[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
+                .value;
         let n2 =
-            stateVariables[resolveComponentName("n2[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
+                .value;
         let n3 =
-            stateVariables[resolveComponentName("n3[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
+                .value;
         let n4 =
-            stateVariables[resolveComponentName("n4[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
+                .value;
         let n5 =
-            stateVariables[resolveComponentName("n5[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n5[1]")].stateValues
+                .value;
 
         let nums1 = stateVariables[
-            resolveComponentName("nums1")
+            await resolvePathToNodeIdx("nums1")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums2 = stateVariables[
-            resolveComponentName("nums2")
+            await resolvePathToNodeIdx("nums2")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums3 = stateVariables[
-            resolveComponentName("nums3")
+            await resolvePathToNodeIdx("nums3")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums4 = stateVariables[
-            resolveComponentName("nums4")
+            await resolvePathToNodeIdx("nums4")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums5 = stateVariables[
-            resolveComponentName("nums5")
+            await resolvePathToNodeIdx("nums5")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -1590,25 +1632,25 @@ describe("SelectFromSequence tag tests", async () => {
 
         let l = ["a", "b", "c", "d", "e"];
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            nums1.map((v, i) => `${l[i]}1=${v}`).join(", "),
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            nums2.map((v, i) => `${l[i]}2=${v}`).join(", "),
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            nums3.map((v, i) => `${l[i]}3=${v}`).join(", "),
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            nums4.map((v, i) => `${l[i]}4=${v}`).join(", "),
-        );
-        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
-            nums5.map((v, i) => `${l[i]}5=${v}`).join(", "),
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(nums1.map((v, i) => `${l[i]}1=${v}`).join(", "));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(nums2.map((v, i) => `${l[i]}2=${v}`).join(", "));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq(nums3.map((v, i) => `${l[i]}3=${v}`).join(", "));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq(nums4.map((v, i) => `${l[i]}4=${v}`).join(", "));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
+        ).eq(nums5.map((v, i) => `${l[i]}5=${v}`).join(", "));
     });
 
     it("rounding", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><selectFromSequence name="n1" from="10" to="20" step="0.000001" displayDigits="10" /></p>
     <p><selectFromSequence name="n2" from="10" to="20" step="0.000001" displayDigits="3" /></p>
@@ -1626,39 +1668,47 @@ describe("SelectFromSequence tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let n1 =
-            stateVariables[resolveComponentName("n1[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
+                .value;
         let n2 =
-            stateVariables[resolveComponentName("n2[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
+                .value;
         let n3 =
-            stateVariables[resolveComponentName("n3[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
+                .value;
         let n4 =
-            stateVariables[resolveComponentName("n4[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
+                .value;
 
         expect(
-            stateVariables[resolveComponentName("n1[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n1 * 10 ** 8) / 10 ** 8));
         expect(
-            stateVariables[resolveComponentName("n2[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n2 * 10 ** 1) / 10 ** 1));
         expect(
-            stateVariables[resolveComponentName("n3[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n3 * 10 ** 3) / 10 ** 3));
         expect(
-            stateVariables[resolveComponentName("n4[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
+                .text,
         ).eq(String(n4) + ".0");
 
-        expect(stateVariables[resolveComponentName("n1a")].stateValues.text).eq(
-            String(Math.round(n1 * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables[resolveComponentName("n2a")].stateValues.text).eq(
-            String(Math.round(n2 * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables[resolveComponentName("n3a")].stateValues.text).eq(
-            String(Math.round(n3 * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables[resolveComponentName("n4a")].stateValues.text).eq(
-            String(n4) + ".0",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n1a")].stateValues.text,
+        ).eq(String(Math.round(n1 * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2a")].stateValues.text,
+        ).eq(String(Math.round(n2 * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n3a")].stateValues.text,
+        ).eq(String(Math.round(n3 * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n4a")].stateValues.text,
+        ).eq(String(n4) + ".0");
     });
 
     it("display error when select 3 from 1, inside text", async () => {
@@ -1683,7 +1733,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("check bugfix for non-constant exclude and unique variants", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <variantControl uniqueVariants />
     <p>Number to exclude: <number name="exclude">2</number></p>
@@ -1696,21 +1746,24 @@ describe("SelectFromSequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let n = stateVariables[resolveComponentName("n[1]")].stateValues.value;
+        let n =
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value;
 
         expect(
-            stateVariables[resolveComponentName("n[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value,
         ).eq(n);
 
-        expect(stateVariables[resolveComponentName("na")].stateValues.value).eq(
-            n,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("na")].stateValues.value,
+        ).eq(n);
 
         expect(n === 1 || n === 3).eq(true);
     });
 
     it("check bugfix for non-constant exclude and defaulting to unique variants", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number to exclude: <number name="exclude">2</number></p>
     <p><selectFromSequence name="n" from="1" to="3" exclude="$exclude" /></p>
@@ -1722,15 +1775,18 @@ describe("SelectFromSequence tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let n = stateVariables[resolveComponentName("n[1]")].stateValues.value;
+        let n =
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value;
 
         expect(
-            stateVariables[resolveComponentName("n[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value,
         ).eq(n);
 
-        expect(stateVariables[resolveComponentName("na")].stateValues.value).eq(
-            n,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("na")].stateValues.value,
+        ).eq(n);
 
         expect(n === 1 || n === 3).eq(true);
     });

@@ -7,7 +7,7 @@ vi.mock("hyperformula");
 
 describe("Error Tests", async () => {
     it("Mismatched tags at base level, component without canDisplayChildErrors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <math name="good">x+y</math>
 
@@ -19,11 +19,12 @@ describe("Error Tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("good")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("good")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
-        expect(stateVariables[resolveComponentName("bad")].componentType).eq(
-            "_error",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bad")].componentType,
+        ).eq("_error");
 
         let errorWarnings = core.core!.errorWarnings;
 
@@ -46,7 +47,7 @@ describe("Error Tests", async () => {
     });
 
     it("Mismatched tags at base level, component with canDisplayChildErrors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <p name="good">hi</p>
 
@@ -58,10 +59,12 @@ describe("Error Tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("good")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("good")].stateValues.text,
         ).eq("hi");
         expect(
-            stateVariables[resolveComponentName("bad")].stateValues.text.trim(),
+            stateVariables[
+                await resolvePathToNodeIdx("bad")
+            ].stateValues.text.trim(),
         ).eq("bye");
 
         let errorWarnings = core.core!.errorWarnings;
@@ -85,7 +88,7 @@ describe("Error Tests", async () => {
     });
 
     it("Mismatched tags in section, later tags outside survive", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <section name="sec">
   <math name="good">x+y</math>
@@ -99,15 +102,17 @@ describe("Error Tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("good")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("good")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
-        expect(stateVariables[resolveComponentName("bad")].componentType).eq(
-            "_error",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bad")].componentType,
+        ).eq("_error");
 
         // confirm tag after section survives
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq("x");
 
         let errorWarnings = core.core!.errorWarnings;
@@ -131,7 +136,7 @@ describe("Error Tests", async () => {
     });
 
     it("More parsing errors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <p>
   <math name="m1">y
@@ -155,15 +160,15 @@ describe("Error Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("m1")].componentType).eq(
-            "_error",
-        );
         expect(
-            stateVariables[resolveComponentName("sec")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("m1")].componentType,
+        ).eq("_error");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.title,
         ).eq("Section 1");
-        expect(stateVariables[resolveComponentName("_p3")].stateValues.text).eq(
-            "Hello there!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_p3")].stateValues.text,
+        ).eq("Hello there!");
 
         let errorWarnings = core.core!.errorWarnings;
 
@@ -405,7 +410,7 @@ a />
     // TODO: decide what to do about circular references
     // Not fixing it since suspect circular reference detection is a major source of slowdown
     it.skip("Circular dependency with copy source", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <math extend="$a1" name="a1" />
 
@@ -431,16 +436,20 @@ a />
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("e2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("e2")].stateValues.value
+                .tree,
         ).eq("＿");
         expect(
-            stateVariables[resolveComponentName("e3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("e3")].stateValues.value
+                .tree,
         ).eq("＿");
         expect(
-            stateVariables[resolveComponentName("e4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("e4")].stateValues.value
+                .tree,
         ).eq("＿");
         expect(
-            stateVariables[resolveComponentName("e5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("e5")].stateValues.value
+                .tree,
         ).eq("＿");
 
         let errorWarnings = core.core!.errorWarnings;

@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("When tag tests", async () => {
     it("value, fractionSatisfied, conditionSatisfied are public", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <text>a</text>
   <mathInput name="n" />
@@ -25,70 +25,70 @@ describe("When tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("v")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("cs")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("fs")].stateValues.value).eq(
-            0,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("cs")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fs")].stateValues.value,
+        ).eq(0);
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("v")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("cs")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("fs")].stateValues.value).eq(
-            0.5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("cs")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fs")].stateValues.value,
+        ).eq(0.5);
 
         await updateMathInputValue({
             latex: "11",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("v")].stateValues.value).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("cs")].stateValues.value).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("fs")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("cs")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fs")].stateValues.value,
+        ).eq(1);
 
         await updateMathInputValue({
             latex: "-11",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("v")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("cs")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("fs")].stateValues.value).eq(
-            0,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("cs")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fs")].stateValues.value,
+        ).eq(0);
     });
 
     it("fraction satisfied on 2x2 matrix compare", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="A" format="latex">\\begin{pmatrix}1 & 2\\\\ 3 & 4\\end{pmatrix}</math>
   <math name="B" format="latex">\\begin{pmatrix}5 & 6\\\\ 7 & 8\\end{pmatrix}</math>
@@ -135,60 +135,76 @@ describe("When tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("fsAA")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsAA")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("fsAB")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsAB")].stateValues
+                .value,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("fsAC")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsAC")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("fsAD")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsAD")].stateValues
+                .value,
         ).eq(0.25);
 
         expect(
-            stateVariables[resolveComponentName("fsBA")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsBA")].stateValues
+                .value,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("fsBB")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsBB")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("fsBC")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsBC")].stateValues
+                .value,
         ).eq(0.75);
         expect(
-            stateVariables[resolveComponentName("fsBD")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsBD")].stateValues
+                .value,
         ).eq(0.25);
 
         expect(
-            stateVariables[resolveComponentName("fsCA")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsCA")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("fsCB")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsCB")].stateValues
+                .value,
         ).eq(0.75);
         expect(
-            stateVariables[resolveComponentName("fsCC")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsCC")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("fsCD")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsCD")].stateValues
+                .value,
         ).eq(0.5);
 
         expect(
-            stateVariables[resolveComponentName("fsDA")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsDA")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("fsDB")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsDB")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("fsDC")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsDC")].stateValues
+                .value,
         ).eq(0.5);
         expect(
-            stateVariables[resolveComponentName("fsDD")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsDD")].stateValues
+                .value,
         ).eq(1);
     });
 
     it("fraction satisfied on mismatched size matrix compare", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="A" format="latex">\\begin{pmatrix}1\\end{pmatrix}</math>
   <math name="B" format="latex">\\begin{pmatrix}1 & 8\\end{pmatrix}</math>
@@ -235,55 +251,71 @@ describe("When tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("fsAA")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsAA")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("fsAB")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsAB")].stateValues
+                .value,
         ).eq(0.5);
         expect(
-            stateVariables[resolveComponentName("fsAC")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsAC")].stateValues
+                .value,
         ).eq(0.5);
         expect(
-            stateVariables[resolveComponentName("fsAD")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsAD")].stateValues
+                .value,
         ).eq(0.25);
 
         expect(
-            stateVariables[resolveComponentName("fsBA")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsBA")].stateValues
+                .value,
         ).eq(0.5);
         expect(
-            stateVariables[resolveComponentName("fsBB")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsBB")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("fsBC")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsBC")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("fsBD")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsBD")].stateValues
+                .value,
         ).eq(0.25);
 
         expect(
-            stateVariables[resolveComponentName("fsCA")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsCA")].stateValues
+                .value,
         ).eq(0.5);
         expect(
-            stateVariables[resolveComponentName("fsCB")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsCB")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("fsCC")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsCC")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("fsCD")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsCD")].stateValues
+                .value,
         ).eq(0.5);
 
         expect(
-            stateVariables[resolveComponentName("fsDA")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsDA")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("fsDB")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsDB")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("fsDC")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsDC")].stateValues
+                .value,
         ).eq(0.5);
         expect(
-            stateVariables[resolveComponentName("fsDD")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fsDD")].stateValues
+                .value,
         ).eq(1);
     });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -26,7 +26,7 @@ describe("Function Operator tag tests", async () => {
         label1?: string;
         label2?: string;
     }) {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" symbolic="${symbolic}">x^3</function>
     ${f1Markup}
@@ -53,28 +53,28 @@ describe("Function Operator tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         let map1Names: string[] = stateVariables[
-            resolveComponentName("repeat1")
+            await resolvePathToNodeIdx("repeat1")
         ].replacements!.map(
             (template) =>
                 stateVariables[template.componentIdx].replacements![0]
                     .componentIdx,
         );
         let map2Names: string[] = stateVariables[
-            resolveComponentName("repeat2")
+            await resolvePathToNodeIdx("repeat2")
         ].replacements!.map(
             (template) =>
                 stateVariables[template.componentIdx].replacements![0]
                     .componentIdx,
         );
         let map1aNames: string[] = stateVariables[
-            resolveComponentName("repeat1a")
+            await resolvePathToNodeIdx("repeat1a")
         ].replacements!.map(
             (template) =>
                 stateVariables[template.componentIdx].replacements![0]
                     .componentIdx,
         );
         let map2aNames: string[] = stateVariables[
-            resolveComponentName("repeat2a")
+            await resolvePathToNodeIdx("repeat2a")
         ].replacements!.map(
             (template) =>
                 stateVariables[template.componentIdx].replacements![0]
@@ -82,10 +82,10 @@ describe("Function Operator tag tests", async () => {
         );
 
         let f1d =
-            stateVariables[resolveComponentName("f1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues
                 .numericalfs[0];
         let f2d =
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                 .numericalfs[0];
 
         for (let [i, x] of xs.entries()) {
@@ -110,12 +110,14 @@ describe("Function Operator tag tests", async () => {
 
         if (label1 !== undefined) {
             expect(
-                stateVariables[resolveComponentName("f1")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                    .label,
             ).eq(label1);
         }
         if (label2 !== undefined) {
             expect(
-                stateVariables[resolveComponentName("f2")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                    .label,
             ).eq(label2);
         }
     }
@@ -167,7 +169,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("derivative", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><m>a =</m> <mathInput name="a" prefill="1" /></p>
     <p><m>b =</m> <mathInput name="b" prefill="1" /></p>
@@ -239,45 +241,47 @@ describe("Function Operator tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("pf")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pf")].stateValues
+                    .text,
             ).eq(`f(${x}) = ${fString}`);
             expect(
-                stateVariables[resolveComponentName("pfp")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pfp")].stateValues
+                    .text,
             ).eq(`f'(${x}) = ${fpString}`);
 
             expect(
                 stateVariables[
-                    resolveComponentName("f")
+                    await resolvePathToNodeIdx("f")
                 ].stateValues.formula.toString(),
             ).eq(fString);
             expect(
                 stateVariables[
-                    resolveComponentName("fp")
+                    await resolvePathToNodeIdx("fp")
                 ].stateValues.formula.toString(),
             ).eq(fpString);
 
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).closeTo(x1, 1e-12);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).closeTo(y1, 1e-12);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[0].tree,
             ).closeTo(x2, 1e-12);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[1].tree,
             ).closeTo(y2, 1e-12);
 
             let fFun =
-                stateVariables[resolveComponentName("f")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f")].stateValues
                     .numericalfs[0];
             let fpFun =
-                stateVariables[resolveComponentName("fp")].stateValues
+                stateVariables[await resolvePathToNodeIdx("fp")].stateValues
                     .numericalfs[0];
 
             for (let i = 1; i <= 21; i++) {
@@ -300,13 +304,13 @@ describe("Function Operator tag tests", async () => {
         x2 = 5;
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: x1,
             y: 11,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: x2,
             y: -9,
             core,
@@ -321,22 +325,22 @@ describe("Function Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: a,
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "\\pi",
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
         await updateMathInputValue({
             latex: c,
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             core,
         });
         await updateMathInputValue({
             latex: x,
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
 
@@ -346,13 +350,13 @@ describe("Function Operator tag tests", async () => {
         x2 = -7;
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: x1,
             y: -6,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: x2,
             y: 0,
             core,
@@ -363,150 +367,150 @@ describe("Function Operator tag tests", async () => {
 
     async function check_list(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.formula.equals(me.fromText("2x")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d2")
+                await resolvePathToNodeIdx("d2")
             ].stateValues.formula.equals(me.fromText("2x")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d2b")
+                await resolvePathToNodeIdx("d2b")
             ].stateValues.formula.equals(me.fromText("2x")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d2c")
+                await resolvePathToNodeIdx("d2c")
             ].stateValues.formula.equals(me.fromText("2x")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d3")
+                await resolvePathToNodeIdx("d3")
             ].stateValues.formula.equals(me.fromText("2x sin(z)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d4")
+                await resolvePathToNodeIdx("d4")
             ].stateValues.formula.equals(me.fromText("x^2cos(z)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d4b")
+                await resolvePathToNodeIdx("d4b")
             ].stateValues.formula.equals(me.fromText("x^2cos(z)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d5")
+                await resolvePathToNodeIdx("d5")
             ].stateValues.formula.equals(me.fromText("cos(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d5b")
+                await resolvePathToNodeIdx("d5b")
             ].stateValues.formula.equals(me.fromText("cos(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6")
+                await resolvePathToNodeIdx("d6")
             ].stateValues.formula.equals(me.fromText("2e^(2y)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6b")
+                await resolvePathToNodeIdx("d6b")
             ].stateValues.formula.equals(me.fromText("2e^(2y)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d7")
+                await resolvePathToNodeIdx("d7")
             ].stateValues.formula.equals(me.fromText("yz")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d7b")
+                await resolvePathToNodeIdx("d7b")
             ].stateValues.formula.equals(me.fromText("yz")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d8")
+                await resolvePathToNodeIdx("d8")
             ].stateValues.formula.equals(me.fromText("xy")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d8b")
+                await resolvePathToNodeIdx("d8b")
             ].stateValues.formula.equals(me.fromText("xy")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d9")
+                await resolvePathToNodeIdx("d9")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d10")
+                await resolvePathToNodeIdx("d10")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d11")
+                await resolvePathToNodeIdx("d11")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d12")
+                await resolvePathToNodeIdx("d12")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d13")
+                await resolvePathToNodeIdx("d13")
             ].stateValues.formula.equals(me.fromText("xz")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d14")
+                await resolvePathToNodeIdx("d14")
             ].stateValues.formula.equals(me.fromText("xz")),
         ).eq(true);
 
         const d1 =
-            stateVariables[resolveComponentName("d1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                 .numericalfs[0];
         const d2 =
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                 .numericalfs[0];
         const d2b =
-            stateVariables[resolveComponentName("d2b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2b")].stateValues
                 .numericalfs[0];
         const d2c =
-            stateVariables[resolveComponentName("d2c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2c")].stateValues
                 .numericalfs[0];
         const d5 =
-            stateVariables[resolveComponentName("d5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d5")].stateValues
                 .numericalfs[0];
         const d5b =
-            stateVariables[resolveComponentName("d5b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d5b")].stateValues
                 .numericalfs[0];
         const d6 =
-            stateVariables[resolveComponentName("d6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6")].stateValues
                 .numericalfs[0];
         const d6b =
-            stateVariables[resolveComponentName("d6b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6b")].stateValues
                 .numericalfs[0];
         const d9 =
-            stateVariables[resolveComponentName("d9")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d9")].stateValues
                 .numericalfs[0];
         const d10 =
-            stateVariables[resolveComponentName("d10")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d10")].stateValues
                 .numericalfs[0];
         const d11 =
-            stateVariables[resolveComponentName("d11")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d11")].stateValues
                 .numericalfs[0];
         const d12 =
-            stateVariables[resolveComponentName("d12")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d12")].stateValues
                 .numericalfs[0];
 
         for (let i = 1; i <= 21; i++) {
@@ -527,7 +531,7 @@ describe("Function Operator tag tests", async () => {
     }
 
     it("derivative 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f1">sin(x)</function>
       <function name="f2" variables="y">e^(2y)</function>
@@ -558,11 +562,11 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        await check_list(core, resolveComponentName);
+        await check_list(core, resolvePathToNodeIdx);
     });
 
     it("derivative 2, labeled", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f1">sin(x)</function>
       <function name="f2" variable="y">e^(2y)</function>
@@ -593,77 +597,77 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        await check_list(core, resolveComponentName);
+        await check_list(core, resolvePathToNodeIdx);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("d1")].stateValues.label).eq(
-            "d1",
-        );
-        expect(stateVariables[resolveComponentName("d2")].stateValues.label).eq(
-            "d2",
-        );
         expect(
-            stateVariables[resolveComponentName("d2b")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d1")].stateValues.label,
+        ).eq("d1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues.label,
+        ).eq("d2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d2b")].stateValues.label,
         ).eq("d2b");
         expect(
-            stateVariables[resolveComponentName("d2c")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d2c")].stateValues.label,
         ).eq("d2c");
-        expect(stateVariables[resolveComponentName("d3")].stateValues.label).eq(
-            "d3",
-        );
-        expect(stateVariables[resolveComponentName("d4")].stateValues.label).eq(
-            "d4",
-        );
         expect(
-            stateVariables[resolveComponentName("d4b")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues.label,
+        ).eq("d3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues.label,
+        ).eq("d4");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d4b")].stateValues.label,
         ).eq("d4b");
-        expect(stateVariables[resolveComponentName("d5")].stateValues.label).eq(
-            "d5",
-        );
         expect(
-            stateVariables[resolveComponentName("d5b")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d5")].stateValues.label,
+        ).eq("d5");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d5b")].stateValues.label,
         ).eq("d5b");
-        expect(stateVariables[resolveComponentName("d6")].stateValues.label).eq(
-            "d6",
-        );
         expect(
-            stateVariables[resolveComponentName("d6b")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d6")].stateValues.label,
+        ).eq("d6");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d6b")].stateValues.label,
         ).eq("d6b");
-        expect(stateVariables[resolveComponentName("d7")].stateValues.label).eq(
-            "d7",
-        );
         expect(
-            stateVariables[resolveComponentName("d7b")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d7")].stateValues.label,
+        ).eq("d7");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d7b")].stateValues.label,
         ).eq("d7b");
-        expect(stateVariables[resolveComponentName("d8")].stateValues.label).eq(
-            "d8",
-        );
         expect(
-            stateVariables[resolveComponentName("d8b")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d8")].stateValues.label,
+        ).eq("d8");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d8b")].stateValues.label,
         ).eq("d8b");
-        expect(stateVariables[resolveComponentName("d9")].stateValues.label).eq(
-            "d9",
-        );
         expect(
-            stateVariables[resolveComponentName("d10")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d9")].stateValues.label,
+        ).eq("d9");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d10")].stateValues.label,
         ).eq("d10");
         expect(
-            stateVariables[resolveComponentName("d11")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d11")].stateValues.label,
         ).eq("d11");
         expect(
-            stateVariables[resolveComponentName("d12")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d12")].stateValues.label,
         ).eq("d12");
         expect(
-            stateVariables[resolveComponentName("d13")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d13")].stateValues.label,
         ).eq("d13");
         expect(
-            stateVariables[resolveComponentName("d14")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("d14")].stateValues.label,
         ).eq("d14");
     });
 
     it("derivative of trig functions raised to powers", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1">sin(x)^2</function>
     <function name="f1a">sin^2(x)</function>
@@ -679,28 +683,28 @@ describe("Function Operator tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.formula.equals(me.fromText("2 sin(x) cos(x)")),
         ).be.true;
         expect(
             stateVariables[
-                resolveComponentName("d1a")
+                await resolvePathToNodeIdx("d1a")
             ].stateValues.formula.equals(me.fromText("2 sin(x) cos(x)")),
         ).be.true;
         expect(
             stateVariables[
-                resolveComponentName("d2")
+                await resolvePathToNodeIdx("d2")
             ].stateValues.formula.equals(me.fromText("3 tan^2(x) sec^2(x)")),
         ).be.true;
         expect(
             stateVariables[
-                resolveComponentName("d2a")
+                await resolvePathToNodeIdx("d2a")
             ].stateValues.formula.equals(me.fromText("3 tan^2(x) sec^2(x)")),
         ).be.true;
     });
 
     it("specifying derivative variables of a function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p><function name="f1" numInputs="3">sin(x+y^2)z</function>
       <function name="f2" variables="z y x">sin(x+y^2)z</function>
@@ -746,396 +750,396 @@ describe("Function Operator tag tests", async () => {
 
         expect(
             stateVariables[
-                resolveComponentName("d11")
+                await resolvePathToNodeIdx("d11")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d11")
+                await resolvePathToNodeIdx("d11")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d11")
+                await resolvePathToNodeIdx("d11")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d12")
+                await resolvePathToNodeIdx("d12")
             ].stateValues.formula.equals(me.fromText("sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d12")
+                await resolvePathToNodeIdx("d12")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z"]);
         expect(
             stateVariables[
-                resolveComponentName("d12")
+                await resolvePathToNodeIdx("d12")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d13")
+                await resolvePathToNodeIdx("d13")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d13")
+                await resolvePathToNodeIdx("d13")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d13")
+                await resolvePathToNodeIdx("d13")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d14")
+                await resolvePathToNodeIdx("d14")
             ].stateValues.formula.equals(me.fromText("sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d14")
+                await resolvePathToNodeIdx("d14")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d14")
+                await resolvePathToNodeIdx("d14")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d15")
+                await resolvePathToNodeIdx("d15")
             ].stateValues.formula.equals(me.fromText("2 y cos(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d15")
+                await resolvePathToNodeIdx("d15")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d15")
+                await resolvePathToNodeIdx("d15")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y", "z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d16")
+                await resolvePathToNodeIdx("d16")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d16")
+                await resolvePathToNodeIdx("d16")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d16")
+                await resolvePathToNodeIdx("d16")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "x", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d17")
+                await resolvePathToNodeIdx("d17")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d17")
+                await resolvePathToNodeIdx("d17")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d17")
+                await resolvePathToNodeIdx("d17")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["u"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d18")
+                await resolvePathToNodeIdx("d18")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d18")
+                await resolvePathToNodeIdx("d18")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z"]);
         expect(
             stateVariables[
-                resolveComponentName("d18")
+                await resolvePathToNodeIdx("d18")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "x", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d21")
+                await resolvePathToNodeIdx("d21")
             ].stateValues.formula.equals(me.fromText("sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d21")
+                await resolvePathToNodeIdx("d21")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("d21")
+                await resolvePathToNodeIdx("d21")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d22")
+                await resolvePathToNodeIdx("d22")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d22")
+                await resolvePathToNodeIdx("d22")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d22")
+                await resolvePathToNodeIdx("d22")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d23")
+                await resolvePathToNodeIdx("d23")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d23")
+                await resolvePathToNodeIdx("d23")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("d23")
+                await resolvePathToNodeIdx("d23")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d24")
+                await resolvePathToNodeIdx("d24")
             ].stateValues.formula.equals(me.fromText("sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d24")
+                await resolvePathToNodeIdx("d24")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("d24")
+                await resolvePathToNodeIdx("d24")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d25")
+                await resolvePathToNodeIdx("d25")
             ].stateValues.formula.equals(me.fromText("2 y cos(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d25")
+                await resolvePathToNodeIdx("d25")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("d25")
+                await resolvePathToNodeIdx("d25")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y", "z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d26")
+                await resolvePathToNodeIdx("d26")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d26")
+                await resolvePathToNodeIdx("d26")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("d26")
+                await resolvePathToNodeIdx("d26")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "x", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d27")
+                await resolvePathToNodeIdx("d27")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d27")
+                await resolvePathToNodeIdx("d27")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("d27")
+                await resolvePathToNodeIdx("d27")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["u"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d28")
+                await resolvePathToNodeIdx("d28")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d28")
+                await resolvePathToNodeIdx("d28")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z"]);
         expect(
             stateVariables[
-                resolveComponentName("d28")
+                await resolvePathToNodeIdx("d28")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "x", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d31")
+                await resolvePathToNodeIdx("d31")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d31")
+                await resolvePathToNodeIdx("d31")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("d31")
+                await resolvePathToNodeIdx("d31")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d32")
+                await resolvePathToNodeIdx("d32")
             ].stateValues.formula.equals(me.fromText("sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d32")
+                await resolvePathToNodeIdx("d32")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z"]);
         expect(
             stateVariables[
-                resolveComponentName("d32")
+                await resolvePathToNodeIdx("d32")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d33")
+                await resolvePathToNodeIdx("d33")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d33")
+                await resolvePathToNodeIdx("d33")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("d33")
+                await resolvePathToNodeIdx("d33")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d34")
+                await resolvePathToNodeIdx("d34")
             ].stateValues.formula.equals(me.fromText("sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d34")
+                await resolvePathToNodeIdx("d34")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("d34")
+                await resolvePathToNodeIdx("d34")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d35")
+                await resolvePathToNodeIdx("d35")
             ].stateValues.formula.equals(me.fromText("2 y cos(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d35")
+                await resolvePathToNodeIdx("d35")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("d35")
+                await resolvePathToNodeIdx("d35")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y", "z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d36")
+                await resolvePathToNodeIdx("d36")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d36")
+                await resolvePathToNodeIdx("d36")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("d36")
+                await resolvePathToNodeIdx("d36")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "x", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d37")
+                await resolvePathToNodeIdx("d37")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d37")
+                await resolvePathToNodeIdx("d37")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("d37")
+                await resolvePathToNodeIdx("d37")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["u"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d38")
+                await resolvePathToNodeIdx("d38")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d38")
+                await resolvePathToNodeIdx("d38")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z"]);
         expect(
             stateVariables[
-                resolveComponentName("d38")
+                await resolvePathToNodeIdx("d38")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "x", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d41")
+                await resolvePathToNodeIdx("d41")
             ].stateValues.formula.equals(me.fromText("cos(x_1+x_2^2)x_3")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d41")
+                await resolvePathToNodeIdx("d41")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1144,18 +1148,18 @@ describe("Function Operator tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                resolveComponentName("d41")
+                await resolvePathToNodeIdx("d41")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls([["_", "x", 1]]);
 
         expect(
             stateVariables[
-                resolveComponentName("d42")
+                await resolvePathToNodeIdx("d42")
             ].stateValues.formula.equals(me.fromText("-2 x_2 sin(x_1+x_2^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d42")
+                await resolvePathToNodeIdx("d42")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1164,7 +1168,7 @@ describe("Function Operator tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                resolveComponentName("d42")
+                await resolvePathToNodeIdx("d42")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1174,12 +1178,12 @@ describe("Function Operator tag tests", async () => {
 
         expect(
             stateVariables[
-                resolveComponentName("d43")
+                await resolvePathToNodeIdx("d43")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d43")
+                await resolvePathToNodeIdx("d43")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1188,18 +1192,18 @@ describe("Function Operator tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                resolveComponentName("d43")
+                await resolvePathToNodeIdx("d43")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d44")
+                await resolvePathToNodeIdx("d44")
             ].stateValues.formula.equals(me.fromText("-2 x_2 sin(x_1+x_2^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d44")
+                await resolvePathToNodeIdx("d44")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 3],
@@ -1208,7 +1212,7 @@ describe("Function Operator tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                resolveComponentName("d44")
+                await resolvePathToNodeIdx("d44")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1218,7 +1222,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("specifying derivative variables of an expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <math name="m1">sin(x+y^2)z</math>
       <math name="m2">sin(x_1+x_2^2)x_3</math>
@@ -1261,428 +1265,428 @@ describe("Function Operator tag tests", async () => {
 
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d2")
+                await resolvePathToNodeIdx("d2")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d2")
+                await resolvePathToNodeIdx("d2")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d2")
+                await resolvePathToNodeIdx("d2")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d3")
+                await resolvePathToNodeIdx("d3")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d3")
+                await resolvePathToNodeIdx("d3")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d3")
+                await resolvePathToNodeIdx("d3")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d4")
+                await resolvePathToNodeIdx("d4")
             ].stateValues.formula.equals(me.fromText("sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d4")
+                await resolvePathToNodeIdx("d4")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("d4")
+                await resolvePathToNodeIdx("d4")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d5")
+                await resolvePathToNodeIdx("d5")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d5")
+                await resolvePathToNodeIdx("d5")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d5")
+                await resolvePathToNodeIdx("d5")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d5a")
+                await resolvePathToNodeIdx("d5a")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d5a")
+                await resolvePathToNodeIdx("d5a")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d5a")
+                await resolvePathToNodeIdx("d5a")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d6")
+                await resolvePathToNodeIdx("d6")
             ].stateValues.formula.equals(me.fromText("-sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6")
+                await resolvePathToNodeIdx("d6")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d6")
+                await resolvePathToNodeIdx("d6")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d6a")
+                await resolvePathToNodeIdx("d6a")
             ].stateValues.formula.equals(me.fromText("-sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6a")
+                await resolvePathToNodeIdx("d6a")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d6a")
+                await resolvePathToNodeIdx("d6a")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d6b")
+                await resolvePathToNodeIdx("d6b")
             ].stateValues.formula.equals(me.fromText("-sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6b")
+                await resolvePathToNodeIdx("d6b")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d6b")
+                await resolvePathToNodeIdx("d6b")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d6c")
+                await resolvePathToNodeIdx("d6c")
             ].stateValues.formula.equals(me.fromText("-sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6c")
+                await resolvePathToNodeIdx("d6c")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d6c")
+                await resolvePathToNodeIdx("d6c")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d6d")
+                await resolvePathToNodeIdx("d6d")
             ].stateValues.formula.equals(me.fromText("-sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6d")
+                await resolvePathToNodeIdx("d6d")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d6d")
+                await resolvePathToNodeIdx("d6d")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d7")
+                await resolvePathToNodeIdx("d7")
             ].stateValues.formula.equals(me.fromText("-2 y sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d7")
+                await resolvePathToNodeIdx("d7")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("d7")
+                await resolvePathToNodeIdx("d7")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d7a")
+                await resolvePathToNodeIdx("d7a")
             ].stateValues.formula.equals(me.fromText("-2 y sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d7a")
+                await resolvePathToNodeIdx("d7a")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d7a")
+                await resolvePathToNodeIdx("d7a")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d7b")
+                await resolvePathToNodeIdx("d7b")
             ].stateValues.formula.equals(me.fromText("-2 y sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d7b")
+                await resolvePathToNodeIdx("d7b")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d7b")
+                await resolvePathToNodeIdx("d7b")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d7c")
+                await resolvePathToNodeIdx("d7c")
             ].stateValues.formula.equals(me.fromText("-2 y sin(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d7c")
+                await resolvePathToNodeIdx("d7c")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d7c")
+                await resolvePathToNodeIdx("d7c")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d8")
+                await resolvePathToNodeIdx("d8")
             ].stateValues.formula.equals(me.fromText("-2 y sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d8")
+                await resolvePathToNodeIdx("d8")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d8")
+                await resolvePathToNodeIdx("d8")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d8a")
+                await resolvePathToNodeIdx("d8a")
             ].stateValues.formula.equals(me.fromText("-2 y sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d8a")
+                await resolvePathToNodeIdx("d8a")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d8a")
+                await resolvePathToNodeIdx("d8a")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d8b")
+                await resolvePathToNodeIdx("d8b")
             ].stateValues.formula.equals(me.fromText("-2 y sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d8b")
+                await resolvePathToNodeIdx("d8b")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d8b")
+                await resolvePathToNodeIdx("d8b")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d8c")
+                await resolvePathToNodeIdx("d8c")
             ].stateValues.formula.equals(me.fromText("-2 y sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d8c")
+                await resolvePathToNodeIdx("d8c")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d8c")
+                await resolvePathToNodeIdx("d8c")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d9")
+                await resolvePathToNodeIdx("d9")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d9")
+                await resolvePathToNodeIdx("d9")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d9")
+                await resolvePathToNodeIdx("d9")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x", "y", "z", "x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d9a")
+                await resolvePathToNodeIdx("d9a")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d9a")
+                await resolvePathToNodeIdx("d9a")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d9a")
+                await resolvePathToNodeIdx("d9a")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d9b")
+                await resolvePathToNodeIdx("d9b")
             ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d9b")
-            ].stateValues.variables.map((x) => x.tree),
-        ).eqls(["x", "y", "z"]);
-        expect(
-            stateVariables[
-                resolveComponentName("d9b")
-            ].stateValues.derivVariables.map((x) => x.tree),
-        ).eqls(["x"]);
-
-        expect(
-            stateVariables[
-                resolveComponentName("d9c")
-            ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)")),
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("d9c")
+                await resolvePathToNodeIdx("d9b")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d9c")
+                await resolvePathToNodeIdx("d9b")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d10")
+                await resolvePathToNodeIdx("d9c")
+            ].stateValues.formula.equals(me.fromText("-2 y cos(x+y^2)")),
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d9c")
+            ].stateValues.variables.map((x) => x.tree),
+        ).eqls(["x", "y", "z"]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d9c")
+            ].stateValues.derivVariables.map((x) => x.tree),
+        ).eqls(["x"]);
+
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d10")
             ].stateValues.formula.equals(me.fromText("0")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d10")
+                await resolvePathToNodeIdx("d10")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["q"]);
         expect(
             stateVariables[
-                resolveComponentName("d10")
+                await resolvePathToNodeIdx("d10")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["q"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d11")
+                await resolvePathToNodeIdx("d11")
             ].stateValues.formula.equals(me.fromText("2 y cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d11")
+                await resolvePathToNodeIdx("d11")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d11")
+                await resolvePathToNodeIdx("d11")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d12")
+                await resolvePathToNodeIdx("d12")
             ].stateValues.formula.equals(me.fromText("2 y cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d12")
+                await resolvePathToNodeIdx("d12")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("d12")
+                await resolvePathToNodeIdx("d12")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("d13")
+                await resolvePathToNodeIdx("d13")
             ].stateValues.formula.equals(me.fromText("cos(x_1+x_2^2)x_3")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d13")
+                await resolvePathToNodeIdx("d13")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1691,23 +1695,23 @@ describe("Function Operator tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                resolveComponentName("d13")
+                await resolvePathToNodeIdx("d13")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls([["_", "x", 1]]);
 
         expect(
             stateVariables[
-                resolveComponentName("d14")
+                await resolvePathToNodeIdx("d14")
             ].stateValues.formula.equals(me.fromText("-sin(x_1+x_2^2)x_3")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d14")
+                await resolvePathToNodeIdx("d14")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([["_", "x", 1]]);
         expect(
             stateVariables[
-                resolveComponentName("d14")
+                await resolvePathToNodeIdx("d14")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1716,12 +1720,12 @@ describe("Function Operator tag tests", async () => {
 
         expect(
             stateVariables[
-                resolveComponentName("d15")
+                await resolvePathToNodeIdx("d15")
             ].stateValues.formula.equals(me.fromText("-sin(x_1+x_2^2)x_3")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d15")
+                await resolvePathToNodeIdx("d15")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1730,7 +1734,7 @@ describe("Function Operator tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                resolveComponentName("d15")
+                await resolvePathToNodeIdx("d15")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1739,7 +1743,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("derivative of function with changed variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f1" variables="x y z">sin(x+y^2)z</function>
       <function name="f2" variables="z y x">$f1</function>
@@ -1761,44 +1765,44 @@ describe("Function Operator tag tests", async () => {
 
         expect(
             stateVariables[
-                resolveComponentName("df1")
+                await resolvePathToNodeIdx("df1")
             ].stateValues.formula.equals(me.fromText("cos(x+y^2)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df1")
+                await resolvePathToNodeIdx("df1")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("df1")
+                await resolvePathToNodeIdx("df1")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df2")
+                await resolvePathToNodeIdx("df2")
             ].stateValues.formula.equals(me.fromText("sin(x+y^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df2")
+                await resolvePathToNodeIdx("df2")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("df2")
+                await resolvePathToNodeIdx("df2")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("dg1")
+                await resolvePathToNodeIdx("dg1")
             ].stateValues.formula.equals(me.fromText("cos(x_1+x_2^2)x_3")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("dg1")
+                await resolvePathToNodeIdx("dg1")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 1],
@@ -1807,18 +1811,18 @@ describe("Function Operator tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                resolveComponentName("dg1")
+                await resolvePathToNodeIdx("dg1")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls([["_", "x", 1]]);
 
         expect(
             stateVariables[
-                resolveComponentName("dg2")
+                await resolvePathToNodeIdx("dg2")
             ].stateValues.formula.equals(me.fromText("sin(x_1+x_2^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("dg2")
+                await resolvePathToNodeIdx("dg2")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls([
             ["_", "x", 3],
@@ -1827,13 +1831,13 @@ describe("Function Operator tag tests", async () => {
         ]);
         expect(
             stateVariables[
-                resolveComponentName("dg2")
+                await resolvePathToNodeIdx("dg2")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls([["_", "x", 3]]);
     });
 
     it("derivative of function with changed variables, convert to single variable function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <section name="fs">
       <function name="f1" variables="x y z">sin(x)z</function>
@@ -1887,329 +1891,329 @@ describe("Function Operator tag tests", async () => {
 
         expect(
             stateVariables[
-                resolveComponentName("df1")
+                await resolvePathToNodeIdx("df1")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df1")
+                await resolvePathToNodeIdx("df1")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("df1")
+                await resolvePathToNodeIdx("df1")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df2")
+                await resolvePathToNodeIdx("df2")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df2")
+                await resolvePathToNodeIdx("df2")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("df2")
+                await resolvePathToNodeIdx("df2")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df2a")
+                await resolvePathToNodeIdx("df2a")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df2a")
+                await resolvePathToNodeIdx("df2a")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df3zy")
+                await resolvePathToNodeIdx("df3zy")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df3zy")
+                await resolvePathToNodeIdx("df3zy")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("df3zy")
+                await resolvePathToNodeIdx("df3zy")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df3y")
+                await resolvePathToNodeIdx("df3y")
             ].stateValues.formula.equals(me.fromText("sin(x)z")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df3y")
+                await resolvePathToNodeIdx("df3y")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("df3y")
+                await resolvePathToNodeIdx("df3y")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df3zya")
+                await resolvePathToNodeIdx("df3zya")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df3zya")
+                await resolvePathToNodeIdx("df3zya")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("df3zya")
+                await resolvePathToNodeIdx("df3zya")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df4zy")
+                await resolvePathToNodeIdx("df4zy")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df4zy")
+                await resolvePathToNodeIdx("df4zy")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("df4zy")
+                await resolvePathToNodeIdx("df4zy")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z", "y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df4z")
+                await resolvePathToNodeIdx("df4z")
             ].stateValues.formula.equals(me.fromText("sin(x)y")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df4z")
+                await resolvePathToNodeIdx("df4z")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("df4z")
+                await resolvePathToNodeIdx("df4z")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["z"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df4yz")
+                await resolvePathToNodeIdx("df4yz")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df4yz")
+                await resolvePathToNodeIdx("df4yz")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y", "x"]);
         expect(
             stateVariables[
-                resolveComponentName("df4yz")
+                await resolvePathToNodeIdx("df4yz")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["y"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df4zya")
+                await resolvePathToNodeIdx("df4zya")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df4zya")
+                await resolvePathToNodeIdx("df4zya")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
             stateVariables[
-                resolveComponentName("df4yza")
+                await resolvePathToNodeIdx("df4yza")
             ].stateValues.formula.equals(me.fromText("sin(x)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("df4yza")
+                await resolvePathToNodeIdx("df4yza")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
 
         expect(
-            stateVariables[resolveComponentName("ts[1].df1")].stateValues.value
-                .tree,
-        ).eqls(["apply", "sin", -2]);
-        expect(
-            stateVariables[resolveComponentName("ts[1].df2a")].stateValues.value
-                .tree,
-        ).eqls(["apply", "sin", -2]);
-        expect(
-            stateVariables[resolveComponentName("ts[1].df3zy")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[1].df1")].stateValues
                 .value.tree,
         ).eqls(["apply", "sin", -2]);
         expect(
-            stateVariables[resolveComponentName("ts[1].df3zya")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[1].df2a")].stateValues
                 .value.tree,
         ).eqls(["apply", "sin", -2]);
         expect(
-            stateVariables[resolveComponentName("ts[1].df4zya")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[1].df3zy")]
+                .stateValues.value.tree,
         ).eqls(["apply", "sin", -2]);
         expect(
-            stateVariables[resolveComponentName("ts[1].df4yza")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[1].df3zya")]
+                .stateValues.value.tree,
         ).eqls(["apply", "sin", -2]);
         expect(
-            stateVariables[resolveComponentName("ts[1].df1n")].stateValues.value
-                .tree,
-        ).closeTo(Math.sin(-2), 1e-10);
+            stateVariables[await resolvePathToNodeIdx("ts[1].df4zya")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "sin", -2]);
         expect(
-            stateVariables[resolveComponentName("ts[1].df2an")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[1].df4yza")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "sin", -2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ts[1].df1n")].stateValues
                 .value.tree,
         ).closeTo(Math.sin(-2), 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[1].df3zyn")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[1].df2an")]
+                .stateValues.value.tree,
         ).closeTo(Math.sin(-2), 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[1].df3zyan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[1].df3zyn")]
+                .stateValues.value.tree,
         ).closeTo(Math.sin(-2), 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[1].df4zyan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[1].df3zyan")]
+                .stateValues.value.tree,
         ).closeTo(Math.sin(-2), 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[1].df4yzan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[1].df4zyan")]
+                .stateValues.value.tree,
+        ).closeTo(Math.sin(-2), 1e-10);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ts[1].df4yzan")]
+                .stateValues.value.tree,
         ).closeTo(Math.sin(-2), 1e-10);
 
         expect(
-            stateVariables[resolveComponentName("ts[2].df1")].stateValues.value
-                .tree,
-        ).eq(0);
-        expect(
-            stateVariables[resolveComponentName("ts[2].df2a")].stateValues.value
-                .tree,
-        ).eq(0);
-        expect(
-            stateVariables[resolveComponentName("ts[2].df3zy")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[2].df1")].stateValues
                 .value.tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("ts[2].df3zya")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[2].df2a")].stateValues
                 .value.tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("ts[2].df4zya")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[2].df3zy")]
+                .stateValues.value.tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("ts[2].df4yza")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[2].df3zya")]
+                .stateValues.value.tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("ts[2].df1n")].stateValues.value
-                .tree,
-        ).closeTo(0, 1e-10);
+            stateVariables[await resolvePathToNodeIdx("ts[2].df4zya")]
+                .stateValues.value.tree,
+        ).eq(0);
         expect(
-            stateVariables[resolveComponentName("ts[2].df2an")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[2].df4yza")]
+                .stateValues.value.tree,
+        ).eq(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ts[2].df1n")].stateValues
                 .value.tree,
         ).closeTo(0, 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[2].df3zyn")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[2].df2an")]
+                .stateValues.value.tree,
         ).closeTo(0, 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[2].df3zyan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[2].df3zyn")]
+                .stateValues.value.tree,
         ).closeTo(0, 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[2].df4zyan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[2].df3zyan")]
+                .stateValues.value.tree,
         ).closeTo(0, 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[2].df4yzan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[2].df4zyan")]
+                .stateValues.value.tree,
+        ).closeTo(0, 1e-10);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ts[2].df4yzan")]
+                .stateValues.value.tree,
         ).closeTo(0, 1e-10);
 
         expect(
-            stateVariables[resolveComponentName("ts[3].df1")].stateValues.value
-                .tree,
-        ).eqls(["apply", "sin", 2]);
-        expect(
-            stateVariables[resolveComponentName("ts[3].df2a")].stateValues.value
-                .tree,
-        ).eqls(["apply", "sin", 2]);
-        expect(
-            stateVariables[resolveComponentName("ts[3].df3zy")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[3].df1")].stateValues
                 .value.tree,
         ).eqls(["apply", "sin", 2]);
         expect(
-            stateVariables[resolveComponentName("ts[3].df3zya")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[3].df2a")].stateValues
                 .value.tree,
         ).eqls(["apply", "sin", 2]);
         expect(
-            stateVariables[resolveComponentName("ts[3].df4zya")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[3].df3zy")]
+                .stateValues.value.tree,
         ).eqls(["apply", "sin", 2]);
         expect(
-            stateVariables[resolveComponentName("ts[3].df4yza")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[3].df3zya")]
+                .stateValues.value.tree,
         ).eqls(["apply", "sin", 2]);
         expect(
-            stateVariables[resolveComponentName("ts[3].df1n")].stateValues.value
-                .tree,
-        ).closeTo(Math.sin(2), 1e-10);
+            stateVariables[await resolvePathToNodeIdx("ts[3].df4zya")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "sin", 2]);
         expect(
-            stateVariables[resolveComponentName("ts[3].df2an")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts[3].df4yza")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "sin", 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ts[3].df1n")].stateValues
                 .value.tree,
         ).closeTo(Math.sin(2), 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[3].df3zyn")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[3].df2an")]
+                .stateValues.value.tree,
         ).closeTo(Math.sin(2), 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[3].df3zyan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[3].df3zyn")]
+                .stateValues.value.tree,
         ).closeTo(Math.sin(2), 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[3].df4zyan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[3].df3zyan")]
+                .stateValues.value.tree,
         ).closeTo(Math.sin(2), 1e-10);
         expect(
-            stateVariables[resolveComponentName("ts[3].df4yzan")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("ts[3].df4zyan")]
+                .stateValues.value.tree,
+        ).closeTo(Math.sin(2), 1e-10);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ts[3].df4yzan")]
+                .stateValues.value.tree,
         ).closeTo(Math.sin(2), 1e-10);
 
         let df1 =
-            stateVariables[resolveComponentName("df1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df1")].stateValues
                 .numericalfs[0];
         let df2a =
-            stateVariables[resolveComponentName("df2a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df2a")].stateValues
                 .numericalfs[0];
         let df3zy =
-            stateVariables[resolveComponentName("df3zy")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df3zy")].stateValues
                 .numericalfs[0];
         let df3zya =
-            stateVariables[resolveComponentName("df3zya")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df3zya")].stateValues
                 .numericalfs[0];
         let df4zya =
-            stateVariables[resolveComponentName("df4zya")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df4zya")].stateValues
                 .numericalfs[0];
         let df4yza =
-            stateVariables[resolveComponentName("df4yza")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df4yza")].stateValues
                 .numericalfs[0];
 
         for (let i = 1; i <= 21; i++) {
@@ -2224,7 +2228,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("derivative with empty variables attribute", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <derivative name="d1" variables="">x^2</derivative>
 
@@ -2238,22 +2242,22 @@ describe("Function Operator tag tests", async () => {
 
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.formula.equals(me.fromText("2x")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.derivVariables.map((x) => x.tree),
         ).eqls(["x"]);
 
         let d1 =
-            stateVariables[resolveComponentName("d1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                 .numericalfs[0];
 
         for (let i = 1; i <= 21; i++) {
@@ -2263,7 +2267,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("derivatives of vector-valued functions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f1">(sin(x), cos(x))</function>
       <function name="f2" variables="y">(e^(2y), y, log(y))</function>
@@ -2297,204 +2301,204 @@ describe("Function Operator tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("d1")
+                await resolvePathToNodeIdx("d1")
             ].stateValues.formula.equals(me.fromText("(2x,3x^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d2")
+                await resolvePathToNodeIdx("d2")
             ].stateValues.formula.equals(me.fromText("(2x,3x^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d2b")
+                await resolvePathToNodeIdx("d2b")
             ].stateValues.formula.equals(me.fromText("(2x,3x^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d2c")
+                await resolvePathToNodeIdx("d2c")
             ].stateValues.formula.equals(me.fromText("(2x,3x^2)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d3")
+                await resolvePathToNodeIdx("d3")
             ].stateValues.formula.equals(
                 me.fromText("(2x sin(z), z^2 cos(x))"),
             ),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d4")
+                await resolvePathToNodeIdx("d4")
             ].stateValues.formula.equals(me.fromText("(x^2cos(z), 2z sin(x))")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d4b")
+                await resolvePathToNodeIdx("d4b")
             ].stateValues.formula.equals(me.fromText("(x^2cos(z), 2z sin(x))")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d5")
+                await resolvePathToNodeIdx("d5")
             ].stateValues.formula.equals(me.fromText("(cos(x),-sin(x))")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d5b")
+                await resolvePathToNodeIdx("d5b")
             ].stateValues.formula.equals(me.fromText("(cos(x), -sin(x))")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6")
+                await resolvePathToNodeIdx("d6")
             ].stateValues.formula.equals(me.fromText("(2e^(2y),1,1/y)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d6b")
+                await resolvePathToNodeIdx("d6b")
             ].stateValues.formula.equals(me.fromText("(2e^(2y),1,1/y)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d7")
+                await resolvePathToNodeIdx("d7")
             ].stateValues.formula.equals(me.fromText("(yz, y, z, 0)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d7b")
+                await resolvePathToNodeIdx("d7b")
             ].stateValues.formula.equals(me.fromText("(yz, y, z, 0)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d8")
+                await resolvePathToNodeIdx("d8")
             ].stateValues.formula.equals(me.fromText("(xy, 0, x, y)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d8b")
+                await resolvePathToNodeIdx("d8b")
             ].stateValues.formula.equals(me.fromText("(xy, 0, x, y)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d9")
+                await resolvePathToNodeIdx("d9")
             ].stateValues.formula.equals(me.fromText("(0,0)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d10")
+                await resolvePathToNodeIdx("d10")
             ].stateValues.formula.equals(me.fromText("(0,0,0)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d11")
+                await resolvePathToNodeIdx("d11")
             ].stateValues.formula.equals(me.fromText("(0,0,0,0)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d12")
+                await resolvePathToNodeIdx("d12")
             ].stateValues.formula.equals(me.fromText("(0,0,0,0)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d13")
+                await resolvePathToNodeIdx("d13")
             ].stateValues.formula.equals(me.fromText("(xz,x,0,z)")),
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("d14")
+                await resolvePathToNodeIdx("d14")
             ].stateValues.formula.equals(me.fromText("(xz,x,0,z)")),
         ).eq(true);
 
         let d1_1 =
-            stateVariables[resolveComponentName("d1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                 .numericalfs[0];
         let d1_2 =
-            stateVariables[resolveComponentName("d1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                 .numericalfs[1];
         let d2_1 =
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                 .numericalfs[0];
         let d2_2 =
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                 .numericalfs[1];
         let d2b_1 =
-            stateVariables[resolveComponentName("d2b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2b")].stateValues
                 .numericalfs[0];
         let d2b_2 =
-            stateVariables[resolveComponentName("d2b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2b")].stateValues
                 .numericalfs[1];
         let d2c_1 =
-            stateVariables[resolveComponentName("d2c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2c")].stateValues
                 .numericalfs[0];
         let d2c_2 =
-            stateVariables[resolveComponentName("d2c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2c")].stateValues
                 .numericalfs[1];
         let d5_1 =
-            stateVariables[resolveComponentName("d5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d5")].stateValues
                 .numericalfs[0];
         let d5_2 =
-            stateVariables[resolveComponentName("d5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d5")].stateValues
                 .numericalfs[1];
         let d5b_1 =
-            stateVariables[resolveComponentName("d5b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d5b")].stateValues
                 .numericalfs[0];
         let d5b_2 =
-            stateVariables[resolveComponentName("d5b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d5b")].stateValues
                 .numericalfs[1];
         let d6_1 =
-            stateVariables[resolveComponentName("d6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6")].stateValues
                 .numericalfs[0];
         let d6_2 =
-            stateVariables[resolveComponentName("d6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6")].stateValues
                 .numericalfs[1];
         let d6_3 =
-            stateVariables[resolveComponentName("d6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6")].stateValues
                 .numericalfs[2];
         let d6b_1 =
-            stateVariables[resolveComponentName("d6b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6b")].stateValues
                 .numericalfs[0];
         let d6b_2 =
-            stateVariables[resolveComponentName("d6b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6b")].stateValues
                 .numericalfs[1];
         let d6b_3 =
-            stateVariables[resolveComponentName("d6b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6b")].stateValues
                 .numericalfs[2];
         let d9_1 =
-            stateVariables[resolveComponentName("d9")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d9")].stateValues
                 .numericalfs[0];
         let d9_2 =
-            stateVariables[resolveComponentName("d9")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d9")].stateValues
                 .numericalfs[1];
         let d10_1 =
-            stateVariables[resolveComponentName("d10")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d10")].stateValues
                 .numericalfs[0];
         let d10_2 =
-            stateVariables[resolveComponentName("d10")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d10")].stateValues
                 .numericalfs[1];
         let d10_3 =
-            stateVariables[resolveComponentName("d10")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d10")].stateValues
                 .numericalfs[2];
         let d11_1 =
-            stateVariables[resolveComponentName("d11")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d11")].stateValues
                 .numericalfs[0];
         let d11_2 =
-            stateVariables[resolveComponentName("d11")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d11")].stateValues
                 .numericalfs[1];
         let d11_3 =
-            stateVariables[resolveComponentName("d11")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d11")].stateValues
                 .numericalfs[2];
         let d11_4 =
-            stateVariables[resolveComponentName("d11")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d11")].stateValues
                 .numericalfs[3];
         let d12_1 =
-            stateVariables[resolveComponentName("d12")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d12")].stateValues
                 .numericalfs[0];
         let d12_2 =
-            stateVariables[resolveComponentName("d12")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d12")].stateValues
                 .numericalfs[1];
         let d12_3 =
-            stateVariables[resolveComponentName("d12")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d12")].stateValues
                 .numericalfs[2];
         let d12_4 =
-            stateVariables[resolveComponentName("d12")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d12")].stateValues
                 .numericalfs[3];
 
         for (let i = 1; i <= 21; i++) {
@@ -2543,7 +2547,7 @@ describe("Function Operator tag tests", async () => {
 
     // check to make sure fixed bug where wasn't displaying inside <m>
     it("derivative displayed inside <m>", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p name="p1">Let <m>f(x) = <function name="f">sin(x)</function></m>.</p>
       <p name="p2">Then <m>f'(x) = <derivative>$f</derivative></m>.</p>
@@ -2551,16 +2555,16 @@ describe("Function Operator tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "Let f(x) = sin(x).",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Then f'(x) = cos(x).",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Let f(x) = sin(x).");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Then f'(x) = cos(x).");
     });
 
     it("derivatives of interpolated function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <graph>
         <function minima='(3,4)' name="f" />
@@ -2577,25 +2581,25 @@ describe("Function Operator tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let f1 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let d1 =
-            stateVariables[resolveComponentName("d1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                 .numericalfs[0];
         let d2 =
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                 .numericalfs[0];
         let d3 =
-            stateVariables[resolveComponentName("d3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues
                 .numericalfs[0];
         let d4 =
-            stateVariables[resolveComponentName("d4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues
                 .numericalfs[0];
         let d5 =
-            stateVariables[resolveComponentName("d5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d5")].stateValues
                 .numericalfs[0];
         let d6 =
-            stateVariables[resolveComponentName("d6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d6")].stateValues
                 .numericalfs[0];
 
         for (let x = -10; x <= 10; x += 0.5) {
@@ -2610,7 +2614,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("derivatives of interpolated function 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <graph>
         <function name="f" minima="(3,4)" through="(-1,5) (4,2)" maxima="(1,0)" />
@@ -2627,19 +2631,19 @@ describe("Function Operator tag tests", async () => {
         let dx = 0.0001;
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let d1 =
-            stateVariables[resolveComponentName("d1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                 .numericalfs[0];
         let d2 =
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                 .numericalfs[0];
         let d3 =
-            stateVariables[resolveComponentName("d3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues
                 .numericalfs[0];
         let d4 =
-            stateVariables[resolveComponentName("d4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues
                 .numericalfs[0];
 
         // make sure we don't get within dx of a grid point
@@ -2664,7 +2668,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("derivatives of interpolated function that is not a function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <graph>
         <function through='(3,4) (3,5)' name="f" />
@@ -2680,25 +2684,25 @@ describe("Function Operator tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "f(3) = NaN",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "f'(3) = NaN",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("f(3) = NaN");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("f'(3) = NaN");
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let df =
-            stateVariables[resolveComponentName("df")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df")].stateValues
                 .numericalfs[0];
         expect(f(3)).eqls(NaN);
         expect(df(3)).eqls(NaN);
     });
 
     it("derivatives of interpolated function specified with variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f" variables="x" maxima="(5,-3)" minima="(-5,3)" />
       <function name="g" styleNumber="2" variable="y" minima="(3,-9)" maxima="(-3,9)" />
@@ -2735,58 +2739,58 @@ describe("Function Operator tag tests", async () => {
         let dx = 0.0001;
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let df1 =
-            stateVariables[resolveComponentName("df1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df1")].stateValues
                 .numericalfs[0];
         let df1b =
-            stateVariables[resolveComponentName("df1b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df1b")].stateValues
                 .numericalfs[0];
         let df2 =
-            stateVariables[resolveComponentName("df2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df2")].stateValues
                 .numericalfs[0];
         let df3 =
-            stateVariables[resolveComponentName("df3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df3")].stateValues
                 .numericalfs[0];
         let df4 =
-            stateVariables[resolveComponentName("df4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df4")].stateValues
                 .numericalfs[0];
         let g =
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .numericalfs[0];
         let dg1 =
-            stateVariables[resolveComponentName("dg1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg1")].stateValues
                 .numericalfs[0];
         let dg1b =
-            stateVariables[resolveComponentName("dg1b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg1b")].stateValues
                 .numericalfs[0];
         let dg2 =
-            stateVariables[resolveComponentName("dg2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg2")].stateValues
                 .numericalfs[0];
         let dg3 =
-            stateVariables[resolveComponentName("dg3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg3")].stateValues
                 .numericalfs[0];
         let dg4 =
-            stateVariables[resolveComponentName("dg4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg4")].stateValues
                 .numericalfs[0];
         let zero1 =
-            stateVariables[resolveComponentName("zero1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero1")].stateValues
                 .numericalfs[0];
         let zero2 =
-            stateVariables[resolveComponentName("zero2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero2")].stateValues
                 .numericalfs[0];
         let zero3 =
-            stateVariables[resolveComponentName("zero3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero3")].stateValues
                 .numericalfs[0];
         let zero4 =
-            stateVariables[resolveComponentName("zero4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero4")].stateValues
                 .numericalfs[0];
         let zero5 =
-            stateVariables[resolveComponentName("zero5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero5")].stateValues
                 .numericalfs[0];
         let zero6 =
-            stateVariables[resolveComponentName("zero6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero6")].stateValues
                 .numericalfs[0];
 
         // make sure we don't get within dx of a grid point
@@ -2839,7 +2843,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("derivatives of interpolated function with changed variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f" variables="x" maxima="(5,-3)" minima="(-5,3)" />
       <function name="g" styleNumber="2" variable="y" >$f</function>
@@ -2921,103 +2925,103 @@ describe("Function Operator tag tests", async () => {
         let dx = 0.0001;
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let df1 =
-            stateVariables[resolveComponentName("df1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df1")].stateValues
                 .numericalfs[0];
         let df1b =
-            stateVariables[resolveComponentName("df1b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df1b")].stateValues
                 .numericalfs[0];
         let df2 =
-            stateVariables[resolveComponentName("df2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df2")].stateValues
                 .numericalfs[0];
         let df2b =
-            stateVariables[resolveComponentName("df2b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df2b")].stateValues
                 .numericalfs[0];
         let df3 =
-            stateVariables[resolveComponentName("df3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df3")].stateValues
                 .numericalfs[0];
         let df4 =
-            stateVariables[resolveComponentName("df4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df4")].stateValues
                 .numericalfs[0];
         let g =
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .numericalfs[0];
         let dg1 =
-            stateVariables[resolveComponentName("dg1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg1")].stateValues
                 .numericalfs[0];
         let dg1b =
-            stateVariables[resolveComponentName("dg1b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg1b")].stateValues
                 .numericalfs[0];
         let dg2 =
-            stateVariables[resolveComponentName("dg2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg2")].stateValues
                 .numericalfs[0];
         let dg2b =
-            stateVariables[resolveComponentName("dg2b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg2b")].stateValues
                 .numericalfs[0];
         let dg3 =
-            stateVariables[resolveComponentName("dg3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg3")].stateValues
                 .numericalfs[0];
         let dg4 =
-            stateVariables[resolveComponentName("dg4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg4")].stateValues
                 .numericalfs[0];
         let h =
-            stateVariables[resolveComponentName("h")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .numericalfs[0];
         let dh1 =
-            stateVariables[resolveComponentName("dh1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dh1")].stateValues
                 .numericalfs[0];
         let dh1b =
-            stateVariables[resolveComponentName("dh1b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dh1b")].stateValues
                 .numericalfs[0];
         let dh2 =
-            stateVariables[resolveComponentName("dh2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dh2")].stateValues
                 .numericalfs[0];
         let dh2b =
-            stateVariables[resolveComponentName("dh2b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dh2b")].stateValues
                 .numericalfs[0];
         let dh3 =
-            stateVariables[resolveComponentName("dh3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dh3")].stateValues
                 .numericalfs[0];
         let dh4 =
-            stateVariables[resolveComponentName("dh4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dh4")].stateValues
                 .numericalfs[0];
         let zero1 =
-            stateVariables[resolveComponentName("zero1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero1")].stateValues
                 .numericalfs[0];
         let zero2 =
-            stateVariables[resolveComponentName("zero2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero2")].stateValues
                 .numericalfs[0];
         let zero3 =
-            stateVariables[resolveComponentName("zero3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero3")].stateValues
                 .numericalfs[0];
         let zero4 =
-            stateVariables[resolveComponentName("zero4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero4")].stateValues
                 .numericalfs[0];
         let zero5 =
-            stateVariables[resolveComponentName("zero5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero5")].stateValues
                 .numericalfs[0];
         let zero6 =
-            stateVariables[resolveComponentName("zero6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero6")].stateValues
                 .numericalfs[0];
         let zero7 =
-            stateVariables[resolveComponentName("zero7")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero7")].stateValues
                 .numericalfs[0];
         let zero8 =
-            stateVariables[resolveComponentName("zero8")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero8")].stateValues
                 .numericalfs[0];
         let zero9 =
-            stateVariables[resolveComponentName("zero9")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero9")].stateValues
                 .numericalfs[0];
         let zero10 =
-            stateVariables[resolveComponentName("zero10")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero10")].stateValues
                 .numericalfs[0];
         let zero11 =
-            stateVariables[resolveComponentName("zero11")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero11")].stateValues
                 .numericalfs[0];
         let zero12 =
-            stateVariables[resolveComponentName("zero12")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero12")].stateValues
                 .numericalfs[0];
 
         let i = 0;
@@ -3035,15 +3039,15 @@ describe("Function Operator tag tests", async () => {
             expect(df1b_05).eq(df1_05);
 
             let f_0a =
-                stateVariables[resolveComponentName(`ts[${i}].f_0`)].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].f_0`)]
+                    .stateValues.value.tree;
             expect(f_0a).closeTo(f_0, 1e-10);
             let df1_05a =
-                stateVariables[resolveComponentName(`ts[${i}].df1_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].df1_05`)]
                     .stateValues.value.tree;
             expect(df1_05a).closeTo(df1_05, 1e-10);
             let df1b_05a =
-                stateVariables[resolveComponentName(`ts[${i}].df1b_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].df1b_05`)]
                     .stateValues.value.tree;
             expect(df1b_05a).closeTo(df1b_05, 1e-10);
 
@@ -3057,15 +3061,15 @@ describe("Function Operator tag tests", async () => {
             expect(dg1b_05).eq(dg1_05);
 
             let g_0a =
-                stateVariables[resolveComponentName(`ts[${i}].g_0`)].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].g_0`)]
+                    .stateValues.value.tree;
             expect(g_0a).closeTo(f_0, 1e-10);
             let dg1_05a =
-                stateVariables[resolveComponentName(`ts[${i}].dg1_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dg1_05`)]
                     .stateValues.value.tree;
             expect(dg1_05a).closeTo(df1_05, 1e-10);
             let dg1b_05a =
-                stateVariables[resolveComponentName(`ts[${i}].dg1b_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dg1b_05`)]
                     .stateValues.value.tree;
             expect(dg1b_05a).closeTo(df1b_05, 1e-10);
 
@@ -3079,15 +3083,15 @@ describe("Function Operator tag tests", async () => {
             expect(dh1b_05).eq(dh1_05);
 
             let h_0a =
-                stateVariables[resolveComponentName(`ts[${i}].h_0`)].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].h_0`)]
+                    .stateValues.value.tree;
             expect(h_0a).closeTo(f_0, 1e-10);
             let dh1_05a =
-                stateVariables[resolveComponentName(`ts[${i}].dh1_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dh1_05`)]
                     .stateValues.value.tree;
             expect(dh1_05a).closeTo(df1_05, 1e-10);
             let dh1b_05a =
-                stateVariables[resolveComponentName(`ts[${i}].dh1b_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dh1b_05`)]
                     .stateValues.value.tree;
             expect(dh1b_05a).closeTo(df1b_05, 1e-10);
 
@@ -3096,7 +3100,7 @@ describe("Function Operator tag tests", async () => {
             expect(df2_0).closeTo((df1b_05 - df1_n05) / dx, 1e-6);
 
             let df2_0a =
-                stateVariables[resolveComponentName(`ts[${i}].df2_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].df2_0`)]
                     .stateValues.value.tree;
             expect(df2_0a).closeTo(df2_0, 1e-10);
 
@@ -3104,7 +3108,7 @@ describe("Function Operator tag tests", async () => {
             expect(dg2_0).eq(df2_0);
 
             let dg2_0a =
-                stateVariables[resolveComponentName(`ts[${i}].dg2_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dg2_0`)]
                     .stateValues.value.tree;
             expect(dg2_0a).closeTo(df2_0, 1e-10);
 
@@ -3112,7 +3116,7 @@ describe("Function Operator tag tests", async () => {
             expect(dh2_0).eq(df2_0);
 
             let dh2_0a =
-                stateVariables[resolveComponentName(`ts[${i}].dh2_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dh2_0`)]
                     .stateValues.value.tree;
             expect(dh2_0a).closeTo(df2_0, 1e-10);
 
@@ -3120,7 +3124,7 @@ describe("Function Operator tag tests", async () => {
             expect(df2b_0).eq(df2_0);
 
             let df2b_0a =
-                stateVariables[resolveComponentName(`ts[${i}].df2b_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].df2b_0`)]
                     .stateValues.value.tree;
             expect(df2b_0a).closeTo(df2b_0, 1e-10);
 
@@ -3128,7 +3132,7 @@ describe("Function Operator tag tests", async () => {
             expect(dg2b_0).eq(dg2_0);
 
             let dg2b_0a =
-                stateVariables[resolveComponentName(`ts[${i}].dg2b_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dg2b_0`)]
                     .stateValues.value.tree;
             expect(dg2b_0a).closeTo(df2b_0, 1e-10);
 
@@ -3136,7 +3140,7 @@ describe("Function Operator tag tests", async () => {
             expect(dh2b_0).eq(dh2_0);
 
             let dh2b_0a =
-                stateVariables[resolveComponentName(`ts[${i}].dh2b_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dh2b_0`)]
                     .stateValues.value.tree;
             expect(dh2b_0a).closeTo(df2b_0, 1e-10);
 
@@ -3145,7 +3149,7 @@ describe("Function Operator tag tests", async () => {
             expect(df3_05).closeTo((df2_1 - df2_0) / dx, 1e-6);
 
             let df3_05a =
-                stateVariables[resolveComponentName(`ts[${i}].df3_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].df3_05`)]
                     .stateValues.value.tree;
             expect(df3_05a).closeTo(df3_05, 1e-10);
 
@@ -3153,7 +3157,7 @@ describe("Function Operator tag tests", async () => {
             expect(dg3_05).eq(df3_05);
 
             let dg3_05a =
-                stateVariables[resolveComponentName(`ts[${i}].dg3_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dg3_05`)]
                     .stateValues.value.tree;
             expect(dg3_05a).closeTo(df3_05, 1e-10);
 
@@ -3161,7 +3165,7 @@ describe("Function Operator tag tests", async () => {
             expect(dh3_05).eq(df3_05);
 
             let dh3_05a =
-                stateVariables[resolveComponentName(`ts[${i}].dh3_05`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dh3_05`)]
                     .stateValues.value.tree;
             expect(dh3_05a).closeTo(df3_05, 1e-10);
 
@@ -3170,7 +3174,7 @@ describe("Function Operator tag tests", async () => {
             expect(df4_0).closeTo((df3_05 - df3_n05) / dx, 1e-6);
 
             let df4_0a =
-                stateVariables[resolveComponentName(`ts[${i}].df4_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].df4_0`)]
                     .stateValues.value.tree;
             expect(df4_0a).closeTo(df4_0, 1e-10);
 
@@ -3178,7 +3182,7 @@ describe("Function Operator tag tests", async () => {
             expect(dg4_0).eq(df4_0);
 
             let dg4_0a =
-                stateVariables[resolveComponentName(`ts[${i}].dg4_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dg4_0`)]
                     .stateValues.value.tree;
             expect(dg4_0a).closeTo(df4_0, 1e-10);
 
@@ -3186,7 +3190,7 @@ describe("Function Operator tag tests", async () => {
             expect(dh4_0).eq(df4_0);
 
             let dh4_0a =
-                stateVariables[resolveComponentName(`ts[${i}].dh4_0`)]
+                stateVariables[await resolvePathToNodeIdx(`ts[${i}].dh4_0`)]
                     .stateValues.value.tree;
             expect(dh4_0a).closeTo(df4_0, 1e-10);
 
@@ -3206,7 +3210,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("derivatives of interpolated function with changed variables, subscript", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f" variable="x_1" maxima="(5,-3)" minima="(-5,3)" />
       <function name="g" styleNumber="2" variables="x_2" >$f</function>
@@ -3246,64 +3250,64 @@ describe("Function Operator tag tests", async () => {
         let dx = 0.0001;
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let df1 =
-            stateVariables[resolveComponentName("df1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df1")].stateValues
                 .numericalfs[0];
         let df1b =
-            stateVariables[resolveComponentName("df1b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df1b")].stateValues
                 .numericalfs[0];
         let df2 =
-            stateVariables[resolveComponentName("df2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df2")].stateValues
                 .numericalfs[0];
         let df2b =
-            stateVariables[resolveComponentName("df2b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df2b")].stateValues
                 .numericalfs[0];
         let df3 =
-            stateVariables[resolveComponentName("df3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df3")].stateValues
                 .numericalfs[0];
         let df4 =
-            stateVariables[resolveComponentName("df4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("df4")].stateValues
                 .numericalfs[0];
         let g =
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .numericalfs[0];
         let dg1 =
-            stateVariables[resolveComponentName("dg1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg1")].stateValues
                 .numericalfs[0];
         let dg1b =
-            stateVariables[resolveComponentName("dg1b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg1b")].stateValues
                 .numericalfs[0];
         let dg2 =
-            stateVariables[resolveComponentName("dg2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg2")].stateValues
                 .numericalfs[0];
         let dg2b =
-            stateVariables[resolveComponentName("dg2b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg2b")].stateValues
                 .numericalfs[0];
         let dg3 =
-            stateVariables[resolveComponentName("dg3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg3")].stateValues
                 .numericalfs[0];
         let dg4 =
-            stateVariables[resolveComponentName("dg4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("dg4")].stateValues
                 .numericalfs[0];
         let zero1 =
-            stateVariables[resolveComponentName("zero1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero1")].stateValues
                 .numericalfs[0];
         let zero2 =
-            stateVariables[resolveComponentName("zero2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero2")].stateValues
                 .numericalfs[0];
         let zero3 =
-            stateVariables[resolveComponentName("zero3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero3")].stateValues
                 .numericalfs[0];
         let zero4 =
-            stateVariables[resolveComponentName("zero4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero4")].stateValues
                 .numericalfs[0];
         let zero5 =
-            stateVariables[resolveComponentName("zero5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero5")].stateValues
                 .numericalfs[0];
         let zero6 =
-            stateVariables[resolveComponentName("zero6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("zero6")].stateValues
                 .numericalfs[0];
 
         // make sure we don't get within dx of a grid point
@@ -3357,7 +3361,7 @@ describe("Function Operator tag tests", async () => {
     });
 
     it("extrema of derivative", { timeout: 200000 }, async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><m>c_1 =</m> <mathInput name="c_1" prefill="1" /></p>
     <p><m>c_2 =</m> <mathInput name="c_2" prefill="1" /></p>
@@ -3465,71 +3469,73 @@ describe("Function Operator tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("nMinima")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("nMinima")]
+                    .stateValues.value,
             ).eq(nMinima);
             expect(
-                stateVariables[resolveComponentName("nMinima2")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("nMinima2")]
+                    .stateValues.value,
             ).eq(nMinima);
 
             expect(
-                stateVariables[resolveComponentName("min[1]")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("min[1]")].stateValues
+                    .text,
             ).eq(`( ${minima[0][0]}, ${me.math.round(minima[0][1], 5)} )`);
             expect(
-                stateVariables[resolveComponentName("min2[1]")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("min2[1]")]
+                    .stateValues.text,
             ).eq(`( ${minima[0][0]}, ${me.math.round(minima[0][1], 5)} )`);
             if (nMinima === 2) {
                 expect(
-                    stateVariables[resolveComponentName("min[2]")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("min[2]")]
+                        .stateValues.text,
                 ).eq(`( ${minima[1][0]}, ${me.math.round(minima[1][1], 5)} )`);
                 expect(
-                    stateVariables[resolveComponentName("min2[2]")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("min2[2]")]
+                        .stateValues.text,
                 ).eq(`( ${minima[1][0]}, ${me.math.round(minima[1][1], 5)} )`);
             } else {
-                expect(stateVariables[resolveComponentName("min[2]")]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx("min[2]")]).eq(
                     undefined,
                 );
-                expect(stateVariables[resolveComponentName("min2[2]")]).eq(
-                    undefined,
-                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("min2[2]")],
+                ).eq(undefined);
             }
 
             expect(
-                stateVariables[resolveComponentName("nMaxima")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("nMaxima")]
+                    .stateValues.value,
             ).eq(nMaxima);
             expect(
-                stateVariables[resolveComponentName("nMaxima2")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("nMaxima2")]
+                    .stateValues.value,
             ).eq(nMaxima);
 
             expect(
-                stateVariables[resolveComponentName("max[1]")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("max[1]")].stateValues
+                    .text,
             ).eq(`( ${maxima[0][0]}, ${me.math.round(maxima[0][1], 5)} )`);
             expect(
-                stateVariables[resolveComponentName("max2[1]")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("max2[1]")]
+                    .stateValues.text,
             ).eq(`( ${maxima[0][0]}, ${me.math.round(maxima[0][1], 5)} )`);
             if (nMaxima === 2) {
                 expect(
-                    stateVariables[resolveComponentName("max[2]")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("max[2]")]
+                        .stateValues.text,
                 ).eq(`( ${maxima[1][0]}, ${me.math.round(maxima[1][1], 5)} )`);
                 expect(
-                    stateVariables[resolveComponentName("max2[2]")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("max2[2]")]
+                        .stateValues.text,
                 ).eq(`( ${maxima[1][0]}, ${me.math.round(maxima[1][1], 5)} )`);
             } else {
-                expect(stateVariables[resolveComponentName("max[2]")]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx("max[2]")]).eq(
                     undefined,
                 );
-                expect(stateVariables[resolveComponentName("max2[2]")]).eq(
-                    undefined,
-                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("max2[2]")],
+                ).eq(undefined);
             }
         }
 
@@ -3546,7 +3552,7 @@ describe("Function Operator tag tests", async () => {
         c1 = 3;
         await updateMathInputValue({
             latex: c1.toString(),
-            componentIdx: resolveComponentName("c_1"),
+            componentIdx: await resolvePathToNodeIdx("c_1"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3554,7 +3560,7 @@ describe("Function Operator tag tests", async () => {
         c2 = -5;
         await updateMathInputValue({
             latex: c2.toString(),
-            componentIdx: resolveComponentName("c_2"),
+            componentIdx: await resolvePathToNodeIdx("c_2"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3562,7 +3568,7 @@ describe("Function Operator tag tests", async () => {
         c3 = 1;
         await updateMathInputValue({
             latex: c3.toString(),
-            componentIdx: resolveComponentName("c_3"),
+            componentIdx: await resolvePathToNodeIdx("c_3"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3570,7 +3576,7 @@ describe("Function Operator tag tests", async () => {
         c4 = -6;
         await updateMathInputValue({
             latex: c4.toString(),
-            componentIdx: resolveComponentName("c_4"),
+            componentIdx: await resolvePathToNodeIdx("c_4"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3578,7 +3584,7 @@ describe("Function Operator tag tests", async () => {
         c5 = 3;
         await updateMathInputValue({
             latex: c5.toString(),
-            componentIdx: resolveComponentName("c_5"),
+            componentIdx: await resolvePathToNodeIdx("c_5"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3586,7 +3592,7 @@ describe("Function Operator tag tests", async () => {
         c6 = 2;
         await updateMathInputValue({
             latex: c6.toString(),
-            componentIdx: resolveComponentName("c_6"),
+            componentIdx: await resolvePathToNodeIdx("c_6"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3594,7 +3600,7 @@ describe("Function Operator tag tests", async () => {
         v = "y";
         await updateMathInputValue({
             latex: v,
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3602,7 +3608,7 @@ describe("Function Operator tag tests", async () => {
         c1 = 2;
         await updateMathInputValue({
             latex: c1.toString(),
-            componentIdx: resolveComponentName("c_1"),
+            componentIdx: await resolvePathToNodeIdx("c_1"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3610,7 +3616,7 @@ describe("Function Operator tag tests", async () => {
         c2 = 4;
         await updateMathInputValue({
             latex: c2.toString(),
-            componentIdx: resolveComponentName("c_2"),
+            componentIdx: await resolvePathToNodeIdx("c_2"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3618,7 +3624,7 @@ describe("Function Operator tag tests", async () => {
         c3 = -8;
         await updateMathInputValue({
             latex: c3.toString(),
-            componentIdx: resolveComponentName("c_3"),
+            componentIdx: await resolvePathToNodeIdx("c_3"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3626,7 +3632,7 @@ describe("Function Operator tag tests", async () => {
         c4 = 9;
         await updateMathInputValue({
             latex: c4.toString(),
-            componentIdx: resolveComponentName("c_4"),
+            componentIdx: await resolvePathToNodeIdx("c_4"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3634,7 +3640,7 @@ describe("Function Operator tag tests", async () => {
         c5 = -2;
         await updateMathInputValue({
             latex: c5.toString(),
-            componentIdx: resolveComponentName("c_5"),
+            componentIdx: await resolvePathToNodeIdx("c_5"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3642,7 +3648,7 @@ describe("Function Operator tag tests", async () => {
         c6 = 6;
         await updateMathInputValue({
             latex: c6.toString(),
-            componentIdx: resolveComponentName("c_6"),
+            componentIdx: await resolvePathToNodeIdx("c_6"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -3650,14 +3656,14 @@ describe("Function Operator tag tests", async () => {
         v = "q";
         await updateMathInputValue({
             latex: v,
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
     });
 
     it("extrema of derivative of interpolated function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <graph>
         <function name="f" minima="(-5,-3) (0,-5)" maxima="(-3,0) (6,8)" />
@@ -3685,51 +3691,61 @@ describe("Function Operator tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         let fp =
-            stateVariables[resolveComponentName("fp")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fp")].stateValues
                 .numericalfs[0];
 
         expect(
-            stateVariables[resolveComponentName("nMinima")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("nMinima")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("nMinima2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("nMinima2")].stateValues
+                .value,
         ).eq(1);
 
         expect(
-            stateVariables[resolveComponentName("nMaxima")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("nMaxima")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("nMaxima2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("nMaxima2")].stateValues
+                .value,
         ).eq(2);
 
         let max1x = (-5 - 3) / 2;
         expect(
-            stateVariables[resolveComponentName("max[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("max[1]")].stateValues
+                .text,
         ).eq(`( ${max1x}, ${me.math.round(fp(max1x), 5)} )`);
         expect(
-            stateVariables[resolveComponentName("max2[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("max2[1]")].stateValues
+                .text,
         ).eq(`( ${max1x}, ${me.math.round(fp(max1x), 5)} )`);
 
         let min1x = (-3 + 0) / 2;
 
         expect(
-            stateVariables[resolveComponentName("min[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("min[1]")].stateValues
+                .text,
         ).eq(`( ${min1x}, ${me.math.round(fp(min1x), 5)} )`);
         expect(
-            stateVariables[resolveComponentName("min2[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("min2[1]")].stateValues
+                .text,
         ).eq(`( ${min1x}, ${me.math.round(fp(min1x), 5)} )`);
 
         let max2x = (0 + 6) / 2;
         expect(
-            stateVariables[resolveComponentName("max[2]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("max[2]")].stateValues
+                .text,
         ).eq(`( ${max2x}, ${me.math.round(fp(max2x), 5)} )`);
         expect(
-            stateVariables[resolveComponentName("max2[2]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("max2[2]")].stateValues
+                .text,
         ).eq(`( ${max2x}, ${me.math.round(fp(max2x), 5)} )`);
     });
 
     it("handle no child", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p name="p1"><derivative name="d1" symbolic></derivative></p>
       <p name="p2"><derivative name="d2">$nothing</derivative></p>
@@ -3741,24 +3757,24 @@ describe("Function Operator tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "\uff3f",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "\uff3f",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "NaN",
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            "NaN",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("\uff3f");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("\uff3f");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("NaN");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("NaN");
 
         let d1 =
-            stateVariables[resolveComponentName("d1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                 .numericalfs[0];
         let d2 =
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                 .numericalfs[0];
 
         expect(d1(0)).eqls(NaN);

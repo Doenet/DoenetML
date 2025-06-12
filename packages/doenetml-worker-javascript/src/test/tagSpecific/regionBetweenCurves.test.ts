@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("RegionBetweenCurves tag tests", async () => {
     it("region between two curves", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <text name="t">a</text>
   <graph name="g1">
@@ -28,15 +28,15 @@ describe("RegionBetweenCurves tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            "a",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq("a");
 
         // Not sure what to test until can test jsxgraph output
     });
 
     it("region between two curves, flipped", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <text name="t">a</text>
   <graph name="g1">
@@ -56,15 +56,15 @@ describe("RegionBetweenCurves tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            "a",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq("a");
 
         // Not sure what to test until can test jsxgraph output
     });
 
     it("constrain point to region between two curves", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="a" prefill="-6" />
   <mathInput name="b" prefill="4" />
@@ -84,14 +84,14 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([0, 1]);
 
         // move point below
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: -2,
             y: -6,
             core,
@@ -99,167 +99,213 @@ describe("RegionBetweenCurves tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let px =
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
         let py =
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-2, 1e-12);
         expect(py).closeTo(-1, 1e-12);
 
         // move point to upper left
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: -9,
             y: 3,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-6, 1e-12);
         expect(py).closeTo(1, 1e-12);
 
         // move point to lower left
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: -8,
             y: -6,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-6, 1e-12);
         expect(py).closeTo(0, 1e-12);
 
         // move point to left
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: -10,
             y: 0.4,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-6, 1e-12);
         expect(py).closeTo(0.4, 1e-12);
 
         // move point to right
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: 10,
             y: -0.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(4, 1e-12);
         expect(py).closeTo(-0.2, 1e-12);
 
         // move point to upper right
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: 5,
             y: 4,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(4, 1e-12);
         expect(py).closeTo(0, 1e-12);
 
         // move point to lower right
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: 6,
             y: -9,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(4, 1e-12);
         expect(py).closeTo(-1, 1e-12);
 
         // change boundaries
         await updateMathInputValue({
             latex: "-8",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "-2",
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-2, 1e-12);
         expect(py).closeTo(-1, 1e-12);
 
         // move point to upper right
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: 5,
             y: 4,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-2, 1e-12);
         expect(py).closeTo(0, 1e-12);
 
         // move point to middle
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: -5.2,
             y: 0.1,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-5.2, 1e-12);
         expect(py).closeTo(0.1, 1e-12);
 
         // move point to top
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: -6,
             y: 3,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-6, 1e-12);
         expect(py).closeTo(1, 1e-12);
 
         // move point to left
         await movePoint({
-            componentIdx: resolveComponentName(`P`),
+            componentIdx: await resolvePathToNodeIdx(`P`),
             x: -9.2,
             y: 0.6,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        px = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(px).closeTo(-8, 1e-12);
         expect(py).closeTo(0.6, 1e-12);
     });

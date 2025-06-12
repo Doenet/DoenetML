@@ -7,7 +7,7 @@ vi.mock("hyperformula");
 
 describe("DoenetML text tests", async () => {
     it("doenetML state variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <p name="theP">
           Did you know that
@@ -29,25 +29,27 @@ describe("DoenetML text tests", async () => {
 </p>`;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("theP")].stateValues.text)
-            .eq(`
+        expect(
+            stateVariables[await resolvePathToNodeIdx("theP")].stateValues.text,
+        ).eq(`
           Did you know that
           1 + 1
           =
           2?
         `);
         expect(
-            stateVariables[resolveComponentName("theP")].stateValues.doenetML,
+            stateVariables[await resolvePathToNodeIdx("theP")].stateValues
+                .doenetML,
         ).eqls(thePDoenetML);
 
         let preChild =
-            stateVariables[resolveComponentName("theDoenetML")]
+            stateVariables[await resolvePathToNodeIdx("theDoenetML")]
                 .activeChildren[0].componentIdx;
         expect(stateVariables[preChild].stateValues.value).eqls(thePDoenetML);
     });
 
     it("doenetML from displayDoenetML", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <pre name="theDoenetML"><displayDoenetML name="ddml1">
           <p>A graph of a point</p>
@@ -76,24 +78,29 @@ A string by itself!`;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ddml1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ddml1")].stateValues
+                .value,
         ).eq(thePDoenetML);
         expect(
-            stateVariables[resolveComponentName("ddml1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ddml1")].stateValues
+                .text,
         ).eq(thePDoenetML);
         expect(
-            stateVariables[resolveComponentName("ddml2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ddml2")].stateValues
+                .value,
         ).eq("String with no space.");
         expect(
-            stateVariables[resolveComponentName("ddml3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ddml3")].stateValues
+                .value,
         ).eq("$f");
         expect(
-            stateVariables[resolveComponentName("pMacro")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pMacro")].stateValues
+                .text,
         ).eq("This is a macro: $f.");
     });
 
     it("doenetML from displayDoenetML, remove preceding spacing in pre", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <pre name="preDoenetML1">
           <displayDoenetML name="ddml1">
@@ -148,27 +155,33 @@ ${theDoenetML1}
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ddml1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ddml1")].stateValues
+                .value,
         ).eq(theDoenetML1);
         expect(
-            stateVariables[resolveComponentName("ddml1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ddml1")].stateValues
+                .text,
         ).eq(theDoenetML1);
         expect(
-            stateVariables[resolveComponentName("ddml2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ddml2")].stateValues
+                .value,
         ).eq(theDoenetML2);
         expect(
-            stateVariables[resolveComponentName("ddml2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ddml2")].stateValues
+                .text,
         ).eq(theDoenetML2);
         expect(
-            stateVariables[resolveComponentName("ddml3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ddml3")].stateValues
+                .value,
         ).eq(theDoenetML3);
         expect(
-            stateVariables[resolveComponentName("ddml3")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ddml3")].stateValues
+                .text,
         ).eq(theDoenetML3);
     });
 
     it("copying displayDoenetML, with or without linking", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <section name="s1">
     <pre><displayDoenetML name="ddml">
@@ -216,35 +229,35 @@ ${theDoenetML1}
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i < 3; i++) {
             expect(
-                stateVariables[resolveComponentName(`s${i}.ddml`)].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.ddml`)]
+                    .stateValues.value,
             ).eq(`<text>hello!</text>`);
             expect(
-                stateVariables[resolveComponentName(`s${i}.pd`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.pd`)]
+                    .stateValues.text,
             ).eq(`DoenetML: <p name="p1">A sentence</p>`);
 
             expect(
-                stateVariables[resolveComponentName(`s${i}a.p1`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}a.p1`)]
+                    .stateValues.text,
             ).eq(`Copy: <text>hello!</text>`);
             expect(
-                stateVariables[resolveComponentName(`s${i}a.p2`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}a.p2`)]
+                    .stateValues.text,
             ).eq(`Copy, no link: <text>hello!</text>`);
             expect(
-                stateVariables[resolveComponentName(`s${i}a.p3`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}a.p3`)]
+                    .stateValues.text,
             ).eq(`Copy text: <text>hello!</text>`);
             expect(
-                stateVariables[resolveComponentName(`s${i}a.p4`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}a.p4`)]
+                    .stateValues.text,
             ).eq(`Copy text, no link: <text>hello!</text>`);
         }
     });
 
     it("doenetML inside groups", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <group name='g'>
           <p name="p">Hello</p>
@@ -264,25 +277,28 @@ ${theDoenetML1}
 
         let pdml = `<p name="p">Hello</p>`;
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("dml")].stateValues.text).eq(
-            pdml,
-        );
         expect(
-            stateVariables[resolveComponentName("pdml")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("dml")].stateValues.text,
         ).eq(pdml);
         expect(
-            stateVariables[resolveComponentName("g2.dml")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pdml")].stateValues.text,
         ).eq(pdml);
         expect(
-            stateVariables[resolveComponentName("g2pdml")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g2.dml")].stateValues
+                .text,
         ).eq(pdml);
         expect(
-            stateVariables[resolveComponentName("g2p2dml")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g2pdml")].stateValues
+                .text,
+        ).eq(pdml);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2p2dml")].stateValues
+                .text,
         ).eq(`<p name="p2">Bye</p>`);
     });
 
     it("doenetML of copySource shows the doenetML of the copy", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="s1">
       <p name="p"><text>Hello</text></p>
@@ -315,26 +331,26 @@ ${theDoenetML1}
 
         for (let i = 1; i <= 3; i++) {
             expect(
-                stateVariables[resolveComponentName(`s${i}.pdml`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.pdml`)]
+                    .stateValues.text,
             ).eq(pdml);
             expect(
-                stateVariables[resolveComponentName(`s${i}.p2dml`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.p2dml`)]
+                    .stateValues.text,
             ).eq(p2dml);
             expect(
-                stateVariables[resolveComponentName(`s${i}.mdml`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.mdml`)]
+                    .stateValues.text,
             ).eq(mdml);
             expect(
-                stateVariables[resolveComponentName(`s${i}.m2dml`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.m2dml`)]
+                    .stateValues.text,
             ).eq(m2dml);
         }
     });
 
     it("doenetML of self-closing tags", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="s1">
       <p name="p1"/>
@@ -372,20 +388,20 @@ ${theDoenetML1}
 
         for (let i = 1; i <= 3; i++) {
             expect(
-                stateVariables[resolveComponentName(`s${i}.p1dml`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.p1dml`)]
+                    .stateValues.text,
             ).eq(p1dml);
             expect(
-                stateVariables[resolveComponentName(`s${i}.p2dml`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.p2dml`)]
+                    .stateValues.text,
             ).eq(p2dml);
             expect(
-                stateVariables[resolveComponentName(`s${i}.p3dml`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.p3dml`)]
+                    .stateValues.text,
             ).eq(p3dml);
             expect(
-                stateVariables[resolveComponentName(`s${i}.p4dml`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`s${i}.p4dml`)]
+                    .stateValues.text,
             ).eq(p4dml);
         }
     });

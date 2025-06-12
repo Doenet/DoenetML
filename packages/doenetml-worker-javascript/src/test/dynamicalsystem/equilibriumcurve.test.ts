@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("equilibriumCurve Tag Tests", async () => {
     it("equilibriumCurve change stable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <equilibriumCurve name="A" switchAble through="(1,2) (3,4) (2,6)"/>
@@ -61,31 +61,35 @@ describe("equilibriumCurve Tag Tests", async () => {
         ];
         let svs = await core.returnAllStateVariables(false, true);
         expect(
-            svs[resolveComponentName("g.A")].stateValues.numericalThroughPoints,
+            svs[await resolvePathToNodeIdx("g.A")].stateValues
+                .numericalThroughPoints,
         ).eqls(throughA);
         expect(
-            svs[resolveComponentName("g.B")].stateValues.numericalThroughPoints,
+            svs[await resolvePathToNodeIdx("g.B")].stateValues
+                .numericalThroughPoints,
         ).eqls(throughB);
         expect(
-            svs[resolveComponentName("g.C")].stateValues.numericalThroughPoints,
+            svs[await resolvePathToNodeIdx("g.C")].stateValues
+                .numericalThroughPoints,
         ).eqls(throughC);
         expect(
-            svs[resolveComponentName("g.D")].stateValues.numericalThroughPoints,
+            svs[await resolvePathToNodeIdx("g.D")].stateValues
+                .numericalThroughPoints,
         ).eqls(throughD);
         expect(
-            svs[resolveComponentName("g2.A")].stateValues
+            svs[await resolvePathToNodeIdx("g2.A")].stateValues
                 .numericalThroughPoints,
         ).eqls(throughA);
         expect(
-            svs[resolveComponentName("g2.B")].stateValues
+            svs[await resolvePathToNodeIdx("g2.B")].stateValues
                 .numericalThroughPoints,
         ).eqls(throughB);
         expect(
-            svs[resolveComponentName("g2.C")].stateValues
+            svs[await resolvePathToNodeIdx("g2.C")].stateValues
                 .numericalThroughPoints,
         ).eqls(throughC);
         expect(
-            svs[resolveComponentName("g2.D")].stateValues
+            svs[await resolvePathToNodeIdx("g2.D")].stateValues
                 .numericalThroughPoints,
         ).eqls(throughD);
 
@@ -99,55 +103,71 @@ describe("equilibriumCurve Tag Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("gAs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("gAs")].stateValues
+                    .value,
             ).eqls(As);
             expect(
-                stateVariables[resolveComponentName("gBs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("gBs")].stateValues
+                    .value,
             ).eqls(false);
             expect(
-                stateVariables[resolveComponentName("gCs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("gCs")].stateValues
+                    .value,
             ).eqls(Cs);
             expect(
-                stateVariables[resolveComponentName("gDs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("gDs")].stateValues
+                    .value,
             ).eqls(Ds);
 
             expect(
-                stateVariables[resolveComponentName("g2As")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("g2As")].stateValues
+                    .value,
             ).eqls(As);
             expect(
-                stateVariables[resolveComponentName("g2Bs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("g2Bs")].stateValues
+                    .value,
             ).eqls(false);
             expect(
-                stateVariables[resolveComponentName("g2Cs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("g2Cs")].stateValues
+                    .value,
             ).eqls(Cs);
             expect(
-                stateVariables[resolveComponentName("g2Ds")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("g2Ds")].stateValues
+                    .value,
             ).eqls(Ds);
 
             expect(
-                stateVariables[resolveComponentName("g.A")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g.A")].stateValues
+                    .stable,
             ).eq(As);
             expect(
-                stateVariables[resolveComponentName("g.B")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g.B")].stateValues
+                    .stable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g.C")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g.C")].stateValues
+                    .stable,
             ).eq(Cs);
             expect(
-                stateVariables[resolveComponentName("g.D")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g.D")].stateValues
+                    .stable,
             ).eq(Ds);
 
             expect(
-                stateVariables[resolveComponentName("g2.A")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues
+                    .stable,
             ).eq(As);
             expect(
-                stateVariables[resolveComponentName("g2.B")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g2.B")].stateValues
+                    .stable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g2.C")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g2.C")].stateValues
+                    .stable,
             ).eq(Cs);
             expect(
-                stateVariables[resolveComponentName("g2.D")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g2.D")].stateValues
+                    .stable,
             ).eq(Ds);
         }
 
@@ -156,7 +176,7 @@ describe("equilibriumCurve Tag Tests", async () => {
         // switch C via boolean input
         Cs = !Cs;
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("b1"),
+            componentIdx: await resolvePathToNodeIdx("b1"),
             boolean: Cs,
             core,
         });
@@ -165,7 +185,7 @@ describe("equilibriumCurve Tag Tests", async () => {
         // switch D via boolean input
         Ds = !Ds;
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             boolean: Ds,
             core,
         });
@@ -174,7 +194,7 @@ describe("equilibriumCurve Tag Tests", async () => {
         // switch A via first action
         As = !As;
         await core.requestAction({
-            componentIdx: resolveComponentName("g.A"),
+            componentIdx: await resolvePathToNodeIdx("g.A"),
             actionName: "switchCurve",
             args: {},
         });
@@ -183,7 +203,7 @@ describe("equilibriumCurve Tag Tests", async () => {
         // switch A via second action
         As = !As;
         await core.requestAction({
-            componentIdx: resolveComponentName("g2.A"),
+            componentIdx: await resolvePathToNodeIdx("g2.A"),
             actionName: "switchCurve",
             args: {},
         });
@@ -191,7 +211,7 @@ describe("equilibriumCurve Tag Tests", async () => {
 
         // cannot switch B via action
         await core.requestAction({
-            componentIdx: resolveComponentName("g.B"),
+            componentIdx: await resolvePathToNodeIdx("g.B"),
             actionName: "switchCurve",
             args: {},
         });
@@ -199,7 +219,7 @@ describe("equilibriumCurve Tag Tests", async () => {
 
         // cannot switch C via second action
         await core.requestAction({
-            componentIdx: resolveComponentName("g2.C"),
+            componentIdx: await resolvePathToNodeIdx("g2.C"),
             actionName: "switchCurve",
             args: {},
         });
@@ -208,7 +228,7 @@ describe("equilibriumCurve Tag Tests", async () => {
         // switch D via second action
         Ds = !Ds;
         await core.requestAction({
-            componentIdx: resolveComponentName("g2.D"),
+            componentIdx: await resolvePathToNodeIdx("g2.D"),
             actionName: "switchCurve",
             args: {},
         });

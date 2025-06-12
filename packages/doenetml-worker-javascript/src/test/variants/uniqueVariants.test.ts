@@ -23,7 +23,7 @@ describe("Unique variant tests", async () => {
         // get all values before they repeat in next variants
         const sampledValues: string[] = [];
         for (let ind = 1; ind <= 18; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -33,11 +33,11 @@ describe("Unique variant tests", async () => {
                 true,
             );
             sampledValues.push(
-                stateVariables[resolveComponentName("x[1][1]")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("x[1][1]")]
+                    .stateValues.value.tree,
             );
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
         }
@@ -57,7 +57,7 @@ describe("Unique variant tests", async () => {
         // get all values before they repeat in next variants
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 15; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -67,10 +67,11 @@ describe("Unique variant tests", async () => {
                 true,
             );
             sampledValues.push(
-                stateVariables[resolveComponentName("x[1]")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues
+                    .value,
             );
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e"]);
         }
@@ -91,7 +92,7 @@ describe("Unique variant tests", async () => {
         // get all values before they repeat in next variants
         const sampledValues: string[] = [];
         for (let ind = 1; ind <= 12; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -100,7 +101,8 @@ describe("Unique variant tests", async () => {
                 true,
             );
             sampledValues.push(
-                stateVariables[resolveComponentName("x[1]")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues
+                    .value,
             );
         }
 
@@ -148,7 +150,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -158,15 +160,17 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newW =
-                stateVariables[resolveComponentName("w[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("w[1]")].stateValues
+                    .value;
             let newX =
-                stateVariables[resolveComponentName("x[1][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("x[1][1]")]
+                    .stateValues.value.tree;
             let newY =
-                stateVariables[resolveComponentName("y[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("y[1]")].stateValues
+                    .value;
             let newZ =
-                stateVariables[resolveComponentName("z[1][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("z[1][1]")]
+                    .stateValues.value.tree;
             let newValue = [newW, newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -186,7 +190,7 @@ describe("Unique variant tests", async () => {
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 15; ind += 3) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -196,15 +200,17 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newW =
-                stateVariables[resolveComponentName("w[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("w[1]")].stateValues
+                    .value;
             let newX =
-                stateVariables[resolveComponentName("x[1][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("x[1][1]")]
+                    .stateValues.value.tree;
             let newY =
-                stateVariables[resolveComponentName("y[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("y[1]")].stateValues
+                    .value;
             let newZ =
-                stateVariables[resolveComponentName("z[1][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("z[1][1]")]
+                    .stateValues.value.tree;
             let newValue = [newW, newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -241,7 +247,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -251,14 +257,14 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[1][1]")]
+                    .stateValues.value.tree;
             let newY =
-                stateVariables[resolveComponentName("xs[2][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[2][1]")]
+                    .stateValues.value.tree;
             let newZ =
-                stateVariables[resolveComponentName("xs[3][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[3][1]")]
+                    .stateValues.value.tree;
             let newValue = [newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -276,7 +282,7 @@ describe("Unique variant tests", async () => {
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -286,14 +292,14 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[1][1]")]
+                    .stateValues.value.tree;
             let newY =
-                stateVariables[resolveComponentName("xs[2][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[2][1]")]
+                    .stateValues.value.tree;
             let newZ =
-                stateVariables[resolveComponentName("xs[3][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[3][1]")]
+                    .stateValues.value.tree;
             let newValue = [newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -323,7 +329,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -333,14 +339,14 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[1][1]")]
+                    .stateValues.value.tree;
             let newY =
-                stateVariables[resolveComponentName("xs[2][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[2][1]")]
+                    .stateValues.value.tree;
             let newZ =
-                stateVariables[resolveComponentName("xs[3][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[3][1]")]
+                    .stateValues.value.tree;
             let newValue = [newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -358,7 +364,7 @@ describe("Unique variant tests", async () => {
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -368,14 +374,14 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[1][1]")]
+                    .stateValues.value.tree;
             let newY =
-                stateVariables[resolveComponentName("xs[2][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[2][1]")]
+                    .stateValues.value.tree;
             let newZ =
-                stateVariables[resolveComponentName("xs[3][1]")].stateValues
-                    .value.tree;
+                stateVariables[await resolvePathToNodeIdx("xs[3][1]")]
+                    .stateValues.value.tree;
             let newValue = [newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -411,7 +417,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -421,11 +427,14 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[1]")].stateValues
+                    .value;
             let newY =
-                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[2]")].stateValues
+                    .value;
             let newZ =
-                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[3]")].stateValues
+                    .value;
             let newValue = [newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -442,7 +451,7 @@ describe("Unique variant tests", async () => {
         expect([...new Set(zsFound.slice(0, 10))].sort()).eqls(valuesSingle);
 
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -452,11 +461,14 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[1]")].stateValues
+                    .value;
             let newY =
-                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[2]")].stateValues
+                    .value;
             let newZ =
-                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[3]")].stateValues
+                    .value;
             let newValue = [newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -486,7 +498,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -496,11 +508,14 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[1]")].stateValues
+                    .value;
             let newY =
-                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[2]")].stateValues
+                    .value;
             let newZ =
-                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[3]")].stateValues
+                    .value;
             let newValue = [newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -518,7 +533,7 @@ describe("Unique variant tests", async () => {
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -528,11 +543,14 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[1]")].stateValues
+                    .value;
             let newY =
-                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[2]")].stateValues
+                    .value;
             let newZ =
-                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[3]")].stateValues
+                    .value;
             let newValue = [newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -566,7 +584,7 @@ describe("Unique variant tests", async () => {
 
         // get unique values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -576,13 +594,17 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newW =
-                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[1]")].stateValues
+                    .value;
             let newX =
-                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[2]")].stateValues
+                    .value;
             let newY =
-                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[3]")].stateValues
+                    .value;
             let newZ =
-                stateVariables[resolveComponentName("xs[4]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[4]")].stateValues
+                    .value;
             let newValue = [newW, newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -602,7 +624,7 @@ describe("Unique variant tests", async () => {
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= 2 * numVariants + 3; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -613,13 +635,17 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newW =
-                stateVariables[resolveComponentName("xs[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[1]")].stateValues
+                    .value;
             let newX =
-                stateVariables[resolveComponentName("xs[2]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[2]")].stateValues
+                    .value;
             let newY =
-                stateVariables[resolveComponentName("xs[3]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[3]")].stateValues
+                    .value;
             let newZ =
-                stateVariables[resolveComponentName("xs[4]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("xs[4]")].stateValues
+                    .value;
             let newValue = [newW, newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -647,7 +673,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -657,20 +683,20 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newValue =
-                stateVariables[resolveComponentName("x[1][1][1]")].stateValues
-                    .value;
+                stateVariables[await resolvePathToNodeIdx("x[1][1][1]")]
+                    .stateValues.value;
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
         }
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -680,8 +706,8 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newValue =
-                stateVariables[resolveComponentName("x[1][1][1]")].stateValues
-                    .value;
+                stateVariables[await resolvePathToNodeIdx("x[1][1][1]")]
+                    .stateValues.value;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
     });
@@ -706,7 +732,7 @@ describe("Unique variant tests", async () => {
       `;
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -716,20 +742,20 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newValue =
-                stateVariables[resolveComponentName("x[1][1][1][1]")]
+                stateVariables[await resolvePathToNodeIdx("x[1][1][1][1]")]
                     .stateValues.value.tree;
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
         }
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -739,7 +765,7 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newValue =
-                stateVariables[resolveComponentName("x[1][1][1][1]")]
+                stateVariables[await resolvePathToNodeIdx("x[1][1][1][1]")]
                     .stateValues.value.tree;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
@@ -765,7 +791,7 @@ describe("Unique variant tests", async () => {
       `;
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -775,10 +801,10 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let mathOrNumberComponent =
-                stateVariables[resolveComponentName("x.n[1]")];
+                stateVariables[await resolvePathToNodeIdx("x.n[1]")];
             if (mathOrNumberComponent.componentType === "group") {
                 mathOrNumberComponent =
-                    stateVariables[resolveComponentName("x.n[1][1]")];
+                    stateVariables[await resolvePathToNodeIdx("x.n[1][1]")];
             }
 
             let newValue = mathOrNumberComponent.stateValues.value;
@@ -789,14 +815,14 @@ describe("Unique variant tests", async () => {
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
         }
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -806,10 +832,10 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let mathOrNumberComponent =
-                stateVariables[resolveComponentName("x.n[1]")];
+                stateVariables[await resolvePathToNodeIdx("x.n[1]")];
             if (mathOrNumberComponent.componentType === "group") {
                 mathOrNumberComponent =
-                    stateVariables[resolveComponentName("x.n[1][1]")];
+                    stateVariables[await resolvePathToNodeIdx("x.n[1][1]")];
             }
 
             let newValue = mathOrNumberComponent.stateValues.value;
@@ -851,7 +877,7 @@ describe("Unique variant tests", async () => {
 
         // get unique values in first variants
         for (let ind = 1; ind <= 20; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -861,10 +887,10 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1][1][1][1]")]
+                stateVariables[await resolvePathToNodeIdx("xs[1][1][1][1]")]
                     .stateValues.value.tree;
             let newY =
-                stateVariables[resolveComponentName("xs[2][1][1][1]")]
+                stateVariables[await resolvePathToNodeIdx("xs[2][1][1][1]")]
                     .stateValues.value.tree;
             let newValue = [newX, newY].join(",");
             expect(values.includes(newValue)).eq(true);
@@ -874,7 +900,7 @@ describe("Unique variant tests", async () => {
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 20; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -884,10 +910,10 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let newX =
-                stateVariables[resolveComponentName("xs[1][1][1][1]")]
+                stateVariables[await resolvePathToNodeIdx("xs[1][1][1][1]")]
                     .stateValues.value.tree;
             let newY =
-                stateVariables[resolveComponentName("xs[2][1][1][1]")]
+                stateVariables[await resolvePathToNodeIdx("xs[2][1][1][1]")]
                     .stateValues.value.tree;
             let newValue = [newX, newY].join(",");
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -970,7 +996,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -981,14 +1007,14 @@ describe("Unique variant tests", async () => {
             );
             let category =
                 stateVariables[
-                    resolveComponentName("s.p")
+                    await resolvePathToNodeIdx("s.p")
                 ].activeChildren[0].trim();
             expect(categories.includes(category)).eq(true);
 
             let component =
                 stateVariables[
                     stateVariables[
-                        resolveComponentName("s.p")
+                        await resolvePathToNodeIdx("s.p")
                     ].activeChildren.filter((x) => x.componentIdx)[0]
                         .componentIdx
                 ];
@@ -1041,7 +1067,7 @@ describe("Unique variant tests", async () => {
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1052,12 +1078,12 @@ describe("Unique variant tests", async () => {
             );
             let category =
                 stateVariables[
-                    resolveComponentName("s.p")
+                    await resolvePathToNodeIdx("s.p")
                 ].activeChildren[0].trim();
             let component =
                 stateVariables[
                     stateVariables[
-                        resolveComponentName("s.p")
+                        await resolvePathToNodeIdx("s.p")
                     ].activeChildren.filter((x) => x.componentIdx)[0]
                         .componentIdx
                 ];
@@ -1151,7 +1177,7 @@ describe("Unique variant tests", async () => {
 
         // get all values in first variants
         for (let ind = 1; ind <= numVariants; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1162,18 +1188,18 @@ describe("Unique variant tests", async () => {
             );
 
             let textinputIdx =
-                stateVariables[resolveComponentName(`s.problem.ans`)]
+                stateVariables[await resolvePathToNodeIdx(`s.problem.ans`)]
                     .stateValues.inputChildren[0].componentIdx;
             let category =
-                stateVariables[resolveComponentName("s.problem")].stateValues
-                    .title;
+                stateVariables[await resolvePathToNodeIdx("s.problem")]
+                    .stateValues.title;
             expect(categories.includes(category)).eq(true);
 
             let component =
                 stateVariables[
                     stateVariables[
                         stateVariables[
-                            resolveComponentName("s.problem")
+                            await resolvePathToNodeIdx("s.problem")
                         ].activeChildren.filter((x) => x.componentIdx)[1]
                             .componentIdx
                     ].activeChildren[1].componentIdx
@@ -1199,7 +1225,7 @@ describe("Unique variant tests", async () => {
             valuesFound.push(combinedValue);
 
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
@@ -1211,16 +1237,16 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName(`s.problem.ans`),
+                componentIdx: await resolvePathToNodeIdx(`s.problem.ans`),
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("s.problem.ans")]
+                stateVariables[await resolvePathToNodeIdx("s.problem.ans")]
                     .stateValues.creditAchieved,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("s.problem.ans")]
+                stateVariables[await resolvePathToNodeIdx("s.problem.ans")]
                     .stateValues.submittedResponses,
             ).eqls([newValue]);
             expect(stateVariables[textinputIdx].stateValues.value).eq(newValue);
@@ -1231,17 +1257,17 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName(`s.problem.ans`),
+                componentIdx: await resolvePathToNodeIdx(`s.problem.ans`),
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("s.problem.ans")]
+                stateVariables[await resolvePathToNodeIdx("s.problem.ans")]
                     .stateValues.creditAchieved,
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName("s.problem.ans")]
+                stateVariables[await resolvePathToNodeIdx("s.problem.ans")]
                     .stateValues.submittedResponses,
             ).eqls([newValue + "X"]);
             expect(stateVariables[textinputIdx].stateValues.value).eq(
@@ -1254,17 +1280,17 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName(`s.problem.ans`),
+                componentIdx: await resolvePathToNodeIdx(`s.problem.ans`),
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("s.problem.ans")]
+                stateVariables[await resolvePathToNodeIdx("s.problem.ans")]
                     .stateValues.creditAchieved,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("s.problem.ans")]
+                stateVariables[await resolvePathToNodeIdx("s.problem.ans")]
                     .stateValues.submittedResponses,
             ).eqls([newValue]);
             expect(stateVariables[textinputIdx].stateValues.value).eq(newValue);
@@ -1281,7 +1307,7 @@ describe("Unique variant tests", async () => {
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 6; ind += 2) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1291,13 +1317,13 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let category =
-                stateVariables[resolveComponentName("s.problem")].stateValues
-                    .title;
+                stateVariables[await resolvePathToNodeIdx("s.problem")]
+                    .stateValues.title;
             let component =
                 stateVariables[
                     stateVariables[
                         stateVariables[
-                            resolveComponentName("s.problem")
+                            await resolvePathToNodeIdx("s.problem")
                         ].activeChildren.filter((x) => x.componentIdx)[1]
                             .componentIdx
                     ].activeChildren[1].componentIdx
@@ -1321,7 +1347,7 @@ describe("Unique variant tests", async () => {
         // get all values before they repeat in next variants
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 4; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1331,73 +1357,84 @@ describe("Unique variant tests", async () => {
                 true,
             );
             sampledValues.push(
-                stateVariables[resolveComponentName("x[1]")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues
+                    .value,
             );
             expect(
-                stateVariables[resolveComponentName("r[1].p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("r[1].p")].stateValues
+                    .text,
             ).eq("letter: a");
-            expect(stateVariables[resolveComponentName("r[2].p")]).be.undefined;
+            expect(stateVariables[await resolvePathToNodeIdx("r[2].p")]).be
+                .undefined;
 
             await updateMathInputValue({
                 latex: "3",
-                componentIdx: resolveComponentName("n"),
+                componentIdx: await resolvePathToNodeIdx("n"),
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("r[1].p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("r[1].p")].stateValues
+                    .text,
             ).eq("letter: a");
             expect(
-                stateVariables[resolveComponentName("r[2].p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("r[2].p")].stateValues
+                    .text,
             ).eq("letter: b");
             expect(
-                stateVariables[resolveComponentName("r[3].p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("r[3].p")].stateValues
+                    .text,
             ).eq("letter: c");
 
             expect(
-                stateVariables[resolveComponentName("x[1]")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues
+                    .value,
             ).eq(sampledValues[ind - 1]);
             expect(
                 stateVariables[
-                    stateVariables[resolveComponentName("r[1].p")]
+                    stateVariables[await resolvePathToNodeIdx("r[1].p")]
                         .activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("a");
             expect(
                 stateVariables[
-                    stateVariables[resolveComponentName("r[2].p")]
+                    stateVariables[await resolvePathToNodeIdx("r[2].p")]
                         .activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("b");
             expect(
                 stateVariables[
-                    stateVariables[resolveComponentName("r[3].p")]
+                    stateVariables[await resolvePathToNodeIdx("r[3].p")]
                         .activeChildren[1].componentIdx
                 ].stateValues.value,
             ).eq("c");
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c"]);
 
             await updateMathInputValue({
                 latex: "4",
-                componentIdx: resolveComponentName("n"),
+                componentIdx: await resolvePathToNodeIdx("n"),
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("r[1].p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("r[1].p")].stateValues
+                    .text,
             ).eq("letter: a");
             expect(
-                stateVariables[resolveComponentName("r[2].p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("r[2].p")].stateValues
+                    .text,
             ).eq("letter: b");
             expect(
-                stateVariables[resolveComponentName("r[3].p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("r[3].p")].stateValues
+                    .text,
             ).eq("letter: c");
             expect(
-                stateVariables[resolveComponentName("r[4].p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("r[4].p")].stateValues
+                    .text,
             ).eq("letter: d");
         }
         // first three are in a random order
@@ -1415,7 +1452,7 @@ describe("Unique variant tests", async () => {
 
         // get all orders in first 6 variants
         for (let ind = 1; ind <= 6; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1427,10 +1464,10 @@ describe("Unique variant tests", async () => {
             let ciIdx;
             if (insiderAnswer) {
                 ciIdx =
-                    stateVariables[resolveComponentName("ans")].stateValues
-                        .inputChildren[0].componentIdx;
+                    stateVariables[await resolvePathToNodeIdx("ans")]
+                        .stateValues.inputChildren[0].componentIdx;
             } else {
-                ciIdx = resolveComponentName("ci");
+                ciIdx = await resolvePathToNodeIdx("ci");
             }
 
             let choiceOrder = stateVariables[ciIdx].stateValues.choiceOrder;
@@ -1438,7 +1475,7 @@ describe("Unique variant tests", async () => {
             expect(ordersFound.includes(selectedOrder)).eq(false);
             ordersFound.push(selectedOrder);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
@@ -1471,7 +1508,7 @@ describe("Unique variant tests", async () => {
 
         // 7th variant repeats first order
         let ind = 7;
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: ind,
         });
@@ -1480,10 +1517,10 @@ describe("Unique variant tests", async () => {
         let ciIdx;
         if (insiderAnswer) {
             ciIdx =
-                stateVariables[resolveComponentName("ans")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                     .inputChildren[0].componentIdx;
         } else {
-            ciIdx = resolveComponentName("ci");
+            ciIdx = await resolvePathToNodeIdx("ci");
         }
         let choiceOrder = stateVariables[ciIdx].stateValues.choiceOrder;
         let selectedOrder = choiceOrder.join(",");
@@ -1544,7 +1581,7 @@ describe("Unique variant tests", async () => {
 
         // get all options in first 8 variants
         for (let ind = 1; ind <= 8; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1554,24 +1591,26 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let choiceOrder =
-                stateVariables[resolveComponentName("ci")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                     .choiceOrder;
             let n =
-                stateVariables[resolveComponentName("n[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value;
             let l =
-                stateVariables[resolveComponentName("l[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("l[1]")].stateValues
+                    .value;
             let choices = [n.toString(), l];
             let selectedOption = [...choiceOrder, ...choices].join(",");
             expect(selectionsFound.includes(selectedOption)).eq(false);
             selectionsFound.push(selectedOption);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h"]);
 
             for (let i = 0; i < 2; i++) {
                 await updateSelectedIndices({
-                    componentIdx: resolveComponentName("ci"),
+                    componentIdx: await resolvePathToNodeIdx("ci"),
                     selectedIndices: [i + 1],
                     core,
                 });
@@ -1581,35 +1620,40 @@ describe("Unique variant tests", async () => {
                     true,
                 );
                 expect(
-                    stateVariables[resolveComponentName("ci")].stateValues
+                    stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                         .selectedValues,
                 ).eqls([choices[choiceOrder[i] - 1]]);
             }
 
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci"),
+                componentIdx: await resolvePathToNodeIdx("ci"),
                 selectedIndices: [1],
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("ci")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                     .selectedValues,
             ).eqls([choices[choiceOrder[0] - 1]]);
         }
 
         let ind = 9;
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: ind,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
-        let n = stateVariables[resolveComponentName("n[1]")].stateValues.value;
-        let l = stateVariables[resolveComponentName("l[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
+        let n =
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value;
+        let l =
+            stateVariables[await resolvePathToNodeIdx("l[1]")].stateValues
+                .value;
         let choices = [n.toString(), l];
         let selectedOption = [...choiceOrder, ...choices].join(",");
         expect(selectedOption).eq(selectionsFound[0]);
@@ -1621,7 +1665,7 @@ describe("Unique variant tests", async () => {
 
         // get all orders in first 6 variants
         for (let ind = 1; ind <= 6; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1631,7 +1675,7 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let componentOrder =
-                stateVariables[resolveComponentName("sh")].stateValues
+                stateVariables[await resolvePathToNodeIdx("sh")].stateValues
                     .componentOrder;
             expect([...componentOrder].sort()).eqls([1, 2, 3]);
 
@@ -1639,31 +1683,33 @@ describe("Unique variant tests", async () => {
             expect(ordersFound.includes(selectedOrder)).eq(false);
             ordersFound.push(selectedOrder);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
             expect(
-                stateVariables[resolveComponentName("pList")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                    .text,
             ).eq(componentOrder.map((x) => colors[x - 1]).join(", "));
         }
 
         // 7th variant repeats first order
         let ind = 7;
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: ind,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let componentOrder =
-            stateVariables[resolveComponentName("sh")].stateValues
+            stateVariables[await resolvePathToNodeIdx("sh")].stateValues
                 .componentOrder;
         let selectedOrder = componentOrder.join(",");
         expect(selectedOrder).eq(ordersFound[0]);
 
         expect(
-            stateVariables[resolveComponentName("pList")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                .text,
         ).eq(componentOrder.map((x) => colors[x - 1]).join(", "));
     }
 
@@ -1715,7 +1761,7 @@ describe("Unique variant tests", async () => {
         const nsFound: number[] = [];
 
         for (let ind = 1; ind <= 12; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1726,21 +1772,23 @@ describe("Unique variant tests", async () => {
             );
 
             let mathInputIdx =
-                stateVariables[resolveComponentName("ans1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                     .inputChildren[0].componentIdx;
             let mathInput2Idx =
-                stateVariables[resolveComponentName("ans2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                     .inputChildren[0].componentIdx;
 
             const m =
-                stateVariables[resolveComponentName("m[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("m[1]")].stateValues
+                    .value;
             msFound.push(m);
             const n =
-                stateVariables[resolveComponentName("n[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value;
             nsFound.push(n);
 
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
@@ -1750,7 +1798,7 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans1"),
+                componentIdx: await resolvePathToNodeIdx("ans1"),
                 core,
             });
             await updateMathInputValue({
@@ -1759,25 +1807,25 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans2"),
+                componentIdx: await resolvePathToNodeIdx("ans2"),
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("ans1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                     .creditAchieved,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("ans2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                     .creditAchieved,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("ans1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                     .submittedResponses[0].tree,
             ).eq(m);
             expect(
-                stateVariables[resolveComponentName("ans2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                     .submittedResponses[0].tree,
             ).eq(n);
 
@@ -1787,7 +1835,7 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans1"),
+                componentIdx: await resolvePathToNodeIdx("ans1"),
                 core,
             });
             await updateMathInputValue({
@@ -1796,26 +1844,26 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans2"),
+                componentIdx: await resolvePathToNodeIdx("ans2"),
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("ans1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                     .creditAchieved,
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName("ans2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                     .creditAchieved,
             ).eq(0);
 
             expect(
-                stateVariables[resolveComponentName("ans1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                     .submittedResponses[0].tree,
             ).eq(m * 10 + 1);
             expect(
-                stateVariables[resolveComponentName("ans2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                     .submittedResponses[0].tree,
             ).eq(n * 10 + 1);
 
@@ -1825,7 +1873,7 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans1"),
+                componentIdx: await resolvePathToNodeIdx("ans1"),
                 core,
             });
             await updateMathInputValue({
@@ -1834,25 +1882,25 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans2"),
+                componentIdx: await resolvePathToNodeIdx("ans2"),
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("ans1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                     .creditAchieved,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("ans2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                     .creditAchieved,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("ans1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                     .submittedResponses[0].tree,
             ).eq(m);
             expect(
-                stateVariables[resolveComponentName("ans2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                     .submittedResponses[0].tree,
             ).eq(n);
         }
@@ -1974,7 +2022,7 @@ describe("Unique variant tests", async () => {
         // get all 3 options before they repeat
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 4; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -1985,18 +2033,19 @@ describe("Unique variant tests", async () => {
             );
 
             let mathInputIdx =
-                stateVariables[resolveComponentName("ans")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                     .inputChildren[0].componentIdx;
 
             const m =
-                stateVariables[resolveComponentName("m[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("m[1]")].stateValues
+                    .value;
             sampledValues.push(m);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["first", "second", "third"]);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.variantName,
             ).eq(["first", "second", "third"][(ind - 1) % 3]);
 
@@ -2006,17 +2055,17 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans"),
+                componentIdx: await resolvePathToNodeIdx("ans"),
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("ans")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                     .creditAchieved,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("ans")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                     .submittedResponses[0].tree,
             ).eq(m);
 
@@ -2026,16 +2075,16 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans"),
+                componentIdx: await resolvePathToNodeIdx("ans"),
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("ans")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                     .creditAchieved,
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName("ans")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                     .submittedResponses[0].tree,
             ).eq(m * 10 + 1);
 
@@ -2045,17 +2094,17 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({
-                componentIdx: resolveComponentName("ans"),
+                componentIdx: await resolvePathToNodeIdx("ans"),
                 core,
             });
 
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("ans")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                     .creditAchieved,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("ans")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                     .submittedResponses[0].tree,
             ).eq(m);
         }
@@ -2066,14 +2115,14 @@ describe("Unique variant tests", async () => {
     });
 
     it("no variant control, 1 unique variant", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: "hello",
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_document1")].sharedParameters
-                .allPossibleVariants,
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants,
         ).eqls(["a"]);
     });
 
@@ -2084,7 +2133,7 @@ describe("Unique variant tests", async () => {
         // get all values before they repeat in next variants
         const sampledValues: string[] = [];
         for (let ind = 1; ind <= 4; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2094,11 +2143,11 @@ describe("Unique variant tests", async () => {
             );
 
             sampledValues.push(
-                stateVariables[resolveComponentName("x[1][1]")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("x[1][1]")]
+                    .stateValues.value.tree,
             );
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants,
             ).eqls(["a", "b", "c"]);
         }
@@ -2120,7 +2169,7 @@ describe("Unique variant tests", async () => {
         const sampledLetters: string[] = [];
         const sampledNumbers: number[] = [];
         for (let ind = 1; ind <= 18; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2130,14 +2179,15 @@ describe("Unique variant tests", async () => {
                 true,
             );
             sampledLetters.push(
-                stateVariables[resolveComponentName("x[1][1]")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("x[1][1]")]
+                    .stateValues.value.tree,
             );
             sampledNumbers.push(
-                stateVariables[resolveComponentName("n[1]")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value,
             );
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(9);
         }
@@ -2160,7 +2210,7 @@ describe("Unique variant tests", async () => {
         // first 100 values are not repeated, then order repeats
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 102; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2170,7 +2220,8 @@ describe("Unique variant tests", async () => {
                 true,
             );
             const n =
-                stateVariables[resolveComponentName("n[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value;
             expect(n).gte(1).lte(100);
             if (ind <= 100) {
                 expect(sampledValues.includes(n)).eq(false);
@@ -2179,7 +2230,7 @@ describe("Unique variant tests", async () => {
             }
             sampledValues.push(n);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(100);
         }
@@ -2193,7 +2244,7 @@ describe("Unique variant tests", async () => {
         // first 100 values are not repeated, then order repeats
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 102; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2203,7 +2254,8 @@ describe("Unique variant tests", async () => {
                 true,
             );
             const n =
-                stateVariables[resolveComponentName("n[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value;
             expect(n).gte(1).lte(101);
             if (ind <= 100) {
                 expect(sampledValues.includes(n)).eq(false);
@@ -2212,7 +2264,7 @@ describe("Unique variant tests", async () => {
             }
             sampledValues.push(n);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(100);
         }
@@ -2226,7 +2278,7 @@ describe("Unique variant tests", async () => {
         // first 100 values are not repeated, then order repeats
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 102; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2236,7 +2288,8 @@ describe("Unique variant tests", async () => {
                 true,
             );
             const n =
-                stateVariables[resolveComponentName("n[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value;
             expect(n).gte(1).lte(1000);
             if (ind <= 100) {
                 expect(sampledValues.includes(n)).eq(false);
@@ -2245,7 +2298,7 @@ describe("Unique variant tests", async () => {
             }
             sampledValues.push(n);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(100);
         }
@@ -2267,7 +2320,7 @@ describe("Unique variant tests", async () => {
         // first 10 values are not repeated, then order repeats
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 20; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2277,7 +2330,8 @@ describe("Unique variant tests", async () => {
                 true,
             );
             const n =
-                stateVariables[resolveComponentName("n[1]")].stateValues.value;
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value;
             expect(n).gte(1).lte(100);
             if (ind <= 10) {
                 expect(sampledValues.includes(n)).eq(false);
@@ -2286,7 +2340,7 @@ describe("Unique variant tests", async () => {
             }
             sampledValues.push(n);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(10);
         }
@@ -2316,7 +2370,7 @@ describe("Unique variant tests", async () => {
 
         const sampledValues: number[] = [];
         for (let ind = 1; ind <= 4; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: doenetML4,
                 requestedVariantIndex: ind,
             });
@@ -2326,18 +2380,19 @@ describe("Unique variant tests", async () => {
                 true,
             );
             sampledValues.push(
-                stateVariables[resolveComponentName("n[1]")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value,
             );
 
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(4);
         }
 
         // first four variants match numVariants=4 case
         for (let ind = 1; ind <= 6; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: doenetML6,
                 requestedVariantIndex: ind,
             });
@@ -2348,24 +2403,24 @@ describe("Unique variant tests", async () => {
             );
             if (ind <= 4) {
                 expect(
-                    stateVariables[resolveComponentName("n[1]")].stateValues
-                        .value,
+                    stateVariables[await resolvePathToNodeIdx("n[1]")]
+                        .stateValues.value,
                 ).eq(sampledValues[ind - 1]);
             } else {
                 sampledValues.push(
-                    stateVariables[resolveComponentName("n[1]")].stateValues
-                        .value,
+                    stateVariables[await resolvePathToNodeIdx("n[1]")]
+                        .stateValues.value,
                 );
             }
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(6);
         }
 
         // first six variants match numVariants=6 case
         for (let ind = 1; ind <= 6; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: doenetML100,
                 requestedVariantIndex: ind,
             });
@@ -2375,11 +2430,12 @@ describe("Unique variant tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("n[1]")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                    .value,
             ).eq(sampledValues[ind - 1]);
 
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(100);
         }
@@ -2402,7 +2458,7 @@ describe("Unique variant tests", async () => {
         // get each value exactly one
         let valuesFound: number[] = [];
         for (let ind = 1; ind <= 8; ind++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
@@ -2412,19 +2468,19 @@ describe("Unique variant tests", async () => {
                 true,
             );
             let a =
-                stateVariables[resolveComponentName("a[1][1]")].stateValues
-                    .value;
+                stateVariables[await resolvePathToNodeIdx("a[1][1]")]
+                    .stateValues.value;
             let b =
-                stateVariables[resolveComponentName("b[1][1]")].stateValues
-                    .value;
+                stateVariables[await resolvePathToNodeIdx("b[1][1]")]
+                    .stateValues.value;
             let c =
-                stateVariables[resolveComponentName("c[1][1]")].stateValues
-                    .value;
+                stateVariables[await resolvePathToNodeIdx("c[1][1]")]
+                    .stateValues.value;
 
             let val = a * 100 + b * 10 + c;
             valuesFound.push(val);
             expect(
-                stateVariables[resolveComponentName("_document1")]
+                stateVariables[await resolvePathToNodeIdx("_document1")]
                     .sharedParameters.allPossibleVariants.length,
             ).eq(8);
         }
@@ -2434,63 +2490,75 @@ describe("Unique variant tests", async () => {
 
     it("unless variant determines seed, sample random/prime numbers does not add variants", async () => {
         // no other variants so get 1 variant
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <sampleRandomNumbers type="uniform" from="1" to="10" name="n" />
         `,
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("n[1]")].stateValues.value)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value,
+        )
             .gte(1)
             .lte(10);
         expect(
-            stateVariables[resolveComponentName("_document1")].sharedParameters
-                .allPossibleVariants,
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants,
         ).eqls(["a"]);
 
         // just get 10 variants from select
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <samplePrimeNumbers minValue="1" maxValue="10000" name="n" />
         <selectFromSequence from="1" to="10" />
         `,
         }));
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("n[1]")].stateValues.value)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value,
+        )
             .gte(1)
             .lte(10000);
         expect(
-            stateVariables[resolveComponentName("_document1")].sharedParameters
-                .allPossibleVariants.length,
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants.length,
         ).eq(10);
 
         // when variant determines seed, get 100 different variants
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
                 <sampleRandomNumbers type="uniform" from="1" to="10" variantDeterminesSeed name="n" />
                 `,
         }));
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("n[1]")].stateValues.value)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value,
+        )
             .gte(1)
             .lte(10);
         expect(
-            stateVariables[resolveComponentName("_document1")].sharedParameters
-                .allPossibleVariants.length,
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants.length,
         ).eq(100);
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
                 <samplePrimeNumbers minValue="1" maxValue="10000" variantDeterminesSeed name="n" />
                 `,
         }));
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("n[1]")].stateValues.value)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
+                .value,
+        )
             .gte(1)
             .lte(10000);
         expect(
-            stateVariables[resolveComponentName("_document1")].sharedParameters
-                .allPossibleVariants.length,
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants.length,
         ).eq(100);
     });
 });

@@ -13,7 +13,7 @@ vi.mock("hyperformula");
 describe("Warning Tests", async () => {
     // TODO: re-enable these test once deprecations are working again. See issue #484.
     it.skip("Deprecated attributes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <section suppressAutoName>
   <graph xLabel="a">
@@ -102,7 +102,7 @@ describe("Warning Tests", async () => {
     });
 
     it.skip("Deprecated properties", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
   <regularPolygon numSides="4" name="rp" />
@@ -166,7 +166,7 @@ describe("Warning Tests", async () => {
     });
 
     it("From state variable inverse definitions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <circle through="(a,b) (c,d)" name="c" />
 
@@ -191,7 +191,7 @@ describe("Warning Tests", async () => {
         // try to change radius
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
 
@@ -218,7 +218,7 @@ describe("Warning Tests", async () => {
     });
 
     it("From validating attributes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <sequence type="bad" />
 
@@ -244,30 +244,30 @@ describe("Warning Tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("m1")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m2")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m3")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m4")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m5")].stateValues.text).eq(
-            "s i n x",
-        );
-        expect(stateVariables[resolveComponentName("m6")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m7")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m8")].stateValues.text).eq(
-            "s i n x",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.text,
+        ).eq("s i n x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m7")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m8")].stateValues.text,
+        ).eq("s i n x");
 
         let errorWarnings = core.core!.errorWarnings;
 
@@ -322,70 +322,70 @@ describe("Warning Tests", async () => {
         // try to change format
         await updateTextInputValue({
             text: "try1",
-            componentIdx: resolveComponentName("ti1"),
+            componentIdx: await resolvePathToNodeIdx("ti1"),
             core,
         });
         await updateTextInputValue({
             text: "try2",
-            componentIdx: resolveComponentName("ti2"),
+            componentIdx: await resolvePathToNodeIdx("ti2"),
             core,
         });
         await updateTextInputValue({
             text: "try3",
-            componentIdx: resolveComponentName("ti3"),
+            componentIdx: await resolvePathToNodeIdx("ti3"),
             core,
         });
         await updateTextInputValue({
             text: "try4",
-            componentIdx: resolveComponentName("ti4"),
+            componentIdx: await resolvePathToNodeIdx("ti4"),
             core,
         });
         await updateTextInputValue({
             text: "try5",
-            componentIdx: resolveComponentName("ti5"),
+            componentIdx: await resolvePathToNodeIdx("ti5"),
             core,
         });
         await updateTextInputValue({
             text: "try6",
-            componentIdx: resolveComponentName("ti6"),
+            componentIdx: await resolvePathToNodeIdx("ti6"),
             core,
         });
         await updateTextInputValue({
             text: "try7",
-            componentIdx: resolveComponentName("ti7"),
+            componentIdx: await resolvePathToNodeIdx("ti7"),
             core,
         });
         await updateTextInputValue({
             text: "try8",
-            componentIdx: resolveComponentName("ti8"),
+            componentIdx: await resolvePathToNodeIdx("ti8"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("m1")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m2")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m3")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m4")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m5")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m6")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m7")].stateValues.text).eq(
-            "sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m8")].stateValues.text).eq(
-            "sin(x)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m7")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m8")].stateValues.text,
+        ).eq("sin(x)");
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(17);
@@ -452,7 +452,7 @@ describe("Warning Tests", async () => {
     });
 
     it("From action", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <number name="n">1</number>
   <updateValue target="$n.bad" newValue="3" name="uv" />
@@ -466,7 +466,10 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings.length).eq(0);
 
         // try update value action
-        await updateValue({ componentIdx: resolveComponentName("uv"), core });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);

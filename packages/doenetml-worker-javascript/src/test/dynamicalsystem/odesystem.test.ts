@@ -13,7 +13,7 @@ vi.mock("hyperformula");
 
 describe("odeSystem Tag Tests", async () => {
     it("1D linear system", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <p>a = <mathInput name="a" prefill="1"/></p>
 <p>initial condition = <mathInput name="ic" prefill="1"/></p>
@@ -48,21 +48,22 @@ describe("odeSystem Tag Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("tol2")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("tol2")].stateValues
+                    .value.tree,
             ).eqls(tol);
             expect(
-                stateVariables[resolveComponentName("ode")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
+                    .latex,
             ).eqls(
                 `\\frac{dx}{dt} &=  ${a === 1 ? "" : a + " "}x\\notag\\\\x(0) &= ${ic}\\notag`,
             );
             let solutionF = createFunctionFromDefinition(
-                stateVariables[resolveComponentName("ode")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
                     .numericalSolutionFDefinitions[0],
             );
 
             let solutionsFromCore = stateVariables[
-                resolveComponentName("repeat1")
+                await resolvePathToNodeIdx("repeat1")
             ]
                 .replacements!.map(
                     (child) =>
@@ -90,7 +91,7 @@ describe("odeSystem Tag Tests", async () => {
         ic = 3;
         expectedF = (x) => ic * Math.exp(a * x);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("ic"),
+            componentIdx: await resolvePathToNodeIdx("ic"),
             latex: "3",
             core,
         });
@@ -100,7 +101,7 @@ describe("odeSystem Tag Tests", async () => {
         a = -2;
         expectedF = (x) => ic * Math.exp(a * x);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             latex: "-2",
             core,
         });
@@ -110,7 +111,7 @@ describe("odeSystem Tag Tests", async () => {
         ic = -5;
         expectedF = (x) => ic * Math.exp(a * x);
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: 0,
             y: ic,
             core,
@@ -120,7 +121,7 @@ describe("odeSystem Tag Tests", async () => {
         // Change tolerance
         tol = 1e-10;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("tol"),
+            componentIdx: await resolvePathToNodeIdx("tol"),
             latex: "1E-10",
             core,
         });
@@ -129,7 +130,7 @@ describe("odeSystem Tag Tests", async () => {
         a = 0.5;
         expectedF = (x) => ic * Math.exp(a * x);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             latex: "0.5",
             core,
         });
@@ -139,7 +140,7 @@ describe("odeSystem Tag Tests", async () => {
         ic = 0;
         expectedF = (x) => 0;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("ic"),
+            componentIdx: await resolvePathToNodeIdx("ic"),
             latex: "0",
             core,
         });
@@ -147,7 +148,7 @@ describe("odeSystem Tag Tests", async () => {
     });
 
     it("effect of max iterations, chunksize", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>tol = <mathInput name="tol" parseScientificNotation prefill="1E-6"/></p>
   <p>T = <mathInput name="T" prefill="10"/></p>
@@ -176,29 +177,29 @@ describe("odeSystem Tag Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("T")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("T")].stateValues
+                    .value.tree,
             ).eqls(T);
             expect(
-                stateVariables[resolveComponentName("tol")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("tol")].stateValues
+                    .value.tree,
             ).eqls(tol);
             expect(
-                stateVariables[resolveComponentName("maxIter")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("maxIter")]
+                    .stateValues.value.tree,
             ).eqls(maxIter);
             expect(
-                stateVariables[resolveComponentName("chunkSize")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("chunkSize")]
+                    .stateValues.value.tree,
             ).eqls(chunkSize);
 
             let solutionF = createFunctionFromDefinition(
-                stateVariables[resolveComponentName("ode")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
                     .numericalSolutionFDefinitions[0],
             );
             let f_T_copied = Number(
                 stateVariables[
-                    resolveComponentName("m1")
+                    await resolvePathToNodeIdx("m1")
                 ].stateValues.text.split("=")[1],
             );
 
@@ -228,7 +229,7 @@ describe("odeSystem Tag Tests", async () => {
         // solve f(20) within required threshold
         T = 20;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("T"),
+            componentIdx: await resolvePathToNodeIdx("T"),
             latex: `${T}`,
             core,
         });
@@ -237,7 +238,7 @@ describe("odeSystem Tag Tests", async () => {
         // increase max iterations, now f(20) works
         maxIter = 2000;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("maxIter"),
+            componentIdx: await resolvePathToNodeIdx("maxIter"),
             latex: `${maxIter}`,
             core,
         });
@@ -246,7 +247,7 @@ describe("odeSystem Tag Tests", async () => {
         // Can't make it if decrease tolerance
         tol = 1e-8;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("tol"),
+            componentIdx: await resolvePathToNodeIdx("tol"),
             latex: `1E-8`,
             core,
         });
@@ -255,7 +256,7 @@ describe("odeSystem Tag Tests", async () => {
         // increase max iterations further
         maxIter = 5000;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("maxIter"),
+            componentIdx: await resolvePathToNodeIdx("maxIter"),
             latex: `${maxIter}`,
             core,
         });
@@ -264,7 +265,7 @@ describe("odeSystem Tag Tests", async () => {
         // decrease max iterations back down to original, fails
         maxIter = 1000;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("maxIter"),
+            componentIdx: await resolvePathToNodeIdx("maxIter"),
             latex: `${maxIter}`,
             core,
         });
@@ -273,7 +274,7 @@ describe("odeSystem Tag Tests", async () => {
         // decrease chunksize
         chunkSize = 1;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("chunkSize"),
+            componentIdx: await resolvePathToNodeIdx("chunkSize"),
             latex: `${chunkSize}`,
             core,
         });
@@ -281,7 +282,7 @@ describe("odeSystem Tag Tests", async () => {
     });
 
     it("change variables 1D", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <p>independent variable = <mathInput name="iVar" prefill="t"/></p>
 <p>dependent variable = <mathInput name="dVar" prefill="x"/></p>
@@ -313,16 +314,17 @@ describe("odeSystem Tag Tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("ode")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
+                    .latex,
             ).eqls(
                 `\\frac{d${dVar}}{d${iVar}} &=  ${dVar}\\notag\\\\${dVar}(0) &= 1\\notag`,
             );
             let solutionF = createFunctionFromDefinition(
-                stateVariables[resolveComponentName("ode")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
                     .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables[
-                resolveComponentName("repeat1")
+                await resolvePathToNodeIdx("repeat1")
             ].replacements!.map(
                 (x) =>
                     stateVariables[
@@ -350,7 +352,7 @@ describe("odeSystem Tag Tests", async () => {
         // change independent variable
         iVar = "s";
         await updateMathInputValue({
-            componentIdx: resolveComponentName("iVar"),
+            componentIdx: await resolvePathToNodeIdx("iVar"),
             latex: iVar,
             core,
         });
@@ -360,7 +362,7 @@ describe("odeSystem Tag Tests", async () => {
         iVar = "＿";
         expectedF = (x) => (x === 0 ? 1 : NaN);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("iVar"),
+            componentIdx: await resolvePathToNodeIdx("iVar"),
             latex: "",
             core,
         });
@@ -370,7 +372,7 @@ describe("odeSystem Tag Tests", async () => {
         iVar = "u";
         expectedF = (x) => Math.exp(x);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("iVar"),
+            componentIdx: await resolvePathToNodeIdx("iVar"),
             latex: iVar,
             core,
         });
@@ -380,7 +382,7 @@ describe("odeSystem Tag Tests", async () => {
         iVar = "1";
         expectedF = (x) => (x === 0 ? 1 : NaN);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("iVar"),
+            componentIdx: await resolvePathToNodeIdx("iVar"),
             latex: iVar,
             core,
         });
@@ -390,7 +392,7 @@ describe("odeSystem Tag Tests", async () => {
         iVar = "v";
         expectedF = (x) => Math.exp(x);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("iVar"),
+            componentIdx: await resolvePathToNodeIdx("iVar"),
             latex: iVar,
             core,
         });
@@ -399,7 +401,7 @@ describe("odeSystem Tag Tests", async () => {
         // change dependent variable
         dVar = "z";
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dVar"),
+            componentIdx: await resolvePathToNodeIdx("dVar"),
             latex: dVar,
             core,
         });
@@ -409,7 +411,7 @@ describe("odeSystem Tag Tests", async () => {
         dVar = iVar;
         expectedF = (x) => (x === 0 ? 1 : NaN);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dVar"),
+            componentIdx: await resolvePathToNodeIdx("dVar"),
             latex: dVar,
             core,
         });
@@ -419,7 +421,7 @@ describe("odeSystem Tag Tests", async () => {
         dVar = "v_{1}";
         expectedF = (x) => Math.exp(x);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dVar"),
+            componentIdx: await resolvePathToNodeIdx("dVar"),
             latex: "v_1",
             core,
         });
@@ -429,7 +431,7 @@ describe("odeSystem Tag Tests", async () => {
         dVar = "a b";
         expectedF = (x) => (x === 0 ? 1 : NaN);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dVar"),
+            componentIdx: await resolvePathToNodeIdx("dVar"),
             latex: "ab",
             core,
         });
@@ -439,7 +441,7 @@ describe("odeSystem Tag Tests", async () => {
         dVar = "a";
         expectedF = (x) => Math.exp(x);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dVar"),
+            componentIdx: await resolvePathToNodeIdx("dVar"),
             latex: dVar,
             core,
         });
@@ -447,7 +449,7 @@ describe("odeSystem Tag Tests", async () => {
     });
 
     it("display digits", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <p>display digits = <mathInput name="digits" prefill="10"/></p>
 <odeSystem name="ode" displayDigits="$digits" initialConditions="9.87654321987654321">
@@ -465,7 +467,8 @@ describe("odeSystem Tag Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("ode")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
+                    .latex,
             ).eqls(`\\frac{dx}{dt} &=  ${a} x\\notag\\\\x(0) &= ${ic}\\notag`);
         }
         await check_items({ a, ic });
@@ -474,7 +477,7 @@ describe("odeSystem Tag Tests", async () => {
         a = "0.12";
         ic = "9.9";
         await updateMathInputValue({
-            componentIdx: resolveComponentName("digits"),
+            componentIdx: await resolvePathToNodeIdx("digits"),
             latex: "2",
             core,
         });
@@ -484,7 +487,7 @@ describe("odeSystem Tag Tests", async () => {
         a = "0.12345678912346";
         ic = "9.8765432198765";
         await updateMathInputValue({
-            componentIdx: resolveComponentName("digits"),
+            componentIdx: await resolvePathToNodeIdx("digits"),
             latex: "14",
             core,
         });
@@ -492,7 +495,7 @@ describe("odeSystem Tag Tests", async () => {
     });
 
     it("initial independent variable value", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>initial t = <mathInput name="t0" prefill="0"/></p>
   <p>final t = <mathInput name="tf" prefill="10"/></p>
@@ -518,16 +521,17 @@ describe("odeSystem Tag Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("ode")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
+                    .latex,
             ).eqls(`\\frac{dx}{dt} &=  x\\notag\\\\x(${t0}) &= 1\\notag`);
 
             expect(
-                stateVariables[resolveComponentName("ode")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
                     .initialIndependentVariableValue.tree,
             ).eqls(t0);
 
             let startPieces = stateVariables[
-                resolveComponentName("m1")
+                await resolvePathToNodeIdx("m1")
             ].stateValues.latex
                 .split("=")
                 .map((v) => v.trim());
@@ -535,7 +539,7 @@ describe("odeSystem Tag Tests", async () => {
             expect(startPieces[0]).eqls(`x( ${t0} )`);
 
             let finalPieces = stateVariables[
-                resolveComponentName("m2")
+                await resolvePathToNodeIdx("m2")
             ].stateValues.latex
                 .split("=")
                 .map((v) => v.trim());
@@ -552,7 +556,7 @@ describe("odeSystem Tag Tests", async () => {
         // Change initial time
         t0 = -5;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("t0"),
+            componentIdx: await resolvePathToNodeIdx("t0"),
             latex: `${t0}`,
             core,
         });
@@ -562,12 +566,12 @@ describe("odeSystem Tag Tests", async () => {
         t0 = 11;
         tf = 12;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("t0"),
+            componentIdx: await resolvePathToNodeIdx("t0"),
             latex: `${t0}`,
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("tf"),
+            componentIdx: await resolvePathToNodeIdx("tf"),
             latex: `${tf}`,
             core,
         });
@@ -575,7 +579,7 @@ describe("odeSystem Tag Tests", async () => {
     });
 
     it("display initial conditions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>display initial conditions: <booleanInput name="showic" prefill="true"/></p>  
   <odeSystem name="ode" initialconditions="1" hideInitialCondition="!$showic">
@@ -586,34 +590,34 @@ describe("odeSystem Tag Tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ode")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("ode")].stateValues.latex,
         ).eqls(`\\frac{dx}{dt} &=  x\\notag\\\\x(0) &= 1\\notag`);
 
         // don't display initial conditions
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("showic"),
+            componentIdx: await resolvePathToNodeIdx("showic"),
             boolean: false,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ode")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("ode")].stateValues.latex,
         ).eqls(`\\frac{dx}{dt} &=  x\\notag`);
 
         // display initial conditions again
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("showic"),
+            componentIdx: await resolvePathToNodeIdx("showic"),
             boolean: true,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ode")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("ode")].stateValues.latex,
         ).eqls(`\\frac{dx}{dt} &=  x\\notag\\\\x(0) &= 1\\notag`);
     });
 
     it("2D linear system", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>initial condition 1 = <mathInput name="ic1" prefill="1"/></p>
   <p>initial condition 2 = <mathInput name="ic2" prefill="3"/></p>
@@ -647,7 +651,7 @@ describe("odeSystem Tag Tests", async () => {
                 false,
                 true,
             );
-            let ode = stateVariables[resolveComponentName("ode")];
+            let ode = stateVariables[await resolvePathToNodeIdx("ode")];
             expect(ode.stateValues.latex).eqls(
                 `\\frac{dx}{dt} &=  -0.2 y\\notag\\\\\\frac{dy}{dt} &=  0.1 x + 0.3 y\\notag\\\\x(0) &= ${ic1}\\notag\\\\y(0) &= ${ic2}\\notag`,
             );
@@ -659,15 +663,15 @@ describe("odeSystem Tag Tests", async () => {
                 ode.stateValues.numericalSolutionFDefinitions[1],
             );
             let solutionFx2 = createFunctionFromDefinition(
-                stateVariables[resolveComponentName("f1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f1")].stateValues
                     .fDefinitions[0],
             );
             let solutionFy2 = createFunctionFromDefinition(
-                stateVariables[resolveComponentName("f2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                     .fDefinitions[0],
             );
             let solutionsFromCoreX = stateVariables[
-                resolveComponentName("repeat1")
+                await resolvePathToNodeIdx("repeat1")
             ]
                 .replacements!.map(
                     (child) =>
@@ -680,7 +684,7 @@ describe("odeSystem Tag Tests", async () => {
                 )
                 .map((v) => v.tree);
             let solutionsFromCoreY = stateVariables[
-                resolveComponentName("repeat1")
+                await resolvePathToNodeIdx("repeat1")
             ]
                 .replacements!.map(
                     (child) =>
@@ -717,12 +721,12 @@ describe("odeSystem Tag Tests", async () => {
         expectedFx = (t) => 4 * Math.exp(0.1 * t) - 1 * Math.exp(0.2 * t);
         expectedFy = (t) => -2 * Math.exp(0.1 * t) + 1 * Math.exp(0.2 * t);
         await updateMathInputValue({
-            componentIdx: resolveComponentName("ic1"),
+            componentIdx: await resolvePathToNodeIdx("ic1"),
             latex: `${ic1}`,
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("ic2"),
+            componentIdx: await resolvePathToNodeIdx("ic2"),
             latex: `${ic2}`,
             core,
         });
@@ -734,7 +738,7 @@ describe("odeSystem Tag Tests", async () => {
         expectedFx = (t) => -6 * Math.exp(0.1 * t) + 1 * Math.exp(0.2 * t);
         expectedFy = (t) => 3 * Math.exp(0.1 * t) - 1 * Math.exp(0.2 * t);
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: ic1,
             y: ic2,
             core,
@@ -747,12 +751,12 @@ describe("odeSystem Tag Tests", async () => {
         expectedFx = (t) => 0;
         expectedFy = (t) => 0;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("ic1"),
+            componentIdx: await resolvePathToNodeIdx("ic1"),
             latex: `${ic1}`,
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("ic2"),
+            componentIdx: await resolvePathToNodeIdx("ic2"),
             latex: `${ic2}`,
             core,
         });
@@ -779,7 +783,7 @@ describe("odeSystem Tag Tests", async () => {
             }
             odeLatex = odeLatex.substring(0, odeLatex.length - 2); // remove ending "\\"
 
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
             });
             let stateVariables = await core.returnAllStateVariables(
@@ -787,7 +791,8 @@ describe("odeSystem Tag Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("ode")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ode")].stateValues
+                    .latex,
             ).eqls(odeLatex);
         }
 
@@ -835,7 +840,7 @@ describe("odeSystem Tag Tests", async () => {
     });
 
     it("copy rightHandSide, initial conditions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <odeSystem name="ode" initialconditions="c 3">
   <rightHandSide>a*x*y+z</rightHandSide>
@@ -870,30 +875,30 @@ describe("odeSystem Tag Tests", async () => {
         let rhs1tree = ["+", ["*", "a", "x", "y"], "z"];
         let rhs2tree = ["/", "x", "y"];
 
-        function expectValue(origName: string, desiredValue: any) {
+        async function expectValue(origName: string, desiredValue: any) {
             expect(
-                stateVariables[resolveComponentName(origName)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(origName)].stateValues
+                    .value.tree,
             ).eqls(desiredValue);
         }
 
-        expectValue("rhs1a", rhs1tree);
-        expectValue("rhs2a", rhs2tree);
-        expectValue("rhs1b", rhs1tree);
-        expectValue("rhssa[1]", rhs1tree);
-        expectValue("rhssa[2]", rhs2tree);
+        await expectValue("rhs1a", rhs1tree);
+        await expectValue("rhs2a", rhs2tree);
+        await expectValue("rhs1b", rhs1tree);
+        await expectValue("rhssa[1]", rhs1tree);
+        await expectValue("rhssa[2]", rhs2tree);
 
-        expectValue("rhs1c", rhs1tree);
-        expectValue("rhs2b", rhs2tree);
-        expectValue("rhs1d", rhs1tree);
-        expectValue("rhssb[1]", rhs1tree);
-        expectValue("rhssb[2]", rhs2tree);
+        await expectValue("rhs1c", rhs1tree);
+        await expectValue("rhs2b", rhs2tree);
+        await expectValue("rhs1d", rhs1tree);
+        await expectValue("rhssb[1]", rhs1tree);
+        await expectValue("rhssb[2]", rhs2tree);
 
-        expectValue("ic1a", "c");
-        expectValue("ic2a", 3);
-        expectValue("ic1b", "c");
-        expectValue("icsa[1]", "c");
-        expectValue("icsa[2]", 3);
+        await expectValue("ic1a", "c");
+        await expectValue("ic2a", 3);
+        await expectValue("ic1b", "c");
+        await expectValue("icsa[1]", "c");
+        await expectValue("icsa[2]", 3);
 
         let swapLatex = "";
         swapLatex += "\\frac{dx}{dt} &=  \\frac{x}{y}\\notag\\\\";
@@ -901,7 +906,8 @@ describe("odeSystem Tag Tests", async () => {
         swapLatex += "x(0) &= c\\notag\\\\";
         swapLatex += "y(0) &= 3\\notag";
         expect(
-            stateVariables[resolveComponentName("odeswap")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("odeswap")].stateValues
+                .latex,
         ).eqls(swapLatex);
     });
 

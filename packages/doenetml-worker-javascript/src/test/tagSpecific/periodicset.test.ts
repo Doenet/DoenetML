@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -68,7 +68,7 @@ async function check_periodic_set({
 
 describe("PeriodicSet tag tests", async () => {
     it("match given periodic set", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Offsets: <mathInput name="o"/></p>
     <p>Period: <mathInput name="p" /></p>
@@ -86,7 +86,7 @@ describe("PeriodicSet tag tests", async () => {
 
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
         });
 
         let period: number | string | (number | string)[] = "pi";
@@ -97,177 +97,201 @@ describe("PeriodicSet tag tests", async () => {
 
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s2"),
+            componentIdx: await resolvePathToNodeIdx("s2"),
             offsets,
             period,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
 
         // Type in an offset and submit
         await updateMathInputValue({
             latex: "-\\pi/4",
-            componentIdx: resolveComponentName("o"),
+            componentIdx: await resolvePathToNodeIdx("o"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
 
         // Type in a period and submit
         await updateMathInputValue({
             latex: "\\pi/2",
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         period = ["/", "pi", 2];
         offsets = [["-", ["/", "pi", 4]]];
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
             offsets,
             period,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
 
         // Change period to be irrational factor of other period
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         period = 1;
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
             offsets,
             period,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
 
         // Change period
         await updateMathInputValue({
             latex: "\\pi",
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         period = "pi";
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
             offsets,
             period,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
 
         // add offset
         await updateMathInputValue({
             latex: "-\\pi/4, 5\\pi/4",
-            componentIdx: resolveComponentName("o"),
+            componentIdx: await resolvePathToNodeIdx("o"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         offsets.push(["/", ["*", 5, "pi"], 4]);
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
             offsets,
             period,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
 
         // add redundant offset
         await updateMathInputValue({
             latex: "-\\pi/4, 5\\pi/4, \\pi/4",
-            componentIdx: resolveComponentName("o"),
+            componentIdx: await resolvePathToNodeIdx("o"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         offsets.push(["/", "pi", 4]);
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
             offsets,
             period,
             redundantOffsets: true,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
 
         // add incorrect offset
         await updateMathInputValue({
             latex: "-\\pi/4, 5\\pi/4, \\pi/4, \\pi/2",
-            componentIdx: resolveComponentName("o"),
+            componentIdx: await resolvePathToNodeIdx("o"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         offsets.push(["/", "pi", 2]);
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
             offsets,
             period,
             redundantOffsets: true,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
 
         // add invalid math
         await updateMathInputValue({
             latex: "-\\pi/4, 5\\pi/4, \\pi/4, \\pi/2, (",
-            componentIdx: resolveComponentName("o"),
+            componentIdx: await resolvePathToNodeIdx("o"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
     });
 
     it("match copied periodic sets", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Offsets: <mathInput name="offsets" /></p>
     <p>Period: <mathInput name="period" /></p>
@@ -288,124 +312,133 @@ describe("PeriodicSet tag tests", async () => {
     `,
         });
 
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
 
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
-        expect(stateVariables[resolveComponentName("pR")].stateValues.text).eq(
-            "Redundancies: false, false, false, false",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
+        ).eq("Redundancies: false, false, false, false");
 
         // Submit offset for both
 
         await updateMathInputValue({
             latex: "-\\pi/4",
-            componentIdx: resolveComponentName("offsets"),
+            componentIdx: await resolvePathToNodeIdx("offsets"),
             core,
         });
         await updateMathInputValue({
             latex: "-\\pi/4",
-            componentIdx: resolveComponentName("offsets2"),
+            componentIdx: await resolvePathToNodeIdx("offsets2"),
             core,
         });
         let offsets1: Offset[] = [["-", ["/", "pi", 4]]];
         let offsets2: Offset[] = [["-", ["/", "pi", 4]]];
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
-        await check_periodic_set({
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
             core,
-            componentIdx: resolveComponentName("a"),
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("a"),
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("b"),
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
+        });
+        await check_periodic_set({
+            core,
+            componentIdx: await resolvePathToNodeIdx("b2"),
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
-        expect(stateVariables[resolveComponentName("pR")].stateValues.text).eq(
-            "Redundancies: false, false, false, false",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
+        ).eq("Redundancies: false, false, false, false");
 
         // Submit periods for both
         await updateMathInputValue({
             latex: "\\pi/2",
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
         await updateMathInputValue({
             latex: "2\\pi",
-            componentIdx: resolveComponentName("period2"),
+            componentIdx: await resolvePathToNodeIdx("period2"),
             core,
         });
         let period1: Period = ["/", "pi", 2];
         let period2: Period = ["*", 2, "pi"];
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             offsets: offsets1,
             period: period1,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             offsets: offsets2,
             period: period2,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             offsets: offsets1,
             period: period1,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             offsets: offsets2,
             period: period2,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
-        expect(stateVariables[resolveComponentName("pR")].stateValues.text).eq(
-            "Redundancies: false, false, false, false",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
+        ).eq("Redundancies: false, false, false, false");
 
         // Add offsets to match
         await updateMathInputValue({
             latex: "-\\pi/4, \\pi/4, 11\\pi/4, -11\\pi/4",
-            componentIdx: resolveComponentName("offsets2"),
+            componentIdx: await resolvePathToNodeIdx("offsets2"),
             core,
         });
         offsets2.push(
@@ -415,176 +448,188 @@ describe("PeriodicSet tag tests", async () => {
                 ["-", ["/", ["*", 11, "pi"], 4]],
             ],
         );
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             offsets: offsets1,
             period: period1,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             offsets: offsets2,
             period: period2,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             offsets: offsets1,
             period: period1,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             offsets: offsets2,
             period: period2,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("pR")].stateValues.text).eq(
-            "Redundancies: false, false, false, false",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
+        ).eq("Redundancies: false, false, false, false");
 
         // Add extra offsets
         await updateMathInputValue({
             latex: "-\\pi/4, -17\\pi/4",
-            componentIdx: resolveComponentName("offsets"),
+            componentIdx: await resolvePathToNodeIdx("offsets"),
             core,
         });
         offsets1.push(["-", ["/", ["*", 17, "pi"], 4]]);
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             offsets: offsets1,
             period: period1,
             redundantOffsets: true,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             offsets: offsets2,
             period: period2,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             offsets: offsets1,
             period: period1,
             redundantOffsets: true,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             offsets: offsets2,
             period: period2,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("pR")].stateValues.text).eq(
-            "Redundancies: true, false, true, false",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
+        ).eq("Redundancies: true, false, true, false");
 
         // reduce period
         await updateMathInputValue({
             latex: "\\pi",
-            componentIdx: resolveComponentName("period2"),
+            componentIdx: await resolvePathToNodeIdx("period2"),
             core,
         });
         period2 = "pi";
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             offsets: offsets1,
             period: period1,
             redundantOffsets: true,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             offsets: offsets2,
             period: period2,
             redundantOffsets: true,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             offsets: offsets1,
             period: period1,
             redundantOffsets: true,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             offsets: offsets2,
             period: period2,
             redundantOffsets: true,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("pR")].stateValues.text).eq(
-            "Redundancies: true, true, true, true",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
+        ).eq("Redundancies: true, true, true, true");
 
         // add incorrect offset
         await updateMathInputValue({
             latex: "-\\pi/4, \\pi/4, 11\\pi/4, -11\\pi/4, 0",
-            componentIdx: resolveComponentName("offsets2"),
+            componentIdx: await resolvePathToNodeIdx("offsets2"),
             core,
         });
         offsets2.push(0);
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             offsets: offsets1,
             period: period1,
             redundantOffsets: true,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             offsets: offsets2,
             period: period2,
             redundantOffsets: true,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             offsets: offsets1,
             period: period1,
             redundantOffsets: true,
         });
         await check_periodic_set({
             core,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             offsets: offsets2,
             period: period2,
             redundantOffsets: true,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(0);
-        expect(stateVariables[resolveComponentName("pR")].stateValues.text).eq(
-            "Redundancies: true, true, true, true",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
+        ).eq("Redundancies: true, true, true, true");
     });
 
     it("partial credit with periodic set", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <mathList name="correct_offsets" mergeMathLists="true">30,150</mathList>
@@ -663,502 +708,502 @@ describe("PeriodicSet tag tests", async () => {
         // partially correct answer
         await updateMathInputValue({
             latex: "360",
-            componentIdx: resolveComponentName("period_input"),
+            componentIdx: await resolvePathToNodeIdx("period_input"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("period")].stateValues
+            stateVariables[await resolvePathToNodeIdx("period")].stateValues
                 .creditAchieved,
         ).eq(1);
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("number_offsets_input"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets_input"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("number_offsets"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("number_offsets")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("number_offsets")]
+                .stateValues.creditAchieved,
         ).eq(1);
 
         await updateMathInputValue({
             latex: "30",
-            componentIdx: resolveComponentName("mis[1][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[1][1]"),
             core,
         });
         await updateMathInputValue({
             latex: "150",
-            componentIdx: resolveComponentName("mis[2][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[2][1]"),
             core,
         });
         await updateMathInputValue({
             latex: "210",
-            componentIdx: resolveComponentName("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
             core,
         });
         await updateMathInputValue({
             latex: "211",
-            componentIdx: resolveComponentName("mis[4][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[4][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.75);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.75);
 
         // correct answer
         await updateMathInputValue({
             latex: "-30",
-            componentIdx: resolveComponentName("mis[4][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[4][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(1);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(1);
 
         // add extraneous answer blanks
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("number_offsets_input"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets_input"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("number_offsets"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("number_offsets")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("number_offsets")]
+                .stateValues.creditAchieved,
         ).eq(1);
 
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.4);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.4);
 
         // add in a duplicate
         await updateMathInputValue({
             latex: "330",
-            componentIdx: resolveComponentName("mis[5][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[5][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.4);
 
         // fill in with duplicates
         await updateMathInputValue({
             latex: "330",
-            componentIdx: resolveComponentName("mis[6][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[6][1]"),
             core,
         });
         await updateMathInputValue({
             latex: "330",
-            componentIdx: resolveComponentName("mis[7][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[7][1]"),
             core,
         });
         await updateMathInputValue({
             latex: "330",
-            componentIdx: resolveComponentName("mis[8][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[8][1]"),
             core,
         });
         await updateMathInputValue({
             latex: "330",
-            componentIdx: resolveComponentName("mis[9][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[9][1]"),
             core,
         });
         await updateMathInputValue({
             latex: "330",
-            componentIdx: resolveComponentName("mis[10][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[10][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(1);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.8);
 
         // too few answer blanks
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("number_offsets_input"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets_input"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("number_offsets"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("number_offsets")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("number_offsets")]
+                .stateValues.creditAchieved,
         ).eq(0);
 
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.75);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.75);
 
         await updateMathInputValue({
             latex: "100",
-            componentIdx: resolveComponentName("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.5);
 
         // even fewer answer blanks
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("number_offsets_input"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets_input"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("number_offsets"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("number_offsets")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("number_offsets")]
+                .stateValues.creditAchieved,
         ).eq(0);
 
         await updateMathInputValue({
             latex: "100",
-            componentIdx: resolveComponentName("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.5);
 
         // change period
         await updateMathInputValue({
             latex: "180",
-            componentIdx: resolveComponentName("period_input"),
+            componentIdx: await resolvePathToNodeIdx("period_input"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("period")].stateValues
+            stateVariables[await resolvePathToNodeIdx("period")].stateValues
                 .creditAchieved,
         ).eq(1);
 
         await submitAnswer({
-            componentIdx: resolveComponentName("number_offsets"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("number_offsets")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("number_offsets")]
+                .stateValues.creditAchieved,
         ).eq(1);
 
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(1);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(1);
 
         // additional answer blanks
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("number_offsets_input"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets_input"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("number_offsets"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("number_offsets")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("number_offsets")]
+                .stateValues.creditAchieved,
         ).eq(1);
 
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(2 / 3);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(2 / 3);
 
         await updateMathInputValue({
             latex: "330",
-            componentIdx: resolveComponentName("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(1);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.8);
 
         // change period
         await updateMathInputValue({
             latex: "90",
-            componentIdx: resolveComponentName("period_input"),
+            componentIdx: await resolvePathToNodeIdx("period_input"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("period")].stateValues
+            stateVariables[await resolvePathToNodeIdx("period")].stateValues
                 .creditAchieved,
         ).eq(0);
 
         await submitAnswer({
-            componentIdx: resolveComponentName("number_offsets"),
+            componentIdx: await resolvePathToNodeIdx("number_offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("number_offsets")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("number_offsets")]
+                .stateValues.creditAchieved,
         ).eq(1);
 
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.4);
 
         await updateMathInputValue({
             latex: "100",
-            componentIdx: resolveComponentName("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(1 / 3);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(1 / 3);
 
         await updateMathInputValue({
             latex: "150",
-            componentIdx: resolveComponentName("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answerNoPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerNoPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerNoPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerNoPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({
-            componentIdx: resolveComponentName("answerPenalty"),
+            componentIdx: await resolvePathToNodeIdx("answerPenalty"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answerPenalty")].stateValues
-                .creditAchieved,
+            stateVariables[await resolvePathToNodeIdx("answerPenalty")]
+                .stateValues.creditAchieved,
         ).eq(0.4);
     });
 
     it("display periodic set as list", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Period: <mathInput name="period" /></p>
     <p>Offsets: <mathInput name="offsets" /></p>
@@ -1177,107 +1222,115 @@ describe("PeriodicSet tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pL1")].stateValues.text).eq(
-            "As list: ",
-        );
-        expect(stateVariables[resolveComponentName("pL2")].stateValues.text).eq(
-            "As list with specified min/max: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL1")].stateValues.text,
+        ).eq("As list: ");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL2")].stateValues.text,
+        ).eq("As list with specified min/max: ");
 
         await updateMathInputValue({
             latex: "7",
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("offsets"),
+            componentIdx: await resolvePathToNodeIdx("offsets"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pL1")].stateValues.text).eq(
-            "As list: ..., -6, 1, 8, ...",
-        );
-        expect(stateVariables[resolveComponentName("pL2")].stateValues.text).eq(
-            "As list with specified min/max: ..., -6, 1, 8, ...",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL1")].stateValues.text,
+        ).eq("As list: ..., -6, 1, 8, ...");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL2")].stateValues.text,
+        ).eq("As list with specified min/max: ..., -6, 1, 8, ...");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("minIndex"),
+            componentIdx: await resolvePathToNodeIdx("minIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pL1")].stateValues.text).eq(
-            "As list: ..., -6, 1, 8, ...",
-        );
-        expect(stateVariables[resolveComponentName("pL2")].stateValues.text).eq(
-            "As list with specified min/max: ..., ...",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL1")].stateValues.text,
+        ).eq("As list: ..., -6, 1, 8, ...");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL2")].stateValues.text,
+        ).eq("As list with specified min/max: ..., ...");
 
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("maxIndex"),
+            componentIdx: await resolvePathToNodeIdx("maxIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pL1")].stateValues.text).eq(
-            "As list: ..., -6, 1, 8, ...",
-        );
-        expect(stateVariables[resolveComponentName("pL2")].stateValues.text).eq(
-            "As list with specified min/max: ..., 22, 29, 36, 43, ...",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL1")].stateValues.text,
+        ).eq("As list: ..., -6, 1, 8, ...");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL2")].stateValues.text,
+        ).eq("As list with specified min/max: ..., 22, 29, 36, 43, ...");
 
         await updateMathInputValue({
             latex: "1,3",
-            componentIdx: resolveComponentName("offsets"),
+            componentIdx: await resolvePathToNodeIdx("offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pL1")].stateValues.text).eq(
-            "As list: ..., -6, -4, 1, 3, 8, 10, ...",
-        );
-        expect(stateVariables[resolveComponentName("pL2")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL1")].stateValues.text,
+        ).eq("As list: ..., -6, -4, 1, 3, 8, 10, ...");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL2")].stateValues.text,
+        ).eq(
             "As list with specified min/max: ..., 22, 24, 29, 31, 36, 38, 43, 45, ...",
         );
 
         await updateMathInputValue({
             latex: "3,1",
-            componentIdx: resolveComponentName("offsets"),
+            componentIdx: await resolvePathToNodeIdx("offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pL1")].stateValues.text).eq(
-            "As list: ..., -6, -4, 1, 3, 8, 10, ...",
-        );
-        expect(stateVariables[resolveComponentName("pL2")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL1")].stateValues.text,
+        ).eq("As list: ..., -6, -4, 1, 3, 8, 10, ...");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL2")].stateValues.text,
+        ).eq(
             "As list with specified min/max: ..., 22, 24, 29, 31, 36, 38, 43, 45, ...",
         );
 
         await updateMathInputValue({
             latex: "3,1,8",
-            componentIdx: resolveComponentName("offsets"),
+            componentIdx: await resolvePathToNodeIdx("offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pL1")].stateValues.text).eq(
-            "As list: ..., -6, -4, 1, 3, 8, 10, ...",
-        );
-        expect(stateVariables[resolveComponentName("pL2")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL1")].stateValues.text,
+        ).eq("As list: ..., -6, -4, 1, 3, 8, 10, ...");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL2")].stateValues.text,
+        ).eq(
             "As list with specified min/max: ..., 22, 24, 29, 31, 36, 38, 43, 45, ...",
         );
 
         await updateMathInputValue({
             latex: "3,1,8,79",
-            componentIdx: resolveComponentName("offsets"),
+            componentIdx: await resolvePathToNodeIdx("offsets"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pL1")].stateValues.text).eq(
-            "As list: ..., -6, -5, -4, 1, 2, 3, 8, 9, 10, ...",
-        );
-        expect(stateVariables[resolveComponentName("pL2")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL1")].stateValues.text,
+        ).eq("As list: ..., -6, -5, -4, 1, 2, 3, 8, 9, 10, ...");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pL2")].stateValues.text,
+        ).eq(
             "As list with specified min/max: ..., 22, 23, 24, 29, 30, 31, 36, 37, 38, 43, 44, 45, ...",
         );
     });

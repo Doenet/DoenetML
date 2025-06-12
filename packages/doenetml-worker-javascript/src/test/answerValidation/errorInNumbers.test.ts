@@ -14,11 +14,11 @@ async function run_single_response_tests({
     doenetML: string;
     responseCredits: Record<string, number>;
 }) {
-    const { core, resolveComponentName } = await createTestCore({ doenetML });
+    const { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
     const stateVariables = await core.returnAllStateVariables(false, true);
     const mathInputIdx =
-        stateVariables[resolveComponentName("ans")].stateValues.inputChildren[0]
-            .componentIdx;
+        stateVariables[await resolvePathToNodeIdx("ans")].stateValues
+            .inputChildren[0].componentIdx;
 
     for (let response in responseCredits) {
         await submit_check({
@@ -45,10 +45,13 @@ async function run_single_response_tests({
             componentIdx: mathInputIdx,
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(creditAchieved, `For response ${response}`);
     }
@@ -61,7 +64,7 @@ async function run_two_response_tests({
     doenetML: string;
     responseCredits: Record<string, number>;
 }) {
-    const { core, resolveComponentName } = await createTestCore({ doenetML });
+    const { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
 
     for (let response in responseCredits) {
         await submit_check({
@@ -83,18 +86,21 @@ async function run_two_response_tests({
         let [response1, response2] = response.split(",");
         await updateMathInputValue({
             latex: response1,
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: response2,
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(creditAchieved, `For response ${response}`);
     }

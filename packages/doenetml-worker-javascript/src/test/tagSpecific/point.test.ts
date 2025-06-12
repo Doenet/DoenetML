@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     clickPoint,
     focusPoint,
@@ -20,7 +20,7 @@ vi.mock("hyperformula");
 describe("Point tag tests", async () => {
     async function test_points_copy_y(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         labels: string[] = ["", ""],
     ) {
         async function check_items({
@@ -39,28 +39,30 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("P1")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([x1, y1]);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.coords
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .coords.tree,
             ).eqls(["vector", x1, y1]);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .label,
             ).eq(labels[0]);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("P2")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([x2, y1]);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.coords
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .coords.tree,
             ).eqls(["vector", x2, y1]);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .label,
             ).eq(labels[1]);
         }
 
@@ -73,7 +75,7 @@ describe("Point tag tests", async () => {
         x1 = -1;
         y1 = -7;
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: x1,
             y: y1,
             core,
@@ -84,7 +86,7 @@ describe("Point tag tests", async () => {
         x2 = 9;
         y1 = 8;
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: x2,
             y: y1,
             core,
@@ -93,7 +95,7 @@ describe("Point tag tests", async () => {
     }
 
     it("point sugar a copy", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P1">(5,6)</point>
@@ -102,11 +104,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_points_copy_y(core, resolveComponentName);
+        await test_points_copy_y(core, resolvePathToNodeIdx);
     });
 
     it("point sugar a copy, with labels", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P1">(5,6)<label>P</label></point>
@@ -116,11 +118,11 @@ describe("Point tag tests", async () => {
         });
 
         let labels = ["P", "Q"];
-        await test_points_copy_y(core, resolveComponentName, labels);
+        await test_points_copy_y(core, resolvePathToNodeIdx, labels);
     });
 
     it("coords use a copy", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P1">(5,6)</point>
@@ -129,11 +131,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_points_copy_y(core, resolveComponentName);
+        await test_points_copy_y(core, resolvePathToNodeIdx);
     });
 
     it("coords use a copy with label", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P1"><label>P</label>(5,6)</point>
@@ -143,11 +145,11 @@ describe("Point tag tests", async () => {
         });
 
         let labels = ["P", "Q"];
-        await test_points_copy_y(core, resolveComponentName, labels);
+        await test_points_copy_y(core, resolvePathToNodeIdx, labels);
     });
 
     it("label uses a copy", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P1"><label>P</label>(5,6)</point>
@@ -162,26 +164,26 @@ describe("Point tag tests", async () => {
         // Labels are P and P'
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([5, 6]);
-        expect(stateVariables[resolveComponentName("P1")].stateValues.label).eq(
-            "P",
-        );
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.label,
+        ).eq("P");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([1, 3]);
-        expect(stateVariables[resolveComponentName("P2")].stateValues.label).eq(
-            `P'`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.label,
+        ).eq(`P'`);
     });
 
     async function test_point_from_math_input_copied(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_values(xs: number[]) {
             const stateVariables = await core.returnAllStateVariables(
@@ -189,8 +191,8 @@ describe("Point tag tests", async () => {
                 true,
             );
             for (let P of [
-                resolveComponentName("P"),
-                resolveComponentName("Q"),
+                await resolvePathToNodeIdx("P"),
+                await resolvePathToNodeIdx("Q"),
             ]) {
                 if (xs.length === 0) {
                     expect(
@@ -224,7 +226,7 @@ describe("Point tag tests", async () => {
         xs = [-1, -7];
         await updateMathInputValue({
             latex: `(${xs.join(",")})`,
-            componentIdx: resolveComponentName("coords"),
+            componentIdx: await resolvePathToNodeIdx("coords"),
             core,
         });
         await check_values(xs);
@@ -232,7 +234,7 @@ describe("Point tag tests", async () => {
         // move point P to (3,5)
         xs = [3, 5];
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: xs[0],
             y: xs[1],
             core,
@@ -242,7 +244,7 @@ describe("Point tag tests", async () => {
         // move point Q to (9,1)
         xs = [9, 1];
         await movePoint({
-            componentIdx: resolveComponentName("Q"),
+            componentIdx: await resolvePathToNodeIdx("Q"),
             x: xs[0],
             y: xs[1],
             core,
@@ -253,7 +255,7 @@ describe("Point tag tests", async () => {
         xs = [];
         await updateMathInputValue({
             latex: ``,
-            componentIdx: resolveComponentName("coords"),
+            componentIdx: await resolvePathToNodeIdx("coords"),
             core,
         });
         await check_values(xs);
@@ -262,7 +264,7 @@ describe("Point tag tests", async () => {
         xs = [-3];
         await updateMathInputValue({
             latex: `(${xs.join(",")})`,
-            componentIdx: resolveComponentName("coords"),
+            componentIdx: await resolvePathToNodeIdx("coords"),
             core,
         });
         await check_values(xs);
@@ -271,7 +273,7 @@ describe("Point tag tests", async () => {
         xs = [6, 5, 4];
         await updateMathInputValue({
             latex: `(${xs.join(",")})`,
-            componentIdx: resolveComponentName("coords"),
+            componentIdx: await resolvePathToNodeIdx("coords"),
             core,
         });
         await check_values(xs);
@@ -280,7 +282,7 @@ describe("Point tag tests", async () => {
         xs = [5, -2];
         await updateMathInputValue({
             latex: `\\langle${xs.join(",")}\\rangle`,
-            componentIdx: resolveComponentName("coords"),
+            componentIdx: await resolvePathToNodeIdx("coords"),
             core,
         });
         await check_values(xs);
@@ -288,7 +290,7 @@ describe("Point tag tests", async () => {
         // move point P to (7,8)
         xs = [7, 8];
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 7,
             y: 8,
             core,
@@ -297,7 +299,7 @@ describe("Point tag tests", async () => {
     }
 
     it("point sugar from single copied math, from mathInput, copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="coords" />
     <graph>
@@ -309,11 +311,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_point_from_math_input_copied(core, resolveComponentName);
+        await test_point_from_math_input_copied(core, resolvePathToNodeIdx);
     });
 
     it("point sugar from single math, from mathInput, copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="coords" />
     <graph>
@@ -325,11 +327,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_point_from_math_input_copied(core, resolveComponentName);
+        await test_point_from_math_input_copied(core, resolvePathToNodeIdx);
     });
 
     it("point from vector, from mathInput, copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="coords" />
     <graph>
@@ -341,11 +343,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_point_from_math_input_copied(core, resolveComponentName);
+        await test_point_from_math_input_copied(core, resolvePathToNodeIdx);
     });
 
     it("point from copied vector with single sugared math, from mathInput, copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="coords" />
     <vector name="v"><math>$coords</math></vector>
@@ -358,12 +360,12 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_point_from_math_input_copied(core, resolveComponentName);
+        await test_point_from_math_input_copied(core, resolvePathToNodeIdx);
     });
 
     async function test_invertible(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         x_fixed = false,
     ) {
         async function check_items(x, y) {
@@ -372,25 +374,25 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).closeTo(x, 1e-12);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).closeTo(y, 1e-12);
             expect(
                 stateVariables[
-                    resolveComponentName("m1")
+                    await resolvePathToNodeIdx("m1")
                 ].stateValues.value.evaluate_to_constant(),
             ).closeTo(x / 1.5, 1e-12);
             expect(
-                stateVariables[resolveComponentName("m2")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .value.tree,
             ).closeTo(3, 1e-12);
             expect(
-                stateVariables[resolveComponentName("y")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .value.tree,
             ).closeTo(y, 1e-12);
         }
 
@@ -398,7 +400,7 @@ describe("Point tag tests", async () => {
 
         // try to move point
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 7,
             y: -5,
             core,
@@ -413,7 +415,7 @@ describe("Point tag tests", async () => {
     }
 
     it("test invertible due to modifyIndirectly", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">
@@ -423,11 +425,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_invertible(core, resolveComponentName);
+        await test_invertible(core, resolvePathToNodeIdx);
     });
 
     it("test invertible due to fixed", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">
@@ -437,11 +439,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_invertible(core, resolveComponentName);
+        await test_invertible(core, resolvePathToNodeIdx);
     });
 
     it("test not invertible due to two non-fixed maths", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">
@@ -451,12 +453,12 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_invertible(core, resolveComponentName, true);
+        await test_invertible(core, resolvePathToNodeIdx, true);
     });
 
     async function test_2d_from_3d(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items(x, y) {
             const stateVariables = await core.returnAllStateVariables(
@@ -464,24 +466,24 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).closeTo(x, 1e-12);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).closeTo(y, 1e-12);
             expect(
-                stateVariables[resolveComponentName("source")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("source")].stateValues
+                    .xs[0].tree,
             ).eq("a");
             expect(
-                stateVariables[resolveComponentName("source")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("source")].stateValues
+                    .xs[1].tree,
             ).closeTo(x, 1e-12);
             expect(
-                stateVariables[resolveComponentName("source")].stateValues.xs[2]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("source")].stateValues
+                    .xs[2].tree,
             ).closeTo(y, 1e-12);
         }
 
@@ -490,7 +492,7 @@ describe("Point tag tests", async () => {
 
         // move point P
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -4,
             y: -7,
             core,
@@ -499,7 +501,7 @@ describe("Point tag tests", async () => {
     }
 
     it("define 2D point from 3D point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <point name="P">
@@ -513,11 +515,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_2d_from_3d(core, resolveComponentName);
+        await test_2d_from_3d(core, resolvePathToNodeIdx);
     });
 
     it("define 2D point from 3D point, copying xj", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <point name="P">
@@ -531,11 +533,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_2d_from_3d(core, resolveComponentName);
+        await test_2d_from_3d(core, resolvePathToNodeIdx);
     });
 
     it("define 2D point from 3D point, separate coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P" x="$(source.y)" y = "$(source.z)" />
@@ -547,11 +549,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_2d_from_3d(core, resolveComponentName);
+        await test_2d_from_3d(core, resolvePathToNodeIdx);
     });
 
     it("define 2D point from double-copied 3D point, separate coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P" x="$(source3.y)" y = "$(source3.z)" />
@@ -565,11 +567,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_2d_from_3d(core, resolveComponentName);
+        await test_2d_from_3d(core, resolvePathToNodeIdx);
     });
 
     it("point on graph that is copied in two ways", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g1">
     <point name="P">(1,2)</point>
@@ -587,19 +589,19 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("g1.P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("g1.P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([x, y]);
             expect(
-                stateVariables[resolveComponentName("g2.P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("g2.P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([x, y]);
             expect(
-                stateVariables[resolveComponentName("P3")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("P3")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([x, y]);
         }
 
@@ -611,7 +613,7 @@ describe("Point tag tests", async () => {
         x = 4;
         y = 6;
         await movePoint({
-            componentIdx: resolveComponentName("g1.P"),
+            componentIdx: await resolvePathToNodeIdx("g1.P"),
             x,
             y,
             core,
@@ -622,7 +624,7 @@ describe("Point tag tests", async () => {
         x = -3;
         y = -7;
         await movePoint({
-            componentIdx: resolveComponentName("g2.P"),
+            componentIdx: await resolvePathToNodeIdx("g2.P"),
             x,
             y,
             core,
@@ -633,7 +635,7 @@ describe("Point tag tests", async () => {
         x = 9;
         y = -2;
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x,
             y,
             core,
@@ -642,7 +644,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point draggable but constrained to x = y^2/10", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">
@@ -658,12 +660,12 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eqls(me.fromText(`(${y})^2/10`).simplify().tree);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y);
         }
 
@@ -671,7 +673,7 @@ describe("Point tag tests", async () => {
 
         // move point to (-9,6)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -9,
             y: 6,
             core,
@@ -680,7 +682,7 @@ describe("Point tag tests", async () => {
 
         // move point to (9,-3)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: -3,
             core,
@@ -689,7 +691,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point draggable but constrained to y = sin(x)", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">
@@ -705,12 +707,12 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eqls(["apply", "sin", x]);
         }
 
@@ -718,7 +720,7 @@ describe("Point tag tests", async () => {
 
         // move point1 to (-9,6)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -9,
             y: 6,
             core,
@@ -727,7 +729,7 @@ describe("Point tag tests", async () => {
 
         // move point1 to (9,-3)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: -3,
             core,
@@ -736,7 +738,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point reflected across line", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P1">(1,2)</point>
@@ -752,20 +754,20 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[0].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[1].tree,
             ).eq(x);
         }
 
@@ -773,7 +775,7 @@ describe("Point tag tests", async () => {
 
         // move point1 to (-9,6)
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -9,
             y: 6,
             core,
@@ -782,7 +784,7 @@ describe("Point tag tests", async () => {
 
         // move point2 to (0,-3)
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 0,
             y: -3,
             core,
@@ -791,7 +793,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point not draggable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P" draggable="false">(1,2)</point>
@@ -800,26 +802,26 @@ describe("Point tag tests", async () => {
         });
 
         let P = (await core.returnAllStateVariables(false, true))[
-            resolveComponentName("P")
+            await resolvePathToNodeIdx("P")
         ].stateValues;
         expect(P.xs.map((v) => v.tree)).eqls([1, 2]);
 
         // attempt to move point to (-9,6), but doesn't change
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -9,
             y: 6,
             core,
         });
 
         P = (await core.returnAllStateVariables(false, true))[
-            resolveComponentName("P")
+            await resolvePathToNodeIdx("P")
         ].stateValues;
         expect(P.xs.map((v) => v.tree)).eqls([1, 2]);
     });
 
     it("point on line", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">($d,3-$d)</point>
@@ -829,25 +831,25 @@ describe("Point tag tests", async () => {
         });
 
         let P = (await core.returnAllStateVariables(false, true))[
-            resolveComponentName("P")
+            await resolvePathToNodeIdx("P")
         ].stateValues;
         expect(P.xs.map((v) => v.tree)).eqls([5, -2]);
 
         // move point to (8,8)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8,
             y: 8,
             core,
         });
         P = (await core.returnAllStateVariables(false, true))[
-            resolveComponentName("P")
+            await resolvePathToNodeIdx("P")
         ].stateValues;
         expect(P.xs.map((v) => v.tree)).eqls([8, -5]);
     });
 
     it("points draggable even with complicated dependence", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1">($P2.y,$a)</point>
@@ -864,20 +866,20 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).eq(x + 1);
         }
 
@@ -885,7 +887,7 @@ describe("Point tag tests", async () => {
 
         // move point 2 to (-4,-8)
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: -4,
             y: -8,
             core,
@@ -894,7 +896,7 @@ describe("Point tag tests", async () => {
 
         // move point 1 to (-9,10)
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -9,
             y: 10,
             core,
@@ -909,7 +911,7 @@ describe("Point tag tests", async () => {
     // changed the order. (It's not clear which order is best, so not
     // necessarily bad if this test starts failing.)
     it("points related through intermediate math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
   <point name="P1">($P2.y,$a)</point>
@@ -936,36 +938,36 @@ describe("Point tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).closeTo(P1[0], 1e-12);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).closeTo(P1[1], 1e-12);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[0].tree,
             ).closeTo(P2[0], 1e-12);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[1].tree,
             ).closeTo(P2[1], 1e-12);
             expect(
-                stateVariables[resolveComponentName("d")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                    .value.tree,
             ).closeTo(d, 1e-12);
             expect(
-                stateVariables[resolveComponentName("c")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                    .value.tree,
             ).closeTo(c, 1e-12);
             expect(
-                stateVariables[resolveComponentName("b")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .value.tree,
             ).closeTo(b, 1e-12);
             expect(
-                stateVariables[resolveComponentName("a")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                    .value.tree,
             ).closeTo(a, 1e-12);
         }
 
@@ -976,7 +978,7 @@ describe("Point tag tests", async () => {
         let P2 = [3 - d, d];
 
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: P2[0],
             y: P2[1],
             core,
@@ -992,7 +994,7 @@ describe("Point tag tests", async () => {
         let P1 = [P2[1], a];
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: P1[0],
             y: P1[1],
             core,
@@ -1001,7 +1003,7 @@ describe("Point tag tests", async () => {
 
         // move point2 to upper right
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 9,
             y: 9,
             core,
@@ -1011,7 +1013,7 @@ describe("Point tag tests", async () => {
 
         // move point1 to upper left
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 4,
             y: -6,
             core,
@@ -1039,7 +1041,7 @@ describe("Point tag tests", async () => {
 <number name="a">3</number>
   `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: doenetML1,
         });
 
@@ -1048,14 +1050,17 @@ describe("Point tag tests", async () => {
                 false,
                 true,
             );
-            const P1 = stateVariables[resolveComponentName("P1")].stateValues;
-            const P2 = stateVariables[resolveComponentName("P2")].stateValues;
+            const P1 =
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues;
+            const P2 =
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues;
             expect(P1.xs[0].tree).closeTo(a, 1e-12);
             expect(P1.xs[1].tree).closeTo(y, 1e-12);
             expect(P2.xs[0].tree).closeTo(a, 1e-12);
             expect(P2.xs[1].tree).closeTo(a, 1e-12);
             expect(
-                stateVariables[resolveComponentName("a")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                    .value,
             ).closeTo(a, 1e-12);
         }
 
@@ -1063,7 +1068,7 @@ describe("Point tag tests", async () => {
 
         // point 2 is moveable, based on x component
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: -3,
             y: -7,
             core,
@@ -1072,7 +1077,7 @@ describe("Point tag tests", async () => {
 
         // test zero as had a bug affect case when zero
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 0,
             y: 5,
             core,
@@ -1081,7 +1086,7 @@ describe("Point tag tests", async () => {
 
         // point1 is free to move
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 9,
             y: -6,
             core,
@@ -1090,7 +1095,7 @@ describe("Point tag tests", async () => {
 
         // move to zero to make sure are testing the bug that occurred at zero
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 0,
             y: 0,
             core,
@@ -1098,7 +1103,7 @@ describe("Point tag tests", async () => {
         await check_items(0, 0);
 
         // Test other order
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: doenetML2,
         }));
 
@@ -1106,7 +1111,7 @@ describe("Point tag tests", async () => {
 
         // point 2 is moveable, based on x component
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: -3,
             y: -7,
             core,
@@ -1115,7 +1120,7 @@ describe("Point tag tests", async () => {
 
         // test zero as had a bug affect case when zero
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 0,
             y: 5,
             core,
@@ -1124,7 +1129,7 @@ describe("Point tag tests", async () => {
 
         // point1 is free to move
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 9,
             y: -6,
             core,
@@ -1133,7 +1138,7 @@ describe("Point tag tests", async () => {
 
         // move to zero to make sure are testing the bug that occured at zero
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 0,
             y: 0,
             core,
@@ -1143,7 +1148,7 @@ describe("Point tag tests", async () => {
 
     async function test_constrained_to_grid(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         dx = 1,
         dy = 1,
     ) {
@@ -1155,15 +1160,15 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x2);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y2);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(true);
         }
@@ -1172,7 +1177,7 @@ describe("Point tag tests", async () => {
 
         // move point to (1.2,3.6)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.2,
             y: 3.6,
             core,
@@ -1181,7 +1186,7 @@ describe("Point tag tests", async () => {
 
         // move point to (-9.8,-7.4)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -9.8,
             y: -7.4,
             core,
@@ -1191,7 +1196,7 @@ describe("Point tag tests", async () => {
         // test bug with number in scientific notation
         // move point to (-1.3E-14,2.5E-12)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1.3e-14,
             y: 2.5e-12,
             core,
@@ -1200,7 +1205,7 @@ describe("Point tag tests", async () => {
     }
 
     it("point constrained to grid, default parameters", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P" x="1" y="2">
@@ -1212,11 +1217,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_constrained_to_grid(core, resolveComponentName);
+        await test_constrained_to_grid(core, resolvePathToNodeIdx);
     });
 
     it("point constrained to grid, default parameters, with sugared coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P">
@@ -1229,11 +1234,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_constrained_to_grid(core, resolveComponentName);
+        await test_constrained_to_grid(core, resolvePathToNodeIdx);
     });
 
     it("point constrained to grid, default parameters, copied from outside", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
 
@@ -1249,11 +1254,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_constrained_to_grid(core, resolveComponentName);
+        await test_constrained_to_grid(core, resolvePathToNodeIdx);
     });
 
     it("point constrained to grid, non-integer grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P" x="1" y="2">
@@ -1265,11 +1270,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_constrained_to_grid(core, resolveComponentName, 1.04, 1.04);
+        await test_constrained_to_grid(core, resolvePathToNodeIdx, 1.04, 1.04);
     });
 
     it("point constrained to grid, default parameters, 3D", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <point name="P" x="1" y="2" z="3">
     <constraints>
@@ -1288,19 +1293,19 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x2);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y2);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[2]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[2].tree,
             ).eq(z2);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(true);
         }
@@ -1308,7 +1313,7 @@ describe("Point tag tests", async () => {
         await check_items(1, 2, 3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.2,
             y: 3.6,
             z: 5.4,
@@ -1317,7 +1322,7 @@ describe("Point tag tests", async () => {
         await check_items(1.2, 3.6, 5.4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -9.8,
             y: -7.4,
             z: -4.6,
@@ -1327,7 +1332,7 @@ describe("Point tag tests", async () => {
 
         // test bug with number in scientific notation
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1.3e-14,
             y: 2.5e-12,
             z: 7.1e-121,
@@ -1337,7 +1342,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point constrained to two contradictory grids", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
 
@@ -1359,15 +1364,15 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(true);
         }
@@ -1383,7 +1388,7 @@ describe("Point tag tests", async () => {
         // If one can find a way to avoid this strange behavior, we can change this test
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: 2.9,
             core,
@@ -1392,7 +1397,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point constrained to grid and line", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <line name="PhaseLine" equation="y=0" fixed styleNumber="3"/>
@@ -1413,15 +1418,15 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(true);
         }
@@ -1430,7 +1435,7 @@ describe("Point tag tests", async () => {
 
         // move point
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8.5,
             y: -6.2,
             core,
@@ -1440,7 +1445,7 @@ describe("Point tag tests", async () => {
 
     async function test_constrained_to_graph(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         buffer: number,
     ) {
         const buffer1 = 2 * 10 * buffer;
@@ -1455,21 +1460,21 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("A")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls(xs1);
             expect(
-                stateVariables[resolveComponentName("A")].stateValues
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
                     .constraintUsed,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("B")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls(xs2);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues
+                stateVariables[await resolvePathToNodeIdx("B")].stateValues
                     .constraintUsed,
             ).eq(true);
         }
@@ -1478,7 +1483,7 @@ describe("Point tag tests", async () => {
 
         // move point A to (105,3)
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 105,
             y: 3,
             core,
@@ -1487,7 +1492,7 @@ describe("Point tag tests", async () => {
 
         // move point A to (-30,11)
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -30,
             y: 11,
             core,
@@ -1496,7 +1501,7 @@ describe("Point tag tests", async () => {
 
         // move point A to (-3,1)
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -3,
             y: 1,
             core,
@@ -1505,7 +1510,7 @@ describe("Point tag tests", async () => {
 
         // move point B to (-17,18)
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: -17,
             y: 18,
             core,
@@ -1514,7 +1519,7 @@ describe("Point tag tests", async () => {
 
         // move point B to (56,-91)
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: 56,
             y: -91,
             core,
@@ -1526,7 +1531,7 @@ describe("Point tag tests", async () => {
     }
 
     it("point constrained to graph", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point x="1" y="2" name="A">
@@ -1549,11 +1554,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_constrained_to_graph(core, resolveComponentName, 0.01);
+        await test_constrained_to_graph(core, resolvePathToNodeIdx, 0.01);
     });
 
     it("point constrained to graph 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point x="1" y="2" name="A">
@@ -1570,11 +1575,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_constrained_to_graph(core, resolveComponentName, 0.025);
+        await test_constrained_to_graph(core, resolvePathToNodeIdx, 0.025);
     });
 
     it("three points with one constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="original">(1,2)</point>
@@ -1597,40 +1602,40 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("original")].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx("original")]
+                    .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("original")].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx("original")]
+                    .stateValues.xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("original")].stateValues
-                    .constraintUsed,
+                stateVariables[await resolvePathToNodeIdx("original")]
+                    .stateValues.constraintUsed,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("constrained")].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx("constrained")]
+                    .stateValues.xs[0].tree,
             ).eq(Math.round(x + 1));
             expect(
-                stateVariables[resolveComponentName("constrained")].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx("constrained")]
+                    .stateValues.xs[1].tree,
             ).eq(Math.round(y + 1));
             expect(
-                stateVariables[resolveComponentName("constrained")].stateValues
-                    .constraintUsed,
+                stateVariables[await resolvePathToNodeIdx("constrained")]
+                    .stateValues.constraintUsed,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("follower")].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx("follower")]
+                    .stateValues.xs[0].tree,
             ).eq(Math.round(x + 2));
             expect(
-                stateVariables[resolveComponentName("follower")].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx("follower")]
+                    .stateValues.xs[1].tree,
             ).eq(Math.round(y + 2));
             expect(
-                stateVariables[resolveComponentName("follower")].stateValues
-                    .constraintUsed,
+                stateVariables[await resolvePathToNodeIdx("follower")]
+                    .stateValues.constraintUsed,
             ).eq(false);
         }
 
@@ -1638,7 +1643,7 @@ describe("Point tag tests", async () => {
 
         // move point1 to (1.2,3.6)
         await movePoint({
-            componentIdx: resolveComponentName("original"),
+            componentIdx: await resolvePathToNodeIdx("original"),
             x: 1.2,
             y: 3.6,
             core,
@@ -1647,7 +1652,7 @@ describe("Point tag tests", async () => {
 
         // move point2 to (-3.4,6.7)
         await movePoint({
-            componentIdx: resolveComponentName("constrained"),
+            componentIdx: await resolvePathToNodeIdx("constrained"),
             x: -3.4,
             y: 6.7,
             core,
@@ -1656,7 +1661,7 @@ describe("Point tag tests", async () => {
 
         // move point3 to (5.3, -2.2)
         await movePoint({
-            componentIdx: resolveComponentName("follower"),
+            componentIdx: await resolvePathToNodeIdx("follower"),
             x: 5.3,
             y: -2.2,
             core,
@@ -1665,7 +1670,7 @@ describe("Point tag tests", async () => {
     });
 
     it("points constrained to grid with dynamic parameters", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="dx"/>
   <mathInput name="dy"/>
@@ -1720,40 +1725,40 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("original")].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx("original")]
+                    .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("original")].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx("original")]
+                    .stateValues.xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("original")].stateValues
-                    .constraintUsed,
+                stateVariables[await resolvePathToNodeIdx("original")]
+                    .stateValues.constraintUsed,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("constrained")].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx("constrained")]
+                    .stateValues.xs[0].tree,
             ).eq(x2);
             expect(
-                stateVariables[resolveComponentName("constrained")].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx("constrained")]
+                    .stateValues.xs[1].tree,
             ).eq(y2);
             expect(
-                stateVariables[resolveComponentName("constrained")].stateValues
-                    .constraintUsed,
+                stateVariables[await resolvePathToNodeIdx("constrained")]
+                    .stateValues.constraintUsed,
             ).eq(dx !== undefined);
             expect(
-                stateVariables[resolveComponentName("follower")].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx("follower")]
+                    .stateValues.xs[0].tree,
             ).eq(x2 + 1);
             expect(
-                stateVariables[resolveComponentName("follower")].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx("follower")]
+                    .stateValues.xs[1].tree,
             ).eq(y2 + 1);
             expect(
-                stateVariables[resolveComponentName("follower")].stateValues
-                    .constraintUsed,
+                stateVariables[await resolvePathToNodeIdx("follower")]
+                    .stateValues.constraintUsed,
             ).eq(false);
         }
 
@@ -1767,22 +1772,22 @@ describe("Point tag tests", async () => {
         let yoffset = 0;
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dx"),
+            componentIdx: await resolvePathToNodeIdx("dx"),
             latex: dx.toString(),
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dy"),
+            componentIdx: await resolvePathToNodeIdx("dy"),
             latex: dy.toString(),
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("xoffset"),
+            componentIdx: await resolvePathToNodeIdx("xoffset"),
             latex: xoffset.toString(),
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("yoffset"),
+            componentIdx: await resolvePathToNodeIdx("yoffset"),
             latex: yoffset.toString(),
             core,
         });
@@ -1790,7 +1795,7 @@ describe("Point tag tests", async () => {
 
         // move point2 to (5.3, -2.2)
         await movePoint({
-            componentIdx: resolveComponentName("constrained"),
+            componentIdx: await resolvePathToNodeIdx("constrained"),
             x: 5.3,
             y: -2.2,
             core,
@@ -1804,22 +1809,22 @@ describe("Point tag tests", async () => {
         yoffset = 0.1;
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dx"),
+            componentIdx: await resolvePathToNodeIdx("dx"),
             latex: dx.toString(),
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dy"),
+            componentIdx: await resolvePathToNodeIdx("dy"),
             latex: dy.toString(),
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("xoffset"),
+            componentIdx: await resolvePathToNodeIdx("xoffset"),
             latex: xoffset.toString(),
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("yoffset"),
+            componentIdx: await resolvePathToNodeIdx("yoffset"),
             latex: yoffset.toString(),
             core,
         });
@@ -1827,7 +1832,7 @@ describe("Point tag tests", async () => {
 
         // move point to (-2.2, -8.6)
         await movePoint({
-            componentIdx: resolveComponentName("constrained"),
+            componentIdx: await resolvePathToNodeIdx("constrained"),
             x: -0.6,
             y: -8.6,
             core,
@@ -1839,7 +1844,7 @@ describe("Point tag tests", async () => {
 
     async function test_attract_to_grid(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items(
             x: number,
@@ -1851,15 +1856,15 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(constraintUsed);
         }
@@ -1868,7 +1873,7 @@ describe("Point tag tests", async () => {
 
         // move point to (1.1,3.6)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.1,
             y: 3.6,
             core,
@@ -1877,7 +1882,7 @@ describe("Point tag tests", async () => {
 
         // move point to (1.1,3.9)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.1,
             y: 3.9,
             core,
@@ -1887,7 +1892,7 @@ describe("Point tag tests", async () => {
         // test bug with number in scientific notation
         // move point to (-1.3E-14,2.5E-12)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1.3e-14,
             y: 2.5e-12,
             core,
@@ -1896,7 +1901,7 @@ describe("Point tag tests", async () => {
     }
 
     it("point attracted to grid, default parameters", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P" xs="-7.1 8.9">
@@ -1908,11 +1913,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_attract_to_grid(core, resolveComponentName);
+        await test_attract_to_grid(core, resolvePathToNodeIdx);
     });
 
     it("point attracted to grid, default parameters, copied from outside", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
 <constraints name="toGrid">
@@ -1927,11 +1932,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_attract_to_grid(core, resolveComponentName);
+        await test_attract_to_grid(core, resolvePathToNodeIdx);
     });
 
     it("point attracted to grid, default parameters, 3D", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
 <graph>
@@ -1955,19 +1960,19 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[2]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[2].tree,
             ).eq(z);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(constraintUsed);
         }
@@ -1976,7 +1981,7 @@ describe("Point tag tests", async () => {
 
         // move point to (1.1,3.9,5.4)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.1,
             y: 3.9,
             z: 5.4,
@@ -1986,7 +1991,7 @@ describe("Point tag tests", async () => {
 
         // move point to (1.1,3.9, 5.9)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.1,
             y: 3.9,
             z: 5.9,
@@ -1997,7 +2002,7 @@ describe("Point tag tests", async () => {
         // test bug with number in scientific notation
         // move point to (-1.3E-14,2.5E-12,-2.3E-19)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1.3e-14,
             y: 2.5e-12,
             z: -2.3e-19,
@@ -2007,7 +2012,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point attracted to grid, including grid lines", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P" xs="3.1 -3.4">
@@ -2029,15 +2034,15 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(constraintUsed);
         }
@@ -2046,7 +2051,7 @@ describe("Point tag tests", async () => {
 
         // move point to (1.3,3.9)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.3,
             y: 3.9,
             core,
@@ -2055,7 +2060,7 @@ describe("Point tag tests", async () => {
 
         // move point to (1.1,3.9)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.1,
             y: 3.9,
             core,
@@ -2064,7 +2069,7 @@ describe("Point tag tests", async () => {
 
         // move point to (1.3,3.7)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1.3,
             y: 3.7,
             core,
@@ -2073,7 +2078,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point attracted to grid with dynamic parameters", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <mathInput name="dx"/>
 <mathInput name="dy"/>
@@ -2103,15 +2108,15 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(constraintUsed);
         }
@@ -2121,32 +2126,32 @@ describe("Point tag tests", async () => {
 
         // constrain x and y to integers
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dx"),
+            componentIdx: await resolvePathToNodeIdx("dx"),
             latex: "1",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dy"),
+            componentIdx: await resolvePathToNodeIdx("dy"),
             latex: "1",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("xoffset"),
+            componentIdx: await resolvePathToNodeIdx("xoffset"),
             latex: "0",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("yoffset"),
+            componentIdx: await resolvePathToNodeIdx("yoffset"),
             latex: "0",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("xThreshold"),
+            componentIdx: await resolvePathToNodeIdx("xThreshold"),
             latex: "0.2",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("yThreshold"),
+            componentIdx: await resolvePathToNodeIdx("yThreshold"),
             latex: "0.2",
             core,
         });
@@ -2154,34 +2159,34 @@ describe("Point tag tests", async () => {
 
         // change constraints
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dx"),
+            componentIdx: await resolvePathToNodeIdx("dx"),
             latex: "3",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("dy"),
+            componentIdx: await resolvePathToNodeIdx("dy"),
             latex: "0.5",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("xoffset"),
+            componentIdx: await resolvePathToNodeIdx("xoffset"),
             latex: "1",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("yoffset"),
+            componentIdx: await resolvePathToNodeIdx("yoffset"),
             latex: "0.1",
             core,
         });
         await check_items(-7.1, 8.9, false);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("xThreshold"),
+            componentIdx: await resolvePathToNodeIdx("xThreshold"),
             latex: "1.0",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("yThreshold"),
+            componentIdx: await resolvePathToNodeIdx("yThreshold"),
             latex: "0.3",
             core,
         });
@@ -2189,7 +2194,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point attracted to grid, dynamic including grid lines", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <p>include grid lines: <booleanInput name="includeGridLines" /></p>
 
@@ -2213,15 +2218,15 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .constraintUsed,
             ).eq(constraintUsed);
         }
@@ -2230,7 +2235,7 @@ describe("Point tag tests", async () => {
 
         // move point to (-8.5,-7.1)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8.5,
             y: -7.1,
             core,
@@ -2239,7 +2244,7 @@ describe("Point tag tests", async () => {
 
         // move point to (-8.5,-6.4)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8.5,
             y: -6.4,
             core,
@@ -2248,7 +2253,7 @@ describe("Point tag tests", async () => {
 
         // move point to (-3.2,7.5)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -3.2,
             y: 7.5,
             core,
@@ -2258,14 +2263,14 @@ describe("Point tag tests", async () => {
         // start attracting to grid lines
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("includeGridLines"),
+            componentIdx: await resolvePathToNodeIdx("includeGridLines"),
             core,
         });
         await check_items(-3, 7.5, true);
 
         // move point to (-8.5,-7.1)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8.5,
             y: -7.1,
             core,
@@ -2274,7 +2279,7 @@ describe("Point tag tests", async () => {
 
         // move point to (-8.5,-6.4)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8.5,
             y: -6.4,
             core,
@@ -2283,7 +2288,7 @@ describe("Point tag tests", async () => {
 
         // move point to (-4.2,7.5)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -4.2,
             y: 7.5,
             core,
@@ -2292,7 +2297,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point constrained to line", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1">(0,2)</point>
@@ -2310,18 +2315,19 @@ describe("Point tag tests", async () => {
         // point is on line
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move point
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 9,
             y: -3,
             core,
@@ -2329,54 +2335,57 @@ describe("Point tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // change line
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 3,
             y: 1,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move point
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 9,
             y: -3,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     it("point attracted to line", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1">(0,2)</point>
@@ -2394,73 +2403,78 @@ describe("Point tag tests", async () => {
         // point is not on line
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).eq(-1);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).eq(-5);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move point near line
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 9.1,
             y: -6.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // change line, point not on line
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 3,
             y: 1,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move point
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -5.1,
             y: -6.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     it("point constrained to lines and points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <line name="l1" hide>y = x + 7</line>
@@ -2483,73 +2497,78 @@ describe("Point tag tests", async () => {
         // point is on line
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree -
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move point to lower right
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 9,
             y: -5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree -
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move point near points
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 3.5,
             y: 5.5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move point to upper left
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -9,
             y: 8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree -
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     it("point attracted to lines and points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <line name="l1" hide>y = x + 7</line>
@@ -2572,112 +2591,122 @@ describe("Point tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // point is on line
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 3.1,
             y: 0.5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree -
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move point to lower right
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 9,
             y: -5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(-5);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move point near points
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 3.1,
             y: 5.1,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move point to upper left
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -9,
             y: 8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(-9);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(8);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move point near upper line
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -8.8,
             y: -2.3,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree -
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     it("point constrained to union of lines and grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <line name="l1">x+y=0</line>
@@ -2701,93 +2730,99 @@ describe("Point tag tests", async () => {
         // point on grid
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(4, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x+y=0
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -7.1,
             y: 8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=y
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 7.1,
             y: 8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 3.5,
             y: -2.5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -3.5,
             y: -2.5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     it("point attracted to union of lines and grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <line name="l1">x+y=0</line>
@@ -2813,150 +2848,162 @@ describe("Point tag tests", async () => {
         // point in original location
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(7, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move point near grid
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 0.2,
             y: -1.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-2, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move not close enough to line x+y=0
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -7.1,
             y: 8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(-7.1, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(8.2, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move close enough to line x+y=0
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -7.5,
             y: 7.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move not close enough to line x=y
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 7.1,
             y: 8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(7.1, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(8.2, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move close enough to line x=y
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 7.5,
             y: 7.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 3.5,
             y: -2.5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -3.5,
             y: -2.5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     it("point attracted to union of lines and intersections", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <line name="l1">x+y=0</line>
@@ -2983,245 +3030,267 @@ describe("Point tag tests", async () => {
         // point in original location
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(7, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move not close enough to line x+y=0
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -7.1,
             y: 8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(-7.1, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(8.2, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move close enough to line x+y=0
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -7.5,
             y: 7.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move not close enough to line x=y
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 7.1,
             y: 8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(7.1, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(8.2, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(false);
 
         // move close enough to line x=y
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 7.5,
             y: 7.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 3.5,
             y: -2.5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -3.5,
             y: -2.5,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=y
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -0.2,
             y: 0.1,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 2.6,
             y: -2.7,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 7.9,
             y: -8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x=y and x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -8.1,
             y: -7.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -2.5,
             y: -2.7,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x=2y+8 and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 0.2,
             y: -3.9,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-4, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     it("point constrained to union of lines and attracted to intersections", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <line name="l1">x+y=0</line>
@@ -3248,188 +3317,204 @@ describe("Point tag tests", async () => {
         // on x=y
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // attract to line x+y=0
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -7.1,
             y: 10,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 10,
             y: -3,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -10,
             y: -3,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=y
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -0.2,
             y: 0.1,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 2.6,
             y: -2.7,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 7.9,
             y: -8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x=y and x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -8.1,
             y: -7.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x=y and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -2.5,
             y: -2.7,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x=2y+8 and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 0.2,
             y: -3.9,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-4, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     it("point constrained to union of lines and attracted to intersections", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <line name="l1">x+y=0</line>
@@ -3456,189 +3541,205 @@ describe("Point tag tests", async () => {
         // on x=y
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // attract to line x+y=0
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -7.1,
             y: 10,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
-                stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                    .tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .xs[1].tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 10,
             y: -3,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree -
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree -
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near line x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -10,
             y: -3,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree +
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree +
                 2 *
-                    stateVariables[resolveComponentName("A")].stateValues.xs[1]
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                        .xs[1].tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=y
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -0.2,
             y: 0.1,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 2.6,
             y: -2.7,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x+y=0 and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 7.9,
             y: -8.2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x=y and x=2y+8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -8.1,
             y: -7.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x=y and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -2.5,
             y: -2.7,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-8 / 3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
 
         // move near intersection of x=2y+8 and x=-2y-8
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 0.2,
             y: -3.9,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree,
         ).closeTo(0, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree,
         ).closeTo(-4, 1e-12);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
                 .constraintUsed,
         ).eq(true);
     });
 
     // gap not so relevant any more with new sugar, but test still works
     it("sugar coords with defining gap", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="n"/>
 
@@ -3650,8 +3751,8 @@ describe("Point tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let x1 =
-            core.core!.components![resolveComponentName("P")].attributes.xs
-                .component.activeChildren[0];
+            core.core!.components![await resolvePathToNodeIdx("P")].attributes
+                .xs.component.activeChildren[0];
         let math1 = x1.definingChildren[0];
         let math1Name = math1.componentIdx;
         let math2 = x1.definingChildren[2];
@@ -3659,7 +3760,7 @@ describe("Point tag tests", async () => {
 
         expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
-            resolveComponentName("seq"),
+            await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
         expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
@@ -3667,25 +3768,27 @@ describe("Point tag tests", async () => {
             math2Name,
         ]);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(4);
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
         let math3 =
-            core.core!.components![resolveComponentName("seq")].replacements[0]
-                .adapterUsed;
+            core.core!.components![await resolvePathToNodeIdx("seq")]
+                .replacements[0].adapterUsed;
         let math3Name = math3.componentIdx;
         expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
-            resolveComponentName("seq"),
+            await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
         expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
@@ -3694,16 +3797,18 @@ describe("Point tag tests", async () => {
             math2Name,
         ]);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(4);
     });
 
     async function test_reciprocal_points(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items(x: number, y: number) {
             const stateVariables = await core.returnAllStateVariables(
@@ -3711,21 +3816,21 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).eq(y);
 
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[0].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[1].tree,
             ).eq(x);
         }
 
@@ -3737,7 +3842,7 @@ describe("Point tag tests", async () => {
         x = -4;
         y = 9;
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x,
             y,
             core,
@@ -3748,7 +3853,7 @@ describe("Point tag tests", async () => {
         x = 5;
         y = -7;
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: y,
             y: x,
             core,
@@ -3757,7 +3862,7 @@ describe("Point tag tests", async () => {
     }
 
     it("copying via x1 and x2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P1">(1,2)</point>
@@ -3766,11 +3871,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_reciprocal_points(core, resolveComponentName);
+        await test_reciprocal_points(core, resolvePathToNodeIdx);
     });
 
     it("updating via point children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="p1"><point name="p2">(1,2)</point></point>
@@ -3791,14 +3896,14 @@ describe("Point tag tests", async () => {
         });
 
         let points = [
-            resolveComponentName("p1"),
-            resolveComponentName("p2"),
-            resolveComponentName("p3"),
-            resolveComponentName("p4"),
-            resolveComponentName("p5"),
-            resolveComponentName("p6"),
-            resolveComponentName("p7"),
-            resolveComponentName("p8"),
+            await resolvePathToNodeIdx("p1"),
+            await resolvePathToNodeIdx("p2"),
+            await resolvePathToNodeIdx("p3"),
+            await resolvePathToNodeIdx("p4"),
+            await resolvePathToNodeIdx("p5"),
+            await resolvePathToNodeIdx("p6"),
+            await resolvePathToNodeIdx("p7"),
+            await resolvePathToNodeIdx("p8"),
         ];
         let xs = [-10, 6, -4, 2, -9, -5, -2, 4];
         let ys = [8, 3, -3, -2, -6, 5, -9, 0];
@@ -3832,7 +3937,7 @@ describe("Point tag tests", async () => {
     });
 
     it("combining different components through copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P1">(1,2)</point>
@@ -3843,11 +3948,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_reciprocal_points(core, resolveComponentName);
+        await test_reciprocal_points(core, resolvePathToNodeIdx);
     });
 
     it("copy prop of copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math extend="$p1a.y" name="p1ay" />
 
@@ -3868,26 +3973,26 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("p1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("p1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .xs[1].tree,
             ).eq(y);
 
             expect(
-                stateVariables[resolveComponentName("p1a")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1a")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("p1a")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1a")].stateValues
+                    .xs[1].tree,
             ).eq(y);
 
             expect(
-                stateVariables[resolveComponentName("p1ay")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1ay")].stateValues
+                    .value.tree,
             ).eq(y);
         }
 
@@ -3900,7 +4005,7 @@ describe("Point tag tests", async () => {
         x = -3;
         y = 5;
         await movePoint({
-            componentIdx: resolveComponentName("p1"),
+            componentIdx: await resolvePathToNodeIdx("p1"),
             x,
             y,
             core,
@@ -3911,7 +4016,7 @@ describe("Point tag tests", async () => {
         x = 7;
         y = 9;
         await movePoint({
-            componentIdx: resolveComponentName("p1a"),
+            componentIdx: await resolvePathToNodeIdx("p1a"),
             x,
             y,
             core,
@@ -3920,7 +4025,7 @@ describe("Point tag tests", async () => {
     });
 
     it("nested copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point extend="$p1a" name="p1b" />
@@ -3942,30 +4047,30 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("p1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("p1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .xs[1].tree,
             ).eq(y);
 
             expect(
-                stateVariables[resolveComponentName("p1a")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1a")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("p1a")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1a")].stateValues
+                    .xs[1].tree,
             ).eq(y);
 
             expect(
-                stateVariables[resolveComponentName("p1b")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1b")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("p1b")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("p1b")].stateValues
+                    .xs[1].tree,
             ).eq(y);
         }
 
@@ -3978,7 +4083,7 @@ describe("Point tag tests", async () => {
         x = -3;
         y = 5;
         await movePoint({
-            componentIdx: resolveComponentName("p1"),
+            componentIdx: await resolvePathToNodeIdx("p1"),
             x,
             y,
             core,
@@ -3989,7 +4094,7 @@ describe("Point tag tests", async () => {
         x = 7;
         y = 9;
         await movePoint({
-            componentIdx: resolveComponentName("p1a"),
+            componentIdx: await resolvePathToNodeIdx("p1a"),
             x,
             y,
             core,
@@ -4000,7 +4105,7 @@ describe("Point tag tests", async () => {
         x = -4;
         y = 0;
         await movePoint({
-            componentIdx: resolveComponentName("p1b"),
+            componentIdx: await resolvePathToNodeIdx("p1b"),
             x,
             y,
             core,
@@ -4009,7 +4114,7 @@ describe("Point tag tests", async () => {
     });
 
     it("points depending on each other", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1" x="$(P2.y)" y="2" />
@@ -4019,11 +4124,11 @@ describe("Point tag tests", async () => {
 `,
         });
 
-        await test_reciprocal_points(core, resolveComponentName);
+        await test_reciprocal_points(core, resolvePathToNodeIdx);
     });
 
     it("points depending on each other 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1">($P2.y, 2)</point>
@@ -4032,11 +4137,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_reciprocal_points(core, resolveComponentName);
+        await test_reciprocal_points(core, resolvePathToNodeIdx);
     });
 
     it("points depending on each other through intermediaries", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1" x="$(P2a.y)" y="2" />
@@ -4051,11 +4156,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_reciprocal_points(core, resolveComponentName);
+        await test_reciprocal_points(core, resolvePathToNodeIdx);
     });
 
     it("points depending on each other through intermediaries 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1">($P2a.y, 2)</point>
@@ -4071,11 +4176,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_reciprocal_points(core, resolveComponentName);
+        await test_reciprocal_points(core, resolvePathToNodeIdx);
     });
 
     it("points depending on each other, one using coords", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1" coords="($(P2.y), 2)" />
@@ -4086,11 +4191,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_reciprocal_points(core, resolveComponentName);
+        await test_reciprocal_points(core, resolvePathToNodeIdx);
     });
 
     it("points depending on themselves", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="P1">(3, 2$P1.x+1)</point>
@@ -4108,21 +4213,21 @@ describe("Point tag tests", async () => {
             const x2 = 2 * y2 + 1;
 
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).eq(x1);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).eq(y1);
 
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[0].tree,
             ).eq(x2);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[1].tree,
             ).eq(y2);
         }
 
@@ -4139,13 +4244,13 @@ describe("Point tag tests", async () => {
         let y2 = (x2 - 1) / 2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: x1,
             y: y1try,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: x2,
             y: y2try,
             core,
@@ -4155,7 +4260,7 @@ describe("Point tag tests", async () => {
     });
 
     it("points depending original graph axis limit", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="graph1">
     <setup><number extend="$graph1.yMax" fixed="true" name="yMaxFixed" /></setup>
@@ -4175,21 +4280,21 @@ describe("Point tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).eq(x1);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).eq(10);
 
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[0].tree,
             ).eq(-10);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[1].tree,
             ).eq(y2);
         }
 
@@ -4203,13 +4308,13 @@ describe("Point tag tests", async () => {
         let y2 = -3;
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: x1,
             y: y1,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: x2,
             y: y2,
             core,
@@ -4219,7 +4324,7 @@ describe("Point tag tests", async () => {
 
     async function test_label_points_other_coords(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         math_in_labels?: boolean,
     ) {
         async function check_items(
@@ -4249,28 +4354,30 @@ describe("Point tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).eq(x1);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).eq(y1);
 
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[0].tree,
             ).eq(x2);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .xs[1].tree,
             ).eq(y2);
 
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .label,
             ).eq(label1);
             expect(
-                stateVariables[resolveComponentName("P2")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .label,
             ).eq(label2);
         }
 
@@ -4289,13 +4396,13 @@ describe("Point tag tests", async () => {
         y2 = -3;
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: x1,
             y: y1,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: x2,
             y: y2,
             core,
@@ -4309,13 +4416,13 @@ describe("Point tag tests", async () => {
         y2 = 7.813395519475;
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: x1,
             y: y1,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: x2,
             y: y2,
             core,
@@ -4324,7 +4431,7 @@ describe("Point tag tests", async () => {
     }
 
     it("label points by combining coordinates with other point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P1">
@@ -4342,11 +4449,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_label_points_other_coords(core, resolveComponentName);
+        await test_label_points_other_coords(core, resolvePathToNodeIdx);
     });
 
     it("label points by combining coordinates with other point 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P1">
@@ -4364,11 +4471,11 @@ describe("Point tag tests", async () => {
   `,
         });
 
-        await test_label_points_other_coords(core, resolveComponentName, true);
+        await test_label_points_other_coords(core, resolvePathToNodeIdx, true);
     });
 
     it("update point with constraints", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math hide name="fixed0" fixed>0</math>
     <graph>
@@ -4390,28 +4497,28 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("P3")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P3")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("P3")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P3")].stateValues
+                    .xs[1].tree,
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName("P4")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P4")].stateValues
+                    .xs[0].tree,
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName("P4")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("P4")].stateValues
+                    .xs[1].tree,
             ).eq(y);
         }
 
@@ -4424,7 +4531,7 @@ describe("Point tag tests", async () => {
         y = -2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x,
             y,
             core,
@@ -4436,7 +4543,7 @@ describe("Point tag tests", async () => {
         y = -2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x,
             y: -3,
             core,
@@ -4447,7 +4554,7 @@ describe("Point tag tests", async () => {
         x = 9;
         y = -7.1;
         await movePoint({
-            componentIdx: resolveComponentName("P4"),
+            componentIdx: await resolvePathToNodeIdx("P4"),
             x: -10,
             y: y,
             core,
@@ -4458,7 +4565,7 @@ describe("Point tag tests", async () => {
         x = 1;
         y = -7;
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x: 0.9,
             y: 6,
             core,
@@ -4467,7 +4574,7 @@ describe("Point tag tests", async () => {
 
         // move again near attractor to make sure doesn't change
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x: 1.1,
             y: 7,
             core,
@@ -4476,7 +4583,7 @@ describe("Point tag tests", async () => {
     });
 
     it("change point dimensions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Specify point coordinates: <mathInput name="originalCoords" /></p>
 
@@ -4574,7 +4681,7 @@ describe("Point tag tests", async () => {
 
             for (let i = 1; i <= 3; i++) {
                 let point =
-                    stateVariables[resolveComponentName(`point${i}`)]
+                    stateVariables[await resolvePathToNodeIdx(`point${i}`)]
                         .stateValues;
                 expect(point.numDimensions).eq(nDim);
                 expect(point.xs.map((v) => v.tree)).eqls(xs);
@@ -4592,84 +4699,87 @@ describe("Point tag tests", async () => {
                 }
 
                 expect(
-                    stateVariables[resolveComponentName(`numDimensions${i}`)]
-                        .stateValues.value,
+                    stateVariables[
+                        await resolvePathToNodeIdx(`numDimensions${i}`)
+                    ].stateValues.value,
                 ).eq(nDim);
 
                 expect(
-                    stateVariables[resolveComponentName(`coordsAll[${i}]`)]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx(`coordsAll[${i}]`)
+                    ].stateValues.text,
                 ).eq(coordsString);
             }
 
             for (let i of ["1", "2", "3", "3e"]) {
                 expect(
-                    stateVariables[resolveComponentName(`p${i}x`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`p${i}x`)]
+                        .stateValues.text,
                 ).eq(`x-coordinate: ${xString[0]}`);
                 if (nDim > 1) {
                     expect(
-                        stateVariables[resolveComponentName(`p${i}y`)]
+                        stateVariables[await resolvePathToNodeIdx(`p${i}y`)]
                             .stateValues.text,
                     ).eq(`y-coordinate: ${xString[1]}`);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName(`p${i}y`)]
+                        stateVariables[await resolvePathToNodeIdx(`p${i}y`)]
                             .stateValues.text,
                     ).eq(`y-coordinate: `);
                 }
                 if (nDim > 2) {
                     expect(
-                        stateVariables[resolveComponentName(`p${i}z`)]
+                        stateVariables[await resolvePathToNodeIdx(`p${i}z`)]
                             .stateValues.text,
                     ).eq(`z-coordinate: ${xString[2]}`);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName(`p${i}z`)]
+                        stateVariables[await resolvePathToNodeIdx(`p${i}z`)]
                             .stateValues.text,
                     ).eq(`z-coordinate: `);
                 }
 
                 expect(
-                    stateVariables[resolveComponentName(`p${i}all`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`p${i}all`)]
+                        .stateValues.text,
                 ).eq(`All individual coordinates: ${xString.join(", ")}`);
 
                 expect(
-                    stateVariables[resolveComponentName(`coords${i}`)]
+                    stateVariables[await resolvePathToNodeIdx(`coords${i}`)]
                         .stateValues.text,
                 ).eq(coordsString);
             }
 
             expect(
-                stateVariables[resolveComponentName(`pAllX`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pAllX`)].stateValues
+                    .text,
             ).eq(`x-coordinates: ${Array(3).fill(xString[0]).join(", ")}`);
             if (nDim > 1) {
                 expect(
-                    stateVariables[resolveComponentName(`pAllY`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pAllY`)]
+                        .stateValues.text,
                 ).eq(`y-coordinates: ${Array(3).fill(xString[1]).join(", ")}`);
             } else {
                 expect(
-                    stateVariables[resolveComponentName(`pAllY`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pAllY`)]
+                        .stateValues.text,
                 ).eq(`y-coordinates: `);
             }
             if (nDim > 2) {
                 expect(
-                    stateVariables[resolveComponentName(`pAllZ`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pAllZ`)]
+                        .stateValues.text,
                 ).eq(`z-coordinates: ${Array(3).fill(xString[2]).join(", ")}`);
             } else {
                 expect(
-                    stateVariables[resolveComponentName(`pAllZ`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pAllZ`)]
+                        .stateValues.text,
                 ).eq(`z-coordinates: `);
             }
 
             expect(
-                stateVariables[resolveComponentName(`pAllAll`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`pAllAll`)]
+                    .stateValues.text,
             ).eq(
                 `All individual coordinates: ${Array(3).fill(xString.join(", ")).join(", ")}`,
             );
@@ -4679,7 +4789,7 @@ describe("Point tag tests", async () => {
 
         // Create 2D point
         await updateMathInputValue({
-            componentIdx: resolveComponentName("originalCoords"),
+            componentIdx: await resolvePathToNodeIdx("originalCoords"),
             latex: "(a,b)",
             core,
         });
@@ -4688,7 +4798,7 @@ describe("Point tag tests", async () => {
 
         // Back to 1D point
         await updateMathInputValue({
-            componentIdx: resolveComponentName("originalCoords"),
+            componentIdx: await resolvePathToNodeIdx("originalCoords"),
             latex: "q",
             core,
         });
@@ -4697,7 +4807,7 @@ describe("Point tag tests", async () => {
 
         // Create 3D point
         await updateMathInputValue({
-            componentIdx: resolveComponentName("originalCoords"),
+            componentIdx: await resolvePathToNodeIdx("originalCoords"),
             latex: "\\langle 2x,u/v,w^2\\rangle ",
             core,
         });
@@ -4710,7 +4820,7 @@ describe("Point tag tests", async () => {
 
         // change the coordinates from point 1 coords
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords1b"),
+            componentIdx: await resolvePathToNodeIdx("coords1b"),
             latex: "(7,8,9)",
             core,
         });
@@ -4719,7 +4829,7 @@ describe("Point tag tests", async () => {
 
         // change the coordinates from point 2 coords
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords2b"),
+            componentIdx: await resolvePathToNodeIdx("coords2b"),
             latex: "\\langle i,j,k\\rangle ",
             core,
         });
@@ -4728,7 +4838,7 @@ describe("Point tag tests", async () => {
 
         // change the coordinates from point 3 coords
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords3b"),
+            componentIdx: await resolvePathToNodeIdx("coords3b"),
             latex: "(l,m,n)",
             core,
         });
@@ -4737,17 +4847,17 @@ describe("Point tag tests", async () => {
 
         // change the coordinates from point 1 individual components
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point1x1b"),
+            componentIdx: await resolvePathToNodeIdx("point1x1b"),
             latex: "r",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point1x2b"),
+            componentIdx: await resolvePathToNodeIdx("point1x2b"),
             latex: "s",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point1x3b"),
+            componentIdx: await resolvePathToNodeIdx("point1x3b"),
             latex: "t",
             core,
         });
@@ -4756,17 +4866,17 @@ describe("Point tag tests", async () => {
 
         // change the coordinates from point 2 individual components
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point2x1b"),
+            componentIdx: await resolvePathToNodeIdx("point2x1b"),
             latex: "f",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point2x2b"),
+            componentIdx: await resolvePathToNodeIdx("point2x2b"),
             latex: "g",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point2x3b"),
+            componentIdx: await resolvePathToNodeIdx("point2x3b"),
             latex: "h",
             core,
         });
@@ -4775,17 +4885,17 @@ describe("Point tag tests", async () => {
 
         // change the coordinates from point 3 individual components
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point3x1b"),
+            componentIdx: await resolvePathToNodeIdx("point3x1b"),
             latex: "x",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point3x2b"),
+            componentIdx: await resolvePathToNodeIdx("point3x2b"),
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("point3x3b"),
+            componentIdx: await resolvePathToNodeIdx("point3x3b"),
             latex: "z",
             core,
         });
@@ -4794,7 +4904,7 @@ describe("Point tag tests", async () => {
 
         // can't decrease dimension from inverse direction 1
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords1b"),
+            componentIdx: await resolvePathToNodeIdx("coords1b"),
             latex: "(u,v)",
             core,
         });
@@ -4803,7 +4913,7 @@ describe("Point tag tests", async () => {
 
         // can't decrease dimension from inverse direction 2
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords2b"),
+            componentIdx: await resolvePathToNodeIdx("coords2b"),
             latex: "(s,t)",
             core,
         });
@@ -4812,7 +4922,7 @@ describe("Point tag tests", async () => {
 
         // can't decrease dimension from inverse direction 3
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords3b"),
+            componentIdx: await resolvePathToNodeIdx("coords3b"),
             latex: "(q,r)",
             core,
         });
@@ -4821,7 +4931,7 @@ describe("Point tag tests", async () => {
 
         // Back to 2D point
         await updateMathInputValue({
-            componentIdx: resolveComponentName("originalCoords"),
+            componentIdx: await resolvePathToNodeIdx("originalCoords"),
             latex: "(p,q)",
             core,
         });
@@ -4830,7 +4940,7 @@ describe("Point tag tests", async () => {
 
         // can't increase dimension from inverse direction 1
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords1b"),
+            componentIdx: await resolvePathToNodeIdx("coords1b"),
             latex: "(a,b,c)",
             core,
         });
@@ -4839,7 +4949,7 @@ describe("Point tag tests", async () => {
 
         // can't increase dimension from inverse direction 2
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords2b"),
+            componentIdx: await resolvePathToNodeIdx("coords2b"),
             latex: "(d,e,f)",
             core,
         });
@@ -4848,7 +4958,7 @@ describe("Point tag tests", async () => {
 
         // can't increase dimension from inverse direction 3
         await updateMathInputValue({
-            componentIdx: resolveComponentName("coords3b"),
+            componentIdx: await resolvePathToNodeIdx("coords3b"),
             latex: "(g,h,i)",
             core,
         });
@@ -4859,7 +4969,7 @@ describe("Point tag tests", async () => {
     // have this abbreviated test, at it was triggering an error
     // that wasn't caught with full test
     it("change point dimensions, abbreviated", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Specify point coordinates: <mathInput name="originalCoords" /></p>
 
@@ -4882,7 +4992,7 @@ describe("Point tag tests", async () => {
 
             for (let i = 1; i <= 3; i++) {
                 let point =
-                    stateVariables[resolveComponentName(`point${i}`)]
+                    stateVariables[await resolvePathToNodeIdx(`point${i}`)]
                         .stateValues;
                 expect(point.numDimensions).eq(nDim);
                 expect(point.xs.map((v) => v.tree)).eqls(xs);
@@ -4894,7 +5004,7 @@ describe("Point tag tests", async () => {
         // Create 2D point 2
         await updateMathInputValue({
             latex: "(a,b)",
-            componentIdx: resolveComponentName("originalCoords"),
+            componentIdx: await resolvePathToNodeIdx("originalCoords"),
             core,
         });
         await check_items(["a", "b"]);
@@ -4902,7 +5012,7 @@ describe("Point tag tests", async () => {
         // Back to 1D point
         await updateMathInputValue({
             latex: "q",
-            componentIdx: resolveComponentName("originalCoords"),
+            componentIdx: await resolvePathToNodeIdx("originalCoords"),
             core,
         });
         await check_items(["q"]);
@@ -4910,7 +5020,7 @@ describe("Point tag tests", async () => {
         // Create 3D point
         await updateMathInputValue({
             latex: "(2x,u/v,w^2)",
-            componentIdx: resolveComponentName("originalCoords"),
+            componentIdx: await resolvePathToNodeIdx("originalCoords"),
             core,
         });
         await check_items([
@@ -4922,14 +5032,14 @@ describe("Point tag tests", async () => {
         // Back to 2D point 2
         await updateMathInputValue({
             latex: "(p,q)",
-            componentIdx: resolveComponentName("originalCoords"),
+            componentIdx: await resolvePathToNodeIdx("originalCoords"),
             core,
         });
         await check_items(["p", "q"]);
     });
 
     it("label positioning", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="P" labelPosition="$labelPos">
@@ -4957,15 +5067,16 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .label,
             ).eq(label);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .labelPosition,
             ).eq(position.toLowerCase());
             expect(
-                stateVariables[resolveComponentName("labelPos")].stateValues
-                    .selectedValues,
+                stateVariables[await resolvePathToNodeIdx("labelPos")]
+                    .stateValues.selectedValues,
             ).eqls([position]);
         }
 
@@ -4973,27 +5084,27 @@ describe("Point tag tests", async () => {
 
         await updateTextInputValue({
             text: "B",
-            componentIdx: resolveComponentName("label"),
+            componentIdx: await resolvePathToNodeIdx("label"),
             core,
         });
         await check_items("B", "upperRight");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("labelPos"),
+            componentIdx: await resolvePathToNodeIdx("labelPos"),
             selectedIndices: [2],
             core,
         });
         await check_items("B", "upperLeft");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("labelPos"),
+            componentIdx: await resolvePathToNodeIdx("labelPos"),
             selectedIndices: [3],
             core,
         });
         await check_items("B", "lowerRight");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("labelPos"),
+            componentIdx: await resolvePathToNodeIdx("labelPos"),
             selectedIndices: [4],
             core,
         });
@@ -5002,7 +5113,7 @@ describe("Point tag tests", async () => {
 
     async function test_copy_overwrite_coordinates(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check({
             Ax,
@@ -5042,75 +5153,83 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("A")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Ax, Ay]);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("B")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Bx, By]);
             expect(
-                stateVariables[resolveComponentName("C")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("C")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Cx, Cy]);
             expect(
-                stateVariables[resolveComponentName("A1")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A1")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([A1x, Ay]);
             expect(
-                stateVariables[resolveComponentName("B1")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("B1")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Bx, B1y]);
             expect(
-                stateVariables[resolveComponentName("C1")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("C1")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([C1x, Cy]);
             expect(
-                stateVariables[resolveComponentName("C2")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("C2")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Cx, C2y]);
             expect(
-                stateVariables[resolveComponentName("A2")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A2")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Ax, Ay, A2z]);
             expect(
-                stateVariables[resolveComponentName("C3")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("C3")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Cx, C2y, C3z]);
 
             expect(
-                stateVariables[resolveComponentName("n")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
             ).eq(n);
 
             expect(
-                stateVariables[resolveComponentName("A")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .label,
             ).eq(Al);
             expect(
-                stateVariables[resolveComponentName("A1")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("A1")].stateValues
+                    .label,
             ).eq(Al);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("B")].stateValues
+                    .label,
             ).eq(Bl);
             expect(
-                stateVariables[resolveComponentName("B1")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("B1")].stateValues
+                    .label,
             ).eq(Bl);
             expect(
-                stateVariables[resolveComponentName("C")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("C")].stateValues
+                    .label,
             ).eq(Cl);
             expect(
-                stateVariables[resolveComponentName("C1")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("C1")].stateValues
+                    .label,
             ).eq(Cl);
             expect(
-                stateVariables[resolveComponentName("C2")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("C2")].stateValues
+                    .label,
             ).eq(Cl);
         }
 
@@ -5140,19 +5259,19 @@ describe("Point tag tests", async () => {
         Cy = -8;
 
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: Ax,
             y: Ay,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: Bx + 0.1,
             y: By - 0.1,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C"),
+            componentIdx: await resolvePathToNodeIdx("C"),
             x: 2 * n + 1,
             y: Cy,
             core,
@@ -5167,19 +5286,19 @@ describe("Point tag tests", async () => {
         n = -3;
         Cy = 4;
         await movePoint({
-            componentIdx: resolveComponentName("A1"),
+            componentIdx: await resolvePathToNodeIdx("A1"),
             x: A1x,
             y: Ay,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("B1"),
+            componentIdx: await resolvePathToNodeIdx("B1"),
             x: Bx + 0.4,
             y: B1y + 0.3,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C1"),
+            componentIdx: await resolvePathToNodeIdx("C1"),
             x: 2 * n - 1,
             y: Cy,
             core,
@@ -5193,7 +5312,7 @@ describe("Point tag tests", async () => {
         n = 2;
         C3z = 8;
         await movePoint({
-            componentIdx: resolveComponentName("A2"),
+            componentIdx: await resolvePathToNodeIdx("A2"),
             x: Ax,
             y: Ay,
             z: A2z,
@@ -5203,7 +5322,7 @@ describe("Point tag tests", async () => {
         // so the value for C3y (20) ends up being ignored.
         // If we change update order, C3y might end up superseding C3x
         await movePoint({
-            componentIdx: resolveComponentName("C3"),
+            componentIdx: await resolvePathToNodeIdx("C3"),
             x: 2 * n + 1,
             y: 20,
             z: C3z,
@@ -5213,7 +5332,7 @@ describe("Point tag tests", async () => {
     }
 
     it("copy and overwrite coordinates, initial individual components", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="A" labelIsName x="1" y="2" />
@@ -5238,11 +5357,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_copy_overwrite_coordinates(core, resolveComponentName);
+        await test_copy_overwrite_coordinates(core, resolvePathToNodeIdx);
     });
 
     it("copy and overwrite coordinates, initial xs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="A" labelIsName xs="1 2" />
@@ -5267,11 +5386,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_copy_overwrite_coordinates(core, resolveComponentName);
+        await test_copy_overwrite_coordinates(core, resolvePathToNodeIdx);
     });
 
     it("copy and overwrite coordinates, initial coords", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="A" labelIsName coords="(1,2)" />
@@ -5296,11 +5415,11 @@ describe("Point tag tests", async () => {
     `,
         });
 
-        await test_copy_overwrite_coordinates(core, resolveComponentName);
+        await test_copy_overwrite_coordinates(core, resolvePathToNodeIdx);
     });
 
     it("copy and overwrite each coordinate in sequence, initial sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g1">
       <point name="P">(3,2)</point>
@@ -5334,24 +5453,24 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("g1.P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("g1.P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([P1x, P1y]);
             expect(
-                stateVariables[resolveComponentName("g2.P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("g2.P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([P2x, P1y]);
             expect(
-                stateVariables[resolveComponentName("g3.P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("g3.P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([P2x, P1y]);
             expect(
-                stateVariables[resolveComponentName("g4.P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("g4.P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([P2x, P4y]);
         }
 
@@ -5366,7 +5485,7 @@ describe("Point tag tests", async () => {
         P1x = -2;
         P1y = -7;
         await movePoint({
-            componentIdx: resolveComponentName("g1.P"),
+            componentIdx: await resolvePathToNodeIdx("g1.P"),
             x: P1x,
             y: P1y,
             core,
@@ -5377,7 +5496,7 @@ describe("Point tag tests", async () => {
         P2x = 8;
         P1y = -6;
         await movePoint({
-            componentIdx: resolveComponentName("g2.P"),
+            componentIdx: await resolvePathToNodeIdx("g2.P"),
             x: P2x,
             y: P1y,
             core,
@@ -5388,7 +5507,7 @@ describe("Point tag tests", async () => {
         P2x = 1;
         P1y = 0;
         await movePoint({
-            componentIdx: resolveComponentName("g3.P"),
+            componentIdx: await resolvePathToNodeIdx("g3.P"),
             x: 1,
             y: 0,
             core,
@@ -5399,7 +5518,7 @@ describe("Point tag tests", async () => {
         P2x = 3;
         P4y = 4;
         await movePoint({
-            componentIdx: resolveComponentName("g4.P"),
+            componentIdx: await resolvePathToNodeIdx("g4.P"),
             x: P2x,
             y: P4y,
             core,
@@ -5408,7 +5527,7 @@ describe("Point tag tests", async () => {
     });
 
     it("1D point with 2D constraint does not crash", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P1" xs="1">
@@ -5455,44 +5574,44 @@ describe("Point tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([1]);
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([2]);
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([3]);
         expect(
-            stateVariables[resolveComponentName("P4")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P4")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([4]);
         expect(
-            stateVariables[resolveComponentName("P5")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P5")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([5]);
         expect(
-            stateVariables[resolveComponentName("P6")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P6")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([6]);
         expect(
-            stateVariables[resolveComponentName("P7")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P7")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([7]);
     });
 
     it("display digits propagates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pP"><point displayDigits="2" name="P">(32.252609, 0.0672854, 5)</point></p>
     <p name="pQ"><point displayDecimals="2" name="Q" x="32.252609" y="0.0672854" z="5" /></p>
@@ -5534,101 +5653,114 @@ describe("Point tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pP")].stateValues.text).eq(
-            "( 32, 0.067, 5 )",
-        );
-        expect(stateVariables[resolveComponentName("pQ")].stateValues.text).eq(
-            "( 32.25, 0.07, 5 )",
-        );
-        expect(stateVariables[resolveComponentName("pR")].stateValues.text).eq(
-            "( 32.25, 0.0673, 5.00 )",
-        );
         expect(
-            stateVariables[resolveComponentName("Pcoords")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pP")].stateValues.text,
         ).eq("( 32, 0.067, 5 )");
         expect(
-            stateVariables[resolveComponentName("Qcoords")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pQ")].stateValues.text,
         ).eq("( 32.25, 0.07, 5 )");
         expect(
-            stateVariables[resolveComponentName("Rcoords")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
         ).eq("( 32.25, 0.0673, 5.00 )");
         expect(
-            stateVariables[resolveComponentName("PcoordsDec4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Pcoords")].stateValues
                 .text,
+        ).eq("( 32, 0.067, 5 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Qcoords")].stateValues
+                .text,
+        ).eq("( 32.25, 0.07, 5 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Rcoords")].stateValues
+                .text,
+        ).eq("( 32.25, 0.0673, 5.00 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("PcoordsDec4")]
+                .stateValues.text,
         ).eq("( 32.2526, 0.0673, 5 )");
         expect(
-            stateVariables[resolveComponentName("QcoordsDig4")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("QcoordsDig4")]
+                .stateValues.text,
         ).eq("( 32.25, 0.06729, 5 )");
         expect(
-            stateVariables[resolveComponentName("RcoordsDig2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("RcoordsDig2")]
+                .stateValues.text,
+        ).eq("( 32, 0.067, 5.0 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("PcoordsPad")].stateValues
                 .text,
         ).eq("( 32, 0.067, 5.0 )");
         expect(
-            stateVariables[resolveComponentName("PcoordsPad")].stateValues.text,
-        ).eq("( 32, 0.067, 5.0 )");
-        expect(
-            stateVariables[resolveComponentName("QcoordsPad")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("QcoordsPad")].stateValues
+                .text,
         ).eq("( 32.25, 0.07, 5.00 )");
         expect(
-            stateVariables[resolveComponentName("RcoordsNoPad")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("RcoordsNoPad")]
+                .stateValues.text,
         ).eq("( 32.25, 0.0673, 5 )");
         // TODO: fix display digits propagation for math lists
         // expect(
-        //     stateVariables[resolveComponentName("Pxs[1]")].stateValues.text,
+        //     stateVariables[await resolvePathToNodeIdx("Pxs[1]")].stateValues.text,
         // ).eq("32");
         // expect(
-        //     stateVariables[resolveComponentName("Pxs[2]")].stateValues.text,
+        //     stateVariables[await resolvePathToNodeIdx("Pxs[2]")].stateValues.text,
         // ).eq("0.067");
         // expect(
-        //     stateVariables[resolveComponentName("Pxs[3]")].stateValues.text,
+        //     stateVariables[await resolvePathToNodeIdx("Pxs[3]")].stateValues.text,
         // ).eq("5");
-        expect(stateVariables[resolveComponentName("Qx1")].stateValues.text).eq(
-            "32.25",
-        );
-        expect(stateVariables[resolveComponentName("Qx2")].stateValues.text).eq(
-            "0.07",
-        );
-        expect(stateVariables[resolveComponentName("Rx3")].stateValues.text).eq(
-            "5.00",
-        );
         expect(
-            stateVariables[resolveComponentName("Pmath")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Qx1")].stateValues.text,
+        ).eq("32.25");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Qx2")].stateValues.text,
+        ).eq("0.07");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Rx3")].stateValues.text,
+        ).eq("5.00");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Pmath")].stateValues
+                .text,
         ).eq("( 32, 0.067, 5 )");
         expect(
-            stateVariables[resolveComponentName("Qmath")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Qmath")].stateValues
+                .text,
         ).eq("( 32.25, 0.07, 5 )");
         expect(
-            stateVariables[resolveComponentName("Rmath")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Rmath")].stateValues
+                .text,
         ).eq("( 32.25, 0.0673, 5.00 )");
         expect(
-            stateVariables[resolveComponentName("PmathDec4")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("PmathDec4")].stateValues
+                .text,
         ).eq("( 32.2526, 0.0673, 5 )");
         expect(
-            stateVariables[resolveComponentName("QmathDig4")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("QmathDig4")].stateValues
+                .text,
         ).eq("( 32.25, 0.06729, 5 )");
         expect(
-            stateVariables[resolveComponentName("RmathDig2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("RmathDig2")].stateValues
+                .text,
         ).eq("( 32, 0.067, 5.0 )");
         expect(
-            stateVariables[resolveComponentName("Px1number")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Px1number")].stateValues
+                .text,
         ).eq("32");
         expect(
-            stateVariables[resolveComponentName("Px2number")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Px2number")].stateValues
+                .text,
         ).eq("0.067");
         expect(
-            stateVariables[resolveComponentName("Px1numberDec4")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("Px1numberDec4")]
+                .stateValues.text,
         ).eq("32.2526");
         expect(
-            stateVariables[resolveComponentName("Px2numberDig4")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("Px2numberDig4")]
+                .stateValues.text,
         ).eq("0.06729");
     });
 
     it("rounding, copy and override", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pp1"><point name="p1" displayDigits="10">(34.245023482352345, 245.23823402358234234)</point></p>
     <p name="pp1Dig4"><point name="p1Dig4" extend="$p1" displayDigits="4" /></p>
@@ -5640,22 +5772,26 @@ describe("Point tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("pp1")].stateValues.text).eq(
-            "( 34.24502348, 245.238234 )",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pp1")].stateValues.text,
+        ).eq("( 34.24502348, 245.238234 )");
 
         expect(
-            stateVariables[resolveComponentName("pp1Dig4")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pp1Dig4")].stateValues
+                .text,
         ).eq("( 34.25, 245.2 )");
         expect(
-            stateVariables[resolveComponentName("pp1Dig4a")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pp1Dig4a")].stateValues
+                .text,
         ).eq("( 34.25, 245.2 )");
 
         expect(
-            stateVariables[resolveComponentName("pp1Dec6")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pp1Dec6")].stateValues
+                .text,
         ).eq("( 34.24502, 245.23823 )");
         expect(
-            stateVariables[resolveComponentName("pp1Dec6a")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pp1Dec6a")].stateValues
+                .text,
         ).eq("( 34.24502, 245.23823 )");
     });
 
@@ -5715,7 +5851,7 @@ describe("Point tag tests", async () => {
     });
 
     it("copy point with no arguments, specify individual coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="A" labelIsName />
@@ -5747,24 +5883,24 @@ describe("Point tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("A")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Ax, Ay]);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("B")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Bx, Ay]);
             expect(
-                stateVariables[resolveComponentName("C")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("C")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Ax, Cy]);
             expect(
-                stateVariables[resolveComponentName("D")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("D")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Bx, Dy]);
         }
 
@@ -5779,7 +5915,7 @@ describe("Point tag tests", async () => {
         Ax = 3;
         Ay = 4;
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: Ax,
             y: Ay,
             core,
@@ -5789,7 +5925,7 @@ describe("Point tag tests", async () => {
         Bx = 5;
         Ay = 6;
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: Bx,
             y: Ay,
             core,
@@ -5799,7 +5935,7 @@ describe("Point tag tests", async () => {
         Ax = 7;
         Cy = 8;
         await movePoint({
-            componentIdx: resolveComponentName("C"),
+            componentIdx: await resolvePathToNodeIdx("C"),
             x: Ax,
             y: Cy,
             core,
@@ -5810,7 +5946,7 @@ describe("Point tag tests", async () => {
         Dy = 10;
 
         await movePoint({
-            componentIdx: resolveComponentName("D"),
+            componentIdx: await resolvePathToNodeIdx("D"),
             x: Bx,
             y: Dy,
             core,
@@ -5820,7 +5956,7 @@ describe("Point tag tests", async () => {
         Bx = -1;
         Dy = -2;
         await movePoint({
-            componentIdx: resolveComponentName("g2.D"),
+            componentIdx: await resolvePathToNodeIdx("g2.D"),
             x: Bx,
             y: Dy,
             core,
@@ -5830,7 +5966,7 @@ describe("Point tag tests", async () => {
         Ax = -3;
         Cy = -4;
         await movePoint({
-            componentIdx: resolveComponentName("g2.C"),
+            componentIdx: await resolvePathToNodeIdx("g2.C"),
             x: Ax,
             y: Cy,
             core,
@@ -5840,7 +5976,7 @@ describe("Point tag tests", async () => {
         Bx = -5;
         Ay = -6;
         await movePoint({
-            componentIdx: resolveComponentName("g2.B"),
+            componentIdx: await resolvePathToNodeIdx("g2.B"),
             x: Bx,
             y: Ay,
             core,
@@ -5850,7 +5986,7 @@ describe("Point tag tests", async () => {
         Ax = -7;
         Ay = -8;
         await movePoint({
-            componentIdx: resolveComponentName("g2.A"),
+            componentIdx: await resolvePathToNodeIdx("g2.A"),
             x: Ax,
             y: Ay,
             core,
@@ -5859,7 +5995,7 @@ describe("Point tag tests", async () => {
     });
 
     it("1D point from string, xs, coords, not x", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="oneDa">1</point>
     <point name="oneDb" xs="1"/>
@@ -5872,46 +6008,46 @@ describe("Point tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("oneDa")].stateValues
+            stateVariables[await resolvePathToNodeIdx("oneDa")].stateValues
                 .numDimensions,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("oneDb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("oneDb")].stateValues
                 .numDimensions,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("oneDc")].stateValues
+            stateVariables[await resolvePathToNodeIdx("oneDc")].stateValues
                 .numDimensions,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("twoD")].stateValues
+            stateVariables[await resolvePathToNodeIdx("twoD")].stateValues
                 .numDimensions,
         ).eq(2);
 
         expect(
-            stateVariables[resolveComponentName("oneDa")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("oneDa")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([1]);
         expect(
-            stateVariables[resolveComponentName("oneDb")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("oneDb")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([1]);
         expect(
-            stateVariables[resolveComponentName("oneDc")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("oneDc")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([1]);
         expect(
-            stateVariables[resolveComponentName("twoD")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("twoD")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([1, 0]);
     });
 
     it("points from vector operations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m" fixed>(6,3)</math>
     <graph>
@@ -5925,18 +6061,18 @@ describe("Point tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([5, 2]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([-3, 0]);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 4,
             core,
@@ -5944,18 +6080,18 @@ describe("Point tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([1, 4]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([9, -6]);
 
         await movePoint({
-            componentIdx: resolveComponentName("Q"),
+            componentIdx: await resolvePathToNodeIdx("Q"),
             x: -9,
             y: 9,
             core,
@@ -5963,19 +6099,19 @@ describe("Point tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([7, -1]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([-9, 9]);
     });
 
     it("handle invalid layer", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P" layer="$l">(3,4)</point>
@@ -5985,23 +6121,23 @@ describe("Point tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("P")].stateValues.layer).eq(
-            0,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.layer,
+        ).eq(0);
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("l"),
+            componentIdx: await resolvePathToNodeIdx("l"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("P")].stateValues.layer).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.layer,
+        ).eq(1);
     });
 
     it("color point text via style", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <styleDefinitions>
@@ -6028,139 +6164,139 @@ describe("Point tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
-        ).eq("black");
-        expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
-        ).eq("black");
-        expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
-        ).eq("none");
-
-        expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
-        ).eq("green");
-        expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
-        ).eq("green");
-        expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
-        ).eq("none");
-
-        expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
                 .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
                 .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
+        ).eq("green");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
+        ).eq("green");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
+                .stateValues.text,
+        ).eq("black");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
+                .stateValues.text,
+        ).eq("black");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("none");
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                 .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                 .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
         ).eq("none");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                 .stateValues.text,
         ).eq("red with a blue background");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                 .stateValues.text,
         ).eq("red");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("blue");
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
         ).eq("none");
     });
 
     it("fix location versus fixed", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P" />
@@ -6200,28 +6336,30 @@ describe("Point tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([x, y]);
             expect(
-                stateVariables[resolveComponentName("nClicks")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("nClicks")]
+                    .stateValues.value,
             ).eq(nClicks);
             expect(
-                stateVariables[resolveComponentName("nFocused")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("nFocused")]
+                    .stateValues.value,
             ).eq(nFocused);
 
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .fixLocation,
             ).eqls(fixLocation);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.fixed,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .fixed,
             ).eqls(fixed);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.draggable,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .draggable,
             ).eqls(draggable);
         }
 
@@ -6241,7 +6379,7 @@ describe("Point tag tests", async () => {
         params.x = 3;
         params.y = 5;
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: params.x,
             y: params.y,
             core,
@@ -6250,24 +6388,30 @@ describe("Point tag tests", async () => {
 
         // focus point
         params.nFocused++;
-        await focusPoint({ componentIdx: resolveComponentName("P"), core });
+        await focusPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
         await check_items(params);
 
         params.nClicks++;
-        await clickPoint({ componentIdx: resolveComponentName("P"), core });
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
         await check_items(params);
 
         // Make not draggable
         params.draggable = false;
         await updateBooleanInputValue({
             boolean: params.draggable,
-            componentIdx: resolveComponentName("dg"),
+            componentIdx: await resolvePathToNodeIdx("dg"),
             core,
         });
 
         // can't move point by dragging
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 0,
             core,
@@ -6278,7 +6422,7 @@ describe("Point tag tests", async () => {
         params.x = 8;
         params.y = 7;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("miP"),
+            componentIdx: await resolvePathToNodeIdx("miP"),
             latex: `(${params.x},${params.y})`,
             core,
         });
@@ -6286,19 +6430,25 @@ describe("Point tag tests", async () => {
 
         // focus point
         params.nFocused++;
-        await focusPoint({ componentIdx: resolveComponentName("P"), core });
+        await focusPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
         await check_items(params);
 
         // click point
         params.nClicks++;
-        await clickPoint({ componentIdx: resolveComponentName("P"), core });
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
         await check_items(params);
 
         // fix location
         params.fixLocation = true;
         updateBooleanInputValue({
             boolean: params.fixLocation,
-            componentIdx: resolveComponentName("fl"),
+            componentIdx: await resolvePathToNodeIdx("fl"),
             core,
         });
 
@@ -6306,14 +6456,14 @@ describe("Point tag tests", async () => {
         params.draggable = true;
         await updateBooleanInputValue({
             boolean: params.draggable,
-            componentIdx: resolveComponentName("dg"),
+            componentIdx: await resolvePathToNodeIdx("dg"),
             core,
         });
         await check_items(params);
 
         // still can't move point by dragging
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -4,
             y: 10,
             core,
@@ -6322,7 +6472,7 @@ describe("Point tag tests", async () => {
 
         // can't move entering coordinates
         await updateMathInputValue({
-            componentIdx: resolveComponentName("miP"),
+            componentIdx: await resolvePathToNodeIdx("miP"),
             latex: "(-5,-9)",
             core,
         });
@@ -6330,19 +6480,25 @@ describe("Point tag tests", async () => {
 
         // focus point
         params.nFocused++;
-        await focusPoint({ componentIdx: resolveComponentName("P"), core });
+        await focusPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
         await check_items(params);
 
         // click point
         params.nClicks++;
-        await clickPoint({ componentIdx: resolveComponentName("P"), core });
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
         await check_items(params);
 
         // fix point
         params.fixed = true;
         await updateBooleanInputValue({
             boolean: params.fixed,
-            componentIdx: resolveComponentName("fx"),
+            componentIdx: await resolvePathToNodeIdx("fx"),
             core,
         });
 
@@ -6350,21 +6506,27 @@ describe("Point tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: !params.fixLocation,
-            componentIdx: resolveComponentName("fl"),
+            componentIdx: await resolvePathToNodeIdx("fl"),
             core,
         });
 
         await updateBooleanInputValue({
             boolean: !params.draggable,
-            componentIdx: resolveComponentName("dg"),
+            componentIdx: await resolvePathToNodeIdx("dg"),
             core,
         });
 
         await check_items(params);
 
         // trying to focus point or click point does not increment counters
-        await focusPoint({ componentIdx: resolveComponentName("P"), core });
-        await clickPoint({ componentIdx: resolveComponentName("P"), core });
+        await focusPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         await check_items(params);
 
@@ -6372,14 +6534,14 @@ describe("Point tag tests", async () => {
         params.fixed = false;
         await updateBooleanInputValue({
             boolean: params.fixed,
-            componentIdx: resolveComponentName("fx"),
+            componentIdx: await resolvePathToNodeIdx("fx"),
             core,
         });
         await check_items(params);
     });
 
     it("fix location or fixed is communicated so know math from point can't be changed", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P" fixLocation="$fl" fixed="$fx" draggable="$dg">(3,4)</point>
@@ -6409,30 +6571,32 @@ describe("Point tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls(P);
             expect(
-                stateVariables[resolveComponentName("Q")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("Q")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls(Q);
             expect(
-                stateVariables[resolveComponentName("M")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("M")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls(M);
 
             expect(
-                stateVariables[resolveComponentName("P")].stateValues
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
                     .fixLocation,
             ).eq(fixLocation);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.fixed,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .fixed,
             ).eq(fixed);
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.draggable,
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .draggable,
             ).eq(draggable);
         }
 
@@ -6446,7 +6610,7 @@ describe("Point tag tests", async () => {
 
         // cannot move midpoint point by dragging
         await movePoint({
-            componentIdx: resolveComponentName("M"),
+            componentIdx: await resolvePathToNodeIdx("M"),
             x: 5,
             y: 6,
             core,
@@ -6457,13 +6621,13 @@ describe("Point tag tests", async () => {
         fixLocation = true;
         await updateBooleanInputValue({
             boolean: fixLocation,
-            componentIdx: resolveComponentName("fl"),
+            componentIdx: await resolvePathToNodeIdx("fl"),
             core,
         });
 
         // now can move midpoint point by dragging
         await movePoint({
-            componentIdx: resolveComponentName("M"),
+            componentIdx: await resolvePathToNodeIdx("M"),
             x: 5,
             y: 6,
             core,
@@ -6475,19 +6639,19 @@ describe("Point tag tests", async () => {
         fixLocation = false;
         await updateBooleanInputValue({
             boolean: fixLocation,
-            componentIdx: resolveComponentName("fl"),
+            componentIdx: await resolvePathToNodeIdx("fl"),
             core,
         });
         draggable = false;
         await updateBooleanInputValue({
             boolean: draggable,
-            componentIdx: resolveComponentName("dg"),
+            componentIdx: await resolvePathToNodeIdx("dg"),
             core,
         });
 
         // cannot move midpoint point by dragging again
         await movePoint({
-            componentIdx: resolveComponentName("M"),
+            componentIdx: await resolvePathToNodeIdx("M"),
             x: -1,
             y: -2,
             core,
@@ -6498,19 +6662,19 @@ describe("Point tag tests", async () => {
         fixed = true;
         await updateBooleanInputValue({
             boolean: fixed,
-            componentIdx: resolveComponentName("fx"),
+            componentIdx: await resolvePathToNodeIdx("fx"),
             core,
         });
         draggable = true;
         await updateBooleanInputValue({
             boolean: draggable,
-            componentIdx: resolveComponentName("dg"),
+            componentIdx: await resolvePathToNodeIdx("dg"),
             core,
         });
 
         // now can move midpoint point by dragging again
         await movePoint({
-            componentIdx: resolveComponentName("M"),
+            componentIdx: await resolvePathToNodeIdx("M"),
             x: 4,
             y: 3,
             core,
@@ -6520,7 +6684,7 @@ describe("Point tag tests", async () => {
     });
 
     it("hideOffGraphIndicator", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P1">(12,3)</point>
@@ -6545,47 +6709,47 @@ describe("Point tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
                 .hideOffGraphIndicator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("Q1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Q1")].stateValues
                 .hideOffGraphIndicator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("R1")].stateValues
-                .hideOffGraphIndicator,
-        ).eq(false);
-
-        expect(
-            stateVariables[resolveComponentName("P2")].stateValues
-                .hideOffGraphIndicator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("Q2")].stateValues
-                .hideOffGraphIndicator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("R2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("R1")].stateValues
                 .hideOffGraphIndicator,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues
-                .hideOffGraphIndicator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("Q3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues
                 .hideOffGraphIndicator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("R3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Q2")].stateValues
+                .hideOffGraphIndicator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("R2")].stateValues
+                .hideOffGraphIndicator,
+        ).eq(false);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues
+                .hideOffGraphIndicator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Q3")].stateValues
+                .hideOffGraphIndicator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("R3")].stateValues
                 .hideOffGraphIndicator,
         ).eq(false);
     });
 
     it("point can handle matrix-vector multiplication", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <matrix name="A">
       <row>3 -1</row>
@@ -6607,14 +6771,14 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Px, Py]);
             expect(
-                stateVariables[resolveComponentName("Q")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("Q")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([Qx, Qy]);
         }
 
@@ -6625,7 +6789,7 @@ describe("Point tag tests", async () => {
         Px = 4;
         Py = -3;
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: Px,
             y: Py,
             core,
@@ -6634,7 +6798,7 @@ describe("Point tag tests", async () => {
     });
 
     it("point with matrix for coords correctly gives NaN numerical xs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P"><matrix>
@@ -6648,12 +6812,13 @@ describe("Point tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.numericalXs,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                .numericalXs,
         ).eqls([NaN]);
     });
 
     it("handle complex point values in graph", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="C1">(sqrt(-1), 1)</point>
@@ -6672,20 +6837,20 @@ describe("Point tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("C1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("C1")].stateValues
+                    .xs[0].tree,
             ).eqls(x1);
             expect(
-                stateVariables[resolveComponentName("C1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("C1")].stateValues
+                    .xs[1].tree,
             ).eqls(y1);
             expect(
-                stateVariables[resolveComponentName("C2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("C2")].stateValues
+                    .xs[0].tree,
             ).eqls(x2);
             expect(
-                stateVariables[resolveComponentName("C2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("C2")].stateValues
+                    .xs[1].tree,
             ).eqls(y2);
         }
 
@@ -6697,13 +6862,13 @@ describe("Point tag tests", async () => {
         await check_items(x1, y1, x2, y2);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             latex: "(\\sqrt{-1}, 2)",
             core,
         });
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             latex: "(2, \\sqrt{-1})",
             core,
         });
@@ -6713,13 +6878,13 @@ describe("Point tag tests", async () => {
         await check_items(x1, y1, x2, y2);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             latex: "(-1,2)",
             core,
         });
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             latex: "(2,-1)",
             core,
         });
@@ -6747,7 +6912,7 @@ describe("Point tag tests", async () => {
     `;
 
         async function test_items(theme: "dark" | "light") {
-            const { core, resolveComponentName } = await createTestCore({
+            const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 theme,
             });
@@ -6762,16 +6927,16 @@ describe("Point tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("ADescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("ADescription")]
+                    .stateValues.text,
             ).eq(`Point A is ${AColor}.`);
             expect(
-                stateVariables[resolveComponentName("BDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("BDescription")]
+                    .stateValues.text,
             ).eq(`B is a ${BShade} red square.`);
             expect(
-                stateVariables[resolveComponentName("CDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("CDescription")]
+                    .stateValues.text,
             ).eq(`C is a ${CColor} point.`);
         }
 

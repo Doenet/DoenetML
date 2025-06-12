@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     moveControlVector,
     movePoint,
@@ -34,7 +34,7 @@ async function changeVectorControlDirection({
 }
 
 async function setupScene(curveChildren: string) {
-    let { core, resolveComponentName } = await createTestCore({
+    let { core, resolvePathToNodeIdx } = await createTestCore({
         doenetML:
             `
 <graph name="g">
@@ -53,18 +53,18 @@ async function setupScene(curveChildren: string) {
   `,
     });
 
-    return { core, resolveComponentName };
+    return { core, resolvePathToNodeIdx };
 }
 
 async function runBezierTests({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     initialDirections = ["none", "none", "none", "none"],
     initialControlVectors,
     haveControls = true,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     initialDirections?: Direction[];
     initialControlVectors?: (number[] | null)[][];
     haveControls?: boolean;
@@ -84,7 +84,7 @@ async function runBezierTests({
 
     await checkAllCurves({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         throughPoints,
         directions,
         controlVectors,
@@ -94,7 +94,7 @@ async function runBezierTests({
     await moveAllThroughPoints({
         curveNames,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         throughPoints,
         offset: 1,
         directions,
@@ -105,7 +105,7 @@ async function runBezierTests({
         directions,
         curveNames,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         throughPoints,
         controlVectors,
         offset: 2,
@@ -124,7 +124,7 @@ async function runBezierTests({
         directions,
         curveNames,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         throughPoints,
         controlVectors,
         offset: 3,
@@ -137,7 +137,7 @@ async function runBezierTests({
 async function moveAllThroughPoints({
     curveNames,
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     throughPoints,
     offset = 0,
     directions,
@@ -145,7 +145,7 @@ async function moveAllThroughPoints({
 }: {
     curveNames: string[];
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     throughPoints: number[][];
     offset?: number;
     directions: Direction[];
@@ -158,7 +158,7 @@ async function moveAllThroughPoints({
         let newPt = [offset * ind + 1 + 0, 3 - 2 * ind * offset + 0];
         throughPoints[ind] = newPt;
         await moveThroughPoint({
-            componentIdx: resolveComponentName(name),
+            componentIdx: await resolvePathToNodeIdx(name),
             throughPointInd: ind,
             throughPoint: newPt,
             core,
@@ -167,7 +167,7 @@ async function moveAllThroughPoints({
 
     await checkAllCurves({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         curveNames,
         throughPoints,
         directions,
@@ -183,7 +183,7 @@ async function moveAllControlVectors({
     directions,
     curveNames,
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     throughPoints,
     controlVectors,
     offset = 0,
@@ -191,7 +191,7 @@ async function moveAllControlVectors({
     directions: Direction[];
     curveNames: string[];
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     throughPoints: number[][];
     controlVectors: (number[] | null)[][] | undefined;
     offset?: number;
@@ -205,7 +205,7 @@ async function moveAllControlVectors({
             // that we cannot move those control vectors
             // try unsuccessfully to move to some large value
             await moveControlVector({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 controlVectorInds: [ind, 0],
                 controlVector: [99 + ind, ind - 98],
                 core,
@@ -217,7 +217,7 @@ async function moveAllControlVectors({
             if (dir === "previous") {
                 controlVectors[ind] = [newVec, null];
                 await moveControlVector({
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     controlVectorInds: [ind, 0],
                     controlVector: newVec,
                     core,
@@ -225,7 +225,7 @@ async function moveAllControlVectors({
             } else if (dir === "next") {
                 controlVectors[ind] = [null, newVec];
                 await moveControlVector({
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     controlVectorInds: [ind, 1],
                     controlVector: newVec,
                     core,
@@ -239,7 +239,7 @@ async function moveAllControlVectors({
                         : [newVec, newVec.map((v) => -v + 0)];
 
                 await moveControlVector({
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     controlVectorInds: [ind, side],
                     controlVector: newVec,
                     core,
@@ -254,7 +254,7 @@ async function moveAllControlVectors({
                 controlVectors[ind] = [newVec, newVec2];
                 for (let side = 0; side < 2; side++) {
                     await moveControlVector({
-                        componentIdx: resolveComponentName(name),
+                        componentIdx: await resolvePathToNodeIdx(name),
                         controlVectorInds: [ind, side],
                         controlVector: [newVec, newVec2][side],
                         core,
@@ -267,7 +267,7 @@ async function moveAllControlVectors({
     // check that all moves were made as indicated (or didn't happen if not indicated)
     await checkAllCurves({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         curveNames,
         throughPoints,
         directions,
@@ -284,7 +284,7 @@ async function switchAllControlVectors({
     directions,
     curveNames,
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     throughPoints,
     controlVectors,
     offset = 0,
@@ -292,7 +292,7 @@ async function switchAllControlVectors({
     directions: Direction[];
     curveNames: string[];
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     throughPoints: number[][];
     controlVectors: (number[] | null)[][];
     offset?: number;
@@ -326,7 +326,7 @@ async function switchAllControlVectors({
         directions[ind] = newDirection;
         await changeVectorControlDirection({
             core,
-            componentIdx: resolveComponentName(name),
+            componentIdx: await resolvePathToNodeIdx(name),
             throughPointInd: ind,
             direction: newDirection,
         });
@@ -336,7 +336,7 @@ async function switchAllControlVectors({
     // and then test them
     await moveAllControlVectors({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         curveNames,
         directions,
         throughPoints,
@@ -347,14 +347,14 @@ async function switchAllControlVectors({
 
 async function checkAllCurves({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     throughPoints,
     directions,
     controlVectors,
     curveNames,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     throughPoints?: number[][];
     directions?: Direction[];
     controlVectors?: (number[] | null)[][];
@@ -363,7 +363,7 @@ async function checkAllCurves({
     for (let curveName of curveNames) {
         await checkCurve({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             curveName,
             throughPoints,
             directions,
@@ -374,21 +374,21 @@ async function checkAllCurves({
 
 async function checkCurve({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     curveName,
     throughPoints,
     directions,
     controlVectors,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     curveName: string;
     throughPoints?: number[][];
     directions?: Direction[];
     controlVectors?: (number[] | null)[][];
 }) {
     const stateVariables = await core.returnAllStateVariables(false, true);
-    const curve = stateVariables[resolveComponentName(curveName)];
+    const curve = stateVariables[await resolvePathToNodeIdx(curveName)];
     if (throughPoints) {
         expect(
             curve.stateValues.throughPoints.map((v) =>
@@ -440,24 +440,24 @@ async function checkCurve({
 
 describe("Curve Tag Bezier Tests", async () => {
     it("no controls specified", async () => {
-        let { core, resolveComponentName } = await setupScene("");
+        let { core, resolvePathToNodeIdx } = await setupScene("");
 
         await runBezierTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             haveControls: false,
         });
     });
 
     it("empty control", async () => {
-        let { core, resolveComponentName } =
+        let { core, resolvePathToNodeIdx } =
             await setupScene("<bezierControls/>");
 
-        await runBezierTests({ core, resolveComponentName });
+        await runBezierTests({ core, resolvePathToNodeIdx });
     });
 
     it("sugared controls", async () => {
-        let { core, resolveComponentName } = await setupScene(
+        let { core, resolvePathToNodeIdx } = await setupScene(
             "<bezierControls>(3,1) (-1,5) (5,3) (0,0)</bezierControls>",
         );
 
@@ -489,14 +489,14 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await runBezierTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialDirections,
             initialControlVectors,
         });
     });
 
     it("symmetric controls", async () => {
-        let { core, resolveComponentName } = await setupScene(
+        let { core, resolvePathToNodeIdx } = await setupScene(
             `
     <bezierControls>
         <controlVectors><vector>(3,1)</vector></controlVectors>
@@ -535,14 +535,14 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await runBezierTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialDirections,
             initialControlVectors,
         });
     });
 
     it("symmetric controls, specified by pointNumber", async () => {
-        let { core, resolveComponentName } = await setupScene(
+        let { core, resolvePathToNodeIdx } = await setupScene(
             `
     <bezierControls>
         <controlVectors><vector>(3,1)</vector></controlVectors>
@@ -581,14 +581,14 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await runBezierTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialDirections,
             initialControlVectors,
         });
     });
 
     it("symmetric controls, specified by pointNumber, skipping one", async () => {
-        let { core, resolveComponentName } = await setupScene(
+        let { core, resolvePathToNodeIdx } = await setupScene(
             `
     <bezierControls>
         <controlVectors><vector>(3,1)</vector></controlVectors>
@@ -623,14 +623,14 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await runBezierTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialDirections,
             initialControlVectors,
         });
     });
 
     it("asymmetric controls", async () => {
-        let { core, resolveComponentName } = await setupScene(`
+        let { core, resolvePathToNodeIdx } = await setupScene(`
     <bezierControls>
           <controlVectors><vector>(3,1)</vector></controlVectors>
           <controlVectors direction="both">(-1,5) (4,2)</controlVectors>
@@ -667,14 +667,14 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await runBezierTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialDirections,
             initialControlVectors,
         });
     });
 
     it("asymmetric controls, specified by pointNumber", async () => {
-        let { core, resolveComponentName } = await setupScene(`
+        let { core, resolvePathToNodeIdx } = await setupScene(`
     <bezierControls>
           <controlVectors pointNumber="4">(0,0)</controlVectors>
           <controlVectors pointNumber="3" direction="both"><vector>(5,3)</vector><vector>(7,-1)</vector></controlVectors>
@@ -711,14 +711,14 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await runBezierTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialDirections,
             initialControlVectors,
         });
     });
 
     it("asymmetric controls, previous and next", async () => {
-        let { core, resolveComponentName } = await setupScene(`
+        let { core, resolvePathToNodeIdx } = await setupScene(`
     <bezierControls>
         <controlVectors><vector>(3,1)</vector></controlVectors>
         <controlVectors direction="previous">(-1,5)</controlVectors>
@@ -749,7 +749,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await runBezierTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialDirections,
             initialControlVectors,
         });
@@ -765,113 +765,129 @@ describe("Curve Tag Bezier Tests", async () => {
         <p><textInput name="dirb" bindValueTo="$(cv1a.direction)" /></p>
         `;
 
-        let { core, resolveComponentName } = await createTestCore({ doenetML });
+        let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("dira")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dira")].stateValues
+                .value,
         ).eq("symmetric");
         expect(
-            stateVariables[resolveComponentName("dirb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dirb")].stateValues
+                .value,
         ).eq("symmetric");
         expect(
-            stateVariables[resolveComponentName("cvs")].stateValues.direction,
+            stateVariables[await resolvePathToNodeIdx("cvs")].stateValues
+                .direction,
         ).eq("symmetric");
         expect(
-            core.core!.components![resolveComponentName("cvs")].state.direction
-                .usedDefault,
+            core.core!.components![await resolvePathToNodeIdx("cvs")].state
+                .direction.usedDefault,
         ).be.true;
         expect(
-            stateVariables[resolveComponentName("cv1a")].stateValues.direction,
+            stateVariables[await resolvePathToNodeIdx("cv1a")].stateValues
+                .direction,
         ).eq("symmetric");
         expect(
-            core.core!.components![resolveComponentName("cv1a")].state.direction
-                .usedDefault,
+            core.core!.components![await resolvePathToNodeIdx("cv1a")].state
+                .direction.usedDefault,
         ).be.true;
 
         await updateTextInputValue({
             text: "both",
-            componentIdx: resolveComponentName("dira"),
+            componentIdx: await resolvePathToNodeIdx("dira"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("dira")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dira")].stateValues
+                .value,
         ).eq("both");
         expect(
-            stateVariables[resolveComponentName("dirb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dirb")].stateValues
+                .value,
         ).eq("both");
         expect(
-            stateVariables[resolveComponentName("cvs")].stateValues.direction,
+            stateVariables[await resolvePathToNodeIdx("cvs")].stateValues
+                .direction,
         ).eq("both");
         expect(
-            core.core!.components![resolveComponentName("cvs")].state.direction
-                .usedDefault,
+            core.core!.components![await resolvePathToNodeIdx("cvs")].state
+                .direction.usedDefault,
         ).not.be.true;
         expect(
-            stateVariables[resolveComponentName("cv1a")].stateValues.direction,
+            stateVariables[await resolvePathToNodeIdx("cv1a")].stateValues
+                .direction,
         ).eq("both");
         expect(
-            core.core!.components![resolveComponentName("cv1a")].state.direction
-                .usedDefault,
+            core.core!.components![await resolvePathToNodeIdx("cv1a")].state
+                .direction.usedDefault,
         ).not.be.true;
 
-        ({ core, resolveComponentName } = await createTestCore({ doenetML }));
+        ({ core, resolvePathToNodeIdx } = await createTestCore({ doenetML }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("dira")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dira")].stateValues
+                .value,
         ).eq("symmetric");
         expect(
-            stateVariables[resolveComponentName("dirb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dirb")].stateValues
+                .value,
         ).eq("symmetric");
         expect(
-            stateVariables[resolveComponentName("cvs")].stateValues.direction,
+            stateVariables[await resolvePathToNodeIdx("cvs")].stateValues
+                .direction,
         ).eq("symmetric");
         expect(
-            core.core!.components![resolveComponentName("cvs")].state.direction
-                .usedDefault,
+            core.core!.components![await resolvePathToNodeIdx("cvs")].state
+                .direction.usedDefault,
         ).be.true;
         expect(
-            stateVariables[resolveComponentName("cv1a")].stateValues.direction,
+            stateVariables[await resolvePathToNodeIdx("cv1a")].stateValues
+                .direction,
         ).eq("symmetric");
         expect(
-            core.core!.components![resolveComponentName("cv1a")].state.direction
-                .usedDefault,
+            core.core!.components![await resolvePathToNodeIdx("cv1a")].state
+                .direction.usedDefault,
         ).be.true;
 
         await updateTextInputValue({
             text: "none",
-            componentIdx: resolveComponentName("dirb"),
+            componentIdx: await resolvePathToNodeIdx("dirb"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("dira")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dira")].stateValues
+                .value,
         ).eq("none");
         expect(
-            stateVariables[resolveComponentName("dirb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dirb")].stateValues
+                .value,
         ).eq("none");
         expect(
-            stateVariables[resolveComponentName("cvs")].stateValues.direction,
+            stateVariables[await resolvePathToNodeIdx("cvs")].stateValues
+                .direction,
         ).eq("none");
         expect(
-            core.core!.components![resolveComponentName("cvs")].state.direction
-                .usedDefault,
+            core.core!.components![await resolvePathToNodeIdx("cvs")].state
+                .direction.usedDefault,
         ).not.be.true;
         expect(
-            stateVariables[resolveComponentName("cv1a")].stateValues.direction,
+            stateVariables[await resolvePathToNodeIdx("cv1a")].stateValues
+                .direction,
         ).eq("none");
         expect(
-            core.core!.components![resolveComponentName("cv1a")].state.direction
-                .usedDefault,
+            core.core!.components![await resolvePathToNodeIdx("cv1a")].state
+                .direction.usedDefault,
         ).not.be.true;
     });
 
     it("constrain through points to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
     <point name="P1" x="1" y="2">
@@ -947,7 +963,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             controlVectors,
@@ -956,7 +972,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         // move through point on curve 1
         await moveThroughPoint({
-            componentIdx: resolveComponentName("g.c"),
+            componentIdx: await resolvePathToNodeIdx("g.c"),
             throughPointInd: 1,
             throughPoint: [1.1, 8.7],
             core,
@@ -965,7 +981,7 @@ describe("Curve Tag Bezier Tests", async () => {
         throughPoints[1] = [1, 9];
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             controlVectors,
@@ -979,12 +995,12 @@ describe("Curve Tag Bezier Tests", async () => {
             controlVectors,
             offset: 2,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move original point determining through point
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x: -3.2,
             y: 4.9,
             core,
@@ -992,7 +1008,7 @@ describe("Curve Tag Bezier Tests", async () => {
         throughPoints[2] = [-3, 5];
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             controlVectors,
@@ -1001,7 +1017,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         // move through point on curve 2
         await moveThroughPoint({
-            componentIdx: resolveComponentName("g2.c"),
+            componentIdx: await resolvePathToNodeIdx("g2.c"),
             throughPointInd: 0,
             throughPoint: [-7.4, 1.6],
             core,
@@ -1009,7 +1025,7 @@ describe("Curve Tag Bezier Tests", async () => {
         throughPoints[0] = [-7, 2];
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             controlVectors,
@@ -1018,7 +1034,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         // move through point on curve 3
         await moveThroughPoint({
-            componentIdx: resolveComponentName("g3.c"),
+            componentIdx: await resolvePathToNodeIdx("g3.c"),
             throughPointInd: 3,
             throughPoint: [-4.6, -9.3],
             core,
@@ -1026,7 +1042,7 @@ describe("Curve Tag Bezier Tests", async () => {
         throughPoints[3] = [-5, -9];
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             controlVectors,
@@ -1036,7 +1052,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
     async function test_copied_flipped(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         function throughPointTransform(v: number[], i: number) {
             return i % 2 === 0 ? v : [v[1], v[0]];
@@ -1093,7 +1109,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints: throughPoints1,
             directions,
             controlVectors: controlVectors1,
@@ -1101,7 +1117,7 @@ describe("Curve Tag Bezier Tests", async () => {
         });
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints: throughPoints2,
             directions,
             controlVectors: controlVectors2,
@@ -1116,7 +1132,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 directions,
                 controlVectors: controlVectors1,
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 offset: -4 + ind * 4,
             });
 
@@ -1124,7 +1140,7 @@ describe("Curve Tag Bezier Tests", async () => {
             throughPoints2 = throughPoints1.map(throughPointTransform);
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints: throughPoints2,
                 directions,
                 controlVectors: controlVectors2,
@@ -1138,7 +1154,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 directions,
                 controlVectors: controlVectors2,
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 offset: -3 + ind * 4,
             });
 
@@ -1146,7 +1162,7 @@ describe("Curve Tag Bezier Tests", async () => {
             throughPoints1 = throughPoints2.map(throughPointTransform);
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints: throughPoints1,
                 directions,
                 controlVectors: controlVectors1,
@@ -1160,7 +1176,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 directions,
                 controlVectors: controlVectors2,
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 offset: -2 + ind * 4,
             });
 
@@ -1168,7 +1184,7 @@ describe("Curve Tag Bezier Tests", async () => {
             controlVectors1 = controlVectors2.map(controlVectorTransform);
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints: throughPoints1,
                 directions,
                 controlVectors: controlVectors1,
@@ -1182,7 +1198,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 directions,
                 controlVectors: controlVectors1,
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 offset: -1 + ind * 4,
             });
 
@@ -1190,7 +1206,7 @@ describe("Curve Tag Bezier Tests", async () => {
             controlVectors2 = controlVectors1.map(controlVectorTransform);
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints: throughPoints2,
                 directions,
                 controlVectors: controlVectors2,
@@ -1200,7 +1216,7 @@ describe("Curve Tag Bezier Tests", async () => {
     }
 
     it("new curve from copied control vectors, some flipped", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c1" through="(-9,6) (-3,7) (4,0) (8,5)">
@@ -1251,11 +1267,11 @@ describe("Curve Tag Bezier Tests", async () => {
     `,
         });
 
-        await test_copied_flipped(core, resolveComponentName);
+        await test_copied_flipped(core, resolvePathToNodeIdx);
     });
 
     it("new curve from copied control points, some flipped", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c1" through="(-9,6) (-3,7) (4,0) (8,5)">
@@ -1323,12 +1339,12 @@ describe("Curve Tag Bezier Tests", async () => {
     `,
         });
 
-        await test_copied_flipped(core, resolveComponentName);
+        await test_copied_flipped(core, resolvePathToNodeIdx);
     });
 
     async function test_first_fourth_points_dependent(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         haveFifth = false,
     ) {
         let curveNames = ["g.c", "g2.c", "g3.c"];
@@ -1348,7 +1364,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             curveNames,
@@ -1362,7 +1378,7 @@ describe("Curve Tag Bezier Tests", async () => {
             let newPt = [ind + 4 + 0, 3 - 2 * ind + 0];
             throughPoints[ind] = newPt;
             await moveThroughPoint({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 throughPointInd: ind,
                 throughPoint: newPt,
                 core,
@@ -1376,7 +1392,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             curveNames,
             throughPoints,
             directions,
@@ -1390,7 +1406,7 @@ describe("Curve Tag Bezier Tests", async () => {
             let newPt = [2 * ind + 1 + 0, 3 - 4 * ind + 0];
             throughPoints[3] = newPt;
             await moveThroughPoint({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 throughPointInd: 3,
                 throughPoint: newPt,
                 core,
@@ -1401,7 +1417,7 @@ describe("Curve Tag Bezier Tests", async () => {
             }
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 curveNames,
                 throughPoints,
                 directions,
@@ -1417,7 +1433,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 let newPt = [-2 * ind + 2 + 0, 4 + 2 * ind + 0];
                 throughPoints[4] = newPt;
                 await moveThroughPoint({
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     throughPointInd: 4,
                     throughPoint: newPt,
                     core,
@@ -1426,7 +1442,7 @@ describe("Curve Tag Bezier Tests", async () => {
                     throughPoints[4][0] - 1;
                 await checkAllCurves({
                     core,
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     curveNames,
                     throughPoints,
                     directions,
@@ -1440,7 +1456,7 @@ describe("Curve Tag Bezier Tests", async () => {
             directions,
             curveNames,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             controlVectors,
             offset: -1,
@@ -1451,7 +1467,7 @@ describe("Curve Tag Bezier Tests", async () => {
             directions,
             curveNames,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             controlVectors,
             offset: -2,
@@ -1460,7 +1476,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
     // TODO: restore this functionality. See issue #479.
     it.skip("fourth point depends on internal copy of first point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
   <setup><point extend="$c.throughPoints[1]" name="TP1" /></setup>
@@ -1478,12 +1494,12 @@ describe("Curve Tag Bezier Tests", async () => {
   `,
         });
 
-        await test_first_fourth_points_dependent(core, resolveComponentName);
+        await test_first_fourth_points_dependent(core, resolvePathToNodeIdx);
     });
 
     // TODO: restore this functionality
     it.skip("first point depends on internal copy of fourth point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
   <setup><point name="P4" extend="$c.throughPoints[4]" /></setup>
@@ -1501,12 +1517,12 @@ describe("Curve Tag Bezier Tests", async () => {
   `,
         });
 
-        await test_first_fourth_points_dependent(core, resolveComponentName);
+        await test_first_fourth_points_dependent(core, resolvePathToNodeIdx);
     });
 
     // TODO: restore this functionality
     it.skip("first point depends fourth, formula for fifth", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
   <setup><point name="P4" extend="$c.throughPoints[4]" /></setup>
@@ -1526,14 +1542,14 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await test_first_fourth_points_dependent(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             true,
         );
     });
 
     async function test_1_4_7_10_points_dependent(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         shift = false,
     ) {
         let curveNames = ["g.c", "g2.c", "g3.c"];
@@ -1567,7 +1583,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             curveNames,
@@ -1587,7 +1603,7 @@ describe("Curve Tag Bezier Tests", async () => {
             let newPt = [ind + 4 + 0, 3 - 2 * ind + 0];
             throughPoints[ind] = newPt;
             await moveThroughPoint({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 throughPointInd: ind,
                 throughPoint: newPt,
                 core,
@@ -1598,7 +1614,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             curveNames,
             throughPoints,
             directions,
@@ -1613,14 +1629,14 @@ describe("Curve Tag Bezier Tests", async () => {
             throughPoints[9] = newPt;
             recalcThroughPoints();
             await moveThroughPoint({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 throughPointInd: 0,
                 throughPoint: throughPoints[0],
                 core,
             });
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 curveNames,
                 throughPoints,
                 directions,
@@ -1636,14 +1652,14 @@ describe("Curve Tag Bezier Tests", async () => {
             throughPoints[9] = newPt;
             recalcThroughPoints();
             await moveThroughPoint({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 throughPointInd: 3,
                 throughPoint: throughPoints[3],
                 core,
             });
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 curveNames,
                 throughPoints,
                 directions,
@@ -1659,14 +1675,14 @@ describe("Curve Tag Bezier Tests", async () => {
             throughPoints[9] = newPt;
             recalcThroughPoints();
             await moveThroughPoint({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 throughPointInd: 6,
                 throughPoint: throughPoints[6],
                 core,
             });
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 curveNames,
                 throughPoints,
                 directions,
@@ -1676,7 +1692,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
     // TODO: restore this functionality
     it.skip("first, fourth, seventh point depends on fourth, seventh, tenth", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
   <setup>
@@ -1695,11 +1711,11 @@ describe("Curve Tag Bezier Tests", async () => {
   `,
         });
 
-        await test_1_4_7_10_points_dependent(core, resolveComponentName);
+        await test_1_4_7_10_points_dependent(core, resolvePathToNodeIdx);
     });
 
     it("first, fourth, seventh point depends on shifted fourth, seventh, tenth", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
   <curve name="c" through="($c.throughPoints[4][1]+1, $c.throughPoints[4][2]+1)  (1,2) (3,4) ($c.throughPoints[7][1]+1, $c.throughPoints[7][2]+1) (5,7) (-5,7) ($c.throughPoints[10][1]+1, $c.throughPoints[10][2]+1) (3,1) (5,0) (-5,-1)" />
@@ -1713,12 +1729,12 @@ describe("Curve Tag Bezier Tests", async () => {
   `,
         });
 
-        await test_1_4_7_10_points_dependent(core, resolveComponentName, true);
+        await test_1_4_7_10_points_dependent(core, resolvePathToNodeIdx, true);
     });
 
     async function test_first_third_vector_dependent(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         thirdUnspecified = false,
     ) {
         function swapVectors(cvecs: number[][]) {
@@ -1756,7 +1772,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 true,
             );
             let cv3 =
-                stateVariables[resolveComponentName("g.c")].stateValues
+                stateVariables[await resolvePathToNodeIdx("g.c")].stateValues
                     .controlVectors[2][0];
 
             controlVectors[2][0][0] = cv3[0].tree + 0;
@@ -1768,7 +1784,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             controlVectors,
@@ -1782,7 +1798,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 let name = curveNames[Math.abs(ind) % curveNames.length];
 
                 await moveControlVector({
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     controlVectorInds: [0, ind % 2],
                     controlVector: [ind + 4 + 0, 3 - 2 * ind + 0],
                     core,
@@ -1791,7 +1807,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 // no change
                 await checkAllCurves({
                     core,
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     throughPoints,
                     directions,
                     controlVectors,
@@ -1803,7 +1819,7 @@ describe("Curve Tag Bezier Tests", async () => {
             directions[2] = "symmetric";
             await changeVectorControlDirection({
                 core,
-                componentIdx: resolveComponentName(curveNames[0]),
+                componentIdx: await resolvePathToNodeIdx(curveNames[0]),
                 throughPointInd: 2,
                 direction: directions[2],
             });
@@ -1821,7 +1837,7 @@ describe("Curve Tag Bezier Tests", async () => {
                 let side = (ind + vecInd) % 2;
 
                 await moveControlVector({
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     controlVectorInds: [vecInd, side],
                     controlVector: newVec,
                     core,
@@ -1839,7 +1855,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints,
                 directions,
                 controlVectors,
@@ -1855,7 +1871,7 @@ describe("Curve Tag Bezier Tests", async () => {
             let side = ind % 2;
 
             await moveControlVector({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 controlVectorInds: [2, side],
                 controlVector: newVec,
                 core,
@@ -1872,7 +1888,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints,
                 directions,
                 controlVectors,
@@ -1882,7 +1898,7 @@ describe("Curve Tag Bezier Tests", async () => {
     }
 
     it("third control vector depends on internal copy of first control vector", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
   <curve name="c" through="(1,2) (3,4) (-5,6)">
@@ -1902,11 +1918,11 @@ describe("Curve Tag Bezier Tests", async () => {
   `,
         });
 
-        await test_first_third_vector_dependent(core, resolveComponentName);
+        await test_first_third_vector_dependent(core, resolvePathToNodeIdx);
     });
 
     it("first control vector depends on internal copy of unspecified third control vector", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
   <curve name="c" through="(1,2) (3,4) (-5,6)">
@@ -1927,13 +1943,13 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await test_first_third_vector_dependent(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             true,
         );
     });
 
     it("internal copies among controls", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
   <curve name="c" through="(1,2) (3,4) (-5,6) (3,5)">
@@ -2023,7 +2039,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await checkAllCurves({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             controlVectors,
@@ -2032,7 +2048,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await moveAllThroughPoints({
             curveNames,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPoints,
             directions,
             controlVectors,
@@ -2048,7 +2064,7 @@ describe("Curve Tag Bezier Tests", async () => {
             let side = ind % 2;
 
             await moveControlVector({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 controlVectorInds: [0, side],
                 controlVector: newVec,
                 core,
@@ -2065,7 +2081,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints,
                 directions,
                 controlVectors,
@@ -2081,7 +2097,7 @@ describe("Curve Tag Bezier Tests", async () => {
             let side = (ind + 1) % 2;
 
             await moveControlVector({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 controlVectorInds: [1, side],
                 controlVector: newVec,
                 core,
@@ -2098,7 +2114,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints,
                 directions,
                 controlVectors,
@@ -2114,7 +2130,7 @@ describe("Curve Tag Bezier Tests", async () => {
             let side = ind % 2;
 
             await moveControlVector({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 controlVectorInds: [2, side],
                 controlVector: newVec,
                 core,
@@ -2133,7 +2149,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints,
                 directions,
                 controlVectors,
@@ -2149,7 +2165,7 @@ describe("Curve Tag Bezier Tests", async () => {
             let side = (ind + 1) % 2;
 
             await moveControlVector({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 controlVectorInds: [3, side],
                 controlVector: newVec,
                 core,
@@ -2168,7 +2184,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
             await checkAllCurves({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 throughPoints,
                 directions,
                 controlVectors,
@@ -2178,7 +2194,7 @@ describe("Curve Tag Bezier Tests", async () => {
     });
 
     it("copy props with propIndex, dot and array notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>n: <mathInput name="n" prefill="2" /></p>
 
@@ -2210,181 +2226,181 @@ describe("Curve Tag Bezier Tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("pt")].stateValues.text).eq(
-            "( 3, 4 )",
-        );
-        expect(stateVariables[resolveComponentName("px")].stateValues.text).eq(
-            "( -4, 7 )",
-        );
-        expect(stateVariables[resolveComponentName("py")].stateValues.text).eq(
-            "( -2, 6 )",
-        );
-        expect(stateVariables[resolveComponentName("pc")].stateValues.text).eq(
-            "( 4, 7 )",
-        );
-        expect(stateVariables[resolveComponentName("p1t")].stateValues.text).eq(
-            "2",
-        );
-        expect(stateVariables[resolveComponentName("p1x")].stateValues.text).eq(
-            "4",
-        );
-        expect(stateVariables[resolveComponentName("p1y")].stateValues.text).eq(
-            "2",
-        );
-        expect(stateVariables[resolveComponentName("p1c")].stateValues.text).eq(
-            "6",
-        );
         expect(
-            stateVariables[resolveComponentName("p1ta")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
+        ).eq("( 3, 4 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
+        ).eq("( -4, 7 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
+        ).eq("( -2, 6 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
+        ).eq("( 4, 7 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
         ).eq("2");
         expect(
-            stateVariables[resolveComponentName("p1xa")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1x")].stateValues.text,
         ).eq("4");
         expect(
-            stateVariables[resolveComponentName("p1ya")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1y")].stateValues.text,
         ).eq("2");
         expect(
-            stateVariables[resolveComponentName("p1ca")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1c")].stateValues.text,
+        ).eq("6");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ta")].stateValues.text,
+        ).eq("2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1xa")].stateValues.text,
+        ).eq("4");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ya")].stateValues.text,
+        ).eq("2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ca")].stateValues.text,
         ).eq("6");
 
         // set propIndex to 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pt")].stateValues.text).eq(
-            "( 1, 2 )",
-        );
-        expect(stateVariables[resolveComponentName("px")].stateValues.text).eq(
-            "( 3, 4 )",
-        );
-        expect(stateVariables[resolveComponentName("py")].stateValues.text).eq(
-            "( 1, 2 )",
-        );
-        expect(stateVariables[resolveComponentName("pc")].stateValues.text).eq(
-            "( -2, 6 )",
-        );
-        expect(stateVariables[resolveComponentName("p1t")].stateValues.text).eq(
-            "1",
-        );
-        expect(stateVariables[resolveComponentName("p1x")].stateValues.text).eq(
-            "3",
-        );
-        expect(stateVariables[resolveComponentName("p1y")].stateValues.text).eq(
-            "1",
-        );
-        expect(stateVariables[resolveComponentName("p1c")].stateValues.text).eq(
-            "-2",
-        );
         expect(
-            stateVariables[resolveComponentName("p1ta")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
+        ).eq("( 1, 2 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
+        ).eq("( 3, 4 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
+        ).eq("( 1, 2 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
+        ).eq("( -2, 6 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("p1xa")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1x")].stateValues.text,
         ).eq("3");
         expect(
-            stateVariables[resolveComponentName("p1ya")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1y")].stateValues.text,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("p1ca")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1c")].stateValues.text,
+        ).eq("-2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ta")].stateValues.text,
+        ).eq("1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1xa")].stateValues.text,
+        ).eq("3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ya")].stateValues.text,
+        ).eq("1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ca")].stateValues.text,
         ).eq("-2");
 
         // erase propIndex
         await updateMathInputValue({
             latex: "",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pt")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("px")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("py")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("pc")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p1t")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p1x")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p1y")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p1c")].stateValues.text).eq(
-            "",
-        );
         expect(
-            stateVariables[resolveComponentName("p1ta")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("p1xa")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("p1ya")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("p1ca")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1x")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1y")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1c")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ta")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1xa")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ya")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ca")].stateValues.text,
         ).eq("");
 
         // set propIndex to 4
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pt")].stateValues.text).eq(
-            "( -4, 7 )",
-        );
-        expect(stateVariables[resolveComponentName("px")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("py")].stateValues.text).eq(
-            "( 6, 5 )",
-        );
-        expect(stateVariables[resolveComponentName("pc")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p1t")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p1x")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p1y")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p1c")].stateValues.text).eq(
-            "",
-        );
         expect(
-            stateVariables[resolveComponentName("p1ta")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
+        ).eq("( -4, 7 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("p1xa")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
+        ).eq("( 6, 5 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("p1ya")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("p1ca")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1x")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1y")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1c")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ta")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1xa")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ya")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1ca")].stateValues.text,
         ).eq("");
     });
 
     it("copy props with propIndex, control vectors and points, dot and array notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>m: <mathInput name="m" /></p>
   <p>n: <mathInput name="n" /></p>
@@ -2450,36 +2466,38 @@ describe("Curve Tag Bezier Tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("pV")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("pP")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("pVb")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("pPb")].stateValues.text).eq(
-            "",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pV")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pP")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pVb")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pPb")].stateValues.text,
+        ).eq("");
 
         for (let m = 1; m <= 5; m++) {
             await updateMathInputValue({
                 latex: `${m}`,
-                componentIdx: resolveComponentName("m"),
+                componentIdx: await resolvePathToNodeIdx("m"),
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
 
             expect(
-                stateVariables[resolveComponentName("pVb")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pVb")].stateValues
+                    .text,
             ).eq(
                 desiredControlVectors[m - 1]
                     .map((v) => `( ${v.join(", ")} )`)
                     .join(", "),
             );
             expect(
-                stateVariables[resolveComponentName("pPb")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pPb")].stateValues
+                    .text,
             ).eq(
                 desiredControlPoints[m - 1]
                     .map((v) => `( ${v.join(", ")} )`)
@@ -2489,7 +2507,7 @@ describe("Curve Tag Bezier Tests", async () => {
             for (let n = 1; n <= 2; n++) {
                 await updateMathInputValue({
                     latex: `${n}`,
-                    componentIdx: resolveComponentName("n"),
+                    componentIdx: await resolvePathToNodeIdx("n"),
                     core,
                 });
                 stateVariables = await core.returnAllStateVariables(
@@ -2498,17 +2516,19 @@ describe("Curve Tag Bezier Tests", async () => {
                 );
 
                 expect(
-                    stateVariables[resolveComponentName("pV")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("pV")].stateValues
+                        .text,
                 ).eq(`( ${desiredControlVectors[m - 1][n - 1].join(", ")} )`);
                 expect(
-                    stateVariables[resolveComponentName("pP")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("pP")].stateValues
+                        .text,
                 ).eq(`( ${desiredControlPoints[m - 1][n - 1].join(", ")} )`);
             }
         }
     });
 
     it("copy control vectors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
     <curve name="c" through="(1,2) (3,4) (-2,6)" >
@@ -2526,43 +2546,45 @@ describe("Curve Tag Bezier Tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pcv")].stateValues.text).eq(
-            "( -1, 0 ), ( 1, 0 ), ( 0, -1 ), ( -1, 0 ), ( 1, 0 ), ( -1, 0 )",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pcv")].stateValues.text,
+        ).eq("( -1, 0 ), ( 1, 0 ), ( 0, -1 ), ( -1, 0 ), ( 1, 0 ), ( -1, 0 )");
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [0, 1],
             controlVector: [2, 1],
             core,
         });
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [1, 0],
             controlVector: [3, -5],
             core,
         });
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [1, 1],
             controlVector: [2, -4],
             core,
         });
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [2, 0],
             controlVector: [-2, -6],
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pcv")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pcv")].stateValues.text,
+        ).eq(
             "( -2, -1 ), ( 2, 1 ), ( 3, -5 ), ( 2, -4 ), ( -2, -6 ), ( 2, 6 )",
         );
     });
 
     it("sugared bezierControls from vector operations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m">(-3,2)</math>
     <setup><math name="mFixed" extend="$m" fixed /></setup>
@@ -2582,7 +2604,7 @@ describe("Curve Tag Bezier Tests", async () => {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("c")
+                    await resolvePathToNodeIdx("c")
                 ].stateValues.controlVectors.map((x) =>
                     x.map((y) => y.map((z) => z.tree + 0)),
                 ),
@@ -2611,7 +2633,7 @@ describe("Curve Tag Bezier Tests", async () => {
         await check_items(controlVectors);
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [0, 0],
             controlVector: [3, 5],
             core,
@@ -2625,7 +2647,7 @@ describe("Curve Tag Bezier Tests", async () => {
         await check_items(controlVectors);
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [1, 0],
             controlVector: [-9, -6],
             core,
@@ -2643,7 +2665,7 @@ describe("Curve Tag Bezier Tests", async () => {
         await check_items(controlVectors);
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [2, 0],
             controlVector: [-3, 1],
             core,
@@ -2661,7 +2683,7 @@ describe("Curve Tag Bezier Tests", async () => {
         await check_items(controlVectors);
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [3, 0],
             controlVector: [-4, 3],
             core,
@@ -2680,7 +2702,7 @@ describe("Curve Tag Bezier Tests", async () => {
     });
 
     it("asymmetric controls sugared from vector operations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m">(-3,2)</math>
     <setup><math name="mFixed" extend="$m" fixed /></setup>
@@ -2706,7 +2728,7 @@ describe("Curve Tag Bezier Tests", async () => {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("c")
+                    await resolvePathToNodeIdx("c")
                 ].stateValues.controlVectors.map((x) =>
                     x.map((y) => y.map((z) => z.tree + 0)),
                 ),
@@ -2735,7 +2757,7 @@ describe("Curve Tag Bezier Tests", async () => {
         await check_items(controlVectors);
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [1, 0],
             controlVector: [3, 5],
             core,
@@ -2747,7 +2769,7 @@ describe("Curve Tag Bezier Tests", async () => {
         await check_items(controlVectors);
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [1, 1],
             controlVector: [-9, -6],
             core,
@@ -2763,7 +2785,7 @@ describe("Curve Tag Bezier Tests", async () => {
         await check_items(controlVectors);
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [2, 0],
             controlVector: [-3, 1],
             core,
@@ -2779,7 +2801,7 @@ describe("Curve Tag Bezier Tests", async () => {
         await check_items(controlVectors);
 
         await moveControlVector({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             controlVectorInds: [2, 1],
             controlVector: [-4, 3],
             core,
@@ -2792,7 +2814,7 @@ describe("Curve Tag Bezier Tests", async () => {
     });
 
     it("handle bad through", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text name="t1">a</text>
     <graph>
@@ -2804,8 +2826,8 @@ describe("Curve Tag Bezier Tests", async () => {
         // page loads
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("t1")].stateValues.value).eq(
-            "a",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
+        ).eq("a");
     });
 });

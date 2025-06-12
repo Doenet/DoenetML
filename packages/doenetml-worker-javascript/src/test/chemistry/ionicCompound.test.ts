@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("Ionic Compounds tests", async () => {
     it("answer compounds from atom and ions", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>What is the ionic compound from <atom name="Li" symbol="Li" /> and <atom name="O" symbol="O" />?
     <answer name="ansLiO" splitSymbols="false"><ionicCompound name="LiO">$Li$O</ionicCompound></answer>
@@ -47,20 +47,20 @@ describe("Ionic Compounds tests", async () => {
                 true,
             );
             let mi =
-                stateVariables[resolveComponentName(`ans${name}`)].stateValues
-                    .inputChildren[0].componentIdx;
+                stateVariables[await resolvePathToNodeIdx(`ans${name}`)]
+                    .stateValues.inputChildren[0].componentIdx;
 
             expect(
-                stateVariables[resolveComponentName(`${name}`)].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx(`${name}`)]
+                    .stateValues.latex,
             ).eq(latex);
             expect(
-                stateVariables[resolveComponentName(`${name}`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`${name}`)]
+                    .stateValues.text,
             ).eq(text);
             expect(
-                stateVariables[resolveComponentName(`${name}`)].stateValues.math
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`${name}`)]
+                    .stateValues.math.tree,
             ).eqls(math);
 
             for (let resp in responseCredits) {
@@ -70,7 +70,7 @@ describe("Ionic Compounds tests", async () => {
                     core,
                 });
                 await submitAnswer({
-                    componentIdx: resolveComponentName(`ans${name}`),
+                    componentIdx: await resolvePathToNodeIdx(`ans${name}`),
                     core,
                 });
                 stateVariables = await core.returnAllStateVariables(
@@ -78,7 +78,7 @@ describe("Ionic Compounds tests", async () => {
                     true,
                 );
                 expect(
-                    stateVariables[resolveComponentName(`ans${name}`)]
+                    stateVariables[await resolvePathToNodeIdx(`ans${name}`)]
                         .stateValues.creditAchieved,
                 ).eq(responseCredits[resp]);
             }

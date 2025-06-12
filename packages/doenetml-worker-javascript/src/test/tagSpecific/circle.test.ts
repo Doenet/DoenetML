@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     moveCircle,
     movePoint,
@@ -12,22 +12,23 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-function check_circle1_and_copies_approx({
+async function check_circle1_and_copies_approx({
     cx,
     cy,
     r,
     stateVariables,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     checkCopiedGraphs = true,
 }: {
     cx: number;
     cy: number;
     r: number;
     stateVariables: any;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     checkCopiedGraphs?: boolean;
 }) {
-    const circle1 = stateVariables[resolveComponentName("circle1")].stateValues;
+    const circle1 =
+        stateVariables[await resolvePathToNodeIdx("circle1")].stateValues;
     expect(circle1.center[0].tree).closeTo(cx, 1e-12);
     expect(circle1.center[1].tree).closeTo(cy, 1e-12);
     expect(circle1.radius.tree).closeTo(r, 1e-12);
@@ -35,16 +36,17 @@ function check_circle1_and_copies_approx({
     expect(circle1.numericalCenter[1]).closeTo(cy, 1e-12);
     expect(circle1.numericalRadius).closeTo(r, 1e-12);
     const centerCopy =
-        stateVariables[resolveComponentName("centerCopy")].stateValues;
+        stateVariables[await resolvePathToNodeIdx("centerCopy")].stateValues;
     expect(centerCopy.xs[0].tree).closeTo(cx, 1e-12);
     expect(centerCopy.xs[1].tree).closeTo(cy, 1e-12);
     const radiusNumber =
-        stateVariables[resolveComponentName("radiusNumber")].stateValues;
+        stateVariables[await resolvePathToNodeIdx("radiusNumber")].stateValues;
     expect(radiusNumber.value.tree).closeTo(r, 1e-12);
 
     if (checkCopiedGraphs) {
         const graph3circle =
-            stateVariables[resolveComponentName("graph3.circle")].stateValues;
+            stateVariables[await resolvePathToNodeIdx("graph3.circle")]
+                .stateValues;
         expect(graph3circle.center[0].tree).closeTo(cx, 1e-12);
         expect(graph3circle.center[1].tree).closeTo(cy, 1e-12);
         expect(graph3circle.radius.tree).closeTo(r, 1e-12);
@@ -52,7 +54,8 @@ function check_circle1_and_copies_approx({
         expect(graph3circle.numericalCenter[1]).closeTo(cy, 1e-12);
         expect(graph3circle.numericalRadius).closeTo(r, 1e-12);
         const graph4circle =
-            stateVariables[resolveComponentName("graph4.circle")].stateValues;
+            stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                .stateValues;
         expect(graph4circle.center[0].tree).closeTo(cx, 1e-12);
         expect(graph4circle.center[1].tree).closeTo(cy, 1e-12);
         expect(graph4circle.radius.tree).closeTo(r, 1e-12);
@@ -85,7 +88,7 @@ function check_point_approx({
 describe("Circle tag tests", async () => {
     async function test_circle_defined_by_center_and_radius({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         definingCenter,
         definingRadius,
         initialCx = 0,
@@ -93,7 +96,7 @@ describe("Circle tag tests", async () => {
         initialRadius = 1,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         definingCenter?: string;
         definingRadius?: string;
         initialCx?: number;
@@ -118,57 +121,57 @@ describe("Circle tag tests", async () => {
             // center and radius of original circle
             expect(
                 stateVariables[
-                    resolveComponentName("circle1")
+                    await resolvePathToNodeIdx("circle1")
                 ].stateValues.center.map((v) => v.tree),
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .numericalCenter,
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues.numericalCenter,
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .radius.tree,
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues.radius.tree,
             ).eq(actualRadius);
             expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .numericalRadius,
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues.numericalRadius,
             ).eq(actualRadius);
 
             // center and radius of circle2
             expect(
                 stateVariables[
-                    resolveComponentName("graph3.circle")
+                    await resolvePathToNodeIdx("graph3.circle")
                 ].stateValues.center.map((v) => v.tree),
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.numericalCenter,
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.radius.tree,
             ).eq(actualRadius);
             expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.numericalRadius,
             ).eq(actualRadius);
 
             // center and radius of circle3
             expect(
                 stateVariables[
-                    resolveComponentName("graph4.circle")
+                    await resolvePathToNodeIdx("graph4.circle")
                 ].stateValues.center.map((v) => v.tree),
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
                     .stateValues.numericalCenter,
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
                     .stateValues.radius.tree,
             ).eq(actualRadius);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
                     .stateValues.numericalRadius,
             ).eq(actualRadius);
 
@@ -176,7 +179,7 @@ describe("Circle tag tests", async () => {
             if (definingCenter) {
                 expect(
                     stateVariables[
-                        resolveComponentName(definingCenter)
+                        await resolvePathToNodeIdx(definingCenter)
                     ].stateValues.xs.map((v) => v.tree),
                 ).eqls([cx, cy]);
             }
@@ -184,28 +187,28 @@ describe("Circle tag tests", async () => {
             // optional defining radius point
             if (definingRadius) {
                 expect(
-                    stateVariables[resolveComponentName(definingRadius)]
+                    stateVariables[await resolvePathToNodeIdx(definingRadius)]
                         .stateValues.value.tree,
                 ).eq(radius);
             }
 
             // radius control point
             expect(
-                stateVariables[resolveComponentName("radiusControl")]
+                stateVariables[await resolvePathToNodeIdx("radiusControl")]
                     .stateValues.value.tree,
             ).eq(actualRadius);
 
             // copied center
             expect(
                 stateVariables[
-                    resolveComponentName("centerCopy")
+                    await resolvePathToNodeIdx("centerCopy")
                 ].stateValues.xs.map((v) => v.tree),
             ).eqls([cx, cy]);
 
             // radius number not in graph
             expect(
-                stateVariables[resolveComponentName("radiusNumber")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("radiusNumber")]
+                    .stateValues.value.tree,
             ).eq(actualRadius);
         }
 
@@ -218,7 +221,7 @@ describe("Circle tag tests", async () => {
         cx = 2;
         cy = 3;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -228,7 +231,7 @@ describe("Circle tag tests", async () => {
         // attempt to set radius negative, but becomes zero
         radius = 0;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("radiusControl"),
+            componentIdx: await resolvePathToNodeIdx("radiusControl"),
             latex: "-4",
             core,
         });
@@ -237,7 +240,7 @@ describe("Circle tag tests", async () => {
         // change radius
         radius = 5;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("radiusControl"),
+            componentIdx: await resolvePathToNodeIdx("radiusControl"),
             latex: radius.toString(),
             core,
         });
@@ -248,7 +251,7 @@ describe("Circle tag tests", async () => {
             cx = 11;
             cy = -14;
             await movePoint({
-                componentIdx: resolveComponentName(definingCenter),
+                componentIdx: await resolvePathToNodeIdx(definingCenter),
                 x: cx,
                 y: cy,
                 core,
@@ -260,7 +263,7 @@ describe("Circle tag tests", async () => {
             // set defining radius to negative, actual radius becomes zero
             radius = -3;
             await updateMathInputValue({
-                componentIdx: resolveComponentName(definingRadius),
+                componentIdx: await resolvePathToNodeIdx(definingRadius),
                 latex: radius.toString(),
                 core,
             });
@@ -269,7 +272,7 @@ describe("Circle tag tests", async () => {
             // change radius with defining point
             radius = 7;
             await updateMathInputValue({
-                componentIdx: resolveComponentName(definingRadius),
+                componentIdx: await resolvePathToNodeIdx(definingRadius),
                 latex: radius.toString(),
                 core,
             });
@@ -280,7 +283,7 @@ describe("Circle tag tests", async () => {
         cx = -6;
         cy = -2;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -291,7 +294,7 @@ describe("Circle tag tests", async () => {
         cx = -7;
         cy = 9;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx,
             cy,
             core,
@@ -302,7 +305,7 @@ describe("Circle tag tests", async () => {
         cx = 6;
         cy = -8;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx,
             cy,
             core,
@@ -311,7 +314,7 @@ describe("Circle tag tests", async () => {
     }
 
     it("circle with no parameters gives unit circle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="radiusControl">$circle1.radius</mathInput>
     <graph>
@@ -330,12 +333,12 @@ describe("Circle tag tests", async () => {
 
         await test_circle_defined_by_center_and_radius({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("circle with center", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="radiusControl">$circle1.radius</mathInput>
     <graph>
@@ -355,7 +358,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_defined_by_center_and_radius({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: -1,
             initialCy: 3,
             definingCenter: "center",
@@ -363,7 +366,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle with radius", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="radiusControl">$circle1.radius</mathInput>
     <mathInput name="definingRadius" prefill="2"/>
@@ -383,7 +386,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_defined_by_center_and_radius({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: 0,
             initialCy: 0,
             initialRadius: 2,
@@ -392,7 +395,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle with radius and center", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="radiusControl">$circle1.radius</mathInput>
     <mathInput name="definingRadius" prefill="3"/>
@@ -413,7 +416,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_defined_by_center_and_radius({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: -3,
             initialCy: 5,
             initialRadius: 3,
@@ -424,7 +427,7 @@ describe("Circle tag tests", async () => {
 
     async function test_circle_defined_by_radius_and_through_point({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         definingRadius,
         definingThroughPoint,
         initialCx = 0,
@@ -432,7 +435,7 @@ describe("Circle tag tests", async () => {
         initialRadius = 1,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         definingRadius?: string;
         definingThroughPoint: string;
         initialCx?: number;
@@ -454,32 +457,32 @@ describe("Circle tag tests", async () => {
                 false,
                 true,
             );
-            check_circle1_and_copies_approx({
+            await check_circle1_and_copies_approx({
                 cx,
                 cy,
                 r: actualRadius,
                 stateVariables,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             });
             // defining through point
             expect(
-                stateVariables[resolveComponentName(definingThroughPoint)]
+                stateVariables[await resolvePathToNodeIdx(definingThroughPoint)]
                     .stateValues.xs[0].tree,
             ).closeTo(cx, 1e-12);
             expect(
-                stateVariables[resolveComponentName(definingThroughPoint)]
+                stateVariables[await resolvePathToNodeIdx(definingThroughPoint)]
                     .stateValues.xs[1].tree,
             ).closeTo(cy + actualRadius, 1e-12);
             // optional defining radius point
             if (definingRadius) {
                 expect(
-                    stateVariables[resolveComponentName(definingRadius)]
+                    stateVariables[await resolvePathToNodeIdx(definingRadius)]
                         .stateValues.value.tree,
                 ).closeTo(radius, 1e-12);
             }
             // radius control point
             expect(
-                stateVariables[resolveComponentName("radiusControl")]
+                stateVariables[await resolvePathToNodeIdx("radiusControl")]
                     .stateValues.value.tree,
             ).closeTo(actualRadius, 1e-12);
         }
@@ -493,7 +496,7 @@ describe("Circle tag tests", async () => {
         cx = 2;
         cy = 3;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -504,7 +507,7 @@ describe("Circle tag tests", async () => {
         cy += radius;
         radius = 0;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("radiusControl"),
+            componentIdx: await resolvePathToNodeIdx("radiusControl"),
             latex: "-4",
             core,
         });
@@ -514,7 +517,7 @@ describe("Circle tag tests", async () => {
         radius = 5;
         cy -= 5;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("radiusControl"),
+            componentIdx: await resolvePathToNodeIdx("radiusControl"),
             latex: radius.toString(),
             core,
         });
@@ -524,7 +527,7 @@ describe("Circle tag tests", async () => {
         cx = 11;
         cy = -14;
         await movePoint({
-            componentIdx: resolveComponentName(definingThroughPoint),
+            componentIdx: await resolvePathToNodeIdx(definingThroughPoint),
             x: cx,
             y: cy + radius,
             core,
@@ -536,7 +539,7 @@ describe("Circle tag tests", async () => {
             cy += radius;
             radius = -3;
             await updateMathInputValue({
-                componentIdx: resolveComponentName(definingRadius),
+                componentIdx: await resolvePathToNodeIdx(definingRadius),
                 latex: radius.toString(),
                 core,
             });
@@ -546,7 +549,7 @@ describe("Circle tag tests", async () => {
             radius = 7;
             cy -= 7;
             await updateMathInputValue({
-                componentIdx: resolveComponentName(definingRadius),
+                componentIdx: await resolvePathToNodeIdx(definingRadius),
                 latex: radius.toString(),
                 core,
             });
@@ -557,7 +560,7 @@ describe("Circle tag tests", async () => {
         cx = -6;
         cy = -2;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -568,7 +571,7 @@ describe("Circle tag tests", async () => {
         cx = -7;
         cy = 9;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx,
             cy,
             core,
@@ -579,7 +582,7 @@ describe("Circle tag tests", async () => {
         cx = 6;
         cy = -8;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx,
             cy,
             core,
@@ -588,7 +591,7 @@ describe("Circle tag tests", async () => {
     }
 
     it("circle with center and through point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(3,4)</point>
@@ -618,21 +621,21 @@ describe("Circle tag tests", async () => {
                 false,
                 true,
             );
-            check_circle1_and_copies_approx({
+            await check_circle1_and_copies_approx({
                 cx,
                 cy,
                 r,
                 stateVariables,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point1"),
+                componentIdx: await resolvePathToNodeIdx("point1"),
                 x: cx,
                 y: cy,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point2"),
+                componentIdx: await resolvePathToNodeIdx("point2"),
                 x: tx,
                 y: ty,
                 stateVariables,
@@ -648,7 +651,7 @@ describe("Circle tag tests", async () => {
         tx += dx;
         ty += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -660,7 +663,7 @@ describe("Circle tag tests", async () => {
         cy = 5;
         r = Math.hypot(tx - cx, ty - cy);
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: cx,
             y: cy,
             core,
@@ -672,7 +675,7 @@ describe("Circle tag tests", async () => {
         cy = -1;
         r = Math.hypot(tx - cx, ty - cy);
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -684,7 +687,7 @@ describe("Circle tag tests", async () => {
         ty = 3;
         r = Math.hypot(tx - cx, ty - cy);
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: tx,
             y: ty,
             core,
@@ -696,7 +699,7 @@ describe("Circle tag tests", async () => {
         tx = cx + (tx - cx) / 4;
         ty = cy + (ty - cy) / 4;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: r,
             y: 0,
             core,
@@ -711,7 +714,7 @@ describe("Circle tag tests", async () => {
         tx += dx;
         ty += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx,
             cy,
             core,
@@ -726,7 +729,7 @@ describe("Circle tag tests", async () => {
         tx += dx;
         ty += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx,
             cy,
             core,
@@ -735,7 +738,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle through point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="radiusControl">$circle1.radius</mathInput>
     <graph>
@@ -755,7 +758,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_defined_by_radius_and_through_point({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: 2,
             initialCy: -3 - 1,
             initialRadius: 1,
@@ -764,7 +767,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle with radius and one through point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="radiusControl">$circle1.radius</mathInput>
     <mathInput name="definingRadius" prefill="13"/>
@@ -785,7 +788,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_defined_by_radius_and_through_point({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: 2,
             initialCy: -3 - 13,
             initialRadius: 13,
@@ -795,7 +798,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle through two points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(2,-3)</point>
@@ -823,7 +826,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         }: {
             cx: number;
             cy: number;
@@ -833,27 +836,27 @@ describe("Circle tag tests", async () => {
             t2x: number;
             t2y: number;
             core: PublicDoenetMLCore;
-            resolveComponentName: ResolveComponentName;
+            resolvePathToNodeIdx: ResolvePathToNodeIdx;
         }) {
             let stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            check_circle1_and_copies_approx({
+            await check_circle1_and_copies_approx({
                 cx,
                 cy,
                 r,
                 stateVariables,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point1"),
+                componentIdx: await resolvePathToNodeIdx("point1"),
                 x: t1x,
                 y: t1y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point2"),
+                componentIdx: await resolvePathToNodeIdx("point2"),
                 x: t2x,
                 y: t2y,
                 stateVariables,
@@ -892,7 +895,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle
@@ -902,7 +905,7 @@ describe("Circle tag tests", async () => {
         t2y = 7;
         [cx, cy, r] = calculateCenterAndRadius({ t1x, t1y, t2x, t2y });
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -916,7 +919,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move first through point
@@ -924,7 +927,7 @@ describe("Circle tag tests", async () => {
         t1y = -1;
         [cx, cy, r] = calculateCenterAndRadius({ t1x, t1y, t2x, t2y });
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: t1x,
             y: t1y,
             core,
@@ -938,7 +941,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move second through point on top of first
@@ -948,7 +951,7 @@ describe("Circle tag tests", async () => {
         cx = t2x;
         cy = t2y;
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
@@ -962,7 +965,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move second through point again
@@ -970,7 +973,7 @@ describe("Circle tag tests", async () => {
         t2y = -3;
         [cx, cy, r] = calculateCenterAndRadius({ t1x, t1y, t2x, t2y });
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
@@ -984,7 +987,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move center
@@ -994,7 +997,7 @@ describe("Circle tag tests", async () => {
         t2y += -3;
         [cx, cy, r] = calculateCenterAndRadius({ t1x, t1y, t2x, t2y });
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -1008,7 +1011,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move radius to half size
@@ -1018,7 +1021,7 @@ describe("Circle tag tests", async () => {
         t2y = -5 + (-3 - 3 + 5) / 2;
         [cx, cy, r] = calculateCenterAndRadius({ t1x, t1y, t2x, t2y });
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: r,
             y: 0,
             core,
@@ -1032,7 +1035,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle2
@@ -1045,7 +1048,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t2y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx,
             cy,
             core,
@@ -1059,7 +1062,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle3
@@ -1077,7 +1080,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t2y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx,
             cy,
             core,
@@ -1091,7 +1094,7 @@ describe("Circle tag tests", async () => {
             t2x,
             t2y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
@@ -1106,7 +1109,7 @@ describe("Circle tag tests", async () => {
         t3x,
         t3y,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }: {
         cx: number;
         cy: number;
@@ -1118,7 +1121,7 @@ describe("Circle tag tests", async () => {
         t3x: number;
         t3y: number;
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
         function expectCloseTo(val: any, desiredVal: any) {
             if (Number.isNaN(desiredVal)) {
@@ -1130,111 +1133,111 @@ describe("Circle tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expectCloseTo(
-            stateVariables[resolveComponentName("circle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
                 .center[0].tree,
             cx,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("circle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
                 .center[1].tree,
             cy,
         );
 
         expectCloseTo(
-            stateVariables[resolveComponentName("circle1")].stateValues.radius
-                .tree,
-            r,
-        );
-        expectCloseTo(
-            stateVariables[resolveComponentName("graph3.circle")].stateValues
-                .center[0].tree,
-            cx,
-        );
-        expectCloseTo(
-            stateVariables[resolveComponentName("graph3.circle")].stateValues
-                .center[1].tree,
-            cy,
-        );
-        expectCloseTo(
-            stateVariables[resolveComponentName("graph3.circle")].stateValues
-                .numericalCenter[0],
-            cx,
-        );
-        expectCloseTo(
-            stateVariables[resolveComponentName("graph3.circle")].stateValues
-                .numericalCenter[1],
-            cy,
-        );
-        expectCloseTo(
-            stateVariables[resolveComponentName("graph3.circle")].stateValues
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
                 .radius.tree,
             r,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("graph3.circle")].stateValues
-                .numericalRadius,
-            r,
-        );
-        expectCloseTo(
-            stateVariables[resolveComponentName("graph4.circle")].stateValues
-                .center[0].tree,
+            stateVariables[await resolvePathToNodeIdx("graph3.circle")]
+                .stateValues.center[0].tree,
             cx,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("graph4.circle")].stateValues
-                .center[1].tree,
+            stateVariables[await resolvePathToNodeIdx("graph3.circle")]
+                .stateValues.center[1].tree,
             cy,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("graph4.circle")].stateValues
-                .numericalCenter[0],
+            stateVariables[await resolvePathToNodeIdx("graph3.circle")]
+                .stateValues.numericalCenter[0],
             cx,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("graph4.circle")].stateValues
-                .numericalCenter[1],
+            stateVariables[await resolvePathToNodeIdx("graph3.circle")]
+                .stateValues.numericalCenter[1],
             cy,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("graph4.circle")].stateValues
-                .radius.tree,
+            stateVariables[await resolvePathToNodeIdx("graph3.circle")]
+                .stateValues.radius.tree,
             r,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("graph4.circle")].stateValues
-                .numericalRadius,
+            stateVariables[await resolvePathToNodeIdx("graph3.circle")]
+                .stateValues.numericalRadius,
             r,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("centerCopy")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                .stateValues.center[0].tree,
             cx,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("centerCopy")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                .stateValues.center[1].tree,
             cy,
         );
         expectCloseTo(
-            stateVariables[resolveComponentName("radiusNumber")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                .stateValues.numericalCenter[0],
+            cx,
+        );
+        expectCloseTo(
+            stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                .stateValues.numericalCenter[1],
+            cy,
+        );
+        expectCloseTo(
+            stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                .stateValues.radius.tree,
+            r,
+        );
+        expectCloseTo(
+            stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                .stateValues.numericalRadius,
+            r,
+        );
+        expectCloseTo(
+            stateVariables[await resolvePathToNodeIdx("centerCopy")].stateValues
+                .xs[0].tree,
+            cx,
+        );
+        expectCloseTo(
+            stateVariables[await resolvePathToNodeIdx("centerCopy")].stateValues
+                .xs[1].tree,
+            cy,
+        );
+        expectCloseTo(
+            stateVariables[await resolvePathToNodeIdx("radiusNumber")]
+                .stateValues.value.tree,
             r,
         );
 
         check_point_approx({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: t1x,
             y: t1y,
             stateVariables,
         });
         check_point_approx({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             stateVariables,
         });
         check_point_approx({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: t3x,
             y: t3y,
             stateVariables,
@@ -1243,28 +1246,28 @@ describe("Circle tag tests", async () => {
 
     async function getCircle1CenterAndRadiusFromStateVar({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         // calculate center and radius from circle itself
         let cx: number =
-            stateVariables[resolveComponentName("circle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
                 .numericalCenter[0];
         let cy: number =
-            stateVariables[resolveComponentName("circle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
                 .numericalCenter[1];
         let r: number =
-            stateVariables[resolveComponentName("circle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
                 .numericalRadius;
 
         return [cx, cy, r];
     }
 
     it("circle through three points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(2,-3)</point>
@@ -1293,7 +1296,7 @@ describe("Circle tag tests", async () => {
         let t3y = 4;
         let [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_three_points({
             cx,
@@ -1306,7 +1309,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle up and to the right
@@ -1321,7 +1324,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -1337,7 +1340,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move first point to be in straight line
@@ -1347,7 +1350,7 @@ describe("Circle tag tests", async () => {
         cy = NaN;
         r = NaN;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: t1x,
             y: t1y,
             core,
@@ -1363,21 +1366,21 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move second point
         t2x = -4;
         t2y = -2;
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
         });
         [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_three_points({
             cx,
@@ -1390,21 +1393,21 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move third point
         t3x = 5;
         t3y = 3;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: t3x,
             y: t3y,
             core,
         });
         [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_three_points({
             cx,
@@ -1417,7 +1420,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move points to be identical, should be a circle of radius zero
@@ -1429,13 +1432,13 @@ describe("Circle tag tests", async () => {
         cy = t1y;
         r = 0;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: t1x,
             y: t1y,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
@@ -1451,7 +1454,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // points 1 and 3 are identical, two points should be diameter
@@ -1461,7 +1464,7 @@ describe("Circle tag tests", async () => {
         cy = (t1y + t2y) / 2;
         r = Math.sqrt(Math.pow(t2x - cx, 2) + Math.pow(t2y - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
@@ -1477,7 +1480,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // points 2 and 3 are identical, two points should be diameter
@@ -1487,7 +1490,7 @@ describe("Circle tag tests", async () => {
         cy = (t1y + t2y) / 2;
         r = Math.sqrt(Math.pow(t2x - cx, 2) + Math.pow(t2y - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: t3x,
             y: t3y,
             core,
@@ -1503,7 +1506,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // points 1 and 2 are identical, two points should be diameter
@@ -1515,13 +1518,13 @@ describe("Circle tag tests", async () => {
         cy = (t1y + t3y) / 2;
         r = Math.sqrt(Math.pow(t2x - cx, 2) + Math.pow(t2y - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: t1x,
             y: t1y,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
@@ -1537,7 +1540,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move points apart again
@@ -1546,20 +1549,20 @@ describe("Circle tag tests", async () => {
         t3x = 0;
         t3y = -8;
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: t3x,
             y: t3y,
             core,
         });
         [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_three_points({
             cx,
@@ -1572,7 +1575,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move center by reffed point
@@ -1586,7 +1589,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -1602,7 +1605,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // half radius around center
@@ -1614,7 +1617,7 @@ describe("Circle tag tests", async () => {
         t3x = cx + (t3x - cx) / 2;
         t3y = cy + (t3y - cy) / 2;
         await movePoint({
-            componentIdx: resolveComponentName("point4"),
+            componentIdx: await resolvePathToNodeIdx("point4"),
             x: r,
             y: 0,
             core,
@@ -1630,7 +1633,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle2
@@ -1645,7 +1648,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx,
             cy,
             core,
@@ -1661,7 +1664,7 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle3
@@ -1676,7 +1679,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx,
             cy,
             core,
@@ -1692,12 +1695,12 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("circle with radius and through two points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math hide name="pX">$point3.x</math>
     <graph>
@@ -1726,7 +1729,7 @@ describe("Circle tag tests", async () => {
         let r = 2;
         let [cx, cy] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_three_points({
             cx,
@@ -1739,7 +1742,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle
@@ -1752,7 +1755,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t2y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -1768,7 +1771,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move through point too far away
@@ -1778,7 +1781,7 @@ describe("Circle tag tests", async () => {
         cy = NaN;
         // TODO: should the radius still be 2 here?
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: t1x,
             y: t1y,
             core,
@@ -1794,20 +1797,20 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // increase radius by moving definition point
         r = 6;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: r,
             y: 0,
             core,
         });
         [cx, cy] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_three_points({
             cx,
@@ -1820,7 +1823,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // decrease radius by moving copied point
@@ -1828,7 +1831,7 @@ describe("Circle tag tests", async () => {
         cx = NaN;
         cy = NaN;
         await movePoint({
-            componentIdx: resolveComponentName("point4"),
+            componentIdx: await resolvePathToNodeIdx("point4"),
             x: r,
             y: 0,
             core,
@@ -1844,19 +1847,19 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         r = 6;
         await movePoint({
-            componentIdx: resolveComponentName("point4"),
+            componentIdx: await resolvePathToNodeIdx("point4"),
             x: r,
             y: 0,
             core,
         });
         [cx, cy] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_three_points({
             cx,
@@ -1869,14 +1872,14 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         r = 6 / 9;
         cx = NaN;
         cy = NaN;
         await movePoint({
-            componentIdx: resolveComponentName("point4"),
+            componentIdx: await resolvePathToNodeIdx("point4"),
             x: r,
             y: 0,
             core,
@@ -1892,7 +1895,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move through points on top of each other
@@ -1904,13 +1907,13 @@ describe("Circle tag tests", async () => {
         cx = t1x;
         cy = t1y - r;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: t1x,
             y: t1y,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
@@ -1926,7 +1929,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move through points apart, but close enough
@@ -1935,20 +1938,20 @@ describe("Circle tag tests", async () => {
         t2x = -2.5;
         t2y = 6.6;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: t1x,
             y: t1y,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
         });
         [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_three_points({
             cx,
@@ -1961,7 +1964,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move reffed center
@@ -1974,7 +1977,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t2y += dy;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -1990,7 +1993,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle2
@@ -2003,7 +2006,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t2y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx,
             cy,
             core,
@@ -2019,7 +2022,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle3
@@ -2032,7 +2035,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t2y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx,
             cy,
             core,
@@ -2048,7 +2051,7 @@ describe("Circle tag tests", async () => {
             t3x: r,
             t3y: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
@@ -2059,54 +2062,54 @@ describe("Circle tag tests", async () => {
         r,
         diameter,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }: {
         cx: number;
         cy: number;
         r: number;
         diameter?: number;
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("circle1")
+                await resolvePathToNodeIdx("circle1")
             ].stateValues.center.map((v) => v.tree),
         ).eqls([cx, cy]);
         expect(
-            stateVariables[resolveComponentName("circle1")].stateValues.radius
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
+                .radius.tree,
         ).eq(r);
 
         if (diameter) {
             expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .diameter.tree,
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues.diameter.tree,
             ).eq(diameter);
         } else {
             expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .diameter.tree,
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues.diameter.tree,
             ).eq(2 * r);
         }
 
         expect(
             stateVariables[
-                resolveComponentName("centerCopy")
+                await resolvePathToNodeIdx("centerCopy")
             ].stateValues.xs.map((v) => v.tree),
         ).eqls([cx, cy]);
     }
 
     async function test_circle_radius_and_center_interdependent({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         initialCx,
         initialCyAndRadius,
         centerDependsOnRadius,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         initialCx: number;
         initialCyAndRadius: number;
         centerDependsOnRadius: boolean;
@@ -2118,14 +2121,14 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle
         cx = -3;
         cy = 5;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -2135,14 +2138,14 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move center point
         cx = 8;
         cy = 7;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -2152,7 +2155,7 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         if (centerDependsOnRadius) {
@@ -2160,7 +2163,7 @@ describe("Circle tag tests", async () => {
             cx = 3;
             cy = 0;
             await moveCircle({
-                componentIdx: resolveComponentName("circle1"),
+                componentIdx: await resolvePathToNodeIdx("circle1"),
                 cx,
                 cy: -2,
                 core,
@@ -2170,7 +2173,7 @@ describe("Circle tag tests", async () => {
                 cy,
                 r: cy,
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             });
         } else {
             // radius depends on center
@@ -2178,7 +2181,7 @@ describe("Circle tag tests", async () => {
             cx = 3;
             cy = -2;
             await moveCircle({
-                componentIdx: resolveComponentName("circle1"),
+                componentIdx: await resolvePathToNodeIdx("circle1"),
                 cx,
                 cy,
                 core,
@@ -2188,7 +2191,7 @@ describe("Circle tag tests", async () => {
                 cy,
                 r: 0,
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             });
         }
 
@@ -2196,7 +2199,7 @@ describe("Circle tag tests", async () => {
         cx = 1;
         cy = 4;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -2206,12 +2209,12 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     }
 
     it("circle where radius depends on center", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" radius="$circle1.center.y" center="(1,2)" />
@@ -2222,7 +2225,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_radius_and_center_interdependent({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: 1,
             initialCyAndRadius: 2,
             centerDependsOnRadius: false,
@@ -2230,7 +2233,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle where radius depends on unspecified center", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" radius="$circle1.center.y" />
@@ -2241,7 +2244,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_radius_and_center_interdependent({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: 0,
             initialCyAndRadius: 0,
             centerDependsOnRadius: false,
@@ -2249,7 +2252,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle where center depends on radius", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" radius="2" center="(1, $circle1.radius)" />
@@ -2260,7 +2263,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_radius_and_center_interdependent({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: 1,
             initialCyAndRadius: 2,
             centerDependsOnRadius: true,
@@ -2268,7 +2271,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle where center depends on unspecified radius", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" center="(1, $circle1.radius)" />
@@ -2279,7 +2282,7 @@ describe("Circle tag tests", async () => {
 
         await test_circle_radius_and_center_interdependent({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialCx: 1,
             initialCyAndRadius: 1,
             centerDependsOnRadius: true,
@@ -2289,12 +2292,12 @@ describe("Circle tag tests", async () => {
     async function test_circle_radius_and_single_through_point_interdependent({
         initialRadius,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         throughPointDependsOnRadius,
     }: {
         initialRadius: number;
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         throughPointDependsOnRadius: boolean;
     }) {
         let cx = 1;
@@ -2304,7 +2307,7 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle
@@ -2314,7 +2317,7 @@ describe("Circle tag tests", async () => {
         // given previous radius is 2, would move through point to 5+2,
         // so that center of circle would be (5+2)/2
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy: desiredCy,
             core,
@@ -2324,7 +2327,7 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move center point
@@ -2332,7 +2335,7 @@ describe("Circle tag tests", async () => {
         desiredCy = 7;
         cy = (desiredCy + cy) / 2;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: desiredCy,
             core,
@@ -2342,7 +2345,7 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle below x-axis, radius becomes 0
@@ -2351,7 +2354,7 @@ describe("Circle tag tests", async () => {
         if (throughPointDependsOnRadius) {
             cy = 0;
             await moveCircle({
-                componentIdx: resolveComponentName("circle1"),
+                componentIdx: await resolvePathToNodeIdx("circle1"),
                 cx,
                 cy: desiredCy,
                 core,
@@ -2361,13 +2364,13 @@ describe("Circle tag tests", async () => {
                 cy,
                 r: cy,
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             });
         } else {
             // Through point is allowed to become negative even though radius cannot
             cy = desiredCy + cy; // through point is on top of center because radius is 0
             await moveCircle({
-                componentIdx: resolveComponentName("circle1"),
+                componentIdx: await resolvePathToNodeIdx("circle1"),
                 cx,
                 cy: desiredCy,
                 core,
@@ -2377,7 +2380,7 @@ describe("Circle tag tests", async () => {
                 cy,
                 r: 0,
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             }); //
         }
 
@@ -2390,7 +2393,7 @@ describe("Circle tag tests", async () => {
             cy = (desiredCy + 0) / 2; // previous radius was 0 but cy is not 0
         }
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: desiredCy,
             core,
@@ -2400,12 +2403,12 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     }
 
     it("circle where single through point depends on radius", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" radius="2" through="(1,2$circle1.radius)" />
@@ -2417,13 +2420,13 @@ describe("Circle tag tests", async () => {
         await test_circle_radius_and_single_through_point_interdependent({
             initialRadius: 2,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPointDependsOnRadius: true,
         });
     });
 
     it("circle where single through point depends on unspecified radius", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" through="(1,2 $circle1.radius)" />
@@ -2435,13 +2438,13 @@ describe("Circle tag tests", async () => {
         await test_circle_radius_and_single_through_point_interdependent({
             initialRadius: 1,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPointDependsOnRadius: true,
         });
     });
 
     it("circle where radius depends on single through point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" radius="$circle1.throughPoint1.y/2" through="(1,4)" />
@@ -2453,21 +2456,21 @@ describe("Circle tag tests", async () => {
         await test_circle_radius_and_single_through_point_interdependent({
             initialRadius: 2,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             throughPointDependsOnRadius: false,
         });
     });
 
     async function test_circle_center_and_through_point_interdependent({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
         let cx = 1;
         let cy = 2;
-        await check_circle1_exact({ cx, cy, r: 2, core, resolveComponentName });
+        await check_circle1_exact({ cx, cy, r: 2, core, resolvePathToNodeIdx });
 
         // move circle
         let desiredCy = 5;
@@ -2488,7 +2491,7 @@ describe("Circle tag tests", async () => {
         // i.e., to (-3, (5+2)/2+2)) = (-3, 11/2)
         // which will make the center be (-3, 11/4)
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy: desiredCy,
             core,
@@ -2498,7 +2501,7 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move center point
@@ -2506,7 +2509,7 @@ describe("Circle tag tests", async () => {
         cy = 7; // since moving center itself
         cx = 8;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: desiredCy,
             core,
@@ -2516,7 +2519,7 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle below x-axis
@@ -2530,7 +2533,7 @@ describe("Circle tag tests", async () => {
         // i.e., to (4, -5)
         // which will make the center be (4, -5/2)
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy: desiredCy,
             core,
@@ -2540,7 +2543,7 @@ describe("Circle tag tests", async () => {
             cy,
             r: -1 * cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle back up with center point
@@ -2548,7 +2551,7 @@ describe("Circle tag tests", async () => {
         cy = 4; // since moving point itself
         cx = 1;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: desiredCy,
             core,
@@ -2558,12 +2561,12 @@ describe("Circle tag tests", async () => {
             cy,
             r: cy,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     }
 
     it("circle where center depends on through point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" through="(1,4)" center="($circle1.throughPointX1_1, $circle1.throughPointX1_2/2)"/>
@@ -2574,12 +2577,12 @@ describe("Circle tag tests", async () => {
 
         await test_circle_center_and_through_point_interdependent({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("circle where through point depends on center", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" through="($circle1.centerX1,$(circle1.centerX2)2)" center="(1,2)" />
@@ -2591,12 +2594,12 @@ describe("Circle tag tests", async () => {
 
         await test_circle_center_and_through_point_interdependent({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("circle where through point 2 depends on through point 1", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="TP1">(1,2)</point>
@@ -2622,29 +2625,29 @@ describe("Circle tag tests", async () => {
                 false,
                 true,
             );
-            check_circle1_and_copies_approx({
+            await check_circle1_and_copies_approx({
                 cx,
                 cy,
                 r,
                 stateVariables,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 checkCopiedGraphs: false,
             });
             let circle1Through =
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .numericalThroughPoints;
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues.numericalThroughPoints;
             expect(circle1Through[0][0]).closeTo(t1x, 1e-12);
             expect(circle1Through[0][1]).closeTo(t1y, 1e-12);
             expect(circle1Through[1][0]).closeTo(t2x, 1e-12);
             expect(circle1Through[1][1]).closeTo(t2y, 1e-12);
             check_point_approx({
-                componentIdx: resolveComponentName("TP1"),
+                componentIdx: await resolvePathToNodeIdx("TP1"),
                 x: t1x,
                 y: t1y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("TP2"),
+                componentIdx: await resolvePathToNodeIdx("TP2"),
                 x: t2x,
                 y: t2y,
                 stateVariables,
@@ -2662,7 +2665,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t2y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -2679,7 +2682,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t2y += dy;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -2693,7 +2696,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await movePoint({
-            componentIdx: resolveComponentName("TP1"),
+            componentIdx: await resolvePathToNodeIdx("TP1"),
             x: t1x,
             y: t1y,
             core,
@@ -2707,7 +2710,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await movePoint({
-            componentIdx: resolveComponentName("TP2"),
+            componentIdx: await resolvePathToNodeIdx("TP2"),
             x: t2x,
             y: t2y,
             core,
@@ -2716,7 +2719,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle where radius depends on two through points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math hide name="r">
         abs($circle1.throughPoint1.x - $circle1.throughPoint2.x)
@@ -2738,32 +2741,33 @@ describe("Circle tag tests", async () => {
         let t2y = 4;
         let [cx, cy, _] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
-        const check_through_points = function (stateVariables) {
+        const check_through_points = async function (stateVariables) {
             let r = Math.abs(t1x - t2x);
             let circle1 =
-                stateVariables[resolveComponentName("circle1")].stateValues;
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues;
             expect(circle1.numericalThroughPoints[0][0]).closeTo(t1x, 1e-12);
             expect(circle1.numericalThroughPoints[0][1]).closeTo(t1y, 1e-12);
             expect(circle1.numericalThroughPoints[1][0]).closeTo(t2x, 1e-12);
             expect(circle1.numericalThroughPoints[1][1]).closeTo(t2y, 1e-12);
             check_point_approx({
-                componentIdx: resolveComponentName("TP1"),
+                componentIdx: await resolvePathToNodeIdx("TP1"),
                 x: t1x,
                 y: t1y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("TP2"),
+                componentIdx: await resolvePathToNodeIdx("TP2"),
                 x: t2x,
                 y: t2y,
                 stateVariables,
             });
         };
         let stateVariables = await core.returnAllStateVariables(false, true);
-        check_through_points(stateVariables);
+        await check_through_points(stateVariables);
 
         // move circle
         let dx = 2;
@@ -2775,19 +2779,19 @@ describe("Circle tag tests", async () => {
         cx += dx;
         cy += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        check_through_points(stateVariables);
-        check_circle1_and_copies_approx({
+        await check_through_points(stateVariables);
+        await check_circle1_and_copies_approx({
             cx,
             cy,
             r: Math.abs(t1x - t2x),
             stateVariables,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkCopiedGraphs: false,
         });
 
@@ -2801,19 +2805,19 @@ describe("Circle tag tests", async () => {
         cx += dx;
         cy += dy;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        check_through_points(stateVariables);
-        check_circle1_and_copies_approx({
+        await check_through_points(stateVariables);
+        await check_circle1_and_copies_approx({
             cx,
             cy,
             r: Math.abs(t1x - t2x),
             stateVariables,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkCopiedGraphs: false,
         });
 
@@ -2821,13 +2825,13 @@ describe("Circle tag tests", async () => {
         t1x = 6;
         t1y = 3;
         await movePoint({
-            componentIdx: resolveComponentName("TP1"),
+            componentIdx: await resolvePathToNodeIdx("TP1"),
             x: t1x,
             y: t1y,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        check_through_points(stateVariables);
+        await check_through_points(stateVariables);
 
         // move second through point so x difference between through points is too small for radius
         t2x = 5;
@@ -2835,15 +2839,15 @@ describe("Circle tag tests", async () => {
         cx = NaN;
         cy = NaN;
         await movePoint({
-            componentIdx: resolveComponentName("TP2"),
+            componentIdx: await resolvePathToNodeIdx("TP2"),
             x: t2x,
             y: t2y,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        check_through_points(stateVariables);
+        await check_through_points(stateVariables);
         let svCenter =
-            stateVariables[resolveComponentName("circle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
                 .numericalCenter;
         expect(Number.isFinite(svCenter[0])).false;
         expect(Number.isFinite(svCenter[1])).false;
@@ -2851,22 +2855,22 @@ describe("Circle tag tests", async () => {
         // move second through point close enough to circle
         t2y = 1.5;
         await movePoint({
-            componentIdx: resolveComponentName("TP2"),
+            componentIdx: await resolvePathToNodeIdx("TP2"),
             x: t2x,
             y: t2y,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        check_through_points(stateVariables);
+        await check_through_points(stateVariables);
         svCenter =
-            stateVariables[resolveComponentName("circle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("circle1")].stateValues
                 .numericalCenter;
         expect(Number.isFinite(svCenter[0])).true;
         expect(Number.isFinite(svCenter[1])).true;
     });
 
     it("circle with dependencies among radius and two through points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="TP1">(1,2)</point>
@@ -2894,20 +2898,21 @@ describe("Circle tag tests", async () => {
                 true,
             );
             let circle1 =
-                stateVariables[resolveComponentName("circle1")].stateValues;
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues;
             expect(circle1.radius.tree).closeTo(r, 1e-12);
             expect(circle1.numericalThroughPoints[0][0]).closeTo(t1x, 1e-12);
             expect(circle1.numericalThroughPoints[0][1]).closeTo(t1y, 1e-12);
             expect(circle1.numericalThroughPoints[1][0]).closeTo(t2x, 1e-12);
             expect(circle1.numericalThroughPoints[1][1]).closeTo(t2y, 1e-12);
             check_point_approx({
-                componentIdx: resolveComponentName("TP1"),
+                componentIdx: await resolvePathToNodeIdx("TP1"),
                 x: t1x,
                 y: t1y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("TP2"),
+                componentIdx: await resolvePathToNodeIdx("TP2"),
                 x: t2x,
                 y: t2y,
                 stateVariables,
@@ -2926,7 +2931,7 @@ describe("Circle tag tests", async () => {
         let dy = -3;
         let [cx, cy, _] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         cx += dx;
         cy += dy;
@@ -2936,7 +2941,7 @@ describe("Circle tag tests", async () => {
         t2y += dy;
         r = t1x;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -2948,7 +2953,7 @@ describe("Circle tag tests", async () => {
         dy = -2;
         [cx, cy, _] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         cx += dx;
         cy += dy;
@@ -2958,7 +2963,7 @@ describe("Circle tag tests", async () => {
         t2y += dy;
         r = t1x;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -2971,7 +2976,7 @@ describe("Circle tag tests", async () => {
         r = t1x;
         t2x = 1 + t1x;
         await movePoint({
-            componentIdx: resolveComponentName("TP1"),
+            componentIdx: await resolvePathToNodeIdx("TP1"),
             x: t1x,
             y: t1y,
             core,
@@ -2982,7 +2987,7 @@ describe("Circle tag tests", async () => {
         t2y = -9;
         finiteCenter = false;
         await movePoint({
-            componentIdx: resolveComponentName("TP2"),
+            componentIdx: await resolvePathToNodeIdx("TP2"),
             x: t2x,
             y: t2y,
             core,
@@ -2995,7 +3000,7 @@ describe("Circle tag tests", async () => {
         r = t1x;
         finiteCenter = true;
         await movePoint({
-            componentIdx: resolveComponentName("TP2"),
+            componentIdx: await resolvePathToNodeIdx("TP2"),
             x: t2x,
             y: t2y,
             core,
@@ -3004,7 +3009,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle with dependencies among three through points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="TP2">(1,2)</point>
@@ -3025,7 +3030,7 @@ describe("Circle tag tests", async () => {
         let t3y = 5;
         let [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         async function check_items() {
@@ -3033,16 +3038,17 @@ describe("Circle tag tests", async () => {
                 false,
                 true,
             );
-            check_circle1_and_copies_approx({
+            await check_circle1_and_copies_approx({
                 cx,
                 cy,
                 r,
                 stateVariables,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 checkCopiedGraphs: false,
             });
             let circle1 =
-                stateVariables[resolveComponentName("circle1")].stateValues;
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues;
             expect(circle1.numericalThroughPoints[0][0]).closeTo(t1x, 1e-12);
             expect(circle1.numericalThroughPoints[0][1]).closeTo(t1y, 1e-12);
             expect(circle1.numericalThroughPoints[1][0]).closeTo(t2x, 1e-12);
@@ -3050,19 +3056,19 @@ describe("Circle tag tests", async () => {
             expect(circle1.numericalThroughPoints[2][0]).closeTo(t3x, 1e-12);
             expect(circle1.numericalThroughPoints[2][1]).closeTo(t3y, 1e-12);
             check_point_approx({
-                componentIdx: resolveComponentName("TP1"),
+                componentIdx: await resolvePathToNodeIdx("TP1"),
                 x: t1x,
                 y: t1y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("TP2"),
+                componentIdx: await resolvePathToNodeIdx("TP2"),
                 x: t2x,
                 y: t2y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("TP3"),
+                componentIdx: await resolvePathToNodeIdx("TP3"),
                 x: t3x,
                 y: t3y,
                 stateVariables,
@@ -3082,7 +3088,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -3101,7 +3107,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -3114,14 +3120,14 @@ describe("Circle tag tests", async () => {
         t3x = t1x + 1;
         t2x = t1x - 1;
         await movePoint({
-            componentIdx: resolveComponentName("TP1"),
+            componentIdx: await resolvePathToNodeIdx("TP1"),
             x: t1x,
             y: t1y,
             core,
         });
         [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_items();
 
@@ -3131,14 +3137,14 @@ describe("Circle tag tests", async () => {
         t1x = t2x + 1;
         t3x = t1x + 1;
         await movePoint({
-            componentIdx: resolveComponentName("TP2"),
+            componentIdx: await resolvePathToNodeIdx("TP2"),
             x: t2x,
             y: t2y,
             core,
         });
         [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_items();
 
@@ -3148,20 +3154,20 @@ describe("Circle tag tests", async () => {
         t1x = t3x - 1;
         t2x = t1x - 1;
         await movePoint({
-            componentIdx: resolveComponentName("TP3"),
+            componentIdx: await resolvePathToNodeIdx("TP3"),
             x: t3x,
             y: t3y,
             core,
         });
         [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_items();
     });
 
     it("circle where center depends on diameter", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" radius="2" center="(1,$circle1.diameter)" />
@@ -3178,14 +3184,14 @@ describe("Circle tag tests", async () => {
             r: 2,
             diameter: 4,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle
         cx = -3;
         cy = 6;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -3196,14 +3202,14 @@ describe("Circle tag tests", async () => {
             r: 3,
             diameter: 6,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move center point
         cx = 8;
         cy = 4;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -3214,7 +3220,7 @@ describe("Circle tag tests", async () => {
             r: 2,
             diameter: 4,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle below x-axis
@@ -3222,7 +3228,7 @@ describe("Circle tag tests", async () => {
         let desiredCy = -2;
         cy = 0;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy: desiredCy,
             core,
@@ -3233,14 +3239,14 @@ describe("Circle tag tests", async () => {
             r: 0,
             diameter: 0,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle back up with center point
         cx = 1;
         cy = 8;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -3251,12 +3257,12 @@ describe("Circle tag tests", async () => {
             r: 4,
             diameter: 8,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("circle where one center component depends on other center component", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" center="(1, $circle1.centerX1+1)" />
@@ -3267,48 +3273,48 @@ describe("Circle tag tests", async () => {
 
         let cx = 1;
         let cy = 2;
-        await check_circle1_exact({ cx, cy, r: 1, core, resolveComponentName });
+        await check_circle1_exact({ cx, cy, r: 1, core, resolvePathToNodeIdx });
 
         // move circle
         cx = -3;
         let desiredCy = 5;
         cy = -2;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy: desiredCy,
             core,
         });
-        await check_circle1_exact({ cx, cy, r: 1, core, resolveComponentName });
+        await check_circle1_exact({ cx, cy, r: 1, core, resolvePathToNodeIdx });
 
         // move center point
         cx = 8;
         desiredCy = 7;
         cy = 9;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: desiredCy,
             core,
         });
-        await check_circle1_exact({ cx, cy, r: 1, core, resolveComponentName });
+        await check_circle1_exact({ cx, cy, r: 1, core, resolvePathToNodeIdx });
     });
 
     // ====== Circle And Constraints ========
     async function getPoint3CenterBasedOnStateVars({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let px =
-            stateVariables[resolveComponentName("point3")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("point3")].stateValues
+                .xs[0].tree;
         let py =
-            stateVariables[resolveComponentName("point3")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("point3")].stateValues
+                .xs[1].tree;
         return [px, py];
     }
 
@@ -3319,7 +3325,7 @@ describe("Circle tag tests", async () => {
         py,
         r,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         includesInterior,
     }: {
         cx: number;
@@ -3328,7 +3334,7 @@ describe("Circle tag tests", async () => {
         py: number;
         r: number;
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         includesInterior?: boolean;
     }) {
         let dist = Math.sqrt(Math.pow(px - cx, 2) + Math.pow(py - cy, 2));
@@ -3338,64 +3344,64 @@ describe("Circle tag tests", async () => {
             expect(dist).closeTo(r, 1e-12);
         }
         let stateVariables = await core.returnAllStateVariables(false, true);
-        check_circle1_and_copies_approx({
+        await check_circle1_and_copies_approx({
             cx,
             cy,
             r,
             stateVariables,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkCopiedGraphs: false,
         });
         check_point_approx({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: r,
             y: 0,
             stateVariables,
         });
         check_point_approx({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: cx,
             y: cy,
             stateVariables,
         });
 
         expect(
-            stateVariables[resolveComponentName("graph2.point3")].stateValues
-                .xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("graph2.point3")]
+                .stateValues.xs[0].tree,
         ).eq(px);
         expect(
-            stateVariables[resolveComponentName("graph2.point3")].stateValues
-                .xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("graph2.point3")]
+                .stateValues.xs[1].tree,
         ).eq(py);
 
         expect(
-            stateVariables[resolveComponentName("graph2.circle1")].stateValues
-                .center[0].tree,
+            stateVariables[await resolvePathToNodeIdx("graph2.circle1")]
+                .stateValues.center[0].tree,
         ).closeTo(cx, 1e-12);
         expect(
-            stateVariables[resolveComponentName("graph2.circle1")].stateValues
-                .center[1].tree,
+            stateVariables[await resolvePathToNodeIdx("graph2.circle1")]
+                .stateValues.center[1].tree,
         ).closeTo(cy, 1e-12);
         expect(
-            stateVariables[resolveComponentName("graph2.circle1")].stateValues
-                .numericalCenter[0],
+            stateVariables[await resolvePathToNodeIdx("graph2.circle1")]
+                .stateValues.numericalCenter[0],
         ).closeTo(cx, 1e-12);
         expect(
-            stateVariables[resolveComponentName("graph2.circle1")].stateValues
-                .numericalCenter[1],
+            stateVariables[await resolvePathToNodeIdx("graph2.circle1")]
+                .stateValues.numericalCenter[1],
         ).closeTo(cy, 1e-12);
         expect(
-            stateVariables[resolveComponentName("graph2.circle1")].stateValues
-                .radius.tree,
+            stateVariables[await resolvePathToNodeIdx("graph2.circle1")]
+                .stateValues.radius.tree,
         ).closeTo(r, 1e-12);
         expect(
-            stateVariables[resolveComponentName("graph2.circle1")].stateValues
-                .numericalRadius,
+            stateVariables[await resolvePathToNodeIdx("graph2.circle1")]
+                .stateValues.numericalRadius,
         ).closeTo(r, 1e-12);
     }
 
     it("point constrained to circle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math hide name="pX">$point1.x</math>
     <point name="point1">(3,0)</point>
@@ -3421,7 +3427,7 @@ describe("Circle tag tests", async () => {
         let r = 3;
         let [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3430,7 +3436,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle
@@ -3438,14 +3444,14 @@ describe("Circle tag tests", async () => {
         cy = -2;
         r = 3;
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: cx,
             y: cy,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3454,7 +3460,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // shrink circle
@@ -3462,14 +3468,14 @@ describe("Circle tag tests", async () => {
         cy = -2;
         r = 1;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: r,
             y: 0,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3478,7 +3484,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move point
@@ -3486,14 +3492,14 @@ describe("Circle tag tests", async () => {
         cy = -2;
         r = 1;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: -9,
             y: 8,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3502,7 +3508,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle shadow
@@ -3510,14 +3516,14 @@ describe("Circle tag tests", async () => {
         cy = 7;
         r = 1;
         await moveCircle({
-            componentIdx: resolveComponentName("graph2.circle1"),
+            componentIdx: await resolvePathToNodeIdx("graph2.circle1"),
             cx,
             cy,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3526,7 +3532,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move point shadow
@@ -3534,14 +3540,14 @@ describe("Circle tag tests", async () => {
         cy = 7;
         r = 1;
         await movePoint({
-            componentIdx: resolveComponentName("graph2.point3"),
+            componentIdx: await resolvePathToNodeIdx("graph2.point3"),
             x: 11,
             y: -21,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3550,12 +3556,12 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("point constrained to interior of circle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math hide name="pX">$point1.x</math>
     <point name="point1">(3,0)</point>
@@ -3583,7 +3589,7 @@ describe("Circle tag tests", async () => {
         let r = 3;
         let [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3592,21 +3598,21 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: false,
         });
 
         // move circle so original point is in middle
         (cx = -5), (cy = -7);
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: cx,
             y: cy,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3615,7 +3621,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: true,
         });
 
@@ -3623,14 +3629,14 @@ describe("Circle tag tests", async () => {
         cx = 5;
         cy = -2;
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: cx,
             y: cy,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3639,21 +3645,21 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: true,
         });
 
         // shrink circle
         r = 1;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: r,
             y: 0,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3662,7 +3668,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: true,
         });
 
@@ -3670,7 +3676,7 @@ describe("Circle tag tests", async () => {
         px = 5.3;
         py = -2.5;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: px,
             y: py,
             core,
@@ -3682,20 +3688,20 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: true,
         });
 
         // attempt to move point out of circle, point should end up on edge of circle
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: -9,
             y: 8,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3704,21 +3710,21 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: false,
         });
 
         // move circle shadow
         (cx = -3), (cy = 7);
         await moveCircle({
-            componentIdx: resolveComponentName("graph2.circle1"),
+            componentIdx: await resolvePathToNodeIdx("graph2.circle1"),
             cx,
             cy,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3727,20 +3733,20 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: false,
         });
 
         // attempt to move point shadow out of circle
         await movePoint({
-            componentIdx: resolveComponentName("graph2.point3"),
+            componentIdx: await resolvePathToNodeIdx("graph2.point3"),
             x: -9,
             y: 8,
             core,
         });
         [px, py] = await getPoint3CenterBasedOnStateVars({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_circle_and_constrained_point({
             cx,
@@ -3749,7 +3755,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: false,
         });
 
@@ -3757,7 +3763,7 @@ describe("Circle tag tests", async () => {
         px = -2.8;
         py = 7.7;
         await movePoint({
-            componentIdx: resolveComponentName("graph2.point3"),
+            componentIdx: await resolvePathToNodeIdx("graph2.point3"),
             x: px,
             y: py,
             core,
@@ -3769,7 +3775,7 @@ describe("Circle tag tests", async () => {
             py,
             r,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             includesInterior: true,
         });
     });
@@ -3787,24 +3793,24 @@ describe("Circle tag tests", async () => {
         tx,
         ty,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }) {
         let stateVariables = await core.returnAllStateVariables(false, true);
-        check_circle1_and_copies_approx({
+        await check_circle1_and_copies_approx({
             cx,
             cy,
             r,
             stateVariables,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         check_point_approx({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: cx,
             y: cy,
             stateVariables,
         });
         check_point_approx({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: tx,
             y: ty,
             stateVariables,
@@ -3812,7 +3818,7 @@ describe("Circle tag tests", async () => {
     }
 
     it("circle with center and through point, center constrained", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(3,4)
@@ -3847,7 +3853,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle
@@ -3865,7 +3871,7 @@ describe("Circle tag tests", async () => {
         tx += cx - desiredCx;
         ty += cy - desiredCy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -3877,7 +3883,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move defining center
@@ -3886,7 +3892,7 @@ describe("Circle tag tests", async () => {
         [cx, cy] = nearestSnap(desiredCx, desiredCy);
         r = Math.sqrt(Math.pow(tx - cx, 2) + Math.pow(ty - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: desiredCx,
             y: desiredCy,
             core,
@@ -3898,7 +3904,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move reffed center
@@ -3907,7 +3913,7 @@ describe("Circle tag tests", async () => {
         [cx, cy] = nearestSnap(desiredCx, desiredCy);
         r = Math.sqrt(Math.pow(tx - cx, 2) + Math.pow(ty - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: desiredCx,
             y: desiredCy,
             core,
@@ -3919,7 +3925,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move through point
@@ -3927,7 +3933,7 @@ describe("Circle tag tests", async () => {
         ty = 3;
         r = Math.sqrt(Math.pow(tx - cx, 2) + Math.pow(ty - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: tx,
             y: ty,
             core,
@@ -3939,7 +3945,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // change reffed radius
@@ -3947,7 +3953,7 @@ describe("Circle tag tests", async () => {
         tx = cx + (tx - cx) / 4;
         ty = cy + (ty - cy) / 4;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: r,
             y: 0,
             core,
@@ -3959,7 +3965,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle2
@@ -3976,7 +3982,7 @@ describe("Circle tag tests", async () => {
         tx += cx - desiredCx;
         ty += cy - desiredCy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -3988,7 +3994,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle3
@@ -4005,7 +4011,7 @@ describe("Circle tag tests", async () => {
         tx += cx - desiredCx;
         ty += cy - desiredCy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4017,12 +4023,12 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("circle with center and through point, through point constrained", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(3,4)
@@ -4058,7 +4064,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle
@@ -4072,7 +4078,7 @@ describe("Circle tag tests", async () => {
         tx += cx - desiredCx;
         ty += cy - desiredCy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4084,7 +4090,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move defining center
@@ -4092,7 +4098,7 @@ describe("Circle tag tests", async () => {
         cy = 5;
         r = Math.sqrt(Math.pow(tx - cx, 2) + Math.pow(ty - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: cx,
             y: cy,
             core,
@@ -4104,7 +4110,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move reffed center
@@ -4112,7 +4118,7 @@ describe("Circle tag tests", async () => {
         cy = -1;
         r = Math.sqrt(Math.pow(tx - cx, 2) + Math.pow(ty - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -4124,7 +4130,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move through point
@@ -4133,7 +4139,7 @@ describe("Circle tag tests", async () => {
         [tx, ty] = nearestSnap(desiredTx, desiredTy);
         r = Math.sqrt(Math.pow(tx - cx, 2) + Math.pow(ty - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: desiredTx,
             y: desiredTy,
             core,
@@ -4145,7 +4151,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // change reffed radius
@@ -4155,7 +4161,7 @@ describe("Circle tag tests", async () => {
         [tx, ty] = nearestSnap(desiredTx, desiredTy);
         r = Math.sqrt(Math.pow(tx - cx, 2) + Math.pow(ty - cy, 2));
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: desiredR,
             y: 0,
             core,
@@ -4167,7 +4173,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle2
@@ -4181,7 +4187,7 @@ describe("Circle tag tests", async () => {
         cx = desiredCx + tx - desiredTx;
         cy = desiredCy + ty - desiredTy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4193,7 +4199,7 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         // move circle3
@@ -4207,7 +4213,7 @@ describe("Circle tag tests", async () => {
         cx = desiredCx + tx - desiredTx;
         cy = desiredCy + ty - desiredTy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4219,12 +4225,12 @@ describe("Circle tag tests", async () => {
             tx,
             ty,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("circle through two points, one point constrained", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(2,-3)
@@ -4252,104 +4258,104 @@ describe("Circle tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .center[0].tree,
-            ).closeTo(cx, 1e-12);
-            expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .center[1].tree,
-            ).closeTo(cy, 1e-12);
-            expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .numericalCenter[0],
-            ).closeTo(cx, 1e-12);
-            expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .numericalCenter[1],
-            ).closeTo(cy, 1e-12);
-            expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .radius.tree,
-            ).closeTo(r, 1e-12);
-            expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .numericalRadius,
-            ).closeTo(r, 1e-12);
-            expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("circle1")]
                     .stateValues.center[0].tree,
             ).closeTo(cx, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("circle1")]
                     .stateValues.center[1].tree,
             ).closeTo(cy, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("circle1")]
                     .stateValues.numericalCenter[0],
             ).closeTo(cx, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("circle1")]
                     .stateValues.numericalCenter[1],
             ).closeTo(cy, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("circle1")]
                     .stateValues.radius.tree,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph3.circle")]
+                stateVariables[await resolvePathToNodeIdx("circle1")]
                     .stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.center[0].tree,
             ).closeTo(cx, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.center[1].tree,
             ).closeTo(cy, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.numericalCenter[0],
             ).closeTo(cx, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.numericalCenter[1],
             ).closeTo(cy, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.radius.tree,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables[resolveComponentName("graph4.circle")]
+                stateVariables[await resolvePathToNodeIdx("graph3.circle")]
                     .stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables[resolveComponentName("point1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                    .stateValues.center[0].tree,
+            ).closeTo(cx, 1e-12);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                    .stateValues.center[1].tree,
+            ).closeTo(cy, 1e-12);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                    .stateValues.numericalCenter[0],
+            ).closeTo(cx, 1e-12);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                    .stateValues.numericalCenter[1],
+            ).closeTo(cy, 1e-12);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                    .stateValues.radius.tree,
+            ).closeTo(r, 1e-12);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("graph4.circle")]
+                    .stateValues.numericalRadius,
+            ).closeTo(r, 1e-12);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("point1")].stateValues
+                    .xs[0].tree,
             ).closeTo(t1x, 1e-12);
             expect(
-                stateVariables[resolveComponentName("point1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point1")].stateValues
+                    .xs[1].tree,
             ).closeTo(t1y, 1e-12);
             expect(
-                stateVariables[resolveComponentName("point2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point2")].stateValues
+                    .xs[0].tree,
             ).closeTo(t2x, 1e-12);
             expect(
-                stateVariables[resolveComponentName("point2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point2")].stateValues
+                    .xs[1].tree,
             ).closeTo(t2y, 1e-12);
             expect(
-                stateVariables[resolveComponentName("centerCopy")].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx("centerCopy")]
+                    .stateValues.xs[0].tree,
             ).closeTo(cx, 1e-12);
             expect(
-                stateVariables[resolveComponentName("centerCopy")].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx("centerCopy")]
+                    .stateValues.xs[1].tree,
             ).closeTo(cy, 1e-12);
             expect(
-                stateVariables[resolveComponentName("radiusNumber")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("radiusNumber")]
+                    .stateValues.value.tree,
             ).closeTo(r, 1e-12);
         }
 
@@ -4377,7 +4383,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4392,7 +4398,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: desiredT1x,
             y: desiredT1y,
             core,
@@ -4406,7 +4412,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: t2x,
             y: t2y,
             core,
@@ -4427,7 +4433,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: desiredCx,
             y: desiredCy,
             core,
@@ -4447,7 +4453,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: desiredR,
             y: 0,
             core,
@@ -4470,7 +4476,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4493,7 +4499,7 @@ describe("Circle tag tests", async () => {
         cx = (t1x + t2x) / 2;
         cy = (t1y + t2y) / 2;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4502,7 +4508,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle through three points, one point constrained", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(2,-3)</point>
@@ -4542,34 +4548,34 @@ describe("Circle tag tests", async () => {
                 false,
                 true,
             );
-            check_circle1_and_copies_approx({
+            await check_circle1_and_copies_approx({
                 cx,
                 cy,
                 r,
                 stateVariables,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point1"),
+                componentIdx: await resolvePathToNodeIdx("point1"),
                 x: t1x,
                 y: t1y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point2"),
+                componentIdx: await resolvePathToNodeIdx("point2"),
                 x: t2x,
                 y: t2y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point3"),
+                componentIdx: await resolvePathToNodeIdx("point3"),
                 x: t3x,
                 y: t3y,
                 stateVariables,
             });
             expect(
-                stateVariables[resolveComponentName("diam")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("diam")].stateValues
+                    .value.tree,
             ).closeTo(2 * r, 1e-12);
         }
 
@@ -4581,7 +4587,7 @@ describe("Circle tag tests", async () => {
         let t3y = 4;
         let [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
         await check_items({ cx, cy, r, t1x, t1y, t2x, t2y, t3x, t3y });
 
@@ -4600,7 +4606,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4622,7 +4628,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4644,7 +4650,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4653,7 +4659,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle through three points, two points constrained", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(2,-3)</point>
@@ -4690,7 +4696,7 @@ describe("Circle tag tests", async () => {
         let t3y = 4;
         let [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
 
         const test_items = async function () {
@@ -4698,34 +4704,34 @@ describe("Circle tag tests", async () => {
                 false,
                 true,
             );
-            check_circle1_and_copies_approx({
+            await check_circle1_and_copies_approx({
                 cx,
                 cy,
                 r,
                 stateVariables,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point1"),
+                componentIdx: await resolvePathToNodeIdx("point1"),
                 x: t1x,
                 y: t1y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point2"),
+                componentIdx: await resolvePathToNodeIdx("point2"),
                 x: t2x,
                 y: t2y,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point3"),
+                componentIdx: await resolvePathToNodeIdx("point3"),
                 x: t3x,
                 y: t3y,
                 stateVariables,
             });
             expect(
-                stateVariables[resolveComponentName("diam")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("diam")].stateValues
+                    .value.tree,
             ).closeTo(2 * r, 1e-12);
         };
         await test_items();
@@ -4745,7 +4751,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4767,7 +4773,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph3.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph3.circle"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4789,7 +4795,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("graph4.circle"),
+            componentIdx: await resolvePathToNodeIdx("graph4.circle"),
             cx: desiredCx,
             cy: desiredCy,
             core,
@@ -4802,7 +4808,7 @@ describe("Circle tag tests", async () => {
     );
 
     it("triangle inscribed in circle, copy center coordinates separately and radius", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <number hide name="fixedZero" fixed>0</number>
     <graph>
@@ -4836,19 +4842,20 @@ describe("Circle tag tests", async () => {
                 true,
             );
             let cx =
-                stateVariables[resolveComponentName("c")].stateValues
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
                     .numericalCenter[0];
             let cy =
-                stateVariables[resolveComponentName("c")].stateValues
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
                     .numericalCenter[1];
             let r =
-                stateVariables[resolveComponentName("c")].stateValues
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
                     .numericalRadius;
             expect(Math.hypot(t1x - cx, t1y - cy)).closeTo(r, 1e-12);
             expect(Math.hypot(t2x - cx, t2y - cy)).closeTo(r, 1e-12);
             expect(Math.hypot(t3x - cx, t3y - cy)).closeTo(r, 1e-12);
             let vertices =
-                stateVariables[resolveComponentName("t")].stateValues.vertices;
+                stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                    .vertices;
             expect(vertices[0][0].tree).closeTo(t1x, 1e-12);
             expect(vertices[0][1].tree).closeTo(t1y, 1e-12);
             expect(vertices[1][0].tree).closeTo(t2x, 1e-12);
@@ -4856,24 +4863,24 @@ describe("Circle tag tests", async () => {
             expect(vertices[2][0].tree).closeTo(t3x, 1e-12);
             expect(vertices[2][1].tree).closeTo(t3y, 1e-12);
             expect(
-                stateVariables[resolveComponentName("c")].stateValues.center[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                    .center[0].tree,
             ).closeTo(cx, 1e-12);
             expect(
-                stateVariables[resolveComponentName("c")].stateValues.center[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                    .center[1].tree,
             ).closeTo(cy, 1e-12);
             expect(
-                stateVariables[resolveComponentName("c")].stateValues.radius
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                    .radius.tree,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables[resolveComponentName("x")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .xs[0].tree,
             ).closeTo(cx, 1e-12);
             expect(
-                stateVariables[resolveComponentName("y")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .xs[1].tree,
             ).closeTo(cy, 1e-12);
         }
         await check_items();
@@ -4886,7 +4893,7 @@ describe("Circle tag tests", async () => {
         t3x = -1;
         t3y = 7;
         await movePolygon({
-            componentIdx: resolveComponentName("t"),
+            componentIdx: await resolvePathToNodeIdx("t"),
             core,
             pointCoords: [
                 [t1x, t1y],
@@ -4899,13 +4906,13 @@ describe("Circle tag tests", async () => {
         // move circle via center
         let stateVariables = await core.returnAllStateVariables(false, true);
         let cx =
-            stateVariables[resolveComponentName("c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
                 .numericalCenter[0];
         let cy =
-            stateVariables[resolveComponentName("c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
                 .numericalCenter[1];
         let r =
-            stateVariables[resolveComponentName("c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
                 .numericalRadius;
         let dx = 2;
         let dy = -3;
@@ -4918,7 +4925,7 @@ describe("Circle tag tests", async () => {
         t3x += dx;
         t3y += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             cx,
             cy,
             core,
@@ -4932,7 +4939,7 @@ describe("Circle tag tests", async () => {
         t2x += dx;
         t3x += dx;
         await movePoint({
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             x: cx,
             y: 0,
             core,
@@ -4946,7 +4953,7 @@ describe("Circle tag tests", async () => {
         t2y += dy;
         t3y += dy;
         await movePoint({
-            componentIdx: resolveComponentName("y"),
+            componentIdx: await resolvePathToNodeIdx("y"),
             x: 0,
             y: cy,
             core,
@@ -4963,7 +4970,7 @@ describe("Circle tag tests", async () => {
         t3x = cx + (t3x - cx) * radiusFactor;
         t3y = cy + (t3y - cy) * radiusFactor;
         await movePoint({
-            componentIdx: resolveComponentName("r"),
+            componentIdx: await resolvePathToNodeIdx("r"),
             x: r,
             y: 0,
             core,
@@ -4983,7 +4990,7 @@ describe("Circle tag tests", async () => {
         t3x = cx;
         t3y = cy;
         await movePoint({
-            componentIdx: resolveComponentName("r"),
+            componentIdx: await resolvePathToNodeIdx("r"),
             x: desiredR,
             y: 0,
             core,
@@ -5001,7 +5008,7 @@ describe("Circle tag tests", async () => {
         t3x = cx + (t3x - cx) * radiusFactor;
         t3y = cy + (t3y - cy) * radiusFactor;
         await movePoint({
-            componentIdx: resolveComponentName("r"),
+            componentIdx: await resolvePathToNodeIdx("r"),
             x: r,
             y: 0,
             core,
@@ -5010,7 +5017,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("copy propIndex of throughPoints, dot and array notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="circle1" through="(2,-3) (3,4) (-3,4)" />
@@ -5030,77 +5037,82 @@ describe("Circle tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq("\uff3f");
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             latex: "1",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([t1x, t1y]);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eqls(t2x);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             latex: "2",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([t2x, t2y]);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eqls(t2y);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             latex: "3",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([t3x, t3y]);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq("\uff3f");
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             latex: "4",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq("\uff3f");
     });
 
     it("all updatable with copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <point name="point1">(3,0)</point>
@@ -5131,34 +5143,35 @@ describe("Circle tag tests", async () => {
                 false,
                 true,
             );
-            check_circle1_and_copies_approx({
+            await check_circle1_and_copies_approx({
                 cx,
                 cy,
                 r,
                 stateVariables,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 checkCopiedGraphs: false,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point1"),
+                componentIdx: await resolvePathToNodeIdx("point1"),
                 x: cx,
                 y: cy,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point2"),
+                componentIdx: await resolvePathToNodeIdx("point2"),
                 x: tx,
                 y: ty,
                 stateVariables,
             });
             check_point_approx({
-                componentIdx: resolveComponentName("point3"),
+                componentIdx: await resolvePathToNodeIdx("point3"),
                 x: cy,
                 y: r,
                 stateVariables,
             });
             let circle2 =
-                stateVariables[resolveComponentName("circle2")].stateValues;
+                stateVariables[await resolvePathToNodeIdx("circle2")]
+                    .stateValues;
             expect(circle2.center[0].tree).closeTo(cx, 1e-12);
             expect(circle2.center[1].tree).closeTo(cy, 1e-12);
             expect(circle2.numericalCenter[0]).closeTo(cx, 1e-12);
@@ -5176,7 +5189,7 @@ describe("Circle tag tests", async () => {
         tx += dx;
         ty += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -5191,7 +5204,7 @@ describe("Circle tag tests", async () => {
         tx += dx;
         ty += dy;
         await moveCircle({
-            componentIdx: resolveComponentName("circle2"),
+            componentIdx: await resolvePathToNodeIdx("circle2"),
             cx,
             cy,
             core,
@@ -5205,7 +5218,7 @@ describe("Circle tag tests", async () => {
         cy += dy;
         r = Math.hypot(tx - cx, ty - cy);
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -5217,7 +5230,7 @@ describe("Circle tag tests", async () => {
         cy = 1;
         r = Math.hypot(tx - cx, ty - cy);
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: cx,
             y: cy,
             core,
@@ -5229,7 +5242,7 @@ describe("Circle tag tests", async () => {
         ty = 4;
         r = Math.hypot(tx - cx, ty - cy);
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x: tx,
             y: ty,
             core,
@@ -5251,7 +5264,7 @@ describe("Circle tag tests", async () => {
         cy = -3;
         r = Math.hypot(tx - cx, ty - cy);
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: cy,
             y: desiredR,
             core,
@@ -5265,7 +5278,7 @@ describe("Circle tag tests", async () => {
         ty = cy + desiredR * Math.sin(theta);
         r = desiredR;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: cy,
             y: desiredR,
             core,
@@ -5274,7 +5287,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("essential center can combine coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <graph>
             <circle name="circle1"/>
@@ -5301,20 +5314,20 @@ describe("Circle tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .numericalRadius,
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues.numericalRadius,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("circle1")].stateValues
-                    .numericalCenter,
+                stateVariables[await resolvePathToNodeIdx("circle1")]
+                    .stateValues.numericalCenter,
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("centerCopy")].stateValues
-                    .coords.tree,
+                stateVariables[await resolvePathToNodeIdx("centerCopy")]
+                    .stateValues.coords.tree,
             ).eqls(["vector", cx, cy]);
             // flipped coordinates for point
             expect(
-                stateVariables[resolveComponentName("point1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("point1")].stateValues
                     .coords.tree,
             ).eqls(["vector", cy, cx]);
         }
@@ -5327,7 +5340,7 @@ describe("Circle tag tests", async () => {
         cx = -7;
         cy = 2;
         await moveCircle({
-            componentIdx: resolveComponentName("circle1"),
+            componentIdx: await resolvePathToNodeIdx("circle1"),
             cx,
             cy,
             core,
@@ -5338,7 +5351,7 @@ describe("Circle tag tests", async () => {
         cy = -3;
         cx = -5;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x: cy,
             y: cx,
             core,
@@ -5349,7 +5362,7 @@ describe("Circle tag tests", async () => {
         cx = 1;
         cy = -4;
         await movePoint({
-            componentIdx: resolveComponentName("centerCopy"),
+            componentIdx: await resolvePathToNodeIdx("centerCopy"),
             x: cx,
             y: cy,
             core,
@@ -5358,7 +5371,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("handle initially undefined center", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Center: <mathInput name="c" /></p>
     <graph>
@@ -5384,19 +5397,19 @@ describe("Circle tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("circ")].stateValues
+                stateVariables[await resolvePathToNodeIdx("circ")].stateValues
                     .numericalCenter,
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("circ")].stateValues
+                stateVariables[await resolvePathToNodeIdx("circ")].stateValues
                     .numericalRadius,
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName("circ2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("circ2")].stateValues
                     .numericalCenter,
             ).eqls([cx, cy]);
             expect(
-                stateVariables[resolveComponentName("circ2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("circ2")].stateValues
                     .numericalRadius,
             ).eq(1);
         }
@@ -5409,7 +5422,7 @@ describe("Circle tag tests", async () => {
         cx = 2;
         cy = 1;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             latex: `(${cx},${cy})`,
             core,
         });
@@ -5419,7 +5432,7 @@ describe("Circle tag tests", async () => {
         cx = -7;
         cy = 1;
         await moveCircle({
-            componentIdx: resolveComponentName("circ"),
+            componentIdx: await resolvePathToNodeIdx("circ"),
             cx,
             cy,
             core,
@@ -5430,7 +5443,7 @@ describe("Circle tag tests", async () => {
         cx = -7;
         cy = -4;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             latex: `(${cx}, ${cy})`,
             core,
         });
@@ -5440,7 +5453,7 @@ describe("Circle tag tests", async () => {
         cx = 6;
         cy = 9;
         await moveCircle({
-            componentIdx: resolveComponentName("circ2"),
+            componentIdx: await resolvePathToNodeIdx("circ2"),
             cx,
             cy,
             core,
@@ -5451,7 +5464,7 @@ describe("Circle tag tests", async () => {
         cx = NaN;
         cy = NaN;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             latex: "",
             core,
         });
@@ -5461,7 +5474,7 @@ describe("Circle tag tests", async () => {
         cx = 5;
         cy = 4;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             latex: `(${cx}, ${cy})`,
             core,
         });
@@ -5469,7 +5482,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("overwrite attributes on copy", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <circle name="c" />
@@ -5544,51 +5557,51 @@ describe("Circle tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("c")].stateValues.radius
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                    .radius.tree,
             ).eqls(c.r);
             expect(
                 stateVariables[
-                    resolveComponentName("c")
+                    await resolvePathToNodeIdx("c")
                 ].stateValues.center.map((v) => v.tree),
             ).eqls([c.x, c.y]);
             expect(
-                stateVariables[resolveComponentName("c1")].stateValues.radius
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c1")].stateValues
+                    .radius.tree,
             ).eqls(c1.r);
             expect(
                 stateVariables[
-                    resolveComponentName("c1")
+                    await resolvePathToNodeIdx("c1")
                 ].stateValues.center.map((v) => v.tree),
             ).eqls([c1.x, c1.y]);
             expect(
-                stateVariables[resolveComponentName("c2")].stateValues.radius
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                    .radius.tree,
             ).eqls(c2.r);
             expect(
                 stateVariables[
-                    resolveComponentName("c2")
+                    await resolvePathToNodeIdx("c2")
                 ].stateValues.center.map((v) => v.tree),
             ).eqls([c2.x, c2.y]);
             expect(
-                stateVariables[resolveComponentName("c3")].stateValues.radius
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c3")].stateValues
+                    .radius.tree,
             ).eqls(c3.r);
             expect(
                 stateVariables[
-                    resolveComponentName("c3")
+                    await resolvePathToNodeIdx("c3")
                 ].stateValues.center.map((v) => v.tree),
             ).eqls([c3.x, c3.y]);
 
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([p.x, p.y]);
             expect(
-                stateVariables[resolveComponentName("Q")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("Q")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls([q.x, q.y]);
         }
 
@@ -5604,7 +5617,7 @@ describe("Circle tag tests", async () => {
 
         // move original circle
         await moveCircle({
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             cx: -1,
             cy: 2,
             core,
@@ -5621,12 +5634,12 @@ describe("Circle tag tests", async () => {
 
         // enter non-numeric radius and center for origin circle
         await updateMathInputValue({
-            componentIdx: resolveComponentName("rc"),
+            componentIdx: await resolvePathToNodeIdx("rc"),
             latex: `1+x`,
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("cc"),
+            componentIdx: await resolvePathToNodeIdx("cc"),
             latex: `(-1,y)`,
             core,
         });
@@ -5642,12 +5655,12 @@ describe("Circle tag tests", async () => {
 
         // set radius and center for origin circle back to number using other components
         await updateMathInputValue({
-            componentIdx: resolveComponentName("rc1"),
+            componentIdx: await resolvePathToNodeIdx("rc1"),
             latex: `2`,
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("cc3"),
+            componentIdx: await resolvePathToNodeIdx("cc3"),
             latex: `(4,5)`,
             core,
         });
@@ -5663,13 +5676,13 @@ describe("Circle tag tests", async () => {
 
         // move point P and set radius of second circle
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -5,
             y: 2,
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("rc1"),
+            componentIdx: await resolvePathToNodeIdx("rc1"),
             latex: `4`,
             core,
         });
@@ -5685,7 +5698,7 @@ describe("Circle tag tests", async () => {
 
         // move point Q
         await movePoint({
-            componentIdx: resolveComponentName("Q"),
+            componentIdx: await resolvePathToNodeIdx("Q"),
             x: 3,
             y: 8,
             core,
@@ -5702,7 +5715,7 @@ describe("Circle tag tests", async () => {
 
         // set radius of third circle
         await updateMathInputValue({
-            componentIdx: resolveComponentName("rc2"),
+            componentIdx: await resolvePathToNodeIdx("rc2"),
             latex: `5`,
             core,
         });
@@ -5718,7 +5731,7 @@ describe("Circle tag tests", async () => {
 
         // set center of third circle
         await updateMathInputValue({
-            componentIdx: resolveComponentName("cc2"),
+            componentIdx: await resolvePathToNodeIdx("cc2"),
             latex: `(5,-3)`,
             core,
         });
@@ -5734,7 +5747,7 @@ describe("Circle tag tests", async () => {
 
         // set radius of fourth circle
         await updateMathInputValue({
-            componentIdx: resolveComponentName("src3"),
+            componentIdx: await resolvePathToNodeIdx("src3"),
             latex: `9`,
             core,
         });
@@ -5750,13 +5763,13 @@ describe("Circle tag tests", async () => {
 
         // move and change radius of fourth circle
         await moveCircle({
-            componentIdx: resolveComponentName("c3"),
+            componentIdx: await resolvePathToNodeIdx("c3"),
             cx: 3,
             cy: 8,
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("rc3"),
+            componentIdx: await resolvePathToNodeIdx("rc3"),
             latex: `9`,
             core,
         });
@@ -5772,7 +5785,7 @@ describe("Circle tag tests", async () => {
     });
 
     it("circle warnings", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <circle name="c1" through="(a,b) (c,d)" />
 <circle name="c2" through="(1,2) (3,4) (5,6) (7,8)" />
@@ -5866,7 +5879,7 @@ $c7.radius
     });
 
     it("handle bad center/through", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <circle name="circle1" center="A" through="B" />
@@ -5875,13 +5888,13 @@ $c7.radius
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("circle1")]).not.eq(
+        expect(stateVariables[await resolvePathToNodeIdx("circle1")]).not.eq(
             undefined,
         );
     });
 
     it("area and circumference", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <circle name="c" center="(1,4)" />
@@ -5910,18 +5923,19 @@ $c7.radius
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("area")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("area")].stateValues
+                    .value.tree,
             ).eqls(area);
             expect(
-                stateVariables[resolveComponentName("area2")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("area2")].stateValues
+                    .value,
             ).eqls(area2);
             expect(
-                stateVariables[resolveComponentName("circumference")]
+                stateVariables[await resolvePathToNodeIdx("circumference")]
                     .stateValues.value.tree,
             ).eqls(circ);
             expect(
-                stateVariables[resolveComponentName("circumference2")]
+                stateVariables[await resolvePathToNodeIdx("circumference2")]
                     .stateValues.value,
             ).eqls(circ2);
         }
@@ -5935,7 +5949,7 @@ $c7.radius
 
         // change radius
         await updateMathInputValue({
-            componentIdx: resolveComponentName("r"),
+            componentIdx: await resolvePathToNodeIdx("r"),
             latex: `3`,
             core,
         });
@@ -5948,7 +5962,7 @@ $c7.radius
 
         // change to symbolic radius
         await updateMathInputValue({
-            componentIdx: resolveComponentName("r"),
+            componentIdx: await resolvePathToNodeIdx("r"),
             latex: `a`,
             core,
         });
@@ -5961,7 +5975,7 @@ $c7.radius
 
         // back to numeric radius
         await updateMathInputValue({
-            componentIdx: resolveComponentName("r"),
+            componentIdx: await resolvePathToNodeIdx("r"),
             latex: `5`,
             core,
         });
@@ -5974,7 +5988,7 @@ $c7.radius
     });
 
     it("circle with rounding", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <circle center="(12.3456789, 0.123456789)" radius="1234.56789" name="c1" />
     <p>
@@ -5997,35 +6011,37 @@ $c7.radius
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("c1r")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("c1r")].stateValues.text,
         ).eqls("1234.57");
         expect(
-            stateVariables[resolveComponentName("c1d")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("c1d")].stateValues.text,
         ).eqls("2469.14");
         expect(
-            stateVariables[resolveComponentName("c1c")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("c1c")].stateValues.text,
         ).eqls("( 12.35, 0.123 )");
 
         expect(
-            stateVariables[resolveComponentName("c1ar")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("c1ar")].stateValues.text,
         ).eqls("1234.6");
         expect(
-            stateVariables[resolveComponentName("c1ad")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("c1ad")].stateValues.text,
         ).eqls("2469.1");
         expect(
-            stateVariables[resolveComponentName("c1ac")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("c1ac")].stateValues.text,
         ).eqls("( 12.35, 0.1235 )");
 
         expect(
-            stateVariables[resolveComponentName("pc2tp")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pc2tp")].stateValues
+                .text,
         ).eqls("( 1234.57, 0.123 )");
         expect(
-            stateVariables[resolveComponentName("pc2atp")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pc2atp")].stateValues
+                .text,
         ).eqls("( 1234.6, 0.1235 )");
     });
 
     it("circle style descriptions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <styleDefinitions>
@@ -6107,112 +6123,136 @@ $c7.radius
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("st1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("st1")].stateValues.value,
         ).toContain("blue");
         expect(
-            stateVariables[resolveComponentName("stn1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("stn1")].stateValues
+                .value,
         ).toContain("blue circle");
         expect(
-            stateVariables[resolveComponentName("bst1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bst1")].stateValues
+                .value,
         ).toContain("blue");
         expect(
-            stateVariables[resolveComponentName("fst1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fst1")].stateValues
+                .value,
         ).toContain("unfilled");
 
         expect(
-            stateVariables[resolveComponentName("st2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("st2")].stateValues.value,
         ).toContain("filled blue");
         expect(
-            stateVariables[resolveComponentName("stn2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("stn2")].stateValues
+                .value,
         ).toContain("filled blue circle");
         expect(
-            stateVariables[resolveComponentName("bst2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bst2")].stateValues
+                .value,
         ).toContain("blue");
         expect(
-            stateVariables[resolveComponentName("fst2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fst2")].stateValues
+                .value,
         ).toContain("blue");
 
         expect(
-            stateVariables[resolveComponentName("st3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("st3")].stateValues.value,
         ).toContain("red");
         expect(
-            stateVariables[resolveComponentName("stn3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("stn3")].stateValues
+                .value,
         ).toContain("red circle");
         expect(
-            stateVariables[resolveComponentName("bst3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bst3")].stateValues
+                .value,
         ).toContain("red");
         expect(
-            stateVariables[resolveComponentName("fst3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fst3")].stateValues
+                .value,
         ).toContain("unfilled");
 
         expect(
-            stateVariables[resolveComponentName("st4")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("st4")].stateValues.value,
         ).toContain("filled green with red border");
         expect(
-            stateVariables[resolveComponentName("stn4")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("stn4")].stateValues
+                .value,
         ).toContain("filled green circle with a red border");
         expect(
-            stateVariables[resolveComponentName("bst4")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bst4")].stateValues
+                .value,
         ).toContain("red");
         expect(
-            stateVariables[resolveComponentName("fst4")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fst4")].stateValues
+                .value,
         ).toContain("green");
 
         expect(
-            stateVariables[resolveComponentName("st5")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("st5")].stateValues.value,
         ).toContain("thick blue");
         expect(
-            stateVariables[resolveComponentName("stn5")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("stn5")].stateValues
+                .value,
         ).toContain("thick blue circle");
         expect(
-            stateVariables[resolveComponentName("bst5")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bst5")].stateValues
+                .value,
         ).toContain("thick blue");
         expect(
-            stateVariables[resolveComponentName("fst5")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fst5")].stateValues
+                .value,
         ).toContain("unfilled");
 
         expect(
-            stateVariables[resolveComponentName("st6")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("st6")].stateValues.value,
         ).toContain("filled blue with thick border");
         expect(
-            stateVariables[resolveComponentName("stn6")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("stn6")].stateValues
+                .value,
         ).toContain("filled blue circle with a thick border");
         expect(
-            stateVariables[resolveComponentName("bst6")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bst6")].stateValues
+                .value,
         ).toContain("thick blue");
         expect(
-            stateVariables[resolveComponentName("fst6")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fst6")].stateValues
+                .value,
         ).toContain("blue");
 
         expect(
-            stateVariables[resolveComponentName("st7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("st7")].stateValues.value,
         ).toContain("thin dotted red");
         expect(
-            stateVariables[resolveComponentName("stn7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("stn7")].stateValues
+                .value,
         ).toContain("thin dotted red circle");
         expect(
-            stateVariables[resolveComponentName("bst7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bst7")].stateValues
+                .value,
         ).toContain("thin dotted red");
         expect(
-            stateVariables[resolveComponentName("fst7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fst7")].stateValues
+                .value,
         ).toContain("unfilled");
 
         expect(
-            stateVariables[resolveComponentName("st8")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("st8")].stateValues.value,
         ).toContain("filled green with thin dotted red border");
         expect(
-            stateVariables[resolveComponentName("stn8")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("stn8")].stateValues
+                .value,
         ).toContain("filled green circle with a thin dotted red border");
         expect(
-            stateVariables[resolveComponentName("bst8")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bst8")].stateValues
+                .value,
         ).toContain("thin dotted red");
         expect(
-            stateVariables[resolveComponentName("fst8")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fst8")].stateValues
+                .value,
         ).toContain("green");
     });
 
     it("hideOffGraphIndicator", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <circle name="P1" center="(12,3)" />
@@ -6248,31 +6288,31 @@ $c7.radius
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("P1h")].stateValues.value,
         ).eqls(false);
         expect(
-            stateVariables[resolveComponentName("Q1h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Q1h")].stateValues.value,
         ).eqls(true);
         expect(
-            stateVariables[resolveComponentName("R1h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("R1h")].stateValues.value,
         ).eqls(false);
         expect(
-            stateVariables[resolveComponentName("P2h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("P2h")].stateValues.value,
         ).eqls(true);
         expect(
-            stateVariables[resolveComponentName("Q2h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Q2h")].stateValues.value,
         ).eqls(true);
         expect(
-            stateVariables[resolveComponentName("R2h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("R2h")].stateValues.value,
         ).eqls(false);
         expect(
-            stateVariables[resolveComponentName("P3h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("P3h")].stateValues.value,
         ).eqls(false);
         expect(
-            stateVariables[resolveComponentName("Q3h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Q3h")].stateValues.value,
         ).eqls(true);
         expect(
-            stateVariables[resolveComponentName("R3h")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("R3h")].stateValues.value,
         ).eqls(false);
     });
 
@@ -6301,7 +6341,7 @@ $c7.radius
     `;
 
         async function test_items(theme: "dark" | "light") {
-            const { core, resolveComponentName } = await createTestCore({
+            const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 theme,
             });
@@ -6316,39 +6356,39 @@ $c7.radius
             );
 
             expect(
-                stateVariables[resolveComponentName("ADescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("ADescription")]
+                    .stateValues.text,
             ).eq(`Circle A is filled ${AColor} with thick border.`);
             expect(
-                stateVariables[resolveComponentName("BDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("BDescription")]
+                    .stateValues.text,
             ).eq(`B is a filled ${BShade} red circle.`);
             expect(
-                stateVariables[resolveComponentName("CDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("CDescription")]
+                    .stateValues.text,
             ).eq(`C is a filled ${CColor} circle with a thin border.`);
             expect(
-                stateVariables[resolveComponentName("ABorderDescription")]
+                stateVariables[await resolvePathToNodeIdx("ABorderDescription")]
                     .stateValues.text,
             ).eq(`A has a thick ${AColor} border.`);
             expect(
-                stateVariables[resolveComponentName("BBorderDescription")]
+                stateVariables[await resolvePathToNodeIdx("BBorderDescription")]
                     .stateValues.text,
             ).eq(`B has a ${BShade} red border.`);
             expect(
-                stateVariables[resolveComponentName("CBorderDescription")]
+                stateVariables[await resolvePathToNodeIdx("CBorderDescription")]
                     .stateValues.text,
             ).eq(`C has a thin ${CColor} border.`);
             expect(
-                stateVariables[resolveComponentName("AFillDescription")]
+                stateVariables[await resolvePathToNodeIdx("AFillDescription")]
                     .stateValues.text,
             ).eq(`A has a ${AColor} fill.`);
             expect(
-                stateVariables[resolveComponentName("BFillDescription")]
+                stateVariables[await resolvePathToNodeIdx("BFillDescription")]
                     .stateValues.text,
             ).eq(`B has a ${BShade} red fill.`);
             expect(
-                stateVariables[resolveComponentName("CFillDescription")]
+                stateVariables[await resolvePathToNodeIdx("CFillDescription")]
                     .stateValues.text,
             ).eq(`C has a ${CColor} fill.`);
         }

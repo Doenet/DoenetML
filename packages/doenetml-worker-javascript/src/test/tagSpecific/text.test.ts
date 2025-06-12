@@ -16,7 +16,7 @@ vi.mock("hyperformula");
 
 describe("Text tag tests", async () => {
     it("spaces preserved between tags", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><text>Hello</text> <text>there</text>!</p>
 
@@ -26,16 +26,16 @@ describe("Text tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "Hello there!",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "We could be there.",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Hello there!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("We could be there.");
     });
 
     it("components adapt to text", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>boolean: <text name="text1"><boolean>true</boolean></text></p>
     <p>number: <text name="text2"><number>5-2</number></text></p>
@@ -46,18 +46,21 @@ describe("Text tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("text1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("text1")].stateValues
+                .value,
         ).eq("true");
         expect(
-            stateVariables[resolveComponentName("text2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("text2")].stateValues
+                .value,
         ).eq("3");
         expect(
-            stateVariables[resolveComponentName("text3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("text3")].stateValues
+                .value,
         ).eq("5 - 2");
     });
 
     it("text adapts to components", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>number: <number name="n1"><text>4/2</text></number></p>
     <p>number from latex: <number name="n2"><text isLatex>\\frac{4}{2}</text></number></p>
@@ -77,51 +80,57 @@ describe("Text tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n1")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("n2")].stateValues.value).eq(
-            2,
-        );
         expect(
-            stateVariables[resolveComponentName("n2a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("n1")].stateValues.value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("n3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2a")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n3")].stateValues.value,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("n4")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("n4")].stateValues.value,
         ).eqls(NaN);
-        expect(stateVariables[resolveComponentName("n5")].stateValues.value).eq(
-            20,
-        );
-        expect(stateVariables[resolveComponentName("n6")].stateValues.value).eq(
-            20,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n5")].stateValues.value,
+        ).eq(20);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n6")].stateValues.value,
+        ).eq(20);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("m2a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
 
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(20);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(20);
     });
 
     it("text from paragraph components", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="orig"><q>Hello,</q> said the <em>cow</em>.  <sq>Bye,</sq> came the <alert>reply</alert>.  The <attr>text</attr> attribute of <tag>text</tag> or <tage>text</tage> (or <tagc>text</tagc>?) doesn't <term>do</term> <c>much</c>.</p>
 
@@ -136,25 +145,27 @@ describe("Text tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("orig")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("orig")].stateValues.text,
         ).eq(theText);
         expect(
-            stateVariables[resolveComponentName("textOnly")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("textOnly")].stateValues
+                .text,
         ).eq(theText);
         expect(
-            stateVariables[resolveComponentName("insideText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("insideText")].stateValues
+                .text,
         ).eq(theText);
 
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            theText,
-        );
-        expect(stateVariables[resolveComponentName("t2")].stateValues.value).eq(
-            theText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq(theText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t2")].stateValues.value,
+        ).eq(theText);
     });
 
     it("text from single character components", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="orig">Pick a <lsq/>number<rsq/> from 1 <ndash/> 2 <mdash/> no, <lq/>maybe<rq/> from<nbsp/>3<ellipsis /></p>
 
@@ -169,25 +180,27 @@ describe("Text tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("orig")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("orig")].stateValues.text,
         ).eq(theText);
         expect(
-            stateVariables[resolveComponentName("textOnly")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("textOnly")].stateValues
+                .text,
         ).eq(theText);
         expect(
-            stateVariables[resolveComponentName("insideText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("insideText")].stateValues
+                .text,
         ).eq(theText);
 
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            theText,
-        );
-        expect(stateVariables[resolveComponentName("t2")].stateValues.value).eq(
-            theText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq(theText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t2")].stateValues.value,
+        ).eq(theText);
     });
 
     it("text does not force composite replacement, even in boolean", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text>a</text>
     <boolean name="b">
@@ -198,8 +211,9 @@ describe("Text tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).to
-            .be.true;
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).to.be.true;
     });
 
     it("text in graph", async () => {
@@ -214,7 +228,7 @@ describe("Text tag tests", async () => {
     });
 
     it("text in graph, handle bad anchor coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph >
       <text anchor="$anchorCoords1" name="text1">Hello</text>
@@ -232,15 +246,15 @@ describe("Text tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("text1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("text1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("x");
 
         // give good anchor coords
         await updateMathInputValue({
             latex: "(6,7)",
-            componentIdx: resolveComponentName("anchorCoords1"),
+            componentIdx: await resolvePathToNodeIdx("anchorCoords1"),
             core,
         });
 
@@ -248,15 +262,15 @@ describe("Text tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("text1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("text1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("(6,7)");
 
         // give good anchor coords
         await updateMathInputValue({
             latex: "(6,7)",
-            componentIdx: resolveComponentName("anchorCoords1"),
+            componentIdx: await resolvePathToNodeIdx("anchorCoords1"),
             core,
         });
 
@@ -264,15 +278,15 @@ describe("Text tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("text1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("text1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("(6,7)");
 
         // give bad anchor coords again
         await updateMathInputValue({
             latex: "q",
-            componentIdx: resolveComponentName("anchorCoords1"),
+            componentIdx: await resolvePathToNodeIdx("anchorCoords1"),
             core,
         });
 
@@ -280,14 +294,14 @@ describe("Text tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("text1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("text1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("q");
     });
 
     it("color text via style", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <styleDefinitions>
@@ -314,139 +328,139 @@ describe("Text tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
-        ).eq("black");
-        expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
-        ).eq("black");
-        expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
-        ).eq("none");
-
-        expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
-        ).eq("green");
-        expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
-        ).eq("green");
-        expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
-        ).eq("none");
-
-        expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
                 .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
                 .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
+        ).eq("green");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
+        ).eq("green");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
+                .stateValues.text,
+        ).eq("black");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
+                .stateValues.text,
+        ).eq("black");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("none");
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                 .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                 .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
         ).eq("none");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                 .stateValues.text,
         ).eq("red with a blue background");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                 .stateValues.text,
         ).eq("red");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("blue");
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
         ).eq("none");
     });
 
     it("text copied by plain macro, but not value, reflects style and anchor position", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <styleDefinitions>
@@ -488,115 +502,125 @@ describe("Text tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("t1")].stateValues.value).eq(
-            "One",
-        );
         expect(
-            stateVariables[resolveComponentName("t1a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
         ).eq("One");
         expect(
-            stateVariables[resolveComponentName("t1b")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t1a")].stateValues.value,
         ).eq("One");
         expect(
-            stateVariables[resolveComponentName("t1c")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t1b")].stateValues.value,
         ).eq("One");
         expect(
-            stateVariables[resolveComponentName("t1d")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t1c")].stateValues.value,
+        ).eq("One");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t1d")].stateValues.value,
         ).eq("One");
 
-        expect(stateVariables[resolveComponentName("t2")].stateValues.value).eq(
-            "Two",
-        );
         expect(
-            stateVariables[resolveComponentName("t2a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t2")].stateValues.value,
         ).eq("Two");
         expect(
-            stateVariables[resolveComponentName("t2b")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t2a")].stateValues.value,
         ).eq("Two");
         expect(
-            stateVariables[resolveComponentName("t2c")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t2b")].stateValues.value,
         ).eq("Two");
         expect(
-            stateVariables[resolveComponentName("t2d")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t2c")].stateValues.value,
+        ).eq("Two");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t2d")].stateValues.value,
         ).eq("Two");
 
         expect(
-            stateVariables[resolveComponentName("t1")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t1")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("t1a")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t1a")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("t1b")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t1b")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("t1c")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t1c")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("t1d")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t1d")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("t2")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t2")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("t2a")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t2a")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("t2b")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t2b")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("t2c")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t2c")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("t2d")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("t2d")].stateValues
+                .styleNumber,
         ).eq(1);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(3,4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tacoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tacoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tacoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tacoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(3,4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tbcoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tbcoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tbcoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tbcoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move first texts
         await moveText({
-            componentIdx: resolveComponentName("t1"),
+            componentIdx: await resolvePathToNodeIdx("t1"),
             x: -2,
             y: 3,
             core,
         });
         await moveText({
-            componentIdx: resolveComponentName("t2"),
+            componentIdx: await resolvePathToNodeIdx("t2"),
             x: 4,
             y: -5,
             core,
@@ -605,50 +629,50 @@ describe("Text tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-2,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(4,-5)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tacoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tacoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(-2,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tacoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tacoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(4,-5)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tbcoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tbcoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tbcoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tbcoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move second texts
         await moveText({
-            componentIdx: resolveComponentName("t1a"),
+            componentIdx: await resolvePathToNodeIdx("t1a"),
             x: 7,
             y: 1,
             core,
         });
         await moveText({
-            componentIdx: resolveComponentName("t2a"),
+            componentIdx: await resolvePathToNodeIdx("t2a"),
             x: -8,
             y: 2,
             core,
@@ -657,50 +681,50 @@ describe("Text tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tacoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tacoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tacoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tacoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tbcoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tbcoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tbcoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tbcoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move third texts
         await moveText({
-            componentIdx: resolveComponentName("t1b"),
+            componentIdx: await resolvePathToNodeIdx("t1b"),
             x: -6,
             y: 3,
             core,
         });
         await moveText({
-            componentIdx: resolveComponentName("t2b"),
+            componentIdx: await resolvePathToNodeIdx("t2b"),
             x: -5,
             y: -4,
             core,
@@ -709,44 +733,44 @@ describe("Text tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tacoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tacoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tacoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tacoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tbcoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tbcoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(-6,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("tbcoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("tbcoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(-5,-4)");
     });
 
     it("numCharacters and characters", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><text name="t">Hello there</text>!</p>
 
@@ -757,23 +781,25 @@ describe("Text tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Number of characters is 11.",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "Characters: H, e, l, l, o, , t, h, e, r, e.",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Number of characters is 11.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("Characters: H, e, l, l, o, , t, h, e, r, e.");
 
         expect(
-            stateVariables[resolveComponentName("t")].stateValues.numCharacters,
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .numCharacters,
         ).eq(11);
         expect(
-            stateVariables[resolveComponentName("t")].stateValues.characters,
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .characters,
         ).eqls(["H", "e", "l", "l", "o", " ", "t", "h", "e", "r", "e"]);
     });
 
     it("numWords and words", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><text name="t">Hello there now</text>!</p>
 
@@ -784,23 +810,24 @@ describe("Text tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Number of words is 3.",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "words: Hello, there, now.",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Number of words is 3.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("words: Hello, there, now.");
 
         expect(
-            stateVariables[resolveComponentName("t")].stateValues.numWords,
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .numWords,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("t")].stateValues.words,
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.words,
         ).eqls(["Hello", "there", "now"]);
     });
 
     it("numListItems and list", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><text name="t">Hello there, friend!</text>!</p>
 
@@ -812,25 +839,26 @@ describe("Text tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Number of list items is 2.",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "list items: Hello there, friend!.",
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            "text list from items: Hello there, friend!.",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Number of list items is 2.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("list items: Hello there, friend!.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("text list from items: Hello there, friend!.");
 
         expect(
-            stateVariables[resolveComponentName("t")].stateValues.numListItems,
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .numListItems,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("t")].stateValues.list).eqls(
-            ["Hello there", "friend!"],
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.list,
+        ).eqls(["Hello there", "friend!"]);
 
         expect(
-            stateVariables[resolveComponentName("tl")].stateValues.texts,
+            stateVariables[await resolvePathToNodeIdx("tl")].stateValues.texts,
         ).eqls(["Hello there", "friend!"]);
     });
 });

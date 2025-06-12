@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { createFunctionFromDefinition } from "@doenet/utils";
@@ -17,14 +17,14 @@ function constantFromAst(tree) {
 
 describe("Function tag tests", async () => {
     it("function with nothing", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
@@ -35,14 +35,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum as number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(2)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
@@ -53,14 +53,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum as half-empty tuple", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="( ,2)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
@@ -71,14 +71,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum as half-empty tuple (no space)", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(,2)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
@@ -89,14 +89,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum, change x-scale", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function xscale="3" minima="(2)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
@@ -107,14 +107,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum, change x-scale and y-scale", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function xscale="3" yscale="5" minima="(2)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
@@ -125,14 +125,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single maximum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function maxima="(3)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(3, 1e-12);
@@ -143,14 +143,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single maximum, change x-scale", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function xscale="3" maxima="(3)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(3, 1e-12);
@@ -161,14 +161,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single maximum, change x-scale and y-scale", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function xscale="3" yscale="5" maxima="(3)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(3, 1e-12);
@@ -179,14 +179,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum, specify location as half-empty tuple", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(2, )" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(4, 1e-12);
@@ -197,14 +197,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum, specify location as half-empty tuple (no space)", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(2,)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(4, 1e-12);
@@ -215,14 +215,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum, specify location and value as tuple", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(2, -3)" name="f" />
     `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(4 - 3, 1e-12);
@@ -233,14 +233,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single minimum, specify location and value as tuple", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(2, -3)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(4 - 3, 1e-12);
@@ -251,14 +251,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single extremum, specify location and value as tuple", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function extrema="(2, -3)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(-4 - 3, 1e-12);
@@ -269,14 +269,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with min and max", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(0,0)" maxima="(1,1)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
@@ -293,14 +293,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with min and extremum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(0,0)" extrema="(1,1)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
@@ -317,14 +317,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with extremum and max", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function extrema="(0,0)" maxima="(1,1)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
@@ -341,14 +341,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function two extrema, same height", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function extrema="(0,0) (1,0)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
@@ -365,14 +365,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function two extrema, second higher", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function extrema="(0,0) (1,2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
@@ -389,14 +389,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function two extrema, second lower", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function extrema="(0,0) (1,-2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
@@ -413,14 +413,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with two minima", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima='(-2, ) (2, 1)' name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
@@ -437,14 +437,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with two minima and maximum with specified height", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(-2, )  (2,1)" maxima="( , 5)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
@@ -461,14 +461,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with two minima and extremum with specified height", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(-2,) (2, 1) " extrema="(,5)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
@@ -485,14 +485,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with maximum and higher minimum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function maxima="(-2,1)" minima="(2,2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
@@ -507,14 +507,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with maximum and higher extremum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function maxima="(-2,1)" extrema="(2,2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
@@ -526,14 +526,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with minimum and lower maximum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(-2,3)" maxima="(2,2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(3, 1e-12);
@@ -548,14 +548,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with minimum and lower extremum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(-2,3)" extrema="(2,2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(3, 1e-12);
@@ -567,14 +567,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with extremum and lower maximum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function extrema="(-2,3)" maxima="(2,2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(3, 1e-12);
@@ -586,7 +586,7 @@ describe("Function tag tests", async () => {
     });
 
     it("functions with copied extrema that overwrite attributes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <extremum name="ex1" location="3" value="-2" />
     <extremum extend="$ex1" location="5" name="ex2" />
@@ -600,7 +600,7 @@ describe("Function tag tests", async () => {
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(3)).closeTo(-2, 1e-12);
@@ -611,7 +611,7 @@ describe("Function tag tests", async () => {
         expect(f(6)).closeTo(-3, 1e-12);
 
         let g =
-            await core.core!.components![resolveComponentName("g")].state
+            await core.core!.components![await resolvePathToNodeIdx("g")].state
                 .numericalf.value;
 
         expect(g(3)).closeTo(2, 1e-12);
@@ -623,7 +623,7 @@ describe("Function tag tests", async () => {
     });
 
     it("copy function and overwrite extrema", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function minima="(2,3)" maxima="(4,4)" name="f" />
       <function extend="$f" maxima="(0,4)" name="g" styleNumber="2" />
@@ -632,7 +632,7 @@ describe("Function tag tests", async () => {
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(2)).closeTo(3, 1e-12);
@@ -643,7 +643,7 @@ describe("Function tag tests", async () => {
         expect(f(5)).closeTo(3, 1e-12);
 
         let g =
-            await core.core!.components![resolveComponentName("g")].state
+            await core.core!.components![await resolvePathToNodeIdx("g")].state
                 .numericalf.value;
 
         expect(g(0)).closeTo(4, 1e-12);
@@ -654,7 +654,7 @@ describe("Function tag tests", async () => {
         expect(g(3)).closeTo(4, 1e-12);
 
         let h =
-            await core.core!.components![resolveComponentName("h")].state
+            await core.core!.components![await resolvePathToNodeIdx("h")].state
                 .numericalf.value;
 
         expect(h(4)).closeTo(4, 1e-12);
@@ -666,14 +666,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with maximum through points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function maxima="(-2,2)" through="(-5,0) (-6,-1) (0, 0) (1, 0)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-2)).closeTo(2, 1e-12);
@@ -694,14 +694,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single through point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function through="(-6,-1)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -711,14 +711,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single through point with slope", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function through="(-6,-1)" throughSlopes="3" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -728,7 +728,7 @@ describe("Function tag tests", async () => {
     });
 
     it("function with single through point with dynamic slope", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>slope: <mathInput name="mi" /></p>
     <function throughSlopes="$mi" through="(-6,-1)" name="f" />
@@ -736,7 +736,7 @@ describe("Function tag tests", async () => {
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -746,11 +746,11 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -760,11 +760,11 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -774,11 +774,11 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -788,7 +788,7 @@ describe("Function tag tests", async () => {
     });
 
     it("function with two through points with dynamic slope", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>slope: <mathInput name="mi" /></p>
     <function throughSlopes="$mi $mi" through="(-6,-1) (3,8)" name="f" />
@@ -798,7 +798,7 @@ describe("Function tag tests", async () => {
         // with undefined slope, get line through points
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -808,11 +808,11 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6 - 0.01)).closeTo(-1 - 0.01 * 2, 1e-3);
@@ -829,11 +829,11 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6 - 0.01)).closeTo(-1 - 0.01 * -3, 1e-3);
@@ -850,11 +850,11 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -864,14 +864,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function through three points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function through="(0,2) (2,1) (3,2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
@@ -889,7 +889,7 @@ describe("Function tag tests", async () => {
     });
 
     it("function through three points, label with math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function through="(0,2) (2,1) (3,2)" name="f" >
       <label><m>\\int f</m></label>
@@ -899,7 +899,7 @@ describe("Function tag tests", async () => {
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
@@ -916,13 +916,13 @@ describe("Function tag tests", async () => {
         expect(f(-4)).closeTo(2 - slope * 4, 1e-12);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("f")].stateValues.label).eq(
-            "\\(\\int f\\)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.label,
+        ).eq("\\(\\int f\\)");
     });
 
     it("function through three points with slopes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point>(2,1)</point>
     <function through="(0,2) (2,1) (3,2)" throughSlopes="0.5 2 -1" name="f" />
@@ -930,7 +930,7 @@ describe("Function tag tests", async () => {
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(-0.01)).closeTo(2 - 0.01 * 0.5, 1e-3);
@@ -957,14 +957,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with conflicting points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function through="(0,2) (2,1) (2,2)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         expect(f(0)).eqls(NaN);
@@ -988,14 +988,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with non-numerical points and slope", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function through="(1,2) (a,b)" extrema="(5,6) (2,a)" maxima="(c,3)" minima="(d,e)" throughSlopes="5a" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         let fleft = (x) => 6 - (x - 5) ** 2 / 4;
@@ -1058,14 +1058,14 @@ describe("Function tag tests", async () => {
     });
 
     it("function with empty maximum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function maxima="(,)" minima="(4,)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         let factual = (x) => (x - 4) ** 2;
@@ -1091,7 +1091,7 @@ describe("Function tag tests", async () => {
     });
 
     it("copy function and overwrite through points and slopes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function through="(0,2) (2,1) (3,2)" name="f" styleNumber="1" />
     <function extend="$f" through="(1,5) (4,2)" name="g" styleNumber="2" />
@@ -1101,7 +1101,7 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let f = createFunctionFromDefinition(
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .fDefinitions[0],
         );
         expect(f(0)).closeTo(2, 1e-12);
@@ -1118,7 +1118,7 @@ describe("Function tag tests", async () => {
         expect(f(-4)).closeTo(2 - slope * 4, 1e-12);
 
         let g = createFunctionFromDefinition(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .fDefinitions[0],
         );
         expect(g(1)).closeTo(5, 1e-12);
@@ -1133,7 +1133,7 @@ describe("Function tag tests", async () => {
         expect(g(-2)).closeTo(5 + slope * -3, 1e-12);
 
         let h = createFunctionFromDefinition(
-            stateVariables[resolveComponentName("h")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .fDefinitions[0],
         );
         expect(h(0)).closeTo(2, 1e-12);
@@ -1155,14 +1155,14 @@ describe("Function tag tests", async () => {
     });
 
     it("check monotonicity", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function through="(-5,0) (-4,0.1) (-3,0.3) (-2,3) (-1,3.1) (0,3.2) (1,5)" maxima="(6,6)" name="f" />
    `,
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         for (let x = -5; x <= 6; x += 0.1) {
@@ -1181,7 +1181,7 @@ describe("Function tag tests", async () => {
     });
 
     it("point constrained to function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function maxima="(5,6)" through="(0,5) (8,4)" name="f" />
 
@@ -1196,7 +1196,7 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let p = stateVariables[resolveComponentName("P")];
+        let p = stateVariables[await resolvePathToNodeIdx("P")];
 
         let x = constantFromAst(p.stateValues.xs[0]);
         let y = constantFromAst(p.stateValues.xs[1]);
@@ -1204,7 +1204,7 @@ describe("Function tag tests", async () => {
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8,
             y: 8,
             core,
@@ -1212,7 +1212,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         // @ts-ignore
         x = constantFromAst(p.stateValues.xs[0]);
@@ -1222,7 +1222,7 @@ describe("Function tag tests", async () => {
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8,
             y: 8,
             core,
@@ -1230,7 +1230,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         // @ts-ignore
         x = constantFromAst(p.stateValues.xs[0]);
@@ -1241,7 +1241,7 @@ describe("Function tag tests", async () => {
     });
 
     it("point constrained to function, symbolic initial x", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">x^2</function>
     <point x="sqrt(2)" y="1" name="P">
@@ -1257,7 +1257,7 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let p = stateVariables[resolveComponentName("P")];
+        let p = stateVariables[await resolvePathToNodeIdx("P")];
 
         expect(constantFromAst(p.stateValues.xs[0])).closeTo(
             Math.sqrt(2),
@@ -1266,7 +1266,7 @@ describe("Function tag tests", async () => {
         expect(constantFromAst(p.stateValues.xs[1])).closeTo(2, 1e-6);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -2,
             y: 2,
             core,
@@ -1274,14 +1274,14 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         expect(constantFromAst(p.stateValues.xs[0])).closeTo(-2, 1e-6);
         expect(constantFromAst(p.stateValues.xs[1])).closeTo(4, 1e-6);
     });
 
     it("point constrained to function, restrict to closed domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function maxima="(5,6)" through="(0,5) (8,4)" domain="[-4,7]" name="f" />
 
@@ -1296,7 +1296,7 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let p = stateVariables[resolveComponentName("P")];
+        let p = stateVariables[await resolvePathToNodeIdx("P")];
 
         let x = constantFromAst(p.stateValues.xs[0]);
         let y = constantFromAst(p.stateValues.xs[1]);
@@ -1305,7 +1305,7 @@ describe("Function tag tests", async () => {
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8,
             y: 8,
             core,
@@ -1313,7 +1313,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1322,7 +1322,7 @@ describe("Function tag tests", async () => {
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 6,
             y: 8,
             core,
@@ -1330,7 +1330,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1339,7 +1339,7 @@ describe("Function tag tests", async () => {
         expect(6 - (x - 5) * (x - 5) * (2 / 9)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8,
             y: -4,
             core,
@@ -1347,7 +1347,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1357,7 +1357,7 @@ describe("Function tag tests", async () => {
     });
 
     it("point constrained to function, restrict to open domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function maxima="(5,6)" through="(0,5) (8,4)" domain="(-4,7)" name="f" />
 
@@ -1372,7 +1372,7 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let p = stateVariables[resolveComponentName("P")];
+        let p = stateVariables[await resolvePathToNodeIdx("P")];
 
         let x = constantFromAst(p.stateValues.xs[0]);
         let y = constantFromAst(p.stateValues.xs[1]);
@@ -1381,7 +1381,7 @@ describe("Function tag tests", async () => {
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8,
             y: 8,
             core,
@@ -1389,7 +1389,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1399,7 +1399,7 @@ describe("Function tag tests", async () => {
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 6,
             y: 8,
             core,
@@ -1407,7 +1407,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1416,7 +1416,7 @@ describe("Function tag tests", async () => {
         expect(6 - (x - 5) * (x - 5) * (2 / 9)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8,
             y: -4,
             core,
@@ -1424,7 +1424,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1436,18 +1436,18 @@ describe("Function tag tests", async () => {
 
     async function test_point_constrained_function_implicit_domain(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let f = (x) => Math.sqrt(x) * Math.sqrt(5 - x);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let p = stateVariables[resolveComponentName("P")];
+        let p = stateVariables[await resolvePathToNodeIdx("P")];
         expect(constantFromAst(p.stateValues.xs[0])).closeTo(1, 1e-6);
         expect(constantFromAst(p.stateValues.xs[1])).closeTo(f(1), 1e-6);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: 8,
             core,
@@ -1455,7 +1455,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         let x = constantFromAst(p.stateValues.xs[0]);
         let y = constantFromAst(p.stateValues.xs[1]);
@@ -1463,7 +1463,7 @@ describe("Function tag tests", async () => {
         expect(y).closeTo(f(x), 1e-6);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 6,
             y: 8,
             core,
@@ -1471,7 +1471,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1479,7 +1479,7 @@ describe("Function tag tests", async () => {
         expect(y).closeTo(f(x), 1e-6);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8,
             y: -4,
             core,
@@ -1487,7 +1487,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1495,7 +1495,7 @@ describe("Function tag tests", async () => {
         expect(y).closeTo(f(x), 1e-6);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -6,
             core,
@@ -1503,7 +1503,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1512,7 +1512,7 @@ describe("Function tag tests", async () => {
     }
 
     it("point constrained to function with restricted domain, not explicit", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">sqrt(x)sqrt(5-x)</function>
     <point x="1" y="2" name="P">
@@ -1527,12 +1527,12 @@ describe("Function tag tests", async () => {
 
         await test_point_constrained_function_implicit_domain(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     });
 
     it("point constrained to function with restricted domain in graph, not explicit", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <function name="f">sqrt(x)sqrt(5-x)</function>
@@ -1549,25 +1549,26 @@ describe("Function tag tests", async () => {
 
         await test_point_constrained_function_implicit_domain(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     });
 
     async function test_function_3_over_exp(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(1);
 
         const numericalf =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
         const symbolicf = (
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .symbolicfs.value
         )[0];
 
@@ -1586,15 +1587,15 @@ describe("Function tag tests", async () => {
         expect(
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("fz")].stateValues.value
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("fz")].stateValues
+                        .value.tree,
                 )
                 .equals(me.fromText("3/(1+e^(-z/2))")),
         ).eq(true);
     }
 
     it("function determined by formula via sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
     3/(1+e^(-x/2))
@@ -1605,11 +1606,11 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_3_over_exp(core, resolveComponentName);
+        await test_function_3_over_exp(core, resolvePathToNodeIdx);
     });
 
     it("function determined by formula via sugar, label with math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
     3/(1+e^(-x/2))
@@ -1620,17 +1621,17 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_3_over_exp(core, resolveComponentName);
+        await test_function_3_over_exp(core, resolvePathToNodeIdx);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("f")].stateValues.label).eq(
-            "Hello \\(\\frac{3}{1 + e^{-\\frac{x}{2}}}\\)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.label,
+        ).eq("Hello \\(\\frac{3}{1 + e^{-\\frac{x}{2}}}\\)");
     });
 
     it("function determined by formula via sugar, with strings and macros", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
     $a/(1+e^(-x/$b))
@@ -1642,11 +1643,11 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_3_over_exp(core, resolveComponentName);
+        await test_function_3_over_exp(core, resolvePathToNodeIdx);
     });
 
     it("function determined by formula via sugar, with strings and maths", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
     <number>3</number>/(1+e^(-x/<math>2</math>))
@@ -1656,11 +1657,11 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_3_over_exp(core, resolveComponentName);
+        await test_function_3_over_exp(core, resolvePathToNodeIdx);
     });
 
     it("function determined by math formula", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f"><math>3/(1+e^(-x/2))</math></function>
 
@@ -1668,11 +1669,11 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_3_over_exp(core, resolveComponentName);
+        await test_function_3_over_exp(core, resolvePathToNodeIdx);
     });
 
     it("function determined by math formula, label with math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
       <label>Hello $f.formula</label>
@@ -1683,17 +1684,17 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_3_over_exp(core, resolveComponentName);
+        await test_function_3_over_exp(core, resolvePathToNodeIdx);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("f")].stateValues.label).eq(
-            "Hello \\(\\frac{3}{1 + e^{-\\frac{x}{2}}}\\)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.label,
+        ).eq("Hello \\(\\frac{3}{1 + e^{-\\frac{x}{2}}}\\)");
     });
 
     it("function determined by math formula, with macros", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
     <math>$a/(1+e^(-x/$b))</math>
@@ -1705,18 +1706,18 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_3_over_exp(core, resolveComponentName);
+        await test_function_3_over_exp(core, resolvePathToNodeIdx);
     });
 
     async function test_function_squared_time_sin(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const numericalf =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
         const symbolicf = (
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .symbolicfs.value
         )[0];
 
@@ -1746,7 +1747,7 @@ describe("Function tag tests", async () => {
     }
 
     it("function determined by sugar formula in different variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variables="q" name="f">
       q^2 sin(pi q/2)/100
@@ -1755,11 +1756,11 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_squared_time_sin(core, resolveComponentName);
+        await test_function_squared_time_sin(core, resolvePathToNodeIdx);
     });
 
     it("function determined by sugar formula in different variable, with strings and macros", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variable="$var" name="f">
       $var^$c sin(pi $var/$c)/$d
@@ -1771,21 +1772,21 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_squared_time_sin(core, resolveComponentName);
+        await test_function_squared_time_sin(core, resolvePathToNodeIdx);
     });
 
     it("function determined by math formula in different variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function variables="q" name="f"><math>q^2 sin(pi q/2)/100</math></function>
     `,
         });
 
-        await test_function_squared_time_sin(core, resolveComponentName);
+        await test_function_squared_time_sin(core, resolvePathToNodeIdx);
     });
 
     it("function with empty variables attribute", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variables="" name="f">
       x^2 sin(pi x/2)/100
@@ -1793,11 +1794,11 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_squared_time_sin(core, resolveComponentName);
+        await test_function_squared_time_sin(core, resolvePathToNodeIdx);
     });
 
     it("function determined by function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variable="q" name="f0"><math>q^2 sin(pi q/2)/100</math></function>
     <function name="f">
@@ -1806,11 +1807,11 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_squared_time_sin(core, resolveComponentName);
+        await test_function_squared_time_sin(core, resolvePathToNodeIdx);
     });
 
     it("function determined by function, label with math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variables="q" name="f0"><math>q^2 sin(pi q/2)/100</math></function>
       <function name="f">
@@ -1820,12 +1821,12 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        await test_function_squared_time_sin(core, resolveComponentName);
+        await test_function_squared_time_sin(core, resolvePathToNodeIdx);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.label
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.label
                 .replaceAll("\\,", "")
                 .replaceAll(" ", ""),
         ).eq("\\(\\frac{q^{2}\\sin\\left(\\frac{\\piq}{2}\\right)}{100}\\)");
@@ -1864,7 +1865,7 @@ describe("Function tag tests", async () => {
     });
 
     it("point constrained to function in different variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variable="u" name="f">
       log(2u)
@@ -1880,7 +1881,7 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let p = stateVariables[resolveComponentName("P")];
+        let p = stateVariables[await resolvePathToNodeIdx("P")];
 
         let x = constantFromAst(p.stateValues.xs[0]);
         let y = constantFromAst(p.stateValues.xs[1]);
@@ -1888,7 +1889,7 @@ describe("Function tag tests", async () => {
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8,
             y: 8,
             core,
@@ -1896,7 +1897,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1904,7 +1905,7 @@ describe("Function tag tests", async () => {
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8,
             y: -8,
             core,
@@ -1912,7 +1913,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1921,7 +1922,7 @@ describe("Function tag tests", async () => {
     });
 
     it("point constrained to function in different variable, restrict left-open domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variables="u" domain="(0.1, 6]" name="f">
       log(2u)
@@ -1938,7 +1939,7 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let p = stateVariables[resolveComponentName("P")];
+        let p = stateVariables[await resolvePathToNodeIdx("P")];
 
         let x = constantFromAst(p.stateValues.xs[0]);
         let y = constantFromAst(p.stateValues.xs[1]);
@@ -1948,7 +1949,7 @@ describe("Function tag tests", async () => {
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 6,
             core,
@@ -1956,7 +1957,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1965,7 +1966,7 @@ describe("Function tag tests", async () => {
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8,
             y: 8,
             core,
@@ -1973,7 +1974,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -1982,7 +1983,7 @@ describe("Function tag tests", async () => {
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8,
             y: -8,
             core,
@@ -1990,7 +1991,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -2001,7 +2002,7 @@ describe("Function tag tests", async () => {
     });
 
     it("point constrained to function in different variable, restrict right-open domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variable="u" domain="[0.1, 6)" name="f">
       log(2u)
@@ -2018,7 +2019,7 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let p = stateVariables[resolveComponentName("P")];
+        let p = stateVariables[await resolvePathToNodeIdx("P")];
 
         let x = constantFromAst(p.stateValues.xs[0]);
         let y = constantFromAst(p.stateValues.xs[1]);
@@ -2027,7 +2028,7 @@ describe("Function tag tests", async () => {
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 6,
             core,
@@ -2035,7 +2036,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -2044,7 +2045,7 @@ describe("Function tag tests", async () => {
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 8,
             y: 8,
             core,
@@ -2052,7 +2053,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -2062,7 +2063,7 @@ describe("Function tag tests", async () => {
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -8,
             y: -8,
             core,
@@ -2070,7 +2071,7 @@ describe("Function tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        p = stateVariables[resolveComponentName("P")];
+        p = stateVariables[await resolvePathToNodeIdx("P")];
 
         x = constantFromAst(p.stateValues.xs[0]);
         y = constantFromAst(p.stateValues.xs[1]);
@@ -2081,7 +2082,7 @@ describe("Function tag tests", async () => {
 
     async function check_extrema({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         maxima,
         minima,
         haveGlobalMax = false,
@@ -2095,7 +2096,7 @@ describe("Function tag tests", async () => {
         fName = "f",
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         maxima: number[][];
         minima: number[][];
         haveGlobalMax?: boolean;
@@ -2111,7 +2112,8 @@ describe("Function tag tests", async () => {
         const extrema = [...maxima, ...minima].sort((a, b) => a[0] - b[0]);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const fState = stateVariables[resolveComponentName(fName)].stateValues;
+        const fState =
+            stateVariables[await resolvePathToNodeIdx(fName)].stateValues;
 
         expect(fState.numMaxima).eq(maxima.length);
         let foundMaxima = fState.maxima;
@@ -2207,7 +2209,7 @@ describe("Function tag tests", async () => {
     }
 
     it("calculated extrema from spline", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="P1">(0.7, 5.43)</point>
     <point name="P2">(3,4)</point>
@@ -2219,7 +2221,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-2.15, 7],
                 [5, 6],
@@ -2233,7 +2235,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 2,
             y: 2,
             core,
@@ -2241,7 +2243,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1.5, 7],
                 [5, 6],
@@ -2255,7 +2257,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 3.6,
             y: 5.1,
             core,
@@ -2263,7 +2265,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1, 7],
                 [3.6, 5.1],
@@ -2279,7 +2281,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 8,
             y: 9,
             core,
@@ -2287,7 +2289,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1, 7],
                 [5, 6],
@@ -2303,7 +2305,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 5,
             y: 2,
             core,
@@ -2311,13 +2313,13 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -9,
             y: 0,
             core,
@@ -2325,7 +2327,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-7, 7],
                 [-1, 7],
@@ -2341,7 +2343,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P4"),
+            componentIdx: await resolvePathToNodeIdx("P4"),
             x: 8,
             y: 3,
             core,
@@ -2349,7 +2351,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[5, 6]],
             minima: [[8, 3]],
             globalsup: Infinity,
@@ -2358,7 +2360,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P4"),
+            componentIdx: await resolvePathToNodeIdx("P4"),
             x: 8,
             y: 6,
             core,
@@ -2366,7 +2368,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [5, 6],
                 [7, 7],
@@ -2382,7 +2384,7 @@ describe("Function tag tests", async () => {
     });
 
     it("calculated extrema from spline, restrict to right-open domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>xmin = <mathInput name="xmin" prefill="-4" />
     xmax = <mathInput name="xmax" prefill="7" /></p>
@@ -2396,7 +2398,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-2.15, 7],
                 [5, 6],
@@ -2409,18 +2411,18 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-2",
-            componentIdx: resolveComponentName("xmin"),
+            componentIdx: await resolvePathToNodeIdx("xmin"),
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("xmax"),
+            componentIdx: await resolvePathToNodeIdx("xmax"),
             core,
         });
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [[3, 4]],
             globalsup: 6.9918,
@@ -2430,7 +2432,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 2,
             y: 2,
             core,
@@ -2438,7 +2440,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[-1.5, 7]],
             minima: [[2, 2]],
             globalsup: 7,
@@ -2449,18 +2451,18 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-6",
-            componentIdx: resolveComponentName("xmin"),
+            componentIdx: await resolvePathToNodeIdx("xmin"),
             core,
         });
         await updateMathInputValue({
             latex: "8",
-            componentIdx: resolveComponentName("xmax"),
+            componentIdx: await resolvePathToNodeIdx("xmax"),
             core,
         });
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1.5, 7],
                 [5, 6],
@@ -2475,7 +2477,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 3.6,
             y: 5.1,
             core,
@@ -2483,7 +2485,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1, 7],
                 [3.6, 5.1],
@@ -2501,18 +2503,18 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("xmin"),
+            componentIdx: await resolvePathToNodeIdx("xmin"),
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("xmax"),
+            componentIdx: await resolvePathToNodeIdx("xmax"),
             core,
         });
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1, 7],
                 [3.6, 5.1],
@@ -2526,7 +2528,7 @@ describe("Function tag tests", async () => {
     });
 
     it("calculated extrema from spline, restrict to left-open domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>xmin = <mathInput name="xmin" prefill="-4" />
     xmax = <mathInput name="xmax" prefill="7" /></p>
@@ -2540,7 +2542,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-2.15, 7],
                 [5, 6],
@@ -2554,18 +2556,18 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-2",
-            componentIdx: resolveComponentName("xmin"),
+            componentIdx: await resolvePathToNodeIdx("xmin"),
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("xmax"),
+            componentIdx: await resolvePathToNodeIdx("xmax"),
             core,
         });
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [[3, 4]],
             globalsup: 6.9918,
@@ -2574,7 +2576,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 2,
             y: 2,
             core,
@@ -2582,7 +2584,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[-1.5, 7]],
             minima: [[2, 2]],
             globalsup: 7,
@@ -2593,18 +2595,18 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-6",
-            componentIdx: resolveComponentName("xmin"),
+            componentIdx: await resolvePathToNodeIdx("xmin"),
             core,
         });
         await updateMathInputValue({
             latex: "8",
-            componentIdx: resolveComponentName("xmax"),
+            componentIdx: await resolvePathToNodeIdx("xmax"),
             core,
         });
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1.5, 7],
                 [5, 6],
@@ -2620,7 +2622,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 3.6,
             y: 5.1,
             core,
@@ -2628,7 +2630,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1, 7],
                 [3.6, 5.1],
@@ -2647,18 +2649,18 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("xmin"),
+            componentIdx: await resolvePathToNodeIdx("xmin"),
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("xmax"),
+            componentIdx: await resolvePathToNodeIdx("xmax"),
             core,
         });
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[3.6, 5.1]],
             minima: [[3, 4]],
             globalsup: 7,
@@ -2668,7 +2670,7 @@ describe("Function tag tests", async () => {
     });
 
     it("calculated extrema from spline, restrict domain, just through points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="P1">(0, 0)</point>
     <point name="P2">(2, -1.8)</point>
@@ -2684,7 +2686,7 @@ describe("Function tag tests", async () => {
         // check for bug where this stopped looking for minima
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [[5, -4]],
             globalsup: 2.3333,
@@ -2697,19 +2699,19 @@ describe("Function tag tests", async () => {
         // check for bug where this stopped looking for minima
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 0,
             y: -0.35,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 1.8,
             y: -1.36,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P5"),
+            componentIdx: await resolvePathToNodeIdx("P5"),
             x: 1,
             y: -0.866,
             core,
@@ -2717,7 +2719,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [[5, -4]],
             globalsup: 12,
@@ -2730,25 +2732,25 @@ describe("Function tag tests", async () => {
         // check for bug where this stopped looking for maxima
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 0,
             y: 0,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 2,
             y: 1.8,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x: 5,
             y: 4,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P5"),
+            componentIdx: await resolvePathToNodeIdx("P5"),
             x: 8,
             y: -1,
             core,
@@ -2756,7 +2758,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[5, 4]],
             minima: [],
             globalsup: 4,
@@ -2769,19 +2771,19 @@ describe("Function tag tests", async () => {
         // check for bug where this stopped looking for maximum
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 0,
             y: 0.35,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 1.8,
             y: 1.36,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P5"),
+            componentIdx: await resolvePathToNodeIdx("P5"),
             x: 1,
             y: 0.866,
             core,
@@ -2789,7 +2791,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[5, 4]],
             minima: [],
             globalsup: 4,
@@ -2799,7 +2801,7 @@ describe("Function tag tests", async () => {
     });
 
     it("calculated extrema from gaussians", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="P1">(0, 1)</point>
     <point name="P2">(3, 1)</point>
@@ -2809,7 +2811,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [0, 1],
                 [3, 1],
@@ -2822,7 +2824,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 3,
             y: -1,
             core,
@@ -2830,7 +2832,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[0, 1]],
             minima: [[3, -1]],
             globalsup: 1,
@@ -2840,7 +2842,7 @@ describe("Function tag tests", async () => {
         });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 0,
             y: -1,
             core,
@@ -2848,7 +2850,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[1.5, -0.21]],
             minima: [
                 [0, -1],
@@ -2862,7 +2864,7 @@ describe("Function tag tests", async () => {
     });
 
     it("calculated extrema from sinusoid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     Period: <mathInput name="period" />
     <function name="f">sin(2*pi*x/$period)</function>
@@ -2887,7 +2889,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
         });
@@ -2895,7 +2897,7 @@ describe("Function tag tests", async () => {
         let period = 10;
         await updateMathInputValue({
             latex: `${period}`,
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
 
@@ -2903,7 +2905,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: extrema.maxima,
             minima: extrema.minima,
             globalsup: 1,
@@ -2915,7 +2917,7 @@ describe("Function tag tests", async () => {
         period = 5;
         await updateMathInputValue({
             latex: `${period}`,
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
 
@@ -2923,7 +2925,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: extrema.maxima,
             minima: extrema.minima,
             haveGlobalMax: true,
@@ -2934,7 +2936,7 @@ describe("Function tag tests", async () => {
     });
 
     it("calculated extrema from sinusoid, restrict domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     Period: <mathInput name="period" />
     xmin = <mathInput name="xmin" prefill="-10" />
@@ -2968,7 +2970,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
         });
@@ -2976,7 +2978,7 @@ describe("Function tag tests", async () => {
         let period = 10;
         await updateMathInputValue({
             latex: `${period}`,
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
 
@@ -2984,7 +2986,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: extrema.maxima,
             minima: extrema.minima,
             globalsup: 1,
@@ -2997,19 +2999,19 @@ describe("Function tag tests", async () => {
         xmax = 25;
         await updateMathInputValue({
             latex: `${xmin}`,
-            componentIdx: resolveComponentName("xmin"),
+            componentIdx: await resolvePathToNodeIdx("xmin"),
             core,
         });
         await updateMathInputValue({
             latex: `${xmax}`,
-            componentIdx: resolveComponentName("xmax"),
+            componentIdx: await resolvePathToNodeIdx("xmax"),
             core,
         });
 
         extrema = calc_extrema(period, xmin, xmax);
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: extrema.maxima,
             minima: extrema.minima,
             globalsup: 1,
@@ -3021,14 +3023,14 @@ describe("Function tag tests", async () => {
         period = 5;
         await updateMathInputValue({
             latex: `${period}`,
-            componentIdx: resolveComponentName("period"),
+            componentIdx: await resolvePathToNodeIdx("period"),
             core,
         });
 
         extrema = calc_extrema(period, xmin, xmax);
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: extrema.maxima,
             minima: extrema.minima,
             globalsup: 1,
@@ -3041,19 +3043,19 @@ describe("Function tag tests", async () => {
         xmax = 9;
         await updateMathInputValue({
             latex: `${xmin}`,
-            componentIdx: resolveComponentName("xmin"),
+            componentIdx: await resolvePathToNodeIdx("xmin"),
             core,
         });
         await updateMathInputValue({
             latex: `${xmax}`,
-            componentIdx: resolveComponentName("xmax"),
+            componentIdx: await resolvePathToNodeIdx("xmax"),
             core,
         });
 
         extrema = calc_extrema(period, xmin, xmax);
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: extrema.maxima,
             minima: extrema.minima,
             globalsup: 1,
@@ -3064,7 +3066,7 @@ describe("Function tag tests", async () => {
     });
 
     it("no extrema with horizontal asymptote", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
       1/(1+exp(-10*x))
@@ -3074,7 +3076,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: 1,
@@ -3085,7 +3087,7 @@ describe("Function tag tests", async () => {
     });
 
     it("extrema of rational function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
       (x+8)(x-8)/((x-2)(x+4)(x-5)^2)
@@ -3094,7 +3096,7 @@ describe("Function tag tests", async () => {
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         // values of extrema computed in Sage
@@ -3107,7 +3109,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalsupLargerThan: 1e5,
@@ -3118,7 +3120,7 @@ describe("Function tag tests", async () => {
     });
 
     it("intervals of extrema are not counted", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" through="(-8,7) (-7,2) (-6,2) (-4,3) (-2,5) (8,5) (10,4)" />
     <function name="f2" styleNumber="2" through="(-8,2) (-7,2) (-6,2) (-4,3) (-2,5) (2,5) (6,4) (8,4)" />
@@ -3130,12 +3132,12 @@ describe("Function tag tests", async () => {
         });
 
         let f4 =
-            await core.core!.components![resolveComponentName("f4")].state
+            await core.core!.components![await resolvePathToNodeIdx("f4")].state
                 .numericalf.value;
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: Infinity,
@@ -3146,7 +3148,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: 5,
@@ -3159,7 +3161,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: 5,
@@ -3172,7 +3174,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: f4(-9, true),
@@ -3183,7 +3185,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: 5,
@@ -3196,7 +3198,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: 7,
@@ -3210,7 +3212,7 @@ describe("Function tag tests", async () => {
     });
 
     it("extrema of function with restricted domain, not explicit", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">
       log(x^2-1)*sqrt((x-5)^2-1)
@@ -3219,17 +3221,17 @@ describe("Function tag tests", async () => {
         });
 
         let f =
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .numericalf.value;
 
         let calculatedMinLocation = (
-            await core.core!.components![resolveComponentName("f")].state
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
                 .globalMinimum.value
         )[0];
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[2.614, 3.82]],
             minima: [],
             globalsup: f(-100),
@@ -3241,7 +3243,7 @@ describe("Function tag tests", async () => {
     });
 
     it("extrema in flat regions of functions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1">2-(x-1.0131)^10</function>
     <function name="f2">3+(x+pi)^20</function>
@@ -3250,15 +3252,15 @@ describe("Function tag tests", async () => {
         });
 
         let f1 =
-            await core.core!.components![resolveComponentName("f1")].state
+            await core.core!.components![await resolvePathToNodeIdx("f1")].state
                 .numericalf.value;
         let f2 =
-            await core.core!.components![resolveComponentName("f2")].state
+            await core.core!.components![await resolvePathToNodeIdx("f2")].state
                 .numericalf.value;
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[1.0131, 2]],
             minima: [],
             globalsup: 2,
@@ -3270,7 +3272,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [[-Math.PI, 3]],
             globalsup: f2(100),
@@ -3282,7 +3284,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [(5 * Math.PI) / 6, -5],
                 [(9 * Math.PI) / 6, -5],
@@ -3302,7 +3304,7 @@ describe("Function tag tests", async () => {
     });
 
     it("global extrema, in flat regions too flat for local extrema", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1">2-(x-1.0131)^100</function>
     <function name="f2">3+(x+pi)^200</function>
@@ -3311,12 +3313,12 @@ describe("Function tag tests", async () => {
         });
 
         let f1 =
-            await core.core!.components![resolveComponentName("f1")].state
+            await core.core!.components![await resolvePathToNodeIdx("f1")].state
                 .numericalf.value;
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: 2,
@@ -3326,13 +3328,13 @@ describe("Function tag tests", async () => {
             fName: "f1",
         });
         expect(
-            core.core!.components![resolveComponentName("f1")].stateValues
+            core.core!.components![await resolvePathToNodeIdx("f1")].stateValues
                 .globalMaximum[0],
         ).within(0.0131, 2.0131);
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: Infinity,
@@ -3341,12 +3343,12 @@ describe("Function tag tests", async () => {
             fName: "f2",
         });
         expect(
-            core.core!.components![resolveComponentName("f2")].stateValues
+            core.core!.components![await resolvePathToNodeIdx("f2")].stateValues
                 .globalMinimum[0],
         ).within(-Math.PI - 1, -Math.PI + 1);
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [],
             minima: [],
             globalsup: -5,
@@ -3356,17 +3358,17 @@ describe("Function tag tests", async () => {
             fName: "f3",
         });
         expect(
-            core.core!.components![resolveComponentName("f3")].stateValues
+            core.core!.components![await resolvePathToNodeIdx("f3")].stateValues
                 .globalMaximum[0],
         ).within(1, Math.PI / 3);
         expect(
-            core.core!.components![resolveComponentName("f3")].stateValues
+            core.core!.components![await resolvePathToNodeIdx("f3")].stateValues
                 .globalMinimum[0],
         ).within(Math.PI / 3, (2 * Math.PI) / 3);
     });
 
     it("extrema at domain endpoints, function from formula", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f1" domain="(-pi,2pi)">cos(x)</function>
       <function name="f2" domain="[-pi,2pi]">cos(x)+1</function>
@@ -3391,7 +3393,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[0, 1]],
             minima: [[Math.PI, -1]],
             globalsup: 1,
@@ -3403,7 +3405,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [0, 2],
                 [2 * Math.PI, 2],
@@ -3421,7 +3423,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[0.5 * Math.PI, 3]],
             minima: [
                 [-0.5 * Math.PI, 1],
@@ -3436,7 +3438,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1.5 * Math.PI, 4],
                 [0.5 * Math.PI, 4],
@@ -3451,7 +3453,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[0, 1]],
             minima: [[Math.PI, -1]],
             globalsup: 1,
@@ -3463,7 +3465,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[0.5 * Math.PI, 3]],
             minima: [
                 [-0.5 * Math.PI, 1],
@@ -3478,7 +3480,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-1.5 * Math.PI, 4],
                 [0.5 * Math.PI, 4],
@@ -3493,7 +3495,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[2 * Math.PI, 1]],
             minima: [[Math.PI, -1]],
             globalsup: 1,
@@ -3505,7 +3507,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [0, 2],
                 [2 * Math.PI, 2],
@@ -3523,7 +3525,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [Math.PI, 5],
                 [3 * Math.PI, 5],
@@ -3538,7 +3540,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[Math.PI, 6]],
             minima: [
                 [0, 4],
@@ -3553,7 +3555,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[-2 * Math.PI, 1]],
             minima: [[-Math.PI, -1]],
             globalsup: 1,
@@ -3565,7 +3567,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-2 * Math.PI, 2],
                 [0, 2],
@@ -3583,7 +3585,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[-Math.PI, 5]],
             minima: [
                 [-2 * Math.PI, 3],
@@ -3598,7 +3600,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [-3 * Math.PI, 6],
                 [-1 * Math.PI, 6],
@@ -3616,7 +3618,7 @@ describe("Function tag tests", async () => {
     it.skip("extrema at domain endpoints, function from formula, unlinked copy", async () => {
         // Note: checking to see if rounding attributes are properly copied
         // for wrapped array state variables when link="false"
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" domain="(-pi,2pi)" displayDecimals="5" displaySmallAsZero="10^(-6)">cos(x)</function>
     <function name="f2" domain="[-pi,2pi]" displayDecimals="5" displaySmallAsZero="10^(-6)">cos(x)+1</function>
@@ -3632,38 +3634,38 @@ describe("Function tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1e[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f1e[1]")].stateValues
                     .latex,
             ),
         ).eq("(0,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1e[2]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f1e[2]")].stateValues
                     .latex,
             ),
         ).eq(`(${Math.round(Math.PI * 10 ** 5) / 10 ** 5},-1)`);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2e[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f2e[1]")].stateValues
                     .latex,
             ),
         ).eq(`(${Math.round(-Math.PI * 10 ** 5) / 10 ** 5},0)`);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2e[2]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f2e[2]")].stateValues
                     .latex,
             ),
         ).eq("(0,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2e[3]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f2e[3]")].stateValues
                     .latex,
             ),
         ).eq(`(${Math.round(Math.PI * 10 ** 5) / 10 ** 5},0)`);
     });
 
     it("extrema at domain endpoints, interpolated function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f1" domain="(-sqrt(2),sqrt(10))" maxima="(-sqrt(2),sqrt(3))" minima="(sqrt(10), sqrt(11))" displayDecimals="5"/>
       <function name="f2" domain="[-sqrt(2),sqrt(10)]" maxima="(-sqrt(2),sqrt(3)+1)" minima="(sqrt(10), sqrt(11)+1)" displayDecimals="5"/>
@@ -3689,7 +3691,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[extremax1[2], Math.sqrt(11) + 1]],
             minima: [[extremax1[1], Math.sqrt(3) - 1]],
             globalsup: Math.sqrt(11) + 1,
@@ -3700,7 +3702,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [extremax1[0], Math.sqrt(3) + 1],
                 [extremax1[2], Math.sqrt(11) + 2],
@@ -3717,7 +3719,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[extremax1[2], Math.sqrt(11) + 3]],
             minima: [[extremax1[1], Math.sqrt(3) + 1]],
             globalsup: Math.sqrt(11) + 3,
@@ -3728,7 +3730,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[extremax2[2], Math.sqrt(11) + 1]],
             minima: [[extremax2[1], Math.sqrt(3) - 1]],
             globalsup: Math.sqrt(11) + 1,
@@ -3739,7 +3741,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [extremax2[0], Math.sqrt(3) + 1],
                 [extremax2[2], Math.sqrt(11) + 2],
@@ -3756,7 +3758,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[extremax2[2], Math.sqrt(11) + 3]],
             minima: [[extremax2[1], Math.sqrt(3) + 1]],
             globalsup: Math.sqrt(11) + 3,
@@ -3767,7 +3769,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[extremax3[2], Math.sqrt(11) + 1]],
             minima: [[extremax3[1], Math.sqrt(3) - 1]],
             globalsup: Math.sqrt(11) + 1,
@@ -3778,7 +3780,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [
                 [extremax3[0], Math.sqrt(3) + 1],
                 [extremax3[2], Math.sqrt(11) + 2],
@@ -3795,7 +3797,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima: [[extremax3[2], Math.sqrt(11) + 3]],
             minima: [[extremax3[1], Math.sqrt(3) + 1]],
             globalsup: Math.sqrt(11) + 3,
@@ -3807,7 +3809,7 @@ describe("Function tag tests", async () => {
     });
 
     it("two functions with mutual dependence", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="P1">(1,2)</point>
     <point name="P2">(3,4)</point>
@@ -3833,8 +3835,10 @@ describe("Function tag tests", async () => {
                 true,
             );
 
-            let f1 = stateVariables[resolveComponentName("f1")].stateValues;
-            let f2 = stateVariables[resolveComponentName("f2")].stateValues;
+            let f1 =
+                stateVariables[await resolvePathToNodeIdx("f1")].stateValues;
+            let f2 =
+                stateVariables[await resolvePathToNodeIdx("f2")].stateValues;
 
             expect(f1.numMaxima).eq(1);
             expect(f1.numMinima).eq(2);
@@ -3853,7 +3857,7 @@ describe("Function tag tests", async () => {
         await check_items({ numMaxf2: 2, numMinf2: 1, maxf1: [2, 1] });
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: 2,
             y: 6,
             core,
@@ -3862,13 +3866,13 @@ describe("Function tag tests", async () => {
         await check_items({ numMaxf2: 1, numMinf2: 0, maxf1: [1, 0] });
 
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 3,
             y: 7,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x: 9,
             y: 0,
             core,
@@ -3878,7 +3882,7 @@ describe("Function tag tests", async () => {
     });
 
     it("shadowed works correctly with initially unresolved", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi1" />
     <mathInput name="mi2" />
@@ -3895,84 +3899,93 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "NaN",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "NaN",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("NaN");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("NaN");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                    .latex,
             ),
         ).eq("＿x^{3}+1");
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "1",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "1",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("1");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                    .latex,
             ),
         ).eq("2x^{3}+1");
 
         let f =
-            stateVariables[resolveComponentName("f1")].stateValues.numericalf;
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                .numericalf;
         expect(f(-2)).eq(2 * (-2) ** 3 + 1);
         let fa =
-            stateVariables[resolveComponentName("f1a")].stateValues.numericalf;
+            stateVariables[await resolvePathToNodeIdx("f1a")].stateValues
+                .numericalf;
         expect(fa(-2)).eq(2 * (-2) ** 3 + 1);
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "3",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "3",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("3");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                    .latex,
             ),
         ).eq("4x^{3}+1");
 
-        f = stateVariables[resolveComponentName("f1")].stateValues.numericalf;
+        f =
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                .numericalf;
         expect(f(-2)).eq(4 * (-2) ** 3 + 1);
-        fa = stateVariables[resolveComponentName("f1a")].stateValues.numericalf;
+        fa =
+            stateVariables[await resolvePathToNodeIdx("f1a")].stateValues
+                .numericalf;
         expect(fa(-2)).eq(4 * (-2) ** 3 + 1);
     });
 
     it("extrema of quartic, copied multiple times", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi1" prefill="1" />
     <mathInput name="mi2" prefill="0" />
@@ -3994,7 +4007,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalinf: minima[0][1],
@@ -4005,7 +4018,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalinf: minima[0][1],
@@ -4016,7 +4029,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalinf: minima[0][1],
@@ -4027,7 +4040,7 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
 
@@ -4039,7 +4052,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalinf: minima[0][1],
@@ -4050,7 +4063,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalinf: minima[0][1],
@@ -4061,7 +4074,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalinf: minima[0][1],
@@ -4072,7 +4085,7 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
@@ -4081,7 +4094,7 @@ describe("Function tag tests", async () => {
 
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalsup: maxima[0][1],
@@ -4091,7 +4104,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalsup: maxima[0][1],
@@ -4101,7 +4114,7 @@ describe("Function tag tests", async () => {
         });
         await check_extrema({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             maxima,
             minima,
             globalsup: maxima[0][1],
@@ -4112,7 +4125,7 @@ describe("Function tag tests", async () => {
     });
 
     it("function of function formula can redefine variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function variables="t" name="f" symbolic simplify="false">st^3</function>
 
@@ -4136,89 +4149,95 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .variables[0].tree,
         ).eq("t");
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .variables[0].tree,
         ).eq("t");
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
+                .variables[0].tree,
         ).eq("s");
         expect(
-            stateVariables[resolveComponentName("f4")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f4")].stateValues
+                .variables[0].tree,
         ).eq("t");
         expect(
-            stateVariables[resolveComponentName("f5")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5")].stateValues
+                .variables[0].tree,
         ).eq("t");
         expect(
-            stateVariables[resolveComponentName("f6")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f6")].stateValues
+                .variables[0].tree,
         ).eq("s");
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.formula.tree,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.formula
+                .tree,
         ).eqls(["*", "s", ["^", "t", 3]]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.formula.tree,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.formula
+                .tree,
         ).eqls(["*", "s", ["^", "t", 3]]);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.formula.tree,
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues.formula
+                .tree,
         ).eqls(["*", "s", ["^", "t", 3]]);
         expect(
-            stateVariables[resolveComponentName("f4")].stateValues.formula.tree,
+            stateVariables[await resolvePathToNodeIdx("f4")].stateValues.formula
+                .tree,
         ).eqls(["*", "s", ["^", "t", 3]]);
         expect(
-            stateVariables[resolveComponentName("f5")].stateValues.formula.tree,
+            stateVariables[await resolvePathToNodeIdx("f5")].stateValues.formula
+                .tree,
         ).eqls(["*", "s", ["^", "t", 3]]);
         expect(
-            stateVariables[resolveComponentName("f6")].stateValues.formula.tree,
+            stateVariables[await resolvePathToNodeIdx("f6")].stateValues.formula
+                .tree,
         ).eqls(["*", "s", ["^", "t", 3]]);
 
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("fOfu")].activeChildren[0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("fOfu")]
+                    .activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "s", ["^", "u", 3]]);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("f2Ofu")].activeChildren[0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("f2Ofu")]
+                    .activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "s", ["^", "u", 3]]);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("f3Ofu")].activeChildren[0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("f3Ofu")]
+                    .activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "u", ["^", "t", 3]]);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("f4Ofu")].activeChildren[0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("f4Ofu")]
+                    .activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "s", ["^", "u", 3]]);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("f5Ofu")].activeChildren[0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("f5Ofu")]
+                    .activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "s", ["^", "u", 3]]);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("f6Ofu")].activeChildren[0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("f6Ofu")]
+                    .activeChildren[0].componentIdx
             ].stateValues.value.tree,
         ).eqls(["*", "u", ["^", "t", 3]]);
     });
 
     it("function of interpolated function can redefine variable without changing function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function minima="(2)" name="f" />
 
@@ -4263,28 +4282,28 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .variables[0].tree,
         ).eq("x");
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .variables[0].tree,
         ).eq("x");
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
+                .variables[0].tree,
         ).eq("s");
         expect(
-            stateVariables[resolveComponentName("f4")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f4")].stateValues
+                .variables[0].tree,
         ).eq("x");
         expect(
-            stateVariables[resolveComponentName("f5")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5")].stateValues
+                .variables[0].tree,
         ).eq("x");
         expect(
-            stateVariables[resolveComponentName("f6")].stateValues.variables[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f6")].stateValues
+                .variables[0].tree,
         ).eq("s");
 
         let Of0names = ["fOf0", "f2Of0", "f3Of0", "f4Of0", "f5Of0", "f6Of0"];
@@ -4292,8 +4311,8 @@ describe("Function tag tests", async () => {
         for (let name of Of0names) {
             expect(
                 stateVariables[
-                    stateVariables[resolveComponentName(name)].activeChildren[0]
-                        .componentIdx
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .activeChildren[0].componentIdx
                 ].stateValues.value.tree,
             ).eqls(2);
         }
@@ -4303,8 +4322,8 @@ describe("Function tag tests", async () => {
         for (let name of Of1names) {
             expect(
                 stateVariables[
-                    stateVariables[resolveComponentName(name)].activeChildren[0]
-                        .componentIdx
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .activeChildren[0].componentIdx
                 ].stateValues.value.tree,
             ).eqls(3);
         }
@@ -4314,15 +4333,15 @@ describe("Function tag tests", async () => {
         for (let name of Of2names) {
             expect(
                 stateVariables[
-                    stateVariables[resolveComponentName(name)].activeChildren[0]
-                        .componentIdx
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .activeChildren[0].componentIdx
                 ].stateValues.value.tree,
             ).eqls(6);
         }
     });
 
     it("extrema not resolved if not requested", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">sin(x)</function>
     <function extend="$f" name="f2" />
@@ -4336,300 +4355,325 @@ describe("Function tag tests", async () => {
         let stateVariables = core.core!.components!;
 
         expect(
-            stateVariables[resolveComponentName("f")].state.formula.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f")].state.formula
+                .isResolved,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("f")].state.symbolicfs
+            stateVariables[await resolvePathToNodeIdx("f")].state.symbolicfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.numericalfs
+            stateVariables[await resolvePathToNodeIdx("f")].state.numericalfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.allMaxima
+            stateVariables[await resolvePathToNodeIdx("f")].state.allMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.allMinima
+            stateVariables[await resolvePathToNodeIdx("f")].state.allMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.allExtrema
+            stateVariables[await resolvePathToNodeIdx("f")].state.allExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.numMaxima
+            stateVariables[await resolvePathToNodeIdx("f")].state.numMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.numMinima
+            stateVariables[await resolvePathToNodeIdx("f")].state.numMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.numExtrema
+            stateVariables[await resolvePathToNodeIdx("f")].state.numExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.maxima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f")].state.maxima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.minima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f")].state.minima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f")].state.extrema.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f")].state.extrema
+                .isResolved,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("f2")].state.formula.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f2")].state.formula
+                .isResolved,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("f2")].state.symbolicfs
+            stateVariables[await resolvePathToNodeIdx("f2")].state.symbolicfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.numericalfs
+            stateVariables[await resolvePathToNodeIdx("f2")].state.numericalfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.allMaxima
+            stateVariables[await resolvePathToNodeIdx("f2")].state.allMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.allMinima
+            stateVariables[await resolvePathToNodeIdx("f2")].state.allMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.allExtrema
+            stateVariables[await resolvePathToNodeIdx("f2")].state.allExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.numMaxima
+            stateVariables[await resolvePathToNodeIdx("f2")].state.numMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.numMinima
+            stateVariables[await resolvePathToNodeIdx("f2")].state.numMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.numExtrema
+            stateVariables[await resolvePathToNodeIdx("f2")].state.numExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.maxima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f2")].state.maxima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.minima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f2")].state.minima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].state.extrema.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f2")].state.extrema
+                .isResolved,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("f3")].state.formula.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f3")].state.formula
+                .isResolved,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("f3")].state.symbolicfs
+            stateVariables[await resolvePathToNodeIdx("f3")].state.symbolicfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.numericalfs
+            stateVariables[await resolvePathToNodeIdx("f3")].state.numericalfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.allMaxima
+            stateVariables[await resolvePathToNodeIdx("f3")].state.allMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.allMinima
+            stateVariables[await resolvePathToNodeIdx("f3")].state.allMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.allExtrema
+            stateVariables[await resolvePathToNodeIdx("f3")].state.allExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.numMaxima
+            stateVariables[await resolvePathToNodeIdx("f3")].state.numMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.numMinima
+            stateVariables[await resolvePathToNodeIdx("f3")].state.numMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.numExtrema
+            stateVariables[await resolvePathToNodeIdx("f3")].state.numExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.maxima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f3")].state.maxima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.minima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f3")].state.minima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f3")].state.extrema.isResolved,
+            stateVariables[await resolvePathToNodeIdx("f3")].state.extrema
+                .isResolved,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("g")].state.formula.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g")].state.formula
+                .isResolved,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("g")].state.symbolicfs
+            stateVariables[await resolvePathToNodeIdx("g")].state.symbolicfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.numericalfs
+            stateVariables[await resolvePathToNodeIdx("g")].state.numericalfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.allMaxima
+            stateVariables[await resolvePathToNodeIdx("g")].state.allMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.allMinima
+            stateVariables[await resolvePathToNodeIdx("g")].state.allMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.allExtrema
+            stateVariables[await resolvePathToNodeIdx("g")].state.allExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.numMaxima
+            stateVariables[await resolvePathToNodeIdx("g")].state.numMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.numMinima
+            stateVariables[await resolvePathToNodeIdx("g")].state.numMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.numExtrema
+            stateVariables[await resolvePathToNodeIdx("g")].state.numExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.maxima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g")].state.maxima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.minima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g")].state.minima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g")].state.extrema.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g")].state.extrema
+                .isResolved,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("g2")].state.formula.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g2")].state.formula
+                .isResolved,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("g2")].state.symbolicfs
+            stateVariables[await resolvePathToNodeIdx("g2")].state.symbolicfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.numericalfs
+            stateVariables[await resolvePathToNodeIdx("g2")].state.numericalfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.allMaxima
+            stateVariables[await resolvePathToNodeIdx("g2")].state.allMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.allMinima
+            stateVariables[await resolvePathToNodeIdx("g2")].state.allMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.allExtrema
+            stateVariables[await resolvePathToNodeIdx("g2")].state.allExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.numMaxima
+            stateVariables[await resolvePathToNodeIdx("g2")].state.numMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.numMinima
+            stateVariables[await resolvePathToNodeIdx("g2")].state.numMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.numExtrema
+            stateVariables[await resolvePathToNodeIdx("g2")].state.numExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.maxima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g2")].state.maxima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.minima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g2")].state.minima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2")].state.extrema.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g2")].state.extrema
+                .isResolved,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("g3")].state.formula.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g3")].state.formula
+                .isResolved,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("g3")].state.symbolicfs
+            stateVariables[await resolvePathToNodeIdx("g3")].state.symbolicfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.numericalfs
+            stateVariables[await resolvePathToNodeIdx("g3")].state.numericalfs
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.allMaxima
+            stateVariables[await resolvePathToNodeIdx("g3")].state.allMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.allMinima
+            stateVariables[await resolvePathToNodeIdx("g3")].state.allMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.allExtrema
+            stateVariables[await resolvePathToNodeIdx("g3")].state.allExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.numMaxima
+            stateVariables[await resolvePathToNodeIdx("g3")].state.numMaxima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.numMinima
+            stateVariables[await resolvePathToNodeIdx("g3")].state.numMinima
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.numExtrema
+            stateVariables[await resolvePathToNodeIdx("g3")].state.numExtrema
                 .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.maxima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g3")].state.maxima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.minima.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g3")].state.minima
+                .isResolved,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].state.extrema.isResolved,
+            stateVariables[await resolvePathToNodeIdx("g3")].state.extrema
+                .isResolved,
         ).eq(false);
     });
 
     it("function determined by formula, specify 1 input", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function numInputs="1" name="f">3/(1+e^(-x/2))</function>
     <evaluate function="$f" input="z" name="fz" />
     `,
         });
 
-        await test_function_3_over_exp(core, resolveComponentName);
+        await test_function_3_over_exp(core, resolvePathToNodeIdx);
     });
 
     async function test_function_two_var_exp(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(2);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             [
                 "interval",
@@ -4644,44 +4688,45 @@ describe("Function tag tests", async () => {
         ]);
 
         const f =
-            stateVariables[resolveComponentName("f")].stateValues.numericalf;
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numericalf;
 
         expect(f(-5, 7)).closeTo(3 / (7 + Math.exp(5 / 2)), 1e-12);
         expect(f(1, 4)).closeTo(3 / (4 + Math.exp(-1 / 2)), 1e-12);
     }
 
     it("function of two variables determined by formula", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function numInputs="2" name="f">3/(y+e^(-x/2))</function>
     `,
         });
 
-        await test_function_two_var_exp(core, resolveComponentName);
+        await test_function_two_var_exp(core, resolvePathToNodeIdx);
     });
 
     it("function of two variables determined by formula, specify variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" numInputs="2" variables="q r">3/(r+e^(-q/2))</function>
     `,
         });
 
-        await test_function_two_var_exp(core, resolveComponentName);
+        await test_function_two_var_exp(core, resolvePathToNodeIdx);
     });
 
     it("function of two variables determined by formula, specify variables, no numInputs specified", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variables="q r">3/(r+e^(-q/2))</function>
     `,
         });
 
-        await test_function_two_var_exp(core, resolveComponentName);
+        await test_function_two_var_exp(core, resolvePathToNodeIdx);
     });
 
     it("function of two variables determined by formula, specify variables, no numInputs specified, restrict domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variables="q r" domain="(-4,2] [1,3)">3/(r+e^(-q/2))</function>
     `,
@@ -4689,19 +4734,21 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             ["interval", ["tuple", -4, 2], ["tuple", false, true]],
             ["interval", ["tuple", 1, 3], ["tuple", true, false]],
         ]);
 
         const f =
-            stateVariables[resolveComponentName("f")].stateValues.numericalf;
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numericalf;
 
         expect(f(-4, 2)).eqls(NaN);
         expect(f(3, 3)).eqls(NaN);
@@ -4711,16 +4758,17 @@ describe("Function tag tests", async () => {
 
     async function test_function_three_var_exp(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             [
                 "interval",
@@ -4740,34 +4788,35 @@ describe("Function tag tests", async () => {
         ]);
 
         const f =
-            stateVariables[resolveComponentName("f")].stateValues.numericalf;
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numericalf;
 
         expect(f(-5, 7, -2)).closeTo(-2 / (7 + Math.exp(5 / 2)), 1e-12);
         expect(f(1, 4, -9)).closeTo(-9 / (4 + Math.exp(-1 / 2)), 1e-12);
     }
 
     it("function of three variables determined by formula", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" numInputs="3">z/(y+e^(-x/2))</function>
     `,
         });
 
-        await test_function_three_var_exp(core, resolveComponentName);
+        await test_function_three_var_exp(core, resolvePathToNodeIdx);
     });
 
     it("function of three variables determined by formula, specify variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variables="q r s">s/(r+e^(-q/2))</function>
     `,
         });
 
-        await test_function_three_var_exp(core, resolveComponentName);
+        await test_function_three_var_exp(core, resolvePathToNodeIdx);
     });
 
     it("function of three variables determined by formula, specify variables, restrict domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variables="q r s" domain="(2,5) [-4, 4] [-3, -1)">s/(r+e^(-q/2))</function>
     `,
@@ -4775,12 +4824,13 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             ["interval", ["tuple", 2, 5], ["tuple", false, false]],
             ["interval", ["tuple", -4, 4], ["tuple", true, true]],
@@ -4788,7 +4838,8 @@ describe("Function tag tests", async () => {
         ]);
 
         const f =
-            stateVariables[resolveComponentName("f")].stateValues.numericalf;
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numericalf;
 
         expect(f(5, 3, -3)).eqls(NaN);
         expect(f(4, 3, -3)).closeTo(-3 / (3 + Math.exp(-2)), 1e-12);
@@ -4798,16 +4849,17 @@ describe("Function tag tests", async () => {
 
     async function test_function_four_var_exp(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             [
                 "interval",
@@ -4832,34 +4884,35 @@ describe("Function tag tests", async () => {
         ]);
 
         const f =
-            stateVariables[resolveComponentName("f")].stateValues.numericalf;
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numericalf;
 
         expect(f(-5, 7, -2, 6)).closeTo(-2 / (7 + Math.exp(5 / 2)) + 6, 1e-12);
         expect(f(1, 4, -9, -8)).closeTo(-9 / (4 + Math.exp(-1 / 2)) - 8, 1e-12);
     }
 
     it("function of four variables determined by formula", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" numInputs="4">x_3/(x_2+e^(-x_1/2))+x_4</function>
     `,
         });
 
-        await test_function_four_var_exp(core, resolveComponentName);
+        await test_function_four_var_exp(core, resolvePathToNodeIdx);
     });
 
     it("function of four variables determined by formula, specify some variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" numInputs="4" variables="x y z">z/(y+e^(-x/2))+x_4</function>
     `,
         });
 
-        await test_function_four_var_exp(core, resolveComponentName);
+        await test_function_four_var_exp(core, resolvePathToNodeIdx);
     });
 
     it("function of four variables determined by formula, specify some variables, restrict domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" numInputs="4" variables="x y z" domain="[-5,1] [2,4) (4, 7] (-8, -4)">z/(y+e^(-x/2))+x_4</function>
     `,
@@ -4867,12 +4920,13 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             ["interval", ["tuple", -5, 1], ["tuple", true, true]],
             ["interval", ["tuple", 2, 4], ["tuple", true, false]],
@@ -4881,7 +4935,8 @@ describe("Function tag tests", async () => {
         ]);
 
         const f =
-            stateVariables[resolveComponentName("f")].stateValues.numericalf;
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numericalf;
 
         expect(f(-5, 2, 7, -4)).eqls(NaN);
         expect(f(-5, 2, 7, -5)).closeTo(7 / (2 + Math.exp(5 / 2)) - 5, 1e-12);
@@ -4889,28 +4944,34 @@ describe("Function tag tests", async () => {
 
     async function test_2d_vector_function_single_var(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numOutputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numOutputs,
         ).eq(2);
 
-        let f1 = stateVariables[resolveComponentName("f")].stateValues.fs[0];
-        let f2 = stateVariables[resolveComponentName("f")].stateValues.fs[1];
+        let f1 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[0];
+        let f2 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[1];
         let numericalf1 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let numericalf2 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[1];
         let symbolicf1 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[0];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[0];
         let symbolicf2 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[1];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[1];
 
         expect(f1(me.fromAst(-5)).equals(me.fromText("(-5)^2"))).eq(true);
         expect(f2(me.fromAst(-5)).equals(me.fromText("(-5)^3"))).eq(true);
@@ -4935,65 +4996,73 @@ describe("Function tag tests", async () => {
     }
 
     it("2D vector-valued function of a single variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">(x^2, x^3)</function>
     `,
         });
 
-        await test_2d_vector_function_single_var(core, resolveComponentName);
+        await test_2d_vector_function_single_var(core, resolvePathToNodeIdx);
     });
 
     it("2D vector-valued function of a single variable, specify variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variable="t">(t^2, t^3)</function>
     `,
         });
 
-        await test_2d_vector_function_single_var(core, resolveComponentName);
+        await test_2d_vector_function_single_var(core, resolvePathToNodeIdx);
     });
 
     it("2D vector-valued function of a single variable, specify numOutputs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variables="t" numOutputs="2">(t^2, t^3)</function>
     `,
         });
 
-        await test_2d_vector_function_single_var(core, resolveComponentName);
+        await test_2d_vector_function_single_var(core, resolvePathToNodeIdx);
     });
 
     async function test_3d_vector_function_single_var(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numOutputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numOutputs,
         ).eq(3);
 
-        let f1 = stateVariables[resolveComponentName("f")].stateValues.fs[0];
-        let f2 = stateVariables[resolveComponentName("f")].stateValues.fs[1];
-        let f3 = stateVariables[resolveComponentName("f")].stateValues.fs[2];
+        let f1 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[0];
+        let f2 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[1];
+        let f3 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[2];
         let numericalf1 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let numericalf2 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[1];
         let numericalf3 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[2];
         let symbolicf1 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[0];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[0];
         let symbolicf2 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[1];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[1];
         let symbolicf3 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[2];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[2];
 
         expect(f1(me.fromAst(-5)).equals(me.fromText("(-5)^2"))).eq(true);
         expect(f2(me.fromAst(-5)).equals(me.fromText("(-5)^3"))).eq(true);
@@ -5028,27 +5097,27 @@ describe("Function tag tests", async () => {
     }
 
     it("3D vector-valued function of a single variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">(x^2, x^3, x^4)</function>
     `,
         });
 
-        await test_3d_vector_function_single_var(core, resolveComponentName);
+        await test_3d_vector_function_single_var(core, resolvePathToNodeIdx);
     });
 
     it("3D vector-valued function of a single variable, specify variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variable="t">(t^2, t^3, t^4)</function>
     `,
         });
 
-        await test_3d_vector_function_single_var(core, resolveComponentName);
+        await test_3d_vector_function_single_var(core, resolvePathToNodeIdx);
     });
 
     it("2D vector-valued function of two variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" numInputs="2">(x^2y^3, x^3y^2)</function>
     `,
@@ -5056,24 +5125,30 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numOutputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numOutputs,
         ).eq(2);
 
-        let f1 = stateVariables[resolveComponentName("f")].stateValues.fs[0];
-        let f2 = stateVariables[resolveComponentName("f")].stateValues.fs[1];
+        let f1 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[0];
+        let f2 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[1];
         let numericalf1 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let numericalf2 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[1];
         let symbolicf1 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[0];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[0];
         let symbolicf2 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[1];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[1];
 
         expect(
             f1(me.fromAst(-5), me.fromAst(2)).equals(me.fromText("(-5)^2*2^3")),
@@ -5131,34 +5206,42 @@ describe("Function tag tests", async () => {
 
     async function test_3d_vector_function_two_vars(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.numOutputs,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numOutputs,
         ).eq(3);
 
-        let f1 = stateVariables[resolveComponentName("f")].stateValues.fs[0];
-        let f2 = stateVariables[resolveComponentName("f")].stateValues.fs[1];
-        let f3 = stateVariables[resolveComponentName("f")].stateValues.fs[2];
+        let f1 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[0];
+        let f2 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[1];
+        let f3 =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.fs[2];
         let numericalf1 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         let numericalf2 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[1];
         let numericalf3 =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[2];
         let symbolicf1 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[0];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[0];
         let symbolicf2 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[1];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[1];
         let symbolicf3 =
-            stateVariables[resolveComponentName("f")].stateValues.symbolicfs[2];
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .symbolicfs[2];
 
         expect(f1(-5, 2).equals(me.fromText("(-5)^2*2^3"))).eq(true);
         expect(f2(-5, 2).equals(me.fromText("(-5)^3*2^2"))).eq(true);
@@ -5187,27 +5270,27 @@ describe("Function tag tests", async () => {
     }
 
     it("3D vector-valued function of two variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variables="s t">(s^2t^3, s^3t^2, st)</function>
     `,
         });
 
-        await test_3d_vector_function_two_vars(core, resolveComponentName);
+        await test_3d_vector_function_two_vars(core, resolvePathToNodeIdx);
     });
 
     it("3D vector-valued function of two variables, as alt vector", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f" variables="s t">⟨s^2t^3, s^3t^2, st⟩</function>
     `,
         });
 
-        await test_3d_vector_function_two_vars(core, resolveComponentName);
+        await test_3d_vector_function_two_vars(core, resolvePathToNodeIdx);
     });
 
     it("copy function and overwrite symbolic attribute", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" symbolic="false">x^2</function>
     <function extend="$f1" symbolic name="f2" />
@@ -5222,27 +5305,33 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f1")].stateValues.symbolic,
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                .symbolic,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.symbolic,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .symbolic,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.symbolic,
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
+                .symbolic,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g1")].stateValues.symbolic,
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .symbolic,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.symbolic,
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .symbolic,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3")].stateValues.symbolic,
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues
+                .symbolic,
         ).eq(true);
     });
 
     it("warnings on bad domain", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" domain="(3,4)">x</function>
     <function name="f2" domain="(">x</function>
@@ -5275,49 +5364,54 @@ describe("Function tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("domainf1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("domainf1")]
+                    .stateValues.latex,
             ),
         ).eq("(3,4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("domainf2")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("domainf2")]
+                    .stateValues.latex,
             ),
         ).eq("(-\\infty,\\infty)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("domainf3")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("domainf3")]
+                    .stateValues.latex,
             ),
         ).eq("(-\\infty,\\infty)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("domainf4")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("domainf4")]
+                    .stateValues.latex,
             ),
         ).eq("(-\\infty,\\infty)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("domainf5")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("domainf5")]
+                    .stateValues.latex,
             ),
         ).eq("(3,4)");
 
         expect(
-            stateVariables[resolveComponentName("pDomaing1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pDomaing1")].stateValues
+                .text,
         ).eq("g1 domain: ( -∞, ∞ ), ( -∞, ∞ )");
         expect(
-            stateVariables[resolveComponentName("pDomaing2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pDomaing2")].stateValues
+                .text,
         ).eq("g2 domain: ( 3, 4 ), ( 5, 6 )");
         expect(
-            stateVariables[resolveComponentName("pDomaing3")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pDomaing3")].stateValues
+                .text,
         ).eq("g3 domain: ( -∞, ∞ ), ( -∞, ∞ )");
         expect(
-            stateVariables[resolveComponentName("pDomaing4")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pDomaing4")].stateValues
+                .text,
         ).eq("g4 domain: ( -∞, ∞ ), ( -∞, ∞ )");
         expect(
-            stateVariables[resolveComponentName("pDomaing5")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pDomaing5")].stateValues
+                .text,
         ).eq("g5 domain: ( 3, 4 ), ( 5, 6 )");
 
         let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
@@ -5391,7 +5485,7 @@ describe("Function tag tests", async () => {
     });
 
     it("copy function and overwrite numInputs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" symbolic>xyz</function>
     <function extend="$f1" numInputs="2" name="f2" />
@@ -5406,43 +5500,46 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f1")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                .numInputs,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .numInputs,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
+                .numInputs,
         ).eq(3);
         expect(
             stateVariables[
-                resolveComponentName("f1")
+                await resolvePathToNodeIdx("f1")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("f2")
+                await resolvePathToNodeIdx("f2")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("f3")
+                await resolvePathToNodeIdx("f3")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "a y z",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "a b z",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "a b c",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("a y z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("a b z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("a b c");
     });
 
     it("copy function and overwrite variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text>a</text>
     <function name="f1" symbolic simplify="none">xyz</function>
@@ -5464,149 +5561,158 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f1")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                .numInputs,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .numInputs,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
+                .numInputs,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("f4")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f4")].stateValues
+                .numInputs,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("f5")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f5")].stateValues
+                .numInputs,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("f5a")].stateValues.numInputs,
+            stateVariables[await resolvePathToNodeIdx("f5a")].stateValues
+                .numInputs,
         ).eq(1);
         expect(
             stateVariables[
-                resolveComponentName("f1")
+                await resolvePathToNodeIdx("f1")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
-                resolveComponentName("f2")
+                await resolvePathToNodeIdx("f2")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("f3")
+                await resolvePathToNodeIdx("f3")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["x", "y", "z"]);
         expect(
             stateVariables[
-                resolveComponentName("f4")
+                await resolvePathToNodeIdx("f4")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["z", "y"]);
         expect(
             stateVariables[
-                resolveComponentName("f5")
+                await resolvePathToNodeIdx("f5")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["y"]);
         expect(
             stateVariables[
-                resolveComponentName("f5a")
+                await resolvePathToNodeIdx("f5a")
             ].stateValues.variables.map((x) => x.tree),
         ).eqls(["y"]);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "a y z",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "a b z",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "a b c",
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            "x b a",
-        );
-        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
-            "x a z",
-        );
-        expect(stateVariables[resolveComponentName("p5a")].stateValues.text).eq(
-            "x a z",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("a y z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("a b z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("a b c");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("x b a");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
+        ).eq("x a z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p5a")].stateValues.text,
+        ).eq("x a z");
     });
 
     async function test_prop_index(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mn[1]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("mn[1]")].stateValues
+                    .latex,
             ),
         ).eq("(2,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mx[1]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("mx[1]")].stateValues
+                    .latex,
             ),
         ).eq("(8,9)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ex[1]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ex[1]")].stateValues
+                    .latex,
             ),
         ).eq("(-4,4)");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mnl[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mnl[1]")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mxl[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mxl[1]")].stateValues
                     .latex,
             ),
         ).eq("8");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("exl[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("exl[1]")].stateValues
                     .latex,
             ),
         ).eq("-4");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mnv[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mnv[1]")].stateValues
                     .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mxv[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mxv[1]")].stateValues
                     .latex,
             ),
         ).eq("9");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("exv[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("exv[1]")].stateValues
                     .latex,
             ),
         ).eq("4");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mn1[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mn1[1]")].stateValues
                     .latex,
             ),
         ).eq("-5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mx1[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mx1[1]")].stateValues
                     .latex,
             ),
         ).eq("4");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ex1[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ex1[1]")].stateValues
                     .latex,
             ),
         ).eq("-5");
@@ -5614,87 +5720,90 @@ describe("Function tag tests", async () => {
         // set propIndex to 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mn[1]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("mn[1]")].stateValues
+                    .latex,
             ),
         ).eq("(-7,-5)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mx[1]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("mx[1]")].stateValues
+                    .latex,
             ),
         ).eq("(-4,4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ex[1]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ex[1]")].stateValues
+                    .latex,
             ),
         ).eq("(-7,-5)");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mnl[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mnl[1]")].stateValues
                     .latex,
             ),
         ).eq("-7");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mxl[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mxl[1]")].stateValues
                     .latex,
             ),
         ).eq("-4");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("exl[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("exl[1]")].stateValues
                     .latex,
             ),
         ).eq("-7");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mnv[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mnv[1]")].stateValues
                     .latex,
             ),
         ).eq("-5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mxv[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mxv[1]")].stateValues
                     .latex,
             ),
         ).eq("4");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("exv[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("exv[1]")].stateValues
                     .latex,
             ),
         ).eq("-5");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mn1[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mn1[1]")].stateValues
                     .latex,
             ),
         ).eq("-7");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mx1[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mx1[1]")].stateValues
                     .latex,
             ),
         ).eq("-4");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ex1[1]")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ex1[1]")].stateValues
                     .latex,
             ),
         ).eq("-7");
     }
 
     it("copy props with propIndex, dot and array notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>n: <mathInput name="n" prefill="2" /></p>
 
@@ -5721,11 +5830,11 @@ describe("Function tag tests", async () => {
   `,
         });
 
-        await test_prop_index(core, resolveComponentName);
+        await test_prop_index(core, resolvePathToNodeIdx);
     });
 
     it("copy props with multidimensional propIndex, dot and array notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>n: <mathInput name="n" prefill="2" /></p>
 
@@ -5752,11 +5861,11 @@ describe("Function tag tests", async () => {
 
   `,
         });
-        await test_prop_index(core, resolveComponentName);
+        await test_prop_index(core, resolvePathToNodeIdx);
     });
 
     it("rounding, overwrite on copy", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <function name="f1">255.029847 sin(0.52952342x) + 3</function>
   <function name="f2" displayDigits="4"> 255.029847 sin(0.52952342x) + 3</function>
@@ -5837,365 +5946,410 @@ describe("Function tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                    .latex,
             ),
         ).eq("255\\sin(0.5295x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f3")].stateValues
+                    .latex,
             ),
         ).eq("255.0\\sin(0.5295x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f4")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f5")].stateValues
+                    .latex,
             ),
         ).eq("255.030\\sin(0.530x)+3.000");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1dg6")].stateValues.latex,
-            ),
-        ).eq("255.03\\sin(0.529523x)+3");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f2dg6")].stateValues.latex,
-            ),
-        ).eq("255.03\\sin(0.529523x)+3");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f3dg6")].stateValues.latex,
-            ),
-        ).eq("255.030\\sin(0.529523x)+3.00000");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f4dg6")].stateValues.latex,
-            ),
-        ).eq("255.03\\sin(0.529523x)+3");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f5dg6")].stateValues.latex,
-            ),
-        ).eq("255.030\\sin(0.529523x)+3.00000");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f1fdg6")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f1dg6")].stateValues
                     .latex,
             ),
         ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2fdg6")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f2dg6")].stateValues
                     .latex,
             ),
         ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3fdg6")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f3dg6")].stateValues
                     .latex,
             ),
         ).eq("255.030\\sin(0.529523x)+3.00000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4fdg6")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f4dg6")].stateValues
                     .latex,
             ),
         ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5fdg6")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f5dg6")].stateValues
                     .latex,
             ),
         ).eq("255.030\\sin(0.529523x)+3.00000");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1dg6a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f1fdg6")].stateValues
                     .latex,
             ),
         ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2dg6a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f2fdg6")].stateValues
                     .latex,
             ),
         ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3dg6a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f3fdg6")].stateValues
                     .latex,
             ),
         ).eq("255.030\\sin(0.529523x)+3.00000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4dg6a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f4fdg6")].stateValues
                     .latex,
             ),
         ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5dg6a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f5fdg6")].stateValues
                     .latex,
             ),
         ).eq("255.030\\sin(0.529523x)+3.00000");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1dc7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1dg6a")].stateValues
+                    .latex,
             ),
-        ).eq("255.029847\\sin(0.5295234x)+3");
+        ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2dc7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f2dg6a")].stateValues
+                    .latex,
             ),
-        ).eq("255.029847\\sin(0.5295234x)+3");
+        ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3dc7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f3dg6a")].stateValues
+                    .latex,
             ),
-        ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
+        ).eq("255.030\\sin(0.529523x)+3.00000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4dc7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f4dg6a")].stateValues
+                    .latex,
             ),
-        ).eq("255.029847\\sin(0.5295234x)+3");
+        ).eq("255.03\\sin(0.529523x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5dc7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f5dg6a")].stateValues
+                    .latex,
             ),
-        ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
+        ).eq("255.030\\sin(0.529523x)+3.00000");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1fdc7")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f1dc7")].stateValues
                     .latex,
             ),
         ).eq("255.029847\\sin(0.5295234x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2fdc7")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f2dc7")].stateValues
                     .latex,
             ),
         ).eq("255.029847\\sin(0.5295234x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3fdc7")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f3dc7")].stateValues
                     .latex,
             ),
         ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4fdc7")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f4dc7")].stateValues
                     .latex,
             ),
         ).eq("255.029847\\sin(0.5295234x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5fdc7")].stateValues
-                    .latex,
-            ),
-        ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f1dc7a")].stateValues
-                    .latex,
-            ),
-        ).eq("255.029847\\sin(0.5295234x)+3");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f2dc7a")].stateValues
-                    .latex,
-            ),
-        ).eq("255.029847\\sin(0.5295234x)+3");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f3dc7a")].stateValues
-                    .latex,
-            ),
-        ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f4dc7a")].stateValues
-                    .latex,
-            ),
-        ).eq("255.029847\\sin(0.5295234x)+3");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("f5dc7a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("f5dc7")].stateValues
                     .latex,
             ),
         ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1pt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1fdc7")].stateValues
+                    .latex,
+            ),
+        ).eq("255.029847\\sin(0.5295234x)+3");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f2fdc7")].stateValues
+                    .latex,
+            ),
+        ).eq("255.029847\\sin(0.5295234x)+3");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f3fdc7")].stateValues
+                    .latex,
+            ),
+        ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f4fdc7")].stateValues
+                    .latex,
+            ),
+        ).eq("255.029847\\sin(0.5295234x)+3");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f5fdc7")].stateValues
+                    .latex,
+            ),
+        ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f1dc7a")].stateValues
+                    .latex,
+            ),
+        ).eq("255.029847\\sin(0.5295234x)+3");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f2dc7a")].stateValues
+                    .latex,
+            ),
+        ).eq("255.029847\\sin(0.5295234x)+3");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f3dc7a")].stateValues
+                    .latex,
+            ),
+        ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f4dc7a")].stateValues
+                    .latex,
+            ),
+        ).eq("255.029847\\sin(0.5295234x)+3");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f5dc7a")].stateValues
+                    .latex,
+            ),
+        ).eq("255.0298470\\sin(0.5295234x)+3.0000000");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("f1pt")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.530x)+3.00");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2pt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f2pt")].stateValues
+                    .latex,
             ),
         ).eq("255.0\\sin(0.5295x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3pt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f3pt")].stateValues
+                    .latex,
             ),
         ).eq("255.0\\sin(0.5295x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4pt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f4pt")].stateValues
+                    .latex,
             ),
         ).eq("255.030\\sin(0.530x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5pt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f5pt")].stateValues
+                    .latex,
             ),
         ).eq("255.030\\sin(0.530x)+3.000");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1fpt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1fpt")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.530x)+3.00");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2fpt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f2fpt")].stateValues
+                    .latex,
             ),
         ).eq("255.0\\sin(0.5295x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3fpt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f3fpt")].stateValues
+                    .latex,
             ),
         ).eq("255.0\\sin(0.5295x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4fpt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f4fpt")].stateValues
+                    .latex,
             ),
         ).eq("255.030\\sin(0.530x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5fpt")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f5fpt")].stateValues
+                    .latex,
             ),
         ).eq("255.030\\sin(0.530x)+3.000");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1pta")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1pta")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.530x)+3.00");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2pta")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f2pta")].stateValues
+                    .latex,
             ),
         ).eq("255.0\\sin(0.5295x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3pta")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f3pta")].stateValues
+                    .latex,
             ),
         ).eq("255.0\\sin(0.5295x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4pta")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f4pta")].stateValues
+                    .latex,
             ),
         ).eq("255.030\\sin(0.530x)+3.000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5pta")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f5pta")].stateValues
+                    .latex,
             ),
         ).eq("255.030\\sin(0.530x)+3.000");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1pf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1pf")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2pf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f2pf")].stateValues
+                    .latex,
             ),
         ).eq("255\\sin(0.5295x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3pf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f3pf")].stateValues
+                    .latex,
             ),
         ).eq("255\\sin(0.5295x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4pf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f4pf")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5pf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f5pf")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1fpf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1fpf")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2fpf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f2fpf")].stateValues
+                    .latex,
             ),
         ).eq("255\\sin(0.5295x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3fpf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f3fpf")].stateValues
+                    .latex,
             ),
         ).eq("255\\sin(0.5295x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4fpf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f4fpf")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5fpf")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f5fpf")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f1pfa")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f1pfa")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f2pfa")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f2pfa")].stateValues
+                    .latex,
             ),
         ).eq("255\\sin(0.5295x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f3pfa")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f3pfa")].stateValues
+                    .latex,
             ),
         ).eq("255\\sin(0.5295x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f4pfa")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f4pfa")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("f5pfa")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("f5pfa")].stateValues
+                    .latex,
             ),
         ).eq("255.03\\sin(0.53x)+3");
     });
 
     it("handle bad through and other defining attributes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text name="t1">a</text>
     <function through="A" minima="B" maxima="C" extrema="D" throughSlopes="E" name="f" />
@@ -6205,13 +6359,13 @@ describe("Function tag tests", async () => {
         // page loads
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("t1")].stateValues.value).eq(
-            "a",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
+        ).eq("a");
     });
 
     it("extrema shadow style number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f" styleNumber="2" domain="[-2,2]">x^3-x</function>
       <point name="max" extend="$f.maximum1" />
@@ -6227,39 +6381,43 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("max")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("max")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("min")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("min")].stateValues
+                .styleNumber,
         ).eq(2);
 
         // TODO: fix style numbers for when extending to a pointList
         // expect(
-        //     stateVariables[resolveComponentName("ext[1]")].stateValues
+        //     stateVariables[await resolvePathToNodeIdx("ext[1]")].stateValues
         //         .styleNumber,
         // ).eq(2);
         // expect(
-        //     stateVariables[resolveComponentName("ext[2]")].stateValues
+        //     stateVariables[await resolvePathToNodeIdx("ext[2]")].stateValues
         //         .styleNumber,
         // ).eq(2);
         expect(
-            stateVariables[resolveComponentName("gmax")].stateValues
+            stateVariables[await resolvePathToNodeIdx("gmax")].stateValues
                 .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("gmin")].stateValues
+            stateVariables[await resolvePathToNodeIdx("gmin")].stateValues
                 .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("sup")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("sup")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("inf")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("inf")].stateValues
+                .styleNumber,
         ).eq(2);
     });
 
     it("check bugfix: don't get invalid maxima due having incorrect derivative with function of interpolated function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f" maxima="(3,4)" />
       <function name="g" styleNumber="2">$$f(x)-x^4</function>
@@ -6272,22 +6430,28 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("max[1]1")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([1, -1]);
-        expect(stateVariables[resolveComponentName("max[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("max[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("min[1]")]).eq(
+            undefined,
+        );
         expect(
-            stateVariables[resolveComponentName("ext[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("ext[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([1, -1]);
-        expect(stateVariables[resolveComponentName("ext[2]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("ext[2]")]).eq(
+            undefined,
+        );
     });
 
     it("check bugfix: don't get invalid extrema due to roundoff error with function of interpolated function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f" maxima="(3,4)" />
       <function name="g" styleNumber="2">$$f(x)+(x-3)^2</function>
@@ -6299,13 +6463,19 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("max[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("min[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("ext[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("max[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("min[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("ext[1]")]).eq(
+            undefined,
+        );
     });
 
     it("global extrema, double well, test all properties", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f">x^4-8x^2+8</function>
     <p>domain: <interval name="domain" extend="$f.domain" /></p>
@@ -6321,9 +6491,9 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             [
                 "interval",
@@ -6333,76 +6503,94 @@ describe("Function tag tests", async () => {
         ]);
 
         expect(
-            stateVariables[resolveComponentName("fmin[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([-2, -8]);
-        expect(
-            stateVariables[resolveComponentName("fminl")].stateValues.value,
-        ).eq(-2);
-        expect(
-            stateVariables[resolveComponentName("fminla")].stateValues.value,
-        ).eq(-2);
-        expect(
-            stateVariables[resolveComponentName("fminv")].stateValues.value,
-        ).eq(-8);
-        expect(
-            stateVariables[resolveComponentName("fminva")].stateValues.value,
-        ).eq(-8);
-
-        expect(
             stateVariables[
-                resolveComponentName("fmincd[1]")
+                await resolvePathToNodeIdx("fmin[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-2, -8]);
         expect(
-            stateVariables[resolveComponentName("fmincdl")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fminl")].stateValues
+                .value,
         ).eq(-2);
         expect(
-            stateVariables[resolveComponentName("fmincdla")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fminla")].stateValues
+                .value,
         ).eq(-2);
         expect(
-            stateVariables[resolveComponentName("fmincdv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fminv")].stateValues
+                .value,
         ).eq(-8);
         expect(
-            stateVariables[resolveComponentName("fmincdva")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fminva")].stateValues
+                .value,
         ).eq(-8);
 
-        expect(stateVariables[resolveComponentName("fmax[1]")]).eq(undefined);
         expect(
-            stateVariables[resolveComponentName("fmaxl")].stateValues.value,
+            stateVariables[
+                await resolvePathToNodeIdx("fmincd[1]")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([-2, -8]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fmincdl")].stateValues
+                .value,
+        ).eq(-2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fmincdla")].stateValues
+                .value,
+        ).eq(-2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fmincdv")].stateValues
+                .value,
+        ).eq(-8);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fmincdva")].stateValues
+                .value,
+        ).eq(-8);
+
+        expect(stateVariables[await resolvePathToNodeIdx("fmax[1]")]).eq(
+            undefined,
+        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fmaxl")].stateValues
+                .value,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("fmaxla")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fmaxla")].stateValues
+                .value,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("fmaxv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fmaxv")].stateValues
+                .value,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("fmaxva")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fmaxva")].stateValues
+                .value,
         ).eqls(NaN);
 
         expect(
             stateVariables[
-                resolveComponentName("fmaxcd[1]")
+                await resolvePathToNodeIdx("fmaxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-100, f100]);
         expect(
-            stateVariables[resolveComponentName("fmaxcdl")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fmaxcdl")].stateValues
+                .value,
         ).eq(-100);
         expect(
-            stateVariables[resolveComponentName("fmaxcdla")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fmaxcdla")].stateValues
+                .value,
         ).eq(-100);
         expect(
-            stateVariables[resolveComponentName("fmaxcdv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fmaxcdv")].stateValues
+                .value,
         ).eq(f100);
         expect(
-            stateVariables[resolveComponentName("fmaxcdva")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("fmaxcdva")].stateValues
+                .value,
         ).eq(f100);
     });
 
     it("global extrema, double well, different domains", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" domain="(-2,Infinity)">x^4-8x^2+8</function>
     <function name="f2" domain="(-Infinity,2)">x^4-8x^2+8</function>
@@ -6423,139 +6611,147 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f1")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f1")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             ["interval", ["tuple", -2, Infinity], ["tuple", false, false]],
         ]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f2")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([
             ["interval", ["tuple", -Infinity, 2], ["tuple", false, false]],
         ]);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f3")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([["interval", ["tuple", 0, 2], ["tuple", false, true]]]);
         expect(
-            stateVariables[resolveComponentName("f4")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f4")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([["interval", ["tuple", 0, 2], ["tuple", true, false]]]);
         expect(
-            stateVariables[resolveComponentName("f5")].stateValues.domain.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f5")
+            ].stateValues.domain.map((x) => x.tree),
         ).eqls([["interval", ["tuple", -0.01, 2.01], ["tuple", false, false]]]);
 
         expect(
-            stateVariables[resolveComponentName("f1min[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([2, -8]);
-        expect(
             stateVariables[
-                resolveComponentName("f1mincd[1]")
+                await resolvePathToNodeIdx("f1min[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([2, -8]);
-        expect(stateVariables[resolveComponentName("f1max[1]")]).eq(undefined);
         expect(
             stateVariables[
-                resolveComponentName("f1maxcd[1]")
+                await resolvePathToNodeIdx("f1mincd[1]")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([2, -8]);
+        expect(stateVariables[await resolvePathToNodeIdx("f1max[1]")]).eq(
+            undefined,
+        );
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("f1maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([198, f198]);
 
         expect(
-            stateVariables[resolveComponentName("f2min[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([-2, -8]);
-        expect(
             stateVariables[
-                resolveComponentName("f2mincd[1]")
+                await resolvePathToNodeIdx("f2min[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-2, -8]);
-        expect(stateVariables[resolveComponentName("f2max[1]")]).eq(undefined);
         expect(
             stateVariables[
-                resolveComponentName("f2maxcd[1]")
+                await resolvePathToNodeIdx("f2mincd[1]")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([-2, -8]);
+        expect(stateVariables[await resolvePathToNodeIdx("f2max[1]")]).eq(
+            undefined,
+        );
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("f2maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-198, f198]);
 
         expect(
-            stateVariables[resolveComponentName("f3min[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([2, -8]);
-        expect(
             stateVariables[
-                resolveComponentName("f3mincd[1]")
+                await resolvePathToNodeIdx("f3min[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([2, -8]);
-        expect(stateVariables[resolveComponentName("f3max[1]")]).eq(undefined);
         expect(
             stateVariables[
-                resolveComponentName("f3maxcd[1]")
+                await resolvePathToNodeIdx("f3mincd[1]")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([2, -8]);
+        expect(stateVariables[await resolvePathToNodeIdx("f3max[1]")]).eq(
+            undefined,
+        );
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("f3maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, 8]);
 
-        expect(stateVariables[resolveComponentName("f4min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f4min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f4mincd[1]")
+                await resolvePathToNodeIdx("f4mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([2, -8]);
         expect(
-            stateVariables[resolveComponentName("f4max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f4max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, 8]);
         expect(
             stateVariables[
-                resolveComponentName("f4maxcd[1]")
+                await resolvePathToNodeIdx("f4maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, 8]);
 
         expect(
-            stateVariables[resolveComponentName("f5min[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5min[1]")].stateValues
+                .xs[0].tree,
         ).closeTo(2, 1e-5);
         expect(
-            stateVariables[resolveComponentName("f5min[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5min[1]")].stateValues
+                .xs[1].tree,
         ).closeTo(-8, 1e-5);
         expect(
-            stateVariables[resolveComponentName("f5mincd[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5mincd[1]")].stateValues
+                .xs[0].tree,
         ).closeTo(2, 1e-5);
         expect(
-            stateVariables[resolveComponentName("f5mincd[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5mincd[1]")].stateValues
+                .xs[1].tree,
         ).closeTo(-8, 1e-5);
         expect(
-            stateVariables[resolveComponentName("f5max[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5max[1]")].stateValues
+                .xs[0].tree,
         ).closeTo(0, 1e-5);
         expect(
-            stateVariables[resolveComponentName("f5max[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5max[1]")].stateValues
+                .xs[1].tree,
         ).closeTo(8, 1e-5);
         expect(
-            stateVariables[resolveComponentName("f5maxcd[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5maxcd[1]")].stateValues
+                .xs[0].tree,
         ).closeTo(0, 1e-5);
         expect(
-            stateVariables[resolveComponentName("f5maxcd[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f5maxcd[1]")].stateValues
+                .xs[1].tree,
         ).closeTo(8, 1e-5);
     });
 
     it("global extrema, sin, different domains", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" domain="(-3pi/2,5pi/2)">sin(x)</function>
     <function name="f2" domain="(-pi/2,3pi/2)">sin(x)</function>
@@ -6573,101 +6769,107 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f1min[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([-Math.PI / 2, -1]);
-        expect(
             stateVariables[
-                resolveComponentName("f1mincd[1]")
+                await resolvePathToNodeIdx("f1min[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-Math.PI / 2, -1]);
         expect(
-            stateVariables[resolveComponentName("f1max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f1mincd[1]")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([-Math.PI / 2, -1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("f1max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
         expect(
             stateVariables[
-                resolveComponentName("f1maxcd[1]")
+                await resolvePathToNodeIdx("f1maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
 
-        expect(stateVariables[resolveComponentName("f2min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f2min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f2mincd[1]")
+                await resolvePathToNodeIdx("f2mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-Math.PI / 2, -1]);
         expect(
-            stateVariables[resolveComponentName("f2max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f2max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
         expect(
             stateVariables[
-                resolveComponentName("f2maxcd[1]")
+                await resolvePathToNodeIdx("f2maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
 
         expect(
-            stateVariables[resolveComponentName("f3min[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f3min[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([(3 * Math.PI) / 2, -1]);
         expect(
             stateVariables[
-                resolveComponentName("f3mincd[1]")
+                await resolvePathToNodeIdx("f3mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([(3 * Math.PI) / 2, -1]);
         expect(
-            stateVariables[resolveComponentName("f3max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f3max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
         expect(
             stateVariables[
-                resolveComponentName("f3maxcd[1]")
+                await resolvePathToNodeIdx("f3maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
 
-        expect(stateVariables[resolveComponentName("f4min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f4min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f4mincd[1]")
+                await resolvePathToNodeIdx("f4mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-Math.PI / 2, -1]);
-        expect(stateVariables[resolveComponentName("f4max[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f4max[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f4maxcd[1]")
+                await resolvePathToNodeIdx("f4maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
 
         expect(
-            stateVariables[resolveComponentName("f5min[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([-Math.PI / 2, -1]);
-        expect(
             stateVariables[
-                resolveComponentName("f5mincd[1]")
+                await resolvePathToNodeIdx("f5min[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-Math.PI / 2, -1]);
         expect(
-            stateVariables[resolveComponentName("f5max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f5mincd[1]")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([-Math.PI / 2, -1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("f5max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
         expect(
             stateVariables[
-                resolveComponentName("f5maxcd[1]")
+                await resolvePathToNodeIdx("f5maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([Math.PI / 2, 1]);
     });
 
     it("global extrema, 1/x, different domains", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1">1/x</function>
     <function name="f2" domain="(0,Infinity)">1/x</function>
@@ -6685,117 +6887,129 @@ describe("Function tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("f1min[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f1min[1]")].stateValues
+                .xs[0].tree,
         ).within(-1e-6, -1e-300);
         expect(
-            stateVariables[resolveComponentName("f1min[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f1min[1]")].stateValues
+                .xs[1].tree,
         ).lessThan(-1e6);
         expect(
             stateVariables[
-                resolveComponentName("f1mincd[1]")
+                await resolvePathToNodeIdx("f1mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls(
-            stateVariables[resolveComponentName("f1min[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f1min[1]")
+            ].stateValues.xs.map((x) => x.tree),
         );
         expect(
-            stateVariables[resolveComponentName("f1max[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f1max[1]")].stateValues
+                .xs[0].tree,
         ).within(1e-300, 1e-6);
         expect(
-            stateVariables[resolveComponentName("f1max[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f1max[1]")].stateValues
+                .xs[1].tree,
         ).greaterThan(1e6);
         expect(
             stateVariables[
-                resolveComponentName("f1maxcd[1]")
+                await resolvePathToNodeIdx("f1maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls(
-            stateVariables[resolveComponentName("f1max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f1max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         );
 
-        expect(stateVariables[resolveComponentName("f2min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f2min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f2mincd[1]")
+                await resolvePathToNodeIdx("f2mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([200, 1 / 200]);
-        expect(stateVariables[resolveComponentName("f2max[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f2max[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f2maxcd[1]")
+                await resolvePathToNodeIdx("f2maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, Infinity]);
 
-        expect(stateVariables[resolveComponentName("f3min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f3min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f3mincd[1]")
+                await resolvePathToNodeIdx("f3mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, -Infinity]);
-        expect(stateVariables[resolveComponentName("f3max[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f3max[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f3maxcd[1]")
+                await resolvePathToNodeIdx("f3maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-200, -1 / 200]);
 
         expect(
-            stateVariables[resolveComponentName("f4min[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f4min[1]")].stateValues
+                .xs[0].tree,
         ).within(-1e-6, -1e-300);
         expect(
-            stateVariables[resolveComponentName("f4min[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f4min[1]")].stateValues
+                .xs[1].tree,
         ).lessThan(-1e6);
         expect(
             stateVariables[
-                resolveComponentName("f4mincd[1]")
+                await resolvePathToNodeIdx("f4mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls(
-            stateVariables[resolveComponentName("f4min[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f4min[1]")
+            ].stateValues.xs.map((x) => x.tree),
         );
         expect(
-            stateVariables[resolveComponentName("f4max[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f4max[1]")].stateValues
+                .xs[0].tree,
         ).within(1e-300, 1e-6);
         expect(
-            stateVariables[resolveComponentName("f4max[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f4max[1]")].stateValues
+                .xs[1].tree,
         ).greaterThan(1e6);
         expect(
             stateVariables[
-                resolveComponentName("f4maxcd[1]")
+                await resolvePathToNodeIdx("f4maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls(
-            stateVariables[resolveComponentName("f4max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f4max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         );
 
-        expect(stateVariables[resolveComponentName("f5min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f5min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f5mincd[1]")
+                await resolvePathToNodeIdx("f5mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-1, 1]);
-        expect(stateVariables[resolveComponentName("f5max[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f5max[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f5maxcd[1]")
+                await resolvePathToNodeIdx("f5maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, Infinity]);
     });
 
     it("global extrema, 1/x^2, different domains", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1">1/x^2</function>
     <function name="f2" domain="(0,Infinity)">1/x^2</function>
@@ -6812,96 +7026,112 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("f1min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f1min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f1mincd[1]")
+                await resolvePathToNodeIdx("f1mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-100, 1 / 10000]);
         expect(
-            stateVariables[resolveComponentName("f1max[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f1max[1]")].stateValues
+                .xs[0].tree,
         ).within(-1e-6, -1e-300);
         expect(
-            stateVariables[resolveComponentName("f1max[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f1max[1]")].stateValues
+                .xs[1].tree,
         ).greaterThan(1e12);
         expect(
             stateVariables[
-                resolveComponentName("f1maxcd[1]")
+                await resolvePathToNodeIdx("f1maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls(
-            stateVariables[resolveComponentName("f1max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f1max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         );
 
-        expect(stateVariables[resolveComponentName("f2min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f2min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f2mincd[1]")
+                await resolvePathToNodeIdx("f2mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([200, 1 / 40000]);
-        expect(stateVariables[resolveComponentName("f2max[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f2max[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f2maxcd[1]")
+                await resolvePathToNodeIdx("f2maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, Infinity]);
 
-        expect(stateVariables[resolveComponentName("f3min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f3min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f3mincd[1]")
+                await resolvePathToNodeIdx("f3mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-200, 1 / 40000]);
-        expect(stateVariables[resolveComponentName("f3max[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f3max[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f3maxcd[1]")
+                await resolvePathToNodeIdx("f3maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, Infinity]);
 
-        expect(stateVariables[resolveComponentName("f4min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f4min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f4mincd[1]")
+                await resolvePathToNodeIdx("f4mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([100, 1 / 10000]);
         expect(
-            stateVariables[resolveComponentName("f4max[1]")].stateValues.xs[0]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f4max[1]")].stateValues
+                .xs[0].tree,
         ).within(-1e-6, -1e-300);
         expect(
-            stateVariables[resolveComponentName("f4max[1]")].stateValues.xs[1]
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("f4max[1]")].stateValues
+                .xs[1].tree,
         ).greaterThan(1e12);
         expect(
             stateVariables[
-                resolveComponentName("f4maxcd[1]")
+                await resolvePathToNodeIdx("f4maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls(
-            stateVariables[resolveComponentName("f4max[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("f4max[1]")
+            ].stateValues.xs.map((x) => x.tree),
         );
 
-        expect(stateVariables[resolveComponentName("f5min[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f5min[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f5mincd[1]")
+                await resolvePathToNodeIdx("f5mincd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([0, -Infinity]);
-        expect(stateVariables[resolveComponentName("f5max[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("f5max[1]")]).eq(
+            undefined,
+        );
         expect(
             stateVariables[
-                resolveComponentName("f5maxcd[1]")
+                await resolvePathToNodeIdx("f5maxcd[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([-1, -1]);
     });
 
     it("global extrema of linear interpolated function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" through="(-8,7) (8,-1)" />
     <function name="f2" styleNumber="2" through="(-8,-5) (8,3)" />
@@ -6916,14 +7146,14 @@ describe("Function tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let f1 = stateVariables[resolveComponentName("f1")];
-        let f2 = stateVariables[resolveComponentName("f2")];
-        let f3 = stateVariables[resolveComponentName("f3")];
-        let f4 = stateVariables[resolveComponentName("f4")];
-        let f5 = stateVariables[resolveComponentName("f5")];
-        let f6 = stateVariables[resolveComponentName("f6")];
-        let f7 = stateVariables[resolveComponentName("f7")];
-        let f8 = stateVariables[resolveComponentName("f8")];
+        let f1 = stateVariables[await resolvePathToNodeIdx("f1")];
+        let f2 = stateVariables[await resolvePathToNodeIdx("f2")];
+        let f3 = stateVariables[await resolvePathToNodeIdx("f3")];
+        let f4 = stateVariables[await resolvePathToNodeIdx("f4")];
+        let f5 = stateVariables[await resolvePathToNodeIdx("f5")];
+        let f6 = stateVariables[await resolvePathToNodeIdx("f6")];
+        let f7 = stateVariables[await resolvePathToNodeIdx("f7")];
+        let f8 = stateVariables[await resolvePathToNodeIdx("f8")];
 
         expect(f1.stateValues.domain.map((x) => x.tree)).eqls([
             [
@@ -7011,7 +7241,7 @@ describe("Function tag tests", async () => {
     `;
 
         async function test_items(theme: "dark" | "light") {
-            const { core, resolveComponentName } = await createTestCore({
+            const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 theme,
             });
@@ -7026,16 +7256,16 @@ describe("Function tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("ADescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("ADescription")]
+                    .stateValues.text,
             ).eq(`Function A is thick ${AColor}.`);
             expect(
-                stateVariables[resolveComponentName("BDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("BDescription")]
+                    .stateValues.text,
             ).eq(`B is a ${BShade} red function.`);
             expect(
-                stateVariables[resolveComponentName("CDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("CDescription")]
+                    .stateValues.text,
             ).eq(`C is a thin ${CColor} function.`);
         }
 

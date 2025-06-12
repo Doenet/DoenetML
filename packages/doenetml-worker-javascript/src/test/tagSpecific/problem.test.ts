@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     submitAnswer,
     updateBooleanInputValue,
@@ -16,7 +16,7 @@ vi.mock("hyperformula");
 describe("Problem tag tests", async () => {
     async function test_section_credit(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         check_items: (arg: number[]) => Promise<void>,
     ) {
         let ansCredits = Array(9).fill(0);
@@ -26,31 +26,31 @@ describe("Problem tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathinput1Name =
-            stateVariables[resolveComponentName("ans1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput2Name =
-            stateVariables[resolveComponentName("ans2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput3Name =
-            stateVariables[resolveComponentName("ans3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans3")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput4Name =
-            stateVariables[resolveComponentName("ans4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans4")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput5Name =
-            stateVariables[resolveComponentName("ans5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans5")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput6Name =
-            stateVariables[resolveComponentName("ans6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans6")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput7Name =
-            stateVariables[resolveComponentName("ans7")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans7")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput8Name =
-            stateVariables[resolveComponentName("ans8")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans8")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput9Name =
-            stateVariables[resolveComponentName("ans9")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans9")].stateValues
                 .inputChildren[0].componentIdx;
 
         // enter first correct answer
@@ -60,7 +60,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans1"),
+            componentIdx: await resolvePathToNodeIdx("ans1"),
             core,
         });
         ansCredits[0] = 1;
@@ -73,7 +73,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans3"),
+            componentIdx: await resolvePathToNodeIdx("ans3"),
             core,
         });
         ansCredits[2] = 1;
@@ -83,7 +83,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans5"),
+            componentIdx: await resolvePathToNodeIdx("ans5"),
             core,
         });
         ansCredits[4] = 1;
@@ -93,7 +93,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans7"),
+            componentIdx: await resolvePathToNodeIdx("ans7"),
             core,
         });
         ansCredits[6] = 1;
@@ -106,7 +106,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans2"),
+            componentIdx: await resolvePathToNodeIdx("ans2"),
             core,
         });
         ansCredits[1] = 1;
@@ -116,7 +116,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans4"),
+            componentIdx: await resolvePathToNodeIdx("ans4"),
             core,
         });
         ansCredits[3] = 1;
@@ -126,7 +126,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans6"),
+            componentIdx: await resolvePathToNodeIdx("ans6"),
             core,
         });
         ansCredits[5] = 1;
@@ -136,7 +136,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans8"),
+            componentIdx: await resolvePathToNodeIdx("ans8"),
             core,
         });
         ansCredits[7] = 1;
@@ -149,7 +149,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans9"),
+            componentIdx: await resolvePathToNodeIdx("ans9"),
             core,
         });
         ansCredits[8] = 1;
@@ -157,7 +157,7 @@ describe("Problem tag tests", async () => {
     }
 
     it("problems default to weight 1", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <document name="doc">
     <title>Activity</title>
@@ -273,36 +273,36 @@ describe("Problem tag tests", async () => {
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(`ans${i + 1}`)]
+                    stateVariables[await resolvePathToNodeIdx(`ans${i + 1}`)]
                         .stateValues.creditAchieved,
                 ).eq(credit);
             }
 
             for (let [i, name] of sectionNames.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .creditAchieved,
                 ).eq(sectionCredits[i]);
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .percentCreditAchieved,
                 ).eq(sectionCredits[i] * 100);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Ca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Ca`)]
                         .stateValues.value,
                 ).eq(sectionCredits[i]);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Pca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Pca`)]
                         .stateValues.value,
                 ).eq(sectionCredits[i] * 100);
             }
         }
 
-        await test_section_credit(core, resolveComponentName, check_items);
+        await test_section_credit(core, resolvePathToNodeIdx, check_items);
     });
 
     it("problems with weights", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <document name="doc">
     <title>Activity</title>
@@ -420,55 +420,55 @@ describe("Problem tag tests", async () => {
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(`ans${i + 1}`)]
+                    stateVariables[await resolvePathToNodeIdx(`ans${i + 1}`)]
                         .stateValues.creditAchieved,
                 ).eq(credit);
             }
 
             for (let [i, name] of sectionNames.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .creditAchieved,
                 ).eq(sectionCredits[i]);
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .percentCreditAchieved,
                 ).eq(sectionCredits[i] * 100);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Ca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Ca`)]
                         .stateValues.value,
                 ).eq(sectionCredits[i]);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Pca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Pca`)]
                         .stateValues.value,
                 ).eq(sectionCredits[i] * 100);
             }
         }
 
-        await test_section_credit(core, resolveComponentName, check_items);
+        await test_section_credit(core, resolvePathToNodeIdx, check_items);
     });
 
     async function test_section_wide_check_work(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         sectionName = "theProblem",
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let answerNames = ["twox", "hello", "fruit", "sum3"];
         for (let name of answerNames) {
             let ansVars =
-                stateVariables[resolveComponentName(name)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(false);
             expect(ansVars.delegateCheckWork).eq(name !== "sum3");
             expect(ansVars.delegateCheckWorkToInput).eq(name !== "sum3");
         }
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .createSubmitAllButton,
         ).eq(false);
 
         let twoxInputName =
-            stateVariables[resolveComponentName("twox")].stateValues
+            stateVariables[await resolvePathToNodeIdx("twox")].stateValues
                 .inputChildren[0].componentIdx;
         await updateMathInputValue({
             latex: "2x",
@@ -476,21 +476,21 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("twox"),
+            componentIdx: await resolvePathToNodeIdx("twox"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("twox")].stateValues
+            stateVariables[await resolvePathToNodeIdx("twox")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(0.25);
 
         let helloInputName =
-            stateVariables[resolveComponentName("hello")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
                 .inputChildren[0].componentIdx;
         await updateTextInputValue({
             text: "hello",
@@ -498,63 +498,63 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("hello"),
+            componentIdx: await resolvePathToNodeIdx("hello"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(0.5);
         const bananaInd =
             stateVariables[
-                resolveComponentName("fruitInput")
+                await resolvePathToNodeIdx("fruitInput")
             ].stateValues.choiceTexts.indexOf("banana") + 1;
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("fruitInput"),
+            componentIdx: await resolvePathToNodeIdx("fruitInput"),
             selectedIndices: [bananaInd],
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("fruit"),
+            componentIdx: await resolvePathToNodeIdx("fruit"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("fruit")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fruit")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(0.75);
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("n1"),
+            componentIdx: await resolvePathToNodeIdx("n1"),
             core,
         });
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n2"),
+            componentIdx: await resolvePathToNodeIdx("n2"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("sum3"),
+            componentIdx: await resolvePathToNodeIdx("sum3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("sum3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("sum3")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -562,27 +562,27 @@ describe("Problem tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("swcw"),
+            componentIdx: await resolvePathToNodeIdx("swcw"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of answerNames) {
             let ansVars =
-                stateVariables[resolveComponentName(name)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(true);
             expect(ansVars.delegateCheckWork).eq(true);
             expect(ansVars.delegateCheckWorkToInput).eq(false);
         }
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .createSubmitAllButton,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -593,22 +593,22 @@ describe("Problem tag tests", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(false);
 
         await core.requestAction({
-            componentIdx: resolveComponentName(sectionName),
+            componentIdx: await resolvePathToNodeIdx(sectionName),
             actionName: "submitAllAnswers",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(0.75);
 
@@ -619,51 +619,51 @@ describe("Problem tag tests", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(false);
 
         await core.requestAction({
-            componentIdx: resolveComponentName(sectionName),
+            componentIdx: await resolvePathToNodeIdx(sectionName),
             actionName: "submitAllAnswers",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(0.5);
 
         // turn off section wide checkWork
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("swcw"),
+            componentIdx: await resolvePathToNodeIdx("swcw"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of answerNames) {
             let ansVars =
-                stateVariables[resolveComponentName(name)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(false);
             expect(ansVars.delegateCheckWork).eq(name !== "sum3");
             expect(ansVars.delegateCheckWorkToInput).eq(name !== "sum3");
         }
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .createSubmitAllButton,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(0.5);
     }
 
     it("section wide checkWork in problem", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <p>Section wide checkWork: <booleanInput name="swcw" /></p>
         <problem sectionWideCheckWork="$swcw" name="theProblem">
@@ -694,11 +694,11 @@ describe("Problem tag tests", async () => {
     `,
         });
 
-        await test_section_wide_check_work(core, resolveComponentName);
+        await test_section_wide_check_work(core, resolvePathToNodeIdx);
     });
 
     it("section wide checkWork in section", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <p>Section wide checkWork: <booleanInput name="swcw" /></p>
         <section aggregateScores sectionWideCheckWork="$swcw" name="theProblem">
@@ -729,11 +729,11 @@ describe("Problem tag tests", async () => {
     `,
         });
 
-        await test_section_wide_check_work(core, resolveComponentName);
+        await test_section_wide_check_work(core, resolvePathToNodeIdx);
     });
 
     it("document wide checkWork", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <document documentWideCheckWork="$swcw" name="theDocument">
         <title>The problem</title>
@@ -766,14 +766,14 @@ describe("Problem tag tests", async () => {
 
         await test_section_wide_check_work(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             "theDocument",
         );
     });
 
     async function test_override_section_wide_check_work(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         sectionName = "theProblem",
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -781,29 +781,29 @@ describe("Problem tag tests", async () => {
         let answerNames2 = ["fruit", "sum3"];
         for (let name of answerNames1) {
             let ansVars =
-                stateVariables[resolveComponentName(name)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(false);
             expect(ansVars.delegateCheckWork).eq(true);
             expect(ansVars.delegateCheckWorkToInput).eq(true);
         }
         for (let name of answerNames2) {
             let ansVars =
-                stateVariables[resolveComponentName(name)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(true);
             expect(ansVars.delegateCheckWork).eq(true);
             expect(ansVars.delegateCheckWorkToInput).eq(false);
         }
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .createSubmitAllButton,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .createSubmitAllButton,
         ).eq(false);
 
         let twoxInputName =
-            stateVariables[resolveComponentName("twox")].stateValues
+            stateVariables[await resolvePathToNodeIdx("twox")].stateValues
                 .inputChildren[0].componentIdx;
         await updateMathInputValue({
             latex: "2x",
@@ -811,21 +811,21 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("twox"),
+            componentIdx: await resolvePathToNodeIdx("twox"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("twox")].stateValues
+            stateVariables[await resolvePathToNodeIdx("twox")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(1 / 3);
 
         let helloInputName =
-            stateVariables[resolveComponentName("hello")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
                 .inputChildren[0].componentIdx;
         await updateTextInputValue({
             text: "hello",
@@ -833,92 +833,92 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("hello"),
+            componentIdx: await resolvePathToNodeIdx("hello"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(2 / 3);
 
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .justSubmitted,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .creditAchieved,
         ).eq(0);
 
         const bananaInd =
             stateVariables[
-                resolveComponentName("fruitInput")
+                await resolvePathToNodeIdx("fruitInput")
             ].stateValues.choiceTexts.indexOf("banana") + 1;
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("fruitInput"),
+            componentIdx: await resolvePathToNodeIdx("fruitInput"),
             selectedIndices: [bananaInd],
             core,
         });
         await core.requestAction({
-            componentIdx: resolveComponentName("subProblem"),
+            componentIdx: await resolvePathToNodeIdx("subProblem"),
             actionName: "submitAllAnswers",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("fruit")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fruit")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .creditAchieved,
         ).eq(0.5);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(5 / 6);
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("n1"),
+            componentIdx: await resolvePathToNodeIdx("n1"),
             core,
         });
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n2"),
+            componentIdx: await resolvePathToNodeIdx("n2"),
             core,
         });
         await core.requestAction({
-            componentIdx: resolveComponentName("subProblem"),
+            componentIdx: await resolvePathToNodeIdx("subProblem"),
             actionName: "submitAllAnswers",
             args: {},
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("sum3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("sum3")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -926,31 +926,31 @@ describe("Problem tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("swcw"),
+            componentIdx: await resolvePathToNodeIdx("swcw"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of [...answerNames1, ...answerNames2]) {
             let ansVars =
-                stateVariables[resolveComponentName(name)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(true);
             expect(ansVars.delegateCheckWork).eq(true);
             expect(ansVars.delegateCheckWorkToInput).eq(false);
         }
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .createSubmitAllButton,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .createSubmitAllButton,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -961,22 +961,22 @@ describe("Problem tag tests", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(false);
 
         await core.requestAction({
-            componentIdx: resolveComponentName(sectionName),
+            componentIdx: await resolvePathToNodeIdx(sectionName),
             actionName: "submitAllAnswers",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(2 / 3);
 
@@ -987,67 +987,67 @@ describe("Problem tag tests", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(false);
 
         await core.requestAction({
-            componentIdx: resolveComponentName(sectionName),
+            componentIdx: await resolvePathToNodeIdx(sectionName),
             actionName: "submitAllAnswers",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(1 / 3);
 
         // turn off section wide checkWork
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("swcw"),
+            componentIdx: await resolvePathToNodeIdx("swcw"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of answerNames1) {
             let ansVars =
-                stateVariables[resolveComponentName(name)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(false);
             expect(ansVars.delegateCheckWork).eq(true);
             expect(ansVars.delegateCheckWorkToInput).eq(true);
         }
         for (let name of answerNames2) {
             let ansVars =
-                stateVariables[resolveComponentName(name)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(true);
             expect(ansVars.delegateCheckWork).eq(true);
             expect(ansVars.delegateCheckWorkToInput).eq(false);
         }
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .createSubmitAllButton,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .createSubmitAllButton,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("subProblem")].stateValues
+            stateVariables[await resolvePathToNodeIdx("subProblem")].stateValues
                 .creditAchieved,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName(sectionName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .creditAchieved,
         ).eq(1 / 3);
     }
 
     it("outer section wide checkWork supersedes inner section", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <p>Section wide checkWork: <booleanInput name="swcw" /></p>
         <section aggregateScores sectionWideCheckWork="$swcw" name="theProblem">
@@ -1081,11 +1081,11 @@ describe("Problem tag tests", async () => {
     `,
         });
 
-        await test_override_section_wide_check_work(core, resolveComponentName);
+        await test_override_section_wide_check_work(core, resolvePathToNodeIdx);
     });
 
     it("document wide checkWork supersedes section", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <text>a</text>
         <document documentWideCheckWork="$swcw" name="theDocument">
@@ -1122,13 +1122,13 @@ describe("Problem tag tests", async () => {
 
         await test_override_section_wide_check_work(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             "theDocument",
         );
     });
 
     it("section wide checkWork, submit label", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <problem sectionWideCheckWork name="prob1">
         <answer name="ans1">x</answer>
@@ -1147,41 +1147,41 @@ describe("Problem tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("prob1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("prob1")].stateValues
                 .submitLabel,
         ).eq("Check Work");
         expect(
-            stateVariables[resolveComponentName("prob1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("prob1")].stateValues
                 .submitLabelNoCorrectness,
         ).eq("Submit Response");
         expect(
-            stateVariables[resolveComponentName("prob2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("prob2")].stateValues
                 .submitLabel,
         ).eq("Hit it!");
         expect(
-            stateVariables[resolveComponentName("prob2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("prob2")].stateValues
                 .submitLabelNoCorrectness,
         ).eq("Submit Response");
         expect(
-            stateVariables[resolveComponentName("prob3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("prob3")].stateValues
                 .submitLabel,
         ).eq("Check Work");
         expect(
-            stateVariables[resolveComponentName("prob3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("prob3")].stateValues
                 .submitLabelNoCorrectness,
         ).eq("Guess");
         expect(
-            stateVariables[resolveComponentName("prob4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("prob4")].stateValues
                 .submitLabel,
         ).eq("Hit it!");
         expect(
-            stateVariables[resolveComponentName("prob4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("prob4")].stateValues
                 .submitLabelNoCorrectness,
         ).eq("Guess");
     });
 
     it("document wide checkWork, submit label", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <document documentWideCheckWork name="doc" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
         <answer name="ans1">x</answer>
@@ -1191,10 +1191,11 @@ describe("Problem tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("doc")].stateValues.submitLabel,
+            stateVariables[await resolvePathToNodeIdx("doc")].stateValues
+                .submitLabel,
         ).eq("Hit it!");
         expect(
-            stateVariables[resolveComponentName("doc")].stateValues
+            stateVariables[await resolvePathToNodeIdx("doc")].stateValues
                 .submitLabelNoCorrectness,
         ).eq("Guess");
     });

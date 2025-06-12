@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
@@ -9,37 +9,46 @@ vi.mock("hyperformula");
 describe("Piecewise Function Tag Tests", async () => {
     async function check_heaviside(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("mef")].stateValues.latex)
-            .eq(`f(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef")].stateValues.latex,
+        ).eq(`f(x)= \\begin{cases}
     1 & \\text{if } x > 0\\\\
     0 & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("mef2")].stateValues.latex)
-            .eq(`f_2(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef2")].stateValues
+                .latex,
+        ).eq(`f_2(x)= \\begin{cases}
     0 & \\text{if } x \\le 0\\\\
     1 & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("meg")].stateValues.latex)
-            .eq(`g(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meg")].stateValues.latex,
+        ).eq(`g(x)= \\begin{cases}
     1 & \\text{if } x \\ge 0\\\\
     0 & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("meg2")].stateValues.latex)
-            .eq(`g_2(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meg2")].stateValues
+                .latex,
+        ).eq(`g_2(x)= \\begin{cases}
     0 & \\text{if } x < 0\\\\
     1 & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("meh")].stateValues.latex)
-            .eq(`h(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meh")].stateValues.latex,
+        ).eq(`h(x)= \\begin{cases}
     \\frac{1}{2} & \\text{if } x = 0\\\\
     1 & \\text{if } x > 0\\\\
     0 & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("meh2")].stateValues.latex)
-            .eq(`h_2(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meh2")].stateValues
+                .latex,
+        ).eq(`h_2(x)= \\begin{cases}
     1 & \\text{if } x > 0\\\\
     0 & \\text{if } x < 0\\\\
     \\frac{1}{2} & \\text{otherwise}
@@ -51,7 +60,7 @@ describe("Piecewise Function Tag Tests", async () => {
 
         for (let fsym of fs) {
             let f =
-                stateVariables[resolveComponentName(fsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(fsym)].stateValues
                     .numericalfs[0];
             expect(f(-2)).closeTo(0, 1e-12);
             expect(f(-1)).closeTo(0, 1e-12);
@@ -62,26 +71,26 @@ describe("Piecewise Function Tag Tests", async () => {
             expect(f(2)).closeTo(1, 1e-12);
 
             expect(
-                stateVariables[resolveComponentName(fsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(fsym)].stateValues
                     .globalMinimum[1],
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName(fsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(fsym)].stateValues
                     .globalInfimum[1],
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName(fsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(fsym)].stateValues
                     .globalMaximum[1],
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName(fsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(fsym)].stateValues
                     .globalSupremum[1],
             ).eq(1);
         }
 
         for (let gsym of gs) {
             let g =
-                stateVariables[resolveComponentName(gsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(gsym)].stateValues
                     .numericalfs[0];
             expect(g(-2)).closeTo(0, 1e-12);
             expect(g(-1)).closeTo(0, 1e-12);
@@ -92,26 +101,26 @@ describe("Piecewise Function Tag Tests", async () => {
             expect(g(2)).closeTo(1, 1e-12);
 
             expect(
-                stateVariables[resolveComponentName(gsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(gsym)].stateValues
                     .globalMinimum[1],
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName(gsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(gsym)].stateValues
                     .globalInfimum[1],
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName(gsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(gsym)].stateValues
                     .globalMaximum[1],
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName(gsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(gsym)].stateValues
                     .globalSupremum[1],
             ).eq(1);
         }
 
         for (let hsym of hs) {
             let h =
-                stateVariables[resolveComponentName(hsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(hsym)].stateValues
                     .numericalfs[0];
             expect(h(-2)).closeTo(0, 1e-12);
             expect(h(-1)).closeTo(0, 1e-12);
@@ -122,26 +131,26 @@ describe("Piecewise Function Tag Tests", async () => {
             expect(h(2)).closeTo(1, 1e-12);
 
             expect(
-                stateVariables[resolveComponentName(hsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(hsym)].stateValues
                     .globalMinimum[1],
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName(hsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(hsym)].stateValues
                     .globalInfimum[1],
             ).eq(0);
             expect(
-                stateVariables[resolveComponentName(hsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(hsym)].stateValues
                     .globalMaximum[1],
             ).eq(1);
             expect(
-                stateVariables[resolveComponentName(hsym)].stateValues
+                stateVariables[await resolvePathToNodeIdx(hsym)].stateValues
                     .globalSupremum[1],
             ).eq(1);
         }
     }
 
     it("heaviside function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <piecewiseFunction name="f">
@@ -180,11 +189,11 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        await check_heaviside(core, resolveComponentName);
+        await check_heaviside(core, resolvePathToNodeIdx);
     });
 
     it("heaviside function, ignore extra pieces", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <piecewiseFunction name="f">
@@ -231,11 +240,11 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        await check_heaviside(core, resolveComponentName);
+        await check_heaviside(core, resolvePathToNodeIdx);
     });
 
     it("different variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <piecewiseFunction name="f" variables="t">
@@ -263,29 +272,33 @@ describe("Piecewise Function Tag Tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("mef")].stateValues.latex)
-            .eq(`f(t)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef")].stateValues.latex,
+        ).eq(`f(t)= \\begin{cases}
     t & \\text{if } t > 0\\\\
     2 - t & \\text{if } t \\le 0
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("meg")].stateValues.latex)
-            .eq(`g(q)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meg")].stateValues.latex,
+        ).eq(`g(q)= \\begin{cases}
     q & \\text{if } q > 0\\\\
     2 - q & \\text{if } q < 0
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("meh")].stateValues.latex)
-            .eq(`h(s)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meh")].stateValues.latex,
+        ).eq(`h(s)= \\begin{cases}
     s & \\text{if } 0 \\le s < 10\\\\
     2 - s & \\text{if } -10 \\le s < 0
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("mek")].stateValues.latex)
-            .eq(`k(u)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mek")].stateValues.latex,
+        ).eq(`k(u)= \\begin{cases}
     u & \\text{if } u > 0\\\\
     2 - u & \\text{if } u < 0
 \\end{cases}`);
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         expect(f(-2)).closeTo(4, 1e-12);
         expect(f(-1)).closeTo(3, 1e-12);
@@ -296,21 +309,24 @@ describe("Piecewise Function Tag Tests", async () => {
         expect(f(2)).closeTo(2, 1e-12);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMinimum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalInfimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalInfimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMaximum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalSupremum,
         ).eqls([-200, 202]);
 
         let g =
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .numericalfs[0];
         expect(g(-2)).closeTo(4, 1e-12);
         expect(g(-1)).closeTo(3, 1e-12);
@@ -321,21 +337,24 @@ describe("Piecewise Function Tag Tests", async () => {
         expect(g(2)).closeTo(2, 1e-12);
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .globalMinimum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalInfimum,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .globalInfimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalMaximum,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .globalSupremum,
         ).eqls([-200, 202]);
 
         let h =
-            stateVariables[resolveComponentName("h")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .numericalfs[0];
         expect(h(-10.000001)).eqls(NaN);
         expect(h(-10)).closeTo(12, 1e-12);
@@ -350,21 +369,24 @@ describe("Piecewise Function Tag Tests", async () => {
         expect(h(10)).eqls(NaN);
 
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .globalMinimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalInfimum,
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .globalInfimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalMaximum,
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .globalMaximum,
         ).eqls([-10, 12]);
         expect(
-            stateVariables[resolveComponentName("h")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .globalSupremum,
         ).eqls([-10, 12]);
 
         let k =
-            stateVariables[resolveComponentName("k")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
                 .numericalfs[0];
         expect(k(-10)).eqls(NaN);
         expect(k(-9.99999)).closeTo(11.99999, 1e-12);
@@ -379,22 +401,25 @@ describe("Piecewise Function Tag Tests", async () => {
         expect(k(10.0000001)).eqls(NaN);
 
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .globalMinimum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalInfimum,
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .globalInfimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalMaximum,
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
                 .globalSupremum,
         ).eqls([-10, 12]);
     });
 
     it("extrema", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph size="small">
       <piecewiseFunction name="f">
@@ -469,376 +494,453 @@ describe("Piecewise Function Tag Tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("mef")].stateValues.latex)
-            .eq(`f(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef")].stateValues.latex,
+        ).eq(`f(x)= \\begin{cases}
     x^{2} & \\text{if } x > 0\\\\
     -x^{2} & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("mef2")].stateValues.latex)
-            .eq(`f_2(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef2")].stateValues
+                .latex,
+        ).eq(`f_2(x)= \\begin{cases}
     x^{2} & \\text{if } x \\ge 0\\\\
     -x^{2} & \\text{otherwise}
 \\end{cases}`);
         expect(
-            stateVariables[resolveComponentName("pfmin")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pfmin")].stateValues
+                .text,
         ).eq("Minima of f: ");
         expect(
-            stateVariables[resolveComponentName("pfmax")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pfmax")].stateValues
+                .text,
         ).eq("Maxima of f: ");
         expect(
-            stateVariables[resolveComponentName("pf2min")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pf2min")].stateValues
+                .text,
         ).eq("Minima of f_2: ");
         expect(
-            stateVariables[resolveComponentName("pf2max")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pf2max")].stateValues
+                .text,
         ).eq("Maxima of f_2: ");
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.minima,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.maxima,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.minima,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.maxima,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMinimum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalInfimum,
-        ).eqls([-200, -(200 ** 2)]);
-        expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMaximum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("f")].stateValues
-                .globalSupremum,
-        ).eqls([200, 200 ** 2]);
-        expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalMinimum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalInfimum,
         ).eqls([-200, -(200 ** 2)]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalSupremum,
+        ).eqls([200, 200 ** 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .globalMinimum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .globalInfimum,
+        ).eqls([-200, -(200 ** 2)]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .globalMaximum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                 .globalSupremum,
         ).eqls([200, 200 ** 2]);
 
-        expect(stateVariables[resolveComponentName("meg")].stateValues.latex)
-            .eq(`g(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meg")].stateValues.latex,
+        ).eq(`g(x)= \\begin{cases}
     x^{2} & \\text{if } x > 0.1\\\\
     -x^{2} & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("meg2")].stateValues.latex)
-            .eq(`g_2(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meg2")].stateValues
+                .latex,
+        ).eq(`g_2(x)= \\begin{cases}
     x^{2} & \\text{if } x \\ge 0.1\\\\
     -x^{2} & \\text{otherwise}
 \\end{cases}`);
         expect(
-            stateVariables[resolveComponentName("pgmin")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pgmin")].stateValues
+                .text,
         ).eq("Minima of g: ( 0.1, -0.01 )");
         expect(
-            stateVariables[resolveComponentName("pgmax")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pgmax")].stateValues
+                .text,
         ).eq("Maxima of g: ( 0, 0 )");
         expect(
-            stateVariables[resolveComponentName("pg2min")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pg2min")].stateValues
+                .text,
         ).eq("Minima of g_2: ");
         expect(
-            stateVariables[resolveComponentName("pg2max")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pg2max")].stateValues
+                .text,
         ).eq("Maxima of g_2: ( 0, 0 )");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima.length,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima[0][0],
-        ).closeTo(0.1, 1e-14);
-        expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima[0][1],
-        ).closeTo(-0.01, 1e-14);
-        expect(
-            stateVariables[resolveComponentName("g")].stateValues.maxima.length,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("g")].stateValues.maxima[0][0],
-        ).closeTo(0, 1e-14);
-        expect(
-            stateVariables[resolveComponentName("g")].stateValues.maxima[0][1],
-        ).closeTo(0, 1e-14);
-        expect(
-            stateVariables[resolveComponentName("g2")].stateValues.minima,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("g2")].stateValues.maxima
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.minima
                 .length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.maxima[0][0],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .minima[0][0],
+        ).closeTo(0.1, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .minima[0][1],
+        ).closeTo(-0.01, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.maxima
+                .length,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .maxima[0][0],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.maxima[0][1],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .maxima[0][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.minima,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalInfimum,
-        ).eqls([-199.9, -(199.9 ** 2)]);
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.maxima
+                .length,
+        ).eq(1);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalMaximum,
-        ).eqls([]);
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .maxima[0][0],
+        ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
-                .globalSupremum,
-        ).eqls([200.1, 200.1 ** 2]);
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .maxima[0][1],
+        ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .globalMinimum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .globalInfimum,
         ).eqls([-199.9, -(199.9 ** 2)]);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .globalSupremum,
+        ).eqls([200.1, 200.1 ** 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .globalMinimum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .globalInfimum,
+        ).eqls([-199.9, -(199.9 ** 2)]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .globalMaximum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
                 .globalSupremum,
         ).eqls([200.1, 200.1 ** 2]);
 
-        expect(stateVariables[resolveComponentName("meh")].stateValues.latex)
-            .eq(`h(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meh")].stateValues.latex,
+        ).eq(`h(x)= \\begin{cases}
     x^{2} & \\text{if } x > -0.1\\\\
     -x^{2} & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("meh2")].stateValues.latex)
-            .eq(`h_2(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("meh2")].stateValues
+                .latex,
+        ).eq(`h_2(x)= \\begin{cases}
     x^{2} & \\text{if } x \\ge -0.1\\\\
     -x^{2} & \\text{otherwise}
 \\end{cases}`);
         expect(
-            stateVariables[resolveComponentName("phmin")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("phmin")].stateValues
+                .text,
         ).eq("Minima of h: ( 0, 0 )");
         expect(
-            stateVariables[resolveComponentName("phmax")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("phmax")].stateValues
+                .text,
         ).eq("Maxima of h: ");
         expect(
-            stateVariables[resolveComponentName("ph2min")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ph2min")].stateValues
+                .text,
         ).eq("Minima of h_2: ( 0, 0 )");
         expect(
-            stateVariables[resolveComponentName("ph2max")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ph2max")].stateValues
+                .text,
         ).eq("Maxima of h_2: ( -0.1, 0.01 )");
 
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima.length,
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues.minima
+                .length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .minima[0][0],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .minima[0][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues.maxima,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues.minima
                 .length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .minima[0][0],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .minima[0][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.maxima
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues.maxima
                 .length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.maxima[0][0],
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .maxima[0][0],
         ).closeTo(-0.1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.maxima[0][1],
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .maxima[0][1],
         ).closeTo(0.01, 1e-14);
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalMinimum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalInfimum,
-        ).eqls([-200.1, -(200.1 ** 2)]);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalMaximum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues
-                .globalSupremum,
-        ).eqls([199.9, 199.9 ** 2]);
-        expect(
-            stateVariables[resolveComponentName("h2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .globalMinimum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .globalInfimum,
         ).eqls([-200.1, -(200.1 ** 2)]);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .globalSupremum,
+        ).eqls([199.9, 199.9 ** 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .globalMinimum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .globalInfimum,
+        ).eqls([-200.1, -(200.1 ** 2)]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .globalMaximum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
                 .globalSupremum,
         ).eqls([199.9, 199.9 ** 2]);
 
-        expect(stateVariables[resolveComponentName("mek")].stateValues.latex)
-            .eq(`k(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mek")].stateValues.latex,
+        ).eq(`k(x)= \\begin{cases}
     \\left(x - 2\\right)^{2} & \\text{if } x > 1\\\\
     \\left(x + 2\\right)^{2} & \\text{if } x < -1\\\\
     \\cos\\left(\\frac{\\pi x}{2}\\right) & \\text{otherwise}
 \\end{cases}`);
-        expect(stateVariables[resolveComponentName("mek2")].stateValues.latex)
-            .eq(`k_2(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mek2")].stateValues
+                .latex,
+        ).eq(`k_2(x)= \\begin{cases}
     \\left(x - 2\\right)^{2} & \\text{if } x \\ge 1\\\\
     \\left(x + 2\\right)^{2} & \\text{if } x \\le -1\\\\
     \\cos\\left(\\frac{\\pi x}{2}\\right) & \\text{otherwise}
 \\end{cases}`);
         expect(
-            stateVariables[resolveComponentName("pkmin")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pkmin")].stateValues
+                .text,
         ).eq("Minima of k: ( -2, 0 ), ( -1, 0 ), ( 1, 0 ), ( 2, 0 )");
         expect(
-            stateVariables[resolveComponentName("pkmax")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pkmax")].stateValues
+                .text,
         ).eq("Maxima of k: ( 0, 1 )");
         expect(
-            stateVariables[resolveComponentName("pk2min")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pk2min")].stateValues
+                .text,
         ).eq("Minima of k_2: ( -2, 0 ), ( 2, 0 )");
         expect(
-            stateVariables[resolveComponentName("pk2max")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pk2max")].stateValues
+                .text,
         ).eq("Maxima of k_2: ( -1, 1 ), ( 0, 1 ), ( 1, 1 )");
 
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima.length,
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.minima
+                .length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[0][0],
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[0][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[1][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[1][0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[1][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[1][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[2][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[2][0],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[2][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[2][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[3][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[3][0],
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[3][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[3][1],
         ).closeTo(0, 1e-14);
 
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.maxima.length,
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.maxima
+                .length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.maxima[0][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .maxima[0][0],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.maxima[0][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .maxima[0][1],
         ).closeTo(1, 1e-14);
 
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues.minima
                 .length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[0][0],
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[0][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[1][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[1][0],
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[1][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[1][1],
         ).closeTo(0, 1e-14);
 
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues.maxima
                 .length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[0][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[0][0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[0][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[0][1],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[1][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[1][0],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[1][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[1][1],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[2][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[2][0],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[2][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[2][1],
         ).closeTo(1, 1e-14);
 
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalMinimum,
-        ).eqls([2, 0]);
-        expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalInfimum,
-        ).eqls([2, 0]);
-        expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalMaximum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("k")].stateValues
-                .globalSupremum,
-        ).eqls([201, 199 ** 2]);
-        expect(
-            stateVariables[resolveComponentName("k2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
                 .globalMinimum,
         ).eqls([2, 0]);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
                 .globalInfimum,
         ).eqls([2, 0]);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
                 .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .globalSupremum,
+        ).eqls([201, 199 ** 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .globalMinimum,
+        ).eqls([2, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .globalInfimum,
+        ).eqls([2, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .globalMaximum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
                 .globalSupremum,
         ).eqls([201, 199 ** 2]);
     });
 
     it("extrema 2, overlap in domains", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph size="small">
       <piecewiseFunction name="f">
@@ -922,353 +1024,426 @@ describe("Piecewise Function Tag Tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.minima,
         ).eqls([[0, 0]]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.maxima,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.minima,
         ).eqls([[0, 0]]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.maxima,
         ).eqls([]);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMinimum,
-        ).eqls([0, 0]);
-        expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalInfimum,
-        ).eqls([0, 0]);
-        expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMaximum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("f")].stateValues
-                .globalSupremum,
-        ).eqls([201, 200 ** 2 + 1]);
-        expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalMinimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalInfimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalSupremum,
+        ).eqls([201, 200 ** 2 + 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .globalMinimum,
+        ).eqls([0, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .globalInfimum,
+        ).eqls([0, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
+                .globalMaximum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                 .globalSupremum,
         ).eqls([201, 200 ** 2 + 1]);
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima.length,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.minima
+                .length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .minima[0][0],
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .minima[0][1],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima[1][0],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .minima[1][0],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima[1][1],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .minima[1][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima[2][0],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .minima[2][0],
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.minima[2][1],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .minima[2][1],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.maxima.length,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.maxima
+                .length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.maxima[0][0],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .maxima[0][0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.maxima[0][1],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .maxima[0][1],
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.maxima[1][0],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .maxima[1][0],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.maxima[1][1],
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .maxima[1][1],
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.minima
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.minima
                 .length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .minima[0][0],
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .minima[0][1],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.minima[1][0],
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .minima[1][0],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.minima[1][1],
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .minima[1][1],
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.minima[2][0],
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .minima[2][0],
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.minima[2][1],
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .minima[2][1],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.maxima,
         ).eqls([]);
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalMinimum,
-        ).eqls([0, 0]);
-        expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalInfimum,
-        ).eqls([0, 0]);
-        expect(
-            stateVariables[resolveComponentName("g")].stateValues.globalMaximum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("g")].stateValues
-                .globalSupremum,
-        ).eqls([201, 199 ** 2 + 1]);
-        expect(
-            stateVariables[resolveComponentName("g2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .globalMinimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .globalInfimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .globalSupremum,
+        ).eqls([201, 199 ** 2 + 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .globalMinimum,
+        ).eqls([0, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .globalInfimum,
+        ).eqls([0, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .globalMaximum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
                 .globalSupremum,
         ).eqls([201, 199 ** 2 + 1]);
 
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima.length,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima[0][0],
-        ).closeTo(-2, 1e-8);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima[0][1],
-        ).closeTo(-4, 1e-8);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima[1][0],
-        ).closeTo(0, 1e-8);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima[1][1],
-        ).closeTo(0, 1e-8);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima[2][0],
-        ).closeTo(2, 1e-8);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.minima[2][1],
-        ).closeTo(-4, 1e-8);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.maxima,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues.minima
                 .length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .minima[0][0],
         ).closeTo(-2, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .minima[0][1],
         ).closeTo(-4, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima[1][0],
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .minima[1][0],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima[1][1],
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .minima[1][1],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima[2][0],
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .minima[2][0],
         ).closeTo(2, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.minima[2][1],
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .minima[2][1],
         ).closeTo(-4, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.maxima
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues.maxima,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues.minima
+                .length,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .minima[0][0],
+        ).closeTo(-2, 1e-8);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .minima[0][1],
+        ).closeTo(-4, 1e-8);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .minima[1][0],
+        ).closeTo(0, 1e-8);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .minima[1][1],
+        ).closeTo(0, 1e-8);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .minima[2][0],
+        ).closeTo(2, 1e-8);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .minima[2][1],
+        ).closeTo(-4, 1e-8);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues.maxima
                 .length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.maxima[0][0],
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .maxima[0][0],
         ).closeTo(-1, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.maxima[0][1],
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .maxima[0][1],
         ).closeTo(1, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.maxima[1][0],
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .maxima[1][0],
         ).closeTo(1, 1e-8);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues.maxima[1][1],
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .maxima[1][1],
         ).closeTo(1, 1e-8);
 
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalMinimum,
-        ).eqls([-2, -4]);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalInfimum,
-        ).eqls([-2, -4]);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues.globalMaximum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("h")].stateValues
-                .globalSupremum,
-        ).eqls([-203, 203]);
-        expect(
-            stateVariables[resolveComponentName("h2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .globalMinimum,
         ).eqls([-2, -4]);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .globalInfimum,
         ).eqls([-2, -4]);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
                 .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("h2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues
+                .globalSupremum,
+        ).eqls([-203, 203]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .globalMinimum,
+        ).eqls([-2, -4]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .globalInfimum,
+        ).eqls([-2, -4]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
+                .globalMaximum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("h2")].stateValues
                 .globalSupremum,
         ).eqls([-203, 203]);
 
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima.length,
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.minima
+                .length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[0][0],
         ).closeTo(-3, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[0][1],
         ).closeTo(3, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[1][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[1][0],
         ).closeTo(-2, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[1][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[1][1],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[2][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[2][0],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[2][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[2][1],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[3][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[3][0],
         ).closeTo(2, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[3][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[3][1],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[4][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[4][0],
         ).closeTo(3, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.minima[4][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .minima[4][1],
         ).closeTo(3, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.maxima.length,
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.maxima
+                .length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.maxima[0][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .maxima[0][0],
         ).closeTo(-1, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.maxima[0][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .maxima[0][1],
         ).closeTo(2.25, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.maxima[1][0],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .maxima[1][0],
         ).closeTo(1, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.maxima[1][1],
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .maxima[1][1],
         ).closeTo(2.25, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues.minima
                 .length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[0][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[0][0],
         ).closeTo(-2, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[0][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[0][1],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[1][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[1][0],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[1][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[1][1],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[2][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[2][0],
         ).closeTo(2, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.minima[2][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .minima[2][1],
         ).closeTo(0, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues.maxima
                 .length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[0][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[0][0],
         ).closeTo(-3, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[0][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[0][1],
         ).closeTo(6.25, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[1][0],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[1][0],
         ).closeTo(3, 1e-8);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues.maxima[1][1],
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .maxima[1][1],
         ).closeTo(6.25, 1e-8);
 
         expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalMinimum,
-        ).eqls([0, 0]);
-        expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalInfimum,
-        ).eqls([0, 0]);
-        expect(
-            stateVariables[resolveComponentName("k")].stateValues.globalMaximum,
-        ).eqls([]);
-        expect(
-            stateVariables[resolveComponentName("k")].stateValues
-                .globalSupremum,
-        ).eqls([-203, 203]);
-        expect(
-            stateVariables[resolveComponentName("k2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
                 .globalMinimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
                 .globalInfimum,
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
                 .globalMaximum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("k2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues
+                .globalSupremum,
+        ).eqls([-203, 203]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .globalMinimum,
+        ).eqls([0, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .globalInfimum,
+        ).eqls([0, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
+                .globalMaximum,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k2")].stateValues
                 .globalSupremum,
         ).eqls([-203, 203]);
     });
 
     it("ignore function pieces with non-numerical domain when evaluating numerically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <piecewiseFunction name="f" symbolic="false">
@@ -1291,8 +1466,9 @@ describe("Piecewise Function Tag Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("mef")].stateValues.latex)
-            .eq(`f(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef")].stateValues.latex,
+        ).eq(`f(x)= \\begin{cases}
     1 & \\text{if } x = a\\\\
     x & \\text{if } {s} < x < t\\\\
     \\frac{x^{2}}{10} & \\text{if } {1} \\le x < q\\\\
@@ -1300,24 +1476,24 @@ describe("Piecewise Function Tag Tests", async () => {
     \\frac{x^{4}}{1000} & \\text{if } 8 \\le x \\le 10
 \\end{cases}`);
 
-        expect(stateVariables[resolveComponentName("p7")].stateValues.text).eq(
-            "NaN",
-        );
-        expect(stateVariables[resolveComponentName("p8")].stateValues.text).eq(
-            "4.1",
-        );
-        expect(stateVariables[resolveComponentName("p9")].stateValues.text).eq(
-            "6.56",
-        );
-        expect(stateVariables[resolveComponentName("p10")].stateValues.text).eq(
-            "10",
-        );
-        expect(stateVariables[resolveComponentName("p11")].stateValues.text).eq(
-            "NaN",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p7")].stateValues.text,
+        ).eq("NaN");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
+        ).eq("4.1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
+        ).eq("6.56");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p10")].stateValues.text,
+        ).eq("10");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("NaN");
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         for (let i = -10; i <= 15; i++) {
             if (i >= 8 && i <= 10) {
@@ -1328,22 +1504,25 @@ describe("Piecewise Function Tag Tests", async () => {
         }
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMinimum,
         ).eqls([8, f(8)]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalInfimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalInfimum,
         ).eqls([8, f(8)]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMaximum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMaximum,
         ).eqls([10, f(10)]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalSupremum,
         ).eqls([10, f(10)]);
     });
 
     it("use single point notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <piecewiseFunction name="f">
@@ -1361,15 +1540,16 @@ describe("Piecewise Function Tag Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("mef")].stateValues.latex)
-            .eq(`f(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef")].stateValues.latex,
+        ).eq(`f(x)= \\begin{cases}
     x & \\text{if } x = 1\\\\
     \\frac{x^{2}}{10} & \\text{if } x = 2\\\\
     \\frac{x^{3}}{100} & \\text{if } 1 < x < 2 \\text{ or }2 < x < 3
 \\end{cases}`);
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         expect(f(0)).eqls(NaN);
         expect(f(0.999)).eqls(NaN);
@@ -1383,28 +1563,31 @@ describe("Piecewise Function Tag Tests", async () => {
         expect(f(4)).eqls(NaN);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.maxima,
         ).eqls([[2, 4 / 10]]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.minima,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMaximum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMaximum,
         ).eqls([1, 1]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalSupremum,
         ).eqls([1, 1]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMinimum,
         ).eqls([]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalInfimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalInfimum,
         ).eqls([1, 1 / 100]);
     });
 
     it("global extrema, find single points from gaps", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <piecewiseFunction name="f" domain="(-5,5)">
@@ -1423,15 +1606,16 @@ describe("Piecewise Function Tag Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("mef")].stateValues.latex)
-            .eq(`f(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef")].stateValues.latex,
+        ).eq(`f(x)= \\begin{cases}
     3 & \\text{if } -1 < x < 0.1\\\\
     \\frac{1}{x} - 1 & \\text{if } 3 < x < 4 \\text{ or }4 < x < 5\\\\
     -2 - \\left(x + 4\\right)^{2} & \\text{if } -6 < x \\le -1 \\text{ or }0.1 \\le x \\le 3 \\text{ or }x = 4 \\text{ or }x \\ge 5
 \\end{cases}`);
 
         let f =
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .numericalfs[0];
         expect(f(-5)).eqls(NaN);
         expect(f(-4.999)).closeTo(-2 - 0.999 ** 2, 1e-14);
@@ -1448,37 +1632,39 @@ describe("Piecewise Function Tag Tests", async () => {
         expect(f(5)).eqls(NaN);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.maxima,
         ).eqls([[-4, -2]]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.minima,
         ).eqls([
             [-1, -2 - 3 ** 2],
             [3, -2 - 7 ** 2],
             [4, -2 - 8 ** 2],
         ]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalMaximum[0],
         ).within(-1, -0.9);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalMaximum[1],
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalSupremum,
         ).eqls([-1, 3]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMinimum,
         ).eqls([4, -2 - 8 ** 2]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalInfimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalInfimum,
         ).eqls([4, -2 - 8 ** 2]);
     });
 
     it("latex combines pieces", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <piecewiseFunction name="f">
@@ -1499,8 +1685,9 @@ describe("Piecewise Function Tag Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("mef")].stateValues.latex)
-            .eq(`f(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef")].stateValues.latex,
+        ).eq(`f(x)= \\begin{cases}
     x & \\text{if } {s} < x < t \\text{ or } 1 < x < 4\\\\
     x^{2} & \\text{if } {1} \\le x < q \\text{ or } {b} \\le x < 1 \\text{ or } 4 \\le x < 6\\\\
     x & \\text{if } 8 < x < 9
@@ -1508,7 +1695,7 @@ describe("Piecewise Function Tag Tests", async () => {
     });
 
     it("extrema of a function with piecewise function child", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <function name="f">
@@ -1530,15 +1717,16 @@ describe("Piecewise Function Tag Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("mef")].stateValues.latex)
-            .eq(`f(x)= \\begin{cases}
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mef")].stateValues.latex,
+        ).eq(`f(x)= \\begin{cases}
     x^{2} & \\text{if } -1 < x \\le 1\\\\
     1 - \\frac{x^{2}}{4} & \\text{if } -4 < x \\le -1 \\text{ or }1 < x \\le 4\\\\
     \\cos\\left(\\pi x\\right) & \\text{otherwise}
 \\end{cases}`);
 
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.maxima,
         ).eqls([
             [-4, 1],
             [1, 1],
@@ -1546,7 +1734,7 @@ describe("Piecewise Function Tag Tests", async () => {
             [8, 1],
         ]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.minima,
         ).eqls([
             [0, 0],
             [4, -3],
@@ -1554,22 +1742,25 @@ describe("Piecewise Function Tag Tests", async () => {
             [7, -1],
         ]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMaximum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMaximum,
         ).eqls([1, 1]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
                 .globalSupremum,
         ).eqls([-1, 1]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalMinimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalMinimum,
         ).eqls([4, -3]);
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.globalInfimum,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .globalInfimum,
         ).eqls([-4, -3]);
     });
 
     it("extrema of piecewise functions with piecewise function children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <piecewiseFunction name="f1">
@@ -1601,7 +1792,7 @@ describe("Piecewise Function Tag Tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let f2 =
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                 .numericalfs[0];
 
         expect(f2(-4)).eq(-1 / 4);
@@ -1615,30 +1806,30 @@ describe("Piecewise Function Tag Tests", async () => {
         expect(f2(4)).eq(1 / 4);
 
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.maxima,
         ).eqls([[2, 4]]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.minima,
         ).eqls([[-3, -1 / 3]]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                 .globalMaximum,
         ).eqls([2, 4]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                 .globalSupremum,
         ).eqls([2, 4]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                 .globalMinimum,
         ).eqls([-3, -1 / 3]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues
                 .globalInfimum,
         ).eqls([-3, -1 / 3]);
 
         let f3 =
-            stateVariables[resolveComponentName("f3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
                 .numericalfs[0];
 
         expect(f3(-4)).eq(0);
@@ -1651,28 +1842,28 @@ describe("Piecewise Function Tag Tests", async () => {
         expect(f3(4)).eq(9 * Math.exp(-1));
 
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.maxima,
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues.maxima,
         ).eqls([
             [1, 7],
             [3, 9],
         ]);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues.minima,
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues.minima,
         ).eqls([[2, 4]]);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
                 .globalMaximum,
         ).eqls([3, 9]);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
                 .globalSupremum,
         ).eqls([3, 9]);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
                 .globalMinimum[1],
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("f3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues
                 .globalInfimum[1],
         ).eq(0);
     });

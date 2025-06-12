@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     movePolyline,
@@ -15,7 +15,7 @@ vi.mock("hyperformula");
 
 async function testPolylineCopiedTwice({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     vertices,
     polylineName = "pg",
     graph1Name = "g1",
@@ -23,7 +23,7 @@ async function testPolylineCopiedTwice({
     graph3Name = "g3",
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     vertices: (number | string)[][];
     polylineName?: string;
     graph1Name?: string;
@@ -32,16 +32,19 @@ async function testPolylineCopiedTwice({
 }) {
     let stateVariables = await core.returnAllStateVariables(false, true);
     expect(
-        stateVariables[resolveComponentName(`${graph1Name}.${polylineName}`)]
-            .stateValues.numVertices,
+        stateVariables[
+            await resolvePathToNodeIdx(`${graph1Name}.${polylineName}`)
+        ].stateValues.numVertices,
     ).eqls(vertices.length);
     expect(
-        stateVariables[resolveComponentName(`${graph2Name}.${polylineName}`)]
-            .stateValues.numVertices,
+        stateVariables[
+            await resolvePathToNodeIdx(`${graph2Name}.${polylineName}`)
+        ].stateValues.numVertices,
     ).eqls(vertices.length);
     expect(
-        stateVariables[resolveComponentName(`${graph3Name}.${polylineName}`)]
-            .stateValues.numVertices,
+        stateVariables[
+            await resolvePathToNodeIdx(`${graph3Name}.${polylineName}`)
+        ].stateValues.numVertices,
     ).eqls(vertices.length);
 
     for (let i in vertices) {
@@ -53,7 +56,7 @@ async function testPolylineCopiedTwice({
                 me
                     .fromAst(
                         stateVariables[
-                            resolveComponentName(
+                            await resolvePathToNodeIdx(
                                 `${graph1Name}.${polylineName}`,
                             )
                         ].stateValues.vertices[i][0],
@@ -64,7 +67,7 @@ async function testPolylineCopiedTwice({
                 me
                     .fromAst(
                         stateVariables[
-                            resolveComponentName(
+                            await resolvePathToNodeIdx(
                                 `${graph2Name}.${polylineName}`,
                             )
                         ].stateValues.vertices[i][0],
@@ -75,7 +78,7 @@ async function testPolylineCopiedTwice({
                 me
                     .fromAst(
                         stateVariables[
-                            resolveComponentName(
+                            await resolvePathToNodeIdx(
                                 `${graph3Name}.${polylineName}`,
                             )
                         ].stateValues.vertices[i][0],
@@ -85,17 +88,17 @@ async function testPolylineCopiedTwice({
         } else {
             expect(
                 stateVariables[
-                    resolveComponentName(`${graph1Name}.${polylineName}`)
+                    await resolvePathToNodeIdx(`${graph1Name}.${polylineName}`)
                 ].stateValues.vertices[i][0].tree,
             ).eq(vertices[i][0]);
             expect(
                 stateVariables[
-                    resolveComponentName(`${graph2Name}.${polylineName}`)
+                    await resolvePathToNodeIdx(`${graph2Name}.${polylineName}`)
                 ].stateValues.vertices[i][0].tree,
             ).eq(vertices[i][0]);
             expect(
                 stateVariables[
-                    resolveComponentName(`${graph3Name}.${polylineName}`)
+                    await resolvePathToNodeIdx(`${graph3Name}.${polylineName}`)
                 ].stateValues.vertices[i][0].tree,
             ).eq(vertices[i][0]);
         }
@@ -107,7 +110,7 @@ async function testPolylineCopiedTwice({
                 me
                     .fromAst(
                         stateVariables[
-                            resolveComponentName(
+                            await resolvePathToNodeIdx(
                                 `${graph1Name}.${polylineName}`,
                             )
                         ].stateValues.vertices[i][1],
@@ -118,7 +121,7 @@ async function testPolylineCopiedTwice({
                 me
                     .fromAst(
                         stateVariables[
-                            resolveComponentName(
+                            await resolvePathToNodeIdx(
                                 `${graph2Name}.${polylineName}`,
                             )
                         ].stateValues.vertices[i][1],
@@ -129,7 +132,7 @@ async function testPolylineCopiedTwice({
                 me
                     .fromAst(
                         stateVariables[
-                            resolveComponentName(
+                            await resolvePathToNodeIdx(
                                 `${graph3Name}.${polylineName}`,
                             )
                         ].stateValues.vertices[i][1],
@@ -139,17 +142,17 @@ async function testPolylineCopiedTwice({
         } else {
             expect(
                 stateVariables[
-                    resolveComponentName(`${graph1Name}.${polylineName}`)
+                    await resolvePathToNodeIdx(`${graph1Name}.${polylineName}`)
                 ].stateValues.vertices[i][1].tree,
             ).eq(vertices[i][1]);
             expect(
                 stateVariables[
-                    resolveComponentName(`${graph2Name}.${polylineName}`)
+                    await resolvePathToNodeIdx(`${graph2Name}.${polylineName}`)
                 ].stateValues.vertices[i][1].tree,
             ).eq(vertices[i][1]);
             expect(
                 stateVariables[
-                    resolveComponentName(`${graph3Name}.${polylineName}`)
+                    await resolvePathToNodeIdx(`${graph3Name}.${polylineName}`)
                 ].stateValues.vertices[i][1].tree,
             ).eq(vertices[i][1]);
         }
@@ -158,7 +161,7 @@ async function testPolylineCopiedTwice({
 
 describe("Polyline tag tests", async () => {
     it("Polyline vertices and copied points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
     <point>(3,5)</point>
@@ -181,18 +184,18 @@ describe("Polyline tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move individual vertex
         vertices[1] = [4, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move copied polyline up and to the right
         let moveX = 3;
@@ -204,27 +207,27 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g3.pg"),
+            componentIdx: await resolvePathToNodeIdx("g3.pg"),
             pointCoords: { 2: vertices[2] },
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it("Polyline macro in vertices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="m">-1</math>
   <graph name="g1">
@@ -244,18 +247,18 @@ describe("Polyline tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move individual vertex
         vertices[1] = [4, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move copied polyline up and to the right
         let moveX = 3;
@@ -267,27 +270,27 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g3.pg"),
+            componentIdx: await resolvePathToNodeIdx("g3.pg"),
             pointCoords: { 2: vertices[2] },
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it("dynamic polyline with vertices from copied map, initially zero, copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="length" prefill="0" />
   <graph name="g1">
@@ -305,60 +308,60 @@ describe("Polyline tag tests", async () => {
         });
 
         let vertices: number[][] = [];
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
         vertices[0] = [0, 5 * Math.sin(0)];
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
         vertices[1] = [1, 5 * Math.sin(1)];
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
         vertices[2] = [2, 5 * Math.sin(2)];
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
         vertices.splice(2, 1);
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
         vertices = [];
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
         for (let i = 0; i < 5; i++) {
             vertices.push([i, 5 * Math.sin(i)]);
         }
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // start over and begin with big increment
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
   <mathInput name="length" prefill="0" />
@@ -377,29 +380,29 @@ describe("Polyline tag tests", async () => {
         }));
 
         vertices = [];
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
         for (let i = 0; i < 10; i++) {
             vertices.push([i, 5 * Math.sin(i)]);
         }
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
         vertices = [[0, 5 * Math.sin(0)]];
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it("polyline with initially undefined point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="mi" />
 
@@ -420,20 +423,20 @@ describe("Polyline tag tests", async () => {
             [3, -5],
             [-4, -3],
         ];
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         await updateMathInputValue({
             latex: "-2",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
 
         vertices[2][0] = -2;
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it(`can't move polyline based on repeat`, async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
     <setup><sequence from="-5" to="5" name="s"/></setup>
@@ -453,17 +456,17 @@ describe("Polyline tag tests", async () => {
         for (let i = -5; i <= 5; i++) {
             vertices.push([i, 5 * Math.sin(i)]);
         }
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // can't move points
         await movePoint({
-            componentIdx: resolveComponentName("g1.mps[1]"),
+            componentIdx: await resolvePathToNodeIdx("g1.mps[1]"),
             x: 9,
             y: -8,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("g1.mps[9]"),
+            componentIdx: await resolvePathToNodeIdx("g1.mps[9]"),
             x: -8,
             y: 4,
             core,
@@ -476,12 +479,12 @@ describe("Polyline tag tests", async () => {
         let vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: vertices2,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // can't move polyline2
         moveX = -5;
@@ -490,12 +493,12 @@ describe("Polyline tag tests", async () => {
         vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices2,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // can't move polyline3
         moveX = 7;
@@ -504,16 +507,16 @@ describe("Polyline tag tests", async () => {
         vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("g3.pg"),
+            componentIdx: await resolvePathToNodeIdx("g3.pg"),
             pointCoords: vertices2,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it(`create moveable polyline based on repeat`, async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
     <setup><sequence from="-5" to="5" name="s"/></setup>
@@ -533,7 +536,7 @@ describe("Polyline tag tests", async () => {
         for (let i = -5; i <= 5; i++) {
             vertices.push([i, 5 * Math.sin(i)]);
         }
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // can move points
 
@@ -541,19 +544,19 @@ describe("Polyline tag tests", async () => {
         vertices[8] = [-8, 4];
 
         await movePoint({
-            componentIdx: resolveComponentName("g1.mps[1][1]"),
+            componentIdx: await resolvePathToNodeIdx("g1.mps[1][1]"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("g1.mps[9][1]"),
+            componentIdx: await resolvePathToNodeIdx("g1.mps[9][1]"),
             x: vertices[8][0],
             y: vertices[8][1],
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // can move polyline1
         let moveX = 3;
@@ -565,12 +568,12 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // can move polyline2
         moveX = -5;
@@ -582,12 +585,12 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         moveX = 7;
         moveY = -4;
@@ -598,16 +601,16 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it("copy vertices of polyline", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <polyline name="pl" vertices="(-3,-1) (1,2) (3,4) (6,-2)" />
@@ -634,20 +637,20 @@ describe("Polyline tag tests", async () => {
 
         for (let i = 0; i < 4; i++) {
             expect(
-                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx(`v${i + 1}`)]
+                    .stateValues.xs[0].tree,
             ).eq(ps[i][0]);
             expect(
-                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx(`vs[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
             ).eq(ps[i][0]);
             expect(
-                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`v${i + 1}`)]
+                    .stateValues.xs[1].tree,
             ).eq(ps[i][1]);
             expect(
-                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`vs[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
             ).eq(ps[i][1]);
         }
 
@@ -661,7 +664,7 @@ describe("Polyline tag tests", async () => {
 
         for (let i = 0; i < 4; i++) {
             await movePoint({
-                componentIdx: resolveComponentName(`v${i + 1}`),
+                componentIdx: await resolvePathToNodeIdx(`v${i + 1}`),
                 x: ps[i][0],
                 y: ps[i][1],
                 core,
@@ -671,20 +674,20 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 4; i++) {
             expect(
-                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx(`v${i + 1}`)]
+                    .stateValues.xs[0].tree,
             ).eq(ps[i][0]);
             expect(
-                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx(`vs[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
             ).eq(ps[i][0]);
             expect(
-                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`v${i + 1}`)]
+                    .stateValues.xs[1].tree,
             ).eq(ps[i][1]);
             expect(
-                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`vs[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
             ).eq(ps[i][1]);
         }
 
@@ -698,7 +701,7 @@ describe("Polyline tag tests", async () => {
 
         for (let i = 0; i < 4; i++) {
             await movePoint({
-                componentIdx: resolveComponentName(`vs[${i + 1}]`),
+                componentIdx: await resolvePathToNodeIdx(`vs[${i + 1}]`),
                 x: ps[i][0],
                 y: ps[i][1],
                 core,
@@ -708,26 +711,26 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 4; i++) {
             expect(
-                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx(`v${i + 1}`)]
+                    .stateValues.xs[0].tree,
             ).eq(ps[i][0]);
             expect(
-                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
-                    .xs[0].tree,
+                stateVariables[await resolvePathToNodeIdx(`vs[${i + 1}]`)]
+                    .stateValues.xs[0].tree,
             ).eq(ps[i][0]);
             expect(
-                stateVariables[resolveComponentName(`v${i + 1}`)].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`v${i + 1}`)]
+                    .stateValues.xs[1].tree,
             ).eq(ps[i][1]);
             expect(
-                stateVariables[resolveComponentName(`vs[${i + 1}]`)].stateValues
-                    .xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`vs[${i + 1}]`)]
+                    .stateValues.xs[1].tree,
             ).eq(ps[i][1]);
         }
     });
 
     it("new polyline from copied vertices of polyline", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
   <polyline vertices="(-9,6) (-3,7) (4,0) (8,5)" name="pg" />
@@ -746,7 +749,7 @@ describe("Polyline tag tests", async () => {
             [8, 5],
         ];
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move first polyline up and to the right
         let moveX = 4;
@@ -758,12 +761,12 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move copied polyline up and to the left
         moveX = -7;
@@ -775,12 +778,12 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move double copied polyline down and to the left
         moveX = -1;
@@ -792,16 +795,16 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g3.pg"),
+            componentIdx: await resolvePathToNodeIdx("g3.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it("new polyline as translated version of polyline", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput prefill="5" name="transx" />
     <mathInput prefill="7" name="transy" />
@@ -829,12 +832,12 @@ describe("Polyline tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("_polyline1")].stateValues
-                    .numVertices,
+                stateVariables[await resolvePathToNodeIdx("_polyline1")]
+                    .stateValues.numVertices,
             ).eqls(vertices.length);
             expect(
-                stateVariables[resolveComponentName("_polyline2")].stateValues
-                    .numVertices,
+                stateVariables[await resolvePathToNodeIdx("_polyline2")]
+                    .stateValues.numVertices,
             ).eqls(vertices.length);
 
             for (let i in vertices) {
@@ -843,7 +846,7 @@ describe("Polyline tag tests", async () => {
                         me
                             .fromAst(
                                 stateVariables[
-                                    resolveComponentName("_polyline1")
+                                    await resolvePathToNodeIdx("_polyline1")
                                 ].stateValues.vertices[i][0],
                             )
                             .evaluate_to_constant(),
@@ -852,18 +855,18 @@ describe("Polyline tag tests", async () => {
                         me
                             .fromAst(
                                 stateVariables[
-                                    resolveComponentName("_polyline2")
+                                    await resolvePathToNodeIdx("_polyline2")
                                 ].stateValues.vertices[i][0],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices2[i][0], 1e-12);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName("_polyline1")]
+                        stateVariables[await resolvePathToNodeIdx("_polyline1")]
                             .stateValues.vertices[i][0].tree,
                     ).eq(vertices[i][0]);
                     expect(
-                        stateVariables[resolveComponentName("_polyline2")]
+                        stateVariables[await resolvePathToNodeIdx("_polyline2")]
                             .stateValues.vertices[i][0].tree,
                     ).eq(vertices2[i][0]);
                 }
@@ -872,7 +875,7 @@ describe("Polyline tag tests", async () => {
                         me
                             .fromAst(
                                 stateVariables[
-                                    resolveComponentName("_polyline1")
+                                    await resolvePathToNodeIdx("_polyline1")
                                 ].stateValues.vertices[i][1],
                             )
                             .evaluate_to_constant(),
@@ -881,18 +884,18 @@ describe("Polyline tag tests", async () => {
                         me
                             .fromAst(
                                 stateVariables[
-                                    resolveComponentName("_polyline2")
+                                    await resolvePathToNodeIdx("_polyline2")
                                 ].stateValues.vertices[i][1],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices2[i][1], 1e-12);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName("_polyline1")]
+                        stateVariables[await resolvePathToNodeIdx("_polyline1")]
                             .stateValues.vertices[i][1].tree,
                     ).eq(vertices[i][1]);
                     expect(
-                        stateVariables[resolveComponentName("_polyline2")]
+                        stateVariables[await resolvePathToNodeIdx("_polyline2")]
                             .stateValues.vertices[i][1].tree,
                     ).eq(vertices2[i][1]);
                 }
@@ -919,7 +922,7 @@ describe("Polyline tag tests", async () => {
         ];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: vertices,
             core,
         });
@@ -935,7 +938,7 @@ describe("Polyline tag tests", async () => {
         ];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline2"),
+            componentIdx: await resolvePathToNodeIdx("_polyline2"),
             pointCoords: vertices2,
             core,
         });
@@ -947,12 +950,12 @@ describe("Polyline tag tests", async () => {
         // change translation
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("transx"),
+            componentIdx: await resolvePathToNodeIdx("transx"),
             core,
         });
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("transy"),
+            componentIdx: await resolvePathToNodeIdx("transy"),
             core,
         });
 
@@ -963,7 +966,7 @@ describe("Polyline tag tests", async () => {
     });
 
     it("parallelogram based on three points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <setup>
@@ -983,22 +986,22 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
@@ -1007,7 +1010,7 @@ describe("Polyline tag tests", async () => {
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
         await movePolyline({
-            componentIdx: resolveComponentName("parallelogram"),
+            componentIdx: await resolvePathToNodeIdx("parallelogram"),
             pointCoords: { 0: A },
             core,
         });
@@ -1015,22 +1018,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
@@ -1038,7 +1041,7 @@ describe("Polyline tag tests", async () => {
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
         await movePolyline({
-            componentIdx: resolveComponentName("parallelogram"),
+            componentIdx: await resolvePathToNodeIdx("parallelogram"),
             pointCoords: { 1: B },
             core,
         });
@@ -1046,22 +1049,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
@@ -1070,7 +1073,7 @@ describe("Polyline tag tests", async () => {
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
         await movePolyline({
-            componentIdx: resolveComponentName("parallelogram"),
+            componentIdx: await resolvePathToNodeIdx("parallelogram"),
             pointCoords: { 2: C },
             core,
         });
@@ -1078,22 +1081,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
@@ -1102,7 +1105,7 @@ describe("Polyline tag tests", async () => {
         B = [A[0] + C[0] - D[0], A[1] + C[1] - D[1]];
 
         await movePolyline({
-            componentIdx: resolveComponentName("parallelogram"),
+            componentIdx: await resolvePathToNodeIdx("parallelogram"),
             pointCoords: { 3: D },
             core,
         });
@@ -1110,28 +1113,28 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("parallelogram")
+                await resolvePathToNodeIdx("parallelogram")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
     });
 
     it("new polyline from copied vertices, some flipped", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <polyline vertices="(-9,6) (-3,7) (4,0) (8,5)" />
@@ -1152,12 +1155,12 @@ describe("Polyline tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("_polyline1")].stateValues
-                    .numVertices,
+                stateVariables[await resolvePathToNodeIdx("_polyline1")]
+                    .stateValues.numVertices,
             ).eqls(vertices.length);
             expect(
-                stateVariables[resolveComponentName("_polyline2")].stateValues
-                    .numVertices,
+                stateVariables[await resolvePathToNodeIdx("_polyline2")]
+                    .stateValues.numVertices,
             ).eqls(vertices.length);
 
             for (let i in vertices) {
@@ -1166,7 +1169,7 @@ describe("Polyline tag tests", async () => {
                         me
                             .fromAst(
                                 stateVariables[
-                                    resolveComponentName("_polyline1")
+                                    await resolvePathToNodeIdx("_polyline1")
                                 ].stateValues.vertices[i][0],
                             )
                             .evaluate_to_constant(),
@@ -1175,18 +1178,18 @@ describe("Polyline tag tests", async () => {
                         me
                             .fromAst(
                                 stateVariables[
-                                    resolveComponentName("_polyline2")
+                                    await resolvePathToNodeIdx("_polyline2")
                                 ].stateValues.vertices[i][0],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices2[i][0], 1e-12);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName("_polyline1")]
+                        stateVariables[await resolvePathToNodeIdx("_polyline1")]
                             .stateValues.vertices[i][0].tree,
                     ).eq(vertices[i][0]);
                     expect(
-                        stateVariables[resolveComponentName("_polyline2")]
+                        stateVariables[await resolvePathToNodeIdx("_polyline2")]
                             .stateValues.vertices[i][0].tree,
                     ).eq(vertices2[i][0]);
                 }
@@ -1195,7 +1198,7 @@ describe("Polyline tag tests", async () => {
                         me
                             .fromAst(
                                 stateVariables[
-                                    resolveComponentName("_polyline1")
+                                    await resolvePathToNodeIdx("_polyline1")
                                 ].stateValues.vertices[i][1],
                             )
                             .evaluate_to_constant(),
@@ -1204,18 +1207,18 @@ describe("Polyline tag tests", async () => {
                         me
                             .fromAst(
                                 stateVariables[
-                                    resolveComponentName("_polyline2")
+                                    await resolvePathToNodeIdx("_polyline2")
                                 ].stateValues.vertices[i][1],
                             )
                             .evaluate_to_constant(),
                     ).closeTo(vertices2[i][1], 1e-12);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName("_polyline1")]
+                        stateVariables[await resolvePathToNodeIdx("_polyline1")]
                             .stateValues.vertices[i][1].tree,
                     ).eq(vertices[i][1]);
                     expect(
-                        stateVariables[resolveComponentName("_polyline2")]
+                        stateVariables[await resolvePathToNodeIdx("_polyline2")]
                             .stateValues.vertices[i][1].tree,
                     ).eq(vertices2[i][1]);
                 }
@@ -1240,7 +1243,7 @@ describe("Polyline tag tests", async () => {
         ];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: vertices,
             core,
         });
@@ -1256,7 +1259,7 @@ describe("Polyline tag tests", async () => {
         ];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline2"),
+            componentIdx: await resolvePathToNodeIdx("_polyline2"),
             pointCoords: vertices2,
             core,
         });
@@ -1269,7 +1272,7 @@ describe("Polyline tag tests", async () => {
     });
 
     it("four vertex polyline based on three points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
     <point name="v2Fixed" extend="$_polyline1.vertex2" fixed />
@@ -1290,22 +1293,22 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
@@ -1314,7 +1317,7 @@ describe("Polyline tag tests", async () => {
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 0: A },
             core,
         });
@@ -1322,22 +1325,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
@@ -1346,7 +1349,7 @@ describe("Polyline tag tests", async () => {
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 1: B },
             core,
         });
@@ -1354,22 +1357,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
@@ -1378,7 +1381,7 @@ describe("Polyline tag tests", async () => {
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 2: C },
             core,
         });
@@ -1386,22 +1389,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
 
@@ -1410,7 +1413,7 @@ describe("Polyline tag tests", async () => {
         A = [C[0] + B[0] - D[0], C[1] + B[1] - D[1]];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 3: D },
             core,
         });
@@ -1418,29 +1421,29 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(D);
     });
 
     // TODO: regain functionality of internal copies and restore these skipped tests. See issue #479.
     it.skip("fourth vertex depends on internal copy of first vertex", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup><point extend="$_polyline1.vertex1" name="v1" /></setup>
   <graph>
@@ -1455,27 +1458,27 @@ describe("Polyline tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_polyline1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("_polyline1")].stateValues
                 .numVertices,
         ).eq(4);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
@@ -1483,7 +1486,7 @@ describe("Polyline tag tests", async () => {
         A = [-4, -1];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 0: A },
             core,
         });
@@ -1491,22 +1494,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
@@ -1514,7 +1517,7 @@ describe("Polyline tag tests", async () => {
         B = [8, 9];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 1: B },
             core,
         });
@@ -1522,22 +1525,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
@@ -1545,7 +1548,7 @@ describe("Polyline tag tests", async () => {
         C = [-3, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 2: C },
             core,
         });
@@ -1553,29 +1556,29 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
         // move fourth vertex
         A = [7, 0];
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 3: A },
             core,
         });
@@ -1583,28 +1586,28 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
     });
 
     it.skip("first vertex depends on internal copy of fourth vertex", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup><point extend="$_polyline1.vertex4" name="v4" /></setup>
   <graph>
@@ -1620,27 +1623,27 @@ describe("Polyline tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_polyline1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("_polyline1")].stateValues
                 .numVertices,
         ).eq(4);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
@@ -1648,7 +1651,7 @@ describe("Polyline tag tests", async () => {
         A = [-4, -1];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 0: A },
             core,
         });
@@ -1656,22 +1659,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
@@ -1679,7 +1682,7 @@ describe("Polyline tag tests", async () => {
         B = [8, 9];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 1: B },
             core,
         });
@@ -1687,22 +1690,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
@@ -1710,7 +1713,7 @@ describe("Polyline tag tests", async () => {
         C = [-3, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 2: C },
             core,
         });
@@ -1718,22 +1721,22 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
 
@@ -1741,7 +1744,7 @@ describe("Polyline tag tests", async () => {
         A = [7, 0];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 3: A },
             core,
         });
@@ -1749,28 +1752,28 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
     });
 
     it.skip("first vertex depends fourth, formula for fifth", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup><point extend="$_polyline1.vertex4" name="v4" /></setup>
   <graph>
@@ -1788,27 +1791,27 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
@@ -1817,7 +1820,7 @@ describe("Polyline tag tests", async () => {
         D[0] = A[0] + 1;
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 0: A },
             core,
         });
@@ -1825,27 +1828,27 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
@@ -1853,7 +1856,7 @@ describe("Polyline tag tests", async () => {
         B = [8, 9];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 1: B },
             core,
         });
@@ -1861,27 +1864,27 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
@@ -1889,7 +1892,7 @@ describe("Polyline tag tests", async () => {
         C = [-3, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 2: C },
             core,
         });
@@ -1897,27 +1900,27 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
@@ -1926,7 +1929,7 @@ describe("Polyline tag tests", async () => {
         D[0] = A[0] + 1;
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 3: A },
             core,
         });
@@ -1934,27 +1937,27 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
 
@@ -1963,7 +1966,7 @@ describe("Polyline tag tests", async () => {
         A[0] = D[0] - 1;
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 4: D },
             core,
         });
@@ -1971,33 +1974,33 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("_polyline1")
+                await resolvePathToNodeIdx("_polyline1")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
     });
 
     it.skip("first, fourth, seventh vertex depends on fourth, seventh, tenth", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
     <point extend="$P.vertex4" name="v4" />
@@ -2022,52 +2025,52 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2075,7 +2078,7 @@ describe("Polyline tag tests", async () => {
         A = [-4, -9];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 0: A },
             core,
         });
@@ -2083,52 +2086,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2136,7 +2139,7 @@ describe("Polyline tag tests", async () => {
         B = [8, 9];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 1: B },
             core,
         });
@@ -2144,52 +2147,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2197,7 +2200,7 @@ describe("Polyline tag tests", async () => {
         C = [-3, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 2: C },
             core,
         });
@@ -2205,52 +2208,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2258,7 +2261,7 @@ describe("Polyline tag tests", async () => {
         A = [7, 0];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 3: A },
             core,
         });
@@ -2266,52 +2269,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2319,7 +2322,7 @@ describe("Polyline tag tests", async () => {
         D = [-9, 1];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 4: D },
             core,
         });
@@ -2327,52 +2330,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2380,7 +2383,7 @@ describe("Polyline tag tests", async () => {
         E = [-3, 6];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 5: E },
             core,
         });
@@ -2388,52 +2391,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2441,7 +2444,7 @@ describe("Polyline tag tests", async () => {
         A = [2, -4];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 6: A },
             core,
         });
@@ -2449,52 +2452,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2502,7 +2505,7 @@ describe("Polyline tag tests", async () => {
         F = [6, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 7: F },
             core,
         });
@@ -2510,52 +2513,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2563,7 +2566,7 @@ describe("Polyline tag tests", async () => {
         G = [1, -8];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 8: G },
             core,
         });
@@ -2571,52 +2574,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2624,7 +2627,7 @@ describe("Polyline tag tests", async () => {
         A = [-6, 10];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 9: A },
             core,
         });
@@ -2632,58 +2635,58 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
     });
 
     it("first, fourth, seventh vertex depends on shifted fourth, seventh, tenth", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <polyline name="P" vertices="($P.vertex4[1]+1,$P.vertex4[2]+1) (1,2) (3,4) ($P.vertex7[1]+1,$P.vertex7[2]+1) (5,7) (-5,7) ($P.vertex10[1]+1,$P.vertex10[2]+1) (3,1) (5,0) (-5,-1)" />
@@ -2706,52 +2709,52 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2762,7 +2765,7 @@ describe("Polyline tag tests", async () => {
         A3 = [A[0] + 3, A[1] + 3];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 0: A3 },
             core,
         });
@@ -2770,52 +2773,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2823,7 +2826,7 @@ describe("Polyline tag tests", async () => {
         B = [8, 9];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 1: B },
             core,
         });
@@ -2831,52 +2834,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2884,7 +2887,7 @@ describe("Polyline tag tests", async () => {
         C = [-3, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 2: C },
             core,
         });
@@ -2892,52 +2895,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -2948,7 +2951,7 @@ describe("Polyline tag tests", async () => {
         A3 = [A[0] + 3, A[1] + 3];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 3: A2 },
             core,
         });
@@ -2956,52 +2959,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -3009,7 +3012,7 @@ describe("Polyline tag tests", async () => {
         D = [-9, 1];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 4: D },
             core,
         });
@@ -3017,52 +3020,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -3070,7 +3073,7 @@ describe("Polyline tag tests", async () => {
         E = [-3, 6];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 5: E },
             core,
         });
@@ -3078,52 +3081,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -3134,7 +3137,7 @@ describe("Polyline tag tests", async () => {
         A3 = [A[0] + 3, A[1] + 3];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 6: A1 },
             core,
         });
@@ -3142,52 +3145,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -3195,7 +3198,7 @@ describe("Polyline tag tests", async () => {
         F = [6, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 7: F },
             core,
         });
@@ -3203,52 +3206,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -3256,7 +3259,7 @@ describe("Polyline tag tests", async () => {
         G = [1, -8];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 8: G },
             core,
         });
@@ -3264,52 +3267,52 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
 
@@ -3320,7 +3323,7 @@ describe("Polyline tag tests", async () => {
         A3 = [A[0] + 3, A[1] + 3];
 
         await movePolyline({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             pointCoords: { 9: A },
             core,
         });
@@ -3328,58 +3331,58 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls(B);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls(C);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[3].map((x) => x.tree),
         ).eqls(A2);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[4].map((x) => x.tree),
         ).eqls(D);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[5].map((x) => x.tree),
         ).eqls(E);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[6].map((x) => x.tree),
         ).eqls(A1);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[7].map((x) => x.tree),
         ).eqls(F);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[8].map((x) => x.tree),
         ).eqls(G);
         expect(
             stateVariables[
-                resolveComponentName("P")
+                await resolvePathToNodeIdx("P")
             ].stateValues.vertices[9].map((x) => x.tree),
         ).eqls(A);
     });
 
     it("attract to polyline", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <polyline vertices=" (3,5) (-4,-1) (5,2)" />
@@ -3403,8 +3406,8 @@ describe("Polyline tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_point1")].stateValues.coords
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .coords.tree,
         ).eqls(["vector", 7, 8]);
 
         // move point near segment 1
@@ -3413,7 +3416,7 @@ describe("Polyline tag tests", async () => {
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3422,11 +3425,11 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         let py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
 
@@ -3436,7 +3439,7 @@ describe("Polyline tag tests", async () => {
         y = mseg2 * (x - x2) + y2 + 0.4;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3444,11 +3447,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(py).closeTo(mseg2 * (px - x2) + y2, 1e-6);
 
@@ -3458,7 +3461,7 @@ describe("Polyline tag tests", async () => {
         y = mseg3 * (x - x3) + y3 + 0.2;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3466,11 +3469,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -3480,7 +3483,7 @@ describe("Polyline tag tests", async () => {
         y = y1 + 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3488,11 +3491,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x1, 1e-6);
         expect(py).closeTo(y1, 1e-6);
@@ -3503,7 +3506,7 @@ describe("Polyline tag tests", async () => {
         y = mseg1 * (x - x1) + y1 + 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3511,11 +3514,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -3525,7 +3528,7 @@ describe("Polyline tag tests", async () => {
         y = mseg1 * (x - x1) + y1 - 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3533,11 +3536,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -3547,7 +3550,7 @@ describe("Polyline tag tests", async () => {
         y = y2 - 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3555,11 +3558,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -3570,7 +3573,7 @@ describe("Polyline tag tests", async () => {
         y = mseg2 * (x - x2) + y2 + 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3578,11 +3581,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -3592,7 +3595,7 @@ describe("Polyline tag tests", async () => {
         y = mseg2 * (x - x2) + y2 - 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3600,11 +3603,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x, 1e-6);
         expect(py).closeTo(y, 1e-6);
@@ -3621,7 +3624,7 @@ describe("Polyline tag tests", async () => {
         y3 += moveY;
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: [
                 [x1, y1],
                 [x2, y2],
@@ -3632,11 +3635,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         mseg1 = (y2 - y1) / (x2 - x1);
 
@@ -3650,7 +3653,7 @@ describe("Polyline tag tests", async () => {
         y2 += moveY;
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 1: [x2, y2] },
             core,
         });
@@ -3658,11 +3661,11 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         mseg2 = (y2 - y3) / (x2 - x3);
 
@@ -3670,7 +3673,7 @@ describe("Polyline tag tests", async () => {
     });
 
     it("constrain to polyline", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <polyline vertices=" (3,5) (-4,-1) (5,2)" />
@@ -3694,8 +3697,8 @@ describe("Polyline tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_point1")].stateValues.coords
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .coords.tree,
         ).eqls(["vector", x1, y1]);
 
         // move point near segment 1
@@ -3704,7 +3707,7 @@ describe("Polyline tag tests", async () => {
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3713,11 +3716,11 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         let py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
 
@@ -3727,7 +3730,7 @@ describe("Polyline tag tests", async () => {
         y = mseg2 * (x - x2) + y2 + 0.4;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3735,11 +3738,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(py).closeTo(mseg2 * (px - x2) + y2, 1e-6);
 
@@ -3750,7 +3753,7 @@ describe("Polyline tag tests", async () => {
         y = mseg3 * (x - x3) + y3 + 0.2;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3758,11 +3761,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
         mseg1 = (y2 - y1) / (x2 - x1);
         expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
 
@@ -3772,7 +3775,7 @@ describe("Polyline tag tests", async () => {
         y = y1 + 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3780,11 +3783,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x1, 1e-6);
         expect(py).closeTo(y1, 1e-6);
@@ -3796,7 +3799,7 @@ describe("Polyline tag tests", async () => {
         y = mseg1 * (x - x1) + y1 + 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3804,11 +3807,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x1, 1e-6);
         expect(py).closeTo(y1, 1e-6);
@@ -3817,7 +3820,7 @@ describe("Polyline tag tests", async () => {
         y = mseg1 * (x - x1) + y1 - 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3825,11 +3828,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -3840,7 +3843,7 @@ describe("Polyline tag tests", async () => {
         y = y2 - 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3848,11 +3851,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -3864,7 +3867,7 @@ describe("Polyline tag tests", async () => {
         y = mseg2 * (x - x2) + y2 + 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3872,11 +3875,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x3, 1e-6);
         expect(py).closeTo(y3, 1e-6);
@@ -3886,7 +3889,7 @@ describe("Polyline tag tests", async () => {
         y = mseg2 * (x - x2) + y2 - 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName(`_point1`),
+            componentIdx: await resolvePathToNodeIdx(`_point1`),
             x,
             y,
             core,
@@ -3894,11 +3897,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         expect(px).closeTo(x2, 1e-6);
         expect(py).closeTo(y2, 1e-6);
@@ -3916,7 +3919,7 @@ describe("Polyline tag tests", async () => {
         y3 += moveY;
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: [
                 [x1, y1],
                 [x2, y2],
@@ -3927,11 +3930,11 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         mseg1 = (y2 - y1) / (x2 - x1);
 
@@ -3946,7 +3949,7 @@ describe("Polyline tag tests", async () => {
         y2 += moveY;
 
         await movePolyline({
-            componentIdx: resolveComponentName("_polyline1"),
+            componentIdx: await resolvePathToNodeIdx("_polyline1"),
             pointCoords: { 1: [x2, y2] },
             core,
         });
@@ -3954,11 +3957,11 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         px =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[0]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[0].tree;
         py =
-            stateVariables[resolveComponentName("_point1")].stateValues.xs[1]
-                .tree;
+            stateVariables[await resolvePathToNodeIdx("_point1")].stateValues
+                .xs[1].tree;
 
         mseg2 = (y2 - y3) / (x2 - x3);
 
@@ -3966,7 +3969,7 @@ describe("Polyline tag tests", async () => {
     });
 
     it("constrain to polyline, different scales from graph", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
     <polyline vertices="(-50,-0.02) (-40,0.07) (70,0.06) (10,-0.01)" name="p" />
@@ -3995,9 +3998,11 @@ describe("Polyline tag tests", async () => {
         let mseg3 = (y4 - y3) / (x4 - x3);
 
         let px =
-            stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree;
         let py =
-            stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
 
@@ -4006,15 +4011,19 @@ describe("Polyline tag tests", async () => {
         let mseg1 = (y2 - y1) / (x2 - x1);
 
         await movePoint({
-            componentIdx: resolveComponentName(`A`),
+            componentIdx: await resolvePathToNodeIdx(`A`),
             x: -20,
             y: 0.02,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
 
@@ -4023,15 +4032,19 @@ describe("Polyline tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
 
         await movePoint({
-            componentIdx: resolveComponentName(`A`),
+            componentIdx: await resolvePathToNodeIdx(`A`),
             x: 0,
             y: 0.04,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg2 * (px - x2) + y2, 1e-6);
 
@@ -4040,21 +4053,25 @@ describe("Polyline tag tests", async () => {
         mseg3 = (y4 - y3) / (x4 - x3);
 
         await movePoint({
-            componentIdx: resolveComponentName(`A`),
+            componentIdx: await resolvePathToNodeIdx(`A`),
             x: -10,
             y: 0.02,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        px = stateVariables[resolveComponentName("A")].stateValues.xs[0].tree;
-        py = stateVariables[resolveComponentName("A")].stateValues.xs[1].tree;
+        px =
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[0]
+                .tree;
+        py =
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs[1]
+                .tree;
 
         expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
     });
 
     it("fixed polyline", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <polyline vertices="(1,3) (5,7) (-2,6)" name="p" fixed />
@@ -4065,27 +4082,27 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
-        expect(stateVariables[resolveComponentName("p")].stateValues.fixed).eq(
-            true,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.fixed,
+        ).eq(true);
 
         // cannot move vertices
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [4, 7],
                 [8, 10],
@@ -4097,23 +4114,23 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
     });
 
     it("copy propIndex of vertices, dot and array notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text>a</text>
     <graph>
@@ -4139,89 +4156,127 @@ describe("Polyline tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("Ps[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
+            undefined,
+        );
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("Ps[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([t1x, t1y]);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
         expect(
-            stateVariables[resolveComponentName("x[1]")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues.value
+                .tree,
         ).eq(t2x);
         expect(
-            stateVariables[resolveComponentName("xa[1]")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("xa[1]")].stateValues
+                .value.tree,
         ).eq(t2x);
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("Ps[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([t2x, t2y]);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
         expect(
-            stateVariables[resolveComponentName("x[1]")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues.value
+                .tree,
         ).eq(t2y);
         expect(
-            stateVariables[resolveComponentName("xa[1]")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("xa[1]")].stateValues
+                .value.tree,
         ).eq(t2y);
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("Ps[1]")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([t3x, t3y]);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
+            undefined,
+        );
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("Ps[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
+            undefined,
+        );
     });
 
     it("polyline from vector operations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m" fixed>(-3,2)</math>
     <graph>
@@ -4236,7 +4291,7 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("polyline")
+                await resolvePathToNodeIdx("polyline")
             ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [7, -2],
@@ -4245,7 +4300,7 @@ describe("Polyline tag tests", async () => {
         ]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("polyline"),
+            componentIdx: await resolvePathToNodeIdx("polyline"),
             pointCoords: { 0: [3, 5] },
             core,
         });
@@ -4253,7 +4308,7 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("polyline")
+                await resolvePathToNodeIdx("polyline")
             ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
@@ -4262,7 +4317,7 @@ describe("Polyline tag tests", async () => {
         ]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("polyline"),
+            componentIdx: await resolvePathToNodeIdx("polyline"),
             pointCoords: { 1: [-9, -6] },
             core,
         });
@@ -4270,7 +4325,7 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("polyline")
+                await resolvePathToNodeIdx("polyline")
             ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
@@ -4279,7 +4334,7 @@ describe("Polyline tag tests", async () => {
         ]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("polyline"),
+            componentIdx: await resolvePathToNodeIdx("polyline"),
             pointCoords: { 2: [-3, 1] },
             core,
         });
@@ -4287,7 +4342,7 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("polyline")
+                await resolvePathToNodeIdx("polyline")
             ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
@@ -4297,7 +4352,7 @@ describe("Polyline tag tests", async () => {
     });
 
     it("polyline from vector operations, create individual vectors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m" fixed>(-3,2)</math>
     <graph>
@@ -4315,7 +4370,7 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("polyline")
+                await resolvePathToNodeIdx("polyline")
             ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [7, -2],
@@ -4324,7 +4379,7 @@ describe("Polyline tag tests", async () => {
         ]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("polyline"),
+            componentIdx: await resolvePathToNodeIdx("polyline"),
             pointCoords: { 0: [3, 5] },
             core,
         });
@@ -4332,7 +4387,7 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("polyline")
+                await resolvePathToNodeIdx("polyline")
             ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
@@ -4341,7 +4396,7 @@ describe("Polyline tag tests", async () => {
         ]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("polyline"),
+            componentIdx: await resolvePathToNodeIdx("polyline"),
             pointCoords: { 1: [-9, -6] },
             core,
         });
@@ -4349,7 +4404,7 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("polyline")
+                await resolvePathToNodeIdx("polyline")
             ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
@@ -4358,7 +4413,7 @@ describe("Polyline tag tests", async () => {
         ]);
 
         await movePolyline({
-            componentIdx: resolveComponentName("polyline"),
+            componentIdx: await resolvePathToNodeIdx("polyline"),
             pointCoords: { 2: [-3, 1] },
             core,
         });
@@ -4366,7 +4421,7 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("polyline")
+                await resolvePathToNodeIdx("polyline")
             ].stateValues.vertices.map((x) => x.map((y) => y.tree)),
         ).eqls([
             [3, 5],
@@ -4376,7 +4431,7 @@ describe("Polyline tag tests", async () => {
     });
 
     it("draggable, vertices draggable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <polyline vertices="(1,3) (5,7) (-2,6)" name="p" draggable="$draggable" verticesDraggable="$verticesDraggable" />
@@ -4389,31 +4444,32 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(false);
 
         // cannot move single vertex
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 0: [4, 7] },
             core,
         });
@@ -4421,31 +4477,32 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(false);
 
         // cannot move all vertices
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [4, 7],
                 [8, 10],
@@ -4457,24 +4514,25 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(false);
 
@@ -4482,14 +4540,14 @@ describe("Polyline tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("verticesDraggable"),
+            componentIdx: await resolvePathToNodeIdx("verticesDraggable"),
             core,
         });
 
         // can move single vertex
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 0: [4, 7] },
             core,
         });
@@ -4497,31 +4555,32 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(true);
 
         // cannot move all vertices
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [3, 8],
                 [8, 10],
@@ -4533,24 +4592,25 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([5, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(true);
 
@@ -4558,14 +4618,14 @@ describe("Polyline tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("draggable"),
+            componentIdx: await resolvePathToNodeIdx("draggable"),
             core,
         });
 
         // can move single vertex
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 1: [-3, 2] },
             core,
         });
@@ -4573,31 +4633,32 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([-3, 2]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([-2, 6]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(true);
 
         // can move all vertices
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [3, 8],
                 [8, 10],
@@ -4609,24 +4670,25 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([3, 8]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([8, 10]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([1, 9]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(true);
 
@@ -4634,14 +4696,14 @@ describe("Polyline tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("verticesDraggable"),
+            componentIdx: await resolvePathToNodeIdx("verticesDraggable"),
             core,
         });
 
         // cannot move single vertex
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 2: [9, 3] },
             core,
         });
@@ -4649,31 +4711,32 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([3, 8]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([8, 10]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([1, 9]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(false);
 
         // can move all vertices
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [-4, 1],
                 [9, -4],
@@ -4685,30 +4748,31 @@ describe("Polyline tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([-4, 1]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map((x) => x.tree),
         ).eqls([9, -4]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((x) => x.tree),
         ).eqls([0, 7]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.draggable,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .draggable,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .verticesDraggable,
         ).eq(false);
     });
 
     it("One vertex constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
     <point>(3,5)</point>
@@ -4735,19 +4799,19 @@ describe("Polyline tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move individual vertex
 
         vertices[1] = [4, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move copied polyline up and to the right
 
@@ -4760,7 +4824,7 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
@@ -4773,7 +4837,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // try to move double copied polyline down and to the right
 
@@ -4786,7 +4850,7 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g3.pg"),
+            componentIdx: await resolvePathToNodeIdx("g3.pg"),
             pointCoords: vertices,
             core,
         });
@@ -4799,11 +4863,11 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it("Two vertices constrained to same grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
     <point>(3,5)
@@ -4834,19 +4898,19 @@ describe("Polyline tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move individual vertex
 
         vertices[1] = [4, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move copied polyline up and to the right
 
@@ -4859,7 +4923,7 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
@@ -4872,7 +4936,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // try to move double copied polyline down and to the right
 
@@ -4885,7 +4949,7 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g3.pg"),
+            componentIdx: await resolvePathToNodeIdx("g3.pg"),
             pointCoords: vertices,
             core,
         });
@@ -4898,11 +4962,11 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it("Three vertices constrained to same grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
     <point>(3,5)
@@ -4937,14 +5001,14 @@ describe("Polyline tag tests", async () => {
             [-3, 4],
         ];
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move individual vertex
 
         vertices[1] = [4, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
@@ -4952,7 +5016,7 @@ describe("Polyline tag tests", async () => {
         // adjust for constraint
         vertices[1] = [3, 8];
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // move copied polyline up and to the right
 
@@ -4965,7 +5029,7 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
@@ -4978,7 +5042,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
 
         // try to move double copied polyline down and to the right
 
@@ -4991,7 +5055,7 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g3.pg"),
+            componentIdx: await resolvePathToNodeIdx("g3.pg"),
             pointCoords: vertices,
             core,
         });
@@ -5004,11 +5068,11 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await testPolylineCopiedTwice({ core, resolveComponentName, vertices });
+        await testPolylineCopiedTwice({ core, resolvePathToNodeIdx, vertices });
     });
 
     it("Two vertices fixed, handle rounding error from third calculated vertex", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
     <point fixed>(1,2)</point>
@@ -5030,7 +5094,7 @@ describe("Polyline tag tests", async () => {
             [5, 2],
         ];
 
-        await testPolylineCopiedTwice({ vertices, core, resolveComponentName });
+        await testPolylineCopiedTwice({ vertices, core, resolvePathToNodeIdx });
 
         // try to move polyline where calculated vertex can't be represented exactly
 
@@ -5055,16 +5119,16 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: desiredVertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ vertices, core, resolveComponentName });
+        await testPolylineCopiedTwice({ vertices, core, resolvePathToNodeIdx });
     });
 
     it("handle bad vertices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <polyline vertices="A" name="pl" />
@@ -5074,11 +5138,13 @@ describe("Polyline tag tests", async () => {
 
         // document is created
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pl")]).not.eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("pl")]).not.eq(
+            undefined,
+        );
     });
 
     it("length", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <polyline vertices="(0,0) (5,0) (6,1) (5,2) (0,10)" name="p" />
@@ -5091,16 +5157,17 @@ describe("Polyline tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("length")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("length")].stateValues
+                .value,
         ).eq(length);
 
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 1: [-8, -4] },
             core,
         });
         await movePolyline({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 2: [-8, 2] },
             core,
         });
@@ -5109,13 +5176,14 @@ describe("Polyline tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("length")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("length")].stateValues
+                .value,
         ).eq(length);
     });
 
     // regression test for issue #235
     it("polyline with vertices from mathList/mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="vertexInput">(0,0),(2,2),(-1,5),(-5,1)</mathInput>
     <mathList name="vertices">$vertexInput</mathList>
@@ -5138,18 +5206,18 @@ describe("Polyline tag tests", async () => {
             [-5, 1],
         ];
 
-        await testPolylineCopiedTwice({ vertices, core, resolveComponentName });
+        await testPolylineCopiedTwice({ vertices, core, resolvePathToNodeIdx });
 
         // move individual vertex
         vertices[1] = [4, 7];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g1.pg"),
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
             pointCoords: { 1: vertices[1] },
             core,
         });
 
-        await testPolylineCopiedTwice({ core, vertices, resolveComponentName });
+        await testPolylineCopiedTwice({ core, vertices, resolvePathToNodeIdx });
 
         // move copied polyline up and to the right
         let moveX = 3;
@@ -5161,28 +5229,28 @@ describe("Polyline tag tests", async () => {
         }
 
         await movePolyline({
-            componentIdx: resolveComponentName("g2.pg"),
+            componentIdx: await resolvePathToNodeIdx("g2.pg"),
             pointCoords: vertices,
             core,
         });
 
-        await testPolylineCopiedTwice({ core, vertices, resolveComponentName });
+        await testPolylineCopiedTwice({ core, vertices, resolvePathToNodeIdx });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
         await movePolyline({
-            componentIdx: resolveComponentName("g3.pg"),
+            componentIdx: await resolvePathToNodeIdx("g3.pg"),
             pointCoords: { 2: vertices[2] },
             core,
         });
 
-        await testPolylineCopiedTwice({ core, vertices, resolveComponentName });
+        await testPolylineCopiedTwice({ core, vertices, resolvePathToNodeIdx });
 
         // change last vertices via math input
         await updateMathInputValue({
             latex: "(3,2), (-6,5), (4,9), (-2,0)",
-            componentIdx: resolveComponentName("vertexInput"),
+            componentIdx: await resolvePathToNodeIdx("vertexInput"),
             core,
         });
 
@@ -5193,7 +5261,7 @@ describe("Polyline tag tests", async () => {
             [-2, 0],
         ];
 
-        await testPolylineCopiedTwice({ vertices, core, resolveComponentName });
+        await testPolylineCopiedTwice({ vertices, core, resolvePathToNodeIdx });
     });
 
     it("style description changes with theme", async () => {
@@ -5215,7 +5283,7 @@ describe("Polyline tag tests", async () => {
     `;
 
         async function test_items(theme: "dark" | "light") {
-            const { core, resolveComponentName } = await createTestCore({
+            const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 theme,
             });
@@ -5230,16 +5298,16 @@ describe("Polyline tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("ADescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("ADescription")]
+                    .stateValues.text,
             ).eq(`Polyline A is thick ${AColor}.`);
             expect(
-                stateVariables[resolveComponentName("BDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("BDescription")]
+                    .stateValues.text,
             ).eq(`B is a ${BShade} red polyline.`);
             expect(
-                stateVariables[resolveComponentName("CDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("CDescription")]
+                    .stateValues.text,
             ).eq(`C is a thin ${CColor} polyline.`);
         }
 

@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("lorem tag tests", async () => {
     it("paragraphs, sentences, and words", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <section name="paragraphs">
     <title>Paragraphs</title>
@@ -50,43 +50,30 @@ describe("lorem tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("paragraphs.lPars")]
+                stateVariables[await resolvePathToNodeIdx("paragraphs.lPars")]
                     .replacements!.length,
             ).eq(nParagraphs);
             expect(
-                stateVariables[resolveComponentName("sentences.lSens")]
+                stateVariables[await resolvePathToNodeIdx("sentences.lSens")]
                     .replacements!.length,
             ).eq(2 * nSentences - 1);
             expect(
-                stateVariables[resolveComponentName("words.lWords")]
+                stateVariables[await resolvePathToNodeIdx("words.lWords")]
                     .replacements!.length,
             ).eq(2 * nWords - 1);
 
             for (let [ind, repl] of stateVariables[
-                resolveComponentName("paragraphs.lPars")
+                await resolvePathToNodeIdx("paragraphs.lPars")
             ].replacements!.entries()) {
-                expect(
-                    stateVariables[resolveComponentName(`lPars[${ind + 1}]`)]
-                        .stateValues.text,
-                ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
-            }
-
-            for (let [ind, repl] of stateVariables[
-                resolveComponentName("sentences.lSens")
-            ].replacements!.entries()) {
-                if (ind % 2 === 1) {
-                    continue;
-                }
-
                 expect(
                     stateVariables[
-                        resolveComponentName(`lSens[${ind / 2 + 1}]`)
+                        await resolvePathToNodeIdx(`lPars[${ind + 1}]`)
                     ].stateValues.text,
                 ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
             }
 
             for (let [ind, repl] of stateVariables[
-                resolveComponentName("words.lWords")
+                await resolvePathToNodeIdx("sentences.lSens")
             ].replacements!.entries()) {
                 if (ind % 2 === 1) {
                     continue;
@@ -94,7 +81,21 @@ describe("lorem tag tests", async () => {
 
                 expect(
                     stateVariables[
-                        resolveComponentName(`lWords[${ind / 2 + 1}]`)
+                        await resolvePathToNodeIdx(`lSens[${ind / 2 + 1}]`)
+                    ].stateValues.text,
+                ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
+            }
+
+            for (let [ind, repl] of stateVariables[
+                await resolvePathToNodeIdx("words.lWords")
+            ].replacements!.entries()) {
+                if (ind % 2 === 1) {
+                    continue;
+                }
+
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(`lWords[${ind / 2 + 1}]`)
                     ].stateValues.text,
                 ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
             }
@@ -115,17 +116,17 @@ describe("lorem tag tests", async () => {
 
         await updateMathInputValue({
             latex: `${nParagraphs}`,
-            componentIdx: resolveComponentName("paragraphs.numPars"),
+            componentIdx: await resolvePathToNodeIdx("paragraphs.numPars"),
             core,
         });
         await updateMathInputValue({
             latex: `${nSentences}`,
-            componentIdx: resolveComponentName("sentences.numSens"),
+            componentIdx: await resolvePathToNodeIdx("sentences.numSens"),
             core,
         });
         await updateMathInputValue({
             latex: `${nWords}`,
-            componentIdx: resolveComponentName("words.numWords"),
+            componentIdx: await resolvePathToNodeIdx("words.numWords"),
             core,
         });
 
@@ -133,7 +134,7 @@ describe("lorem tag tests", async () => {
     });
 
     it("changes only with variant", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <lorem name="lPars" generateParagraphs="1" />
   <selectFromSequence from="1" to="2" name="s" />
@@ -144,23 +145,26 @@ describe("lorem tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         const n1 =
-            stateVariables[resolveComponentName("s[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
+                .value;
 
         expect(
-            stateVariables[resolveComponentName("lPars")].replacements!.length,
+            stateVariables[await resolvePathToNodeIdx("lPars")].replacements!
+                .length,
         ).eq(1);
 
         const paragraph1 =
             stateVariables[
-                stateVariables[resolveComponentName("lPars")].replacements![0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("lPars")]
+                    .replacements![0].componentIdx
             ].activeChildren[0];
 
         expect(
-            stateVariables[resolveComponentName("lPars[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("lPars[1]")].stateValues
+                .text,
         ).eq(paragraph1);
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <lorem name="lPars" generateParagraphs="1"  />
   <selectFromSequence from="1" to="2" name="s" />
@@ -171,24 +175,27 @@ describe("lorem tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("s[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
+                .value,
         ).eq(n1);
         expect(
-            stateVariables[resolveComponentName("lPars")].replacements!.length,
+            stateVariables[await resolvePathToNodeIdx("lPars")].replacements!
+                .length,
         ).eq(1);
 
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("lPars")].replacements![0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("lPars")]
+                    .replacements![0].componentIdx
             ].activeChildren[0],
         ).eq(paragraph1);
 
         expect(
-            stateVariables[resolveComponentName("lPars[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("lPars[1]")].stateValues
+                .text,
         ).eq(paragraph1);
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <lorem name="lPars" generateParagraphs="1"  />
   <selectFromSequence from="1" to="2" name="s" />
@@ -199,24 +206,27 @@ describe("lorem tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         const n2 =
-            stateVariables[resolveComponentName("s[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
+                .value;
         expect(n2).eq(3 - n1);
         expect(
-            stateVariables[resolveComponentName("lPars")].replacements!.length,
+            stateVariables[await resolvePathToNodeIdx("lPars")].replacements!
+                .length,
         ).eq(1);
 
         const paragraph2 =
             stateVariables[
-                stateVariables[resolveComponentName("lPars")].replacements![0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("lPars")]
+                    .replacements![0].componentIdx
             ].activeChildren[0];
         expect(paragraph2).not.eq(paragraph1);
 
         expect(
-            stateVariables[resolveComponentName("lPars[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("lPars[1]")].stateValues
+                .text,
         ).eq(paragraph2);
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <text>d</text>
   <lorem name="lPars" generateParagraphs="1" />
@@ -228,21 +238,24 @@ describe("lorem tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("s[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
+                .value,
         ).eq(n2);
         expect(
-            stateVariables[resolveComponentName("lPars")].replacements!.length,
+            stateVariables[await resolvePathToNodeIdx("lPars")].replacements!
+                .length,
         ).eq(1);
 
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("lPars")].replacements![0]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("lPars")]
+                    .replacements![0].componentIdx
             ].activeChildren[0],
         ).eq(paragraph2);
 
         expect(
-            stateVariables[resolveComponentName("lPars[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("lPars[1]")].stateValues
+                .text,
         ).eq(paragraph2);
     });
 });

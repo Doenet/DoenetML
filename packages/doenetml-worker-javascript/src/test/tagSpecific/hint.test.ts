@@ -7,7 +7,7 @@ vi.mock("hyperformula");
 
 describe("Hint tag tests", async () => {
     it("hints with and without title", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <hint name="hint1">
         <p name="p1">Hello</p>
@@ -23,73 +23,85 @@ describe("Hint tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .title,
         ).eq("Hint");
         expect(
-            stateVariables[resolveComponentName("hint2")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("hint2")].stateValues
+                .title,
         ).eq("Hint 2");
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("hint2")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint2")].stateValues
+                .open,
         ).eq(false);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint1"),
+            componentIdx: await resolvePathToNodeIdx("hint1"),
             actionName: "revealHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("hint2")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint2")].stateValues
+                .open,
         ).eq(false);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint2"),
+            componentIdx: await resolvePathToNodeIdx("hint2"),
             actionName: "revealHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("hint2")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint2")].stateValues
+                .open,
         ).eq(true);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint1"),
+            componentIdx: await resolvePathToNodeIdx("hint1"),
             actionName: "closeHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("hint2")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint2")].stateValues
+                .open,
         ).eq(true);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint2"),
+            componentIdx: await resolvePathToNodeIdx("hint2"),
             actionName: "closeHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("hint2")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint2")].stateValues
+                .open,
         ).eq(false);
     });
 
     it("copy and overwrite title", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <hint name="hint1">
         <title>Hint 1</title>
@@ -109,79 +121,93 @@ describe("Hint tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .title,
         ).eq("Hint 1");
         expect(
-            stateVariables[resolveComponentName("revised")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("revised")].stateValues
+                .title,
         ).eq("Hint 2");
         expect(
-            stateVariables[resolveComponentName("title1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("title1")].stateValues
+                .value,
         ).eq("Hint 1");
         expect(
-            stateVariables[resolveComponentName("title2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("title2")].stateValues
+                .value,
         ).eq("Hint 2");
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("revised")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("revised")].stateValues
+                .open,
         ).eq(false);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint1"),
+            componentIdx: await resolvePathToNodeIdx("hint1"),
             actionName: "revealHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("revised")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("revised")].stateValues
+                .open,
         ).eq(false);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("revised"),
+            componentIdx: await resolvePathToNodeIdx("revised"),
             actionName: "revealHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("revised")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("revised")].stateValues
+                .open,
         ).eq(true);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint1"),
+            componentIdx: await resolvePathToNodeIdx("hint1"),
             actionName: "closeHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("revised")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("revised")].stateValues
+                .open,
         ).eq(true);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("revised"),
+            componentIdx: await resolvePathToNodeIdx("revised"),
             actionName: "closeHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("revised")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("revised")].stateValues
+                .open,
         ).eq(false);
     });
 
     it("Can open hint in read only mode", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <hint name="hint1">
         <title>Hello</title>
@@ -195,34 +221,39 @@ describe("Hint tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .title,
         ).eq("Hello");
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("ti")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .disabled,
         ).eq(true);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint1"),
+            componentIdx: await resolvePathToNodeIdx("hint1"),
             actionName: "revealHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(true);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint1"),
+            componentIdx: await resolvePathToNodeIdx("hint1"),
             actionName: "closeHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint1")].stateValues
+                .open,
         ).eq(false);
     });
 });

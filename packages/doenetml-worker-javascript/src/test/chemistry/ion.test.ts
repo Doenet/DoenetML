@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("Ion tests", async () => {
     it("ion names and charges", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <section name="H"><title>Hydrogen</title>
 
@@ -122,309 +122,344 @@ describe("Ion tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("H.Hion")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("H.Hion")].stateValues
+                .latex,
         ).eq("\\text{H}^+");
         expect(
-            stateVariables[resolveComponentName("H.Hion")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("H.Hion")].stateValues
+                .text,
         ).eq("H^+");
         expect(
-            stateVariables[resolveComponentName("H.Hion")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("H.Hion")].stateValues
+                .math.tree,
         ).eqls(["^", "H", "+"]);
         expect(
-            stateVariables[resolveComponentName("H.Hname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("H.Hname")].stateValues
+                .value,
         ).eq("Hydrogen");
         expect(
-            stateVariables[resolveComponentName("H.Hcharge")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("H.Hcharge")].stateValues
+                .value,
         ).eq(1);
 
         expect(
-            stateVariables[resolveComponentName("H.Hminus")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("H.Hminus")].stateValues
+                .latex,
         ).eq("\\text{H}^-");
         expect(
-            stateVariables[resolveComponentName("H.Hminus")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("H.Hminus")].stateValues
+                .text,
         ).eq("H^-");
         expect(
-            stateVariables[resolveComponentName("H.Hminus")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("H.Hminus")].stateValues
+                .math.tree,
         ).eqls(["^", "H", "-"]);
         expect(
-            stateVariables[resolveComponentName("H.Hminusname")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("H.Hminusname")]
+                .stateValues.value,
         ).eq("Hydride");
         expect(
-            stateVariables[resolveComponentName("H.Hminuscharge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("H.Hminuscharge")]
+                .stateValues.value,
         ).eq(-1);
 
         expect(
-            stateVariables[resolveComponentName("H.Hcrazy")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("H.Hcrazy")].stateValues
+                .latex,
         ).eq("\\text{H}^{10+}");
         expect(
-            stateVariables[resolveComponentName("H.Hcrazy")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("H.Hcrazy")].stateValues
+                .text,
         ).eq("H^(10+)");
         expect(
-            stateVariables[resolveComponentName("H.Hcrazy")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("H.Hcrazy")].stateValues
+                .math.tree,
         ).eqls(["^", "H", "10+"]);
         expect(
-            stateVariables[resolveComponentName("H.Hcrazyname")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("H.Hcrazyname")]
+                .stateValues.value,
         ).eq("Hydrogen");
         expect(
-            stateVariables[resolveComponentName("H.Hcrazycharge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("H.Hcrazycharge")]
+                .stateValues.value,
         ).eq(10);
 
         expect(
-            stateVariables[resolveComponentName("Cl.Clion")].stateValues.latex,
-        ).eq("\\text{Cl}^-");
-        expect(
-            stateVariables[resolveComponentName("Cl.Clion")].stateValues.text,
-        ).eq("Cl^-");
-        expect(
-            stateVariables[resolveComponentName("Cl.Clion")].stateValues.math
-                .tree,
-        ).eqls(["^", "Cl", "-"]);
-        expect(
-            stateVariables[resolveComponentName("Cl.Clname")].stateValues.value,
-        ).eq("Chloride");
-        expect(
-            stateVariables[resolveComponentName("Cl.Clcharge")].stateValues
-                .value,
-        ).eq(-1);
-
-        expect(
-            stateVariables[resolveComponentName("Cl.Clminus")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Cl.Clion")].stateValues
                 .latex,
         ).eq("\\text{Cl}^-");
         expect(
-            stateVariables[resolveComponentName("Cl.Clminus")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Cl.Clion")].stateValues
+                .text,
         ).eq("Cl^-");
         expect(
-            stateVariables[resolveComponentName("Cl.Clminus")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Cl.Clion")].stateValues
+                .math.tree,
         ).eqls(["^", "Cl", "-"]);
         expect(
-            stateVariables[resolveComponentName("Cl.Clminusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Cl.Clname")].stateValues
                 .value,
         ).eq("Chloride");
         expect(
-            stateVariables[resolveComponentName("Cl.Clminuscharge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Cl.Clcharge")]
+                .stateValues.value,
         ).eq(-1);
 
         expect(
-            stateVariables[resolveComponentName("Cl.Clplus")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Cl.Clminus")].stateValues
+                .latex,
+        ).eq("\\text{Cl}^-");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Cl.Clminus")].stateValues
+                .text,
+        ).eq("Cl^-");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Cl.Clminus")].stateValues
+                .math.tree,
+        ).eqls(["^", "Cl", "-"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Cl.Clminusname")]
+                .stateValues.value,
+        ).eq("Chloride");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Cl.Clminuscharge")]
+                .stateValues.value,
+        ).eq(-1);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Cl.Clplus")].stateValues
+                .latex,
         ).eq("\\text{Cl}^+");
         expect(
-            stateVariables[resolveComponentName("Cl.Clplus")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Cl.Clplus")].stateValues
+                .text,
         ).eq("Cl^+");
         expect(
-            stateVariables[resolveComponentName("Cl.Clplus")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Cl.Clplus")].stateValues
+                .math.tree,
         ).eqls(["^", "Cl", "+"]);
         expect(
-            stateVariables[resolveComponentName("Cl.Clplusname")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Cl.Clplusname")]
+                .stateValues.value,
         ).eq("Chlorine");
         expect(
-            stateVariables[resolveComponentName("Cl.Clpluscharge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Cl.Clpluscharge")]
+                .stateValues.value,
         ).eq(1);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Feion")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Feion")].stateValues
+                .latex,
         ).eq("\\text{Fe}");
         expect(
-            stateVariables[resolveComponentName("Fe.Feion")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Feion")].stateValues
+                .text,
         ).eq("Fe");
         expect(
-            stateVariables[resolveComponentName("Fe.Feion")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Feion")].stateValues
+                .math.tree,
         ).eqls("Fe");
         expect(
-            stateVariables[resolveComponentName("Fe.Fename")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fename")].stateValues
+                .value,
         ).eq("Iron");
         expect(
-            stateVariables[resolveComponentName("Fe.Fecharge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fecharge")]
+                .stateValues.value,
         ).eq(0);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fe1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe1")].stateValues
+                .latex,
         ).eq("\\text{Fe}^+");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe1")].stateValues
+                .text,
         ).eq("Fe^+");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe1")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe1")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "+"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fe1name")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe1name")].stateValues
                 .value,
         ).eq("Iron (I)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe1charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe1charge")]
+                .stateValues.value,
         ).eq(1);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fe2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe2")].stateValues
+                .latex,
         ).eq("\\text{Fe}^{2+}");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe2")].stateValues
+                .text,
         ).eq("Fe^(2+)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe2")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe2")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "2+"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fe2name")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe2name")].stateValues
                 .value,
         ).eq("Iron (II)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe2charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe2charge")]
+                .stateValues.value,
         ).eq(2);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fe3")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe3")].stateValues
+                .latex,
         ).eq("\\text{Fe}^{3+}");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe3")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe3")].stateValues
+                .text,
         ).eq("Fe^(3+)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe3")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe3")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "3+"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fe3name")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe3name")].stateValues
                 .value,
         ).eq("Iron (III)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe3charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe3charge")]
+                .stateValues.value,
         ).eq(3);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fe4")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe4")].stateValues
+                .latex,
         ).eq("\\text{Fe}^{4+}");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe4")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe4")].stateValues
+                .text,
         ).eq("Fe^(4+)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe4")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe4")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "4+"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fe4name")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe4name")].stateValues
                 .value,
         ).eq("Iron (IV)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe4charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe4charge")]
+                .stateValues.value,
         ).eq(4);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fe5")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe5")].stateValues
+                .latex,
         ).eq("\\text{Fe}^{5+}");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe5")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe5")].stateValues
+                .text,
         ).eq("Fe^(5+)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe5")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe5")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "5+"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fe5name")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe5name")].stateValues
                 .value,
         ).eq("Iron (V)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe5charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe5charge")]
+                .stateValues.value,
         ).eq(5);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fe6")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe6")].stateValues
+                .latex,
         ).eq("\\text{Fe}^{6+}");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe6")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe6")].stateValues
+                .text,
         ).eq("Fe^(6+)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe6")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe6")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "6+"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fe6name")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe6name")].stateValues
                 .value,
         ).eq("Iron (VI)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe6charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe6charge")]
+                .stateValues.value,
         ).eq(6);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fe7")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe7")].stateValues
+                .latex,
         ).eq("\\text{Fe}^{7+}");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe7")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe7")].stateValues
+                .text,
         ).eq("Fe^(7+)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe7")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe7")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "7+"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fe7name")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe7name")].stateValues
                 .value,
         ).eq("Iron (VII)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe7charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe7charge")]
+                .stateValues.value,
         ).eq(7);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fe8")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe8")].stateValues
+                .latex,
         ).eq("\\text{Fe}^{8+}");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe8")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe8")].stateValues
+                .text,
         ).eq("Fe^(8+)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe8")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe8")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "8+"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fe8name")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe8name")].stateValues
                 .value,
         ).eq("Iron (VIII)");
         expect(
-            stateVariables[resolveComponentName("Fe.Fe8charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fe8charge")]
+                .stateValues.value,
         ).eq(8);
 
         expect(
-            stateVariables[resolveComponentName("Fe.Fen1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fen1")].stateValues
+                .latex,
         ).eq("\\text{Fe}^-");
         expect(
-            stateVariables[resolveComponentName("Fe.Fen1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fen1")].stateValues
+                .text,
         ).eq("Fe^-");
         expect(
-            stateVariables[resolveComponentName("Fe.Fen1")].stateValues.math
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fen1")].stateValues
+                .math.tree,
         ).eqls(["^", "Fe", "-"]);
         expect(
-            stateVariables[resolveComponentName("Fe.Fen1name")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fen1name")]
+                .stateValues.value,
         ).eq("Iron");
         expect(
-            stateVariables[resolveComponentName("Fe.Fen1charge")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Fe.Fen1charge")]
+                .stateValues.value,
         ).eq(-1);
     });
 
     it("anion names", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <text>a</text>
 
@@ -493,57 +528,57 @@ describe("Ion tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("Hminusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Hminusname")].stateValues
                 .value,
         ).eq("Hydride");
         expect(
-            stateVariables[resolveComponentName("Cminusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Cminusname")].stateValues
                 .value,
         ).eq("Carbide");
         expect(
-            stateVariables[resolveComponentName("Nminusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Nminusname")].stateValues
                 .value,
         ).eq("Nitride");
         expect(
-            stateVariables[resolveComponentName("Ominusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Ominusname")].stateValues
                 .value,
         ).eq("Oxide");
         expect(
-            stateVariables[resolveComponentName("Fminusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Fminusname")].stateValues
                 .value,
         ).eq("Fluoride");
         expect(
-            stateVariables[resolveComponentName("Pminusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Pminusname")].stateValues
                 .value,
         ).eq("Phosphide");
         expect(
-            stateVariables[resolveComponentName("Sminusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Sminusname")].stateValues
                 .value,
         ).eq("Sulfide");
         expect(
-            stateVariables[resolveComponentName("Clminusname")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Clminusname")]
+                .stateValues.value,
         ).eq("Chloride");
         expect(
-            stateVariables[resolveComponentName("Brminusname")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Brminusname")]
+                .stateValues.value,
         ).eq("Bromide");
         expect(
-            stateVariables[resolveComponentName("Iminusname")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Iminusname")].stateValues
                 .value,
         ).eq("Iodide");
         expect(
-            stateVariables[resolveComponentName("Atminusname")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Atminusname")]
+                .stateValues.value,
         ).eq("Astatide");
         expect(
-            stateVariables[resolveComponentName("Tsminusname")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("Tsminusname")]
+                .stateValues.value,
         ).eq("Tennesside");
     });
 
     it("caion name suffixes", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <text>a</text>
 
@@ -682,87 +717,113 @@ describe("Ion tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("Scname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Scname")].stateValues
+                .value,
         ).eq("Scandium (I)");
         expect(
-            stateVariables[resolveComponentName("Tiname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Tiname")].stateValues
+                .value,
         ).eq("Titanium (II)");
         expect(
-            stateVariables[resolveComponentName("Vname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Vname")].stateValues
+                .value,
         ).eq("Vanadium (III)");
         expect(
-            stateVariables[resolveComponentName("Crname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Crname")].stateValues
+                .value,
         ).eq("Chromium (IV)");
         expect(
-            stateVariables[resolveComponentName("Mnname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Mnname")].stateValues
+                .value,
         ).eq("Manganese (V)");
         expect(
-            stateVariables[resolveComponentName("Fename")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Fename")].stateValues
+                .value,
         ).eq("Iron (VI)");
         expect(
-            stateVariables[resolveComponentName("Coname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Coname")].stateValues
+                .value,
         ).eq("Cobalt (VII)");
         expect(
-            stateVariables[resolveComponentName("Niname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Niname")].stateValues
+                .value,
         ).eq("Nickel (VIII)");
         expect(
-            stateVariables[resolveComponentName("Cuname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Cuname")].stateValues
+                .value,
         ).eq("Copper (I)");
         expect(
-            stateVariables[resolveComponentName("Znname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Znname")].stateValues
+                .value,
         ).eq("Zinc (II)");
         expect(
-            stateVariables[resolveComponentName("Alname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Alname")].stateValues
+                .value,
         ).eq("Aluminum (III)");
         expect(
-            stateVariables[resolveComponentName("Ganame")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Ganame")].stateValues
+                .value,
         ).eq("Gallium (IV)");
         expect(
-            stateVariables[resolveComponentName("Inname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Inname")].stateValues
+                .value,
         ).eq("Indium (V)");
         expect(
-            stateVariables[resolveComponentName("Snname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Snname")].stateValues
+                .value,
         ).eq("Tin (VI)");
         expect(
-            stateVariables[resolveComponentName("Tlname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Tlname")].stateValues
+                .value,
         ).eq("Thallium (VII)");
         expect(
-            stateVariables[resolveComponentName("Pbname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Pbname")].stateValues
+                .value,
         ).eq("Lead (VIII)");
         expect(
-            stateVariables[resolveComponentName("Biname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Biname")].stateValues
+                .value,
         ).eq("Bismuth (I)");
         expect(
-            stateVariables[resolveComponentName("Poname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Poname")].stateValues
+                .value,
         ).eq("Polonium (II)");
         expect(
-            stateVariables[resolveComponentName("Cename")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Cename")].stateValues
+                .value,
         ).eq("Cerium (III)");
         expect(
-            stateVariables[resolveComponentName("Tmname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Tmname")].stateValues
+                .value,
         ).eq("Thulium (IV)");
         expect(
-            stateVariables[resolveComponentName("Luname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Luname")].stateValues
+                .value,
         ).eq("Lutetium (V)");
         expect(
-            stateVariables[resolveComponentName("Thname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Thname")].stateValues
+                .value,
         ).eq("Thorium (VI)");
         expect(
-            stateVariables[resolveComponentName("Esname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Esname")].stateValues
+                .value,
         ).eq("Einsteinium (VII)");
         expect(
-            stateVariables[resolveComponentName("Lrname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Lrname")].stateValues
+                .value,
         ).eq("Lawrencium (VIII)");
         expect(
-            stateVariables[resolveComponentName("Caname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Caname")].stateValues
+                .value,
         ).eq("Calcium");
         expect(
-            stateVariables[resolveComponentName("Siname")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Siname")].stateValues
+                .value,
         ).eq("Silicon");
     });
 
     it("answer ion symbols", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Enter symbol for common ion of <atom name="Cl" symbol="Cl" />.  
     <answer name="ansCl" splitSymbols="false"><math><ion>$Cl</ion></math></answer>
@@ -789,23 +850,23 @@ describe("Ion tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathinputClIdx =
-            stateVariables[resolveComponentName("ansCl")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansCl")].stateValues
                 .inputChildren[0].componentIdx;
 
         let mathinputHIdx =
-            stateVariables[resolveComponentName("ansH")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansH")].stateValues
                 .inputChildren[0].componentIdx;
 
         let mathinputMgIdx =
-            stateVariables[resolveComponentName("ansMg")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansMg")].stateValues
                 .inputChildren[0].componentIdx;
 
         let mathinputPIdx =
-            stateVariables[resolveComponentName("ansP")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansP")].stateValues
                 .inputChildren[0].componentIdx;
 
         let mathinputSIdx =
-            stateVariables[resolveComponentName("ansS")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansS")].stateValues
                 .inputChildren[0].componentIdx;
 
         await updateMathInputValue({
@@ -814,12 +875,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansCl"),
+            componentIdx: await resolvePathToNodeIdx("ansCl"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansCl")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansCl")].stateValues
                 .creditAchieved,
         ).eq(0);
 
@@ -829,12 +890,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansCl"),
+            componentIdx: await resolvePathToNodeIdx("ansCl"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansCl")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansCl")].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -844,12 +905,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansH"),
+            componentIdx: await resolvePathToNodeIdx("ansH"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansH")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansH")].stateValues
                 .creditAchieved,
         ).eq(0);
 
@@ -859,12 +920,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansH"),
+            componentIdx: await resolvePathToNodeIdx("ansH"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansH")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansH")].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -874,12 +935,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansMg"),
+            componentIdx: await resolvePathToNodeIdx("ansMg"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansMg")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansMg")].stateValues
                 .creditAchieved,
         ).eq(0);
 
@@ -889,12 +950,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansMg"),
+            componentIdx: await resolvePathToNodeIdx("ansMg"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansMg")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansMg")].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -904,12 +965,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansP"),
+            componentIdx: await resolvePathToNodeIdx("ansP"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansP")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansP")].stateValues
                 .creditAchieved,
         ).eq(0);
 
@@ -919,12 +980,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansP"),
+            componentIdx: await resolvePathToNodeIdx("ansP"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansP")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansP")].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -934,12 +995,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansS"),
+            componentIdx: await resolvePathToNodeIdx("ansS"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansS")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansS")].stateValues
                 .creditAchieved,
         ).eq(0);
 
@@ -949,12 +1010,12 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ansS"),
+            componentIdx: await resolvePathToNodeIdx("ansS"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ansS")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ansS")].stateValues
                 .creditAchieved,
         ).eq(1);
     });

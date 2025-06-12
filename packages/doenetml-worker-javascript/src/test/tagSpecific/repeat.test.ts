@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     updateBooleanInputValue,
@@ -13,7 +13,7 @@ vi.mock("hyperformula");
 
 describe("Repeat tag tests", async () => {
     it("single repeat of maths", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <mathList name="s">x y</mathList>
@@ -27,7 +27,7 @@ describe("Repeat tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let replacements =
-            stateVariables[resolveComponentName("repeat1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("repeat1")].replacements!;
         let mathr1Name =
             stateVariables[replacements[0].componentIdx].replacements![0]
                 .componentIdx;
@@ -35,9 +35,9 @@ describe("Repeat tag tests", async () => {
             stateVariables[replacements[1].componentIdx].replacements![0]
                 .componentIdx;
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "sin(2 x) + 1, sin(2 y) + 2",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("sin(2 x) + 1, sin(2 y) + 2");
 
         expect(stateVariables[mathr1Name].stateValues.value.tree).eqls([
             "+",
@@ -52,7 +52,7 @@ describe("Repeat tag tests", async () => {
     });
 
     it("single repeat of texts", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <textList name="s">squirrel bat</textList>
@@ -66,7 +66,7 @@ describe("Repeat tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let replacements =
-            stateVariables[resolveComponentName("repeat1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("repeat1")].replacements!;
         let textr1Name =
             stateVariables[replacements[0].componentIdx].replacements![0]
                 .componentIdx;
@@ -74,9 +74,9 @@ describe("Repeat tag tests", async () => {
             stateVariables[replacements[1].componentIdx].replacements![0]
                 .componentIdx;
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "You are a squirrel!You are a bat!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("You are a squirrel!You are a bat!");
 
         expect(stateVariables[textr1Name].stateValues.value).eq(
             "You are a squirrel!",
@@ -88,7 +88,7 @@ describe("Repeat tag tests", async () => {
     });
 
     it("single repeat of sequence", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <sequence name="s" from="1" to="5"/>
@@ -101,14 +101,14 @@ describe("Repeat tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let replacements =
-            stateVariables[resolveComponentName("repeat1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("repeat1")].replacements!;
         let mathrNames = replacements.map(
             (x) => stateVariables[x.componentIdx].replacements![0].componentIdx,
         );
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "1, 4, 9, 16, 25",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("1, 4, 9, 16, 25");
         expect(stateVariables[mathrNames[0]].stateValues.value.tree).eq(1);
         expect(stateVariables[mathrNames[1]].stateValues.value.tree).eq(4);
         expect(stateVariables[mathrNames[2]].stateValues.value.tree).eq(9);
@@ -118,7 +118,7 @@ describe("Repeat tag tests", async () => {
 
     it("triple parallel repeat", async () => {
         // Mimicked behavior of the old parallel map with a repeat
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <sequence name="s1" from="1" to="5"/>   
@@ -155,14 +155,14 @@ describe("Repeat tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(pText);
     });
 
     it("triple combination repeat", async () => {
         // Mimicked the combination behavior of a map with nested repeats
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <sequence name="s1" from="1" to="3"/>
@@ -200,13 +200,13 @@ describe("Repeat tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(pText);
     });
 
     it("two nested repeats", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <group name="s1"><number>-10</number><number>5</number></group>
@@ -237,13 +237,13 @@ describe("Repeat tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(pText);
     });
 
     it("three nested repeats with graphs and copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
        <sequence name="s1" from="-10" to="5" step="15"/>
@@ -283,9 +283,9 @@ describe("Repeat tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        function checkRepeat(repeatName: string) {
+        async function checkRepeat(repeatName: string) {
             let graphIndices = stateVariables[
-                resolveComponentName(repeatName)
+                await resolvePathToNodeIdx(repeatName)
             ].replacements!.map(
                 (x) =>
                     stateVariables[x.componentIdx].replacements![0]
@@ -331,12 +331,12 @@ describe("Repeat tag tests", async () => {
             }
         }
 
-        checkRepeat("repeat1");
-        checkRepeat("repeatCopy");
+        await checkRepeat("repeat1");
+        await checkRepeat("repeatCopy");
     });
 
     it("three nested repeats with graphs and referenced coords", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <sequence name="s1" from="-10" to="5" step="15"/>
@@ -381,7 +381,7 @@ describe("Repeat tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        const r1 = resolveComponentName("r1");
+        const r1 = await resolvePathToNodeIdx("r1");
 
         const group1 = stateVariables[r1].replacements![0].componentIdx;
         const group2 = stateVariables[r1].replacements![1].componentIdx;
@@ -402,7 +402,7 @@ describe("Repeat tag tests", async () => {
         for (let i1 = 0; i1 < 2; i1++) {
             for (let i2 = 0; i2 < 2; i2++) {
                 for (let i3 = 0; i3 < 2; i3++) {
-                    const pointIdx = resolveComponentName(
+                    const pointIdx = await resolvePathToNodeIdx(
                         `r1[${i1 + 1}].r2[${i2 + 1}].r3[${i3 + 1}].A`,
                     );
 
@@ -412,7 +412,7 @@ describe("Repeat tag tests", async () => {
                         ),
                     ).eqls(pointsByRepeat[i1][i2][i3]);
 
-                    let cIdx = resolveComponentName(cNames.pop()!);
+                    let cIdx = await resolvePathToNodeIdx(cNames.pop()!);
 
                     expect(stateVariables[cIdx!].stateValues.value.tree).eqls([
                         "vector",
@@ -424,7 +424,7 @@ describe("Repeat tag tests", async () => {
     });
 
     it("repeat with copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     
     <setup>
@@ -456,16 +456,16 @@ describe("Repeat tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            pText,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(pText);
     });
 
     it("repeat with copies, extended dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <number name="length">1</number>
     <setup>
@@ -504,45 +504,51 @@ describe("Repeat tag tests", async () => {
         let pText = textForLength(1);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            pText,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            pText,
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq(pText);
 
         // Double the length then test again
-        await updateValue({ componentIdx: resolveComponentName("uv"), core });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
 
         pText = textForLength(2);
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            pText,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            pText,
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq(pText);
 
         // Double the length again then test one more time
-        await updateValue({ componentIdx: resolveComponentName("uv"), core });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
 
         pText = textForLength(4);
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            pText,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            pText,
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq(pText);
     });
 
     function sinTextFromVars(vars: string[]) {
@@ -563,7 +569,7 @@ describe("Repeat tag tests", async () => {
     // TODO: this does not currently work.
     // Do we want to restore this behavior?
     it.skip("copy repeat and change for", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><repeat for="x y" name="repeat1" itemName="x" indexName="i">
        <math simplify="full">sin($i$x)</math>
@@ -580,19 +586,19 @@ describe("Repeat tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            pText1,
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            pText2,
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            pText2,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(pText1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(pText2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq(pText2);
     });
 
     it("repeat copying value from other repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <repeat name="r1" for="1 2 3" itemName="n">
       <math name="math">($n, $r2[3].n2)</math>
@@ -614,19 +620,19 @@ describe("Repeat tag tests", async () => {
 
         for (let i = 0; i < 3; i++) {
             expect(
-                stateVariables[resolveComponentName(names1[i])].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(names1[i])]
+                    .stateValues.text,
             ).eq(maths1[i]);
 
             expect(
-                stateVariables[resolveComponentName(names2[i])].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(names2[i])]
+                    .stateValues.text,
             ).eq(maths2[i]);
         }
     });
 
     it("repeat length depending on other repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     
     <setup>
@@ -652,13 +658,13 @@ describe("Repeat tag tests", async () => {
         let pText = texts.join(", ");
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(pText);
     });
 
     it("repeat begins zero length, copied multiple times", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <sequence name="s" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" />
@@ -698,8 +704,8 @@ describe("Repeat tag tests", async () => {
             );
             for (let i = 1; i <= 6; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`p${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`p${i}`)]
+                        .stateValues.text,
                 ).eq(pText);
             }
         }
@@ -714,7 +720,7 @@ describe("Repeat tag tests", async () => {
         count = 1;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -723,7 +729,7 @@ describe("Repeat tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -732,7 +738,7 @@ describe("Repeat tag tests", async () => {
         count = 2;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -742,12 +748,12 @@ describe("Repeat tag tests", async () => {
         to = 5;
         await updateMathInputValue({
             latex: from.toString(),
-            componentIdx: resolveComponentName("sequenceFrom"),
+            componentIdx: await resolvePathToNodeIdx("sequenceFrom"),
             core,
         });
         await updateMathInputValue({
             latex: to.toString(),
-            componentIdx: resolveComponentName("sequenceTo"),
+            componentIdx: await resolvePathToNodeIdx("sequenceTo"),
             core,
         });
         await check_items(from, to, count);
@@ -756,7 +762,7 @@ describe("Repeat tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -765,14 +771,14 @@ describe("Repeat tag tests", async () => {
         count = 3;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
     });
 
     it("repeat with seemingly circular dependence in template", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
     <setup>
@@ -835,8 +841,8 @@ describe("Repeat tag tests", async () => {
             );
 
             for (let ind = 0; ind < 3; ind++) {
-                const p1 = resolveComponentName(`repeat[${ind + 1}].P1`);
-                const p2 = resolveComponentName(`repeat[${ind + 1}].P2`);
+                const p1 = await resolvePathToNodeIdx(`repeat[${ind + 1}].P1`);
+                const p2 = await resolvePathToNodeIdx(`repeat[${ind + 1}].P2`);
                 expect(
                     rnd(stateVariables[p1].stateValues.xs.map((x) => x.tree)),
                 ).eqls(P1s[ind]);
@@ -846,14 +852,16 @@ describe("Repeat tag tests", async () => {
 
                 expect(
                     rnd(
-                        stateVariables[resolveComponentName(`c${ind * 2 + 1}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`c${ind * 2 + 1}`)
+                        ].stateValues.value.tree,
                     ),
                 ).eqls(["vector", ...P1s[ind]]);
                 expect(
                     rnd(
-                        stateVariables[resolveComponentName(`c${ind * 2 + 2}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`c${ind * 2 + 2}`)
+                        ].stateValues.value.tree,
                     ),
                 ).eqls(["vector", ...P2s[ind]]);
             }
@@ -871,7 +879,7 @@ describe("Repeat tag tests", async () => {
         let P1s = points_from_pars(q, r).P1s;
 
         await movePoint({
-            componentIdx: resolveComponentName(`repeat[1].P1`),
+            componentIdx: await resolvePathToNodeIdx(`repeat[1].P1`),
             x: P1s[0][0],
             y: P1s[0][1],
             core,
@@ -884,7 +892,7 @@ describe("Repeat tag tests", async () => {
         let P2s = points_from_pars(q, r).P2s;
 
         await movePoint({
-            componentIdx: resolveComponentName(`repeat[1].P2`),
+            componentIdx: await resolvePathToNodeIdx(`repeat[1].P2`),
             x: P2s[0][0],
             y: P2s[0][1],
             core,
@@ -897,7 +905,7 @@ describe("Repeat tag tests", async () => {
         P1s = points_from_pars(q, r).P1s;
 
         await movePoint({
-            componentIdx: resolveComponentName(`repeat[2].P1`),
+            componentIdx: await resolvePathToNodeIdx(`repeat[2].P1`),
             x: P1s[1][0],
             y: P1s[1][1],
             core,
@@ -910,7 +918,7 @@ describe("Repeat tag tests", async () => {
         P2s = points_from_pars(q, r).P2s;
 
         await movePoint({
-            componentIdx: resolveComponentName(`repeat[2].P2`),
+            componentIdx: await resolvePathToNodeIdx(`repeat[2].P2`),
             x: P2s[1][0],
             y: P2s[1][1],
             core,
@@ -923,7 +931,7 @@ describe("Repeat tag tests", async () => {
         P1s = points_from_pars(q, r).P1s;
 
         await movePoint({
-            componentIdx: resolveComponentName(`repeat[3].P1`),
+            componentIdx: await resolvePathToNodeIdx(`repeat[3].P1`),
             x: P1s[2][0],
             y: P1s[2][1],
             core,
@@ -936,7 +944,7 @@ describe("Repeat tag tests", async () => {
         P2s = points_from_pars(q, r).P2s;
 
         await movePoint({
-            componentIdx: resolveComponentName(`repeat[3].P2`),
+            componentIdx: await resolvePathToNodeIdx(`repeat[3].P2`),
             x: P2s[2][0],
             y: P2s[2][1],
             core,
@@ -945,7 +953,7 @@ describe("Repeat tag tests", async () => {
     });
 
     it("two repeats with mutual copies, begin zero length, copied multiple times", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <sequence name="s" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" />
@@ -980,10 +988,10 @@ describe("Repeat tag tests", async () => {
     `,
         });
 
-        const g1 = resolveComponentName("g1");
-        const g2 = resolveComponentName("g2");
-        const g3 = resolveComponentName("g3");
-        const g4 = resolveComponentName("g4");
+        const g1 = await resolvePathToNodeIdx("g1");
+        const g2 = await resolvePathToNodeIdx("g2");
+        const g3 = await resolvePathToNodeIdx("g3");
+        const g4 = await resolvePathToNodeIdx("g4");
         const gs = [g1, g2, g3, g4];
 
         async function check_items(from: number, to: number, count: number) {
@@ -1051,7 +1059,7 @@ describe("Repeat tag tests", async () => {
         count = 1;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -1060,7 +1068,7 @@ describe("Repeat tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -1069,7 +1077,7 @@ describe("Repeat tag tests", async () => {
         count = 2;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -1079,12 +1087,12 @@ describe("Repeat tag tests", async () => {
         to = 5;
         await updateMathInputValue({
             latex: from.toString(),
-            componentIdx: resolveComponentName("sequenceFrom"),
+            componentIdx: await resolvePathToNodeIdx("sequenceFrom"),
             core,
         });
         await updateMathInputValue({
             latex: to.toString(),
-            componentIdx: resolveComponentName("sequenceTo"),
+            componentIdx: await resolvePathToNodeIdx("sequenceTo"),
             core,
         });
         await check_items(from, to, count);
@@ -1093,7 +1101,7 @@ describe("Repeat tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -1102,7 +1110,7 @@ describe("Repeat tag tests", async () => {
         count = 3;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("sequenceCount"),
+            componentIdx: await resolvePathToNodeIdx("sequenceCount"),
             core,
         });
         await check_items(from, to, count);
@@ -1114,7 +1122,7 @@ describe("Repeat tag tests", async () => {
         // the juxtaposition of vectors that the children represent.
         // We're just checking that the points from the repeat
         // are adapted into maths due to their math parent.
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of points: <mathInput name="number"/></p>
     <p>Step size: <mathInput name="step" /></p>
@@ -1142,15 +1150,15 @@ describe("Repeat tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("math1")].activeChildren
-                    .length,
+                stateVariables[await resolvePathToNodeIdx("math1")]
+                    .activeChildren.length,
             ).eq(numPoints);
 
             for (let i = 0; i < numPoints; i++) {
                 let n = from + i * step;
                 let child =
                     stateVariables[
-                        stateVariables[resolveComponentName("math1")]
+                        stateVariables[await resolvePathToNodeIdx("math1")]
                             .activeChildren[i].componentIdx
                     ];
                 // Note: coords is a type of math
@@ -1180,7 +1188,7 @@ describe("Repeat tag tests", async () => {
         numPoints = 10;
         await updateMathInputValue({
             latex: numPoints.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_math_children(numPoints, step);
@@ -1188,7 +1196,7 @@ describe("Repeat tag tests", async () => {
         step = 1;
         await updateMathInputValue({
             latex: step.toString(),
-            componentIdx: resolveComponentName("step"),
+            componentIdx: await resolvePathToNodeIdx("step"),
             core,
         });
         await check_math_children(numPoints, step);
@@ -1196,7 +1204,7 @@ describe("Repeat tag tests", async () => {
         numPoints = 20;
         await updateMathInputValue({
             latex: numPoints.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_math_children(numPoints, step);
@@ -1204,7 +1212,7 @@ describe("Repeat tag tests", async () => {
         step = 0.5;
         await updateMathInputValue({
             latex: step.toString(),
-            componentIdx: resolveComponentName("step"),
+            componentIdx: await resolvePathToNodeIdx("step"),
             core,
         });
         await check_math_children(numPoints, step);
@@ -1212,7 +1220,7 @@ describe("Repeat tag tests", async () => {
         numPoints = 10;
         await updateMathInputValue({
             latex: numPoints.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_math_children(numPoints, step);
@@ -1221,7 +1229,7 @@ describe("Repeat tag tests", async () => {
         step = 0;
         await updateMathInputValue({
             latex: "",
-            componentIdx: resolveComponentName("step"),
+            componentIdx: await resolvePathToNodeIdx("step"),
             core,
         });
         await check_math_children(numPoints, step);
@@ -1229,7 +1237,7 @@ describe("Repeat tag tests", async () => {
         numPoints = 5;
         await updateMathInputValue({
             latex: numPoints.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_math_children(numPoints, step);
@@ -1237,14 +1245,14 @@ describe("Repeat tag tests", async () => {
         step = -3;
         await updateMathInputValue({
             latex: step.toString(),
-            componentIdx: resolveComponentName("step"),
+            componentIdx: await resolvePathToNodeIdx("step"),
             core,
         });
         await check_math_children(numPoints, step);
     });
 
     it("repeat inside sources of repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of points: <mathInput name="number"/></p>
     
@@ -1303,12 +1311,14 @@ describe("Repeat tag tests", async () => {
             for (let n = 0; n < 3; n++) {
                 for (let i = 0; i < 2; i++) {
                     expect(
-                        stateVariables[resolveComponentName(pNames1[n][i])]
-                            .stateValues.text,
+                        stateVariables[
+                            await resolvePathToNodeIdx(pNames1[n][i])
+                        ].stateValues.text,
                     ).eq(point1Texts[n] || "");
                     expect(
-                        stateVariables[resolveComponentName(pNames2[n][i])]
-                            .stateValues.text,
+                        stateVariables[
+                            await resolvePathToNodeIdx(pNames2[n][i])
+                        ].stateValues.text,
                     ).eq(point2Texts[n] || "");
                 }
             }
@@ -1322,7 +1332,7 @@ describe("Repeat tag tests", async () => {
         num = 2;
         await updateMathInputValue({
             latex: num.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_items(num);
@@ -1331,7 +1341,7 @@ describe("Repeat tag tests", async () => {
         num = 1;
         await updateMathInputValue({
             latex: num.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_items(num);
@@ -1340,7 +1350,7 @@ describe("Repeat tag tests", async () => {
         num = 3;
         await updateMathInputValue({
             latex: num.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_items(num);
@@ -1349,7 +1359,7 @@ describe("Repeat tag tests", async () => {
         num = 0;
         await updateMathInputValue({
             latex: num.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_items(num);
@@ -1358,14 +1368,14 @@ describe("Repeat tag tests", async () => {
         num = 1;
         await updateMathInputValue({
             latex: num.toString(),
-            componentIdx: resolveComponentName("number"),
+            componentIdx: await resolvePathToNodeIdx("number"),
             core,
         });
         await check_items(num);
     });
 
     it("cannot override fixed of source index", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <repeat name="r1" for="red yellow" type="text" indexName="i">
         <integer extend="$i" name="ind" />
@@ -1380,8 +1390,8 @@ describe("Repeat tag tests", async () => {
     `,
         });
 
-        const r1 = resolveComponentName("r1");
-        const r2 = resolveComponentName("r2");
+        const r1 = await resolvePathToNodeIdx("r1");
+        const r2 = await resolvePathToNodeIdx("r2");
 
         async function check_items(a: number, b: number, c: number, d: number) {
             const stateVariables = await core.returnAllStateVariables(
@@ -1390,42 +1400,42 @@ describe("Repeat tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("r1[1].ind")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("r1[1].ind")]
+                    .stateValues.value,
             ).eqls(a);
             expect(
-                stateVariables[resolveComponentName("r1[2].ind")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("r1[2].ind")]
+                    .stateValues.value,
             ).eqls(b);
             expect(
-                stateVariables[resolveComponentName("r2[1].ind")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("r2[1].ind")]
+                    .stateValues.value,
             ).eqls(c);
             expect(
-                stateVariables[resolveComponentName("r2[2].ind")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("r2[2].ind")]
+                    .stateValues.value,
             ).eqls(d);
         }
 
         async function set_items(a: string, b: string, c: string, d: string) {
             await updateMathInputValue({
                 latex: a,
-                componentIdx: resolveComponentName("r1[1].mi"),
+                componentIdx: await resolvePathToNodeIdx("r1[1].mi"),
                 core,
             });
             await updateMathInputValue({
                 latex: b,
-                componentIdx: resolveComponentName("r1[2].mi"),
+                componentIdx: await resolvePathToNodeIdx("r1[2].mi"),
                 core,
             });
             await updateMathInputValue({
                 latex: c,
-                componentIdx: resolveComponentName("r2[1].mi"),
+                componentIdx: await resolvePathToNodeIdx("r2[1].mi"),
                 core,
             });
             await updateMathInputValue({
                 latex: d,
-                componentIdx: resolveComponentName("r2[2].mi"),
+                componentIdx: await resolvePathToNodeIdx("r2[2].mi"),
                 core,
             });
         }
@@ -1443,7 +1453,7 @@ describe("Repeat tag tests", async () => {
     });
 
     it("repeats hide dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name='h1' prefill="false" >
       <label>Hide first repeat</label>
@@ -1480,27 +1490,31 @@ describe("Repeat tag tests", async () => {
 
             if (h1) {
                 expect(
-                    stateVariables[resolveComponentName("m1")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                        .text,
                 ).eq("repeat 1: ");
             } else {
                 let m1text =
                     "repeat 1: " +
                     [...Array(n1).keys()].map((v) => `hi${v + 1}`).join(", ");
                 expect(
-                    stateVariables[resolveComponentName("m1")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                        .text,
                 ).eq(m1text);
             }
 
             if (h2) {
                 expect(
-                    stateVariables[resolveComponentName("m2")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                        .text,
                 ).eq("repeat 2: ");
             } else {
                 let m2text =
                     "repeat 2: " +
                     [...Array(n2).keys()].map((v) => `hi${v + 1}`).join(", ");
                 expect(
-                    stateVariables[resolveComponentName("m2")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                        .text,
                 ).eq(m2text);
             }
         }
@@ -1508,12 +1522,12 @@ describe("Repeat tag tests", async () => {
         async function set_ns(n1: number, n2: number) {
             await updateMathInputValue({
                 latex: n1.toString(),
-                componentIdx: resolveComponentName("n1"),
+                componentIdx: await resolvePathToNodeIdx("n1"),
                 core,
             });
             await updateMathInputValue({
                 latex: n2.toString(),
-                componentIdx: resolveComponentName("n2"),
+                componentIdx: await resolvePathToNodeIdx("n2"),
                 core,
             });
         }
@@ -1521,12 +1535,12 @@ describe("Repeat tag tests", async () => {
         async function set_hs(h1: boolean, h2: boolean) {
             await updateBooleanInputValue({
                 boolean: h1,
-                componentIdx: resolveComponentName("h1"),
+                componentIdx: await resolvePathToNodeIdx("h1"),
                 core,
             });
             await updateBooleanInputValue({
                 boolean: h2,
-                componentIdx: resolveComponentName("h2"),
+                componentIdx: await resolvePathToNodeIdx("h2"),
                 core,
             });
         }
@@ -1615,7 +1629,7 @@ describe("Repeat tag tests", async () => {
     async function test_as_list_maps(
         core,
         items: string[],
-        resolveComponentName: (name: string, origin?: number) => number,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let pTextCommas = items.join(", ");
         let pTextNoCommas = items.join("");
@@ -1650,7 +1664,9 @@ describe("Repeat tag tests", async () => {
             // as we want to test that the whitespace before a comma is removed.
 
             expect(
-                stateVariables[resolveComponentName(name)].stateValues.text
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
                     .trim(),
             ).eq(pTextCommas);
@@ -1658,7 +1674,9 @@ describe("Repeat tag tests", async () => {
         for (let name of noCommaNames) {
             console.log(name);
             expect(
-                stateVariables[resolveComponentName(name)].stateValues.text
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
                     .trim(),
             ).eq(pTextNoCommas);
@@ -1666,17 +1684,17 @@ describe("Repeat tag tests", async () => {
     }
 
     it("repeat displays as list by default, single number in template", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: create_as_list_template(`<number>$v^2</number>`),
         });
 
         let numbers = [...Array(10).keys()].map((v) => String((v + 1) ** 2));
 
-        await test_as_list_maps(core, numbers, resolveComponentName);
+        await test_as_list_maps(core, numbers, resolvePathToNodeIdx);
     });
 
     it("repeat displays as list by default, number and string in template", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: create_as_list_template(`
             <number>$v^2</number>
             x`),
@@ -1686,11 +1704,11 @@ describe("Repeat tag tests", async () => {
             (v) => String((v + 1) ** 2) + " x",
         );
 
-        await test_as_list_maps(core, numbers, resolveComponentName);
+        await test_as_list_maps(core, numbers, resolvePathToNodeIdx);
     });
 
     it("repeat displays as list by default, number, string and math in template", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: create_as_list_template(`
             <number>$v^2</number>
             <math>x</math>`),
@@ -1700,11 +1718,11 @@ describe("Repeat tag tests", async () => {
             (v) => String((v + 1) ** 2) + " x",
         );
 
-        await test_as_list_maps(core, numbers, resolveComponentName);
+        await test_as_list_maps(core, numbers, resolvePathToNodeIdx);
     });
 
     it("repeat will display as list even if if has non-inline components with canBeInList set", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <setup>
         <sequence to="3" name="s" />
@@ -1725,22 +1743,22 @@ describe("Repeat tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "( 1, 1 ), ( 2, 4 ), ( 3, 9 )",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "( 1, 1 ), ( 2, 4 ), ( 3, 9 )",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "y = 1, y = 2, y = 3",
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            "2, 4, 6",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("( 1, 1 ), ( 2, 4 ), ( 3, 9 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("( 1, 1 ), ( 2, 4 ), ( 3, 9 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("y = 1, y = 2, y = 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("2, 4, 6");
     });
 
     it("isResponse", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup><sequence name="s" length="2" /></setup>
     <repeat isResponse itemName="v" for="$s" name="r">
@@ -1755,38 +1773,42 @@ describe("Repeat tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("r[1].p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("r[1].p")].stateValues
+                .text,
         ).eq("hi 1");
         expect(
-            stateVariables[resolveComponentName("r[2].p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("r[2].p")].stateValues
+                .text,
         ).eq("hi 2");
         expect(
-            stateVariables[resolveComponentName("r[1].p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("r[1].p")].stateValues
                 .isResponse,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("r[2].p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("r[2].p")].stateValues
                 .isResponse,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("r2[1].p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("r2[1].p")].stateValues
+                .text,
         ).eq("hi 1");
         expect(
-            stateVariables[resolveComponentName("r2[2].p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("r2[2].p")].stateValues
+                .text,
         ).eq("hi 2");
         expect(
-            stateVariables[resolveComponentName("r2[1].p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("r2[1].p")].stateValues
                 .isResponse,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("r2[2].p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("r2[2].p")].stateValues
                 .isResponse,
         ).eq(false);
     });
 
     it("repeat iterates over lists", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathList name="ml">x y</mathList>
     <textList name="tl">dog cat</textList>
@@ -1811,39 +1833,41 @@ describe("Repeat tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m[1].math")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("m[1].math")].stateValues
+                .value.tree,
         ).eqls(["*", 2, "x"]);
         expect(
-            stateVariables[resolveComponentName("m[2].math")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("m[2].math")].stateValues
+                .value.tree,
         ).eqls(["*", 2, "y"]);
         expect(
-            stateVariables[resolveComponentName("n[1].number")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("n[1].number")]
+                .stateValues.value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("n[2].number")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("n[2].number")]
+                .stateValues.value,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("t[1].text")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t[1].text")].stateValues
+                .value,
         ).eq("Hello dog!");
         expect(
-            stateVariables[resolveComponentName("t[2].text")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("t[2].text")].stateValues
+                .value,
         ).eq("Hello cat!");
         expect(
-            stateVariables[resolveComponentName("b[1].boolean")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("b[1].boolean")]
+                .stateValues.value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("b[2].boolean")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("b[2].boolean")]
+                .stateValues.value,
         ).eq(true);
     });
 
     it("repeat iterates over combination of list, group, sequence, components, and string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <mathList name="ml">1 2</mathList>
@@ -1865,14 +1889,14 @@ describe("Repeat tag tests", async () => {
 
         for (let i = 1; i <= 9; i++) {
             expect(
-                stateVariables[resolveComponentName(`r[${i}].number`)]
+                stateVariables[await resolvePathToNodeIdx(`r[${i}].number`)]
                     .stateValues.value,
             ).eq(i ** 2);
         }
     });
 
     it("type attribute wraps string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <repeat for="x^2 y^2" itemName="x" name="rDefault">
         $x
@@ -1892,22 +1916,22 @@ describe("Repeat tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         // Unwrap the group and then the copy, then get the value state variable
-        function unwrap(name: string) {
+        async function unwrap(name: string) {
             return stateVariables[
                 stateVariables[
-                    stateVariables[resolveComponentName(name)].replacements![0]
-                        .componentIdx
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .replacements![0].componentIdx
                 ].replacements![0].componentIdx
             ].stateValues.value;
         }
 
-        expect(unwrap(`rDefault[1]`).tree).eqls(["^", "x", 2]);
-        expect(unwrap(`rDefault[2]`).tree).eqls(["^", "y", 2]);
-        expect(unwrap(`rMath[1]`).tree).eqls(["*", "a", "b"]);
-        expect(unwrap(`rMath[2]`).tree).eqls(["*", "c", "d"]);
-        expect(unwrap(`rNumber[1]`)).eq(5);
-        expect(unwrap(`rNumber[2]`)).eq(6);
-        expect(unwrap(`rText[1]`)).eq("hello");
-        expect(unwrap(`rText[2]`)).eq("there");
+        expect((await unwrap(`rDefault[1]`)).tree).eqls(["^", "x", 2]);
+        expect((await unwrap(`rDefault[2]`)).tree).eqls(["^", "y", 2]);
+        expect((await unwrap(`rMath[1]`)).tree).eqls(["*", "a", "b"]);
+        expect((await unwrap(`rMath[2]`)).tree).eqls(["*", "c", "d"]);
+        expect(await unwrap(`rNumber[1]`)).eq(5);
+        expect(await unwrap(`rNumber[2]`)).eq(6);
+        expect(await unwrap(`rText[1]`)).eq("hello");
+        expect(await unwrap(`rText[2]`)).eq("there");
     });
 });

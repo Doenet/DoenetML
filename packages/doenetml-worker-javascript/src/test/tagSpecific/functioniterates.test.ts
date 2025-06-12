@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
@@ -13,7 +13,7 @@ describe("FunctionIterates tag tests", async () => {
     // TODO: test forceNumeric and forceSymbolic?
 
     it("1D user-defined function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Choose variable for function: <mathInput name="x" prefill="x" />.
   Let <m>f($x) =</m> <mathInput name="fformula" prefill="ax" />.
@@ -33,99 +33,115 @@ describe("FunctionIterates tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ls[1][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+                .text,
         ).eq("f¹(u) = 3 a v");
         expect(
-            stateVariables[resolveComponentName("ls[2][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+                .text,
         ).eq("f²(u) = 3 v a²");
         expect(
-            stateVariables[resolveComponentName("ls[3][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+                .text,
         ).eq("f³(u) = 3 v a³");
 
         // change function, numIterates, and initial
         await updateMathInputValue({
             latex: "bx^2",
-            componentIdx: resolveComponentName("fformula"),
+            componentIdx: await resolvePathToNodeIdx("fformula"),
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await updateMathInputValue({
             latex: "w",
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ls[1][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+                .text,
         ).eq("f¹(u) = b w²");
         expect(
-            stateVariables[resolveComponentName("ls[2][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+                .text,
         ).eq("f²(u) = b³ w⁴");
         expect(
-            stateVariables[resolveComponentName("ls[3][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+                .text,
         ).eq("f³(u) = b⁷ w⁸");
         expect(
-            stateVariables[resolveComponentName("ls[4][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+                .text,
         ).eq("f⁴(u) = b¹⁵ w¹⁶");
 
         // change variable
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ls[1][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+                .text,
         ).eq("f¹(u) = b x²");
         expect(
-            stateVariables[resolveComponentName("ls[2][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+                .text,
         ).eq("f²(u) = b x²");
         expect(
-            stateVariables[resolveComponentName("ls[3][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+                .text,
         ).eq("f³(u) = b x²");
         expect(
-            stateVariables[resolveComponentName("ls[4][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+                .text,
         ).eq("f⁴(u) = b x²");
 
         // change function to match variable
         await updateMathInputValue({
             latex: "y+q",
-            componentIdx: resolveComponentName("fformula"),
+            componentIdx: await resolvePathToNodeIdx("fformula"),
             core,
         });
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ls[1][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+                .text,
         ).eq("f¹(u) = q + w");
         expect(
-            stateVariables[resolveComponentName("ls[2][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+                .text,
         ).eq("f²(u) = 2 q + w");
         expect(
-            stateVariables[resolveComponentName("ls[3][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+                .text,
         ).eq("f³(u) = 3 q + w");
         expect(
-            stateVariables[resolveComponentName("ls[4][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+                .text,
         ).eq("f⁴(u) = 4 q + w");
         expect(
-            stateVariables[resolveComponentName("ls[5][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[5][1]")].stateValues
+                .text,
         ).eq("f⁵(u) = 5 q + w");
     });
 
     it("1D user-defined numerical function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Choose variable for function: <mathInput name="x" prefill="x" />.
   Let <m>f($x) =</m> <mathInput name="fformula" prefill="3x" />.
@@ -145,50 +161,57 @@ describe("FunctionIterates tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ls[1][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+                .text,
         ).eq("f¹(u) = 6");
         expect(
-            stateVariables[resolveComponentName("ls[2][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+                .text,
         ).eq("f²(u) = 18");
         expect(
-            stateVariables[resolveComponentName("ls[3][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+                .text,
         ).eq("f³(u) = 54");
 
         // change function, numIterates, and initial
         await updateMathInputValue({
             latex: "2x^2",
-            componentIdx: resolveComponentName("fformula"),
+            componentIdx: await resolvePathToNodeIdx("fformula"),
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await updateMathInputValue({
             latex: "1/4",
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ls[1][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+                .text,
         ).eq("f¹(u) = 0.125");
         expect(
-            stateVariables[resolveComponentName("ls[2][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+                .text,
         ).eq("f²(u) = 0.03125");
         expect(
-            stateVariables[resolveComponentName("ls[3][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+                .text,
         ).eq("f³(u) = 0.001953125");
         expect(
-            stateVariables[resolveComponentName("ls[4][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+                .text,
         ).eq("f⁴(u) = 0.000007629394531");
 
         // change variable
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
 
@@ -197,51 +220,60 @@ describe("FunctionIterates tag tests", async () => {
         // Ideally wouldn't have spaces in N a N, but get it from
         // parsing the latex of the `<m>` and converting to text
         expect(
-            stateVariables[resolveComponentName("ls[1][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+                .text,
         ).eq("f¹(u) = N a N");
         expect(
-            stateVariables[resolveComponentName("ls[2][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+                .text,
         ).eq("f²(u) = N a N");
         expect(
-            stateVariables[resolveComponentName("ls[3][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+                .text,
         ).eq("f³(u) = N a N");
         expect(
-            stateVariables[resolveComponentName("ls[4][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+                .text,
         ).eq("f⁴(u) = N a N");
 
         // change function to match variable
         await updateMathInputValue({
             latex: "y+5",
-            componentIdx: resolveComponentName("fformula"),
+            componentIdx: await resolvePathToNodeIdx("fformula"),
             core,
         });
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ls[1][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+                .text,
         ).eq("f¹(u) = 5.25");
         expect(
-            stateVariables[resolveComponentName("ls[2][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+                .text,
         ).eq("f²(u) = 10.25");
         expect(
-            stateVariables[resolveComponentName("ls[3][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+                .text,
         ).eq("f³(u) = 15.25");
         expect(
-            stateVariables[resolveComponentName("ls[4][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+                .text,
         ).eq("f⁴(u) = 20.25");
         expect(
-            stateVariables[resolveComponentName("ls[5][1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ls[5][1]")].stateValues
+                .text,
         ).eq("f⁵(u) = 25.25");
     });
 
     async function test_2d_linear(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function checkIterates({ a, b, c, d, u1, u2, n }) {
             let stateVariables = await core.returnAllStateVariables(
@@ -256,7 +288,7 @@ describe("FunctionIterates tag tests", async () => {
             let x = me.math.matrix([[u1], [u2]]);
 
             let iterNames = stateVariables[
-                resolveComponentName("iterates")
+                await resolvePathToNodeIdx("iterates")
             ].replacements!.map((x) => x.componentIdx);
 
             for (let i = 0; i < n; i++) {
@@ -274,42 +306,42 @@ describe("FunctionIterates tag tests", async () => {
         // change values
         await updateMathInputValue({
             latex: "q",
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
         await updateMathInputValue({
             latex: "r",
-            componentIdx: resolveComponentName("y"),
+            componentIdx: await resolvePathToNodeIdx("y"),
             core,
         });
         await updateMathInputValue({
             latex: "-4",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "7",
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             core,
         });
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("d"),
+            componentIdx: await resolvePathToNodeIdx("d"),
             core,
         });
         await updateMathInputValue({
             latex: "(-8,9)",
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             core,
         });
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -317,7 +349,7 @@ describe("FunctionIterates tag tests", async () => {
     }
 
     it("2D linear function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>variables: <mathInput name="x" prefill="x" /> and <mathInput name="y" prefill="y" />.
   <m>a = </m> <mathInput name="a" prefill="3" />, <m>b = </m> <mathInput name="b" prefill="-2" />, <m>c = </m> <mathInput name="c" prefill="1" />, <m>d = </m> <mathInput name="d" prefill="4" />.
@@ -330,11 +362,11 @@ describe("FunctionIterates tag tests", async () => {
   `,
         });
 
-        await test_2d_linear(core, resolveComponentName);
+        await test_2d_linear(core, resolvePathToNodeIdx);
     });
 
     it("2D linear function, with alt vectors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>variables: <mathInput name="x" prefill="x" /> and <mathInput name="y" prefill="y" />.
   <m>a = </m> <mathInput name="a" prefill="3" />, <m>b = </m> <mathInput name="b" prefill="-2" />, <m>c = </m> <mathInput name="c" prefill="1" />, <m>d = </m> <mathInput name="d" prefill="4" />.
@@ -346,7 +378,7 @@ describe("FunctionIterates tag tests", async () => {
 
   `,
         });
-        await test_2d_linear(core, resolveComponentName);
+        await test_2d_linear(core, resolvePathToNodeIdx);
     });
 
     it("warning for scalar function of two variables", async () => {
@@ -376,7 +408,7 @@ describe("FunctionIterates tag tests", async () => {
     });
 
     it("change dimensions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>variables: <mathInput name="vars" prefill="x,y" />.
   <m>f($vars) =</m> <mathInput name="fformula" prefill="(xy, x+y)" />.
@@ -391,11 +423,11 @@ describe("FunctionIterates tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
 
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(2);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
@@ -410,18 +442,18 @@ describe("FunctionIterates tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(xy, x+yz, x-z)",
-            componentIdx: resolveComponentName("fformula"),
+            componentIdx: await resolvePathToNodeIdx("fformula"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
 
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(0);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
@@ -437,18 +469,18 @@ describe("FunctionIterates tag tests", async () => {
         // add variable to function
         await updateMathInputValue({
             latex: "x, y, z",
-            componentIdx: resolveComponentName("vars"),
+            componentIdx: await resolvePathToNodeIdx("vars"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
 
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(3);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
@@ -464,16 +496,16 @@ describe("FunctionIterates tag tests", async () => {
         // add component to initial condition
         await updateMathInputValue({
             latex: "(2,1,-4)",
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(3);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
@@ -488,7 +520,7 @@ describe("FunctionIterates tag tests", async () => {
     });
 
     it("change dimensions, numerical", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>variables: <mathInput name="vars" prefill="x,y" />.
   <m>f($vars) =</m> <mathInput name="fformula" prefill="(xy, x+y)" />.
@@ -504,11 +536,11 @@ describe("FunctionIterates tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
 
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(2);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
@@ -524,17 +556,17 @@ describe("FunctionIterates tag tests", async () => {
         // non-numeric initial condition
         await updateMathInputValue({
             latex: "(2,1a)",
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
 
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(2);
 
@@ -551,22 +583,22 @@ describe("FunctionIterates tag tests", async () => {
         // add component to function
         await updateMathInputValue({
             latex: "(2,1)",
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             core,
         });
         await updateMathInputValue({
             latex: "(xy, x+yz, x-z)",
-            componentIdx: resolveComponentName("fformula"),
+            componentIdx: await resolvePathToNodeIdx("fformula"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
 
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(0);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
@@ -582,17 +614,17 @@ describe("FunctionIterates tag tests", async () => {
         // add variable to function
         await updateMathInputValue({
             latex: "x, y, z",
-            componentIdx: resolveComponentName("vars"),
+            componentIdx: await resolvePathToNodeIdx("vars"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
 
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(3);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
@@ -608,17 +640,17 @@ describe("FunctionIterates tag tests", async () => {
         // add component to initial condition
         await updateMathInputValue({
             latex: "(2,1,-4)",
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables[
-            resolveComponentName("iterates")
+            await resolvePathToNodeIdx("iterates")
         ].replacements!.map((x) => x.componentIdx);
 
         expect(
-            stateVariables[resolveComponentName("fis")].stateValues
+            stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(3);
         expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(

@@ -9,7 +9,7 @@ vi.mock("hyperformula");
 
 describe("Math operator tests", async () => {
     it("sum", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <sum name="numbers"><number>3</number><number>17</number><number>5-4</number></sum>
       <sum name="numbersForceSymbolic" forceSymbolic><number>3</number><number>17</number><number>5-4</number></sum>
@@ -32,204 +32,210 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eqls(["+", 3, 17, 1]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.value.tree,
-        ).eqls(["+", 3, 17, 1]);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName(
-                    "numbersWithNumberMathForceSymbolicSimplify",
-                )
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["+", 3, 17, 1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersWithNumberMathForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eqls(["+", ["/", 6, 2], 17, 1]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberSum")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("withNumberSum")]
+                .stateValues.value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("withNumberSum")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("withNumberSum")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberSum")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("withNumberSum")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "x", "y", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .value.tree,
-        ).eqls(["+", ["*", 3, "x"], ["*", 2, "y"], "z"]);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.value.tree,
+        ).eqls(["+", ["*", 3, "x"], ["*", 2, "y"], "z"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .value.tree,
         ).eqls(["+", "x", "x", "y", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("sum with sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <number name="a">3</number>
       <number name="b">17</number>
@@ -263,274 +269,312 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
                 .stateValues.value.tree,
-        ).eqls(["+", 3, 17, 1]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.value.tree,
         ).eq(21);
         expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["+", 3, 17, 1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
+                .stateValues.value.tree,
         ).eqls(["+", ["/", 6, 2], 17, 5, -4]);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.value.tree,
-        ).eqls(["+", 3, 17, 1]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.value.tree,
         ).eqls(["+", 3, 17, 1]);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["+", 3, 17, 1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.value.tree,
         ).eqls(["+", ["/", 6, 2], 17, 1]);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumber,
         ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "x", "y", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .value.tree,
-        ).eqls(["+", "x", "x", "y", "x", "y", "z"]);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.value.tree,
+        ).eqls(["+", "x", "x", "y", "x", "y", "z"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.value.tree,
         ).eqls(["+", ["*", 3, "x"], ["*", 2, "y"], "z"]);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(false);
     });
 
     it("sum as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">3</number>
@@ -598,190 +642,196 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "sum", ["tuple", 3, 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.value.tree,
         ).eqls(["apply", "sum", ["+", ["*", 3, 17, 5], -4]]);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberStringProductSimplify")
+            ].stateValues.value.tree,
         ).eq(251);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "sum", ["tuple", 3, 17, 1]]);
-        expect(
-            await stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "sum", ["*", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
-            ].stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "sum", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            await stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommas")
+            ].stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "sum", ["*", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "sum", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.value.tree,
         ).eqls(["apply", "sum", ["*", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
         ).eqls(["apply", "sum", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlusGroup")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlusGroup")]
+                .stateValues.value.tree,
         ).eqls([
             "+",
             ["apply", "sum", ["tuple", 3, 17, 1]],
             ["apply", "sum", ["tuple", 3, 17, 1]],
         ]);
         expect(
-            stateVariables[resolveComponentName("groupPlusGroup")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("groupPlusGroup")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues.value
-                .tree,
-        ).eqls(["apply", "sum", ["tuple", 3, 17, 1, 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
-                .stateValues.value.tree,
-        ).eq(42);
-        expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
+                .value.tree,
         ).eqls(["apply", "sum", ["tuple", 3, 17, 1, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.value.tree,
         ).eq(42);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .value.tree,
+        ).eqls(["apply", "sum", ["tuple", 3, 17, 1, 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
+                .stateValues.value.tree,
+        ).eq(42);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
+                .stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
+                .value.tree,
         ).eqls(["apply", "sum", ["tuple", 3, 17, 3, 17, 1, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.value.tree,
         ).eq(42);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
     });
 
     it("sum with lists", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <sum name="numbers"><numberList>3 17 5-4</numberList></sum>
       <sum name="numbersForceSymbolic" forceSymbolic><numberList>3 17 5-4</numberList></sum>
@@ -804,204 +854,210 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eqls(["+", 3, 17, 1]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(21);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.value.tree,
-        ).eqls(["+", 3, 17, 1]);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName(
-                    "numbersWithNumberMathForceSymbolicSimplify",
-                )
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["+", 3, 17, 1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersWithNumberMathForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(21);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eqls(["+", ["/", 6, 2], 17, 1]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(21);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberSum")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("withNumberSum")]
+                .stateValues.value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("withNumberSum")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("withNumberSum")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberSum")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("withNumberSum")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "x", "y", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .value.tree,
-        ).eqls(["+", ["*", 3, "x"], ["*", 2, "y"], "z"]);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.value.tree,
+        ).eqls(["+", ["*", 3, "x"], ["*", 2, "y"], "z"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(21);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .value.tree,
         ).eqls(["+", "x", "x", "y", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("product", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <product name="numbers"><number>3</number><number>17</number><number>5-4</number></product>
       <product name="numbersForceSymbolic" forceSymbolic><number>3</number><number>17</number><number>5-4</number></product>
@@ -1024,156 +1080,161 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eqls(["*", 3, 17, 1]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.value.tree,
-        ).eqls(["*", 3, 17, 1]);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName(
-                    "numbersWithNumberMathForceSymbolicSimplify",
-                )
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["*", 3, 17, 1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersWithNumberMathForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eqls(["*", ["/", 6, 2], 17, 1]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberProduct")]
+            stateVariables[await resolvePathToNodeIdx("withNumberProduct")]
                 .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("withNumberProduct")]
+            stateVariables[await resolvePathToNodeIdx("withNumberProduct")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberProduct")]
+            stateVariables[await resolvePathToNodeIdx("withNumberProduct")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["+", "x", "y"], ["+", "x", "y", "z"]]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsExpand")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsExpand")].stateValues
+                .value.tree,
         ).eqls([
             "+",
             ["^", "x", 3],
@@ -1183,52 +1244,53 @@ describe("Math operator tests", async () => {
             ["*", "x", "y", "z"],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsExpand")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsExpand")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsExpand")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsExpand")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .value.tree,
         ).eqls(["*", "x", ["+", "x", "y"], ["+", "x", "y", "z"]]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("product with sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <number name="a">3</number>
       <number name="b">17</number>
@@ -1262,248 +1324,283 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
                 .stateValues.value.tree,
-        ).eqls(["*", 3, 17, 1]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.value.tree,
         ).eq(51);
         expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["*", 3, 17, 1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
+                .stateValues.value.tree,
         ).eqls(["*", ["/", 6, 2], 17, ["+", 5, -4]]);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.value.tree,
-        ).eqls(["*", 3, 17, 1]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.value.tree,
         ).eqls(["*", 3, 17, 1]);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["*", 3, 17, 1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.value.tree,
         ).eqls(["*", ["/", 6, 2], 17, 1]);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumber,
         ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["+", "x", "y"], ["+", "x", "y", "z"]]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .value.tree,
-        ).eqls(["*", "x", ["+", "x", "y"], ["+", "x", "y", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringExpand")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.value.tree,
+        ).eqls(["*", "x", ["+", "x", "y"], ["+", "x", "y", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringExpand")]
                 .stateValues.value.tree,
         ).eqls([
             "+",
@@ -1514,29 +1611,32 @@ describe("Math operator tests", async () => {
             ["*", "x", "y", "z"],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsAsStringExpand")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringExpand")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringExpand")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringExpand")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(false);
     });
 
     it("prod as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">3</number>
@@ -1601,178 +1701,183 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "prod", ["tuple", 3, 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.value.tree,
         ).eqls(["apply", "prod", ["+", ["*", 3, 17, 5], -4]]);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberStringProductSimplify")
+            ].stateValues.value.tree,
         ).eq(251);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "prod", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "prod", ["*", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
-            ].stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "prod", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.value.tree,
         ).eqls(["apply", "prod", ["*", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "prod", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
+                .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
+                .stateValues.isNumber,
         ).eq(true);
-
         expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues.value
-                .tree,
-        ).eqls(["apply", "prod", ["tuple", 3, 17, 1, 3, 17, 1]]);
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "prod", ["*", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
-        ).eq(2601);
+        ).eq(51);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues.value
-                .tree,
-        ).eqls(["apply", "prod", ["tuple", 3, 17, 1, 3, 17, 1]]);
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
+        ).eqls(["apply", "prod", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
                 .stateValues.value.tree,
-        ).eq(2601);
+        ).eq(51);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
+                .value.tree,
+        ).eqls(["apply", "prod", ["tuple", 3, 17, 1, 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
+                .isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
+                .stateValues.value.tree,
+        ).eq(2601);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
+                .stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .value.tree,
+        ).eqls(["apply", "prod", ["tuple", 3, 17, 1, 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
+                .stateValues.value.tree,
+        ).eq(2601);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
+                .stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
+                .value.tree,
         ).eqls(["apply", "prod", ["tuple", 3, 17, 3, 17, 1, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.value.tree,
         ).eq(2601);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
     });
 
     it("product with lists", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <product name="numbers"><numberList>3 17 5-4</numberList></product>
       <product name="numbersForceSymbolic" forceSymbolic><numberList>3 17 5-4</numberList></product>
@@ -1795,156 +1900,161 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eqls(["*", 3, 17, 1]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.value.tree,
-        ).eqls(["*", 3, 17, 1]);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName(
-                    "numbersWithNumberMathForceSymbolicSimplify",
-                )
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["*", 3, 17, 1]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersWithNumberMathForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eqls(["*", ["/", 6, 2], 17, 1]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(51);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberProduct")]
+            stateVariables[await resolvePathToNodeIdx("withNumberProduct")]
                 .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("withNumberProduct")]
+            stateVariables[await resolvePathToNodeIdx("withNumberProduct")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberProduct")]
+            stateVariables[await resolvePathToNodeIdx("withNumberProduct")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["+", "x", "y"], ["+", "x", "y", "z"]]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsExpand")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsExpand")].stateValues
+                .value.tree,
         ).eqls([
             "+",
             ["^", "x", 3],
@@ -1954,52 +2064,53 @@ describe("Math operator tests", async () => {
             ["*", "x", "y", "z"],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsExpand")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsExpand")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsExpand")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsExpand")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .value.tree,
         ).eqls(["*", "x", ["+", "x", "y"], ["+", "x", "y", "z"]]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("clamp number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <clampNumber name="clampNumber1">55.3</clampNumber>
       <clampNumber name="clampNumber2">-55.3</clampNumber>
@@ -2033,225 +2144,225 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("clampNumber1")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber1")]
+                .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("clampNumber2")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber2")]
+                .stateValues.value.tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("clampNumber3")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber3")]
+                .stateValues.value.tree,
         ).eq(0.3);
         expect(
-            stateVariables[resolveComponentName("clampNumber4")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber4")]
+                .stateValues.value.tree,
         ).eq(40);
         expect(
-            stateVariables[resolveComponentName("clampNumber5")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber5")]
+                .stateValues.value.tree,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("clampNumber6")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber6")]
+                .stateValues.value.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("clampNumber7")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber7")]
+                .stateValues.value.tree,
         ).eq(40);
         expect(
-            stateVariables[resolveComponentName("clampNumber8")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber8")]
+                .stateValues.value.tree,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("clampNumber9")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber9")]
+                .stateValues.value.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("clampNumber10")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber10")]
+                .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("clampNumber11")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber11")]
+                .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("clampNumber12")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber12")]
+                .stateValues.value.tree,
         ).eq(40);
         expect(
-            stateVariables[resolveComponentName("clampNumber13")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber13")]
+                .stateValues.value.tree,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("clampNumber14")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber14")]
+                .stateValues.value.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("clampNumber1b")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber1b")]
+                .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("clampNumber5b")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber5b")]
+                .stateValues.value.tree,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("clampNumber9b")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber9b")]
+                .stateValues.value.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("clampNumber14b")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("clampNumber14b")]
+                .stateValues.value.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("clampNumber1")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber1")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber2")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber2")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber3")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber3")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber4")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber4")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber5")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber5")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber6")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber6")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber7")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber7")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber8")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber8")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber9")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber9")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber10")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber10")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber11")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber11")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber12")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber12")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber13")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber13")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber14")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber14")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber1b")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber1b")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber5b")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber5b")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber9b")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber9b")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber14b")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("clampNumber14b")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber1")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber1")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber2")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber2")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber3")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber3")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber4")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber4")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber5")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber5")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber6")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber6")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber7")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber7")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber8")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber8")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber9")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber9")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber10")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber10")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("clampNumber11")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber11")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("clampNumber12")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber12")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber13")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber13")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber14")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber14")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber1b")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber1b")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber5b")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber5b")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber9b")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber9b")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("clampNumber14b")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("clampNumber14b")]
+                .stateValues.isNumber,
         ).eq(true);
     });
 
     it("wrap number periodic", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <wrapNumberPeriodic name="wrapNumberPeriodic1">55.3</wrapNumberPeriodic>
       <wrapNumberPeriodic name="wrapNumberPeriodic2">-55.3</wrapNumberPeriodic>
@@ -2285,225 +2396,225 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic1")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic1")]
                 .stateValues.value.tree,
         ).closeTo(0.3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic2")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic2")]
                 .stateValues.value.tree,
         ).closeTo(0.7, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic3")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic3")]
                 .stateValues.value.tree,
         ).closeTo(0.3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic4")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic4")]
                 .stateValues.value.tree,
         ).closeTo(25.3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic5")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic5")]
                 .stateValues.value.tree,
         ).closeTo(34.7, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic6")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic6")]
                 .stateValues.value.tree,
         ).closeTo(12, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic7")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic7")]
                 .stateValues.value.tree,
         ).closeTo(25.3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic8")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic8")]
                 .stateValues.value.tree,
         ).closeTo(34.7, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic9")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic9")]
                 .stateValues.value.tree,
         ).closeTo(12, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic10")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic10")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic11")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic11")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic12")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic12")]
                 .stateValues.value.tree,
         ).closeTo(18, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic13")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic13")]
                 .stateValues.value.tree,
         ).closeTo(12, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic14")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic14")]
                 .stateValues.value.tree,
         ).closeTo(12, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic1b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic1b")]
                 .stateValues.value.tree,
         ).closeTo(0.3, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic5b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic5b")]
                 .stateValues.value.tree,
         ).closeTo(34.7, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic9b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic9b")]
                 .stateValues.value.tree,
         ).closeTo(12, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic14b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic14b")]
                 .stateValues.value.tree,
         ).closeTo(12, 1e-12);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic1")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic1")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic2")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic2")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic3")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic3")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic4")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic4")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic5")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic5")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic6")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic6")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic7")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic7")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic8")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic8")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic9")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic9")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic10")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic10")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic11")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic11")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic12")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic12")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic13")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic13")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic14")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic14")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic1b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic1b")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic5b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic5b")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic9b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic9b")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic14b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic14b")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic1")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic1")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic2")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic2")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic3")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic3")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic4")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic4")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic5")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic5")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic6")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic6")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic7")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic7")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic8")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic8")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic9")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic9")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic10")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic11")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic10")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic12")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic11")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic12")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic13")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic13")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic14")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic14")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic1b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic1b")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic5b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic5b")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic9b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic9b")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("wrapNumberPeriodic14b")]
+            stateVariables[await resolvePathToNodeIdx("wrapNumberPeriodic14b")]
                 .stateValues.isNumber,
         ).eq(true);
     });
 
     it("clamp and wrap number updatable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <graph name="graph1">
         <point name="P1" layer="1">(6,7)</point>
@@ -2530,26 +2641,32 @@ describe("Math operator tests", async () => {
         let x = 6,
             y = 7;
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(x);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(y);
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[1]
+                .tree,
         ).eq(clamp(x));
 
         let g2children = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
@@ -2562,33 +2679,39 @@ describe("Math operator tests", async () => {
         x = -5;
         y = 0;
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x,
             y,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(x);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(y);
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[1]
+                .tree,
         ).eq(clamp(x));
 
         g2children = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
@@ -2601,7 +2724,7 @@ describe("Math operator tests", async () => {
         x = 9;
         y = -3;
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x,
             y,
             core,
@@ -2609,26 +2732,32 @@ describe("Math operator tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[1]
+                .tree,
         ).eq(clamp(x));
 
         g2children = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
@@ -2641,7 +2770,7 @@ describe("Math operator tests", async () => {
         x = -4;
         y = 8;
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x: y,
             y: x,
             core,
@@ -2649,26 +2778,32 @@ describe("Math operator tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[1]
+                .tree,
         ).eq(clamp(x));
 
         g2children = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
@@ -2683,8 +2818,8 @@ describe("Math operator tests", async () => {
 
         await movePoint({
             componentIdx:
-                stateVariables[resolveComponentName("g2")].activeChildren[0]
-                    .componentIdx,
+                stateVariables[await resolvePathToNodeIdx("g2")]
+                    .activeChildren[0].componentIdx,
             x,
             y,
             core,
@@ -2692,26 +2827,32 @@ describe("Math operator tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(x);
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(y);
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[1]
+                .tree,
         ).eq(clamp(x));
 
         g2children = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
@@ -2726,8 +2867,8 @@ describe("Math operator tests", async () => {
 
         await movePoint({
             componentIdx:
-                stateVariables[resolveComponentName("g2")].activeChildren[1]
-                    .componentIdx,
+                stateVariables[await resolvePathToNodeIdx("g2")]
+                    .activeChildren[1].componentIdx,
             x,
             y,
             core,
@@ -2736,26 +2877,32 @@ describe("Math operator tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[1]
+                .tree,
         ).eq(clamp(x));
 
         g2children = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
@@ -2770,8 +2917,8 @@ describe("Math operator tests", async () => {
 
         await movePoint({
             componentIdx:
-                stateVariables[resolveComponentName("g2")].activeChildren[2]
-                    .componentIdx,
+                stateVariables[await resolvePathToNodeIdx("g2")]
+                    .activeChildren[2].componentIdx,
             x: y,
             y: x,
             core,
@@ -2780,26 +2927,32 @@ describe("Math operator tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P1")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[0]
+                .tree,
         ).eq(clamp(x));
         expect(
-            stateVariables[resolveComponentName("P2")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.xs[1]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
+                .tree,
         ).eq(wrap(y));
         expect(
-            stateVariables[resolveComponentName("P3")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[1]
+                .tree,
         ).eq(clamp(x));
 
         g2children = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => stateVariables[x.componentIdx]);
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
@@ -2810,7 +2963,7 @@ describe("Math operator tests", async () => {
     });
 
     it("round", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <round name="round1">55.3252326</round>
       <round name="round2">log(31)</round>
@@ -2839,69 +2992,69 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("round1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round1")].stateValues
+                .value.tree,
         ).eq(55);
         expect(
-            stateVariables[resolveComponentName("round2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round2")].stateValues
+                .value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("round3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round3")].stateValues
+                .value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("round4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round4")].stateValues
+                .value.tree,
         ).eq(55.3);
         expect(
-            stateVariables[resolveComponentName("round5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round5")].stateValues
+                .value.tree,
         ).eq(3.43);
         expect(
-            stateVariables[resolveComponentName("round6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round6")].stateValues
+                .value.tree,
         ).eq(0.556);
         expect(
-            stateVariables[resolveComponentName("round7")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round7")].stateValues
+                .value.tree,
         ).eq(55.3);
         expect(
-            stateVariables[resolveComponentName("round8")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round8")].stateValues
+                .value.tree,
         ).eq(3.434);
         expect(
-            stateVariables[resolveComponentName("round9")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round9")].stateValues
+                .value.tree,
         ).eq(0.55556);
         expect(
-            stateVariables[resolveComponentName("round10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round10")].stateValues
+                .value.tree,
         ).eqls(["apply", "sin", ["*", 55.3, "x"]]);
         expect(
-            stateVariables[resolveComponentName("round11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round11")].stateValues
+                .value.tree,
         ).eq(62.7);
         expect(
-            stateVariables[resolveComponentName("round12")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round12")].stateValues
+                .value.tree,
         ).eq(1524000000);
         expect(
-            stateVariables[resolveComponentName("round1b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round1b")].stateValues
+                .value.tree,
         ).eq(55);
         expect(
-            stateVariables[resolveComponentName("round5b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round5b")].stateValues
+                .value.tree,
         ).eq(3.43);
         expect(
-            stateVariables[resolveComponentName("round11b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round11b")].stateValues
+                .value.tree,
         ).eq(62.7);
     });
 
     it("round ignores display rounding of math children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <round name="round1" numDigits="6"><math>55.3252326</math></round>
       <round name="round2" numDigits="6"><number>55.3252326</number></round>
@@ -2940,95 +3093,111 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("round1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("round1")].stateValues
+                .value.tree,
         ).eqls(55.3252);
 
         expect(
-            stateVariables[resolveComponentName("round2")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("round2")].stateValues
+                .value.tree,
+        ).eqls(55.3252);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("round3")].stateValues
+                .value.tree,
+        ).eqls(55.325233);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("round4")].stateValues
+                .value.tree,
+        ).eqls(55.325233);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("round5")].stateValues
+                .value.tree,
+        ).eqls(55.3252);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("round6")].stateValues
+                .value.tree,
+        ).eqls(55.3252);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("round7")].stateValues
+                .value.tree,
+        ).eqls(55.325233);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("round8")].stateValues
+                .value.tree,
+        ).eqls(55.325233);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r1a")].stateValues.value
                 .tree,
         ).eqls(55.3252);
         expect(
-            stateVariables[resolveComponentName("round3")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("r2a")].stateValues.value
+                .tree,
+        ).eqls(55.3252);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r3a")].stateValues.value
                 .tree,
         ).eqls(55.325233);
         expect(
-            stateVariables[resolveComponentName("round4")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("r4a")].stateValues.value
                 .tree,
         ).eqls(55.325233);
 
         expect(
-            stateVariables[resolveComponentName("round5")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("r5a")].stateValues.value
                 .tree,
         ).eqls(55.3252);
         expect(
-            stateVariables[resolveComponentName("round6")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("r6a")].stateValues.value
                 .tree,
         ).eqls(55.3252);
         expect(
-            stateVariables[resolveComponentName("round7")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("r7a")].stateValues.value
                 .tree,
         ).eqls(55.325233);
         expect(
-            stateVariables[resolveComponentName("round8")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("r8a")].stateValues.value
                 .tree,
         ).eqls(55.325233);
 
         expect(
-            stateVariables[resolveComponentName("r1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r1b")].stateValues.value
+                .tree,
         ).eqls(55.3252);
         expect(
-            stateVariables[resolveComponentName("r2a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r2b")].stateValues.value
+                .tree,
         ).eqls(55.3252);
         expect(
-            stateVariables[resolveComponentName("r3a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r3b")].stateValues.value
+                .tree,
         ).eqls(55.325233);
         expect(
-            stateVariables[resolveComponentName("r4a")].stateValues.value.tree,
-        ).eqls(55.325233);
-
-        expect(
-            stateVariables[resolveComponentName("r5a")].stateValues.value.tree,
-        ).eqls(55.3252);
-        expect(
-            stateVariables[resolveComponentName("r6a")].stateValues.value.tree,
-        ).eqls(55.3252);
-        expect(
-            stateVariables[resolveComponentName("r7a")].stateValues.value.tree,
-        ).eqls(55.325233);
-        expect(
-            stateVariables[resolveComponentName("r8a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r4b")].stateValues.value
+                .tree,
         ).eqls(55.325233);
 
         expect(
-            stateVariables[resolveComponentName("r1b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r5b")].stateValues.value
+                .tree,
         ).eqls(55.3252);
         expect(
-            stateVariables[resolveComponentName("r2b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r6b")].stateValues.value
+                .tree,
         ).eqls(55.3252);
         expect(
-            stateVariables[resolveComponentName("r3b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r7b")].stateValues.value
+                .tree,
         ).eqls(55.325233);
         expect(
-            stateVariables[resolveComponentName("r4b")].stateValues.value.tree,
-        ).eqls(55.325233);
-
-        expect(
-            stateVariables[resolveComponentName("r5b")].stateValues.value.tree,
-        ).eqls(55.3252);
-        expect(
-            stateVariables[resolveComponentName("r6b")].stateValues.value.tree,
-        ).eqls(55.3252);
-        expect(
-            stateVariables[resolveComponentName("r7b")].stateValues.value.tree,
-        ).eqls(55.325233);
-        expect(
-            stateVariables[resolveComponentName("r8b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r8b")].stateValues.value
+                .tree,
         ).eqls(55.325233);
     });
 
     it("convert set to list", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p><math name="math1">{1,2,3,2,1}</math></p>
       <p><math name="math2">(1,2,3,2,1)</math></p>
@@ -3048,63 +3217,69 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("math1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("math1")].stateValues
+                .value.tree,
         ).eqls(["set", 1, 2, 3, 2, 1]);
         expect(
-            stateVariables[resolveComponentName("math2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("math2")].stateValues
+                .value.tree,
         ).eqls(["tuple", 1, 2, 3, 2, 1]);
         expect(
-            stateVariables[resolveComponentName("math3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("math3")].stateValues
+                .value.tree,
         ).eqls(["list", 1, 2, 3, 2, 1]);
         expect(
-            stateVariables[resolveComponentName("convertSetToList1")]
+            stateVariables[await resolvePathToNodeIdx("convertSetToList1")]
                 .stateValues.value.tree,
         ).eqls(["list", 1, 2, 3]);
         expect(
-            stateVariables[resolveComponentName("convertSetToList2")]
+            stateVariables[await resolvePathToNodeIdx("convertSetToList2")]
                 .stateValues.value.tree,
         ).eqls(["tuple", 1, 2, 3, 2, 1]);
         expect(
-            stateVariables[resolveComponentName("convertSetToList3")]
+            stateVariables[await resolvePathToNodeIdx("convertSetToList3")]
                 .stateValues.value.tree,
         ).eqls(["list", 1, 2, 3, 2, 1]);
         expect(
-            stateVariables[resolveComponentName("r1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r1")].stateValues.value
+                .tree,
         ).eqls(["list", 1, 2, 3]);
         expect(
-            stateVariables[resolveComponentName("r2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r2")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 2, 3, 2, 1]);
         expect(
-            stateVariables[resolveComponentName("r3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("r3")].stateValues.value
+                .tree,
         ).eqls(["list", 1, 2, 3, 2, 1]);
         expect(
-            stateVariables[resolveComponentName("convertSetToList1")]
+            stateVariables[await resolvePathToNodeIdx("convertSetToList1")]
                 .stateValues.unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("convertSetToList2")]
+            stateVariables[await resolvePathToNodeIdx("convertSetToList2")]
                 .stateValues.unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("convertSetToList3")]
+            stateVariables[await resolvePathToNodeIdx("convertSetToList3")]
                 .stateValues.unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("r1")].stateValues.unordered,
+            stateVariables[await resolvePathToNodeIdx("r1")].stateValues
+                .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("r2")].stateValues.unordered,
+            stateVariables[await resolvePathToNodeIdx("r2")].stateValues
+                .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("r3")].stateValues.unordered,
+            stateVariables[await resolvePathToNodeIdx("r3")].stateValues
+                .unordered,
         ).eq(true);
     });
 
     it("convert set to list, initially unresolved", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p><math name="m">7</math>
       <selectFromSequence name='p' hide='true' exclude="$m $n" from="-10" to="10" />
@@ -3124,26 +3299,28 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let p =
-            await stateVariables[resolveComponentName("p[1]")].stateValues
+            await stateVariables[await resolvePathToNodeIdx("p[1]")].stateValues
                 .value;
         expect(
-            stateVariables[resolveComponentName("convertSetToList1")]
+            stateVariables[await resolvePathToNodeIdx("convertSetToList1")]
                 .stateValues.value.tree,
         ).eqls(["list", 7, 3, p]);
         expect(
-            stateVariables[resolveComponentName("csl2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("csl2")].stateValues.value
+                .tree,
         ).eqls(["list", 7, 3, p]);
         expect(
-            stateVariables[resolveComponentName("convertSetToList1")]
+            stateVariables[await resolvePathToNodeIdx("convertSetToList1")]
                 .stateValues.unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("csl2")].stateValues.unordered,
+            stateVariables[await resolvePathToNodeIdx("csl2")].stateValues
+                .unordered,
         ).eq(true);
     });
 
     it("floor and ceil", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <floor name="floor1">55.3252326</floor>
       <ceil name="ceil1">log(31)</ceil>
@@ -3168,47 +3345,49 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("floor1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor1")].stateValues
+                .value.tree,
         ).eq(55);
         expect(
-            stateVariables[resolveComponentName("ceil1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil1")].stateValues
+                .value.tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("floor2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor2")].stateValues
+                .value.tree,
         ).eq(13);
         expect(
-            stateVariables[resolveComponentName("ceil2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil2")].stateValues
+                .value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("floor3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor3")].stateValues
+                .value.tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("ceil3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil3")].stateValues
+                .value.tree,
         ).eq(-7000);
         expect(
-            stateVariables[resolveComponentName("f2a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("f2a")].stateValues.value
+                .tree,
         ).eq(13);
         expect(
-            stateVariables[resolveComponentName("c2a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("c2a")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("floor4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor4")].stateValues
+                .value.tree,
         ).eqls(["apply", "floor", ["*", 2.1, "x"]]);
         expect(
-            stateVariables[resolveComponentName("ceil4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil4")].stateValues
+                .value.tree,
         ).eqls(["apply", "ceil", ["-", ["*", 3.2, "y"]]]);
     });
 
     it("floor and ceil as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <math displayDigits="10" name="floor1" format="latex">\\lfloor 55.3252326 \\rfloor</math>
       <math displayDigits="10" name="floor2">floor(55.3252326)</math>
@@ -3236,73 +3415,73 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("floor1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor1")].stateValues
+                .value.tree,
         ).eqls(["apply", "floor", 55.3252326]);
         expect(
-            stateVariables[resolveComponentName("floor2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor2")].stateValues
+                .value.tree,
         ).eqls(["apply", "floor", 55.3252326]);
         expect(
-            stateVariables[resolveComponentName("floor1simp")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor1simp")].stateValues
+                .value.tree,
         ).eq(55);
         expect(
-            stateVariables[resolveComponentName("floor2simp")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor2simp")].stateValues
+                .value.tree,
         ).eq(55);
         expect(
-            stateVariables[resolveComponentName("ceil1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil1")].stateValues
+                .value.tree,
         ).eqls(["apply", "ceil", ["apply", "log", 31.1]]);
         expect(
-            stateVariables[resolveComponentName("ceil2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil2")].stateValues
+                .value.tree,
         ).eqls(["apply", "ceil", ["apply", "log", 31.1]]);
         expect(
-            stateVariables[resolveComponentName("ceil1simp")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil1simp")].stateValues
+                .value.tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("ceil2simp")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil2simp")].stateValues
+                .value.tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("floor3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor3")].stateValues
+                .value.tree,
         ).eq(13);
         expect(
-            stateVariables[resolveComponentName("floor4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor4")].stateValues
+                .value.tree,
         ).eq(13);
         expect(
-            stateVariables[resolveComponentName("ceil3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil3")].stateValues
+                .value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("ceil4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil4")].stateValues
+                .value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("floor5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor5")].stateValues
+                .value.tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("floor6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("floor6")].stateValues
+                .value.tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("ceil5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil5")].stateValues
+                .value.tree,
         ).eq(-7000);
         expect(
-            stateVariables[resolveComponentName("ceil6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ceil6")].stateValues
+                .value.tree,
         ).eq(-7000);
     });
 
     it("abs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <abs>-5.3</abs>
       <abs>-x</abs>
@@ -3311,17 +3490,17 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_abs1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_abs1")].stateValues
+                .value.tree,
         ).eq(5.3);
         expect(
-            stateVariables[resolveComponentName("_abs2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_abs2")].stateValues
+                .value.tree,
         ).eqls(["apply", "abs", ["-", "x"]]);
     });
 
     it("invert abs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <abs name="a1">-9</abs>
       <mathInput bindValueTo="$a1" name="a2" />
@@ -3331,86 +3510,101 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues.value
+                .tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eq(9);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             latex: "-3",
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues.value
+                .tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eq(0);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             latex: "7",
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues.value
+                .tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eq(7);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             latex: "x",
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues.value
+                .tree,
         ).eqls(["apply", "abs", "x"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "abs", "x"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "abs", "x"]);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("a2"),
+            componentIdx: await resolvePathToNodeIdx("a2"),
             latex: "y",
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues.value
+                .tree,
         ).eqls(["apply", "abs", "y"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "abs", "y"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "abs", "y"]);
     });
 
     it("floor, ceil, round and abs updatable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <graph name="graph1">
         <point layer="1" name="point1">(6.1,7.6)</point>
@@ -3433,7 +3627,7 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let g2ChildrenIndices = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => x.componentIdx);
 
         let checkPoints = async function (x, y) {
@@ -3443,28 +3637,28 @@ describe("Math operator tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("point1")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point1")].stateValues
+                    .xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName("point1")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point1")].stateValues
+                    .xs[1].tree,
             ).eq(y);
             expect(
-                stateVariables[resolveComponentName("point2")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point2")].stateValues
+                    .xs[0].tree,
             ).eq(Math.floor(x));
             expect(
-                stateVariables[resolveComponentName("point2")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point2")].stateValues
+                    .xs[1].tree,
             ).eq(Math.ceil(y));
             expect(
-                stateVariables[resolveComponentName("point3")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point3")].stateValues
+                    .xs[0].tree,
             ).eq(Math.abs(Math.ceil(y)));
             expect(
-                stateVariables[resolveComponentName("point3")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point3")].stateValues
+                    .xs[1].tree,
             ).eq(Math.round(x));
 
             let g2Children = g2ChildrenIndices.map((x) => stateVariables[x]);
@@ -3492,7 +3686,7 @@ describe("Math operator tests", async () => {
         let y = 0.3;
 
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x,
             y,
             core,
@@ -3504,7 +3698,7 @@ describe("Math operator tests", async () => {
         x = -7.9;
         y = -5.8;
         await movePoint({
-            componentIdx: resolveComponentName("point1"),
+            componentIdx: await resolvePathToNodeIdx("point1"),
             x,
             y,
             core,
@@ -3516,7 +3710,7 @@ describe("Math operator tests", async () => {
         x = 3.4;
         y = 8.6;
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x,
             y,
             core,
@@ -3529,7 +3723,7 @@ describe("Math operator tests", async () => {
         y = -4.4;
 
         await movePoint({
-            componentIdx: resolveComponentName("point2"),
+            componentIdx: await resolvePathToNodeIdx("point2"),
             x,
             y,
             core,
@@ -3541,7 +3735,7 @@ describe("Math operator tests", async () => {
         x = 9.4;
         y = -1.3;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x,
             y,
             core,
@@ -3553,7 +3747,7 @@ describe("Math operator tests", async () => {
         x = -8.9;
         y = -4.6;
         await movePoint({
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x,
             y,
             core,
@@ -3605,7 +3799,7 @@ describe("Math operator tests", async () => {
     });
 
     it("sign", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <sign>-5.3</sign>
       <sign>63</sign>
@@ -3615,21 +3809,21 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("_sign1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_sign1")].stateValues
+                .value.tree,
         ).eq(-1);
         expect(
-            stateVariables[resolveComponentName("_sign2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_sign2")].stateValues
+                .value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("_sign3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_sign3")].stateValues
+                .value.tree,
         ).eq(0);
     });
 
     it("mean", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <mean name="numbers"><number>3</number><number>17</number><number>5-4</number></mean>
       <mean name="numbersForceSymbolic" forceSymbolic><number>3</number><number>17</number><number>5-4</number></mean>
@@ -3652,204 +3846,210 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eqls(["/", ["+", 3, 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(7);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(7);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.value.tree,
-        ).eqls(["/", ["+", 3, 17, 1], 3]);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName(
-                    "numbersWithNumberMathForceSymbolicSimplify",
-                )
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(7);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["/", ["+", 3, 17, 1], 3]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersWithNumberMathForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eqls(["/", ["+", ["/", 6, 2], 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(7);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(7);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMean")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("withNumberMean")]
+                .stateValues.value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("withNumberMean")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("withNumberMean")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMean")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("withNumberMean")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls(["/", ["+", "x", "x", "y", "x", "y", "z"], 3]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .value.tree,
-        ).eqls(["/", ["+", ["*", 3, "x"], ["*", 2, "y"], "z"], 3]);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.value.tree,
+        ).eqls(["/", ["+", ["*", 3, "x"], ["*", 2, "y"], "z"], 3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .value.tree,
         ).eqls(["/", ["+", "x", "x", "y", "x", "y", "z"], 3]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("mean with sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <number name="a">3</number>
       <number name="b">17</number>
@@ -3883,274 +4083,312 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
-        ).eq(7);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
                 .stateValues.value.tree,
-        ).eqls(["/", ["+", 3, 17, 1], 3]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.value.tree,
         ).eq(7);
         expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["/", ["+", 3, 17, 1], 3]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
+                .stateValues.value.tree,
         ).eqls(["/", ["+", ["/", 6, 2], 17, 5, -4], 3]);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.value.tree,
-        ).eq(7);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(7);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .value.tree,
-        ).eq(7);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.value.tree,
-        ).eqls(["/", ["+", 3, 17, 1], 3]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.value.tree,
         ).eq(7);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.value.tree,
         ).eqls(["/", ["+", 3, 17, 1], 3]);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.value.tree,
         ).eq(7);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["/", ["+", 3, 17, 1], 3]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.value.tree,
         ).eqls(["/", ["+", ["/", 6, 2], 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumber,
         ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.value.tree,
-        ).eq(7);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
             ].stateValues.value.tree,
         ).eq(7);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls(["/", ["+", "x", "x", "y", "x", "y", "z"], 3]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .value.tree,
-        ).eqls(["/", ["+", "x", "x", "y", "x", "y", "z"], 3]);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.value.tree,
+        ).eqls(["/", ["+", "x", "x", "y", "x", "y", "z"], 3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.value.tree,
         ).eqls(["/", ["+", ["*", 3, "x"], ["*", 2, "y"], "z"], 3]);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(false);
     });
 
     it("mean as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">3</number>
@@ -4215,178 +4453,183 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "mean", ["tuple", 3, 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.value.tree,
         ).eqls(["apply", "mean", ["+", ["*", 3, 17, 5], -4]]);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberStringProductSimplify")
+            ].stateValues.value.tree,
         ).eq(251);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "mean", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.value.tree,
-        ).eq(7);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "mean", ["*", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
-            ].stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "mean", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "mean", ["*", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "mean", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.value.tree,
         ).eqls(["apply", "mean", ["*", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
         ).eqls(["apply", "mean", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.value.tree,
+        ).eq(7);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .value.tree,
-        ).eq(7);
-        expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues.value
-                .tree,
         ).eqls(["apply", "mean", ["tuple", 3, 17, 1, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .value.tree,
         ).eqls(["apply", "mean", ["tuple", 3, 17, 1, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
                 .stateValues.value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
+                .value.tree,
         ).eqls(["apply", "mean", ["tuple", 3, 17, 3, 17, 1, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
     });
 
     it("mean additional cases", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pPrime">Mean of first primes: <mean name="meanPrime">2 3 5 7</mean></p>
     <p>Copying that mean: <mean extend="$meanPrime" name="meanPrimeb" /></p>
@@ -4401,37 +4644,37 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("meanPrime")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("meanPrime")].stateValues
+                .value.tree,
         ).eq(4.25);
         expect(
-            stateVariables[resolveComponentName("meanPrimeb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("meanPrimeb")].stateValues
+                .value.tree,
         ).eq(4.25);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("pPrimeb")]
+                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
                     .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).eq(4.25);
         expect(
-            stateVariables[resolveComponentName("mean100")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("mean100")].stateValues
+                .value.tree,
         ).eq(50.5);
         expect(
-            stateVariables[resolveComponentName("mean100b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("mean100b")].stateValues
+                .value.tree,
         ).eq(50.5);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("p100b")].activeChildren[1]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("p100b")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).eq(50.5);
     });
 
     it("median", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <median name="numbers"><number>3</number><number>17</number><number>5-4</number></median>
       <median name="sugared">1 4 5 10000</median>
@@ -4442,48 +4685,48 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("sugared")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("sugared")].stateValues
+                .value.tree,
         ).eq(4.5);
         expect(
-            stateVariables[resolveComponentName("sugared")].stateValues
+            stateVariables[await resolvePathToNodeIdx("sugared")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("sugared")].stateValues
+            stateVariables[await resolvePathToNodeIdx("sugared")].stateValues
                 .isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("noSymbolic")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("noSymbolic")].stateValues
+                .value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("noSymbolic")].stateValues
+            stateVariables[await resolvePathToNodeIdx("noSymbolic")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("noSymbolic")].stateValues
+            stateVariables[await resolvePathToNodeIdx("noSymbolic")].stateValues
                 .isNumber,
         ).eq(false);
     });
 
     // TODO: skipping most checks of ugly expressions for now
     it("variance", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <variance name="numbers"><number>3</number><number>17</number><number>5-4</number></variance>
       <variance name="numbersForceSymbolic" forceSymbolic><number>3</number><number>17</number><number>5-4</number></variance>
@@ -4509,186 +4752,191 @@ describe("Math operator tests", async () => {
         let theVarianceString = theVariance.toString();
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersWithNumberMathForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersWithNumericMath'].stateValues.value.tree).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberVariance")]
+            stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.value.tree,
         ).eq(me.math.variance([3, me.math.variance([17, 1])]));
         expect(
-            stateVariables[resolveComponentName("withNumberVariance")]
+            stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberVariance")]
+            stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/vars'].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         // expect(stateVariables['/varsSimplify'].stateValues.value.tree).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
-                .stateValues.value.tree,
-        ).eqls(NaN);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
                 .stateValues.isNumericOperator,
-        ).eq(true);
+        ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.value.tree,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
-        // expect(stateVariables[resolveComponentName("varsb")].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
+        // expect(stateVariables[await resolvePathToNodeIdx("varsb")].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("variance with sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <number name="a">3</number>
       <number name="b">17</number>
@@ -4725,250 +4973,285 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
-        ).eq(theVariance);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.value.tree,
+        ).eq(theVariance);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersAsStringForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.value.tree,
-        ).eq(theVariance);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(theVariance);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/numericAsString'].stateValues.value.tree).eqls(['/', ['+', ['/', 6, 2], 17, 5, -4], 3]);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.value.tree,
-        ).eq(theVariance);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(theVariance);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .value.tree,
-        ).eq(theVariance);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumber,
-        ).eq(true);
-        // expect(stateVariables['/numbersAsMacrosForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
+                .stateValues.isNumber,
+        ).eq(true);
+        // expect(stateVariables['/numbersAsMacrosForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(theVariance);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.value.tree,
+        ).eq(theVariance);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.value.tree,
+        ).eq(theVariance);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
                 .stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/withNumberMathMacroForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/withNumericMathMacro'].stateValues.value.tree).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumber,
         ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.value.tree,
-        ).eq(theVariance);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(theVariance);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/vars'].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         // expect(stateVariables['/varsAsString'].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         // expect(stateVariables['/varsAsStringSimplify'].stateValues.value.tree).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(false);
     });
 
     it("variance as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">3</number>
@@ -5036,178 +5319,183 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "variance", ["tuple", 3, 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.value.tree,
         ).eqls(["apply", "variance", ["+", ["*", 3, 17, 5], -4]]);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.value.tree,
-        ).eq(0);
-        expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "variance", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.value.tree,
-        ).eq(theVariance);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "variance", ["*", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.value.tree,
         ).eq(0);
         expect(
             stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "variance", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.value.tree,
+        ).eq(theVariance);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "variance", ["*", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.value.tree,
+        ).eq(0);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "variance", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.value.tree,
         ).eqls(["apply", "variance", ["*", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
         ).eqls(["apply", "variance", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
+                .value.tree,
         ).eqls(["apply", "variance", ["tuple", 3, 17, 1, 3, 17, 13]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.value.tree,
         ).eq(theVariance2);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .value.tree,
         ).eqls(["apply", "variance", ["tuple", 3, 17, 13, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
                 .stateValues.value.tree,
         ).eq(theVariance2);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
+                .value.tree,
         ).eqls(["apply", "variance", ["tuple", 3, 17, 3, 17, 1, 13]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.value.tree,
         ).eq(theVariance2);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
     });
 
     it("variance additional cases", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pPrime">Variance of first primes: <variance displayDigits="10" name="variancePrime">2 3 5 7</variance></p>
     <p>Copying that variance: <variance extend="$variancePrime" name="variancePrimeb" /></p>
@@ -5226,38 +5514,38 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("variancePrime")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("variancePrime")]
+                .stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
-            stateVariables[resolveComponentName("variancePrimeb")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("variancePrimeb")]
+                .stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("pPrimeb")]
+                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
                     .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
-            stateVariables[resolveComponentName("variance100")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("variance100")]
+                .stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
         expect(
-            stateVariables[resolveComponentName("variance100b")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("variance100b")]
+                .stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("p100b")].activeChildren[1]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("p100b")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
     });
 
     // TODO: skipping most checks of ugly expressions for now
     it("population variance", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <variance population displayDigits="10" name="numbers"><number>4</number><number>16</number><number>5-4</number></variance>
         <variance population displayDigits="10" name="numbersForceSymbolic" forceSymbolic><number>4</number><number>16</number><number>5-4</number></variance>
@@ -5282,123 +5570,126 @@ describe("Math operator tests", async () => {
         let theVariance = me.math.variance([4, 16, 1], "uncorrected");
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersWithNumberMathForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersWithNumericMath'].stateValues.value.tree).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(theVariance);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberVariance")]
+            stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.value.tree,
         ).eq(
             me.math.variance(
@@ -5407,66 +5698,68 @@ describe("Math operator tests", async () => {
             ),
         );
         expect(
-            stateVariables[resolveComponentName("withNumberVariance")]
+            stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberVariance")]
+            stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/vars'].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         // expect(stateVariables['/varsSimplify'].stateValues.value.tree).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
-                .stateValues.value.tree,
-        ).eqls(NaN);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
                 .stateValues.isNumericOperator,
-        ).eq(true);
+        ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.value.tree,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(theVariance);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
-        // expect(stateVariables[resolveComponentName("varsb")].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
+        // expect(stateVariables[await resolvePathToNodeIdx("varsb")].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("population variance additional cases", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pPrime">Variance of first primes: <variance population displayDigits="10" name="variancePrime">2 3 5 7</variance></p>
     <p>Copying that variance: <variance extend="$variancePrime" name="variancePrimeb" /></p>
@@ -5486,38 +5779,38 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("variancePrime")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("variancePrime")]
+                .stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
-            stateVariables[resolveComponentName("variancePrimeb")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("variancePrimeb")]
+                .stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("pPrimeb")]
+                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
                     .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
-            stateVariables[resolveComponentName("variance100")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("variance100")]
+                .stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
         expect(
-            stateVariables[resolveComponentName("variance100b")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("variance100b")]
+                .stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("p100b")].activeChildren[1]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("p100b")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
     });
 
     // TODO: skipping most checks of ugly expressions for now
     it("standard deviation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <standardDeviation displayDigits="10" name="numbers"><number>3</number><number>17</number><number>5-4</number></standardDeviation>
       <standardDeviation displayDigits="10" name="numbersForceSymbolic" forceSymbolic><number>3</number><number>17</number><number>5-4</number></standardDeviation>
@@ -5542,186 +5835,194 @@ describe("Math operator tests", async () => {
         let thestandardDeviation = me.math.std([3, 17, 1]);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).closeTo(thestandardDeviation, 1e-12);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.value.tree,
         ).eqls(["*", 2, ["apply", "sqrt", 19]]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.value.tree,
         ).closeTo(thestandardDeviation, 1e-16);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersWithNumberMathForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.value.tree,
         ).eqls(["*", 2, ["apply", "sqrt", 19]]);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(false);
         // expect(stateVariables['/numbersWithNumericMath'].stateValues.value.tree).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eqls(["*", 2, ["apply", "sqrt", 19]]);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).closeTo(thestandardDeviation, 1e-12);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberstandardDeviation")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberstandardDeviation")
+            ].stateValues.value.tree,
         ).closeTo(me.math.std([3, me.math.std([17, 1])]), 1e-12);
         expect(
-            stateVariables[resolveComponentName("withNumberstandardDeviation")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberstandardDeviation")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberstandardDeviation")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberstandardDeviation")
+            ].stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/vars'].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         // expect(stateVariables['/varsSimplify'].stateValues.value.tree).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
-                .stateValues.value.tree,
-        ).eqls(NaN);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
                 .stateValues.isNumericOperator,
-        ).eq(true);
+        ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.value.tree,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).closeTo(thestandardDeviation, 1e-12);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
-        // expect(stateVariables[resolveComponentName("varsb")].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
+        // expect(stateVariables[await resolvePathToNodeIdx("varsb")].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("standard deviation as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">13</number>
@@ -5771,127 +6072,132 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "std", ["tuple", 13, 25, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(theStd);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.value.tree,
         ).eqls(["apply", "std", ["+", ["*", 13, 25, 5], -4]]);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.value.tree,
-        ).eq(0);
-        expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "std", ["tuple", 13, 25, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.value.tree,
-        ).eq(theStd);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "std", ["*", 13, 25, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.value.tree,
         ).eq(0);
         expect(
             stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "std", ["tuple", 13, 25, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.value.tree,
+        ).eq(theStd);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "std", ["*", 13, 25, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.value.tree,
+        ).eq(0);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "std", ["tuple", 13, 25, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.value.tree,
         ).eq(theStd);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.value.tree,
         ).eqls(["apply", "std", ["*", 13, 25, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
         ).eqls(["apply", "std", ["tuple", 13, 25, 1]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.value.tree,
         ).eq(theStd);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.isNumber,
         ).eq(true);
     });
 
     it("standard deviation additional cases", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pPrime">Standard deviation of first primes: <standardDeviation displayDigits="10" name="standardDeviationPrime">2 3 5 7</standardDeviation></p>
     <p>Copying that standard deviation: <standardDeviation extend="$standardDeviationPrime" name="standardDeviationPrimeb" /></p>
@@ -5908,38 +6214,39 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("standardDeviationPrime")]
-                .stateValues.value.tree,
-        ).closeTo(stdPrimes, 1e-12);
-        expect(
-            stateVariables[resolveComponentName("standardDeviationPrimeb")]
+            stateVariables[await resolvePathToNodeIdx("standardDeviationPrime")]
                 .stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("pPrimeb")]
+                await resolvePathToNodeIdx("standardDeviationPrimeb")
+            ].stateValues.value.tree,
+        ).closeTo(stdPrimes, 1e-12);
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
                     .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
-            stateVariables[resolveComponentName("standardDeviation100")]
+            stateVariables[await resolvePathToNodeIdx("standardDeviation100")]
                 .stateValues.value.tree,
         ).closeTo(std100, 1e-12);
         expect(
-            stateVariables[resolveComponentName("standardDeviation100b")]
+            stateVariables[await resolvePathToNodeIdx("standardDeviation100b")]
                 .stateValues.value.tree,
         ).closeTo(std100, 1e-12);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("p100b")].activeChildren[1]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("p100b")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(std100, 1e-12);
     });
 
     // TODO: skipping most checks of ugly expressions for now
     it("population standard deviation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <standardDeviation displayDigits="10" population name="numbers"><number>4</number><number>16</number><number>5-4</number></standardDeviation>
       <standardDeviation displayDigits="10" population name="numbersForceSymbolic" forceSymbolic><number>4</number><number>16</number><number>5-4</number></standardDeviation>
@@ -5964,124 +6271,128 @@ describe("Math operator tests", async () => {
         let thestandardDeviation = me.math.std([4, 16, 1], "uncorrected");
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).closeTo(thestandardDeviation, 1e-12);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.value.tree,
         ).eqls(["apply", "sqrt", 42]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.value.tree,
         ).closeTo(thestandardDeviation, 1e-16);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
                 .stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/numbersWithNumberMathForceSymbolic'].stateValues.value.tree).eqls(['/', ['+', 3, 17, 1], 3]);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.value.tree,
         ).eqls(["apply", "sqrt", 42]);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(false);
         // expect(stateVariables['/numbersWithNumericMath'].stateValues.value.tree).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eqls(["apply", "sqrt", 42]);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).closeTo(thestandardDeviation, 1e-12);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberstandardDeviation")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberstandardDeviation")
+            ].stateValues.value.tree,
         ).closeTo(
             me.math.std(
                 [3, me.math.std([17, 1], "uncorrected")],
@@ -6090,66 +6401,70 @@ describe("Math operator tests", async () => {
             1e-12,
         );
         expect(
-            stateVariables[resolveComponentName("withNumberstandardDeviation")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberstandardDeviation")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberstandardDeviation")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberstandardDeviation")
+            ].stateValues.isNumber,
         ).eq(true);
         // expect(stateVariables['/vars'].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         // expect(stateVariables['/varsSimplify'].stateValues.value.tree).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
-                .stateValues.value.tree,
-        ).eqls(NaN);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
                 .stateValues.isNumericOperator,
-        ).eq(true);
+        ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.value.tree,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).closeTo(thestandardDeviation, 1e-12);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
-        // expect(stateVariables[resolveComponentName("varsb")].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
+        // expect(stateVariables[await resolvePathToNodeIdx("varsb")].stateValues.value.tree).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("population standard deviation additional cases", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pPrime">Standard deviation of first primes: <standardDeviation displayDigits="10" population name="standardDeviationPrime">2 3 5 7</standardDeviation></p>
     <p>Copying that standard deviation: <standardDeviation extend="$standardDeviationPrime" name="standardDeviationPrimeb" /></p>
@@ -6169,37 +6484,38 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("standardDeviationPrime")]
-                .stateValues.value.tree,
-        ).closeTo(stdPrimes, 1e-12);
-        expect(
-            stateVariables[resolveComponentName("standardDeviationPrimeb")]
+            stateVariables[await resolvePathToNodeIdx("standardDeviationPrime")]
                 .stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("pPrimeb")]
+                await resolvePathToNodeIdx("standardDeviationPrimeb")
+            ].stateValues.value.tree,
+        ).closeTo(stdPrimes, 1e-12);
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
                     .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
-            stateVariables[resolveComponentName("standardDeviation100")]
+            stateVariables[await resolvePathToNodeIdx("standardDeviation100")]
                 .stateValues.value.tree,
         ).closeTo(std100, 1e-12);
         expect(
-            stateVariables[resolveComponentName("standardDeviation100b")]
+            stateVariables[await resolvePathToNodeIdx("standardDeviation100b")]
                 .stateValues.value.tree,
         ).closeTo(std100, 1e-12);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("p100b")].activeChildren[1]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("p100b")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).closeTo(std100, 1e-12);
     });
 
     it("count", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <count name="numbers"><number>3</number><number>17</number><number>5-4</number></count>
       <count name="numbersForceSymbolic" forceSymbolic><number>3</number><number>17</number><number>5-4</number></count>
@@ -6222,204 +6538,210 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(3);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.value.tree,
         ).eq(3);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(3);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(3);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberCount")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("withNumberCount")]
+                .stateValues.value.tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("withNumberCount")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumberCount")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("vars")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("withNumberCount")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("withNumberCount")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
                 .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(true);
     });
 
     it("count with sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <number name="a">3</number>
       <number name="b">17</number>
@@ -6453,274 +6775,312 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringSimplify")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
                 .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
-                .value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
+                .stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
             ].stateValues.value.tree,
         ).eq(3);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
             ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
-            ].stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
-            ].stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
-            ].stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
-            ].stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
-            ].stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
-            ].stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
-            ].stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("vars")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumber,
         ).eq(true);
     });
 
     it("count as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">3</number>
@@ -6787,194 +7147,201 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "count", ["tuple", 3, 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringArray")]
+            stateVariables[await resolvePathToNodeIdx("numberStringArray")]
                 .stateValues.value.tree,
         ).eqls(["apply", "count", ["array", 3, 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberStringArray")]
+            stateVariables[await resolvePathToNodeIdx("numberStringArray")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringArraySimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberStringArraySimplify")
+            ].stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("numberStringArraySimplify")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numberStringArraySimplify")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.value.tree,
         ).eqls(["apply", "count", ["+", ["*", 3, 17, 5], -4]]);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "count", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.value.tree,
-        ).eq(3);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "count", ["*", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.value.tree,
         ).eq(1);
         expect(
             stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "count", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "count", ["*", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "count", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.value.tree,
         ).eqls(["apply", "count", ["*", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
         ).eqls(["apply", "count", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues.value
-                .tree,
-        ).eqls(["apply", "count", ["tuple", 3, 17, 1, 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
-                .stateValues.value.tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
+                .value.tree,
         ).eqls(["apply", "count", ["tuple", 3, 17, 1, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .value.tree,
+        ).eqls(["apply", "count", ["tuple", 3, 17, 1, 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
+                .stateValues.value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
+                .stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
+                .value.tree,
         ).eqls(["apply", "count", ["tuple", 3, 17, 3, 17, 1, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
     });
 
     it("count additional cases", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pPrime">Count of first primes: <count name="countPrime">2 3 5 7</count></p>
     <p>Copying that count: <count extend="$countPrime" name="countPrimeb"/></p>
@@ -6989,37 +7356,37 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("countPrime")].stateValues.value
-                .tree,
-        ).eq(4);
-        expect(
-            stateVariables[resolveComponentName("countPrimeb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("countPrime")].stateValues
                 .value.tree,
         ).eq(4);
         expect(
+            stateVariables[await resolvePathToNodeIdx("countPrimeb")]
+                .stateValues.value.tree,
+        ).eq(4);
+        expect(
             stateVariables[
-                stateVariables[resolveComponentName("pPrimeb")]
+                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
                     .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("count100")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("count100")].stateValues
+                .value.tree,
         ).eq(100);
         expect(
-            stateVariables[resolveComponentName("count100b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("count100b")].stateValues
+                .value.tree,
         ).eq(100);
         expect(
             stateVariables[
-                stateVariables[resolveComponentName("p100b")].activeChildren[1]
-                    .componentIdx
+                stateVariables[await resolvePathToNodeIdx("p100b")]
+                    .activeChildren[1].componentIdx
             ].stateValues.value.tree,
         ).eq(100);
     });
 
     it("min", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <min name="numbers"><number>3</number><number>17</number><number>5-4</number></min>
       <min name="numbersForceSymbolic" forceSymbolic><number>3</number><number>17</number><number>5-4</number></min>
@@ -7042,216 +7409,222 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.value.tree,
-        ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName(
-                    "numbersWithNumberMathForceSymbolicSimplify",
-                )
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(1);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersWithNumberMathForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eqls(["apply", "min", ["tuple", ["/", 6, 2], 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(1);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(1);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMin")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("withNumberMin")]
+                .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("withNumberMin")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("withNumberMin")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMin")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("withNumberMin")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls([
             "apply",
             "min",
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.value.tree,
         ).eqls([
             "apply",
             "min",
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .value.tree,
         ).eqls([
             "apply",
             "min",
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("min with sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <number name="a">3</number>
       <number name="b">17</number>
@@ -7285,256 +7658,275 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
                 .stateValues.value.tree,
-        ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.value.tree,
         ).eq(1);
         expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "min", ["tuple", ["/", 6, 2], 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.value.tree,
         ).eq(1);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.value.tree,
         ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.value.tree,
         ).eq(1);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.value.tree,
         ).eqls(["apply", "min", ["tuple", ["/", 6, 2], 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumber,
         ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
             ].stateValues.value.tree,
         ).eq(1);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls([
             "apply",
             "min",
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .value.tree,
-        ).eqls([
-            "apply",
-            "min",
-            ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
-        ]);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.value.tree,
         ).eqls([
             "apply",
@@ -7542,29 +7934,48 @@ describe("Math operator tests", async () => {
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.value.tree,
+        ).eqls([
+            "apply",
+            "min",
+            ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
+        ]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(false);
     });
 
     it("min as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">3</number>
@@ -7629,178 +8040,183 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "min", ["tuple", 3, 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.value.tree,
         ).eqls(["apply", "min", ["+", ["*", 3, 17, 5], -4]]);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberStringProductSimplify")
+            ].stateValues.value.tree,
         ).eq(251);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "min", ["*", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
-            ].stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "min", ["*", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.value.tree,
         ).eqls(["apply", "min", ["*", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
         ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues.value
-                .tree,
         ).eqls(["apply", "min", ["tuple", 3, 17, 1, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .value.tree,
         ).eqls(["apply", "min", ["tuple", 3, 17, 1, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
                 .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
+                .value.tree,
         ).eqls(["apply", "min", ["tuple", 3, 17, 3, 17, 1, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
     });
 
     it("max", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <max name="numbers"><number>3</number><number>17</number><number>5-4</number></max>
       <max name="numbersForceSymbolic" forceSymbolic><number>3</number><number>17</number><number>5-4</number></max>
@@ -7823,216 +8239,222 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(17);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(17);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.value.tree,
-        ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName(
-                    "numbersWithNumberMathForceSymbolicSimplify",
-                )
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(17);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersWithNumberMathForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eqls(["apply", "max", ["tuple", ["/", 6, 2], 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(17);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(17);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMax")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("withNumberMax")]
+                .stateValues.value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("withNumberMax")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("withNumberMax")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMax")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("withNumberMax")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls([
             "apply",
             "max",
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.value.tree,
         ).eqls([
             "apply",
             "max",
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsSimplify")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsSimplify")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsForcedNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsForcedNumeric")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .value.tree,
         ).eqls([
             "apply",
             "max",
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsb")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("varsb")].stateValues
+                .isNumber,
         ).eq(false);
     });
 
     it("max with sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <number name="a">3</number>
       <number name="b">17</number>
@@ -8066,256 +8488,275 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
-        ).eq(17);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
                 .stateValues.value.tree,
-        ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.value.tree,
         ).eq(17);
         expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "max", ["tuple", ["/", 6, 2], 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.value.tree,
-        ).eq(17);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(17);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .value.tree,
-        ).eq(17);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.value.tree,
         ).eq(17);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.value.tree,
         ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.value.tree,
         ).eq(17);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.value.tree,
         ).eqls(["apply", "max", ["tuple", ["/", 6, 2], 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
                 .stateValues.isNumber,
         ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.value.tree,
-        ).eq(17);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
             ].stateValues.value.tree,
         ).eq(17);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues.value
+                .tree,
         ).eqls([
             "apply",
             "max",
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("vars")].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .value.tree,
-        ).eqls([
-            "apply",
-            "max",
-            ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
-        ]);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("varsAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("vars")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.value.tree,
         ).eqls([
             "apply",
@@ -8323,29 +8764,48 @@ describe("Math operator tests", async () => {
             ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("varsAsString")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
                 .stateValues.value.tree,
+        ).eqls([
+            "apply",
+            "max",
+            ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
+        ]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("varsAsStringSimplify")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumericOperator,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("varsAsStringForceNumeric")]
-                .stateValues.isNumber,
+            stateVariables[
+                await resolvePathToNodeIdx("varsAsStringForceNumeric")
+            ].stateValues.isNumber,
         ).eq(false);
     });
 
     it("max as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">3</number>
@@ -8410,178 +8870,183 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "max", ["tuple", 3, 17, ["+", 5, -4]]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.value.tree,
         ).eqls(["apply", "max", ["+", ["*", 3, 17, 5], -4]]);
         expect(
-            stateVariables[resolveComponentName("numberStringProduct")]
+            stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.value.tree,
+            stateVariables[
+                await resolvePathToNodeIdx("numberStringProductSimplify")
+            ].stateValues.value.tree,
         ).eq(251);
         expect(
-            stateVariables[resolveComponentName("numberStringProductSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.value.tree,
-        ).eq(17);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "max", ["*", 3, 17, 1]]);
-        expect(
-            stateVariables[resolveComponentName("numberComponentsProduct")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
-            ].stateValues.value.tree,
-        ).eq(51);
-        expect(
-            stateVariables[
-                resolveComponentName("numberComponentsProductSimplify")
+                await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "max", ["*", 3, 17, 1]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProduct")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.value.tree,
+        ).eq(51);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numberComponentsProductSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.value.tree,
         ).eqls(["apply", "max", ["*", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("macrosProduct")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosProduct")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
         ).eq(51);
         expect(
-            stateVariables[resolveComponentName("macrosProductSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
         ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.value.tree,
+        ).eq(17);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.isNumber,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .value.tree,
-        ).eq(17);
-        expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
-        ).eq(true);
-
-        expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues.value
-                .tree,
         ).eqls(["apply", "max", ["tuple", 3, 17, 1, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("groupPlusSimplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlusSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
+                .value.tree,
         ).eqls(["apply", "max", ["tuple", 3, 17, 1, 3, 17, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus2")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
                 .stateValues.value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("groupPlus2Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus2Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
+                .value.tree,
         ).eqls(["apply", "max", ["tuple", 3, 17, 3, 17, 1, 1]]);
         expect(
-            stateVariables[resolveComponentName("groupPlus3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("groupPlus3")].stateValues
                 .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.value.tree,
         ).eq(17);
         expect(
-            stateVariables[resolveComponentName("groupPlus3Simplify")]
+            stateVariables[await resolvePathToNodeIdx("groupPlus3Simplify")]
                 .stateValues.isNumber,
         ).eq(true);
     });
 
     it("max can be invertible", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <max name="numbers00"><number>3</number><number>6</number></max>
       <max name="numbers01"><number>3</number><number fixed>6</number></max>
@@ -8610,384 +9075,384 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("numbers01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers01")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("numbers10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers10")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("numbers11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers11")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths01")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths10")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths11")].stateValues
+                .value.tree,
         ).eq(6);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers00"),
+            componentIdx: await resolvePathToNodeIdx("minumbers00"),
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers01"),
+            componentIdx: await resolvePathToNodeIdx("minumbers01"),
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers10"),
+            componentIdx: await resolvePathToNodeIdx("minumbers10"),
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers11"),
-            latex: "9",
-            core,
-        });
-
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths00"),
-            latex: "9",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths01"),
-            latex: "9",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths10"),
-            latex: "9",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths11"),
+            componentIdx: await resolvePathToNodeIdx("minumbers11"),
             latex: "9",
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            stateVariables[resolveComponentName("numbers00")].stateValues.value
-                .tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("numbers01")].stateValues.value
-                .tree,
-        ).eq(9);
-        expect(
-            stateVariables[resolveComponentName("numbers10")].stateValues.value
-                .tree,
-        ).eq(9);
-        expect(
-            stateVariables[resolveComponentName("numbers11")].stateValues.value
-                .tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("maths00")].stateValues.value
-                .tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("maths01")].stateValues.value
-                .tree,
-        ).eq(9);
-        expect(
-            stateVariables[resolveComponentName("maths10")].stateValues.value
-                .tree,
-        ).eq(9);
-        expect(
-            stateVariables[resolveComponentName("maths11")].stateValues.value
-                .tree,
-        ).eq(6);
-
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers00"),
-            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mimaths00"),
+            latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers01"),
-            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mimaths01"),
+            latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers10"),
-            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mimaths10"),
+            latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers11"),
-            latex: "5",
-            core,
-        });
-
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths00"),
-            latex: "5",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths01"),
-            latex: "5",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths10"),
-            latex: "5",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths11"),
-            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mimaths11"),
+            latex: "9",
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("numbers01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers01")].stateValues
+                .value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers10")].stateValues
+                .value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers11")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("numbers10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths00")].stateValues
+                .value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("maths01")].stateValues
+                .value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("maths10")].stateValues
+                .value.tree,
+        ).eq(9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("maths11")].stateValues
+                .value.tree,
+        ).eq(6);
+
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("minumbers00"),
+            latex: "5",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("minumbers01"),
+            latex: "5",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("minumbers10"),
+            latex: "5",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("minumbers11"),
+            latex: "5",
+            core,
+        });
+
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("mimaths00"),
+            latex: "5",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("mimaths01"),
+            latex: "5",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("mimaths10"),
+            latex: "5",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("mimaths11"),
+            latex: "5",
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers00")].stateValues
+                .value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers01")].stateValues
+                .value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers10")].stateValues
+                .value.tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("numbers11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers11")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths01")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths10")].stateValues
+                .value.tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("maths11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths11")].stateValues
+                .value.tree,
         ).eq(6);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers00"),
+            componentIdx: await resolvePathToNodeIdx("minumbers00"),
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers01"),
+            componentIdx: await resolvePathToNodeIdx("minumbers01"),
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers10"),
+            componentIdx: await resolvePathToNodeIdx("minumbers10"),
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers11"),
-            latex: "2",
-            core,
-        });
-
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths00"),
-            latex: "2",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths01"),
-            latex: "2",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths10"),
-            latex: "2",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths11"),
+            componentIdx: await resolvePathToNodeIdx("minumbers11"),
             latex: "2",
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            stateVariables[resolveComponentName("numbers00")].stateValues.value
-                .tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("numbers01")].stateValues.value
-                .tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("numbers10")].stateValues.value
-                .tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("numbers11")].stateValues.value
-                .tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("maths00")].stateValues.value
-                .tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("maths01")].stateValues.value
-                .tree,
-        ).eq(6);
-        expect(
-            stateVariables[resolveComponentName("maths10")].stateValues.value
-                .tree,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("maths11")].stateValues.value
-                .tree,
-        ).eq(6);
-
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers00"),
-            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mimaths00"),
+            latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers01"),
-            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mimaths01"),
+            latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers10"),
-            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mimaths10"),
+            latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers11"),
-            latex: "x",
-            core,
-        });
-
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths00"),
-            latex: "x",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths01"),
-            latex: "x",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths10"),
-            latex: "x",
-            core,
-        });
-        await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths11"),
-            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mimaths11"),
+            latex: "2",
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("numbers01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers01")].stateValues
+                .value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers10")].stateValues
+                .value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers11")].stateValues
+                .value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("maths00")].stateValues
+                .value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("maths01")].stateValues
+                .value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("maths10")].stateValues
+                .value.tree,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("maths11")].stateValues
+                .value.tree,
+        ).eq(6);
+
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("minumbers00"),
+            latex: "x",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("minumbers01"),
+            latex: "x",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("minumbers10"),
+            latex: "x",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("minumbers11"),
+            latex: "x",
+            core,
+        });
+
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("mimaths00"),
+            latex: "x",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("mimaths01"),
+            latex: "x",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("mimaths10"),
+            latex: "x",
+            core,
+        });
+        await updateMathInputValue({
+            componentIdx: await resolvePathToNodeIdx("mimaths11"),
+            latex: "x",
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers00")].stateValues
+                .value.tree,
+        ).eq(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbers01")].stateValues
+                .value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("numbers10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers10")].stateValues
+                .value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("numbers11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers11")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths01")].stateValues
+                .value.tree,
         ).eqls(["apply", "max", ["tuple", "x", 6]]);
         expect(
-            stateVariables[resolveComponentName("maths10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths10")].stateValues
+                .value.tree,
         ).eqls(["apply", "max", ["tuple", 3, "x"]]);
         expect(
-            stateVariables[resolveComponentName("maths11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths11")].stateValues
+                .value.tree,
         ).eq(6);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers00"),
+            componentIdx: await resolvePathToNodeIdx("minumbers00"),
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers01"),
+            componentIdx: await resolvePathToNodeIdx("minumbers01"),
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers10"),
+            componentIdx: await resolvePathToNodeIdx("minumbers10"),
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers11"),
+            componentIdx: await resolvePathToNodeIdx("minumbers11"),
             latex: "y",
             core,
         });
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths00"),
+            componentIdx: await resolvePathToNodeIdx("mimaths00"),
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths01"),
+            componentIdx: await resolvePathToNodeIdx("mimaths01"),
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths10"),
+            componentIdx: await resolvePathToNodeIdx("mimaths10"),
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths11"),
+            componentIdx: await resolvePathToNodeIdx("mimaths11"),
             latex: "y",
             core,
         });
@@ -8995,76 +9460,76 @@ describe("Math operator tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("numbers01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers01")].stateValues
+                .value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("numbers10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers10")].stateValues
+                .value.tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("numbers11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers11")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths01")].stateValues
+                .value.tree,
         ).eqls(["apply", "max", ["tuple", "y", 6]]);
         expect(
-            stateVariables[resolveComponentName("maths10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths10")].stateValues
+                .value.tree,
         ).eqls(["apply", "max", ["tuple", 3, "y"]]);
         expect(
-            stateVariables[resolveComponentName("maths11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths11")].stateValues
+                .value.tree,
         ).eq(6);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers00"),
+            componentIdx: await resolvePathToNodeIdx("minumbers00"),
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers01"),
+            componentIdx: await resolvePathToNodeIdx("minumbers01"),
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers10"),
+            componentIdx: await resolvePathToNodeIdx("minumbers10"),
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("minumbers11"),
+            componentIdx: await resolvePathToNodeIdx("minumbers11"),
             latex: "7",
             core,
         });
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths00"),
+            componentIdx: await resolvePathToNodeIdx("mimaths00"),
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths01"),
+            componentIdx: await resolvePathToNodeIdx("mimaths01"),
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths10"),
+            componentIdx: await resolvePathToNodeIdx("mimaths10"),
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimaths11"),
+            componentIdx: await resolvePathToNodeIdx("mimaths11"),
             latex: "7",
             core,
         });
@@ -9072,41 +9537,41 @@ describe("Math operator tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("numbers01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers01")].stateValues
+                .value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("numbers10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers10")].stateValues
+                .value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("numbers11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers11")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths00")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths00")].stateValues
+                .value.tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("maths01")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths01")].stateValues
+                .value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("maths10")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths10")].stateValues
+                .value.tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("maths11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("maths11")].stateValues
+                .value.tree,
         ).eq(6);
     });
 
     it("mod", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <mod name="numbers"><number>17</number><number>3</number></mod>
       <mod name="numbersForceSymbolic" forceSymbolic><number>17</number><number>3</number></mod>
@@ -9125,159 +9590,162 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
+                .value.tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.value.tree,
         ).eqls(["apply", "mod", ["tuple", 17, 3]]);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolic")]
+            stateVariables[await resolvePathToNodeIdx("numbersForceSymbolic")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersForceSymbolicSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersWithNumberMath")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
             stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.value.tree,
-        ).eqls(["apply", "mod", ["tuple", 17, 3]]);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersWithNumberMathForceSymbolic")
-            ].stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName(
-                    "numbersWithNumberMathForceSymbolicSimplify",
-                )
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
             ].stateValues.value.tree,
         ).eq(2);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersForceSymbolicSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumberMath")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "mod", ["tuple", 17, 3]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersWithNumberMathForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersWithNumberMathForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName(
+                await resolvePathToNodeIdx(
                     "numbersWithNumberMathForceSymbolicSimplify",
                 )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.value.tree,
         ).eqls(["apply", "mod", ["tuple", 17, ["/", 6, 2]]]);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numbersWithNumericMath")]
+            stateVariables[await resolvePathToNodeIdx("numbersWithNumericMath")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.value.tree,
         ).eq(2);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathSimplify")
+                await resolvePathToNodeIdx("numbersWithNumericMathSimplify")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.value.tree,
         ).eq(2);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("numbersWithNumericMathForceNumeric")
+                await resolvePathToNodeIdx("numbersWithNumericMathForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMod")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("withNumberMod")]
+                .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("withNumberMod")].stateValues
-                .isNumericOperator,
+            stateVariables[await resolvePathToNodeIdx("withNumberMod")]
+                .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumberMod")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("withNumberMod")]
+                .stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
+                .value.tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersb")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbersb")].stateValues
                 .isNumber,
         ).eq(true);
     });
 
     it("mod with sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <number name="a">17</number>
       <number name="b">3</number>
@@ -9306,228 +9774,261 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numbers")].stateValues.value
-                .tree,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbers")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .value.tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsString")].stateValues
+            stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
                 .isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "mod", ["tuple", 17, 3]]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsStringForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsStringForceSymbolicSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .value.tree,
-        ).eqls(["apply", "mod", ["tuple", 17, ["/", 6, 2]]]);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsString")].stateValues
-                .isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
                 .stateValues.value.tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
                 .stateValues.isNumericOperator,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("numericAsStringForceNumeric")]
-                .stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.value.tree,
-        ).eqls(["apply", "mod", ["tuple", 17, 3]]);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacrosForceSymbolic")]
-                .stateValues.isNumber,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
-            ].stateValues.value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
-            ].stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[
-                resolveComponentName("numbersAsMacrosForceSymbolicSimplify")
-            ].stateValues.isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("numbersAsMacros2")].stateValues
-                .isNumber,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
-                .stateValues.value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
-                .stateValues.isNumericOperator,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("withNumberMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numbersAsString")]
                 .stateValues.isNumber,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.value.tree,
         ).eqls(["apply", "mod", ["tuple", 17, 3]]);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolic")
+                await resolvePathToNodeIdx("numbersAsStringForceSymbolic")
             ].stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.value.tree,
         ).eq(2);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.isNumericOperator,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("withNumberMathMacroForceSymbolicSimplify")
+                await resolvePathToNodeIdx(
+                    "numbersAsStringForceSymbolicSimplify",
+                )
             ].stateValues.isNumber,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.value.tree,
         ).eqls(["apply", "mod", ["tuple", 17, ["/", 6, 2]]]);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumericOperator,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("withNumericMathMacro")]
+            stateVariables[await resolvePathToNodeIdx("numericAsString")]
                 .stateValues.isNumber,
         ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.value.tree,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumericOperator,
-        ).eq(false);
-        expect(
-            stateVariables[resolveComponentName("withNumericMathMacroSimplify")]
-                .stateValues.isNumber,
-        ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
             ].stateValues.value.tree,
         ).eq(2);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("numericAsStringSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
             ].stateValues.isNumericOperator,
         ).eq(true);
         expect(
             stateVariables[
-                resolveComponentName("withNumericMathMacroForceNumeric")
+                await resolvePathToNodeIdx("numericAsStringForceNumeric")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
+                .stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "mod", ["tuple", 17, 3]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("numbersAsMacrosForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "numbersAsMacrosForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numbersAsMacros2")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumberMathMacro")]
+                .stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.value.tree,
+        ).eqls(["apply", "mod", ["tuple", 17, 3]]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumberMathMacroForceSymbolic")
+            ].stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx(
+                    "withNumberMathMacroForceSymbolicSimplify",
+                )
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "mod", ["tuple", 17, ["/", 6, 2]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
+                .stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withNumericMathMacro")]
+                .stateValues.isNumber,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumericOperator,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroSimplify")
+            ].stateValues.isNumber,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.value.tree,
+        ).eq(2);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
+            ].stateValues.isNumericOperator,
+        ).eq(true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("withNumericMathMacroForceNumeric")
             ].stateValues.isNumber,
         ).eq(true);
     });
 
     it("mod as math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="nums" asList>
         <number name="a">17</number>
@@ -9559,77 +10060,78 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.value.tree,
         ).eqls(["apply", "mod", ["tuple", 17, 3]]);
         expect(
-            stateVariables[resolveComponentName("numberString")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("numberString")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.value.tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("numberStringSimplify")]
+            stateVariables[await resolvePathToNodeIdx("numberStringSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
                 .stateValues.value.tree,
         ).eqls(["apply", "mod", ["tuple", 17, 3]]);
         expect(
-            stateVariables[resolveComponentName("numberComponentsCommas")]
+            stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
                 .stateValues.isNumber,
         ).eq(false);
         expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
             ].stateValues.value.tree,
         ).eq(2);
         expect(
             stateVariables[
-                resolveComponentName("numberComponentsCommasSimplify")
+                await resolvePathToNodeIdx("numberComponentsCommasSimplify")
             ].stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.value.tree,
         ).eqls(["apply", "mod", ["tuple", 17, 3]]);
         expect(
-            stateVariables[resolveComponentName("macrosCommas")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("macrosCommas")]
+                .stateValues.isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.value.tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("macrosCommasSimplify")]
+            stateVariables[await resolvePathToNodeIdx("macrosCommasSimplify")]
                 .stateValues.isNumber,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .value.tree,
         ).eqls(["apply", "mod", ["tuple", 17, 3]]);
         expect(
-            stateVariables[resolveComponentName("group")].stateValues.isNumber,
+            stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                .isNumber,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.value.tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("groupSimplify")].stateValues
-                .isNumber,
+            stateVariables[await resolvePathToNodeIdx("groupSimplify")]
+                .stateValues.isNumber,
         ).eq(true);
     });
 
     it("gcd", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <gcd name="gcd1"><number>135</number><number>81</number></gcd>
       <gcd name="gcd2">135 81 63</gcd>
@@ -9640,18 +10142,21 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("gcd1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("gcd1")].stateValues.value
+                .tree,
         ).eq(27);
         expect(
-            stateVariables[resolveComponentName("gcd2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("gcd2")].stateValues.value
+                .tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("gcd3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("gcd3")].stateValues.value
+                .tree,
         ).eqls(["apply", "gcd", ["tuple", "x", "y", "z"]]);
     });
 
     it("gcd not negative", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <gcd name="gcd1a"><number>-135</number><number>81</number></gcd>
       <gcd name="gcd1b"><number>135</number><number>-81</number></gcd>
@@ -9667,41 +10172,41 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("gcd1a")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gcd1a")].stateValues
+                .value.tree,
         ).eq(27);
         expect(
-            stateVariables[resolveComponentName("gcd1b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gcd1b")].stateValues
+                .value.tree,
         ).eq(27);
         expect(
-            stateVariables[resolveComponentName("gcd1c")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gcd1c")].stateValues
+                .value.tree,
         ).eq(27);
         expect(
-            stateVariables[resolveComponentName("gcd2a")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gcd2a")].stateValues
+                .value.tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("gcd2b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gcd2b")].stateValues
+                .value.tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("gcd2c")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gcd2c")].stateValues
+                .value.tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("gcd2d")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gcd2d")].stateValues
+                .value.tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("gcd2e")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gcd2e")].stateValues
+                .value.tree,
         ).eq(9);
     });
 
     it("lcm", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <lcm name="lcm1"><number>135</number><number>81</number></lcm>
       <lcm name="lcm2">135 81 63</lcm>
@@ -9712,18 +10217,21 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("lcm1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("lcm1")].stateValues.value
+                .tree,
         ).eq(405);
         expect(
-            stateVariables[resolveComponentName("lcm2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("lcm2")].stateValues.value
+                .tree,
         ).eq(2835);
         expect(
-            stateVariables[resolveComponentName("lcm3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("lcm3")].stateValues.value
+                .tree,
         ).eqls(["apply", "lcm", ["tuple", "x", "y", "z"]]);
     });
 
     it("lcm not negative", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <lcm name="lcm1a"><number>-135</number><number>81</number></lcm>
       <lcm name="lcm1b"><number>135</number><number>-81</number></lcm>
@@ -9739,41 +10247,41 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("lcm1a")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("lcm1a")].stateValues
+                .value.tree,
         ).eq(405);
         expect(
-            stateVariables[resolveComponentName("lcm1b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("lcm1b")].stateValues
+                .value.tree,
         ).eq(405);
         expect(
-            stateVariables[resolveComponentName("lcm1c")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("lcm1c")].stateValues
+                .value.tree,
         ).eq(405);
         expect(
-            stateVariables[resolveComponentName("lcm2a")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("lcm2a")].stateValues
+                .value.tree,
         ).eq(2835);
         expect(
-            stateVariables[resolveComponentName("lcm2b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("lcm2b")].stateValues
+                .value.tree,
         ).eq(2835);
         expect(
-            stateVariables[resolveComponentName("lcm2c")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("lcm2c")].stateValues
+                .value.tree,
         ).eq(2835);
         expect(
-            stateVariables[resolveComponentName("lcm2d")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("lcm2d")].stateValues
+                .value.tree,
         ).eq(2835);
         expect(
-            stateVariables[resolveComponentName("lcm2e")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("lcm2e")].stateValues
+                .value.tree,
         ).eq(2835);
     });
 
     it("extract parts of math expression", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <text>a</text>
       <p>original expression: <math name="expr" functionSymbols="f g">f(x)+g(y,z)+h(q)</math></p>
@@ -9809,191 +10317,194 @@ describe("Math operator tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("operator")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("operator")].stateValues
+                .value,
         ).eq("+");
         expect(
-            stateVariables[resolveComponentName("numOperands")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("numOperands")]
+                .stateValues.value.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("operand1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("operand1")].stateValues
+                .value.tree,
         ).eqls(["apply", "f", "x"]);
         expect(
-            stateVariables[resolveComponentName("operand2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("operand2")].stateValues
+                .value.tree,
         ).eqls(["apply", "g", ["tuple", "y", "z"]]);
         expect(
-            stateVariables[resolveComponentName("operand3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("operand3")].stateValues
+                .value.tree,
         ).eqls(["*", "h", "q"]);
         expect(
-            stateVariables[resolveComponentName("blank1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("blank1")].stateValues
+                .value.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("f")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value
+                .tree,
         ).eqls("f");
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.value
+                .tree,
         ).eqls("g");
         expect(
-            stateVariables[resolveComponentName("blank2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("blank2")].stateValues
+                .value.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("farg1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("farg1")].stateValues
+                .value.tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("farg1a")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("farg1a")].stateValues
+                .value.tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("blank3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("blank3")].stateValues
+                .value.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("gargAll")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("gargAll")].stateValues
+                .value.tree,
         ).eqls(["tuple", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("garg1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("garg1")].stateValues
+                .value.tree,
         ).eqls("y");
         expect(
-            stateVariables[resolveComponentName("garg2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("garg2")].stateValues
+                .value.tree,
         ).eqls("z");
         expect(
-            stateVariables[resolveComponentName("blank4")].stateValues.value
-                .tree,
-        ).eqls("＿");
-        expect(
-            stateVariables[resolveComponentName("blank5")].stateValues.value
-                .tree,
-        ).eqls("＿");
-        expect(
-            stateVariables[resolveComponentName("numOperands1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("blank4")].stateValues
                 .value.tree,
+        ).eqls("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("blank5")].stateValues
+                .value.tree,
+        ).eqls("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("numOperands1")]
+                .stateValues.value.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("operand11")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("operand11")].stateValues
+                .value.tree,
         ).eqls(["apply", "f", "x"]);
 
         expect(
-            stateVariables[resolveComponentName("operandN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("operandN")].stateValues
+                .value.tree,
         ).eqls(["apply", "f", "x"]);
         expect(
-            stateVariables[resolveComponentName("functionN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("functionN")].stateValues
+                .value.tree,
         ).eqls("f");
         expect(
-            stateVariables[resolveComponentName("argumentN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("argumentN")].stateValues
+                .value.tree,
         ).eqls("x");
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("nArgument"),
+            componentIdx: await resolvePathToNodeIdx("nArgument"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("argumentN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("argumentN")].stateValues
+                .value.tree,
         ).eqls("＿");
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("nOperand"),
+            componentIdx: await resolvePathToNodeIdx("nOperand"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("operandN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("operandN")].stateValues
+                .value.tree,
         ).eqls(["apply", "g", ["tuple", "y", "z"]]);
         expect(
-            stateVariables[resolveComponentName("functionN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("functionN")].stateValues
+                .value.tree,
         ).eqls("g");
         expect(
-            stateVariables[resolveComponentName("argumentN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("argumentN")].stateValues
+                .value.tree,
         ).eqls("z");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("nArgument"),
+            componentIdx: await resolvePathToNodeIdx("nArgument"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("argumentN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("argumentN")].stateValues
+                .value.tree,
         ).eqls("＿");
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("nArgument"),
+            componentIdx: await resolvePathToNodeIdx("nArgument"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("argumentN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("argumentN")].stateValues
+                .value.tree,
         ).eqls("y");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("nOperand"),
+            componentIdx: await resolvePathToNodeIdx("nOperand"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("operandN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("operandN")].stateValues
+                .value.tree,
         ).eqls(["*", "h", "q"]);
         expect(
-            stateVariables[resolveComponentName("functionN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("functionN")].stateValues
+                .value.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("argumentN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("argumentN")].stateValues
+                .value.tree,
         ).eqls("＿");
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("nOperand"),
+            componentIdx: await resolvePathToNodeIdx("nOperand"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("operandN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("operandN")].stateValues
+                .value.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("functionN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("functionN")].stateValues
+                .value.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("argumentN")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("argumentN")].stateValues
+                .value.tree,
         ).eqls("＿");
     });
 
     it("warning with operand", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p>original expression: <math name="expr">x+y</math></p>
       <p>Bad operand: <extractMath type="Operand" name="operand1">$expr</extractMath></p>
@@ -10016,7 +10527,7 @@ describe("Math operator tests", async () => {
     });
 
     it("math operators that take multiple inputs ignore composites with no replacements", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <function name="f" domain="[0,2]" simplify>(x+1)(x-2)(x-4)</function>
       <p>Min on [0,2]: <min name="min02">$$f(0) $f.minimumValues $$f(2)</min>.</p>
@@ -10026,11 +10537,12 @@ describe("Math operator tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("min02")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("min02")].stateValues
+                .value.tree,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("abs")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("abs")].stateValues.value
+                .tree,
         ).eqls(["apply", "abs", ["*", 8, "＿", 0]]);
     });
 });

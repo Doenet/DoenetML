@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     updateBooleanInputValue,
@@ -15,7 +15,7 @@ vi.mock("hyperformula");
 
 describe("Angle tag tests", async () => {
     it("angle determined by three points, 45-45-90 triangle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math extend="$angle1.angle" name="angle2" />
   <p>Angle again: <angle extend="$angle1" name="angle3" /></p>
@@ -39,20 +39,20 @@ describe("Angle tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("angle1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
                     .radians.tree,
             ).closeTo(angle, 1e-12);
             expect(
-                stateVariables[resolveComponentName("angle2")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("angle2")].stateValues
+                    .value.tree,
             ).closeTo(angle, 1e-12);
             expect(
-                stateVariables[resolveComponentName("angle3")].stateValues
+                stateVariables[await resolvePathToNodeIdx("angle3")].stateValues
                     .radians.tree,
             ).closeTo(angle, 1e-12);
             expect(
                 stateVariables[
-                    resolveComponentName("angle1")
+                    await resolvePathToNodeIdx("angle1")
                 ].stateValues.points.map((v) => v.map((x) => x.tree)),
             ).eqls(ps);
         }
@@ -67,12 +67,12 @@ describe("Angle tag tests", async () => {
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         ps[0] = [4, 4];
@@ -80,12 +80,12 @@ describe("Angle tag tests", async () => {
 
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         ps[0] = [0, 2];
@@ -93,12 +93,12 @@ describe("Angle tag tests", async () => {
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         ps[0] = [4, 6];
@@ -106,7 +106,7 @@ describe("Angle tag tests", async () => {
     });
 
     it("angle determined by two lines", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math extend="$angle1.angle" name="angle2" />
   <p>Angle again: <angle extend="$angle1" name="angle3" /></p>
@@ -136,15 +136,15 @@ describe("Angle tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("angle1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
                     .radians.tree,
             ).closeTo(angle, 1e-12);
             expect(
-                stateVariables[resolveComponentName("angle2")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("angle2")].stateValues
+                    .value.tree,
             ).closeTo(angle, 1e-12);
             expect(
-                stateVariables[resolveComponentName("angle3")].stateValues
+                stateVariables[await resolvePathToNodeIdx("angle3")].stateValues
                     .radians.tree,
             ).closeTo(angle, 1e-12);
         }
@@ -158,22 +158,22 @@ describe("Angle tag tests", async () => {
         theta2 = 6;
         await updateMathInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "7",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputValue({
             latex: theta1.toString(),
-            componentIdx: resolveComponentName("theta1"),
+            componentIdx: await resolvePathToNodeIdx("theta1"),
             core,
         });
         await updateMathInputValue({
             latex: theta2.toString(),
-            componentIdx: resolveComponentName("theta2"),
+            componentIdx: await resolvePathToNodeIdx("theta2"),
             core,
         });
         await check_items(theta2 - theta1);
@@ -182,22 +182,22 @@ describe("Angle tag tests", async () => {
         theta2 = 3;
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputValue({
             latex: theta1.toString(),
-            componentIdx: resolveComponentName("theta1"),
+            componentIdx: await resolvePathToNodeIdx("theta1"),
             core,
         });
         await updateMathInputValue({
             latex: theta2.toString(),
-            componentIdx: resolveComponentName("theta2"),
+            componentIdx: await resolvePathToNodeIdx("theta2"),
             core,
         });
         await check_items(theta2 - theta1);
@@ -206,29 +206,29 @@ describe("Angle tag tests", async () => {
         theta2 = (5 * Math.PI) / 4;
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputValue({
             latex: "\\pi/4",
-            componentIdx: resolveComponentName("theta1"),
+            componentIdx: await resolvePathToNodeIdx("theta1"),
             core,
         });
         await updateMathInputValue({
             latex: "5\\pi/4",
-            componentIdx: resolveComponentName("theta2"),
+            componentIdx: await resolvePathToNodeIdx("theta2"),
             core,
         });
         await check_items(theta2 - theta1);
     });
 
     it("angle warning when determined by three lines", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <line name="l1" />
@@ -256,7 +256,7 @@ describe("Angle tag tests", async () => {
     });
 
     it("parallel and undefined lines", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="mi1" prefill="3"/>
   <mathInput name="mi2" prefill="4"/>
@@ -280,29 +280,29 @@ describe("Angle tag tests", async () => {
 
             if (typeof angle === "number") {
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.radians.tree,
                 ).closeTo(angle, 1e-12);
                 expect(
-                    stateVariables[resolveComponentName("angle2")].stateValues
-                        .value.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle2")]
+                        .stateValues.value.tree,
                 ).closeTo(angle, 1e-12);
                 expect(
-                    stateVariables[resolveComponentName("angle3")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle3")]
+                        .stateValues.radians.tree,
                 ).closeTo(angle, 1e-12);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.radians.tree,
                 ).eq(angle);
                 expect(
-                    stateVariables[resolveComponentName("angle2")].stateValues
-                        .value.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle2")]
+                        .stateValues.value.tree,
                 ).eq(angle);
                 expect(
-                    stateVariables[resolveComponentName("angle3")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle3")]
+                        .stateValues.radians.tree,
                 ).eq(angle);
             }
         }
@@ -311,26 +311,26 @@ describe("Angle tag tests", async () => {
 
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await check_items(Math.PI / 2);
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await check_items("＿");
     });
 
     it("changing radius", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="mi1" />
   <graph>
@@ -350,12 +350,12 @@ describe("Angle tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("angle1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
                     .radians.tree,
             ).closeTo(angle, 1e-12);
             expect(
-                stateVariables[resolveComponentName("radius2")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("radius2")]
+                    .stateValues.value.tree,
             ).eq(radius);
         }
 
@@ -363,42 +363,42 @@ describe("Angle tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_items(1, 1);
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_items(1, 2);
 
         await updateMathInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_items(1, -3);
 
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_items(1, "x");
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_items(1, 4);
     });
 
     it("systematically vary angle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="theta" />
   <graph>
@@ -421,37 +421,37 @@ describe("Angle tag tests", async () => {
 
             if (typeof angle === "number") {
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.radians.tree,
                 ).closeTo(angle, 1e-12);
                 expect(
-                    stateVariables[resolveComponentName("angle2")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle2")]
+                        .stateValues.radians.tree,
                 ).closeTo(angle, 1e-12);
                 expect(
-                    stateVariables[resolveComponentName("alpha")].stateValues
-                        .value.tree,
+                    stateVariables[await resolvePathToNodeIdx("alpha")]
+                        .stateValues.value.tree,
                 ).closeTo(angle, 1e-12);
                 expect(
-                    stateVariables[resolveComponentName("alphadeg")].stateValues
-                        .value.tree,
+                    stateVariables[await resolvePathToNodeIdx("alphadeg")]
+                        .stateValues.value.tree,
                 ).closeTo((180 * angle) / Math.PI, 1e-12);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.radians.tree,
                 ).eq(angle);
                 expect(
-                    stateVariables[resolveComponentName("angle2")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle2")]
+                        .stateValues.radians.tree,
                 ).eq(angle);
                 expect(
-                    stateVariables[resolveComponentName("alpha")].stateValues
-                        .value.tree,
+                    stateVariables[await resolvePathToNodeIdx("alpha")]
+                        .stateValues.value.tree,
                 ).eq(angle);
                 expect(
-                    stateVariables[resolveComponentName("alphadeg")].stateValues
-                        .value.tree,
+                    stateVariables[await resolvePathToNodeIdx("alphadeg")]
+                        .stateValues.value.tree,
                 ).eq(angle);
             }
         }
@@ -474,7 +474,7 @@ describe("Angle tag tests", async () => {
         for (let a of angles) {
             await updateMathInputValue({
                 latex: a.latex,
-                componentIdx: resolveComponentName("theta"),
+                componentIdx: await resolvePathToNodeIdx("theta"),
                 core,
             });
             await check_items(a.number);
@@ -483,49 +483,52 @@ describe("Angle tag tests", async () => {
 
     async function check_rightangle(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         numerical: boolean = false,
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("angle1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
+                .radians.tree,
         ).eqls(numerical ? Math.PI / 2 : ["/", "pi", 2]);
         expect(
-            stateVariables[resolveComponentName("angle1")].stateValues.degrees
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
+                .degrees.tree,
         ).eq(90);
         expect(
             stateVariables[
-                resolveComponentName("angle1")
+                await resolvePathToNodeIdx("angle1")
             ].stateValues.points[0].map((x) => x.tree),
         ).eqls([1, 0]);
         expect(
             stateVariables[
-                resolveComponentName("angle1")
+                await resolvePathToNodeIdx("angle1")
             ].stateValues.points[1].map((x) => x.tree),
         ).eqls([0, 0]);
         expect(
-            stateVariables[resolveComponentName("angle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
                 .points[2][0].tree,
         ).closeTo(0, 1e-14);
         expect(
-            stateVariables[resolveComponentName("angle1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
                 .points[2][1].tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eq(numerical ? Math.PI : "pi");
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eq(numerical ? Math.PI : "pi");
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eq(180);
     }
 
     it("angle from number sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <angle name="angle1">pi/2</angle>
   <math name="m1" simplify>2$angle1</math>
@@ -533,11 +536,11 @@ describe("Angle tag tests", async () => {
   <math name="m3" simplify>2$angle1.degrees</math>
   `,
         });
-        await check_rightangle(core, resolveComponentName);
+        await check_rightangle(core, resolvePathToNodeIdx);
     });
 
     it("angle from radians number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <angle name="angle1" radians="pi/2" />
   <math name="m1" simplify>2$angle1</math>
@@ -546,11 +549,11 @@ describe("Angle tag tests", async () => {
   `,
         });
 
-        await check_rightangle(core, resolveComponentName);
+        await check_rightangle(core, resolvePathToNodeIdx);
     });
 
     it("angle from degrees number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <angle name="angle1" degrees="90" />
   <math name="m1" simplify>2$angle1</math>
@@ -559,11 +562,11 @@ describe("Angle tag tests", async () => {
   `,
         });
 
-        await check_rightangle(core, resolveComponentName);
+        await check_rightangle(core, resolvePathToNodeIdx);
     });
 
     it("angle from sugar with macro and string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <angle name="angle1">$pi/2</angle>
   <math name="m1" simplify>2$angle1</math>
@@ -573,11 +576,11 @@ describe("Angle tag tests", async () => {
   `,
         });
 
-        await check_rightangle(core, resolveComponentName);
+        await check_rightangle(core, resolvePathToNodeIdx);
     });
 
     it("empty angle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <angle name="angle1" />
 <math name="m1" simplify>2$angle1</math>
@@ -586,50 +589,53 @@ describe("Angle tag tests", async () => {
 `,
         });
 
-        await check_rightangle(core, resolveComponentName, true);
+        await check_rightangle(core, resolvePathToNodeIdx, true);
     });
 
     async function check_alphaangle(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("angle1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
+                .radians.tree,
         ).eq("alpha");
         expect(
-            stateVariables[resolveComponentName("angle1")].stateValues.degrees
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
+                .degrees.tree,
         ).eqls(["/", ["*", 180, "alpha"], "pi"]);
         expect(
             stateVariables[
-                resolveComponentName("angle1")
+                await resolvePathToNodeIdx("angle1")
             ].stateValues.points[0].map((x) => x.tree),
         ).eqls([1, 0]);
         expect(
             stateVariables[
-                resolveComponentName("angle1")
+                await resolvePathToNodeIdx("angle1")
             ].stateValues.points[1].map((x) => x.tree),
         ).eqls([0, 0]);
         expect(
             stateVariables[
-                resolveComponentName("angle1")
+                await resolvePathToNodeIdx("angle1")
             ].stateValues.points[2].map((x) => x.tree),
         ).eqls(["\uff3f", "\uff3f"]);
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "alpha"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "alpha"]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["/", ["*", 360, "alpha"], "pi"]);
     }
 
     it("angle from variable sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <angle name="angle1" >alpha</angle>
     <math name="m1" simplify>2$angle1</math>
@@ -638,11 +644,11 @@ describe("Angle tag tests", async () => {
   `,
         });
 
-        await check_alphaangle(core, resolveComponentName);
+        await check_alphaangle(core, resolvePathToNodeIdx);
     });
 
     it("angle from variable radians", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <angle name="angle1" radians="alpha" />
     <math name="m1" simplify>2$angle1</math>
@@ -651,11 +657,11 @@ describe("Angle tag tests", async () => {
   `,
         });
 
-        await check_alphaangle(core, resolveComponentName);
+        await check_alphaangle(core, resolvePathToNodeIdx);
     });
 
     it("angle from variable degrees", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <angle name="angle1" degrees="alpha" />
     <math name="m1" simplify>2$angle1</math>
@@ -666,42 +672,45 @@ describe("Angle tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("angle1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
+                .radians.tree,
         ).eqls(["/", ["*", "alpha", "pi"], 180]);
         expect(
-            stateVariables[resolveComponentName("angle1")].stateValues.degrees
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
+                .degrees.tree,
         ).eqls("alpha");
         expect(
             stateVariables[
-                resolveComponentName("angle1")
+                await resolvePathToNodeIdx("angle1")
             ].stateValues.points[0].map((x) => x.tree),
         ).eqls([1, 0]);
         expect(
             stateVariables[
-                resolveComponentName("angle1")
+                await resolvePathToNodeIdx("angle1")
             ].stateValues.points[1].map((x) => x.tree),
         ).eqls([0, 0]);
         expect(
             stateVariables[
-                resolveComponentName("angle1")
+                await resolvePathToNodeIdx("angle1")
             ].stateValues.points[2].map((x) => x.tree),
         ).eqls(["\uff3f", "\uff3f"]);
         // TODO: once can simplify fractions, these should be: ["/", ["*", "alpha", "pi"], 90]
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["/", ["*", 2, "alpha", "pi"], 180]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["/", ["*", 2, "alpha", "pi"], 180]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "alpha"]);
     });
 
     it("choose reflex angle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>choose reflex angle: <textInput name="ra"  /></p>
   <text extend="$alpha1.chooseReflexAngle" name="ra2" />
@@ -744,43 +753,43 @@ describe("Angle tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("never");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points, -1));
 
         await updateTextInputValue({
             text: "allowed",
-            componentIdx: resolveComponentName("ra"),
+            componentIdx: await resolvePathToNodeIdx("ra"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("allowed");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points));
 
         await updateTextInputValue({
             text: "always",
-            componentIdx: resolveComponentName("ra"),
+            componentIdx: await resolvePathToNodeIdx("ra"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("always");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points));
 
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 1,
             y: -3,
             core,
@@ -791,43 +800,43 @@ describe("Angle tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("always");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points, 1));
 
         await updateTextInputValue({
             text: "never",
-            componentIdx: resolveComponentName("ra"),
+            componentIdx: await resolvePathToNodeIdx("ra"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("never");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points));
 
         await updateTextInputValue({
             text: "allowed",
-            componentIdx: resolveComponentName("ra"),
+            componentIdx: await resolvePathToNodeIdx("ra"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("allowed");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points));
 
         await movePoint({
-            componentIdx: resolveComponentName("C"),
+            componentIdx: await resolvePathToNodeIdx("C"),
             x: -1,
             y: -5,
             core,
@@ -838,52 +847,52 @@ describe("Angle tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("allowed");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points));
 
         await updateTextInputValue({
             text: "never",
-            componentIdx: resolveComponentName("ra"),
+            componentIdx: await resolvePathToNodeIdx("ra"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("never");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points, -1));
 
         await updateTextInputValue({
             text: "always",
-            componentIdx: resolveComponentName("ra"),
+            componentIdx: await resolvePathToNodeIdx("ra"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ra2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ra2")].stateValues.value,
         ).eq("always");
         expect(
-            stateVariables[resolveComponentName("alpha1")].stateValues.radians
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("alpha1")].stateValues
+                .radians.tree,
         ).eq(angleFromPs(points));
     });
 
     async function test_angle_through_points({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         initialRadians,
         radiansName,
         degreesName,
         numPoints,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         initialRadians: number | string | (number | string)[];
         radiansName?: string;
         degreesName?: string;
@@ -908,41 +917,41 @@ describe("Angle tag tests", async () => {
             if (typeof radians === "number") {
                 radiansNumber = radians;
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.radians.tree,
                 ).closeTo(radians, 1e-14);
             } else {
                 radiansNumber = me.fromAst(radians).evaluate_to_constant();
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.radians.tree,
                 ).eqls(radians);
             }
             expect(
                 stateVariables[
-                    resolveComponentName("angle1")
+                    await resolvePathToNodeIdx("angle1")
                 ].stateValues.points[0].map((x) => x.tree),
             ).eqls([x1, y1]);
             expect(
                 stateVariables[
-                    resolveComponentName("angle1")
+                    await resolvePathToNodeIdx("angle1")
                 ].stateValues.points[1].map((x) => x.tree),
             ).eqls([x2, y2]);
 
             if (Number.isFinite(radiansNumber)) {
                 let theta = Math.atan2(y1 - y2, x1 - x2) + radiansNumber;
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .points[2][0].tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.points[2][0].tree,
                 ).closeTo(x2 + Math.cos(theta), 1e-14);
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .points[2][1].tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.points[2][1].tree,
                 ).closeTo(y2 + Math.sin(theta), 1e-14);
             } else {
                 expect(
                     stateVariables[
-                        resolveComponentName("angle1")
+                        await resolvePathToNodeIdx("angle1")
                     ].stateValues.points[2].map((x) => x.tree),
                 ).eqls(["\uff3f", "\uff3f"]);
             }
@@ -965,7 +974,7 @@ describe("Angle tag tests", async () => {
         x1 = 1;
         y1 = 7;
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: x1,
             y: y1,
             core,
@@ -974,7 +983,7 @@ describe("Angle tag tests", async () => {
             x2 = -3;
             y2 = -2;
             await movePoint({
-                componentIdx: resolveComponentName("B"),
+                componentIdx: await resolvePathToNodeIdx("B"),
                 x: x2,
                 y: y2,
                 core,
@@ -986,7 +995,7 @@ describe("Angle tag tests", async () => {
             // change desired radians
             await updateMathInputValue({
                 latex: "2\\pi/5",
-                componentIdx: resolveComponentName(radiansName),
+                componentIdx: await resolvePathToNodeIdx(radiansName),
                 core,
             });
             await check_items(["/", ["*", 2, "pi"], 5], x1, y1, x2, y2);
@@ -994,7 +1003,7 @@ describe("Angle tag tests", async () => {
             // change desired radians to variable
             await updateMathInputValue({
                 latex: "\\theta",
-                componentIdx: resolveComponentName(radiansName),
+                componentIdx: await resolvePathToNodeIdx(radiansName),
                 core,
             });
             await check_items("theta", x1, y1, x2, y2);
@@ -1004,7 +1013,7 @@ describe("Angle tag tests", async () => {
             // change desired degrees
             await updateMathInputValue({
                 latex: "180",
-                componentIdx: resolveComponentName(degreesName),
+                componentIdx: await resolvePathToNodeIdx(degreesName),
                 core,
             });
             await check_items("pi", x1, y1, x2, y2);
@@ -1012,7 +1021,7 @@ describe("Angle tag tests", async () => {
             // change desired degrees to variable
             await updateMathInputValue({
                 latex: "\\theta",
-                componentIdx: resolveComponentName(degreesName),
+                componentIdx: await resolvePathToNodeIdx(degreesName),
                 core,
             });
             await check_items(["/", ["*", "pi", "theta"], 180], x1, y1, x2, y2);
@@ -1020,7 +1029,7 @@ describe("Angle tag tests", async () => {
     }
 
     it("angle through 1 point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="A">(3,5)</point>
@@ -1031,14 +1040,14 @@ describe("Angle tag tests", async () => {
 
         await test_angle_through_points({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: Math.PI / 2,
             numPoints: 1,
         });
     });
 
     it("angle through 1 point, specify radians", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Desired radians: <mathInput name="desiredRadians" prefill="pi/3" /></p>
   <graph>
@@ -1050,7 +1059,7 @@ describe("Angle tag tests", async () => {
 
         await test_angle_through_points({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: ["/", "pi", 3],
             radiansName: "desiredRadians",
             numPoints: 1,
@@ -1058,7 +1067,7 @@ describe("Angle tag tests", async () => {
     });
 
     it("angle through 1 point, specify degrees", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Desired degrees: <mathInput name="desiredDegrees" prefill="90" /></p>
   <graph>
@@ -1070,7 +1079,7 @@ describe("Angle tag tests", async () => {
 
         await test_angle_through_points({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: ["/", "pi", 2],
             degreesName: "desiredDegrees",
             numPoints: 1,
@@ -1078,7 +1087,7 @@ describe("Angle tag tests", async () => {
     });
 
     it("angle through 2 points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="A">(3,5)</point>
@@ -1090,14 +1099,14 @@ describe("Angle tag tests", async () => {
 
         await test_angle_through_points({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: Math.PI / 2,
             numPoints: 2,
         });
     });
 
     it("angle through 2 points, specify radians", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Desired radians: <mathInput name="desiredRadians" prefill="pi/3" /></p>
   <graph>
@@ -1110,7 +1119,7 @@ describe("Angle tag tests", async () => {
 
         await test_angle_through_points({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: ["/", "pi", 3],
             radiansName: "desiredRadians",
             numPoints: 2,
@@ -1118,7 +1127,7 @@ describe("Angle tag tests", async () => {
     });
 
     it("angle through 2 points, specify degrees", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Desired radians: <mathInput name="desiredDegrees" prefill="90" /></p>
   <graph>
@@ -1131,7 +1140,7 @@ describe("Angle tag tests", async () => {
 
         await test_angle_through_points({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: ["/", "pi", 2],
             degreesName: "desiredDegrees",
             numPoints: 2,
@@ -1140,13 +1149,13 @@ describe("Angle tag tests", async () => {
 
     async function test_angle_with_one_line({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         initialRadians,
         radiansName,
         degreesName,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         initialRadians: number | string | (number | string)[];
         radiansName?: string;
         degreesName?: string;
@@ -1168,46 +1177,46 @@ describe("Angle tag tests", async () => {
             if (typeof radians === "number") {
                 radiansNumber = radians;
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.radians.tree,
                 ).closeTo(radians, 1e-14);
             } else {
                 radiansNumber = me.fromAst(radians).evaluate_to_constant();
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .radians.tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.radians.tree,
                 ).eqls(radians);
             }
             let mag = Math.sqrt(1 + slope ** 2);
             let d = [1 / mag, slope / mag];
             expect(
-                stateVariables[resolveComponentName("angle1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
                     .points[0][0].tree,
             ).closeTo(point[0] + d[0], 1e-14);
             expect(
-                stateVariables[resolveComponentName("angle1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("angle1")].stateValues
                     .points[0][1].tree,
             ).closeTo(point[1] + d[1], 1e-14);
             expect(
                 stateVariables[
-                    resolveComponentName("angle1")
+                    await resolvePathToNodeIdx("angle1")
                 ].stateValues.points[1].map((x) => x.tree),
             ).eqls(point);
 
             if (Number.isFinite(radiansNumber)) {
                 let theta = Math.atan2(slope, 1) + radiansNumber;
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .points[2][0].tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.points[2][0].tree,
                 ).closeTo(point[0] + Math.cos(theta), 1e-14);
                 expect(
-                    stateVariables[resolveComponentName("angle1")].stateValues
-                        .points[2][1].tree,
+                    stateVariables[await resolvePathToNodeIdx("angle1")]
+                        .stateValues.points[2][1].tree,
                 ).closeTo(point[1] + Math.sin(theta), 1e-14);
             } else {
                 expect(
                     stateVariables[
-                        resolveComponentName("angle1")
+                        await resolvePathToNodeIdx("angle1")
                     ].stateValues.points[2].map((x) => x.tree),
                 ).eqls(["\uff3f", "\uff3f"]);
             }
@@ -1223,7 +1232,7 @@ describe("Angle tag tests", async () => {
         // change line
         await updateMathInputValue({
             latex: "y=-1/2x+3",
-            componentIdx: resolveComponentName("equation"),
+            componentIdx: await resolvePathToNodeIdx("equation"),
             core,
         });
         pointNearestOrigin = [6 / 5, 12 / 5];
@@ -1234,7 +1243,7 @@ describe("Angle tag tests", async () => {
             // change desired radians
             await updateMathInputValue({
                 latex: "2\\pi/5",
-                componentIdx: resolveComponentName(radiansName),
+                componentIdx: await resolvePathToNodeIdx(radiansName),
                 core,
             });
             await check_items(
@@ -1246,7 +1255,7 @@ describe("Angle tag tests", async () => {
             // change desired radians to variable
             await updateMathInputValue({
                 latex: "\\theta",
-                componentIdx: resolveComponentName(radiansName),
+                componentIdx: await resolvePathToNodeIdx(radiansName),
                 core,
             });
             await check_items("theta", pointNearestOrigin, lineSlope);
@@ -1256,7 +1265,7 @@ describe("Angle tag tests", async () => {
             // change desired degrees
             await updateMathInputValue({
                 latex: "180",
-                componentIdx: resolveComponentName(degreesName),
+                componentIdx: await resolvePathToNodeIdx(degreesName),
                 core,
             });
             await check_items("pi", pointNearestOrigin, lineSlope);
@@ -1264,7 +1273,7 @@ describe("Angle tag tests", async () => {
             // change desired degrees to variable
             await updateMathInputValue({
                 latex: "\\theta",
-                componentIdx: resolveComponentName(degreesName),
+                componentIdx: await resolvePathToNodeIdx(degreesName),
                 core,
             });
             await check_items(
@@ -1276,7 +1285,7 @@ describe("Angle tag tests", async () => {
     }
 
     it("angle with one line", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Equation of line: <mathInput name="equation" prefill="y=2x+1" /></p>
   <graph>
@@ -1288,13 +1297,13 @@ describe("Angle tag tests", async () => {
 
         await test_angle_with_one_line({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: Math.PI / 2,
         });
     });
 
     it("angle with one line, specify radians", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Equation of line: <mathInput name="equation" prefill="y=2x+1" /></p>
   <p>Desired radians: <mathInput name="desiredRadians" prefill="pi/3" /></p>
@@ -1307,14 +1316,14 @@ describe("Angle tag tests", async () => {
 
         await test_angle_with_one_line({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: ["/", "pi", 3],
             radiansName: "desiredRadians",
         });
     });
 
     it("angle with one line, specify degrees", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Equation of line: <mathInput name="equation" prefill="y=2x+1" /></p>
   <p>Desired degrees: <mathInput name="desiredDegrees" prefill="90" /></p>
@@ -1327,14 +1336,14 @@ describe("Angle tag tests", async () => {
 
         await test_angle_with_one_line({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialRadians: ["/", "pi", 2],
             degreesName: "desiredDegrees",
         });
     });
 
     it("angle with label", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <angle name="a">
@@ -1349,16 +1358,16 @@ describe("Angle tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("a")].stateValues.label).eq(
-            "\\(\\alpha^2\\)",
-        );
-        expect(stateVariables[resolveComponentName("b")].stateValues.label).eq(
-            "This is \\(\\frac{m}{2}\\)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.label,
+        ).eq("\\(\\alpha^2\\)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.label,
+        ).eq("This is \\(\\frac{m}{2}\\)");
     });
 
     it("display digits and decimals, overwrite in copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <angle name="a">1.39372582305929123842034823</angle>
   <angle name="aDig5a" displayDigits="5" extend="$a" />
@@ -1380,62 +1389,62 @@ describe("Angle tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .latexForRenderer,
         ).eq("1.39");
 
         expect(
-            stateVariables[resolveComponentName("aDig5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDig5a")].stateValues
                 .latexForRenderer,
         ).eq("1.3937");
         expect(
-            stateVariables[resolveComponentName("aDec6a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDec6a")].stateValues
                 .latexForRenderer,
         ).eq("1.393726");
         expect(
-            stateVariables[resolveComponentName("aDig5b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDig5b")].stateValues
                 .latexForRenderer,
         ).eq("1.3937");
         expect(
-            stateVariables[resolveComponentName("aDec6b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDec6b")].stateValues
                 .latexForRenderer,
         ).eq("1.393726");
         expect(
-            stateVariables[resolveComponentName("aDig5c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDig5c")].stateValues
                 .latexForRenderer,
         ).eq("1.3937");
         expect(
-            stateVariables[resolveComponentName("aDec6c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDec6c")].stateValues
                 .latexForRenderer,
         ).eq("1.393726");
         expect(
-            stateVariables[resolveComponentName("aDig5d")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDig5d")].stateValues
                 .latexForRenderer,
         ).eq("1.3937");
         expect(
-            stateVariables[resolveComponentName("aDec6d")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDec6d")].stateValues
                 .latexForRenderer,
         ).eq("1.393726");
         expect(
-            stateVariables[resolveComponentName("aDig5e")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDig5e")].stateValues
                 .latexForRenderer,
         ).eq("1.3937");
         expect(
-            stateVariables[resolveComponentName("aDec6e")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDec6e")].stateValues
                 .latexForRenderer,
         ).eq("1.393726");
         expect(
-            stateVariables[resolveComponentName("aDig5f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDig5f")].stateValues
                 .latexForRenderer,
         ).eq("1.3937");
         expect(
-            stateVariables[resolveComponentName("aDec6f")].stateValues
+            stateVariables[await resolvePathToNodeIdx("aDec6f")].stateValues
                 .latexForRenderer,
         ).eq("1.393726");
     });
 
     it("emphasize right angle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <angle name="a1" through="(-5,0) (0,0) (0,-5)" />
@@ -1457,51 +1466,53 @@ describe("Angle tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("emphasize")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("emphasize")].stateValues
+                .text,
         ).eq("Emphasize right angle: true, false, false");
         expect(
-            stateVariables[resolveComponentName("a1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
                 .emphasizeRightAngle,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .emphasizeRightAngle,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .emphasizeRightAngle,
         ).eq(false);
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("bi1"),
+            componentIdx: await resolvePathToNodeIdx("bi1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("bi2"),
+            componentIdx: await resolvePathToNodeIdx("bi2"),
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("bi3"),
+            componentIdx: await resolvePathToNodeIdx("bi3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("emphasize")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("emphasize")].stateValues
+                .text,
         ).eq("Emphasize right angle: false, true, true");
         expect(
-            stateVariables[resolveComponentName("a1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
                 .emphasizeRightAngle,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .emphasizeRightAngle,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .emphasizeRightAngle,
         ).eq(true);
     });
