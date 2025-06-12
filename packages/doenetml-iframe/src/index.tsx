@@ -10,7 +10,6 @@ import {
     DoenetEditorProps,
     createHtmlForDoenetViewer,
     createHtmlForDoenetEditor,
-    detectVersionFromDoenetML,
 } from "./utils";
 
 export const version: string = IFRAME_VERSION;
@@ -18,7 +17,7 @@ const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
 export type { ErrorRecord, WarningRecord };
-export { parseAndCompile } from "@doenet/parser";
+import { detectVersionFromDoenetML } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
@@ -120,9 +119,9 @@ export function DoenetViewer({
 
     if (autodetectVersion && !ignoreDetectedVersion) {
         let result = detectVersionFromDoenetML(doenetML);
-        if (result.version !== undefined) {
+        if (result?.version !== undefined) {
             foundAutoVersion = true;
-            detectedVersion = result.version;
+            detectedVersion = "v" + result.version;
         }
     }
 
@@ -302,9 +301,9 @@ export function DoenetEditor({
 
     if (autodetectVersion && !ignoreDetectedVersion) {
         let result = detectVersionFromDoenetML(doenetML);
-        if (result.version !== undefined) {
+        if (result?.version !== undefined) {
             foundAutoVersion = true;
-            detectedVersion = result.version;
+            detectedVersion = "v" + result.version;
             detectedDoenetMLrange = result.position;
         }
     }
@@ -384,7 +383,9 @@ export function DoenetEditor({
                 getLineCharRange(detectedDoenetMLrange!, allNewlines),
             );
 
-            setInitialErrors([{ position: detectedDoenetMLrange!, message }]);
+            setInitialErrors([
+                { position: detectedDoenetMLrange!, message, type: "error" },
+            ]);
             return null;
         }
 
