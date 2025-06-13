@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lezerToDast } from "../src/lezer-to-dast";
+import { lezerToDast, lezerToDastV6 } from "../src/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import util from "util";
 import { DastRoot } from "../src/types";
@@ -14,7 +14,6 @@ console.log = (...args) => {
 describe("v06 to v07 update", () => {
     let source: string;
     let correctSource: string;
-    let parsed: DastRoot;
 
     it("ensures $ before `target`, `triggerWith`, etc.", () => {
         const NEEDS_TRANSFORMING = [
@@ -34,92 +33,75 @@ describe("v06 to v07 update", () => {
         correctSource = `<document><p>content</p>${NEEDS_TRANSFORMING.map(
             ([attr, name]) => `<doenet ${attr}="$${name}" />`,
         ).join("")}</document>`;
-        parsed = lezerToDast(source);
 
-        expect(toXml(updateSyntaxFromV06toV07(parsed))).toEqual(correctSource);
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
 
         // Make sure if there are already dollar signs, they are not added again
-        expect(
-            toXml(updateSyntaxFromV06toV07(lezerToDast(correctSource))),
-        ).toEqual(correctSource);
+        expect(toXml(updateSyntaxFromV06toV07(correctSource))).toEqual(
+            correctSource,
+        );
     });
 
     it("removes newNamespace attribute", () => {
         source = `<graph name="g" newNamespace><point name="p" /></graph>`;
         correctSource = `<graph name="g"><point name="p" /></graph>`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+    });
+
+    it("macro path slashes get turned into dots", () => {
+        source = `$(foo/bar[3][4][$(b/c).d].baz)`;
+        correctSource = `$foo.bar[3][4][$b.c.d].baz`;
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
     });
 
     it("corrects capitalization in element names", () => {
         source = `<pOiNt />`;
         correctSource = `<point />`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
     });
 
     it("copySource gets converted to extend or copy", () => {
         source = `<point copySource="P" name="P2" />`;
         correctSource = `<point extend="$P" name="P2" />`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
 
         source = `<point CopySource="P" name="P2" />`;
         correctSource = `<point extend="$P" name="P2" />`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
 
         source = `<point copySource="P" name="P2" link="true" />`;
         correctSource = `<point extend="$P" name="P2" />`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
 
         source = `<point copySource="P" name="P2" link="false" />`;
         correctSource = `<point copy="$P" name="P2" />`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
     });
 
     it("copySource gets converted in the presence of assignNames", () => {
         source = `<math copySource="P.x" assignNames="x" />`;
         correctSource = `<math extend="$P.x" name="x" />`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
 
         source = `<math copySource="P" copyProp="x" assignNames="x" />`;
         correctSource = `<math extend="$P.x" name="x" />`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
     });
 
     it("collect gets converted to its new format", () => {
         source = `<collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" />`;
         correctSource = `<collect componentType="point" name="points" from="$panel" />`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
 
         // References to the old `assignNames` get updated
         source = `<collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /> $q1 $q4`;
         correctSource = `<collect componentType="point" name="points" from="$panel" /> $points[1] $points[4]`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
 
         // References to the old `assignNames` get updated
         source = `<p name="p"><collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /></p> $p.q1 $q4`;
         correctSource = `<p name="p"><collect componentType="point" name="points" from="$panel" /></p> $p.points[1] $points[4]`;
-        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
-            correctSource,
-        );
+        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
     });
 
     it("can reparse attributes", () => {

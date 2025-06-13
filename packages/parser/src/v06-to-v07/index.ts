@@ -5,6 +5,7 @@ import {
     DastElementContent,
     DastRoot,
     DastRootContent,
+    DastRootV6,
 } from "../types";
 import { visit } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
@@ -15,6 +16,8 @@ import {
     correctElementCapitalization,
 } from "./normalize-capitalization";
 import { upgradeCollectElement } from "./upgrade-collect-element";
+import { upgradePathSlashesToDots } from "./slash-to-dot";
+import { lezerToDastV6 } from "..";
 
 /**
  * Auto-updates syntax from DoenetML v0.6 to v0.7. This includes removing `namespace` attributes,
@@ -22,8 +25,9 @@ import { upgradeCollectElement } from "./upgrade-collect-element";
  *
  * See https://github.com/Doenet/DoenetML/issues/474
  */
-export function updateSyntaxFromV06toV07(dast: DastRoot) {
+export function updateSyntaxFromV06toV07_root(dast: DastRootV6) {
     let processor = unified()
+        .use(upgradePathSlashesToDots)
         .use(correctElementCapitalization)
         .use(correctAttributeCapitalization)
         .use(removeNewNamespaceAttribute)
@@ -32,6 +36,17 @@ export function updateSyntaxFromV06toV07(dast: DastRoot) {
         .use(upgradeCollectElement);
 
     return processor.runSync(dast);
+}
+
+/**
+ * Auto-updates syntax from DoenetML v0.6 to v0.7. This includes removing `namespace` attributes,
+ * etc.
+ *
+ * See https://github.com/Doenet/DoenetML/issues/474
+ */
+export function updateSyntaxFromV06toV07(dastStr: string) {
+    const parsed = lezerToDastV6(dastStr);
+    return updateSyntaxFromV06toV07_root(parsed);
 }
 
 /**
