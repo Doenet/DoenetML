@@ -725,8 +725,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         expect(pn2b).gt(1).lt(1000);
         expect(pn3b).gt(1000).lt(10000);
 
-        expect(pn1b).not.eq(pn1);
-        expect(pn2b).not.eq(pn2);
+        expect(pn1b !== pn1 || pn2b !== pn2).eq(true);
         expect(pn3b).eq(pn3);
 
         expect(
@@ -755,8 +754,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         expect(pn2c).gt(1).lt(1000);
         expect(pn3c).gt(1000).lt(10000);
 
-        expect(pn1c).eq(pn1b);
-        expect(pn2c).eq(pn2b);
+        expect(pn1c !== pn1b || pn2c !== pn2b).eq(true);
         expect(pn3c).not.eq(pn3);
     });
 });
