@@ -14,6 +14,7 @@ import {
     correctAttributeCapitalization,
     correctElementCapitalization,
 } from "./normalize-capitalization";
+import { upgradeCollectElement } from "./upgrade-collect-element";
 
 /**
  * Auto-updates syntax from DoenetML v0.6 to v0.7. This includes removing `namespace` attributes,
@@ -27,7 +28,8 @@ export function updateSyntaxFromV06toV07(dast: DastRoot) {
         .use(correctAttributeCapitalization)
         .use(removeNewNamespaceAttribute)
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
-        .use(copySourceToExtendOrCopy);
+        .use(copySourceToExtendOrCopy)
+        .use(upgradeCollectElement);
 
     return processor.runSync(dast);
 }

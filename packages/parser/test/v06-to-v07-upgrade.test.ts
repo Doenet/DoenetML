@@ -100,6 +100,28 @@ describe("v06 to v07 update", () => {
         );
     });
 
+    it("collect gets converted to its new format", () => {
+        source = `<collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" />`;
+        correctSource = `<collect componentType="point" name="points" from="$panel" />`;
+        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
+            correctSource,
+        );
+
+        // References to the old `assignNames` get updated
+        source = `<collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /> $q1 $q4`;
+        correctSource = `<collect componentType="point" name="points" from="$panel" /> $points[1] $points[4]`;
+        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
+            correctSource,
+        );
+
+        // References to the old `assignNames` get updated
+        source = `<p name="p"><collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /></p> $p.q1 $q4`;
+        correctSource = `<p name="p"><collect componentType="point" name="points" from="$panel" /></p> $p.points[1] $points[4]`;
+        expect(toXml(updateSyntaxFromV06toV07(lezerToDast(source)))).toEqual(
+            correctSource,
+        );
+    });
+
     it("can reparse attributes", () => {
         expect(toXml(reparseAttribute("t"))).toEqual("t");
         expect(toXml(reparseAttribute("$t"))).toEqual("$t");
