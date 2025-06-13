@@ -19,7 +19,6 @@ export async function resolvePathImmediatelyToNodeIdx(
     coreWorker: PublicDoenetMLCore,
     origin = 0,
 ) {
-    console.log("resolve path immediately", { name, origin });
     // This algorithm is not a careful check of the correct form.
     // It assumes all characters of the `name` of each path piece are word characters.
 
