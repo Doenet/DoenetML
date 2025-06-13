@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     movePolygon,
@@ -19,7 +19,7 @@ async function setupScene({
     rectangleProperties: string;
     rectangleChildren: string;
 }) {
-    let { core, resolveComponentName } = await createTestCore({
+    let { core, resolvePathToNodeIdx } = await createTestCore({
         doenetML:
             `
   <graph>
@@ -51,12 +51,12 @@ async function setupScene({
   `,
     });
 
-    return { core, resolveComponentName };
+    return { core, resolvePathToNodeIdx };
 }
 
 async function runTests({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     v0x,
     v0y,
     v2x,
@@ -64,7 +64,7 @@ async function runTests({
     cornerDependencyState,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     v0x: number;
     v0y: number;
     v2x: number;
@@ -94,12 +94,12 @@ async function runTests({
         inputs,
         { v0x, v0y, v2x, v2y },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     // move rectangle points individually
     await movePolygon({
-        componentIdx: resolveComponentName(rectangleName),
+        componentIdx: await resolvePathToNodeIdx(rectangleName),
         pointCoords: { 0: [2, -1] },
         core,
     });
@@ -107,11 +107,11 @@ async function runTests({
         inputs,
         { v0x: 2, v0y: -1, v2x, v2y },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     await movePolygon({
-        componentIdx: resolveComponentName(rectangleName),
+        componentIdx: await resolvePathToNodeIdx(rectangleName),
         pointCoords: { 1: [0, 2] },
         core,
     });
@@ -119,11 +119,11 @@ async function runTests({
         inputs,
         { v0x: 2, v0y: 2, v2x: 0, v2y },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     await movePolygon({
-        componentIdx: resolveComponentName(rectangleName),
+        componentIdx: await resolvePathToNodeIdx(rectangleName),
         pointCoords: { 2: [-4, -5] },
         core,
     });
@@ -131,11 +131,11 @@ async function runTests({
         inputs,
         { v0x: 2, v0y: 2, v2x: -4, v2y: -5 },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     await movePolygon({
-        componentIdx: resolveComponentName(rectangleName),
+        componentIdx: await resolvePathToNodeIdx(rectangleName),
         pointCoords: { 3: [3, 4] },
         core,
     });
@@ -143,12 +143,12 @@ async function runTests({
         inputs,
         { v0x: 3, v0y: 2, v2x: -4, v2y: 4 },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     // move rectangle points together
     await movePolygon({
-        componentIdx: resolveComponentName(rectangleName),
+        componentIdx: await resolvePathToNodeIdx(rectangleName),
         pointCoords: {
             0: [4, 3],
             1: [-3, 3],
@@ -161,12 +161,12 @@ async function runTests({
         inputs,
         { v0x: 4, v0y: 3, v2x: -3, v2y: 5 },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     // move center point
     await movePoint({
-        componentIdx: resolveComponentName(centerPointName),
+        componentIdx: await resolvePathToNodeIdx(centerPointName),
         x: 0,
         y: 0,
         core,
@@ -175,7 +175,7 @@ async function runTests({
         inputs,
         { v0x: 3.5, v0y: -1, v2x: -3.5, v2y: 1 },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     // move copied vertices
@@ -183,7 +183,7 @@ async function runTests({
         // natural behavior
 
         await movePoint({
-            componentIdx: resolveComponentName(v0Name),
+            componentIdx: await resolvePathToNodeIdx(v0Name),
             x: 0,
             y: 0,
             core,
@@ -192,11 +192,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: 0, v2x: -3.5, v2y: 1 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v1Name),
+            componentIdx: await resolvePathToNodeIdx(v1Name),
             x: 1,
             y: -1,
             core,
@@ -205,11 +205,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: -1, v2x: 1, v2y: 1 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v2Name),
+            componentIdx: await resolvePathToNodeIdx(v2Name),
             x: 2.25,
             y: 2.25,
             core,
@@ -218,11 +218,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: -1, v2x: 2.25, v2y: 2.25 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v3Name),
+            componentIdx: await resolvePathToNodeIdx(v3Name),
             x: -1,
             y: -5,
             core,
@@ -231,13 +231,13 @@ async function runTests({
             inputs,
             { v0x: -1, v0y: -1, v2x: 2.25, v2y: -5 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     } else if (cornerDependencyState === 1) {
         // corner, width and height
 
         await movePoint({
-            componentIdx: resolveComponentName(v0Name),
+            componentIdx: await resolvePathToNodeIdx(v0Name),
             x: 0,
             y: 0,
             core,
@@ -246,11 +246,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: 0, v2x: -7, v2y: 2 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v1Name),
+            componentIdx: await resolvePathToNodeIdx(v1Name),
             x: 1,
             y: -1,
             core,
@@ -259,11 +259,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: -1, v2x: 1, v2y: 1 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v2Name),
+            componentIdx: await resolvePathToNodeIdx(v2Name),
             x: 2.25,
             y: 2.25,
             core,
@@ -272,11 +272,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: -1, v2x: 2.25, v2y: 2.25 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v3Name),
+            componentIdx: await resolvePathToNodeIdx(v3Name),
             x: -1,
             y: -5,
             core,
@@ -285,13 +285,13 @@ async function runTests({
             inputs,
             { v0x: -1, v0y: -1, v2x: 1.25, v2y: -5 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     } else if (cornerDependencyState === 2) {
         //TODO: corner and center
 
         await movePoint({
-            componentIdx: resolveComponentName(v0Name),
+            componentIdx: await resolvePathToNodeIdx(v0Name),
             x: 0,
             y: 0,
             core,
@@ -300,11 +300,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: 0, v2x: 0, v2y: 0 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v1Name),
+            componentIdx: await resolvePathToNodeIdx(v1Name),
             x: 1,
             y: -1,
             core,
@@ -313,11 +313,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: -1, v2x: 1, v2y: 1 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v2Name),
+            componentIdx: await resolvePathToNodeIdx(v2Name),
             x: 2.25,
             y: 2.25,
             core,
@@ -326,11 +326,11 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: -1, v2x: 2.25, v2y: 2.25 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePoint({
-            componentIdx: resolveComponentName(v3Name),
+            componentIdx: await resolvePathToNodeIdx(v3Name),
             x: -1,
             y: -5,
             core,
@@ -339,14 +339,14 @@ async function runTests({
             inputs,
             { v0x: -1, v0y: -1, v2x: 3.25, v2y: -5 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     }
 
     for (let name of [rectangleCopyName, rectangleCopy2Name]) {
         // rectangleCopy/rectangleCopy2 together
         await movePolygon({
-            componentIdx: resolveComponentName(name),
+            componentIdx: await resolvePathToNodeIdx(name),
             pointCoords: { 0: [0, 0], 1: [1, 0], 2: [1, 1], 3: [0, 1] },
             core,
         });
@@ -354,12 +354,12 @@ async function runTests({
             inputs,
             { v0x: 0, v0y: 0, v2x: 1, v2y: 1 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         // rectangleCopy/rectangleCopy2 individually
         await movePolygon({
-            componentIdx: resolveComponentName(name),
+            componentIdx: await resolvePathToNodeIdx(name),
             pointCoords: { 0: [2, -1] },
             core,
         });
@@ -367,11 +367,11 @@ async function runTests({
             inputs,
             { v0x: 2, v0y: -1, v2x: 1, v2y: 1 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePolygon({
-            componentIdx: resolveComponentName(name),
+            componentIdx: await resolvePathToNodeIdx(name),
             pointCoords: { 1: [0, 2] },
             core,
         });
@@ -379,11 +379,11 @@ async function runTests({
             inputs,
             { v0x: 2, v0y: 2, v2x: 0, v2y: 1 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePolygon({
-            componentIdx: resolveComponentName(name),
+            componentIdx: await resolvePathToNodeIdx(name),
             pointCoords: { 2: [-4, -5] },
             core,
         });
@@ -391,11 +391,11 @@ async function runTests({
             inputs,
             { v0x: 2, v0y: 2, v2x: -4, v2y: -5 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         await movePolygon({
-            componentIdx: resolveComponentName(name),
+            componentIdx: await resolvePathToNodeIdx(name),
             pointCoords: { 3: [3, 4] },
             core,
         });
@@ -403,13 +403,13 @@ async function runTests({
             inputs,
             { v0x: 3, v0y: 2, v2x: -4, v2y: 4 },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     }
 
     // reset polygon
     await movePolygon({
-        componentIdx: resolveComponentName(rectangleName),
+        componentIdx: await resolvePathToNodeIdx(rectangleName),
         pointCoords: { 0: [0, 0], 1: [1, 0], 2: [1, 1], 3: [0, 1] },
         core,
     });
@@ -436,7 +436,7 @@ async function checkRectangleValues(
         v2y,
     }: { v0x: number; v0y: number; v2x: number; v2y: number },
     core: PublicDoenetMLCore,
-    resolveComponentName: ResolveComponentName,
+    resolvePathToNodeIdx: ResolvePathToNodeIdx,
 ) {
     const stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -451,7 +451,8 @@ async function checkRectangleValues(
     let heightValue = Math.abs(v2y - v0y);
 
     for (let rectangleName of rectangleNames) {
-        let rectangle = stateVariables[resolveComponentName(rectangleName)];
+        let rectangle =
+            stateVariables[await resolvePathToNodeIdx(rectangleName)];
         expect(
             rectangle.stateValues.vertices.map((x) =>
                 x.map((y) => y.evaluate_to_constant()),
@@ -466,7 +467,7 @@ async function checkRectangleValues(
 
     if (vertexNames) {
         for (let [index, vertexName] of vertexNames.entries()) {
-            let vertex = stateVariables[resolveComponentName(vertexName)];
+            let vertex = stateVariables[await resolvePathToNodeIdx(vertexName)];
             expect(
                 vertex.stateValues.xs.map((x) => x.evaluate_to_constant()),
             ).eqls(vertexCoords[index]);
@@ -474,7 +475,8 @@ async function checkRectangleValues(
     }
 
     if (centerPointName) {
-        let centerPoint = stateVariables[resolveComponentName(centerPointName)];
+        let centerPoint =
+            stateVariables[await resolvePathToNodeIdx(centerPointName)];
         expect(
             centerPoint.stateValues.xs.map((x) => x.evaluate_to_constant()),
         ).eqls(centerCoords);
@@ -485,14 +487,14 @@ async function checkRectangleValues(
 
 describe("Rectangle tag tests", async () => {
     it("rectangle with no parameters (gives unit square)", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: "",
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: 0,
             v0y: 0,
             v2x: 1,
@@ -502,14 +504,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with only height", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'height="-3"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: 0,
             v0y: 0,
             v2x: 1,
@@ -519,14 +521,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with only width and height", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'width="3" height="5"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: 0,
             v0y: 0,
             v2x: 3,
@@ -536,14 +538,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with only center", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'center="(-1,5)"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: -1.5,
             v0y: 4.5,
             v2x: -0.5,
@@ -553,14 +555,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with only center and width", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'width="-2" center="(-4,2)"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: -3,
             v0y: 1.5,
             v2x: -5,
@@ -570,14 +572,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with only 1 vertex", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'vertices="(2,3)"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: 2,
             v0y: 3,
             v2x: 3,
@@ -587,14 +589,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with only 1 vertex and height", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'height="6" vertices="(-3,4)"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: -3,
             v0y: 4,
             v2x: -2,
@@ -604,14 +606,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with center, width and height", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'width="6" height="-3" center="(-3,-4)"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: -6,
             v0y: -2.5,
             v2x: 0,
@@ -621,14 +623,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with vertex, width and height", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'width="7" height="4" vertices="(-1,2)"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: -1,
             v0y: 2,
             v2x: 6,
@@ -638,14 +640,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with 1 vertex and center", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'vertices="(-2,-4)" center="(1,-1)"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: -2,
             v0y: -4,
             v2x: 4,
@@ -655,14 +657,14 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("rectangle with 2 vertices", async () => {
-        let { core, resolveComponentName } = await setupScene({
+        let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: 'vertices="(-5,-9) (-1,-2)"',
             rectangleChildren: "",
         });
 
         await runTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             v0x: -5,
             v0y: -9,
             v2x: -1,
@@ -672,7 +674,7 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("copy rectangle and overwrite attributes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="g1" >
       <sideBySide widths="25% 25% 25% 25%" >
@@ -714,28 +716,28 @@ describe("Rectangle tag tests", async () => {
                 { rectangleNames: ["g1.r1", "g2.r1"] },
                 { v0x: v0x1, v0y: v0y1, v2x: v2x1, v2y: v2y1 },
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             );
 
             await checkRectangleValues(
                 { rectangleNames: ["g1.r2", "g2.r2"] },
                 { v0x: v0x2, v0y: v0y2, v2x: v2x2, v2y: v2y2 },
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             );
 
             await checkRectangleValues(
                 { rectangleNames: ["g1.r3", "g2.r3"] },
                 { v0x: v0x2, v0y: v0y2, v2x: v2x3, v2y: v2y2 },
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             );
 
             await checkRectangleValues(
                 { rectangleNames: ["g1.r4", "g2.r4"] },
                 { v0x: v0x2, v0y: v0y2, v2x: v2x4, v2y: v2y4 },
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             );
         }
 
@@ -775,7 +777,7 @@ describe("Rectangle tag tests", async () => {
         v2y1 += dy;
 
         await movePolygon({
-            componentIdx: resolveComponentName("g1.r1"),
+            componentIdx: await resolvePathToNodeIdx("g1.r1"),
             pointCoords: { 0: [v0x1, v0y1], 2: [v2x1, v2y1] },
             core,
         });
@@ -805,7 +807,7 @@ describe("Rectangle tag tests", async () => {
         v2y2 = v0y2 + height;
 
         await movePolygon({
-            componentIdx: resolveComponentName("g2.r1"),
+            componentIdx: await resolvePathToNodeIdx("g2.r1"),
             pointCoords: { 0: [v0x1, v0y1] },
             core,
         });
@@ -845,7 +847,7 @@ describe("Rectangle tag tests", async () => {
         v2y4 = 2 * center4y - v0y2;
 
         await movePolygon({
-            componentIdx: resolveComponentName("g1.r2"),
+            componentIdx: await resolvePathToNodeIdx("g1.r2"),
             pointCoords: { 0: [v0x2, v0y2] },
             core,
         });
@@ -879,7 +881,7 @@ describe("Rectangle tag tests", async () => {
         v2y4 = 2 * center4y - v0y2;
 
         await movePolygon({
-            componentIdx: resolveComponentName("g2.r2"),
+            componentIdx: await resolvePathToNodeIdx("g2.r2"),
             pointCoords: { 1: [v2x2, v0y2] },
             core,
         });
@@ -907,7 +909,7 @@ describe("Rectangle tag tests", async () => {
         v2y1 = v0y1 + height;
 
         await movePolygon({
-            componentIdx: resolveComponentName("g1.r3"),
+            componentIdx: await resolvePathToNodeIdx("g1.r3"),
             pointCoords: { 2: [v2x3, v2y2] },
             core,
         });
@@ -944,7 +946,7 @@ describe("Rectangle tag tests", async () => {
         v2x4 = 2 * center4x - v0x2;
 
         await movePolygon({
-            componentIdx: resolveComponentName("g2.r3"),
+            componentIdx: await resolvePathToNodeIdx("g2.r3"),
             pointCoords: { 3: [v0x2, v2y2] },
             core,
         });
@@ -972,7 +974,7 @@ describe("Rectangle tag tests", async () => {
         v2y2 = v0y2 + height;
 
         await movePolygon({
-            componentIdx: resolveComponentName("g1.r4"),
+            componentIdx: await resolvePathToNodeIdx("g1.r4"),
             pointCoords: { 1: [v2x4, v0y2] },
             core,
         });
@@ -995,7 +997,7 @@ describe("Rectangle tag tests", async () => {
         v2x4 = 2;
         v2y4 = -5;
         await movePolygon({
-            componentIdx: resolveComponentName("g1.r4"),
+            componentIdx: await resolvePathToNodeIdx("g1.r4"),
             pointCoords: { 2: [v2x4, v2y4] },
             core,
         });
@@ -1016,7 +1018,7 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("copy propIndex of vertices, dot and array notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <rectangle name="rectangle" vertices="(2,-3) (3,4)" />
@@ -1042,107 +1044,165 @@ describe("Rectangle tag tests", async () => {
             t4y = 4;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("Ps[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[4]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
+            undefined,
+        );
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("Ps[1]")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([t1x, t1y]);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[4]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
+            undefined,
+        );
         expect(
-            stateVariables[resolveComponentName("x[1]")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues.value
+                .tree,
         ).eq(t2x);
         expect(
-            stateVariables[resolveComponentName("xa[1]")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("xa[1]")].stateValues
+                .value.tree,
         ).eq(t2x);
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("Ps[1]")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([t2x, t2y]);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[4]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
+            undefined,
+        );
         expect(
-            stateVariables[resolveComponentName("x[1]")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues.value
+                .tree,
         ).eq(t2y);
         expect(
-            stateVariables[resolveComponentName("xa[1]")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("xa[1]")].stateValues
+                .value.tree,
         ).eq(t2y);
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("Ps[1]")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([t3x, t3y]);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[4]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
+            undefined,
+        );
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("Ps[1]")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("Ps[1]")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([t4x, t4y]);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[4]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
+            undefined,
+        );
 
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("Ps[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[2]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[3]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("Ps[4]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("x[1]")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("xa[1]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
+            undefined,
+        );
     });
 
     it("draggable, vertices draggable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <rectangle vertices="(1,3) (5,7)" name="p" draggable="$draggable" verticesDraggable="$verticesDraggable" />
@@ -1164,19 +1224,20 @@ describe("Rectangle tag tests", async () => {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("p")
+                    await resolvePathToNodeIdx("p")
                 ].stateValues.vertices[0].map((v) => v.tree),
             ).eqls(v1);
             expect(
                 stateVariables[
-                    resolveComponentName("p")
+                    await resolvePathToNodeIdx("p")
                 ].stateValues.vertices[2].map((v) => v.tree),
             ).eqls(v3);
             expect(
-                stateVariables[resolveComponentName("p")].stateValues.draggable,
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .draggable,
             ).eq(draggable);
             expect(
-                stateVariables[resolveComponentName("p")].stateValues
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
                     .verticesDraggable,
             ).eq(verticesDraggable);
         }
@@ -1190,7 +1251,7 @@ describe("Rectangle tag tests", async () => {
 
         // cannot move single vertex
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 0: [4, 7] },
             core,
         });
@@ -1198,7 +1259,7 @@ describe("Rectangle tag tests", async () => {
 
         // cannot move all vertices
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [4, 7],
                 [8, 10],
@@ -1213,14 +1274,14 @@ describe("Rectangle tag tests", async () => {
         verticesDraggable = true;
         await updateBooleanInputValue({
             boolean: verticesDraggable,
-            componentIdx: resolveComponentName("verticesDraggable"),
+            componentIdx: await resolvePathToNodeIdx("verticesDraggable"),
             core,
         });
 
         // can move single vertex
         v1 = [4, 7];
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 0: v1 },
             core,
         });
@@ -1228,7 +1289,7 @@ describe("Rectangle tag tests", async () => {
 
         // cannot move all vertices
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [3, 8],
                 [8, 10],
@@ -1243,14 +1304,14 @@ describe("Rectangle tag tests", async () => {
         draggable = true;
         await updateBooleanInputValue({
             boolean: draggable,
-            componentIdx: resolveComponentName("draggable"),
+            componentIdx: await resolvePathToNodeIdx("draggable"),
             core,
         });
 
         // can move single vertex
         v3 = [-3, 2];
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 2: v3 },
             core,
         });
@@ -1260,7 +1321,7 @@ describe("Rectangle tag tests", async () => {
         v1 = [3, 8];
         v3 = [5, 1];
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [3, 8],
                 [5, 8],
@@ -1275,13 +1336,13 @@ describe("Rectangle tag tests", async () => {
         verticesDraggable = false;
         await updateBooleanInputValue({
             boolean: verticesDraggable,
-            componentIdx: resolveComponentName("verticesDraggable"),
+            componentIdx: await resolvePathToNodeIdx("verticesDraggable"),
             core,
         });
 
         // cannot move single vertex
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 2: [9, 3] },
             core,
         });
@@ -1291,7 +1352,7 @@ describe("Rectangle tag tests", async () => {
         v1 = [-4, 1];
         v3 = [3, 7];
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [-4, 1],
                 [3, 1],
@@ -1304,7 +1365,7 @@ describe("Rectangle tag tests", async () => {
     });
 
     it("single vertex constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(1,3)
@@ -1320,18 +1381,18 @@ describe("Rectangle tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((v) => v.evaluate_to_constant()),
         ).eqls([0, 4]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((v) => v.evaluate_to_constant()),
         ).eqls([1, 5]);
 
         // move rectangle
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [8, 9],
                 [9, 9],
@@ -1344,18 +1405,18 @@ describe("Rectangle tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((v) => v.evaluate_to_constant()),
         ).eqls([9, 10]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((v) => v.evaluate_to_constant()),
         ).eqls([10, 11]);
     });
 
     it("two vertices, first vertex constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(1,3)
@@ -1372,18 +1433,18 @@ describe("Rectangle tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((v) => v.evaluate_to_constant()),
         ).eqls([0, 4]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((v) => v.evaluate_to_constant()),
         ).eqls([6, 5]);
 
         // move rectangle
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [-8, -9],
                 [-2, -9],
@@ -1396,18 +1457,18 @@ describe("Rectangle tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((v) => v.evaluate_to_constant()),
         ).eqls([-9, -8]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((v) => v.evaluate_to_constant()),
         ).eqls([-3, -7]);
     });
 
     it("center and vertex, vertex constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(1,3)
@@ -1424,18 +1485,18 @@ describe("Rectangle tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((v) => v.evaluate_to_constant()),
         ).eqls([0, 4]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((v) => v.evaluate_to_constant()),
         ).eqls([12, 6]);
 
         // move rectangle
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [-8, -9],
                 [4, -9],
@@ -1448,18 +1509,18 @@ describe("Rectangle tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((v) => v.evaluate_to_constant()),
         ).eqls([-9, -8]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((v) => v.evaluate_to_constant()),
         ).eqls([3, -6]);
     });
 
     it("center and vertex, center constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(1,3)</point>
@@ -1476,18 +1537,18 @@ describe("Rectangle tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((v) => v.evaluate_to_constant()),
         ).eqls([1, 3]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((v) => v.evaluate_to_constant()),
         ).eqls([11, 9]);
 
         // move rectangle
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [-9, -8],
                 [1, -8],
@@ -1500,18 +1561,18 @@ describe("Rectangle tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map((v) => v.evaluate_to_constant()),
         ).eqls([-8, -7]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[2].map((v) => v.evaluate_to_constant()),
         ).eqls([2, -1]);
     });
 
     it("area and perimeter", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <rectangle name="r"/>
@@ -1526,14 +1587,16 @@ describe("Rectangle tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("area")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("area")].stateValues
+                .value,
         ).eq(area);
         expect(
-            stateVariables[resolveComponentName("perimeter")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("perimeter")].stateValues
+                .value,
         ).eq(perimeter);
 
         await movePolygon({
-            componentIdx: resolveComponentName("r"),
+            componentIdx: await resolvePathToNodeIdx("r"),
             pointCoords: { 1: [9, -3] },
             core,
         });
@@ -1543,10 +1606,12 @@ describe("Rectangle tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("area")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("area")].stateValues
+                .value,
         ).eq(area);
         expect(
-            stateVariables[resolveComponentName("perimeter")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("perimeter")].stateValues
+                .value,
         ).eq(perimeter);
     });
 });

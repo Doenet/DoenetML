@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -10,14 +10,14 @@ vi.mock("hyperformula");
 describe("TextList tag tests", async () => {
     async function test_textList({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         name,
         pName,
         text,
         texts,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: (name: string, origin?: number) => number;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         name?: string;
         pName?: string;
         text?: string;
@@ -27,19 +27,21 @@ describe("TextList tag tests", async () => {
 
         if (text !== undefined && pName !== undefined) {
             expect(
-                stateVariables[resolveComponentName(pName)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(pName)].stateValues
+                    .text,
             ).eq(text);
         }
 
         if (texts !== undefined && name !== undefined) {
             expect(
-                stateVariables[resolveComponentName(name)].stateValues.texts,
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .texts,
             ).eqls(texts);
         }
     }
 
     it("textList from string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><textList name="tl1">a b </textList></p>
     `,
@@ -47,7 +49,7 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl1",
             pName: "p",
             text: "a, b",
@@ -56,7 +58,7 @@ describe("TextList tag tests", async () => {
     });
 
     it("textList with text children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><textList name="tl1">
       <text>a</text>
@@ -74,7 +76,7 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl1",
             pName: "p1",
             text,
@@ -83,7 +85,7 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl2",
             pName: "p2",
             text,
@@ -92,7 +94,7 @@ describe("TextList tag tests", async () => {
     });
 
     it("textList with text and string children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><textList name="tl1">
      hello there
@@ -103,7 +105,7 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl1",
             pName: "p",
             text: "hello, there, apple, banana, strawberry",
@@ -113,11 +115,11 @@ describe("TextList tag tests", async () => {
 
     async function test_nested_and_inverse(
         core: PublicDoenetMLCore,
-        resolveComponentName: (name: string, origin?: number) => number,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl1",
             pName: "p",
             text: "1, 2, 3, 4, 5, 6, 7, 8, 9",
@@ -126,31 +128,31 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl2",
             texts: ["2", "3"],
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl3",
             texts: ["5", "6", "7", "8", "9"],
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl4",
             texts: ["5", "6", "7"],
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl5",
             texts: ["6", "7"],
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl6",
             texts: ["8", "9"],
         });
@@ -158,54 +160,54 @@ describe("TextList tag tests", async () => {
         // change values
 
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti1"),
+            componentIdx: await resolvePathToNodeIdx("ti1"),
             text: "a",
             core,
         });
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti2"),
+            componentIdx: await resolvePathToNodeIdx("ti2"),
             text: "b",
             core,
         });
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti3"),
+            componentIdx: await resolvePathToNodeIdx("ti3"),
             text: "c",
             core,
         });
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti4"),
+            componentIdx: await resolvePathToNodeIdx("ti4"),
             text: "d",
             core,
         });
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti5"),
+            componentIdx: await resolvePathToNodeIdx("ti5"),
             text: "e",
             core,
         });
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti6"),
+            componentIdx: await resolvePathToNodeIdx("ti6"),
             text: "f",
             core,
         });
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti7"),
+            componentIdx: await resolvePathToNodeIdx("ti7"),
             text: "g",
             core,
         });
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti8"),
+            componentIdx: await resolvePathToNodeIdx("ti8"),
             text: "h",
             core,
         });
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti9"),
+            componentIdx: await resolvePathToNodeIdx("ti9"),
             text: "i",
             core,
         });
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl1",
             pName: "p",
             text: "a, b, c, d, e, f, g, h, i",
@@ -214,38 +216,38 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl2",
             texts: ["b", "c"],
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl3",
             texts: ["e", "f", "g", "h", "i"],
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl4",
             texts: ["e", "f", "g"],
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl5",
             texts: ["f", "g"],
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl6",
             texts: ["h", "i"],
         });
     }
 
     it("textList with textList children, test inverse", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><textList name="tl1">
       <text>1</text>
@@ -273,11 +275,11 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        await test_nested_and_inverse(core, resolveComponentName);
+        await test_nested_and_inverse(core, resolvePathToNodeIdx);
     });
 
     it("textList with textList children and sugar, test inverse", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><textList name="tl1">
       1
@@ -304,11 +306,11 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        await test_nested_and_inverse(core, resolveComponentName);
+        await test_nested_and_inverse(core, resolvePathToNodeIdx);
     });
 
     it("textList with maximum number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><textList name="tl1" maxNumber="7">
         <text>a</text>
@@ -336,7 +338,7 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: `tl1`,
             texts: vals1,
             pName: "p",
@@ -347,7 +349,7 @@ describe("TextList tag tests", async () => {
             let vals = sub_vals[i];
             await test_textList({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 name: `tl${i + 2}`,
                 texts: vals,
             });
@@ -356,7 +358,7 @@ describe("TextList tag tests", async () => {
 
     // For now, at least, giving up the feature where you can overwrite maximum number and make it larger
     it.skip("copy textList and overwrite maximum number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><textList name="tl1">1 2 3 4 5</textList></p>
     <p name="p2">$tl1{maxNumber="3" name="tl2"}</p>
@@ -372,7 +374,7 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl1",
             texts: list,
             pName: "p1",
@@ -380,7 +382,7 @@ describe("TextList tag tests", async () => {
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl2",
             texts: list.slice(0, 3),
             pName: "p2",
@@ -388,7 +390,7 @@ describe("TextList tag tests", async () => {
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl3",
             texts: list,
             pName: "p3",
@@ -396,7 +398,7 @@ describe("TextList tag tests", async () => {
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl4",
             texts: list.slice(0, 3),
             pName: "p4",
@@ -404,7 +406,7 @@ describe("TextList tag tests", async () => {
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl5",
             texts: list.slice(0, 4),
             pName: "p5",
@@ -412,7 +414,7 @@ describe("TextList tag tests", async () => {
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl6",
             texts: list,
             pName: "p6",
@@ -421,7 +423,7 @@ describe("TextList tag tests", async () => {
     });
 
     it("dynamic maximum number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     
     <p>Maximum number 1: <mathInput name="mn" prefill="2" /></p>
@@ -440,7 +442,7 @@ describe("TextList tag tests", async () => {
         async function check_items(maxNum: number) {
             for (let pre of ["sec", "sec2"]) {
                 await test_textList({
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     core,
                     name: `${pre}.ml1`,
                     texts: list.slice(0, maxNum),
@@ -448,7 +450,7 @@ describe("TextList tag tests", async () => {
                     text: list.slice(0, maxNum).join(", "),
                 });
                 await test_textList({
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     core,
                     name: `${pre}.ml2`,
                     texts: list.slice(0, maxNum),
@@ -456,7 +458,7 @@ describe("TextList tag tests", async () => {
                     text: list.slice(0, maxNum).join(", "),
                 });
                 await test_textList({
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     core,
                     texts: list.slice(0, maxNum),
                     pName: `${pre}.p3`,
@@ -470,7 +472,7 @@ describe("TextList tag tests", async () => {
         await check_items(maxNum);
 
         maxNum = Infinity;
-        const mnIdx = resolveComponentName("mn");
+        const mnIdx = await resolvePathToNodeIdx("mn");
         await updateMathInputValue({ latex: "", componentIdx: mnIdx, core });
         await check_items(maxNum);
 
@@ -492,7 +494,7 @@ describe("TextList tag tests", async () => {
     });
 
     it("maxNumber with mathList, numberList, or textList child", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
   <mathInput prefill="2" name="maxN" />
@@ -526,7 +528,7 @@ describe("TextList tag tests", async () => {
             for (let [m, p] of names) {
                 await test_textList({
                     core,
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     name: m,
                     texts,
                     pName: p,
@@ -541,7 +543,7 @@ describe("TextList tag tests", async () => {
         maxN = 4;
         await updateMathInputValue({
             latex: maxN.toString(),
-            componentIdx: resolveComponentName("maxN"),
+            componentIdx: await resolvePathToNodeIdx("maxN"),
             core,
         });
         await check_items(maxN);
@@ -549,14 +551,14 @@ describe("TextList tag tests", async () => {
         maxN = 1;
         await updateMathInputValue({
             latex: maxN.toString(),
-            componentIdx: resolveComponentName("maxN"),
+            componentIdx: await resolvePathToNodeIdx("maxN"),
             core,
         });
         await check_items(maxN);
     });
 
     it("textList within textLists, ignore child hide", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><textList hide="true" name="tl1">1 2 3</textList></p>
 
@@ -574,7 +576,7 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl2",
             texts: ["4", "1", "2", "3", "5", "1", "2", "3"],
             pName: "p2",
@@ -583,7 +585,7 @@ describe("TextList tag tests", async () => {
 
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl3",
             texts: ["4", "1", "2", "3", "5", "1"],
             pName: "p3",
@@ -592,7 +594,7 @@ describe("TextList tag tests", async () => {
     });
 
     it("textList does not force composite replacement, even in boolean", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <boolean name="b">
       <textList>$nothing dog</textList> = <textList>dog</textList>
@@ -601,13 +603,13 @@ describe("TextList tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
     });
 
     it("textList adapts to math and text", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <textList name="tl"><text>1</text> <text>abc</text><text>3x</text></textList>
 
@@ -619,15 +621,16 @@ describe("TextList tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", 1, ["*", "a", "b", "c"], ["*", 3, "x"]]);
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            "1, abc, 3x",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq("1, abc, 3x");
     });
 
     it("text from textList", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <textList name="tl">apple banana</textList>
 
@@ -638,12 +641,13 @@ describe("TextList tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pText")].stateValues
+                .text,
         ).eq("Text: apple, banana");
     });
 
     it("definition and inverse based on shadowed value from a textList prop", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
     <math functionSymbols="a b" name="m" />
@@ -660,7 +664,7 @@ describe("TextList tag tests", async () => {
             x2 = "b";
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl",
             texts: [x1, x2],
             pName: "p",
@@ -671,12 +675,12 @@ describe("TextList tag tests", async () => {
         x2 = "d";
         await updateTextInputValue({
             text: `${x1}, ${x2}`,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await test_textList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "tl",
             texts: [x1, x2],
             pName: "p",

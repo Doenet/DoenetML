@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     callAction,
     updateMathInputValue,
@@ -52,7 +52,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         for (let group = 0; group < nGroups; group++) {
             for (let i = 0; i < numRepetitions; i++) {
-                let { core, resolveComponentName } = await createTestCore({
+                let { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML,
                     requestedVariantIndex: i + group * numRepetitions,
                 });
@@ -61,7 +61,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
                     true,
                 );
 
-                const componentIdx = resolveComponentName(name);
+                const componentIdx = await resolvePathToNodeIdx(name);
 
                 samples.push(
                     ...stateVariables[componentIdx].replacements!.map(
@@ -642,7 +642,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     });
 
     it("asList", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><selectRandomNumbers name="s" from="175" to="205" numToSelect="5" /></p>
     <p name="p2"><selectRandomNumbers extend="$s" name="s2" asList="false" /></p>
@@ -657,34 +657,44 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         results.push(
-            stateVariables[resolveComponentName("s[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[2]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[2]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[3]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[3]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[4]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[4]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[5]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[5]")].stateValues
+                .value,
         );
         results2.push(
-            stateVariables[resolveComponentName("s3[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s3[1]")].stateValues
+                .value,
         );
         results2.push(
-            stateVariables[resolveComponentName("s3[2]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s3[2]")].stateValues
+                .value,
         );
         results2.push(
-            stateVariables[resolveComponentName("s3[3]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s3[3]")].stateValues
+                .value,
         );
         results2.push(
-            stateVariables[resolveComponentName("s3[4]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s3[4]")].stateValues
+                .value,
         );
         results2.push(
-            stateVariables[resolveComponentName("s3[5]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s3[5]")].stateValues
+                .value,
         );
 
         for (let num of results) {
@@ -695,23 +705,23 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         }
 
         let roundedResults = results.map((x) => Math.round(x * 100) / 100);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            roundedResults.join(", "),
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            roundedResults.join(""),
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(roundedResults.join(", "));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(roundedResults.join(""));
         let roundedResults2 = results2.map((x) => Math.round(x * 100) / 100);
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            roundedResults2.join(", "),
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            roundedResults2.join(""),
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq(roundedResults2.join(", "));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq(roundedResults2.join(""));
     });
 
     it("select doesn't change dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput prefill="20" name="numToSelect"/>
     <mathInput prefill="10" name="maxNum"/>
@@ -729,9 +739,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let sample1replacements =
-            stateVariables[resolveComponentName("sample1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
         let sample2replacements =
-            stateVariables[resolveComponentName("sample2")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
         expect(sample1replacements.length).eq(20);
         expect(sample2replacements.length).eq(10);
         let sample1numbers = sample1replacements.map(
@@ -752,30 +762,30 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // Nothing changes when change mathInputs
         await updateMathInputValue({
             latex: "7",
-            componentIdx: resolveComponentName("numToSelect"),
+            componentIdx: await resolvePathToNodeIdx("numToSelect"),
             core,
         });
         await updateMathInputValue({
             latex: "11",
-            componentIdx: resolveComponentName("maxNum"),
+            componentIdx: await resolvePathToNodeIdx("maxNum"),
             core,
         });
         await updateMathInputValue({
             latex: "16",
-            componentIdx: resolveComponentName("numToSelect2"),
+            componentIdx: await resolvePathToNodeIdx("numToSelect2"),
             core,
         });
         await updateMathInputValue({
             latex: "18",
-            componentIdx: resolveComponentName("maxNum2"),
+            componentIdx: await resolvePathToNodeIdx("maxNum2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         sample1replacements =
-            stateVariables[resolveComponentName("sample1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
         sample2replacements =
-            stateVariables[resolveComponentName("sample2")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
 
         expect(
             sample1replacements.map(
@@ -790,7 +800,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     });
 
     it("sampled number does change dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput prefill="50" name="numSamples"/>
     <mathInput prefill="10" name="maxNum"/>
@@ -808,9 +818,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let sample1replacements =
-            stateVariables[resolveComponentName("sample1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
         let sample2replacements =
-            stateVariables[resolveComponentName("sample2")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
         expect(sample1replacements.length).eq(50);
         expect(sample2replacements.length).eq(180);
         let sample1numbers = sample1replacements.map(
@@ -837,27 +847,29 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // Get new samples when change number of samples
         await updateMathInputValue({
             latex: "70",
-            componentIdx: resolveComponentName("numSamples"),
+            componentIdx: await resolvePathToNodeIdx("numSamples"),
             core,
         });
         await updateMathInputValue({
             latex: "160",
-            componentIdx: resolveComponentName("numSamples2"),
+            componentIdx: await resolvePathToNodeIdx("numSamples2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersb = stateVariables[
-            resolveComponentName("sample1")
+            await resolvePathToNodeIdx("sample1")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let sample2numbersb = stateVariables[resolveComponentName("sample2")]
+        let sample2numbersb = stateVariables[
+            await resolvePathToNodeIdx("sample2")
+        ]
             .replacements!.slice(
                 0,
-                stateVariables[resolveComponentName("sample2")].replacements!
-                    .length -
-                    (stateVariables[resolveComponentName("sample2")]
+                stateVariables[await resolvePathToNodeIdx("sample2")]
+                    .replacements!.length -
+                    (stateVariables[await resolvePathToNodeIdx("sample2")]
                         .replacementsToWithhold ?? 0),
             )
             .map((x) => stateVariables[x.componentIdx].stateValues.value);
@@ -888,27 +900,29 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // Get new samples when sample parameters
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("maxNum"),
+            componentIdx: await resolvePathToNodeIdx("maxNum"),
             core,
         });
         await updateMathInputValue({
             latex: "18",
-            componentIdx: resolveComponentName("standardDeviation"),
+            componentIdx: await resolvePathToNodeIdx("standardDeviation"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersc = stateVariables[
-            resolveComponentName("sample1")
+            await resolvePathToNodeIdx("sample1")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let sample2numbersc = stateVariables[resolveComponentName("sample2")]
+        let sample2numbersc = stateVariables[
+            await resolvePathToNodeIdx("sample2")
+        ]
             .replacements!.slice(
                 0,
-                stateVariables[resolveComponentName("sample2")].replacements!
-                    .length -
-                    (stateVariables[resolveComponentName("sample2")]
+                stateVariables[await resolvePathToNodeIdx("sample2")]
+                    .replacements!.length -
+                    (stateVariables[await resolvePathToNodeIdx("sample2")]
                         .replacementsToWithhold ?? 0),
             )
             .map((x) => stateVariables[x.componentIdx].stateValues.value);
@@ -941,7 +955,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
     async function test_no_resample(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_sampled_numbers(sampledNumbers: number[]) {
             const stateVariables = await core.returnAllStateVariables(
@@ -950,42 +964,54 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("p1")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p1")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p2")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p2")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p3")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p3")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p4")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p4")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p5")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p5")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p6")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p6")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
@@ -1000,21 +1026,21 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // sample one variable
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value,
         );
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -1022,7 +1048,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // get same number back
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers);
@@ -1030,20 +1056,20 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // get two more samples
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let n1 =
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value;
         let n2 =
-            stateVariables[resolveComponentName("repeat1[2].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
+                .stateValues.value;
         let n3 =
-            stateVariables[resolveComponentName("repeat1[3].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
+                .stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
@@ -1052,7 +1078,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -1060,7 +1086,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // get first two numbers back
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers.slice(0, 2));
@@ -1068,29 +1094,29 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // get six total samples
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         n1 =
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value;
         n2 =
-            stateVariables[resolveComponentName("repeat1[2].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
+                .stateValues.value;
         n3 =
-            stateVariables[resolveComponentName("repeat1[3].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
+                .stateValues.value;
         let n4 =
-            stateVariables[resolveComponentName("repeat1[4].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[4].n[1]")]
+                .stateValues.value;
         let n5 =
-            stateVariables[resolveComponentName("repeat1[5].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[5].n[1]")]
+                .stateValues.value;
         let n6 =
-            stateVariables[resolveComponentName("repeat1[6].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[6].n[1]")]
+                .stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -1102,7 +1128,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -1110,14 +1136,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // get all six back
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers);
     }
 
     it("select doesn't resample in dynamic repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     How many numbers do you want? <mathInput name="mi1" />
     <setup>
@@ -1137,11 +1163,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     `,
         });
 
-        await test_no_resample(core, resolveComponentName);
+        await test_no_resample(core, resolvePathToNodeIdx);
     });
 
     it("random number doesn't resample in dynamic repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     How many numbers do you want? <mathInput name="mi1" />
     <setup>
@@ -1161,11 +1187,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     `,
         });
 
-        await test_no_resample(core, resolveComponentName);
+        await test_no_resample(core, resolvePathToNodeIdx);
     });
 
     it("numToSelect from selectFromSequence", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>n1 = <selectFromSequence from="1" to="5" name="n1" /></p>
     <p>nums = <selectRandomNumbers name="nums1" from="1" to="10" numToSelect="$n1" displayDigits="10" /></p>
@@ -1191,38 +1217,43 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let n1 =
-            stateVariables[resolveComponentName("n1[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
+                .value;
         let n2 =
-            stateVariables[resolveComponentName("n2[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
+                .value;
         let n3 =
-            stateVariables[resolveComponentName("n3[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
+                .value;
         let n4 =
-            stateVariables[resolveComponentName("n4[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
+                .value;
         let n5 =
-            stateVariables[resolveComponentName("n5[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n5[1]")].stateValues
+                .value;
 
         let nums1 = stateVariables[
-            resolveComponentName("nums1")
+            await resolvePathToNodeIdx("nums1")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums2 = stateVariables[
-            resolveComponentName("nums2")
+            await resolvePathToNodeIdx("nums2")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums3 = stateVariables[
-            resolveComponentName("nums3")
+            await resolvePathToNodeIdx("nums3")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums4 = stateVariables[
-            resolveComponentName("nums4")
+            await resolvePathToNodeIdx("nums4")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
         let nums5 = stateVariables[
-            resolveComponentName("nums5")
+            await resolvePathToNodeIdx("nums5")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -1247,27 +1278,37 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         let l = ["a", "b", "c", "d", "e"];
 
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(
             nums1
                 .map((v, i) => `${l[i]}1=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
                 .join(", "),
         );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(
             nums2
                 .map((v, i) => `${l[i]}2=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
                 .join(", "),
         );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq(
             nums3
                 .map((v, i) => `${l[i]}3=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
                 .join(", "),
         );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq(
             nums4
                 .map((v, i) => `${l[i]}4=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
                 .join(", "),
         );
-        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
+        ).eq(
             nums5
                 .map((v, i) => `${l[i]}5=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
                 .join(", "),
@@ -1275,7 +1316,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     });
 
     it("rounding", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><selectRandomNumbers name="n1" from="10" to="20" displayDigits="10" /></p>
     <p><selectRandomNumbers name="n2" from="10" to="20" displayDigits="3" /></p>
@@ -1303,76 +1344,92 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let n1 =
-            stateVariables[resolveComponentName("n1[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
+                .value;
         let n2 =
-            stateVariables[resolveComponentName("n2[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
+                .value;
         let n3 =
-            stateVariables[resolveComponentName("n3[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
+                .value;
         let n4 =
-            stateVariables[resolveComponentName("n4[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
+                .value;
         let n5 =
-            stateVariables[resolveComponentName("n5[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n5[1]")].stateValues
+                .value;
         let n6 =
-            stateVariables[resolveComponentName("n6[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n6[1]")].stateValues
+                .value;
         let n7 =
-            stateVariables[resolveComponentName("n7[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n7[1]")].stateValues
+                .value;
         let n8 =
-            stateVariables[resolveComponentName("n8[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("n8[1]")].stateValues
+                .value;
 
         expect(
-            stateVariables[resolveComponentName("n1[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n1 * 10 ** 8) / 10 ** 8));
         expect(
-            stateVariables[resolveComponentName("n2[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n2 * 10 ** 1) / 10 ** 1));
         expect(
-            stateVariables[resolveComponentName("n3[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n3 * 10 ** 3) / 10 ** 3));
         expect(
-            stateVariables[resolveComponentName("n4[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
+                .text,
         ).eq(String(n4) + ".0");
         expect(
-            stateVariables[resolveComponentName("n5[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n5[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n5 * 10 ** 8) / 10 ** 8));
         expect(
-            stateVariables[resolveComponentName("n6[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n6[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n6 * 10 ** 1) / 10 ** 1));
         expect(
-            stateVariables[resolveComponentName("n7[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n7[1]")].stateValues
+                .text,
         ).eq(String(Math.round(n7 * 10 ** 3) / 10 ** 3));
         expect(
-            stateVariables[resolveComponentName("n8[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("n8[1]")].stateValues
+                .text,
         ).eq(String(n8) + ".0");
 
-        expect(stateVariables[resolveComponentName("n1a")].stateValues.text).eq(
-            String(Math.round(n1 * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables[resolveComponentName("n2a")].stateValues.text).eq(
-            String(Math.round(n2 * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables[resolveComponentName("n3a")].stateValues.text).eq(
-            String(Math.round(n3 * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables[resolveComponentName("n4a")].stateValues.text).eq(
-            String(n4) + ".0",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n1a")].stateValues.text,
+        ).eq(String(Math.round(n1 * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2a")].stateValues.text,
+        ).eq(String(Math.round(n2 * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n3a")].stateValues.text,
+        ).eq(String(Math.round(n3 * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n4a")].stateValues.text,
+        ).eq(String(n4) + ".0");
 
-        expect(stateVariables[resolveComponentName("n5a")].stateValues.text).eq(
-            String(Math.round(n5 * 10 ** 8) / 10 ** 8),
-        );
-        expect(stateVariables[resolveComponentName("n6a")].stateValues.text).eq(
-            String(Math.round(n6 * 10 ** 1) / 10 ** 1),
-        );
-        expect(stateVariables[resolveComponentName("n7a")].stateValues.text).eq(
-            String(Math.round(n7 * 10 ** 3) / 10 ** 3),
-        );
-        expect(stateVariables[resolveComponentName("n8a")].stateValues.text).eq(
-            String(n8) + ".0",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n5a")].stateValues.text,
+        ).eq(String(Math.round(n5 * 10 ** 8) / 10 ** 8));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n6a")].stateValues.text,
+        ).eq(String(Math.round(n6 * 10 ** 1) / 10 ** 1));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n7a")].stateValues.text,
+        ).eq(String(Math.round(n7 * 10 ** 3) / 10 ** 3));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n8a")].stateValues.text,
+        ).eq(String(n8) + ".0");
     });
 
     it("copying parameters", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of samples <mathInput name="numSamples" prefill="10" /></p>
     <p>Specified type of random number <textInput name="type" /></p>
@@ -1404,7 +1461,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     `,
         });
 
-        let checkSamples = function ({
+        let checkSamples = async function ({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1428,30 +1485,31 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             expect(samples.length).eq(numSamples);
 
             expect(
-                stateVariables[resolveComponentName("numSamples")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("numSamples")]
+                    .stateValues.value.tree,
             ).eq(numSamples);
             expect(
-                stateVariables[resolveComponentName("type")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("type")].stateValues
+                    .value,
             ).eq(specifiedType);
             expect(
-                stateVariables[resolveComponentName("specifiedMean")]
+                stateVariables[await resolvePathToNodeIdx("specifiedMean")]
                     .stateValues.value.tree,
             ).eq(specifiedMean);
             expect(
-                stateVariables[resolveComponentName("specifiedVariance")]
+                stateVariables[await resolvePathToNodeIdx("specifiedVariance")]
                     .stateValues.value.tree,
             ).eq(specifiedVariance);
             expect(
-                stateVariables[resolveComponentName("specifiedFrom")]
+                stateVariables[await resolvePathToNodeIdx("specifiedFrom")]
                     .stateValues.value.tree,
             ).eq(specifiedFrom);
             expect(
-                stateVariables[resolveComponentName("specifiedTo")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("specifiedTo")]
+                    .stateValues.value.tree,
             ).eq(specifiedTo);
             expect(
-                stateVariables[resolveComponentName("specifiedStep")]
+                stateVariables[await resolvePathToNodeIdx("specifiedStep")]
                     .stateValues.value.tree,
             ).eq(specifiedStep);
 
@@ -1461,8 +1519,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             }
 
             expect(
-                stateVariables[resolveComponentName("actualType")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("actualType")]
+                    .stateValues.value,
             ).eq(type);
 
             let from = specifiedFrom;
@@ -1489,28 +1547,28 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             let expectedStandardDeviation = Math.sqrt(expectedVariance);
 
             expect(
-                stateVariables[resolveComponentName("actualFrom")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("actualFrom")]
+                    .stateValues.value,
             ).eqls(from);
             expect(
-                stateVariables[resolveComponentName("actualTo")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("actualTo")]
+                    .stateValues.value,
             ).eqls(to);
             expect(
-                stateVariables[resolveComponentName("actualStep")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("actualStep")]
+                    .stateValues.value,
             ).eqls(step);
             expect(
-                stateVariables[resolveComponentName("expectedMean")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("expectedMean")]
+                    .stateValues.value,
             ).closeTo(expectedMean, 1e-12);
             expect(
-                stateVariables[resolveComponentName("expectedVariance")]
+                stateVariables[await resolvePathToNodeIdx("expectedVariance")]
                     .stateValues.value,
             ).closeTo(expectedVariance, 1e-12);
             expect(
                 stateVariables[
-                    resolveComponentName("expectedStandardDeviation")
+                    await resolvePathToNodeIdx("expectedStandardDeviation")
                 ].stateValues.value,
             ).closeTo(expectedStandardDeviation, 1e-12);
 
@@ -1519,13 +1577,13 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             let resultingStandardDeviation = Math.sqrt(resultingVariance);
 
             expect(
-                stateVariables[resolveComponentName("resultingMean")]
+                stateVariables[await resolvePathToNodeIdx("resultingMean")]
                     .stateValues.value.tree,
             ).closeTo(resultingMean, 1e-12);
             expect(resultingMean).closeTo(expectedMean, allowedErrorInMean);
 
             expect(
-                stateVariables[resolveComponentName("resultingVariance")]
+                stateVariables[await resolvePathToNodeIdx("resultingVariance")]
                     .stateValues.value.tree,
             ).closeTo(resultingVariance, 1e-12);
             expect(resultingVariance).closeTo(
@@ -1535,7 +1593,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
             expect(
                 stateVariables[
-                    resolveComponentName("resultingStandardDeviation")
+                    await resolvePathToNodeIdx("resultingStandardDeviation")
                 ].stateValues.value.tree,
             ).closeTo(resultingStandardDeviation, 1e-12);
             expect(resultingStandardDeviation).closeTo(
@@ -1546,7 +1604,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             if (checkAllSamples) {
                 for (let ind = 1; ind <= 6; ind++) {
                     let numbers = stateVariables[
-                        resolveComponentName(`p${ind}`)
+                        await resolvePathToNodeIdx(`p${ind}`)
                     ].stateValues.text
                         .split(",")
                         .map(Number);
@@ -1570,7 +1628,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // initial values
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1578,7 +1636,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 0.4,
             allowedErrorInVariance: 0.4,
             stateVariables,
@@ -1588,13 +1647,13 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         numSamples = 50;
         await updateMathInputValue({
             latex: numSamples.toString(),
-            componentIdx: resolveComponentName("numSamples"),
+            componentIdx: await resolvePathToNodeIdx("numSamples"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1602,7 +1661,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 0.2,
             allowedErrorInVariance: 0.2,
             checkAllSamples: false,
@@ -1614,18 +1674,18 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         specifiedTo = 0;
         await updateMathInputValue({
             latex: specifiedFrom.toString(),
-            componentIdx: resolveComponentName("specifiedFrom"),
+            componentIdx: await resolvePathToNodeIdx("specifiedFrom"),
             core,
         });
         await updateMathInputValue({
             latex: specifiedTo.toString(),
-            componentIdx: resolveComponentName("specifiedTo"),
+            componentIdx: await resolvePathToNodeIdx("specifiedTo"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1633,7 +1693,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 0.4,
             allowedErrorInVariance: 0.4,
             checkAllSamples: false,
@@ -1645,13 +1706,13 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         await updateTextInputValue({
             text: specifiedType,
-            componentIdx: resolveComponentName("type"),
+            componentIdx: await resolvePathToNodeIdx("type"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1659,7 +1720,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 0.6,
             allowedErrorInVariance: 0.4,
             checkAllSamples: false,
@@ -1673,23 +1735,23 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         await updateMathInputValue({
             latex: specifiedFrom.toString(),
-            componentIdx: resolveComponentName("specifiedFrom"),
+            componentIdx: await resolvePathToNodeIdx("specifiedFrom"),
             core,
         });
         await updateMathInputValue({
             latex: specifiedTo.toString(),
-            componentIdx: resolveComponentName("specifiedTo"),
+            componentIdx: await resolvePathToNodeIdx("specifiedTo"),
             core,
         });
         await updateMathInputValue({
             latex: specifiedStep.toString(),
-            componentIdx: resolveComponentName("specifiedStep"),
+            componentIdx: await resolvePathToNodeIdx("specifiedStep"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1697,7 +1759,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 1.5,
             allowedErrorInVariance: 3,
             checkAllSamples: false,
@@ -1709,13 +1772,13 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         await updateTextInputValue({
             text: specifiedType,
-            componentIdx: resolveComponentName("type"),
+            componentIdx: await resolvePathToNodeIdx("type"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1723,7 +1786,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 0.8,
             allowedErrorInVariance: 0.8,
             checkAllSamples: false,
@@ -1736,18 +1800,18 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         await updateMathInputValue({
             latex: specifiedMean.toString(),
-            componentIdx: resolveComponentName("specifiedMean"),
+            componentIdx: await resolvePathToNodeIdx("specifiedMean"),
             core,
         });
         await updateMathInputValue({
             latex: specifiedVariance.toString(),
-            componentIdx: resolveComponentName("specifiedVariance"),
+            componentIdx: await resolvePathToNodeIdx("specifiedVariance"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1755,7 +1819,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 0.8,
             allowedErrorInVariance: 3,
             checkAllSamples: false,
@@ -1766,13 +1831,13 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         numSamples = 200;
         await updateMathInputValue({
             latex: numSamples.toString(),
-            componentIdx: resolveComponentName("numSamples"),
+            componentIdx: await resolvePathToNodeIdx("numSamples"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1780,7 +1845,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 0.4,
             allowedErrorInVariance: 0.8,
             checkAllSamples: false,
@@ -1791,13 +1857,13 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         numSamples = 20;
         await updateMathInputValue({
             latex: numSamples.toString(),
-            componentIdx: resolveComponentName("numSamples"),
+            componentIdx: await resolvePathToNodeIdx("numSamples"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        checkSamples({
+        await checkSamples({
             numSamples,
             specifiedType,
             specifiedMean,
@@ -1805,7 +1871,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedFrom,
             specifiedTo,
             specifiedStep,
-            sampleComponent: stateVariables[resolveComponentName("samples")],
+            sampleComponent:
+                stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 1.5,
             allowedErrorInVariance: 4,
             checkAllSamples: true,
@@ -1822,7 +1889,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: 1,
         });
@@ -1830,7 +1897,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables[
-            resolveComponentName("p1")
+            await resolvePathToNodeIdx("p1")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -1842,7 +1909,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             expect(sample).lte(1);
         }
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: 1,
         }));
@@ -1850,14 +1917,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples2 = stateVariables[
-            resolveComponentName("p1")
+            await resolvePathToNodeIdx("p1")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(samples2).eqls(samples);
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: 2,
         }));
@@ -1865,7 +1932,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         samples2 = stateVariables[
-            resolveComponentName("p1")
+            await resolvePathToNodeIdx("p1")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -1880,7 +1947,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     });
 
     it(`resample random numbers`, async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><sampleRandomNumbers name="srn1" numSamples="2" from="1" to="10" />,
           <sampleRandomNumbers name="srn2" from="1000" to="10000" />
@@ -1899,9 +1966,15 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        rn1 = stateVariables[resolveComponentName("srn1[1]")].stateValues.value;
-        rn2 = stateVariables[resolveComponentName("srn1[2]")].stateValues.value;
-        rn3 = stateVariables[resolveComponentName("srn2[1]")].stateValues.value;
+        rn1 =
+            stateVariables[await resolvePathToNodeIdx("srn1[1]")].stateValues
+                .value;
+        rn2 =
+            stateVariables[await resolvePathToNodeIdx("srn1[2]")].stateValues
+                .value;
+        rn3 =
+            stateVariables[await resolvePathToNodeIdx("srn2[1]")].stateValues
+                .value;
 
         expect(rn1).gt(1).lt(10);
         expect(rn2).gt(1).lt(10);
@@ -1910,22 +1983,26 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let rn1Rounded = Math.round(rn1 * 100) / 100;
 
         expect(
-            stateVariables[resolveComponentName("srn1[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("srn1[1]")].stateValues
+                .text,
         ).eq(rn1Rounded.toString());
 
         await callAction({
-            componentIdx: resolveComponentName("resamp1"),
+            componentIdx: await resolvePathToNodeIdx("resamp1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         rn1b =
-            stateVariables[resolveComponentName("srn1[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("srn1[1]")].stateValues
+                .value;
         rn2b =
-            stateVariables[resolveComponentName("srn1[2]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("srn1[2]")].stateValues
+                .value;
         rn3b =
-            stateVariables[resolveComponentName("srn2[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("srn2[1]")].stateValues
+                .value;
 
         expect(rn1b).gt(1).lt(10);
         expect(rn2b).gt(1).lt(10);
@@ -1938,22 +2015,26 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let rn3Rounded = Math.round(rn3 * 100) / 100;
 
         expect(
-            stateVariables[resolveComponentName("srn2[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("srn2[1]")].stateValues
+                .text,
         ).eq(rn3Rounded.toString());
 
         await callAction({
-            componentIdx: resolveComponentName("resamp2"),
+            componentIdx: await resolvePathToNodeIdx("resamp2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let rn1c =
-            stateVariables[resolveComponentName("srn1[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("srn1[1]")].stateValues
+                .value;
         let rn2c =
-            stateVariables[resolveComponentName("srn1[2]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("srn1[2]")].stateValues
+                .value;
         let rn3c =
-            stateVariables[resolveComponentName("srn2[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("srn2[1]")].stateValues
+                .value;
 
         expect(rn1c).gt(1).lt(10);
         expect(rn2c).gt(1).lt(10);

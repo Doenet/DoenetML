@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveMath,
@@ -27,7 +27,7 @@ function isUndefinedOrInactive(comp) {
 describe("Group tag tests", async () => {
     async function test_nested_groups(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let animal = "fox";
         let plant = "tree";
@@ -36,76 +36,86 @@ describe("Group tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("animalp")].stateValues.text,
-        ).eq(animalSentence);
-        expect(
-            stateVariables[resolveComponentName("plantp")].stateValues.text,
-        ).eq(plantSentence);
-        expect(
-            stateVariables[resolveComponentName("animalp2")].stateValues.text,
-        ).eq(animalSentence);
-        expect(
-            stateVariables[resolveComponentName("plantp2")].stateValues.text,
-        ).eq(plantSentence);
-        expect(
-            stateVariables[resolveComponentName("g4.plantp2")].stateValues.text,
-        ).eq(plantSentence);
-        expect(
-            stateVariables[resolveComponentName("g5.plantp")].stateValues.text,
-        ).eq(plantSentence);
-        expect(
-            stateVariables[resolveComponentName("g5.animalp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("animalp")].stateValues
                 .text,
         ).eq(animalSentence);
         expect(
-            stateVariables[resolveComponentName("g5.plantp2")].stateValues.text,
-        ).eq(plantSentence);
-        expect(
-            stateVariables[resolveComponentName("g5.g4.plantp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("plantp")].stateValues
                 .text,
         ).eq(plantSentence);
         expect(
-            stateVariables[resolveComponentName("g6.animalp")].stateValues.text,
-        ).eq(animalSentence);
-        expect(
-            stateVariables[resolveComponentName("g6.plantp")].stateValues.text,
-        ).eq(plantSentence);
-        expect(
-            stateVariables[resolveComponentName("g6.animalp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("animalp2")].stateValues
                 .text,
         ).eq(animalSentence);
         expect(
-            stateVariables[resolveComponentName("g6.plantp2")].stateValues.text,
-        ).eq(plantSentence);
-        expect(
-            stateVariables[resolveComponentName("g6.g4.plantp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("plantp2")].stateValues
                 .text,
         ).eq(plantSentence);
         expect(
-            stateVariables[resolveComponentName("g6.g5.plantp")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g4.plantp2")].stateValues
                 .text,
         ).eq(plantSentence);
         expect(
-            stateVariables[resolveComponentName("g6.g5.animalp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g5.plantp")].stateValues
+                .text,
+        ).eq(plantSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g5.animalp2")]
+                .stateValues.text,
+        ).eq(animalSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g5.plantp2")].stateValues
+                .text,
+        ).eq(plantSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g5.g4.plantp2")]
+                .stateValues.text,
+        ).eq(plantSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.animalp")].stateValues
                 .text,
         ).eq(animalSentence);
         expect(
-            stateVariables[resolveComponentName("g6.g5.plantp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g6.plantp")].stateValues
                 .text,
         ).eq(plantSentence);
         expect(
-            stateVariables[resolveComponentName("g6.g5.g4.plantp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g6.animalp2")]
+                .stateValues.text,
+        ).eq(animalSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.plantp2")].stateValues
                 .text,
+        ).eq(plantSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g4.plantp2")]
+                .stateValues.text,
+        ).eq(plantSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g5.plantp")]
+                .stateValues.text,
+        ).eq(plantSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g5.animalp2")]
+                .stateValues.text,
+        ).eq(animalSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g5.plantp2")]
+                .stateValues.text,
+        ).eq(plantSentence);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g5.g4.plantp2")]
+                .stateValues.text,
         ).eq(plantSentence);
 
         await updateTextInputValue({
             text: "beetle",
-            componentIdx: resolveComponentName("animal"),
+            componentIdx: await resolvePathToNodeIdx("animal"),
             core,
         });
         await updateTextInputValue({
             text: "dandelion",
-            componentIdx: resolveComponentName("plant"),
+            componentIdx: await resolvePathToNodeIdx("plant"),
             core,
         });
 
@@ -116,70 +126,80 @@ describe("Group tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("animalp")].stateValues.text,
-        ).eq(animalSentence2);
-        expect(
-            stateVariables[resolveComponentName("plantp")].stateValues.text,
-        ).eq(plantSentence2);
-        expect(
-            stateVariables[resolveComponentName("animalp2")].stateValues.text,
-        ).eq(animalSentence2);
-        expect(
-            stateVariables[resolveComponentName("plantp2")].stateValues.text,
-        ).eq(plantSentence2);
-        expect(
-            stateVariables[resolveComponentName("g4.plantp2")].stateValues.text,
-        ).eq(plantSentence2);
-        expect(
-            stateVariables[resolveComponentName("g5.plantp")].stateValues.text,
-        ).eq(plantSentence2);
-        expect(
-            stateVariables[resolveComponentName("g5.animalp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("animalp")].stateValues
                 .text,
         ).eq(animalSentence2);
         expect(
-            stateVariables[resolveComponentName("g5.plantp2")].stateValues.text,
-        ).eq(plantSentence2);
-        expect(
-            stateVariables[resolveComponentName("g5.g4.plantp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("plantp")].stateValues
                 .text,
         ).eq(plantSentence2);
         expect(
-            stateVariables[resolveComponentName("g6.animalp")].stateValues.text,
-        ).eq(animalSentence2);
-        expect(
-            stateVariables[resolveComponentName("g6.plantp")].stateValues.text,
-        ).eq(plantSentence2);
-        expect(
-            stateVariables[resolveComponentName("g6.animalp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("animalp2")].stateValues
                 .text,
         ).eq(animalSentence2);
         expect(
-            stateVariables[resolveComponentName("g6.plantp2")].stateValues.text,
-        ).eq(plantSentence2);
-        expect(
-            stateVariables[resolveComponentName("g6.g4.plantp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("plantp2")].stateValues
                 .text,
         ).eq(plantSentence2);
         expect(
-            stateVariables[resolveComponentName("g6.g5.plantp")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g4.plantp2")].stateValues
                 .text,
         ).eq(plantSentence2);
         expect(
-            stateVariables[resolveComponentName("g6.g5.animalp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g5.plantp")].stateValues
+                .text,
+        ).eq(plantSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g5.animalp2")]
+                .stateValues.text,
+        ).eq(animalSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g5.plantp2")].stateValues
+                .text,
+        ).eq(plantSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g5.g4.plantp2")]
+                .stateValues.text,
+        ).eq(plantSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.animalp")].stateValues
                 .text,
         ).eq(animalSentence2);
         expect(
-            stateVariables[resolveComponentName("g6.g5.plantp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g6.plantp")].stateValues
                 .text,
         ).eq(plantSentence2);
         expect(
-            stateVariables[resolveComponentName("g6.g5.g4.plantp2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g6.animalp2")]
+                .stateValues.text,
+        ).eq(animalSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.plantp2")].stateValues
                 .text,
+        ).eq(plantSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g4.plantp2")]
+                .stateValues.text,
+        ).eq(plantSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g5.plantp")]
+                .stateValues.text,
+        ).eq(plantSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g5.animalp2")]
+                .stateValues.text,
+        ).eq(animalSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g5.plantp2")]
+                .stateValues.text,
+        ).eq(plantSentence2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g6.g5.g4.plantp2")]
+                .stateValues.text,
         ).eq(plantSentence2);
     }
     it("nested groups, extended", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Animal: <textInput name="animal" prefill="fox"/></p>
     <p>Plant: <textInput name="plant" prefill="tree"/></p>
@@ -200,11 +220,11 @@ describe("Group tag tests", async () => {
     `,
         });
 
-        await test_nested_groups(core, resolveComponentName);
+        await test_nested_groups(core, resolvePathToNodeIdx);
     });
 
     it("nested groups, initially unresolved, reffed", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
     $g1
@@ -241,11 +261,11 @@ describe("Group tag tests", async () => {
     `,
         });
 
-        await test_nested_groups(core, resolveComponentName);
+        await test_nested_groups(core, resolvePathToNodeIdx);
     });
 
     it("group with a map that begins zero length, copied multiple times", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup><sequence from="$from" to="$to" length="$count" name="s" /></setup>
     <p name="p1"><group asList name="group1"><repeat for="$s" itemName="x">
@@ -278,8 +298,8 @@ describe("Group tag tests", async () => {
             );
             for (let i = 1; i <= 6; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`p${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`p${i}`)]
+                        .stateValues.text,
                 ).eq(sequence_text);
             }
         }
@@ -295,7 +315,7 @@ describe("Group tag tests", async () => {
         count = 1;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("count"),
+            componentIdx: await resolvePathToNodeIdx("count"),
             core,
         });
         await check_items(count, from, to);
@@ -304,7 +324,7 @@ describe("Group tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("count"),
+            componentIdx: await resolvePathToNodeIdx("count"),
             core,
         });
         await check_items(count, from, to);
@@ -313,7 +333,7 @@ describe("Group tag tests", async () => {
         count = 2;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("count"),
+            componentIdx: await resolvePathToNodeIdx("count"),
             core,
         });
         await check_items(count, from, to);
@@ -323,12 +343,12 @@ describe("Group tag tests", async () => {
         to = 5;
         await updateMathInputValue({
             latex: from.toString(),
-            componentIdx: resolveComponentName("from"),
+            componentIdx: await resolvePathToNodeIdx("from"),
             core,
         });
         await updateMathInputValue({
             latex: to.toString(),
-            componentIdx: resolveComponentName("to"),
+            componentIdx: await resolvePathToNodeIdx("to"),
             core,
         });
         await check_items(count, from, to);
@@ -337,7 +357,7 @@ describe("Group tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("count"),
+            componentIdx: await resolvePathToNodeIdx("count"),
             core,
         });
         await check_items(count, from, to);
@@ -346,14 +366,14 @@ describe("Group tag tests", async () => {
         count = 3;
         await updateMathInputValue({
             latex: count.toString(),
-            componentIdx: resolveComponentName("count"),
+            componentIdx: await resolvePathToNodeIdx("count"),
             core,
         });
         await check_items(count, from, to);
     });
 
     it("group with mutual references", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><asList name="al1">
     <group name="group1"><math simplify><math name="x">$var1</math> + $y</math></group>
@@ -388,8 +408,8 @@ describe("Group tag tests", async () => {
             );
             for (let i = 1; i <= 9; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`p${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`p${i}`)]
+                        .stateValues.text,
                 ).eq(text);
             }
         }
@@ -403,19 +423,19 @@ describe("Group tag tests", async () => {
         var2 = "v";
         await updateMathInputValue({
             latex: var1,
-            componentIdx: resolveComponentName("var1"),
+            componentIdx: await resolvePathToNodeIdx("var1"),
             core,
         });
         await updateMathInputValue({
             latex: var2,
-            componentIdx: resolveComponentName("var2"),
+            componentIdx: await resolvePathToNodeIdx("var2"),
             core,
         });
         await check_items(var1, var2);
     });
 
     it("fixed propagated when copy group", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <group name="g">
@@ -440,83 +460,86 @@ describe("Group tag tests", async () => {
 
         // Initial values
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("g")].stateValues.fixed).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("g.A")].stateValues.fixed,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.fixed,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([1, 2]);
-        expect(stateVariables[resolveComponentName("g2")].stateValues.fixed).eq(
-            true,
-        );
+            stateVariables[await resolvePathToNodeIdx("g.A")].stateValues.fixed,
+        ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g2.A")].stateValues.fixed,
+            stateVariables[
+                await resolvePathToNodeIdx("g.A")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([1, 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.fixed,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("g2.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([1, 2]);
-        expect(stateVariables[resolveComponentName("g3")].stateValues.fixed).eq(
-            false,
-        );
+            stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues
+                .fixed,
+        ).eq(true);
         expect(
-            stateVariables[resolveComponentName("g3.A")].stateValues.fixed,
+            stateVariables[
+                await resolvePathToNodeIdx("g2.A")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([1, 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues.fixed,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([1, 2]);
-        expect(stateVariables[resolveComponentName("g4")].stateValues.fixed).eq(
-            false,
-        );
-        expect(
-            stateVariables[resolveComponentName("g4.A")].stateValues.fixed,
+            stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues
+                .fixed,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g4.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g3.A")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([1, 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g4")].stateValues.fixed,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g4.A")].stateValues
+                .fixed,
+        ).eq(false);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("g4.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([1, 2]);
 
         // move first point
         await movePoint({
-            componentIdx: resolveComponentName("g.A"),
+            componentIdx: await resolvePathToNodeIdx("g.A"),
             x: 3,
             y: 4,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
         expect(
-            stateVariables[resolveComponentName("g2.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g2.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
         expect(
-            stateVariables[resolveComponentName("g3.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g3.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
         expect(
-            stateVariables[resolveComponentName("g4.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g4.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([1, 2]);
 
         // can't move second point as fixed
         await movePoint({
-            componentIdx: resolveComponentName("g2.A"),
+            componentIdx: await resolvePathToNodeIdx("g2.A"),
             x: 5,
             y: 6,
             core,
@@ -524,24 +547,24 @@ describe("Group tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
         expect(
-            stateVariables[resolveComponentName("g2.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g2.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
         expect(
-            stateVariables[resolveComponentName("g3.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g3.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
         expect(
-            stateVariables[resolveComponentName("g4.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g4.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([1, 2]);
 
         // TODO: this used to be immobile but not it is
@@ -550,7 +573,7 @@ describe("Group tag tests", async () => {
 
         // for now, can move third point as depends on directly on xs of first point
         await movePoint({
-            componentIdx: resolveComponentName("g3.A"),
+            componentIdx: await resolvePathToNodeIdx("g3.A"),
             x: 7,
             y: 8,
             core,
@@ -558,58 +581,58 @@ describe("Group tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([7, 8]);
         expect(
-            stateVariables[resolveComponentName("g2.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g2.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([7, 8]);
         expect(
-            stateVariables[resolveComponentName("g3.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g3.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([7, 8]);
         expect(
-            stateVariables[resolveComponentName("g4.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g4.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([1, 2]);
 
         // can move fourth point
         await movePoint({
-            componentIdx: resolveComponentName("g4.A"),
+            componentIdx: await resolvePathToNodeIdx("g4.A"),
             x: 9,
             y: 0,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([7, 8]);
         expect(
-            stateVariables[resolveComponentName("g2.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g2.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([7, 8]);
         expect(
-            stateVariables[resolveComponentName("g3.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g3.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([7, 8]);
         expect(
-            stateVariables[resolveComponentName("g4.A")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g4.A")
+            ].stateValues.xs.map((x) => x.tree),
         ).eqls([9, 0]);
     });
 
     it("disabled propagated when copy group", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <group name="g">
         <textInput name="ti" prefill="hello" />
@@ -628,125 +651,153 @@ describe("Group tag tests", async () => {
         // Initial values
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .disabled,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g.ti")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("g.ti")].stateValues
+                .disabled,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g.ti")].stateValues
+                .value,
         ).eq("hello");
         expect(
-            stateVariables[resolveComponentName("g2")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .disabled,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("g2.ti")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("g2.ti")].stateValues
+                .disabled,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("g2.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2.ti")].stateValues
+                .value,
         ).eq("hello");
         expect(
-            stateVariables[resolveComponentName("g3")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues
+                .disabled,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3.ti")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("g3.ti")].stateValues
+                .disabled,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g3.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g3.ti")].stateValues
+                .value,
         ).eq("hello");
         expect(
-            stateVariables[resolveComponentName("g4")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("g4")].stateValues
+                .disabled,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g4.ti")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("g4.ti")].stateValues
+                .disabled,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("g4.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g4.ti")].stateValues
+                .value,
         ).eq("hello");
 
         // type in first textInput
         await updateTextInputValue({
             text: "bye",
-            componentIdx: resolveComponentName("g.ti"),
+            componentIdx: await resolvePathToNodeIdx("g.ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g.ti")].stateValues
+                .value,
         ).eq("bye");
         expect(
-            stateVariables[resolveComponentName("g2.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2.ti")].stateValues
+                .value,
         ).eq("bye");
         expect(
-            stateVariables[resolveComponentName("g3.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g3.ti")].stateValues
+                .value,
         ).eq("bye");
         expect(
-            stateVariables[resolveComponentName("g4.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g4.ti")].stateValues
+                .value,
         ).eq("hello");
 
         // attempting to type in second textInput doesn't work
         await updateTextInputValue({
             text: "nope",
-            componentIdx: resolveComponentName("g2.ti"),
+            componentIdx: await resolvePathToNodeIdx("g2.ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g.ti")].stateValues
+                .value,
         ).eq("bye");
         expect(
-            stateVariables[resolveComponentName("g2.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2.ti")].stateValues
+                .value,
         ).eq("bye");
         expect(
-            stateVariables[resolveComponentName("g3.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g3.ti")].stateValues
+                .value,
         ).eq("bye");
         expect(
-            stateVariables[resolveComponentName("g4.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g4.ti")].stateValues
+                .value,
         ).eq("hello");
 
         // type in third textInput
         await updateTextInputValue({
             text: "this",
-            componentIdx: resolveComponentName("g3.ti"),
+            componentIdx: await resolvePathToNodeIdx("g3.ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g.ti")].stateValues
+                .value,
         ).eq("this");
         expect(
-            stateVariables[resolveComponentName("g2.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2.ti")].stateValues
+                .value,
         ).eq("this");
         expect(
-            stateVariables[resolveComponentName("g3.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g3.ti")].stateValues
+                .value,
         ).eq("this");
         expect(
-            stateVariables[resolveComponentName("g4.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g4.ti")].stateValues
+                .value,
         ).eq("hello");
 
         // type in fourth textInput
         await updateTextInputValue({
             text: "that",
-            componentIdx: resolveComponentName("g4.ti"),
+            componentIdx: await resolvePathToNodeIdx("g4.ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g.ti")].stateValues
+                .value,
         ).eq("this");
         expect(
-            stateVariables[resolveComponentName("g2.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2.ti")].stateValues
+                .value,
         ).eq("this");
         expect(
-            stateVariables[resolveComponentName("g3.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g3.ti")].stateValues
+                .value,
         ).eq("this");
         expect(
-            stateVariables[resolveComponentName("g4.ti")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g4.ti")].stateValues
+                .value,
         ).eq("that");
     });
 
     it("change rendered", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p><booleanInput name="ren1"><label>rendered 1</label></booleanInput></p>
       <group name="g1" rendered="$ren1">
@@ -766,74 +817,99 @@ describe("Group tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("g1.p")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("g1a.p")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("g1.p")]).eq(
+            undefined,
+        );
+        expect(stateVariables[await resolvePathToNodeIdx("g1a.p")]).eq(
+            undefined,
+        );
         expect(
-            stateVariables[resolveComponentName("g2.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g2.p")].stateValues.text,
         ).eq("Bye");
         expect(
-            stateVariables[resolveComponentName("g2a.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g2a.p")].stateValues
+                .text,
         ).eq("Bye");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("ren1"),
+            componentIdx: await resolvePathToNodeIdx("ren1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g1.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g1.p")].stateValues.text,
         ).eq("Hello");
 
         expect(
-            stateVariables[resolveComponentName("g1a.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g1a.p")].stateValues
+                .text,
         ).eq("Hello");
         expect(
-            stateVariables[resolveComponentName("g2.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g2.p")].stateValues.text,
         ).eq("Bye");
         expect(
-            stateVariables[resolveComponentName("g2a.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g2a.p")].stateValues
+                .text,
         ).eq("Bye");
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("ren2"),
+            componentIdx: await resolvePathToNodeIdx("ren2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g1.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g1.p")].stateValues.text,
         ).eq("Hello");
         expect(
-            stateVariables[resolveComponentName("g1a.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g1a.p")].stateValues
+                .text,
         ).eq("Hello");
-        isUndefinedOrInactive(stateVariables[resolveComponentName("g2.p")]);
-        isUndefinedOrInactive(stateVariables[resolveComponentName("g2a.p")]);
+        isUndefinedOrInactive(
+            stateVariables[await resolvePathToNodeIdx("g2.p")],
+        );
+        isUndefinedOrInactive(
+            stateVariables[await resolvePathToNodeIdx("g2a.p")],
+        );
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("ren1"),
+            componentIdx: await resolvePathToNodeIdx("ren1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        isUndefinedOrInactive(stateVariables[resolveComponentName("g1.p")]);
-        isUndefinedOrInactive(stateVariables[resolveComponentName("g1a.p")]);
-        isUndefinedOrInactive(stateVariables[resolveComponentName("g2.p")]);
-        isUndefinedOrInactive(stateVariables[resolveComponentName("g2a.p")]);
+        isUndefinedOrInactive(
+            stateVariables[await resolvePathToNodeIdx("g1.p")],
+        );
+        isUndefinedOrInactive(
+            stateVariables[await resolvePathToNodeIdx("g1a.p")],
+        );
+        isUndefinedOrInactive(
+            stateVariables[await resolvePathToNodeIdx("g2.p")],
+        );
+        isUndefinedOrInactive(
+            stateVariables[await resolvePathToNodeIdx("g2a.p")],
+        );
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("ren2"),
+            componentIdx: await resolvePathToNodeIdx("ren2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        isUndefinedOrInactive(stateVariables[resolveComponentName("g1.p")]);
-        isUndefinedOrInactive(stateVariables[resolveComponentName("g1a.p")]);
+        isUndefinedOrInactive(
+            stateVariables[await resolvePathToNodeIdx("g1.p")],
+        );
+        isUndefinedOrInactive(
+            stateVariables[await resolvePathToNodeIdx("g1a.p")],
+        );
         expect(
-            stateVariables[resolveComponentName("g2.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g2.p")].stateValues.text,
         ).eq("Bye");
         expect(
-            stateVariables[resolveComponentName("g2a.p")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("g2a.p")].stateValues
+                .text,
         ).eq("Bye");
     });
 });

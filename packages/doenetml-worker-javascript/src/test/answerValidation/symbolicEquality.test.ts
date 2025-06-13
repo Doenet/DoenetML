@@ -16,7 +16,7 @@ async function run_tests({
         credits: Record<string, number>;
     }[];
 }) {
-    const { core, resolveComponentName } = await createTestCore({ doenetML });
+    const { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
 
     for (let responseObj of responseCredits) {
         await submit_check(responseObj);
@@ -32,21 +32,21 @@ async function run_tests({
         for (let name in responses) {
             await updateMathInputValue({
                 latex: `${responses[name]}`,
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 core,
             });
         }
         for (let code in credits) {
             await submitAnswer({
-                componentIdx: resolveComponentName(`ans${code}`),
+                componentIdx: await resolvePathToNodeIdx(`ans${code}`),
                 core,
             });
         }
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (let code in credits) {
             expect(
-                stateVariables[resolveComponentName(`ans${code}`)].stateValues
-                    .creditAchieved,
+                stateVariables[await resolvePathToNodeIdx(`ans${code}`)]
+                    .stateValues.creditAchieved,
             ).eq(
                 credits[code],
                 `${code} credit for response ${JSON.stringify(responses)}`,

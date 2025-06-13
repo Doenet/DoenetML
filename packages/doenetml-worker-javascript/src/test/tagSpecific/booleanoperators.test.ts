@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -12,7 +12,7 @@ vi.mock("hyperformula");
 
 describe("Boolean Operator tag tests", async () => {
     it("not", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi" />
     <not name="op1"><boolean extend="$bi" name="bv" /></not>
@@ -22,41 +22,41 @@ describe("Boolean Operator tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("bi")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("bv")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("op1")].stateValues.value,
-        ).eq(true);
-        expect(
-            stateVariables[resolveComponentName("op2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("op3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bv")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("op1")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("op2")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("op3")].stateValues.value,
         ).eq(true);
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("bi"),
+            componentIdx: await resolvePathToNodeIdx("bi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("bi")].stateValues.value).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("bv")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("op1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bv")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("op1")].stateValues.value,
         ).eq(false);
     });
 
     it("not when", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" />
     <not name="op"><when><math extend="$mi" name="mv"/> > 1</when></not>
@@ -65,52 +65,58 @@ describe("Boolean Operator tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eq("\uff3f");
-        expect(stateVariables[resolveComponentName("op")].stateValues.value).eq(
-            true,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("op")].stateValues.value,
+        ).eq(true);
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("op")].stateValues.value).eq(
-            false,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("op")].stateValues.value,
+        ).eq(false);
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("op")].stateValues.value).eq(
-            true,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("op")].stateValues.value,
+        ).eq(true);
     });
 
     async function test_three_operators(
         core: PublicDoenetMLCore,
-        resolveComponentName: (name: string, origin?: number) => number,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         operator: (args: boolean[]) => boolean,
     ) {
         async function check_items(booleans: boolean[]) {
@@ -119,31 +125,40 @@ describe("Boolean Operator tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("bi1")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("bi1")].stateValues
+                    .value,
             ).eq(booleans[0]);
             expect(
-                stateVariables[resolveComponentName("bi2")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("bi2")].stateValues
+                    .value,
             ).eq(booleans[1]);
             expect(
-                stateVariables[resolveComponentName("bi3")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("bi3")].stateValues
+                    .value,
             ).eq(booleans[2]);
             expect(
-                stateVariables[resolveComponentName("bv1")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("bv1")].stateValues
+                    .value,
             ).eq(booleans[0]);
             expect(
-                stateVariables[resolveComponentName("bv2")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("bv2")].stateValues
+                    .value,
             ).eq(booleans[1]);
             expect(
-                stateVariables[resolveComponentName("bv3")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("bv3")].stateValues
+                    .value,
             ).eq(booleans[2]);
             expect(
-                stateVariables[resolveComponentName("op1")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("op1")].stateValues
+                    .value,
             ).eq(operator(booleans));
             expect(
-                stateVariables[resolveComponentName("op2")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("op2")].stateValues
+                    .value,
             ).eq(operator([...booleans, true]));
             expect(
-                stateVariables[resolveComponentName("op3")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("op3")].stateValues
+                    .value,
             ).eq(operator([...booleans, false]));
         }
 
@@ -154,7 +169,7 @@ describe("Boolean Operator tag tests", async () => {
         booleans[0] = true;
         await updateBooleanInputValue({
             boolean: booleans[0],
-            componentIdx: resolveComponentName("bi1"),
+            componentIdx: await resolvePathToNodeIdx("bi1"),
             core,
         });
         await check_items(booleans);
@@ -162,7 +177,7 @@ describe("Boolean Operator tag tests", async () => {
         booleans[1] = true;
         await updateBooleanInputValue({
             boolean: booleans[1],
-            componentIdx: resolveComponentName("bi2"),
+            componentIdx: await resolvePathToNodeIdx("bi2"),
             core,
         });
         await check_items(booleans);
@@ -170,14 +185,14 @@ describe("Boolean Operator tag tests", async () => {
         booleans[2] = true;
         await updateBooleanInputValue({
             boolean: booleans[2],
-            componentIdx: resolveComponentName("bi3"),
+            componentIdx: await resolvePathToNodeIdx("bi3"),
             core,
         });
         await check_items(booleans);
     }
 
     it("and", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi1" />
     <booleanInput name="bi2" />
@@ -211,11 +226,11 @@ describe("Boolean Operator tag tests", async () => {
             return booleans.reduce((a, c) => a && c, true);
         };
 
-        await test_three_operators(core, resolveComponentName, andOperator);
+        await test_three_operators(core, resolvePathToNodeIdx, andOperator);
     });
 
     it("or", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi1" />
     <booleanInput name="bi2" />
@@ -249,11 +264,11 @@ describe("Boolean Operator tag tests", async () => {
             return booleans.reduce((a, c) => a || c, false);
         };
 
-        await test_three_operators(core, resolveComponentName, orOperator);
+        await test_three_operators(core, resolvePathToNodeIdx, orOperator);
     });
 
     it("xor", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi1" />
     <booleanInput name="bi2" />
@@ -291,11 +306,11 @@ describe("Boolean Operator tag tests", async () => {
             return numberTrues === 1;
         };
 
-        await test_three_operators(core, resolveComponentName, xorOperator);
+        await test_three_operators(core, resolvePathToNodeIdx, xorOperator);
     });
 
     it("show point based on logic", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi">
       <label>show point</label>
@@ -309,24 +324,24 @@ describe("Boolean Operator tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("bi")].stateValues.value).eq(
-            false,
-        );
-        expect(stateVariables[resolveComponentName("P")].stateValues.hide).eq(
-            true,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
+        ).eq(true);
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("bi"),
+            componentIdx: await resolvePathToNodeIdx("bi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("bi")].stateValues.value).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("P")].stateValues.hide).eq(
-            false,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
+        ).eq(false);
     });
 });

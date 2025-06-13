@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -39,13 +39,13 @@ type LegendItem = LineLegendItem | RectangleLegendItem | MarkerLegendItem;
 
 async function check_legend({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     legendName = "legend1",
     legendItems,
     position,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     legendName?: string;
     legendItems: LegendItem[];
     position?: string;
@@ -54,14 +54,14 @@ async function check_legend({
 
     if (position) {
         expect(
-            stateVariables[resolveComponentName(legendName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(legendName)].stateValues
                 .position,
         ).eq(position);
     }
 
     let numItems = legendItems.length;
     let legendElements =
-        stateVariables[resolveComponentName(legendName)].stateValues
+        stateVariables[await resolvePathToNodeIdx(legendName)].stateValues
             .legendElements;
     expect(legendElements.length).eq(numItems);
 
@@ -95,7 +95,7 @@ async function check_legend({
 
 describe("Legend tag tests", async () => {
     it("legend includes unique styles, points separate, closed path not separate", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <function styleNumber="3">(x+5)^2</function>
@@ -133,14 +133,14 @@ describe("Legend tag tests", async () => {
 
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             legendItems,
             position: "upperright",
         });
     });
 
     it("displayClosedSwatches separates closed path", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <function styleNumber="3">(x+5)^2</function>
@@ -176,14 +176,14 @@ describe("Legend tag tests", async () => {
 
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             legendItems,
             position: "upperright",
         });
     });
 
     it("legend with dynamical functions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" prefill="2" />
     <textInput name="pos" />
@@ -217,7 +217,7 @@ describe("Legend tag tests", async () => {
         let numItems = 1;
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
@@ -225,12 +225,12 @@ describe("Legend tag tests", async () => {
         position = "upperleft";
         await updateTextInputValue({
             text: "upperLeft",
-            componentIdx: resolveComponentName("pos"),
+            componentIdx: await resolvePathToNodeIdx("pos"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
@@ -238,24 +238,24 @@ describe("Legend tag tests", async () => {
         numItems = 2;
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
@@ -263,12 +263,12 @@ describe("Legend tag tests", async () => {
         numItems = 3;
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
@@ -276,12 +276,12 @@ describe("Legend tag tests", async () => {
         position = "lowerright";
         await updateTextInputValue({
             text: "LowerRight",
-            componentIdx: resolveComponentName("pos"),
+            componentIdx: await resolvePathToNodeIdx("pos"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
@@ -289,12 +289,12 @@ describe("Legend tag tests", async () => {
         numItems = 4;
         await updateMathInputValue({
             latex: "8",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
@@ -302,12 +302,12 @@ describe("Legend tag tests", async () => {
         numItems = 1;
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
@@ -315,12 +315,12 @@ describe("Legend tag tests", async () => {
         position = "lowerleft";
         await updateTextInputValue({
             text: "lowerleft",
-            componentIdx: resolveComponentName("pos"),
+            componentIdx: await resolvePathToNodeIdx("pos"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
@@ -328,19 +328,19 @@ describe("Legend tag tests", async () => {
         numItems = 4;
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             position,
             legendItems: possibleLegendItems.slice(0, numItems),
         });
     });
 
     it("legend with forObject", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <styleDefinitions>
@@ -472,7 +472,7 @@ describe("Legend tag tests", async () => {
 
             await check_legend({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 legendItems,
             });
         }
@@ -482,14 +482,14 @@ describe("Legend tag tests", async () => {
         // change displayClosedSwatches to true
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("closedSwatches"),
+            componentIdx: await resolvePathToNodeIdx("closedSwatches"),
             core,
         });
         await check_items(true);
     });
 
     it("legend with forObject, use names of shadow sources", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="p" labelIsName>(3,4)</point>
@@ -525,14 +525,14 @@ describe("Legend tag tests", async () => {
 
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             legendName: "legend1",
             legendItems: legend1Items,
         });
 
         await check_legend({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             legendName: "legend2",
             legendItems: legend2Items,
         });

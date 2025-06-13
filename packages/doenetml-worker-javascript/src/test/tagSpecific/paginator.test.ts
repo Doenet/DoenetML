@@ -13,7 +13,7 @@ vi.mock("hyperformula");
 
 describe("Paginator tag tests", async () => {
     it("Multiple sections in paginator", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <paginatorControls paginator="$pgn" name="pcontrols" />
   
@@ -55,45 +55,49 @@ describe("Paginator tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathinput1Name =
-            stateVariables[resolveComponentName("answer1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer1")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput2Name =
-            stateVariables[resolveComponentName("answer2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer2")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput3Name =
-            stateVariables[resolveComponentName("answer3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer3")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput4Name =
-            stateVariables[resolveComponentName("answer4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer4")].stateValues
                 .inputChildren[0].componentIdx;
 
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.numPages,
-        ).eq(3);
-        expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.currentPage,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .numPages,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
+                .currentPage,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
+                .numPages,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
                 .currentPage,
         ).eq(1);
 
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .childIndicesToRender,
         ).eqls([0]);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0,
-        );
         expect(
-            stateVariables[resolveComponentName("title1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("title1")].stateValues
+                .value,
         ).eq("Page 1");
         expect(
-            stateVariables[resolveComponentName("title3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("title3")].stateValues
+                .value,
         ).eq("Page 3");
 
         await updateMathInputValue({
@@ -102,17 +106,17 @@ describe("Paginator tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answer4"),
+            componentIdx: await resolvePathToNodeIdx("answer4"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answer4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer4")].stateValues
                 .creditAchieved,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.25,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.25);
 
         await updateMathInputValue({
             latex: "2",
@@ -120,52 +124,53 @@ describe("Paginator tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answer1"),
+            componentIdx: await resolvePathToNodeIdx("answer1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answer1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer1")].stateValues
                 .creditAchieved,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.5);
 
         // move to page 2
         await core.requestAction({
-            componentIdx: resolveComponentName("pgn"),
+            componentIdx: await resolvePathToNodeIdx("pgn"),
             actionName: "setPage",
             args: { number: 2 },
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.currentPage,
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
+                .currentPage,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .childIndicesToRender,
         ).eqls([1]);
         expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
                 .currentPage,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.5);
 
         await updateTextInputValue({
             text: "Me",
-            componentIdx: resolveComponentName("name"),
+            componentIdx: await resolvePathToNodeIdx("name"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "Hello, Me!",
-        );
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("Hello, Me!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.5);
 
         await updateMathInputValue({
             latex: "3",
@@ -173,60 +178,62 @@ describe("Paginator tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answer4"),
+            componentIdx: await resolvePathToNodeIdx("answer4"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answer4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer4")].stateValues
                 .creditAchieved,
         ).eq(0);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.25,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.25);
 
         // back to page 1
         await core.requestAction({
-            componentIdx: resolveComponentName("pgn"),
+            componentIdx: await resolvePathToNodeIdx("pgn"),
             actionName: "setPage",
             args: { number: 1 },
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.currentPage,
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
+                .currentPage,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .childIndicesToRender,
         ).eqls([0]);
         expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
                 .currentPage,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.25,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.25);
 
         // back to second page
         await callAction({
-            componentIdx: resolveComponentName("nextPage"),
+            componentIdx: await resolvePathToNodeIdx("nextPage"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.currentPage,
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
+                .currentPage,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .childIndicesToRender,
         ).eqls([1]);
         expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
                 .currentPage,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.25,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.25);
 
         await updateMathInputValue({
             latex: "4",
@@ -234,39 +241,40 @@ describe("Paginator tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answer4"),
+            componentIdx: await resolvePathToNodeIdx("answer4"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answer4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer4")].stateValues
                 .creditAchieved,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.5);
 
         // on to third page
         await core.requestAction({
-            componentIdx: resolveComponentName("pgn"),
+            componentIdx: await resolvePathToNodeIdx("pgn"),
             actionName: "setPage",
             args: { number: 3 },
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.currentPage,
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
+                .currentPage,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .childIndicesToRender,
         ).eqls([2]);
         expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
                 .currentPage,
         ).eq(3);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.5);
 
         await updateMathInputValue({
             latex: "2x",
@@ -274,17 +282,17 @@ describe("Paginator tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answer2"),
+            componentIdx: await resolvePathToNodeIdx("answer2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answer2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer2")].stateValues
                 .creditAchieved,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.75,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.75);
 
         await updateMathInputValue({
             latex: "2y",
@@ -292,17 +300,17 @@ describe("Paginator tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answer3"),
+            componentIdx: await resolvePathToNodeIdx("answer3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answer3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer3")].stateValues
                 .creditAchieved,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(1);
 
         await updateMathInputValue({
             latex: "2z",
@@ -310,42 +318,43 @@ describe("Paginator tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("answer2"),
+            componentIdx: await resolvePathToNodeIdx("answer2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("answer2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("answer2")].stateValues
                 .creditAchieved,
         ).eq(0);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.75,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.75);
 
         // back to second page
         await callAction({
-            componentIdx: resolveComponentName("prevPage"),
+            componentIdx: await resolvePathToNodeIdx("prevPage"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.currentPage,
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
+                .currentPage,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .childIndicesToRender,
         ).eqls([1]);
         expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
                 .currentPage,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("ca")].stateValues.value).eq(
-            0.75,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca")].stateValues.value,
+        ).eq(0.75);
     });
 
     it("Set page action ignores read only flag", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <paginatorControls paginator="$pgn" name="pcontrols" />
   
@@ -367,49 +376,54 @@ describe("Paginator tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.numPages,
-        ).eq(2);
-        expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.currentPage,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .numPages,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
+                .currentPage,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
+                .numPages,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
                 .currentPage,
         ).eq(1);
 
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .childIndicesToRender,
         ).eqls([0]);
 
         expect(
-            stateVariables[resolveComponentName("ti1")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("ti1")].stateValues
+                .disabled,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ti2")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("ti2")].stateValues
+                .disabled,
         ).eq(true);
 
         await core.requestAction({
-            componentIdx: resolveComponentName("pgn"),
+            componentIdx: await resolvePathToNodeIdx("pgn"),
             actionName: "setPage",
             args: { number: 2 },
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues.currentPage,
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
+                .currentPage,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("pcontrols")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
                 .currentPage,
         ).eq(2);
 
         expect(
-            stateVariables[resolveComponentName("pgn")].stateValues
+            stateVariables[await resolvePathToNodeIdx("pgn")].stateValues
                 .childIndicesToRender,
         ).eqls([1]);
     });

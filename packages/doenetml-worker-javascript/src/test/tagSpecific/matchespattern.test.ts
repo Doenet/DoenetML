@@ -12,7 +12,7 @@ vi.mock("hyperformula");
 
 describe("MatchesPattern tag tests", async () => {
     it("match linear pattern", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Pattern: <math name="pattern">()x+()</math></p>
   <p>Expression: <mathInput name="expr" /></p>
@@ -178,7 +178,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                componentIdx: resolveComponentName("expr"),
+                componentIdx: await resolvePathToNodeIdx("expr"),
                 core,
             });
             let stateVariables = await core.returnAllStateVariables(
@@ -192,36 +192,40 @@ describe("MatchesPattern tag tests", async () => {
                 let res = dResults[name];
                 if (res) {
                     expect(
-                        stateVariables[resolveComponentName(`${name}`)]
+                        stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.true;
                     expect(
                         cleanLatex(
                             stateVariables[
-                                resolveComponentName(`${matchNames[name][0]}`)
+                                await resolvePathToNodeIdx(
+                                    `${matchNames[name][0]}`,
+                                )
                             ].stateValues.latex,
                         ),
                     ).eq(res[0]);
                     expect(
                         cleanLatex(
                             stateVariables[
-                                resolveComponentName(`${matchNames[name][1]}`)
+                                await resolvePathToNodeIdx(
+                                    `${matchNames[name][1]}`,
+                                )
                             ].stateValues.latex,
                         ),
                     ).eq(res[1]);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName(`${name}`)]
+                        stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.false;
                     expect(
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][0]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][0]}`)
                         ],
                     ).eq(undefined);
                     expect(
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][1]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][1]}`)
                         ],
                     ).eq(undefined);
                 }
@@ -230,7 +234,7 @@ describe("MatchesPattern tag tests", async () => {
     });
 
     it("match quadratic pattern, base test", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Pattern: <math name="pattern">()x^2+()x+()</math></p>
   <p>Expression: <mathInput name="expr" /></p>
@@ -348,7 +352,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                componentIdx: resolveComponentName("expr"),
+                componentIdx: await resolvePathToNodeIdx("expr"),
                 core,
             });
             let stateVariables = await core.returnAllStateVariables(
@@ -362,36 +366,40 @@ describe("MatchesPattern tag tests", async () => {
                 let res = dResults[name];
                 if (res) {
                     expect(
-                        stateVariables[resolveComponentName(`${name}`)]
+                        stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.true;
                     expect(
                         cleanLatex(
                             stateVariables[
-                                resolveComponentName(`${matchNames[name][0]}`)
+                                await resolvePathToNodeIdx(
+                                    `${matchNames[name][0]}`,
+                                )
                             ].stateValues.latex,
                         ),
                     ).eq(res[0]);
                     expect(
                         cleanLatex(
                             stateVariables[
-                                resolveComponentName(`${matchNames[name][1]}`)
+                                await resolvePathToNodeIdx(
+                                    `${matchNames[name][1]}`,
+                                )
                             ].stateValues.latex,
                         ),
                     ).eq(res[1]);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName(`${name}`)]
+                        stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.false;
                     expect(
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][0]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][0]}`)
                         ],
                     ).eq(undefined);
                     expect(
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][1]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][1]}`)
                         ],
                     ).eq(undefined);
                 }
@@ -400,7 +408,7 @@ describe("MatchesPattern tag tests", async () => {
     });
 
     it("match quadratic pattern, combine matches for flexibility", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Pattern 1: <math name="pattern1">()x^2+()x+()</math></p>
   <p>Pattern 2: <math name="pattern2">()x^2+()</math></p>
@@ -512,7 +520,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                componentIdx: resolveComponentName("expr"),
+                componentIdx: await resolvePathToNodeIdx("expr"),
                 core,
             });
             let stateVariables = await core.returnAllStateVariables(
@@ -526,12 +534,12 @@ describe("MatchesPattern tag tests", async () => {
                 let res = dResults[name];
                 if (res) {
                     expect(
-                        stateVariables[resolveComponentName(`${name}`)]
+                        stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.true;
                     let match1 =
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][0]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][0]}`)
                         ];
 
                     if (match1.componentType === "copy") {
@@ -543,7 +551,7 @@ describe("MatchesPattern tag tests", async () => {
                     expect(cleanLatex(match1.stateValues.latex)).eq(res[0]);
                     let match2 =
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][1]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][1]}`)
                         ];
 
                     if (match2.componentType === "copy") {
@@ -555,7 +563,7 @@ describe("MatchesPattern tag tests", async () => {
                     expect(cleanLatex(match2.stateValues.latex)).eq(res[1]);
                     let match3 =
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][2]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][2]}`)
                         ];
                     if (match3.componentType === "copy") {
                         match3 =
@@ -566,22 +574,22 @@ describe("MatchesPattern tag tests", async () => {
                     expect(cleanLatex(match3.stateValues.latex)).eq(res[2]);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName(`${name}`)]
+                        stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.false;
                     expect(
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][0]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][0]}`)
                         ],
                     ).eq(undefined);
                     expect(
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][1]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][1]}`)
                         ],
                     ).eq(undefined);
                     expect(
                         stateVariables[
-                            resolveComponentName(`${matchNames[name][2]}`)
+                            await resolvePathToNodeIdx(`${matchNames[name][2]}`)
                         ],
                     ).eq(undefined);
                 }
@@ -590,7 +598,7 @@ describe("MatchesPattern tag tests", async () => {
     });
 
     it("handle case with no pattern specified", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><matchesPattern name="mp">hello</matchesPattern></p>
   `,
@@ -598,12 +606,13 @@ describe("MatchesPattern tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName(`mp`)].stateValues.value).to
-            .be.false;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`mp`)].stateValues.value,
+        ).to.be.false;
     });
 
     it("works with string or multiple children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><matchesPattern name="mps" pattern="()^()">e^(x+2)</matchesPattern></p>
   <p>Matches: <mathList extend="$mps.patternMatches" name="mpsm" /></p>
@@ -616,39 +625,41 @@ describe("MatchesPattern tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName(`mps`)].stateValues.value).to
-            .be.true;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`mps`)].stateValues.value,
+        ).to.be.true;
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName(`mpsm[1]`)].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx(`mpsm[1]`)]
+                    .stateValues.latex,
             ),
         ).eq("e");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName(`mpsm[2]`)].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx(`mpsm[2]`)]
+                    .stateValues.latex,
             ),
         ).eq("x+2");
 
-        expect(stateVariables[resolveComponentName(`mpm`)].stateValues.value).to
-            .be.true;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`mpm`)].stateValues.value,
+        ).to.be.true;
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName(`mpmm[1]`)].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx(`mpmm[1]`)]
+                    .stateValues.latex,
             ),
         ).eq("e");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName(`mpmm[2]`)].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx(`mpmm[2]`)]
+                    .stateValues.latex,
             ),
         ).eq("x+2");
     });
 
     it("match expression with blanks", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <text>a</text>
   <p>Pattern: <math name="pattern"> < </math></p>
@@ -714,12 +725,12 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                componentIdx: resolveComponentName("expr"),
+                componentIdx: await resolvePathToNodeIdx("expr"),
                 core,
             });
             await updateBooleanInputValue({
                 boolean: true,
-                componentIdx: resolveComponentName("matchBlanks"),
+                componentIdx: await resolvePathToNodeIdx("matchBlanks"),
                 core,
             });
 
@@ -733,37 +744,37 @@ describe("MatchesPattern tag tests", async () => {
             let res = dResults.blanks;
             if (res) {
                 expect(
-                    stateVariables[resolveComponentName(`match`)].stateValues
-                        .value,
+                    stateVariables[await resolvePathToNodeIdx(`match`)]
+                        .stateValues.value,
                 ).to.be.true;
                 expect(
                     cleanLatex(
-                        stateVariables[resolveComponentName(`m[1]`)].stateValues
-                            .latex,
+                        stateVariables[await resolvePathToNodeIdx(`m[1]`)]
+                            .stateValues.latex,
                     ),
                 ).eq(res[0]);
                 expect(
                     cleanLatex(
-                        stateVariables[resolveComponentName(`m[2]`)].stateValues
-                            .latex,
+                        stateVariables[await resolvePathToNodeIdx(`m[2]`)]
+                            .stateValues.latex,
                     ),
                 ).eq(res[1]);
             } else {
                 expect(
-                    stateVariables[resolveComponentName(`match`)].stateValues
-                        .value,
+                    stateVariables[await resolvePathToNodeIdx(`match`)]
+                        .stateValues.value,
                 ).to.be.false;
-                expect(stateVariables[resolveComponentName(`m[1]`)]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx(`m[1]`)]).eq(
                     undefined,
                 );
-                expect(stateVariables[resolveComponentName(`m[2]`)]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx(`m[2]`)]).eq(
                     undefined,
                 );
             }
 
             await updateBooleanInputValue({
                 boolean: false,
-                componentIdx: resolveComponentName("matchBlanks"),
+                componentIdx: await resolvePathToNodeIdx("matchBlanks"),
                 core,
             });
 
@@ -774,30 +785,30 @@ describe("MatchesPattern tag tests", async () => {
             res = dResults.default;
             if (res) {
                 expect(
-                    stateVariables[resolveComponentName(`match`)].stateValues
-                        .value,
+                    stateVariables[await resolvePathToNodeIdx(`match`)]
+                        .stateValues.value,
                 ).to.be.true;
                 expect(
                     cleanLatex(
-                        stateVariables[resolveComponentName(`m[1]`)].stateValues
-                            .latex,
+                        stateVariables[await resolvePathToNodeIdx(`m[1]`)]
+                            .stateValues.latex,
                     ),
                 ).eq(res[0]);
                 expect(
                     cleanLatex(
-                        stateVariables[resolveComponentName(`m[2]`)].stateValues
-                            .latex,
+                        stateVariables[await resolvePathToNodeIdx(`m[2]`)]
+                            .stateValues.latex,
                     ),
                 ).eq(res[1]);
             } else {
                 expect(
-                    stateVariables[resolveComponentName(`match`)].stateValues
-                        .value,
+                    stateVariables[await resolvePathToNodeIdx(`match`)]
+                        .stateValues.value,
                 ).to.be.false;
-                expect(stateVariables[resolveComponentName(`m[1]`)]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx(`m[1]`)]).eq(
                     undefined,
                 );
-                expect(stateVariables[resolveComponentName(`m[2]`)]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx(`m[2]`)]).eq(
                     undefined,
                 );
             }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveButton,
@@ -23,32 +23,37 @@ vi.mock("hyperformula");
 describe("TriggerSet tag tests", async () => {
     async function test_5_triggered_actions(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("flip")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("flip")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addHello")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addHello")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addOne")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addOne")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -59,28 +64,30 @@ describe("TriggerSet tag tests", async () => {
             expect(num).lte(6);
         }
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
 
         await triggerActions({
-            componentIdx: resolveComponentName("tset"),
+            componentIdx: await resolvePathToNodeIdx("tset"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -88,73 +95,82 @@ describe("TriggerSet tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
 
         await triggerActions({
-            componentIdx: resolveComponentName("tset"),
+            componentIdx: await resolvePathToNodeIdx("tset"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(3);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
 
         await triggerActions({
-            componentIdx: resolveComponentName("tset"),
+            componentIdx: await resolvePathToNodeIdx("tset"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(4);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(4);
     }
 
     it("triggerSet", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Boolean to swap: <boolean name="b" /></p>
     <p>Say hello: <text name="hello"></text></p>
@@ -182,11 +198,11 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        await test_5_triggered_actions(core, resolveComponentName);
+        await test_5_triggered_actions(core, resolvePathToNodeIdx);
     });
 
     it("triggerSet and chain to updateValue and call action", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Boolean to swap: <boolean name="b" /></p>
     <p>Say hello: <text name="hello"></text></p>
@@ -215,11 +231,11 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        await test_5_triggered_actions(core, resolveComponentName);
+        await test_5_triggered_actions(core, resolvePathToNodeIdx);
     });
 
     it("triggerSet and chain to triggerSet", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Boolean to swap: <boolean name="b" /></p>
     <p>Say hello: <text name="hello"></text></p>
@@ -252,11 +268,11 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        await test_5_triggered_actions(core, resolveComponentName);
+        await test_5_triggered_actions(core, resolvePathToNodeIdx);
     });
 
     it("triggerSet and chain multiple sources to triggerSet", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Boolean to swap: <boolean name="b" /></p>
     <p>Say hello: <text name="hello"></text></p>
@@ -295,66 +311,73 @@ describe("TriggerSet tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("n2")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
+        ).eq(1);
 
-        await test_5_triggered_actions(core, resolveComponentName);
+        await test_5_triggered_actions(core, resolvePathToNodeIdx);
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("n2")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
+        ).eq(1);
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(4);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(4);
 
-        await updateValue({ componentIdx: resolveComponentName("in"), core });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("in"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("n2")].stateValues.value).eq(
-            2,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
+        ).eq(2);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(5);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(5);
     });
 
     it("triggerSet based on trigger", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(-1,2)</point>
@@ -372,24 +395,28 @@ describe("TriggerSet tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("trip")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("trip")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("quad")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("quad")].stateValues
+                .hidden,
         ).eq(true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
@@ -398,17 +425,19 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
@@ -417,17 +446,19 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 7,
             core,
@@ -436,17 +467,19 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("3x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("4y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -455,17 +488,19 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("3x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("4y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -3,
             y: 4,
             core,
@@ -474,17 +509,19 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("3x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("4y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -6,
             y: 5,
             core,
@@ -493,17 +530,19 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("3x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("4y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 2,
             core,
@@ -512,17 +551,19 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("9x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("16y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -530,7 +571,7 @@ describe("TriggerSet tag tests", async () => {
     });
 
     it("triggerSet triggered when click", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(-1,2)</point>
@@ -548,24 +589,28 @@ describe("TriggerSet tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("trip")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("trip")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("quad")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("quad")].stateValues
+                .hidden,
         ).eq(true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
@@ -574,31 +619,38 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("y");
 
-        await clickPoint({ componentIdx: resolveComponentName("P"), core });
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("3x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("4y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -607,31 +659,38 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("3x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("4y");
 
-        await clickPoint({ componentIdx: resolveComponentName("P"), core });
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("9x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("16y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -640,18 +699,20 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("9x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("16y");
     });
 
     it("triggerSet triggered when object focused", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(-1,2)</point>
@@ -669,24 +730,28 @@ describe("TriggerSet tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("trip")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("trip")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("quad")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("quad")].stateValues
+                .hidden,
         ).eq(true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
@@ -695,31 +760,38 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("y");
 
-        await focusPoint({ componentIdx: resolveComponentName("P"), core });
+        await focusPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("3x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("4y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -728,31 +800,38 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("3x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("4y");
 
-        await focusPoint({ componentIdx: resolveComponentName("P"), core });
+        await focusPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("9x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("16y");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -761,18 +840,20 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ),
         ).eq("9x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ),
         ).eq("16y");
     });
 
     it("triggerWhen supersedes chaining for triggerSet", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P">(-1,2)</point>
@@ -801,196 +882,207 @@ describe("TriggerSet tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("ts1")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("ts1")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ts2")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("ts2")].stateValues
+                .hidden,
         ).eq(true);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 7,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -3,
             y: -4,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -6,
             y: -5,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 2,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(3);
     });
 
     it("triggerSet supersedes triggerWhen for updateValue and callAction children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text>a</text>
     <graph name="g">
@@ -1023,27 +1115,32 @@ describe("TriggerSet tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("flip")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("flip")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addHello")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addHello")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addOne")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addOne")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -1054,18 +1151,19 @@ describe("TriggerSet tag tests", async () => {
             expect(num).lte(6);
         }
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
@@ -1073,28 +1171,30 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(1);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
@@ -1102,26 +1202,30 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(1);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 7,
             core,
@@ -1129,27 +1233,31 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -1158,26 +1266,30 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -3,
             y: -4,
             core,
@@ -1186,26 +1298,30 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -6,
             y: -5,
             core,
@@ -1214,16 +1330,19 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 2,
             core,
@@ -1232,27 +1351,31 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(3);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -1261,27 +1384,31 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(3);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
     });
 
     it("triggerSet supersedes chaining for updateValue children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="P">(-1,2)</point>
@@ -1311,30 +1438,32 @@ describe("TriggerSet tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("ts")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("ts")].stateValues.hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("uv")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("uv")].stateValues.hidden,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            5,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
@@ -1342,23 +1471,25 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
@@ -1366,23 +1497,25 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq("");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 7,
             core,
@@ -1390,23 +1523,25 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -1414,23 +1549,25 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -3,
             y: -4,
             core,
@@ -1438,23 +1575,25 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -6,
             y: -5,
             core,
@@ -1462,23 +1601,25 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(2);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 2,
             core,
@@ -1486,23 +1627,25 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(3);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -1510,24 +1653,26 @@ describe("TriggerSet tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("g")].activeChildren.length,
+            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
+                .length,
         ).eq(3);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            false,
-        );
         expect(
-            stateVariables[resolveComponentName("hello")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hello")].stateValues
+                .value,
         ).eq(" hello hello");
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            3,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(3);
     });
 
     it("triggerSet with math in label", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Boolean to swap: <boolean name="b" /></p>
 
@@ -1540,12 +1685,13 @@ describe("TriggerSet tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("tset")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("tset")].stateValues
+                .label,
         ).eq("It is \\(\\frac{ \\partial f }{ \\partial x }\\)");
     });
 
     it("triggerSet with label is name", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Boolean to swap: <boolean name="b" /></p>
 
@@ -1557,7 +1703,7 @@ describe("TriggerSet tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("trigger-me")].stateValues
+            stateVariables[await resolvePathToNodeIdx("trigger-me")].stateValues
                 .label,
         ).eq("trigger me");
     });
@@ -1588,7 +1734,7 @@ describe("TriggerSet tag tests", async () => {
     });
 
     it("buttons can be styled", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <styleDefinitions>
@@ -1604,11 +1750,11 @@ describe("TriggerSet tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ts1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts1")].stateValues
                 .selectedStyle.fillColor,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("ts2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ts2")].stateValues
                 .selectedStyle.fillColor,
         ).eq("yellow");
     });

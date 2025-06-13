@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     updateMathInputValue,
@@ -13,13 +13,13 @@ vi.mock("hyperformula");
 describe("Split tag tests", async () => {
     async function test_sort({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         sorted_result,
         pName = "pList",
         replacements_all_of_type,
     }: {
         core;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         sorted_result: string[];
         pName?: string;
         replacements_all_of_type?: string;
@@ -27,13 +27,13 @@ describe("Split tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         const pText = sorted_result.join(", ");
-        expect(stateVariables[resolveComponentName(pName)].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx(pName)].stateValues.text,
+        ).eq(pText);
 
         if (replacements_all_of_type) {
             let replacementTypes = stateVariables[
-                resolveComponentName(pName)
+                await resolvePathToNodeIdx(pName)
             ].activeChildren.map(
                 (child) => stateVariables[child.componentIdx].componentType,
             );
@@ -45,7 +45,7 @@ describe("Split tag tests", async () => {
     }
 
     it("split strings", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <split name="default">abc,def ghi</split>
         <split name="letter" splitBy="letter">abc,def ghi</split>
@@ -62,30 +62,30 @@ describe("Split tag tests", async () => {
 
         for (const [i, s] of letters.entries()) {
             expect(
-                stateVariables[resolveComponentName(`default[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`default[${i + 1}]`)]
                     .stateValues.value,
             ).eq(s);
             expect(
-                stateVariables[resolveComponentName(`letter[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`letter[${i + 1}]`)]
                     .stateValues.value,
             ).eq(s);
         }
         for (const [i, s] of words.entries()) {
             expect(
-                stateVariables[resolveComponentName(`word[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`word[${i + 1}]`)]
                     .stateValues.value,
             ).eq(s);
         }
         for (const [i, s] of commas.entries()) {
             expect(
-                stateVariables[resolveComponentName(`comma[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`comma[${i + 1}]`)]
                     .stateValues.value,
             ).eq(s);
         }
     });
 
     it("split dynamic string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             
             <textInput name="ti">hello</textInput>
@@ -100,14 +100,14 @@ describe("Split tag tests", async () => {
 
         for (const [i, s] of letters.entries()) {
             expect(
-                stateVariables[resolveComponentName(`s[${i + 1}]`)].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx(`s[${i + 1}]`)]
+                    .stateValues.value,
             ).eq(s);
         }
 
         await updateTextInputValue({
             text: "bye",
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
 
@@ -117,8 +117,8 @@ describe("Split tag tests", async () => {
 
         for (const [i, s] of letters.entries()) {
             expect(
-                stateVariables[resolveComponentName(`s[${i + 1}]`)].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx(`s[${i + 1}]`)]
+                    .stateValues.value,
             ).eq(s);
         }
     });

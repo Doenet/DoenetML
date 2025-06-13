@@ -11,7 +11,7 @@ vi.mock("hyperformula");
 
 describe("Boolean Operator tag tests", async () => {
     it("isinteger, is number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n"/>
     <number name="asNum">$n</number>
@@ -46,52 +46,68 @@ describe("Boolean Operator tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("int1")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("int1")].stateValues
+                    .value,
             ).eq(isInteger);
             expect(
-                stateVariables[resolveComponentName("int2")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("int2")].stateValues
+                    .value,
             ).eq(isInteger);
             expect(
-                stateVariables[resolveComponentName("int3")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("int3")].stateValues
+                    .value,
             ).eq(isInteger);
             expect(
-                stateVariables[resolveComponentName("int4")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("int4")].stateValues
+                    .value,
             ).eq(isInteger);
             expect(
-                stateVariables[resolveComponentName("int5")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("int5")].stateValues
+                    .value,
             ).eq(isEven);
             expect(
-                stateVariables[resolveComponentName("int6")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("int6")].stateValues
+                    .value,
             ).eq(isEven);
             expect(
-                stateVariables[resolveComponentName("int7")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("int7")].stateValues
+                    .value,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("int8")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("int8")].stateValues
+                    .value,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("num1")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("num1")].stateValues
+                    .value,
             ).eq(isNumber);
             expect(
-                stateVariables[resolveComponentName("num2")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("num2")].stateValues
+                    .value,
             ).eq(isNumber);
             expect(
-                stateVariables[resolveComponentName("num3")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("num3")].stateValues
+                    .value,
             ).eq(isNumber);
             expect(
-                stateVariables[resolveComponentName("num4")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("num4")].stateValues
+                    .value,
             ).eq(isNumber);
             expect(
-                stateVariables[resolveComponentName("num5")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("num5")].stateValues
+                    .value,
             ).eq(isNumber);
             expect(
-                stateVariables[resolveComponentName("num6")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("num6")].stateValues
+                    .value,
             ).eq(isNumber);
             expect(
-                stateVariables[resolveComponentName("num7")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("num7")].stateValues
+                    .value,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("num8")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("num8")].stateValues
+                    .value,
             ).eq(true);
         }
 
@@ -103,7 +119,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "36",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -113,7 +129,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "37",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -123,7 +139,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "37.1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -133,7 +149,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "42/3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -143,7 +159,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-39.6/3.3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -153,7 +169,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = false;
@@ -163,7 +179,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\sqrt{4}",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -173,7 +189,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2\\sin(\\pi/4)^2",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -183,7 +199,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1E-300",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -193,7 +209,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = true;
@@ -203,7 +219,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "0/0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = false;
@@ -213,7 +229,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10/0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = false;
@@ -223,7 +239,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10/-0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         isNumber = false;
@@ -232,7 +248,7 @@ describe("Boolean Operator tag tests", async () => {
         await check_items(isNumber, isInteger, isEven);
     });
     it("isinteger, is number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="x"/>
     <mathInput name="x1"/>
@@ -260,7 +276,8 @@ describe("Boolean Operator tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("ib")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ib")].stateValues
+                    .value,
             ).eq(isBetween);
         }
 
@@ -277,17 +294,17 @@ describe("Boolean Operator tag tests", async () => {
         x2 = 3;
         await updateMathInputValue({
             latex: x.toString(),
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
         await updateMathInputValue({
             latex: x1.toString(),
-            componentIdx: resolveComponentName("x1"),
+            componentIdx: await resolvePathToNodeIdx("x1"),
             core,
         });
         await updateMathInputValue({
             latex: x2.toString(),
-            componentIdx: resolveComponentName("x2"),
+            componentIdx: await resolvePathToNodeIdx("x2"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -296,7 +313,7 @@ describe("Boolean Operator tag tests", async () => {
         strict = true;
         await updateBooleanInputValue({
             boolean: strict,
-            componentIdx: resolveComponentName("strict"),
+            componentIdx: await resolvePathToNodeIdx("strict"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -305,7 +322,7 @@ describe("Boolean Operator tag tests", async () => {
         x2 = 5;
         await updateMathInputValue({
             latex: x2.toString(),
-            componentIdx: resolveComponentName("x2"),
+            componentIdx: await resolvePathToNodeIdx("x2"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -314,7 +331,7 @@ describe("Boolean Operator tag tests", async () => {
         strict = false;
         await updateBooleanInputValue({
             boolean: strict,
-            componentIdx: resolveComponentName("strict"),
+            componentIdx: await resolvePathToNodeIdx("strict"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -323,7 +340,7 @@ describe("Boolean Operator tag tests", async () => {
         x = 4;
         await updateMathInputValue({
             latex: x.toString(),
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -332,7 +349,7 @@ describe("Boolean Operator tag tests", async () => {
         strict = true;
         await updateBooleanInputValue({
             boolean: strict,
-            componentIdx: resolveComponentName("strict"),
+            componentIdx: await resolvePathToNodeIdx("strict"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -341,7 +358,7 @@ describe("Boolean Operator tag tests", async () => {
         x1 = 8;
         await updateMathInputValue({
             latex: x1.toString(),
-            componentIdx: resolveComponentName("x1"),
+            componentIdx: await resolvePathToNodeIdx("x1"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -350,7 +367,7 @@ describe("Boolean Operator tag tests", async () => {
         x = 7;
         await updateMathInputValue({
             latex: x.toString(),
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -359,7 +376,7 @@ describe("Boolean Operator tag tests", async () => {
         x2 = 8;
         await updateMathInputValue({
             latex: x2.toString(),
-            componentIdx: resolveComponentName("x2"),
+            componentIdx: await resolvePathToNodeIdx("x2"),
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -368,7 +385,7 @@ describe("Boolean Operator tag tests", async () => {
         strict = false;
         await updateBooleanInputValue({
             boolean: strict,
-            componentIdx: resolveComponentName("strict"),
+            componentIdx: await resolvePathToNodeIdx("strict"),
             core,
         });
         await check_items(x, x1, x2, strict);

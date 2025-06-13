@@ -12,7 +12,7 @@ vi.mock("hyperformula");
 
 describe("Orbital diagram tests", async () => {
     it("original diagram sugar works", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
  <orbitalDiagram labels="a b" name="od">(u,d, e, d) (e)</orbitalDiagram>
     `,
@@ -21,7 +21,7 @@ describe("Orbital diagram tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("od")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("od")].stateValues.value,
         ).eqls([
             { orbitalText: "a", boxes: ["U", "D", "", "D"] },
             { orbitalText: "b", boxes: [""] },

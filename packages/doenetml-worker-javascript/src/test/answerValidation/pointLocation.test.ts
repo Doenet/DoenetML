@@ -20,7 +20,7 @@ async function run_tests({
         credit: number;
     }[];
 }) {
-    const { core, resolveComponentName } = await createTestCore({ doenetML });
+    const { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
 
     for (let responseObj of responseCredits) {
         await submit_check(responseObj);
@@ -38,12 +38,12 @@ async function run_tests({
             if (typeof resp === "number") {
                 await updateMathInputValue({
                     latex: `${resp}`,
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     core,
                 });
             } else {
                 await movePoint({
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     ...resp,
                     core,
                 });
@@ -51,18 +51,21 @@ async function run_tests({
         }
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(`ans`)].stateValues
+            stateVariables[await resolvePathToNodeIdx(`ans`)].stateValues
                 .justSubmitted,
         ).eq(false);
 
-        await submitAnswer({ componentIdx: resolveComponentName(`ans`), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx(`ans`),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName(`ans`)].stateValues
+            stateVariables[await resolvePathToNodeIdx(`ans`)].stateValues
                 .creditAchieved,
         ).eq(credit, `credit for response ${JSON.stringify(responses)}`);
         expect(
-            stateVariables[resolveComponentName(`ans`)].stateValues
+            stateVariables[await resolvePathToNodeIdx(`ans`)].stateValues
                 .justSubmitted,
         ).eq(true);
     }

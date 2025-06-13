@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     callAction,
@@ -23,13 +23,13 @@ vi.mock("hyperformula");
 describe("callAction tag tests", async () => {
     async function test_resample(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let sum = 0;
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -42,18 +42,21 @@ describe("callAction tag tests", async () => {
         }
 
         expect(
-            stateVariables[resolveComponentName("sum")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("sum")].stateValues.value,
         ).eq(sum);
 
-        await callAction({ componentIdx: resolveComponentName("rs"), core });
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("rs"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("sum")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("sum")].stateValues.value,
         ).not.eq(sum);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -68,7 +71,7 @@ describe("callAction tag tests", async () => {
     }
 
     it("resample random numbers", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="$s" actionName="resample" name="rs" >
@@ -82,11 +85,11 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        await test_resample(core, resolveComponentName);
+        await test_resample(core, resolvePathToNodeIdx);
     });
 
     it("add and delete points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="theGraphs">
       <title>The graphs</title>
@@ -114,14 +117,15 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[1]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[1]")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
 
-        let g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        let g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        let g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        let g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        let g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        let g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        let g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        let g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         let gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -129,21 +133,22 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({
-            componentIdx: resolveComponentName("addPoint"),
+            componentIdx: await resolvePathToNodeIdx("addPoint"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -169,14 +174,15 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(-2,5)");
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -189,21 +195,22 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({
-            componentIdx: resolveComponentName("addPoint"),
+            componentIdx: await resolvePathToNodeIdx("addPoint"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[3]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -233,14 +240,15 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[3]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
+                    .latex,
             ),
         ).eq("(7,-9)");
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -253,17 +261,19 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({
-            componentIdx: resolveComponentName("deletePoint"),
+            componentIdx: await resolvePathToNodeIdx("deletePoint"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("ps[3]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("ps[3]")]).eq(
+            undefined,
+        );
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -290,14 +300,15 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(1,0)");
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -310,17 +321,19 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({
-            componentIdx: resolveComponentName("deletePoint"),
+            componentIdx: await resolvePathToNodeIdx("deletePoint"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("ps[2]")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("ps[2]")]).eq(
+            undefined,
+        );
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -334,21 +347,22 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({
-            componentIdx: resolveComponentName("deletePoint"),
+            componentIdx: await resolvePathToNodeIdx("deletePoint"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[1]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[1]")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -362,21 +376,22 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({
-            componentIdx: resolveComponentName("addPoint"),
+            componentIdx: await resolvePathToNodeIdx("addPoint"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
-        g1 = stateVariables[resolveComponentName("theGraphs.g")];
-        g2 = stateVariables[resolveComponentName("theGraphs.g2")];
-        g3 = stateVariables[resolveComponentName("theGraphs2.g")];
-        g4 = stateVariables[resolveComponentName("theGraphs2.g2")];
+        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
         gs = [g1, g2, g3, g4];
 
         for (let g of gs) {
@@ -395,20 +410,21 @@ describe("callAction tag tests", async () => {
 
     async function test_chained_actions(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -419,17 +435,21 @@ describe("callAction tag tests", async () => {
             expect(num).lte(6);
         }
 
-        await callAction({ componentIdx: resolveComponentName("rs"), core });
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("rs"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
         let pointIndices = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointIndices.length).eq(2);
         expect(
@@ -444,19 +464,20 @@ describe("callAction tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(-2,5)");
 
         pointIndices = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(
             stateVariables[pointIndices[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -471,7 +492,7 @@ describe("callAction tag tests", async () => {
     }
 
     it("chained actions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="$s" actionName="resample" name="rs" >
@@ -492,11 +513,11 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        await test_chained_actions(core, resolveComponentName);
+        await test_chained_actions(core, resolvePathToNodeIdx);
     });
 
     it("chained actions, inside repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <repeat name="sets" for="1 2">
       <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
@@ -526,17 +547,18 @@ describe("callAction tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName(`sets[${ind}].addPoint`)]
-                    .stateValues.hidden,
+                stateVariables[
+                    await resolvePathToNodeIdx(`sets[${ind}].addPoint`)
+                ].stateValues.hidden,
             ).eq(true);
 
             expect(
-                stateVariables[resolveComponentName(`sets[${ind}].g`)]
+                stateVariables[await resolvePathToNodeIdx(`sets[${ind}].g`)]
                     .stateValues.graphicalDescendants.length,
             ).eq(1);
 
             let numbers = stateVariables[
-                resolveComponentName(`sets[${ind}].nums`)
+                await resolvePathToNodeIdx(`sets[${ind}].nums`)
             ].stateValues.text
                 .split(",")
                 .map(Number);
@@ -548,20 +570,21 @@ describe("callAction tag tests", async () => {
             }
 
             await callAction({
-                componentIdx: resolveComponentName(`sets[${ind}].rs`),
+                componentIdx: await resolvePathToNodeIdx(`sets[${ind}].rs`),
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
 
             expect(
                 cleanLatex(
-                    stateVariables[resolveComponentName(`sets[${ind}].ps[2]`)]
-                        .stateValues.latex,
+                    stateVariables[
+                        await resolvePathToNodeIdx(`sets[${ind}].ps[2]`)
+                    ].stateValues.latex,
                 ),
             ).eq("(3,4)");
 
             let pointIndices = stateVariables[
-                resolveComponentName(`sets[${ind}].g`)
+                await resolvePathToNodeIdx(`sets[${ind}].g`)
             ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
             expect(pointIndices.length).eq(2);
             expect(
@@ -586,13 +609,14 @@ describe("callAction tag tests", async () => {
 
             expect(
                 cleanLatex(
-                    stateVariables[resolveComponentName(`sets[${ind}].ps[2]`)]
-                        .stateValues.latex,
+                    stateVariables[
+                        await resolvePathToNodeIdx(`sets[${ind}].ps[2]`)
+                    ].stateValues.latex,
                 ),
             ).eq("(-2,5)");
 
             pointIndices = stateVariables[
-                resolveComponentName(`sets[${ind}].g`)
+                await resolvePathToNodeIdx(`sets[${ind}].g`)
             ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
             expect(
                 stateVariables[pointIndices[1]].stateValues.xs.map(
@@ -601,7 +625,7 @@ describe("callAction tag tests", async () => {
             ).eqls([-2, 5]);
 
             let numbers2 = stateVariables[
-                resolveComponentName(`sets[${ind}].nums`)
+                await resolvePathToNodeIdx(`sets[${ind}].nums`)
             ].stateValues.text
                 .split(",")
                 .map(Number);
@@ -617,7 +641,7 @@ describe("callAction tag tests", async () => {
     });
 
     it("chained actions on multiple sources", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="$s" actionName="resample" name="rs" >
@@ -645,16 +669,17 @@ describe("callAction tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -665,21 +690,25 @@ describe("callAction tag tests", async () => {
             expect(num).lte(6);
         }
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
 
-        await callAction({ componentIdx: resolveComponentName("rs"), core });
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("rs"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
         let pointIndices = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointIndices.length).eq(2);
         expect(
@@ -694,19 +723,20 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(-2,5)");
 
         pointIndices = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(
             stateVariables[pointIndices[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -719,21 +749,25 @@ describe("callAction tag tests", async () => {
         }
         expect(numbers2).not.eqls(numbers);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
 
-        await updateValue({ componentIdx: resolveComponentName("in"), core });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("in"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[3]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
         pointIndices = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointIndices.length).eq(3);
         expect(
@@ -752,24 +786,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[3]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
+                    .latex,
             ),
         ).eq("(7,-9)");
 
         pointIndices = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(
             stateVariables[pointIndices[2]].stateValues.xs.map((x) => x.tree),
         ).eqls([7, -9]);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
     });
 
     it("action based on trigger", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P">(-1,2)</point>
@@ -786,11 +821,11 @@ describe("callAction tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -803,12 +838,13 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-1,2)");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
@@ -818,12 +854,13 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-1,-7)");
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -831,7 +868,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
@@ -841,18 +878,21 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(3,-4)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 7,
             core,
@@ -862,11 +902,14 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(1,7)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -880,7 +923,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -890,18 +933,21 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(5,9)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -3,
             y: 4,
             core,
@@ -911,18 +957,21 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-3,4)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -6,
             y: 5,
             core,
@@ -932,18 +981,21 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-6,5)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 2,
             core,
@@ -953,11 +1005,14 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(4,2)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -971,7 +1026,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -981,11 +1036,14 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(9,7)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -993,7 +1051,7 @@ describe("callAction tag tests", async () => {
     });
 
     it("action triggered when click", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P">(-1,2)</point>
@@ -1010,11 +1068,11 @@ describe("callAction tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -1027,12 +1085,13 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-1,2)");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
@@ -1042,23 +1101,29 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(3,-4)");
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
-        await clickPoint({ componentIdx: resolveComponentName("P"), core });
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -1072,7 +1137,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -1082,21 +1147,29 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(5,9)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
-        await clickPoint({ componentIdx: resolveComponentName("P"), core });
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -1110,7 +1183,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -1120,11 +1193,14 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(9,7)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -1132,7 +1208,7 @@ describe("callAction tag tests", async () => {
     });
 
     it("action triggered when click, inside unnamed repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <repeat for="1 2">
       <graph>
@@ -1151,9 +1227,8 @@ describe("callAction tag tests", async () => {
 
         for (let ind = 0; ind < 2; ind++) {
             let templateName =
-                stateVariables[resolveComponentName("_repeat1")].replacements![
-                    ind
-                ].componentIdx;
+                stateVariables[await resolvePathToNodeIdx("_repeat1")]
+                    .replacements![ind].componentIdx;
 
             let tReps = stateVariables[templateName].replacements;
             let graphName = tReps![0].componentIdx;
@@ -1257,7 +1332,7 @@ describe("callAction tag tests", async () => {
     });
 
     it("action triggered when object focused", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point name="P">(-1,2)</point>
@@ -1274,11 +1349,11 @@ describe("callAction tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -1291,12 +1366,13 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-1,2)");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
@@ -1306,23 +1382,29 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(3,-4)");
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
-        await focusPoint({ componentIdx: resolveComponentName("P"), core });
+        await focusPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -1336,7 +1418,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -1346,21 +1428,29 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(5,9)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
         expect(numbers2).eqls(numbers);
 
-        await focusPoint({ componentIdx: resolveComponentName("P"), core });
+        await focusPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -1374,7 +1464,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -1384,11 +1474,14 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(9,7)");
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -1396,7 +1489,7 @@ describe("callAction tag tests", async () => {
     });
 
     it("chained updates based on trigger", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="P">(-1,2)</point>
@@ -1419,23 +1512,25 @@ describe("callAction tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-1,2)");
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -1447,7 +1542,7 @@ describe("callAction tag tests", async () => {
         }
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
@@ -1457,24 +1552,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-1,-7)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
@@ -1484,22 +1580,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(3,-4)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 7,
             core,
@@ -1509,16 +1608,19 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(1,7)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -1532,7 +1634,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -1542,22 +1644,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(5,9)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -3,
             y: 4,
             core,
@@ -1566,22 +1671,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-3,4)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -6,
             y: 5,
             core,
@@ -1590,22 +1698,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-6,5)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 2,
             core,
@@ -1615,16 +1726,19 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(4,2)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(3);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
 
@@ -1638,7 +1752,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -1647,23 +1761,26 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(9,7)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(3);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
     });
 
     it("triggerWhen supersedes chaining", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="P">(-1,2)</point>
@@ -1686,23 +1803,25 @@ describe("callAction tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-1,2)");
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -1714,7 +1833,7 @@ describe("callAction tag tests", async () => {
         }
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -1,
             y: -7,
             core,
@@ -1724,17 +1843,18 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-1,-7)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -1748,7 +1868,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: -4,
             core,
@@ -1758,22 +1878,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(3,-4)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 7,
             core,
@@ -1783,22 +1906,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(1,7)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 9,
             core,
@@ -1808,22 +1934,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(5,9)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -3,
             y: -4,
             core,
@@ -1833,16 +1962,19 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-3,-4)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2.length).eq(7);
@@ -1855,7 +1987,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -6,
             y: -5,
             core,
@@ -1865,22 +1997,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(-6,-5)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(2);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 4,
             y: 2,
             core,
@@ -1890,22 +2025,25 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(4,2)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(3);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 9,
             y: 7,
             core,
@@ -1915,23 +2053,26 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("P2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                    .latex,
             ),
         ).eq("(9,7)");
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(3);
 
-        numbers2 = stateVariables[resolveComponentName("nums")].stateValues.text
+        numbers2 = stateVariables[
+            await resolvePathToNodeIdx("nums")
+        ].stateValues.text
             .split(",")
             .map(Number);
         expect(numbers2).eqls(numbers);
     });
 
     it("triggerSet", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="P">(1,2)</point>
@@ -1957,19 +2098,20 @@ describe("callAction tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -1981,7 +2123,7 @@ describe("callAction tag tests", async () => {
         }
 
         await triggerActions({
-            componentIdx: resolveComponentName("tset"),
+            componentIdx: await resolvePathToNodeIdx("tset"),
             core,
         });
 
@@ -1989,12 +2131,13 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
         let pointNames = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
@@ -2010,19 +2153,20 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(-2,5)");
 
         pointNames = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -2036,7 +2180,7 @@ describe("callAction tag tests", async () => {
     });
 
     it("triggerSet and chain to callAction", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="P">(1,2)</point>
@@ -2067,17 +2211,19 @@ describe("callAction tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("rs")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("sub")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("sub")].stateValues
+                .hidden,
         ).eq(true);
 
         let mathInputName =
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .inputChildren[0].componentIdx;
 
         await updateMathInputValue({
@@ -2088,17 +2234,17 @@ describe("callAction tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .justSubmitted,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -2110,7 +2256,7 @@ describe("callAction tag tests", async () => {
         }
 
         await triggerActions({
-            componentIdx: resolveComponentName("tset"),
+            componentIdx: await resolvePathToNodeIdx("tset"),
             core,
         });
 
@@ -2118,12 +2264,13 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
         let pointNames = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
@@ -2139,19 +2286,20 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(-2,5)");
 
         pointNames = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -2164,17 +2312,17 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
 
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .justSubmitted,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
     });
 
     it("chaining with updateValue", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="$s" actionName="resample" name="rs" >
@@ -2202,16 +2350,17 @@ describe("callAction tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("addPoint")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("addPoint")].stateValues
+                .hidden,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("g")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendants.length,
         ).eq(1);
 
         let numbers = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -2222,21 +2371,25 @@ describe("callAction tag tests", async () => {
             expect(num).lte(6);
         }
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
 
-        await callAction({ componentIdx: resolveComponentName("rs"), core });
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("rs"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(3,4)");
 
         let pointNames = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
@@ -2252,19 +2405,20 @@ describe("callAction tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ps[2]")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
+                    .latex,
             ),
         ).eq("(-2,5)");
 
         pointNames = stateVariables[
-            resolveComponentName("g")
+            await resolvePathToNodeIdx("g")
         ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
         expect(
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
-            resolveComponentName("nums")
+            await resolvePathToNodeIdx("nums")
         ].stateValues.text
             .split(",")
             .map(Number);
@@ -2276,13 +2430,13 @@ describe("callAction tag tests", async () => {
         }
         expect(numbers2).not.eqls(numbers);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
     });
 
     it("math in label", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="$s" actionName="resample" name="rs" ><label>Hi <m>\\sum_{i=1}^5x_i</m></label></callAction></p>
@@ -2290,13 +2444,13 @@ describe("callAction tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("rs")].stateValues.label).eq(
-            "Hi \\(\\sum_{i=1}^5x_i\\)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("rs")].stateValues.label,
+        ).eq("Hi \\(\\sum_{i=1}^5x_i\\)");
     });
 
     it("label is name", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="$s" actionName="resample" name="resample_numbers" labelIsName /></p>
@@ -2305,13 +2459,13 @@ describe("callAction tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("resample_numbers")].stateValues
-                .label,
+            stateVariables[await resolvePathToNodeIdx("resample_numbers")]
+                .stateValues.label,
         ).eq("resample numbers");
     });
 
     it("case insensitive action name", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="$s" actionName="reSamplE" name="rs"><label>roll dice</label></callAction></p>
@@ -2323,7 +2477,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        await test_resample(core, resolveComponentName);
+        await test_resample(core, resolvePathToNodeIdx);
     });
 
     it("callAction in graph", async () => {
@@ -2345,7 +2499,7 @@ describe("callAction tag tests", async () => {
     });
 
     it("buttons can be styled", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
         <styleDefinitions>
@@ -2361,11 +2515,11 @@ describe("callAction tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ca1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ca1")].stateValues
                 .selectedStyle.fillColor,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("ca2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ca2")].stateValues
                 .selectedStyle.fillColor,
         ).eq("yellow");
     });

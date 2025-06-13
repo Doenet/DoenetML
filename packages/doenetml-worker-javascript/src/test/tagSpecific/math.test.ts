@@ -19,7 +19,7 @@ vi.mock("hyperformula");
 
 describe("Math tag tests", async () => {
     it("1+1", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <math name="m1">1+1</math>
             <math name="m1s" simplify>1+1</math>
@@ -29,15 +29,17 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["+", 1, 1]);
         expect(
-            stateVariables[resolveComponentName("m1s")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1s")].stateValues.value
+                .tree,
         ).eqls(2);
     });
 
     it("string math string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m1">3<math name="m2">x+1</math>+5</math>
     <math name="m3" simplify>3<math>x+1</math>+5</math>
@@ -47,18 +49,21 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 3, ["+", "x", 1]], 5]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["+", 5, ["*", 3, ["+", "x", 1]]]);
     });
 
     it("hidden string copy/math string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m1" hide>x+1</math>
     <math name="m2">3<math extend="$m1" name="m1a" /> + 5</math>
@@ -68,27 +73,30 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("m1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 3, ["+", "x", 1]], 5]);
-        expect(stateVariables[resolveComponentName("m1")].stateValues.hide).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("m1a")].stateValues.hide).eq(
-            true,
-        );
-        expect(stateVariables[resolveComponentName("m2")].stateValues.hide).eq(
-            false,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.hide,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1a")].stateValues.hide,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.hide,
+        ).eq(false);
     });
 
     it("math underscore when no value", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m1"></math>
     <math name="m2"> </math>
@@ -98,18 +106,21 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eq("＿");
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eq("＿");
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eq("＿");
     });
 
     it("format latex", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math format="latex" name="m">\\frac{x}{z}</math>
     `,
@@ -118,12 +129,13 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["/", "x", "z"]);
     });
 
     it("copy latex property", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="m">x/y</math>
   <latex extend="$m.latex" name="l1" />
@@ -132,16 +144,16 @@ describe("Math tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("l1")].stateValues.value).eq(
-            "\\frac{x}{y}",
-        );
-        expect(stateVariables[resolveComponentName("l2")].stateValues.value).eq(
-            "\\frac{x}{y}",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("l1")].stateValues.value,
+        ).eq("\\frac{x}{y}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("l2")].stateValues.value,
+        ).eq("\\frac{x}{y}");
     });
 
     it("math with internal and external copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="a" simplify><math name="x">x</math> + $x + $z</math>
   <math name="z">z</math>
@@ -151,15 +163,17 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], "z"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], "z"]);
     });
 
     it("point adapts into a math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <text>a</text>
   <point>3</point>
@@ -169,14 +183,15 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq(5);
     });
 
     // TODO: do we are enough to restore this behavior?
     // We stopped putting spaces between adjacent string children so that entity combinations like &lt;= are not separated
     it.skip("adjacent string children in math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math simplify name="m">2<sequence length="0"/>3</math>
   <point name="P">($m, 3)</point>
@@ -185,25 +200,28 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("m")].activeChildren[0]).eq(
-            "2",
-        );
-        expect(stateVariables[resolveComponentName("m")].activeChildren[1]).eq(
-            "3",
-        );
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].activeChildren[0],
+        ).eq("2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].activeChildren[1],
+        ).eq("3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(3);
 
         // move point to (7,9)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 7,
             y: 9,
             core,
@@ -212,21 +230,24 @@ describe("Math tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         // Since we mark the component to ignore changes to defining children,
         // the activeChildren might not be changed
-        // expect(stateVariables[resolveComponentName("m1")].activeChildren[0]).eq("7");
-        // expect(stateVariables[resolveComponentName("m1")].activeChildren[1]).eq("");
+        // expect(stateVariables[await resolvePathToNodeIdx("m1")].activeChildren[0]).eq("7");
+        // expect(stateVariables[await resolvePathToNodeIdx("m1")].activeChildren[1]).eq("");
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(7);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(9);
     });
 
     it("math displayed rounded to 3 significant digits by default", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="m1">1.001</math>
   <math name="m2">0.3004 x + 4pi</math>
@@ -235,31 +256,34 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eq(1.001);
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues
                 .valueForDisplay.tree,
         ).eq(1);
-        expect(stateVariables[resolveComponentName("m1")].stateValues.latex).eq(
-            "1",
-        );
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.latex,
+        ).eq("1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 0.3004, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 0.3, "x"], ["*", 4, "pi"]]);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("0.3x+4\\pi");
     });
 
     it("mutual references of format", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="a" simplify format="$ti1">
     \\sin(y)
@@ -288,30 +312,36 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(x)\\sin(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(u)\\sin(v)");
         expect(
-            stateVariables[resolveComponentName("formata")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formata")].stateValues
+                .value,
         ).eq("latex");
         expect(
-            stateVariables[resolveComponentName("formatb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatb")].stateValues
+                .value,
         ).eq("text");
         expect(
-            stateVariables[resolveComponentName("formatc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatc")].stateValues
+                .value,
         ).eq("text");
         expect(
-            stateVariables[resolveComponentName("formatd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatd")].stateValues
+                .value,
         ).eq("latex");
 
         // change format of second to latex
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti2"),
+            componentIdx: await resolvePathToNodeIdx("ti2"),
             text: "latex",
             core,
         });
@@ -319,30 +349,36 @@ describe("Math tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                    .latex,
             ),
         ).eq("insx\\sin(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("insu\\sin(v)");
         expect(
-            stateVariables[resolveComponentName("formata")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formata")].stateValues
+                .value,
         ).eq("latex");
         expect(
-            stateVariables[resolveComponentName("formatb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatb")].stateValues
+                .value,
         ).eq("latex");
         expect(
-            stateVariables[resolveComponentName("formatc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatc")].stateValues
+                .value,
         ).eq("latex");
         expect(
-            stateVariables[resolveComponentName("formatd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatd")].stateValues
+                .value,
         ).eq("latex");
 
         // change format of first to text
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti1"),
+            componentIdx: await resolvePathToNodeIdx("ti1"),
             text: "text",
             core,
         });
@@ -350,30 +386,36 @@ describe("Math tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                    .latex,
             ),
         ).eq("＿");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("sinu＿");
         expect(
-            stateVariables[resolveComponentName("formata")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formata")].stateValues
+                .value,
         ).eq("text");
         expect(
-            stateVariables[resolveComponentName("formatb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatb")].stateValues
+                .value,
         ).eq("latex");
         expect(
-            stateVariables[resolveComponentName("formatc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatc")].stateValues
+                .value,
         ).eq("latex");
         expect(
-            stateVariables[resolveComponentName("formatd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatd")].stateValues
+                .value,
         ).eq("text");
 
         // change format of second back to text
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti2"),
+            componentIdx: await resolvePathToNodeIdx("ti2"),
             text: "text",
             core,
         });
@@ -381,30 +423,36 @@ describe("Math tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                    .latex,
             ),
         ).eq("＿");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(u)＿");
         expect(
-            stateVariables[resolveComponentName("formata")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formata")].stateValues
+                .value,
         ).eq("text");
         expect(
-            stateVariables[resolveComponentName("formatb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatb")].stateValues
+                .value,
         ).eq("text");
         expect(
-            stateVariables[resolveComponentName("formatc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatc")].stateValues
+                .value,
         ).eq("text");
         expect(
-            stateVariables[resolveComponentName("formatd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatd")].stateValues
+                .value,
         ).eq("text");
 
         // change format of first back to latex
         await updateTextInputValue({
-            componentIdx: resolveComponentName("ti1"),
+            componentIdx: await resolvePathToNodeIdx("ti1"),
             text: "latex",
             core,
         });
@@ -412,30 +460,36 @@ describe("Math tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(x)\\sin(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(u)\\sin(v)");
         expect(
-            stateVariables[resolveComponentName("formata")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formata")].stateValues
+                .value,
         ).eq("latex");
         expect(
-            stateVariables[resolveComponentName("formatb")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatb")].stateValues
+                .value,
         ).eq("text");
         expect(
-            stateVariables[resolveComponentName("formatc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatc")].stateValues
+                .value,
         ).eq("text");
         expect(
-            stateVariables[resolveComponentName("formatd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("formatd")].stateValues
+                .value,
         ).eq("latex");
     });
 
     it("simplify math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Default is no simplification: <math name="m1">1x^2-3 +0x^2 + 4 -2x^2-3 + 5x^2</math></p>
     <p>Explicit no simplify: <math name="m2" simplify="none">1x^2-3 +0x^2 + 4 -2x^2-3 + 5x^2</math></p>
@@ -450,32 +504,38 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("1x^{2}-3+0x^{2}+4-2x^{2}-3+5x^{2}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("1x^{2}-3+0x^{2}+4-2x^{2}-3+5x^{2}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("4x^{2}-2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("4x^{2}-2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
             ),
         ).eq("-2x^{2}+x^{2}+5x^{2}-2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m6")].stateValues
+                    .latex,
             ),
         ).eq("x^{2}+1-2x^{2}-3+5x^{2}");
 
@@ -491,19 +551,24 @@ describe("Math tag tests", async () => {
         ];
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(originalTree);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(originalTree);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 4, ["^", "x", 2]], -2]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 4, ["^", "x", 2]], -2]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls([
             "+",
             ["*", -2, ["^", "x", 2]],
@@ -512,7 +577,8 @@ describe("Math tag tests", async () => {
             -2,
         ]);
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls([
             "+",
             ["^", "x", 2],
@@ -524,7 +590,7 @@ describe("Math tag tests", async () => {
     });
 
     it("expand math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Default is to not expand: <math name="m1">(x-3)(2x+4)</math></p>
     <p>Expand: <math name="m2" expand="true">(x-3)(2x+4)</math></p>
@@ -539,53 +605,63 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("(x-3)(2x+4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("2x^{2}-2x-12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("(x-3)(2x+4)-(3x+5)(7-x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("5x^{2}-18x-47");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
             ),
         ).eq("4x^{2}-4");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["*", ["+", "x", -3], ["+", ["*", 2, "x"], 4]]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, ["^", "x", 2]], ["*", -2, "x"], -12]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls([
             "+",
             ["*", ["+", "x", -3], ["+", ["*", 2, "x"], 4]],
             ["-", ["*", ["+", ["*", 3, "x"], 5], ["+", 7, ["-", "x"]]]],
         ]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 5, ["^", "x", 2]], ["*", -18, "x"], -47]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 4, ["^", "x", 2]], -4]);
     });
 
     it("create vectors and intervals", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Default: <math name="m1">(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
     <p>Create vectors: <math name="m2" createvectors="true">(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
@@ -599,32 +675,38 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("(1,2,3),(4,5),[6,7],(8,9],[10,11)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("(1,2,3),(4,5),[6,7],(8,9],[10,11)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("(1,2,3),(4,5),[6,7],(8,9],[10,11)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("(1,2,3),(4,5),[6,7],(8,9],[10,11)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
             ),
         ).eq("\\langle1,2,3\\rangle,\\langle4,5\\rangle,[6,7],(8,9],[10,11)");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls([
             "list",
             ["tuple", 1, 2, 3],
@@ -634,7 +716,8 @@ describe("Math tag tests", async () => {
             ["interval", ["tuple", 10, 11], ["tuple", true, false]],
         ]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls([
             "list",
             ["vector", 1, 2, 3],
@@ -644,7 +727,8 @@ describe("Math tag tests", async () => {
             ["interval", ["tuple", 10, 11], ["tuple", true, false]],
         ]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls([
             "list",
             ["tuple", 1, 2, 3],
@@ -654,7 +738,8 @@ describe("Math tag tests", async () => {
             ["interval", ["tuple", 10, 11], ["tuple", true, false]],
         ]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls([
             "list",
             ["vector", 1, 2, 3],
@@ -664,7 +749,8 @@ describe("Math tag tests", async () => {
             ["interval", ["tuple", 10, 11], ["tuple", true, false]],
         ]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls([
             "list",
             ["altvector", 1, 2, 3],
@@ -676,7 +762,7 @@ describe("Math tag tests", async () => {
     });
 
     it("display small numbers as zero by default", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="m1" parseScientificNotation displaysmallaszero="false">2x + (1E-15)y</math></p>
   <p><math name="m2" parseScientificNotation>2x + (1E-15)y</math></p>
@@ -689,57 +775,65 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("2x+1\\cdot10^{-15}y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("2x+0y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("2x+1\\cdot10^{-13}y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("2x+0y");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], ["*", 1e-15, "y"]]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], ["*", 1e-15, "y"]]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], ["*", 1e-13, "y"]]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], ["*", 1e-13, "y"]]);
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues
                 .displaySmallAsZero,
         ).eq(0);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues
                 .displaySmallAsZero,
         ).eq(1e-14);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues
                 .displaySmallAsZero,
         ).eq(1e-14);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues
                 .displaySmallAsZero,
         ).eq(1e-12);
     });
 
     it("display digits and decimals", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="expr1">621802.3520303639164826281</math></p>
   <p><math name="expr2">31.3835205397397634 x + 4pi</math></p>
@@ -773,338 +867,340 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("expr1")].stateValues
+                    .latex,
             ),
         ).eq("621802.35");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("expr2")].stateValues
+                    .latex,
             ),
         ).eq("31.38x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig5")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dig5")]
+                    .stateValues.latex,
             ),
         ).eq("621800");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig5")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dig5")]
+                    .stateValues.latex,
             ),
         ).eq("31.384x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec5")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dec5")]
+                    .stateValues.latex,
             ),
         ).eq("621802.35203");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec5")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dec5")]
+                    .stateValues.latex,
             ),
         ).eq("31.38352x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig5a")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dig5a")]
+                    .stateValues.latex,
             ),
         ).eq("621800");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig5a")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dig5a")]
+                    .stateValues.latex,
             ),
         ).eq("31.384x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec5a")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dec5a")]
+                    .stateValues.latex,
             ),
         ).eq("621802.35203");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec5a")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dec5a")]
+                    .stateValues.latex,
             ),
         ).eq("31.38352x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig5b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dig5b")]
+                    .stateValues.latex,
             ),
         ).eq("621800");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig5b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dig5b")]
+                    .stateValues.latex,
             ),
         ).eq("31.384x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec5b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dec5b")]
+                    .stateValues.latex,
             ),
         ).eq("31.38352x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig5c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dig5c")]
+                    .stateValues.latex,
             ),
         ).eq("621800");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig5c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dig5c")]
+                    .stateValues.latex,
             ),
         ).eq("31.384x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec5c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dec5c")]
+                    .stateValues.latex,
             ),
         ).eq("621802.35203");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec5c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dec5c")]
+                    .stateValues.latex,
             ),
         ).eq("31.38352x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig5d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dig5d")]
+                    .stateValues.latex,
             ),
         ).eq("621800");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig5d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dig5d")]
+                    .stateValues.latex,
             ),
         ).eq("31.384x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec5d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dec5d")]
+                    .stateValues.latex,
             ),
         ).eq("621802.35203");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec5d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dec5d")]
+                    .stateValues.latex,
             ),
         ).eq("31.38352x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig5Dec1")]
+                stateVariables[await resolvePathToNodeIdx("expr1Dig5Dec1")]
                     .stateValues.latex,
             ),
         ).eq("621802.4");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig5Dec1")]
+                stateVariables[await resolvePathToNodeIdx("expr2Dig5Dec1")]
                     .stateValues.latex,
             ),
         ).eq("31.384x+4\\pi");
 
         expect(
-            stateVariables[resolveComponentName("expr1")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig5")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dig5")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dec5")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dec5")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig5a")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dig5a")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dec5a")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dec5a")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig5b")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dig5b")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dec5b")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dec5b")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig5c")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dig5c")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dec5c")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dec5c")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig5d")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dig5d")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dec5d")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dec5d")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig5Dec1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1")].stateValues
                 .value.tree,
         ).eq(621802.3520303639);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5Dec1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2")].stateValues
                 .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5a")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5a")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5a")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5a")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5b")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5b")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5b")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5b")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5c")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5c")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5c")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5c")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5d")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5d")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5d")].stateValues
+                .value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5d")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5Dec1")]
+                .stateValues.value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5Dec1")]
+                .stateValues.value.tree,
         ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
 
         expect(
-            stateVariables[resolveComponentName("expr1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35);
         expect(
-            stateVariables[resolveComponentName("expr2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5")].stateValues
                 .valueForDisplay.tree,
         ).eq(621800);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dec5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5a")].stateValues
                 .valueForDisplay.tree,
         ).eq(621800);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5a")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dec5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig5b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5b")].stateValues
                 .valueForDisplay.tree,
         ).eq(621800);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5b")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec5b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5b")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dec5b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5b")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig5c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5c")].stateValues
                 .valueForDisplay.tree,
         ).eq(621800);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5c")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec5c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5c")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dec5c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5c")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig5d")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5d")].stateValues
                 .valueForDisplay.tree,
         ).eq(621800);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5d")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5d")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec5d")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5d")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dec5d")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5d")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig5Dec1")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5Dec1")]
+                .stateValues.valueForDisplay.tree,
         ).eq(621802.4);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5Dec1")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5Dec1")]
+                .stateValues.valueForDisplay.tree,
         ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
     });
 
     it("display digits and decimals 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="expr1">621802.3520303639164826281</math></p>
   <p><math name="expr2">31.3835205397397634 x + 4pi</math></p>
@@ -1136,316 +1232,318 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("expr1")].stateValues
+                    .latex,
             ),
         ).eq("621802.35");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("expr2")].stateValues
+                    .latex,
             ),
         ).eq("31.38x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig5")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr1Dig5")]
+                    .stateValues.latex,
             ),
         ).eq("621800");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig5")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("expr2Dig5")]
+                    .stateValues.latex,
             ),
         ).eq("31.384x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec5")].stateValues
-                    .latex,
-            ),
-        ).eq("621802.35203");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec5")].stateValues
-                    .latex,
-            ),
-        ).eq("31.38352x+4\\pi");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig5a")].stateValues
-                    .latex,
-            ),
-        ).eq("621800");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig5a")].stateValues
-                    .latex,
-            ),
-        ).eq("31.384x+4\\pi");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec5a")].stateValues
-                    .latex,
-            ),
-        ).eq("621802.35203");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec5a")].stateValues
-                    .latex,
-            ),
-        ).eq("31.38352x+4\\pi");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig8Dec5")]
+                stateVariables[await resolvePathToNodeIdx("expr1Dec5")]
                     .stateValues.latex,
             ),
         ).eq("621802.35203");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig8Dec5")]
+                stateVariables[await resolvePathToNodeIdx("expr2Dec5")]
+                    .stateValues.latex,
+            ),
+        ).eq("31.38352x+4\\pi");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("expr1Dig5a")]
+                    .stateValues.latex,
+            ),
+        ).eq("621800");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("expr2Dig5a")]
+                    .stateValues.latex,
+            ),
+        ).eq("31.384x+4\\pi");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("expr1Dec5a")]
+                    .stateValues.latex,
+            ),
+        ).eq("621802.35203");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("expr2Dec5a")]
+                    .stateValues.latex,
+            ),
+        ).eq("31.38352x+4\\pi");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("expr1Dig8Dec5")]
+                    .stateValues.latex,
+            ),
+        ).eq("621802.35203");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("expr2Dig8Dec5")]
                     .stateValues.latex,
             ),
         ).eq("31.383521x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec8Dig5")]
+                stateVariables[await resolvePathToNodeIdx("expr1Dec8Dig5")]
                     .stateValues.latex,
             ),
         ).eq("621802.35203036");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec8Dig5")]
+                stateVariables[await resolvePathToNodeIdx("expr2Dec8Dig5")]
                     .stateValues.latex,
             ),
         ).eq("31.38352054x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig8Dec5a")]
+                stateVariables[await resolvePathToNodeIdx("expr1Dig8Dec5a")]
                     .stateValues.latex,
             ),
         ).eq("621802.35203");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig8Dec5a")]
+                stateVariables[await resolvePathToNodeIdx("expr2Dig8Dec5a")]
                     .stateValues.latex,
             ),
         ).eq("31.383521x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec8Dig5a")]
+                stateVariables[await resolvePathToNodeIdx("expr1Dec8Dig5a")]
                     .stateValues.latex,
             ),
         ).eq("621802.35203036");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec8Dig5a")]
+                stateVariables[await resolvePathToNodeIdx("expr2Dec8Dig5a")]
                     .stateValues.latex,
             ),
         ).eq("31.38352054x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dig3Dec8")]
+                stateVariables[await resolvePathToNodeIdx("expr1Dig3Dec8")]
                     .stateValues.latex,
             ),
         ).eq("621802.35203036");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dig3Dec8")]
+                stateVariables[await resolvePathToNodeIdx("expr2Dig3Dec8")]
                     .stateValues.latex,
             ),
         ).eq("31.38352054x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr1Dec3Dig8")]
+                stateVariables[await resolvePathToNodeIdx("expr1Dec3Dig8")]
                     .stateValues.latex,
             ),
         ).eq("621802.352");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("expr2Dec3Dig8")]
+                stateVariables[await resolvePathToNodeIdx("expr2Dec3Dig8")]
                     .stateValues.latex,
             ),
         ).eq("31.383521x+4\\pi");
 
         expect(
-            stateVariables[resolveComponentName("expr1")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig5")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dig5")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dec5")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dec5")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig5a")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dig5a")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dec5a")].stateValues.value
-                .tree,
-        ).eq(621802.3520303639);
-        expect(
-            stateVariables[resolveComponentName("expr2Dec5a")].stateValues.value
-                .tree,
-        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
-        expect(
-            stateVariables[resolveComponentName("expr1Dig8Dec5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1")].stateValues
                 .value.tree,
         ).eq(621802.3520303639);
         expect(
-            stateVariables[resolveComponentName("expr2Dig8Dec5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2")].stateValues
                 .value.tree,
         ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec8Dig5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5")].stateValues
                 .value.tree,
         ).eq(621802.3520303639);
         expect(
-            stateVariables[resolveComponentName("expr2Dec8Dig5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5")].stateValues
                 .value.tree,
         ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig8Dec5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5")].stateValues
                 .value.tree,
         ).eq(621802.3520303639);
         expect(
-            stateVariables[resolveComponentName("expr2Dig8Dec5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5")].stateValues
                 .value.tree,
         ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec8Dig5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5a")].stateValues
                 .value.tree,
         ).eq(621802.3520303639);
         expect(
-            stateVariables[resolveComponentName("expr2Dec8Dig5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5a")].stateValues
                 .value.tree,
         ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig3Dec8")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5a")].stateValues
                 .value.tree,
         ).eq(621802.3520303639);
         expect(
-            stateVariables[resolveComponentName("expr2Dig3Dec8")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5a")].stateValues
                 .value.tree,
         ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec3Dig8")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("expr1Dig8Dec5")]
+                .stateValues.value.tree,
         ).eq(621802.3520303639);
         expect(
-            stateVariables[resolveComponentName("expr2Dec3Dig8")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("expr2Dig8Dec5")]
+                .stateValues.value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dec8Dig5")]
+                .stateValues.value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dec8Dig5")]
+                .stateValues.value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dig8Dec5a")]
+                .stateValues.value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dig8Dec5a")]
+                .stateValues.value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dec8Dig5a")]
+                .stateValues.value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dec8Dig5a")]
+                .stateValues.value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dig3Dec8")]
+                .stateValues.value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dig3Dec8")]
+                .stateValues.value.tree,
+        ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1Dec3Dig8")]
+                .stateValues.value.tree,
+        ).eq(621802.3520303639);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2Dec3Dig8")]
+                .stateValues.value.tree,
         ).eqls(["+", ["*", 31.383520539739763, "x"], ["*", 4, "pi"]]);
 
         expect(
-            stateVariables[resolveComponentName("expr1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35);
         expect(
-            stateVariables[resolveComponentName("expr2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5")].stateValues
                 .valueForDisplay.tree,
         ).eq(621800);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dec5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dig5a")].stateValues
                 .valueForDisplay.tree,
         ).eq(621800);
         expect(
-            stateVariables[resolveComponentName("expr2Dig5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dig5a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr1Dec5a")].stateValues
                 .valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dec5a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("expr2Dec5a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig8Dec5")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr1Dig8Dec5")]
+                .stateValues.valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dig8Dec5")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr2Dig8Dec5")]
+                .stateValues.valueForDisplay.tree,
         ).eqls(["+", ["*", 31.383521, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec8Dig5")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr1Dec8Dig5")]
+                .stateValues.valueForDisplay.tree,
         ).eq(621802.35203036);
         expect(
-            stateVariables[resolveComponentName("expr2Dec8Dig5")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr2Dec8Dig5")]
+                .stateValues.valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352054, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig8Dec5a")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr1Dig8Dec5a")]
+                .stateValues.valueForDisplay.tree,
         ).eq(621802.35203);
         expect(
-            stateVariables[resolveComponentName("expr2Dig8Dec5a")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr2Dig8Dec5a")]
+                .stateValues.valueForDisplay.tree,
         ).eqls(["+", ["*", 31.383521, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec8Dig5a")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr1Dec8Dig5a")]
+                .stateValues.valueForDisplay.tree,
         ).eq(621802.35203036);
         expect(
-            stateVariables[resolveComponentName("expr2Dec8Dig5a")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr2Dec8Dig5a")]
+                .stateValues.valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352054, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dig3Dec8")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr1Dig3Dec8")]
+                .stateValues.valueForDisplay.tree,
         ).eq(621802.35203036);
         expect(
-            stateVariables[resolveComponentName("expr2Dig3Dec8")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr2Dig3Dec8")]
+                .stateValues.valueForDisplay.tree,
         ).eqls(["+", ["*", 31.38352054, "x"], ["*", 4, "pi"]]);
         expect(
-            stateVariables[resolveComponentName("expr1Dec3Dig8")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr1Dec3Dig8")]
+                .stateValues.valueForDisplay.tree,
         ).eq(621802.352);
         expect(
-            stateVariables[resolveComponentName("expr2Dec3Dig8")].stateValues
-                .valueForDisplay.tree,
+            stateVariables[await resolvePathToNodeIdx("expr2Dec3Dig8")]
+                .stateValues.valueForDisplay.tree,
         ).eqls(["+", ["*", 31.383521, "x"], ["*", 4, "pi"]]);
     });
 
     it("pad zeros with display digits and decimals", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="m1">62.1</math></p>
   <p><math name="m2">162.1*10^(-3)</math></p>
@@ -1590,664 +1688,679 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("dig5a")].stateValues
+                    .latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5apad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5apad")]
+                    .stateValues.latex,
             ),
         ).eq("62.100");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("dig5b")].stateValues
+                    .latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5bpad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5bpad")]
+                    .stateValues.latex,
             ),
         ).eq("162.10\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("dig5c")].stateValues
+                    .latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5cpad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5cpad")]
+                    .stateValues.latex,
             ),
         ).eq("1.3000x+4.0000\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("dec5a")].stateValues
+                    .latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5apad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5apad")]
+                    .stateValues.latex,
             ),
         ).eq("62.10000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("dec5b")].stateValues
+                    .latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5bpad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5bpad")]
+                    .stateValues.latex,
             ),
         ).eq("162.10000\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("dec5c")].stateValues
+                    .latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5cpad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5cpad")]
+                    .stateValues.latex,
             ),
         ).eq("1.30000x+4.00000\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1a")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1a")]
+                    .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1apad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1apad")]
+                    .stateValues.latex,
             ),
         ).eq("62.100");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1b")]
+                    .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1bpad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1bpad")]
+                    .stateValues.latex,
             ),
         ).eq("162.10\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1c")]
+                    .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1cpad")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1cpad")]
+                    .stateValues.latex,
             ),
         ).eq("1.3000x+4.0000\\pi");
 
         expect(
-            stateVariables[resolveComponentName("dig5aText")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dig5aText")].stateValues
+                .value,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dig5apadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5apadText")]
+                .stateValues.value,
         ).eq("62.100");
         expect(
-            stateVariables[resolveComponentName("dig5bText")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dig5bText")].stateValues
+                .value,
         ).eq("162.1 * 10⁻³");
         expect(
-            stateVariables[resolveComponentName("dig5bpadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5bpadText")]
+                .stateValues.value,
         ).eq("162.10 * 10⁻³");
         expect(
-            stateVariables[resolveComponentName("dig5cText")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dig5cText")].stateValues
+                .value,
         ).eq("1.3 x + 4 π");
         expect(
-            stateVariables[resolveComponentName("dig5cpadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5cpadText")]
+                .stateValues.value,
         ).eq("1.3000 x + 4.0000 π");
         expect(
-            stateVariables[resolveComponentName("dec5aText")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dec5aText")].stateValues
+                .value,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dec5apadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dec5apadText")]
+                .stateValues.value,
         ).eq("62.10000");
         expect(
-            stateVariables[resolveComponentName("dec5bText")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dec5bText")].stateValues
+                .value,
         ).eq("162.1 * 10⁻³");
         expect(
-            stateVariables[resolveComponentName("dec5bpadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dec5bpadText")]
+                .stateValues.value,
         ).eq("162.10000 * 10⁻³");
         expect(
-            stateVariables[resolveComponentName("dec5cText")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("dec5cText")].stateValues
+                .value,
         ).eq("1.3 x + 4 π");
         expect(
-            stateVariables[resolveComponentName("dec5cpadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dec5cpadText")]
+                .stateValues.value,
         ).eq("1.30000 x + 4.00000 π");
         expect(
-            stateVariables[resolveComponentName("dig5dec1aText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1aText")]
+                .stateValues.value,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dig5dec1apadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1apadText")]
+                .stateValues.value,
         ).eq("62.100");
         expect(
-            stateVariables[resolveComponentName("dig5dec1bText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1bText")]
+                .stateValues.value,
         ).eq("162.1 * 10⁻³");
         expect(
-            stateVariables[resolveComponentName("dig5dec1bpadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1bpadText")]
+                .stateValues.value,
         ).eq("162.10 * 10⁻³");
         expect(
-            stateVariables[resolveComponentName("dig5dec1cText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1cText")]
+                .stateValues.value,
         ).eq("1.3 x + 4 π");
         expect(
-            stateVariables[resolveComponentName("dig5dec1cpadText")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1cpadText")]
+                .stateValues.value,
         ).eq("1.3000 x + 4.0000 π");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5aValue")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5aValue")]
+                    .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5apadValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5apadValue")]
                     .stateValues.latex,
             ),
         ).eq("62.100");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5bValue")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5bValue")]
+                    .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5bpadValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5bpadValue")]
                     .stateValues.latex,
             ),
         ).eq("162.10\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5cValue")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5cValue")]
+                    .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5cpadValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5cpadValue")]
                     .stateValues.latex,
             ),
         ).eq("1.3000x+4.0000\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5aValue")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5aValue")]
+                    .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5apadValue")]
+                stateVariables[await resolvePathToNodeIdx("dec5apadValue")]
                     .stateValues.latex,
             ),
         ).eq("62.10000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5bValue")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5bValue")]
+                    .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5bpadValue")]
+                stateVariables[await resolvePathToNodeIdx("dec5bpadValue")]
                     .stateValues.latex,
             ),
         ).eq("162.10000\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5cValue")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5cValue")]
+                    .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5cpadValue")]
+                stateVariables[await resolvePathToNodeIdx("dec5cpadValue")]
                     .stateValues.latex,
             ),
         ).eq("1.30000x+4.00000\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1aValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1aValue")]
                     .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1apadValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1apadValue")]
                     .stateValues.latex,
             ),
         ).eq("62.100");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1bValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1bValue")]
                     .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1bpadValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1bpadValue")]
                     .stateValues.latex,
             ),
         ).eq("162.10\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1cValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1cValue")]
                     .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1cpadValue")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1cpadValue")]
                     .stateValues.latex,
             ),
         ).eq("1.3000x+4.0000\\pi");
 
         expect(
-            stateVariables[resolveComponentName("dig5aNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5aNumber")]
+                .stateValues.text,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dig5apadNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5apadNumber")]
+                .stateValues.text,
         ).eq("62.100");
         expect(
-            stateVariables[resolveComponentName("dig5bNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5bNumber")]
+                .stateValues.text,
         ).eq("0.1621");
         expect(
-            stateVariables[resolveComponentName("dig5bpadNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5bpadNumber")]
+                .stateValues.text,
         ).eq("0.16210");
         expect(
-            stateVariables[resolveComponentName("dig5cNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5cNumber")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dig5cpadNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5cpadNumber")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dec5aNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5aNumber")]
+                .stateValues.text,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dec5apadNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5apadNumber")]
+                .stateValues.text,
         ).eq("62.10000");
         expect(
-            stateVariables[resolveComponentName("dec5bNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5bNumber")]
+                .stateValues.text,
         ).eq("0.1621");
         expect(
-            stateVariables[resolveComponentName("dec5bpadNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5bpadNumber")]
+                .stateValues.text,
         ).eq("0.16210");
         expect(
-            stateVariables[resolveComponentName("dec5cNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5cNumber")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dec5cpadNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5cpadNumber")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dig5dec1aNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1aNumber")]
+                .stateValues.text,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dig5dec1apadNumber")]
+            stateVariables[await resolvePathToNodeIdx("dig5dec1apadNumber")]
                 .stateValues.text,
         ).eq("62.100");
         expect(
-            stateVariables[resolveComponentName("dig5dec1bNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1bNumber")]
+                .stateValues.text,
         ).eq("0.1621");
         expect(
-            stateVariables[resolveComponentName("dig5dec1bpadNumber")]
+            stateVariables[await resolvePathToNodeIdx("dig5dec1bpadNumber")]
                 .stateValues.text,
         ).eq("0.16210");
         expect(
-            stateVariables[resolveComponentName("dig5dec1cNumber")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1cNumber")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dig5dec1cpadNumber")]
+            stateVariables[await resolvePathToNodeIdx("dig5dec1cpadNumber")]
                 .stateValues.text,
         ).eq("NaN");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5aMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5aMath")]
+                    .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5apadMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5apadMath")]
+                    .stateValues.latex,
             ),
         ).eq("62.100");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5bMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5bMath")]
+                    .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5bpadMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5bpadMath")]
+                    .stateValues.latex,
             ),
         ).eq("162.10\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5cMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5cMath")]
+                    .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5cpadMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5cpadMath")]
+                    .stateValues.latex,
             ),
         ).eq("1.3000x+4.0000\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5aMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5aMath")]
+                    .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5apadMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5apadMath")]
+                    .stateValues.latex,
             ),
         ).eq("62.10000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5bMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5bMath")]
+                    .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5bpadMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5bpadMath")]
+                    .stateValues.latex,
             ),
         ).eq("162.10000\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5cMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5cMath")]
+                    .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5cpadMath")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5cpadMath")]
+                    .stateValues.latex,
             ),
         ).eq("1.30000x+4.00000\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1aMath")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1aMath")]
                     .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1apadMath")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1apadMath")]
                     .stateValues.latex,
             ),
         ).eq("62.100");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1bMath")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1bMath")]
                     .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1bpadMath")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1bpadMath")]
                     .stateValues.latex,
             ),
         ).eq("162.10\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1cMath")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1cMath")]
                     .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1cpadMath")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1cpadMath")]
                     .stateValues.latex,
             ),
         ).eq("1.3000x+4.0000\\pi");
 
         expect(
-            stateVariables[resolveComponentName("dig5aNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5aNumber2")]
+                .stateValues.text,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dig5apadNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5apadNumber2")]
+                .stateValues.text,
         ).eq("62.100");
         expect(
-            stateVariables[resolveComponentName("dig5bNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5bNumber2")]
+                .stateValues.text,
         ).eq("0.1621");
         expect(
-            stateVariables[resolveComponentName("dig5bpadNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5bpadNumber2")]
+                .stateValues.text,
         ).eq("0.16210");
         expect(
-            stateVariables[resolveComponentName("dig5cNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5cNumber2")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dig5cpadNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5cpadNumber2")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dec5aNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5aNumber2")]
+                .stateValues.text,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dec5apadNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5apadNumber2")]
+                .stateValues.text,
         ).eq("62.10000");
         expect(
-            stateVariables[resolveComponentName("dec5bNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5bNumber2")]
+                .stateValues.text,
         ).eq("0.1621");
         expect(
-            stateVariables[resolveComponentName("dec5bpadNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5bpadNumber2")]
+                .stateValues.text,
         ).eq("0.16210");
         expect(
-            stateVariables[resolveComponentName("dec5cNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5cNumber2")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dec5cpadNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dec5cpadNumber2")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dig5dec1aNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1aNumber2")]
+                .stateValues.text,
         ).eq("62.1");
         expect(
-            stateVariables[resolveComponentName("dig5dec1apadNumber2")]
+            stateVariables[await resolvePathToNodeIdx("dig5dec1apadNumber2")]
                 .stateValues.text,
         ).eq("62.100");
         expect(
-            stateVariables[resolveComponentName("dig5dec1bNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1bNumber2")]
+                .stateValues.text,
         ).eq("0.1621");
         expect(
-            stateVariables[resolveComponentName("dig5dec1bpadNumber2")]
+            stateVariables[await resolvePathToNodeIdx("dig5dec1bpadNumber2")]
                 .stateValues.text,
         ).eq("0.16210");
         expect(
-            stateVariables[resolveComponentName("dig5dec1cNumber2")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("dig5dec1cNumber2")]
+                .stateValues.text,
         ).eq("NaN");
         expect(
-            stateVariables[resolveComponentName("dig5dec1cpadNumber2")]
+            stateVariables[await resolvePathToNodeIdx("dig5dec1cpadNumber2")]
                 .stateValues.text,
         ).eq("NaN");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5aX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5aX1")]
+                    .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5apadX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5apadX1")]
+                    .stateValues.latex,
             ),
         ).eq("62.100");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5bX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5bX1")]
+                    .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5bpadX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5bpadX1")]
+                    .stateValues.latex,
             ),
         ).eq("162.10\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5cX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5cX1")]
+                    .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5cpadX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5cpadX1")]
+                    .stateValues.latex,
             ),
         ).eq("1.3000x+4.0000\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5aX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5aX1")]
+                    .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5apadX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5apadX1")]
+                    .stateValues.latex,
             ),
         ).eq("62.10000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5bX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5bX1")]
+                    .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5bpadX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5bpadX1")]
+                    .stateValues.latex,
             ),
         ).eq("162.10000\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5cX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5cX1")]
+                    .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dec5cpadX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dec5cpadX1")]
+                    .stateValues.latex,
             ),
         ).eq("1.30000x+4.00000\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1aX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1aX1")]
+                    .stateValues.latex,
             ),
         ).eq("62.1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1apadX1")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1apadX1")]
                     .stateValues.latex,
             ),
         ).eq("62.100");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1bX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1bX1")]
+                    .stateValues.latex,
             ),
         ).eq("162.1\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1bpadX1")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1bpadX1")]
                     .stateValues.latex,
             ),
         ).eq("162.10\\cdot10^{-3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1cX1")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("dig5dec1cX1")]
+                    .stateValues.latex,
             ),
         ).eq("1.3x+4\\pi");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dig5dec1cpadX1")]
+                stateVariables[await resolvePathToNodeIdx("dig5dec1cpadX1")]
                     .stateValues.latex,
             ),
         ).eq("1.3000x+4.0000\\pi");
     });
 
     it("dynamic rounding", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <p>Number: <math name="n">35203423.02352343201</math></p>
       <p>Number of digits: <mathInput name="nDigits" prefill="3" /></p>
@@ -2260,135 +2373,146 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("n")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .latex,
             ),
         ).eq("35203423.02");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("35203423.024");
 
         // higher decimals
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDecimals"),
+            componentIdx: await resolvePathToNodeIdx("nDecimals"),
             latex: "5",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("35203423.02352");
 
         // lower decimals
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDecimals"),
+            componentIdx: await resolvePathToNodeIdx("nDecimals"),
             latex: "-3",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("35203000");
 
         // increase digits
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDigits"),
+            componentIdx: await resolvePathToNodeIdx("nDigits"),
             latex: "12",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("35203423.0235");
 
         // invalid nDigits, falls back to decimals
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDigits"),
+            componentIdx: await resolvePathToNodeIdx("nDigits"),
             latex: "x",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("35203000");
 
         // invalid both, no rounding
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDecimals"),
+            componentIdx: await resolvePathToNodeIdx("nDecimals"),
             latex: "y",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("35203423.023523435");
 
         // only invalid nDecimals, falls back to digits
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDigits"),
+            componentIdx: await resolvePathToNodeIdx("nDigits"),
             latex: "1",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("40000000");
 
         // negative decimals past number magnitude
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDecimals"),
+            componentIdx: await resolvePathToNodeIdx("nDecimals"),
             latex: "-8",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("40000000");
 
         // becomes zero with no digits
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDigits"),
+            componentIdx: await resolvePathToNodeIdx("nDigits"),
             latex: "0",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("0");
 
         // get number back with less rounding
         await updateMathInputValue({
-            componentIdx: resolveComponentName("nDecimals"),
+            componentIdx: await resolvePathToNodeIdx("nDecimals"),
             latex: "-6",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("na")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("na")].stateValues
+                    .latex,
             ),
         ).eq("35000000");
     });
 
     it("function symbols", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="m1">f(x)</math></p>
   <p><math name="m2">g(t)</math></p>
@@ -2402,27 +2526,33 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["apply", "f", "x"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["apply", "g", "t"]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["*", "h", "z"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["*", "f", "x"]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(["apply", "g", "t"]);
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["apply", "h", "z"]);
     });
 
     it("copy and overwrite function symbols", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="m1">f(x)+m(x)</math>
   <math extend="$m1" functionSymbols="m" name="m2" />
@@ -2437,27 +2567,33 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["+", ["apply", "f", "x"], ["*", "m", "x"]]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", "f", "x"], ["apply", "m", "x"]]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["+", ["apply", "f", "x"], ["apply", "m", "x"]]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["+", ["apply", "f", "x"], ["apply", "m", "x"]]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", "f", "x"], ["apply", "m", "x"]]);
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["+", ["apply", "f", "x"], ["*", "m", "x"]]);
     });
 
     it("referencesAreFunctionSymbols", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><select name="f">f g h k m n</select></p>
   <p><select name="x">s t u v w x y z</select></p>
@@ -2474,34 +2610,38 @@ describe("Math tag tests", async () => {
         let f =
             stateVariables[
                 stateVariables[
-                    stateVariables[resolveComponentName("f")].replacements?.[0]
-                        .componentIdx
+                    stateVariables[await resolvePathToNodeIdx("f")]
+                        .replacements?.[0].componentIdx
                 ].replacements?.[0].componentIdx
             ].stateValues.value.tree;
         let x =
             stateVariables[
                 stateVariables[
-                    stateVariables[resolveComponentName("x")].replacements?.[0]
-                        .componentIdx
+                    stateVariables[await resolvePathToNodeIdx("x")]
+                        .replacements?.[0].componentIdx
                 ].replacements?.[0].componentIdx
             ].stateValues.value.tree;
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["*", f, x]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["*", x, f]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["apply", f, x]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["*", x, f]);
     });
 
     it("copy and overwrite referencesAreFunctionSymbols", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><select name="f">f g h k m n</select></p>
 
@@ -2520,33 +2660,39 @@ describe("Math tag tests", async () => {
         let f =
             stateVariables[
                 stateVariables[
-                    stateVariables[resolveComponentName("f")].replacements?.[0]
-                        .componentIdx
+                    stateVariables[await resolvePathToNodeIdx("f")]
+                        .replacements?.[0].componentIdx
                 ].replacements?.[0].componentIdx
             ].stateValues.value.tree;
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["*", f, "x"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["apply", f, "x"]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["*", f, "x"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["apply", f, "x"]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(["*", f, "x"]);
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["apply", f, "x"]);
     });
 
     it("copy and overwrite simplify", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="m1">x+x</math></p>
   <p><math extend="$m1" simplify name="m2" /></p>
@@ -2565,39 +2711,49 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "x"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "x"]);
         expect(
-            stateVariables[resolveComponentName("m2a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
         expect(
-            stateVariables[resolveComponentName("m3a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3a")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "x"]);
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
         expect(
-            stateVariables[resolveComponentName("m5a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5a")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
         expect(
-            stateVariables[resolveComponentName("m6a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6a")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
     });
 
     it("split symbols", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="m1">xyz</math></p>
   <p><math name="m2" splitSymbols="false">xyz</math></p>
@@ -2619,51 +2775,65 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["*", "y", ["^", "x", 2]]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls("xyx");
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["*", "y", ["^", "x", 2]]);
         expect(
-            stateVariables[resolveComponentName("m7")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m7")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["_", "y", "u"], "v"]);
         expect(
-            stateVariables[resolveComponentName("m8")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m8")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x2", 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("m9")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m9")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x2"]]);
         expect(
-            stateVariables[resolveComponentName("m10")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m10")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "u", "v", "x2y", 2, "x", "x2"]);
         expect(
-            stateVariables[resolveComponentName("m11")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m11")].stateValues.value
+                .tree,
         ).eqls(["_", "xy", "uv"]);
         expect(
-            stateVariables[resolveComponentName("m12")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m12")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x2", 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("m13")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m13")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x2"]]);
         expect(
-            stateVariables[resolveComponentName("m14")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m14")].stateValues.value
+                .tree,
         ).eqls(["*", "xy", "uv", "x2y", 2, "x", "x2"]);
     });
 
     it("split symbols, nested", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="m1"><math>xyz</math></math></p>
   <p><math name="m2" splitSymbols="false"><math>xyz</math></math></p>
@@ -2685,51 +2855,65 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["*", "y", ["^", "x", 2]]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls("xyx");
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["*", "y", ["^", "x", 2]]);
         expect(
-            stateVariables[resolveComponentName("m7")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m7")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["_", "y", "u"], "v"]);
         expect(
-            stateVariables[resolveComponentName("m8")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m8")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x2", 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("m9")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m9")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x2"]]);
         expect(
-            stateVariables[resolveComponentName("m10")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m10")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "u", "v", "x2y", 2, "x", "x2"]);
         expect(
-            stateVariables[resolveComponentName("m11")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m11")].stateValues.value
+                .tree,
         ).eqls(["_", "xy", "uv"]);
         expect(
-            stateVariables[resolveComponentName("m12")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m12")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x2", 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("m13")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m13")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x2"]]);
         expect(
-            stateVariables[resolveComponentName("m14")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m14")].stateValues.value
+                .tree,
         ).eqls(["*", "xy", "uv", "x2y", 2, "x", "x2"]);
     });
 
     it("split symbols, latex", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math format="latex" name="m1">xyz</math></p>
   <p><math format="latex" name="m2" splitSymbols="false">xyz</math></p>
@@ -2767,99 +2951,129 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("m2a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
+                .tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("m2b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
+                .tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["*", "y", ["^", "x", 2]]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls("xyx");
         expect(
-            stateVariables[resolveComponentName("m5a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5a")].stateValues.value
+                .tree,
         ).eqls("xyx");
         expect(
-            stateVariables[resolveComponentName("m5b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5b")].stateValues.value
+                .tree,
         ).eqls("xyx");
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["*", "y", ["^", "x", 2]]);
         expect(
-            stateVariables[resolveComponentName("m7")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m7")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["_", "y", "u"], "v"]);
         expect(
-            stateVariables[resolveComponentName("m8")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m8")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x2", 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("m8a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m8a")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x2", 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("m9")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m9")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x"], 2]);
         expect(
-            stateVariables[resolveComponentName("m9a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m9a")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x2"]]);
         expect(
-            stateVariables[resolveComponentName("m9b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m9b")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x2"]]);
         expect(
-            stateVariables[resolveComponentName("m10")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m10")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "u", "v", "x2y", 2, "x", "x2"]);
         expect(
-            stateVariables[resolveComponentName("m10a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m10a")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "u", "v", "x2y", 2, "x", "x2"]);
         expect(
-            stateVariables[resolveComponentName("m11")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m11")].stateValues.value
+                .tree,
         ).eqls(["_", "xy", "uv"]);
         expect(
-            stateVariables[resolveComponentName("m11a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m11a")].stateValues.value
+                .tree,
         ).eqls(["_", "xy", "uv"]);
         expect(
-            stateVariables[resolveComponentName("m11b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m11b")].stateValues.value
+                .tree,
         ).eqls(["_", "xy", "uv"]);
         expect(
-            stateVariables[resolveComponentName("m12")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m12")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x2", 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("m12a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m12a")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x2", 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("m13")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m13")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x2"]]);
         expect(
-            stateVariables[resolveComponentName("m13a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m13a")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", "x2"]]);
         expect(
-            stateVariables[resolveComponentName("m14")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m14")].stateValues.value
+                .tree,
         ).eqls(["*", "xy", "uv", "x2y", 2, "x", "x2"]);
         expect(
-            stateVariables[resolveComponentName("m14a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m14a")].stateValues.value
+                .tree,
         ).eqls(["*", "xy", "uv", "x2y", 2, "x", "x2"]);
         expect(
-            stateVariables[resolveComponentName("m14b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m14b")].stateValues.value
+                .tree,
         ).eqls(["*", "xy", "uv", "x2y", 2, "x", "x2"]);
         expect(
-            stateVariables[resolveComponentName("m15")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m15")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", 3, "x"], 2]);
         expect(
-            stateVariables[resolveComponentName("m15a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m15a")].stateValues.value
+                .tree,
         ).eqls(["^", 3, "x2"]);
     });
 
     it("copy and overwrite split symbols", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="m1">xyz</math></p>
   <p><math extend="$m1" splitSymbols="false" name="m2" /></p>
@@ -2874,27 +3088,33 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls("xyz");
     });
 
     it("merge lists with other containers", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><math name="set">{<math>a,b,c</math>}</math></p>
   <!--<p><math name="tuple">(<math>a,b,c</math>,)</math></p>-->
@@ -2906,21 +3126,22 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("set")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("set")].stateValues.value
+                .tree,
         ).eqls(["set", "a", "b", "c"]);
         // expect(stateVariables['/tuple'].stateValues.value.tree).eqls(["tuple", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("combinedSet")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("combinedSet")]
+                .stateValues.value.tree,
         ).eqls(["set", "a", "b", "c", "d", "e", "f"]);
         expect(
-            stateVariables[resolveComponentName("combinedTuple")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("combinedTuple")]
+                .stateValues.value.tree,
         ).eqls(["tuple", "a", "b", "c", "d", "e", "f"]);
     });
 
     it("components of math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><mathInput name="m" prefill="(a,b,c)" /></p>
   <p><math name="m2">$m</math></p>
@@ -2955,41 +3176,41 @@ describe("Math tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("numDim1")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("numDim1")]
+                    .stateValues.value,
             ).eq(xs.length);
             expect(
-                stateVariables[resolveComponentName("numDim2")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("numDim2")]
+                    .stateValues.value,
             ).eq(xs.length);
 
             for (let [ind, x] of xs.entries()) {
                 let comp = indToComp[ind];
                 if (comp) {
                     expect(
-                        stateVariables[resolveComponentName(`${comp}`)]
+                        stateVariables[await resolvePathToNodeIdx(`${comp}`)]
                             .stateValues.value.tree,
                     ).eq(x);
                     expect(
-                        stateVariables[resolveComponentName(`${comp}_2`)]
+                        stateVariables[await resolvePathToNodeIdx(`${comp}_2`)]
                             .stateValues.value.tree,
                     ).eq(x);
                     expect(
-                        stateVariables[resolveComponentName(`${comp}_3`)]
+                        stateVariables[await resolvePathToNodeIdx(`${comp}_3`)]
                             .stateValues.value.tree,
                     ).eq(x);
                 }
 
                 expect(
-                    stateVariables[resolveComponentName(`x${ind + 1}`)]
+                    stateVariables[await resolvePathToNodeIdx(`x${ind + 1}`)]
                         .stateValues.value.tree,
                 ).eq(x);
                 expect(
-                    stateVariables[resolveComponentName(`x${ind + 1}_2`)]
+                    stateVariables[await resolvePathToNodeIdx(`x${ind + 1}_2`)]
                         .stateValues.value.tree,
                 ).eq(x);
                 expect(
-                    stateVariables[resolveComponentName(`x${ind + 1}_3`)]
+                    stateVariables[await resolvePathToNodeIdx(`x${ind + 1}_3`)]
                         .stateValues.value.tree,
                 ).eq(x);
             }
@@ -2997,16 +3218,16 @@ describe("Math tag tests", async () => {
             let m3Operator = operator === "tuple" ? "vector" : operator;
 
             expect(
-                stateVariables[resolveComponentName("m")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .value.tree,
             ).eqls([operator, ...xs]);
             expect(
-                stateVariables[resolveComponentName("m2")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .value.tree,
             ).eqls([operator, ...xs]);
             expect(
-                stateVariables[resolveComponentName("m3")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .value.tree,
             ).eqls([m3Operator, ...xs]);
         }
 
@@ -3014,17 +3235,17 @@ describe("Math tag tests", async () => {
 
         // change xyz 1
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx"),
+            componentIdx: await resolvePathToNodeIdx("mx"),
             latex: "d",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("my"),
+            componentIdx: await resolvePathToNodeIdx("my"),
             latex: "e",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mz"),
+            componentIdx: await resolvePathToNodeIdx("mz"),
             latex: "f",
             core,
         });
@@ -3032,17 +3253,17 @@ describe("Math tag tests", async () => {
 
         // change xyz 2
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx_2"),
+            componentIdx: await resolvePathToNodeIdx("mx_2"),
             latex: "g",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("my_2"),
+            componentIdx: await resolvePathToNodeIdx("my_2"),
             latex: "h",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mz_2"),
+            componentIdx: await resolvePathToNodeIdx("mz_2"),
             latex: "i",
             core,
         });
@@ -3050,17 +3271,17 @@ describe("Math tag tests", async () => {
 
         // change xyz 3
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx_3"),
+            componentIdx: await resolvePathToNodeIdx("mx_3"),
             latex: "j",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("my_3"),
+            componentIdx: await resolvePathToNodeIdx("my_3"),
             latex: "k",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mz_3"),
+            componentIdx: await resolvePathToNodeIdx("mz_3"),
             latex: "l",
             core,
         });
@@ -3068,17 +3289,17 @@ describe("Math tag tests", async () => {
 
         // change x1x2x3 1
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx1"),
+            componentIdx: await resolvePathToNodeIdx("mx1"),
             latex: "m",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx2"),
+            componentIdx: await resolvePathToNodeIdx("mx2"),
             latex: "n",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx3"),
+            componentIdx: await resolvePathToNodeIdx("mx3"),
             latex: "o",
             core,
         });
@@ -3086,17 +3307,17 @@ describe("Math tag tests", async () => {
 
         // change x1x2x3 2
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx1_2"),
+            componentIdx: await resolvePathToNodeIdx("mx1_2"),
             latex: "p",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx2_2"),
+            componentIdx: await resolvePathToNodeIdx("mx2_2"),
             latex: "q",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx3_2"),
+            componentIdx: await resolvePathToNodeIdx("mx3_2"),
             latex: "r",
             core,
         });
@@ -3104,17 +3325,17 @@ describe("Math tag tests", async () => {
 
         // change x1x2x3 2
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx1_3"),
+            componentIdx: await resolvePathToNodeIdx("mx1_3"),
             latex: "s",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx2_3"),
+            componentIdx: await resolvePathToNodeIdx("mx2_3"),
             latex: "t",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx3_3"),
+            componentIdx: await resolvePathToNodeIdx("mx3_3"),
             latex: "u",
             core,
         });
@@ -3122,7 +3343,7 @@ describe("Math tag tests", async () => {
 
         // change to 4D list
         await updateMathInputValue({
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             latex: "v,w,x,y",
             core,
         });
@@ -3131,22 +3352,22 @@ describe("Math tag tests", async () => {
 
         // change x1x2x3x4 1
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx1"),
+            componentIdx: await resolvePathToNodeIdx("mx1"),
             latex: "z",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx2"),
+            componentIdx: await resolvePathToNodeIdx("mx2"),
             latex: "a",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx3"),
+            componentIdx: await resolvePathToNodeIdx("mx3"),
             latex: "b",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx4"),
+            componentIdx: await resolvePathToNodeIdx("mx4"),
             latex: "c",
             core,
         });
@@ -3154,22 +3375,22 @@ describe("Math tag tests", async () => {
 
         // change x1x2x3x4 2
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx1_2"),
+            componentIdx: await resolvePathToNodeIdx("mx1_2"),
             latex: "d",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx2_2"),
+            componentIdx: await resolvePathToNodeIdx("mx2_2"),
             latex: "e",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx3_2"),
+            componentIdx: await resolvePathToNodeIdx("mx3_2"),
             latex: "f",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx4_2"),
+            componentIdx: await resolvePathToNodeIdx("mx4_2"),
             latex: "g",
             core,
         });
@@ -3177,7 +3398,7 @@ describe("Math tag tests", async () => {
 
         // change to 3D alt vector
         await updateMathInputValue({
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             latex: "\\langle a,b,c\\rangle",
             core,
         });
@@ -3185,17 +3406,17 @@ describe("Math tag tests", async () => {
 
         // change xyz 3
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mx_3"),
+            componentIdx: await resolvePathToNodeIdx("mx_3"),
             latex: "j",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("my_3"),
+            componentIdx: await resolvePathToNodeIdx("my_3"),
             latex: "k",
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mz_3"),
+            componentIdx: await resolvePathToNodeIdx("mz_3"),
             latex: "l",
             core,
         });
@@ -3203,7 +3424,7 @@ describe("Math tag tests", async () => {
     });
 
     it("aslist inside math, group", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   
   <group name="grp">
@@ -3230,93 +3451,97 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("nolist")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("nolist")].stateValues
+                .value.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("nolist")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("nolist")].stateValues
+                .text,
         ).eq("a b c");
 
         expect(
-            stateVariables[resolveComponentName("list")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("list")].stateValues.value
+                .tree,
         ).eqls(["list", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("list")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("list")].stateValues.text,
         ).eq("a, b, c");
 
         expect(
-            stateVariables[resolveComponentName("nolist2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("nolist2")].stateValues
+                .value.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("nolist2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("nolist2")].stateValues
+                .text,
         ).eq("a b c");
 
         expect(
-            stateVariables[resolveComponentName("tuple")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("tuple")].stateValues
+                .value.tree,
         ).eqls(["tuple", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("tuple")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("tuple")].stateValues
+                .text,
         ).eq("( a, b, c )");
 
         expect(
-            stateVariables[resolveComponentName("doubleNoList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("doubleNoList")]
+                .stateValues.value.tree,
         ).eqls(["*", 2, "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("doubleNoList")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("doubleNoList")]
+                .stateValues.text,
         ).eq("2 a b c");
 
         expect(
-            stateVariables[resolveComponentName("doubleTuple")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("doubleTuple")]
+                .stateValues.value.tree,
         ).eqls(["*", 2, ["tuple", "a", "b", "c"]]);
         expect(
-            stateVariables[resolveComponentName("doubleTuple")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("doubleTuple")]
+                .stateValues.text,
         ).eq("2 ( a, b, c )");
 
         expect(
-            stateVariables[resolveComponentName("appendNoList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("appendNoList")]
+                .stateValues.value.tree,
         ).eqls(["list", ["*", "a", "b", "c"], ["apply", "sin", "x"]]);
         expect(
-            stateVariables[resolveComponentName("appendNoList")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("appendNoList")]
+                .stateValues.text,
         ).eq("a b c, sin(x)");
 
         expect(
-            stateVariables[resolveComponentName("appendToList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("appendToList")]
+                .stateValues.value.tree,
         ).eqls(["list", "a", "b", "c", ["apply", "sin", "x"]]);
         expect(
-            stateVariables[resolveComponentName("appendToList")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("appendToList")]
+                .stateValues.text,
         ).eq("a, b, c, sin(x)");
 
         expect(
-            stateVariables[resolveComponentName("functionNoList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("functionNoList")]
+                .stateValues.value.tree,
         ).eqls(["apply", "f", ["*", "a", "b", "c"]]);
         expect(
-            stateVariables[resolveComponentName("functionNoList")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("functionNoList")]
+                .stateValues.text,
         ).eq("f(a b c)");
 
         expect(
-            stateVariables[resolveComponentName("functionOfList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("functionOfList")]
+                .stateValues.value.tree,
         ).eqls(["apply", "f", ["tuple", "a", "b", "c"]]);
         expect(
-            stateVariables[resolveComponentName("functionOfList")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("functionOfList")]
+                .stateValues.text,
         ).eq("f( a, b, c )");
     });
 
     it("aslist inside math, sequence", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   
   <sequence name="seq" to="4" />
@@ -3339,57 +3564,58 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("list")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("list")].stateValues.value
+                .tree,
         ).eqls(["list", 1, 2, 3, 4]);
 
         expect(
-            stateVariables[resolveComponentName("nolist")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("nolist")].stateValues
+                .value.tree,
         ).eq(24);
 
         expect(
-            stateVariables[resolveComponentName("tuple")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("tuple")].stateValues
+                .value.tree,
         ).eqls(["tuple", 1, 2, 3, 4]);
 
         expect(
-            stateVariables[resolveComponentName("nolist2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("nolist2")].stateValues
+                .value.tree,
         ).eq(24);
 
         expect(
-            stateVariables[resolveComponentName("doubleTuple")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("doubleTuple")]
+                .stateValues.value.tree,
         ).eqls(["tuple", 2, 4, 6, 8]);
 
         expect(
-            stateVariables[resolveComponentName("doubleNoList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("doubleNoList")]
+                .stateValues.value.tree,
         ).eq(48);
 
         expect(
-            stateVariables[resolveComponentName("appendToList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("appendToList")]
+                .stateValues.value.tree,
         ).eqls(["list", 1, 2, 3, 4, ["apply", "sin", "x"]]);
 
         expect(
-            stateVariables[resolveComponentName("appendNoList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("appendNoList")]
+                .stateValues.value.tree,
         ).eqls(["list", 24, ["apply", "sin", "x"]]);
 
         expect(
-            stateVariables[resolveComponentName("functionOfList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("functionOfList")]
+                .stateValues.value.tree,
         ).eq(10);
 
         expect(
-            stateVariables[resolveComponentName("functionNoList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("functionNoList")]
+                .stateValues.value.tree,
         ).eq(24);
     });
 
     it("aslist inside math, repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   
   <repeat name="repeat" itemName="v" for="1 2 3">
@@ -3413,37 +3639,38 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("list")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("list")].stateValues.value
+                .tree,
         ).eqls(["list", "x", ["*", 4, "x"], ["*", 9, "x"]]);
 
         expect(
-            stateVariables[resolveComponentName("nolist")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("nolist")].stateValues
+                .value.tree,
         ).eqls(["*", 36, ["^", "x", 3]]);
 
         expect(
-            stateVariables[resolveComponentName("tuple")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("tuple")].stateValues
+                .value.tree,
         ).eqls(["tuple", "x", ["*", 4, "x"], ["*", 9, "x"]]);
 
         expect(
-            stateVariables[resolveComponentName("nolist2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("nolist2")].stateValues
+                .value.tree,
         ).eqls(["*", 36, ["^", "x", 3]]);
 
         expect(
-            stateVariables[resolveComponentName("doubleTuple")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("doubleTuple")]
+                .stateValues.value.tree,
         ).eqls(["tuple", ["*", 2, "x"], ["*", 8, "x"], ["*", 18, "x"]]);
 
         expect(
-            stateVariables[resolveComponentName("doubleNoList")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("doubleNoList")]
+                .stateValues.value.tree,
         ).eqls(["*", 72, ["^", "x", 3]]);
     });
 
     it("math inherits unordered of children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math name="unordered1"><math unordered>2,3</math></math>
           <math name="unordered2">4<math unordered>(2,3)</math></math>
@@ -3458,33 +3685,33 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("unordered1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered1")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("unordered2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered2")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("unordered3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered3")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ordered1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered1")].stateValues
                 .unordered,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ordered2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered2")].stateValues
                 .unordered,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ordered3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered3")].stateValues
                 .unordered,
         ).eq(false);
     });
 
     it("copy math and overwrite unordered", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math name="ordered1">2,3</math>
           <math extend="$ordered1" unordered name="unordered1" />
@@ -3508,57 +3735,57 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("unordered1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered1")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("unordered2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered2")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("unordered3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered3")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("unordered4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered4")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("unordered5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered5")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("unordered6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("unordered6")].stateValues
                 .unordered,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ordered1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered1")].stateValues
                 .unordered,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ordered2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered2")].stateValues
                 .unordered,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ordered3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered3")].stateValues
                 .unordered,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ordered4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered4")].stateValues
                 .unordered,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ordered5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered5")].stateValues
                 .unordered,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ordered6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ordered6")].stateValues
                 .unordered,
         ).eq(false);
     });
 
     it("copy math and overwrite unordered, change dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <booleanInput name="b1" prefill="true" />
           <booleanInput name="b2" />
@@ -3581,27 +3808,27 @@ describe("Math tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("p1.m1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("p1.m1")].stateValues
                     .unordered,
             ).eq(b1);
             expect(
-                stateVariables[resolveComponentName("p1.m2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("p1.m2")].stateValues
                     .unordered,
             ).eq(b2);
             expect(
-                stateVariables[resolveComponentName("p1.m3")].stateValues
+                stateVariables[await resolvePathToNodeIdx("p1.m3")].stateValues
                     .unordered,
             ).eq(b3);
             expect(
-                stateVariables[resolveComponentName("p2.m1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("p2.m1")].stateValues
                     .unordered,
             ).eq(b1);
             expect(
-                stateVariables[resolveComponentName("p2.m2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("p2.m2")].stateValues
                     .unordered,
             ).eq(b2);
             expect(
-                stateVariables[resolveComponentName("p2.m3")].stateValues
+                stateVariables[await resolvePathToNodeIdx("p2.m3")].stateValues
                     .unordered,
             ).eq(b3);
         }
@@ -3615,7 +3842,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: b1,
-            componentIdx: resolveComponentName("b1"),
+            componentIdx: await resolvePathToNodeIdx("b1"),
             core,
         });
 
@@ -3624,7 +3851,7 @@ describe("Math tag tests", async () => {
         b2 = true;
         await updateBooleanInputValue({
             boolean: b2,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         await check_values(b1, b2, b3);
@@ -3632,14 +3859,14 @@ describe("Math tag tests", async () => {
         b3 = false;
         await updateBooleanInputValue({
             boolean: b3,
-            componentIdx: resolveComponentName("b3"),
+            componentIdx: await resolvePathToNodeIdx("b3"),
             core,
         });
         await check_values(b1, b2, b3);
     });
 
     it("shrink vector dimensions in inverse direction", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math name="m">(x,y,z)</math>
           <mathInput name="mi" bindValueTo="$m" />
@@ -3650,26 +3877,28 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(x,y,z)");
 
         await updateMathInputValue({
             latex: "(x,y)",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(x,y)");
     });
 
     it("change one vector component in inverse direction does not affect other", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <number name="n">1</number>
           <graph>
@@ -3681,23 +3910,23 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([3, 1]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([1, 1]);
 
         // move dependent point
         await movePoint({
-            componentIdx: resolveComponentName("Q"),
+            componentIdx: await resolvePathToNodeIdx("Q"),
             x: -2,
             y: 3,
             core,
@@ -3705,23 +3934,23 @@ describe("Math tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            -0.5,
-        );
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(-0.5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([0, 3]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([-2, 3]);
     });
 
     it("change one vector component in inverse direction does not affect other, original in math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <number name="n">1</number>
           <math name="coords" simplify>(2$n+1,1)</math>
@@ -3734,23 +3963,23 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([3, 1]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([1, 1]);
 
         // move dependent point
         await movePoint({
-            componentIdx: resolveComponentName("Q"),
+            componentIdx: await resolvePathToNodeIdx("Q"),
             x: -2,
             y: 3,
             core,
@@ -3758,23 +3987,23 @@ describe("Math tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            -0.5,
-        );
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(-0.5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([0, 3]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([-2, 3]);
     });
 
     it("change one vector component in inverse direction does not affect other, through mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <number name="n">1</number>
           <math name="coords1" simplify>(2$n+1,1)</math>
@@ -3788,23 +4017,23 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            1,
-        );
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([3, 1]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([1, 1]);
 
         // move dependent point
         await movePoint({
-            componentIdx: resolveComponentName("Q"),
+            componentIdx: await resolvePathToNodeIdx("Q"),
             x: -2,
             y: 3,
             core,
@@ -3812,16 +4041,16 @@ describe("Math tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            -0.5,
-        );
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(-0.5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([0, 3]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([-2, 3]);
@@ -3829,29 +4058,29 @@ describe("Math tag tests", async () => {
         // enter value in mathInput
         await updateMathInputValue({
             latex: "(6,9)",
-            componentIdx: resolveComponentName("coords2"),
+            componentIdx: await resolvePathToNodeIdx("coords2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2.5,
-        );
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2.5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([6, 9]);
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([4, 9]);
     });
 
     it("copy value prop copies attributes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><math name="m1" displayDigits="2">8.5203845251</math>
           <math extend="$m1.value" name="m1a" />
@@ -3880,85 +4109,100 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("8.5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1a")].stateValues
+                    .latex,
             ),
         ).eq("8.5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1b")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1c")].stateValues
+                    .latex,
             ),
         ).eq("8.5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1d")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2a")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2b")].stateValues
+                    .latex,
             ),
         ).eq("8.520385");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2c")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2d")].stateValues
+                    .latex,
             ),
         ).eq("8.520385");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("1.54\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3a")].stateValues
+                    .latex,
             ),
         ).eq("1.54\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3b")].stateValues
+                    .latex,
             ),
         ).eq("0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3c")].stateValues
+                    .latex,
             ),
         ).eq("1.54\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3d")].stateValues
+                    .latex,
             ),
         ).eq("0");
     });
 
     it("set vector component to undefined, copy value", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math name="m">(x,y)</math>
           <math extend="$m.value" name="m2" />
@@ -3970,64 +4214,70 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(x,y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("(x,y)");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("x");
 
         await updateMathInputValue({
             latex: "",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(＿,y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("(＿,y)");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("");
 
         await updateMathInputValue({
             latex: "q",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(q,y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("(q,y)");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("q");
     });
 
     it("set vector component to undefined, copy whole math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math name="m">(x,y)</math>
           <math extend="$m" name="m2" />
@@ -4039,64 +4289,70 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(x,y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("(x,y)");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("x");
 
         await updateMathInputValue({
             latex: "",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(＿,y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("(＿,y)");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("");
 
         await updateMathInputValue({
             latex: "q",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(q,y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("(q,y)");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("q");
     });
 
     it("negative zero", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><math name="m1">-0</math></p>
           <p><math name="m2">4 - 0</math></p>
@@ -4120,106 +4376,130 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("-0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("4-0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("0-0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("-0-0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
             ),
         ).eq("0-0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m6")].stateValues
+                    .latex,
             ),
         ).eq("0--0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m7")].stateValues
+                    .latex,
             ),
         ).eq("-\\frac{6}{-0}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m8")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m8")].stateValues
+                    .latex,
             ),
         ).eq("4-0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9")].stateValues
+                    .latex,
             ),
         ).eq("4--0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10")].stateValues
+                    .latex,
             ),
         ).eq("-0-0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m11")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m11")].stateValues
+                    .latex,
             ),
         ).eq("-0--0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m12")].stateValues
+                    .latex,
             ),
         ).eq("\\frac{-6}{-0}");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["-", 0]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["+", 4, ["-", 0]]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["+", 0, ["-", 0]]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["+", ["-", 0], ["-", 0]]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(["+", 0, ["-", 0]]);
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["+", 0, ["-", ["-", 0]]]);
         expect(
-            stateVariables[resolveComponentName("m7")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m7")].stateValues.value
+                .tree,
         ).eqls(["-", ["/", 6, ["-", 0]]]);
 
         expect(
-            stateVariables[resolveComponentName("m8")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m8")].stateValues.value
+                .tree,
         ).eqls(["+", 4, ["-", 0]]);
         expect(
-            stateVariables[resolveComponentName("m9")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m9")].stateValues.value
+                .tree,
         ).eqls(["+", 4, ["-", ["-", 0]]]);
         expect(
-            stateVariables[resolveComponentName("m10")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m10")].stateValues.value
+                .tree,
         ).eqls(["+", ["-", 0], ["-", 0]]);
         expect(
-            stateVariables[resolveComponentName("m11")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m11")].stateValues.value
+                .tree,
         ).eqls(["+", ["-", 0], ["-", ["-", 0]]]);
         expect(
-            stateVariables[resolveComponentName("m12")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m12")].stateValues.value
+                .tree,
         ).eqls(["/", -6, ["-", 0]]);
     });
 
     it("parse <", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><math name="m1">x < y</math></p>
           <p><math name="m2">x <= y</math></p>
@@ -4244,42 +4524,53 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["<", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["le", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["<", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["le", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
+                .tree,
         ).eqls(["<", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m6")].stateValues.value
+                .tree,
         ).eqls(["le", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m7")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m7")].stateValues.value
+                .tree,
         ).eqls(["<", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m8")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m8")].stateValues.value
+                .tree,
         ).eqls(["<", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m9")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m9")].stateValues.value
+                .tree,
         ).eqls(["<", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m10")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m10")].stateValues.value
+                .tree,
         ).eqls(["<", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("m11")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m11")].stateValues.value
+                .tree,
         ).eqls(["le", "x", "y"]);
     });
 
     it("display rounding preserved when only one math child", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><math name="m1"><math displayDigits="5">8.5203845251</math></math>
             <math name="m1a"><number displayDigits="5">8.5203845251</number></math>
@@ -4364,315 +4655,375 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1a")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1b")].stateValues
+                    .latex,
             ),
         ).eq("8.52x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1c")].stateValues
+                    .latex,
             ),
         ).eq("8.52x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1d")].stateValues
+                    .latex,
             ),
         ).eq("8.52x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1e")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1e")].stateValues
+                    .latex,
             ),
         ).eq("8.52x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1f")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1f")].stateValues
+                    .latex,
             ),
         ).eq("8.520385");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1g")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1g")].stateValues
+                    .latex,
             ),
         ).eq("8.5204+582342.4238");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1_v")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1a_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1a_v")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1b_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1b_v")].stateValues
+                    .latex,
             ),
         ).eq("8.52x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1c_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1c_v")].stateValues
+                    .latex,
             ),
         ).eq("8.52x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1d_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1d_v")].stateValues
+                    .latex,
             ),
         ).eq("8.52x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1e_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1e_v")].stateValues
+                    .latex,
             ),
         ).eq("8.52x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1f_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1f_v")].stateValues
+                    .latex,
             ),
         ).eq("8.520385");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1g_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1g_v")].stateValues
+                    .latex,
             ),
         ).eq("8.5204+582342.4238");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2a")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2b")].stateValues
+                    .latex,
             ),
         ).eq("8.52x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2c")].stateValues
+                    .latex,
             ),
         ).eq("8.52x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2d")].stateValues
+                    .latex,
             ),
         ).eq("8.52x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2e")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2e")].stateValues
+                    .latex,
             ),
         ).eq("8.52x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2f")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2f")].stateValues
+                    .latex,
             ),
         ).eq("8.520385");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2g")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2g")].stateValues
+                    .latex,
             ),
         ).eq("8.5203845+582342.42");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2_v")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2a_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2a_v")].stateValues
+                    .latex,
             ),
         ).eq("8.5204");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2b_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2b_v")].stateValues
+                    .latex,
             ),
         ).eq("8.52x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2c_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2c_v")].stateValues
+                    .latex,
             ),
         ).eq("8.52x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2d_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2d_v")].stateValues
+                    .latex,
             ),
         ).eq("8.52x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2e_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2e_v")].stateValues
+                    .latex,
             ),
         ).eq("8.52x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2f_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2f_v")].stateValues
+                    .latex,
             ),
         ).eq("8.520385");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2g_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2g_v")].stateValues
+                    .latex,
             ),
         ).eq("8.5203845+582342.42");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("1.54\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3a")].stateValues
+                    .latex,
             ),
         ).eq("1.54\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3b")].stateValues
+                    .latex,
             ),
         ).eq("0x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3c")].stateValues
+                    .latex,
             ),
         ).eq("0x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3d")].stateValues
+                    .latex,
             ),
         ).eq("0x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3e")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3e")].stateValues
+                    .latex,
             ),
         ).eq("0x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3f")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3f")].stateValues
+                    .latex,
             ),
         ).eq("0");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3_v")].stateValues
+                    .latex,
             ),
         ).eq("1.54\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3a_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3a_v")].stateValues
+                    .latex,
             ),
         ).eq("1.54\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3b_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3b_v")].stateValues
+                    .latex,
             ),
         ).eq("0x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3c_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3c_v")].stateValues
+                    .latex,
             ),
         ).eq("0x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3d_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3d_v")].stateValues
+                    .latex,
             ),
         ).eq("0x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3e_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3e_v")].stateValues
+                    .latex,
             ),
         ).eq("0x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3f_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3f_v")].stateValues
+                    .latex,
             ),
         ).eq("0");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("8.0000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4a")].stateValues
+                    .latex,
             ),
         ).eq("8.0000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4b")].stateValues
+                    .latex,
             ),
         ).eq("8x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4c")].stateValues
+                    .latex,
             ),
         ).eq("8x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4d")].stateValues
+                    .latex,
             ),
         ).eq("8x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4e")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4e")].stateValues
+                    .latex,
             ),
         ).eq("8x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4f")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4f")].stateValues
+                    .latex,
             ),
         ).eq("8");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4_v")].stateValues
+                    .latex,
             ),
         ).eq("8.0000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4a_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4a_v")].stateValues
+                    .latex,
             ),
         ).eq("8.0000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4b_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4b_v")].stateValues
+                    .latex,
             ),
         ).eq("8x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4c_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4c_v")].stateValues
+                    .latex,
             ),
         ).eq("8x+526195.54");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4d_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4d_v")].stateValues
+                    .latex,
             ),
         ).eq("8x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4e_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4e_v")].stateValues
+                    .latex,
             ),
         ).eq("8x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4f_v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4f_v")].stateValues
+                    .latex,
             ),
         ).eq("8");
     });
 
     it("negative integer to power of integer", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math name="m">(-3)^2</math>
           `,
@@ -4682,13 +5033,14 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .latex,
             ),
         ).eq("(-3)^{2}");
     });
 
     it("can get negative infinity from reciprocal when simplify", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math name="ninf1" simplify>1/((0)(-1))</math>
           <math name="ninf2" simplify>1/((-1)(0))</math>
@@ -4710,62 +5062,62 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("ninf1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ninf1")].stateValues
+                .value.tree,
         ).eq(-Infinity);
         expect(
-            stateVariables[resolveComponentName("ninf2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ninf2")].stateValues
+                .value.tree,
         ).eq(-Infinity);
         expect(
-            stateVariables[resolveComponentName("ninf3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ninf3")].stateValues
+                .value.tree,
         ).eq(-Infinity);
         expect(
-            stateVariables[resolveComponentName("ninf4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ninf4")].stateValues
+                .value.tree,
         ).eq(-Infinity);
         expect(
-            stateVariables[resolveComponentName("ninf5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ninf5")].stateValues
+                .value.tree,
         ).eq(-Infinity);
         expect(
-            stateVariables[resolveComponentName("ninf6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("ninf6")].stateValues
+                .value.tree,
         ).eq(-Infinity);
 
         expect(
-            stateVariables[resolveComponentName("pinf1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("pinf1")].stateValues
+                .value.tree,
         ).eq(Infinity);
         expect(
-            stateVariables[resolveComponentName("pinf2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("pinf2")].stateValues
+                .value.tree,
         ).eq(Infinity);
         expect(
-            stateVariables[resolveComponentName("pinf3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("pinf3")].stateValues
+                .value.tree,
         ).eq(Infinity);
         expect(
-            stateVariables[resolveComponentName("pinf4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("pinf4")].stateValues
+                .value.tree,
         ).eq(Infinity);
         expect(
-            stateVariables[resolveComponentName("pinf5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("pinf5")].stateValues
+                .value.tree,
         ).eq(Infinity);
         expect(
-            stateVariables[resolveComponentName("pinf6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("pinf6")].stateValues
+                .value.tree,
         ).eq(Infinity);
         expect(
-            stateVariables[resolveComponentName("pinf7")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("pinf7")].stateValues
+                .value.tree,
         ).eq(Infinity);
     });
 
     it("display blanks", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>Display blanks: <booleanInput name="displayBlanks" /></p>
           <p><math name="m1" displayBlanks="$displayBlanks">x^() + /2</math></p>
@@ -4784,106 +5136,124 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("x^{}+\\frac{}{2}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("\\operatorname{+++}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("\\operatorname{2+}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("2+2+");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
             ),
         ).eq("'-_{}^{}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m6")].stateValues
+                    .latex,
             ),
         ).eq("");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m7")].stateValues
+                    .latex,
             ),
         ).eq("(,]");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m8")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m8")].stateValues
+                    .latex,
             ),
         ).eq("2+");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9")].stateValues
+                    .latex,
             ),
         ).eq("2++5");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("displayBlanks"),
+            componentIdx: await resolvePathToNodeIdx("displayBlanks"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("x^{\uff3f}+\\frac{\uff3f}{2}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("\\operatorname{+++}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("\\operatorname{2+}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("2+2+\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
             ),
         ).eq("\uff3f'-\uff3f_{\uff3f}^{\uff3f}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m6")].stateValues
+                    .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m7")].stateValues
+                    .latex,
             ),
         ).eq("(\uff3f,\uff3f]");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m8")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m8")].stateValues
+                    .latex,
             ),
         ).eq("2+\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9")].stateValues
+                    .latex,
             ),
         ).eq("2+\uff3f+5");
     });
 
     it("add and subtract vectors, multiply by scalar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>Tuple2: <math name="tuple2">(a,b)</math></p>
           <p>Vector2: <math name="vector2" createVectors>(c,d)</math></p>
@@ -5028,774 +5398,777 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2t2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2t2sum")]
+                    .stateValues.latex,
             ),
         ).eq("(a,b)+(a,b)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2t2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2t2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(2a,2b)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2v2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2v2sum")]
+                    .stateValues.latex,
             ),
         ).eq("(c,d)+(c,d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2v2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2v2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(2c,2d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2a2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2a2sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlep,q\\rangle+\\langlep,q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2a2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2a2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langle2p,2q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("iisum")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("iisum")].stateValues
+                    .latex,
             ),
         ).eq("(e,f)+(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("iisumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("iisumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("2(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2v2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2v2sum")]
+                    .stateValues.latex,
             ),
         ).eq("(a,b)+(c,d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2v2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2v2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(a+c,b+d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2t2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2t2sum")]
+                    .stateValues.latex,
             ),
         ).eq("(c,d)+(a,b)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2t2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2t2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(a+c,b+d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2a2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2a2sum")]
+                    .stateValues.latex,
             ),
         ).eq("(a,b)+\\langlep,q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2a2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2a2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(a+p,b+q)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2t2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2t2sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlep,q\\rangle+(a,b)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2t2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2t2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(a+p,b+q)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2a2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2a2sum")]
+                    .stateValues.latex,
             ),
         ).eq("(c,d)+\\langlep,q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2a2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2a2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(c+p,d+q)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2v2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2v2sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlep,q\\rangle+(c,d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2v2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2v2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(c+p,d+q)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2v2diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2v2diff")]
+                    .stateValues.latex,
             ),
         ).eq("(a,b)-(c,d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2v2diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2v2diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(a-c,b-d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2t2diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2t2diff")]
+                    .stateValues.latex,
             ),
         ).eq("(c,d)-(a,b)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2t2diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2t2diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(-a+c,-b+d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2a2diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2a2diff")]
+                    .stateValues.latex,
             ),
         ).eq("(a,b)-\\langlep,q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2a2diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2a2diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(a-p,b-q)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2t2diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2t2diff")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlep,q\\rangle-(a,b)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2t2diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2t2diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(-a+p,-b+q)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2a2diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2a2diff")]
+                    .stateValues.latex,
             ),
         ).eq("(c,d)-\\langlep,q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2a2diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2a2diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(c-p,d-q)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2v2diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2v2diff")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlep,q\\rangle-(c,d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2v2diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2v2diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(-c+p,-d+q)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2isum")].stateValues
+                stateVariables[await resolvePathToNodeIdx("t2isum")].stateValues
                     .latex,
             ),
         ).eq("(a,b)+(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2isumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2isumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(a,b)+(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2isum")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v2isum")].stateValues
                     .latex,
             ),
         ).eq("(c,d)+(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2isumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2isumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(c,d)+(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2isum")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a2isum")].stateValues
                     .latex,
             ),
         ).eq("\\langlep,q\\rangle+(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2isumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2isumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(e,f)+\\langlep,q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2mul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("st2mul")].stateValues
                     .latex,
             ),
         ).eq("m(a,b)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st2mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(am,bm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st2mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("(am,bm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2smul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("t2smul")].stateValues
                     .latex,
             ),
         ).eq("(a,b)m");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(am,bm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t2smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("(am,bm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv2mul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("sv2mul")].stateValues
                     .latex,
             ),
         ).eq("m(c,d)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv2mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sv2mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(cm,dm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv2mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sv2mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("(cm,dm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2smul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v2smul")].stateValues
                     .latex,
             ),
         ).eq("(c,d)m");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(cm,dm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("(cm,dm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sa2mul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("sa2mul")].stateValues
                     .latex,
             ),
         ).eq("m\\langlep,q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sa2mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sa2mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlemp,mq\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sa2mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sa2mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlemp,mq\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2smul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a2smul")].stateValues
                     .latex,
             ),
         ).eq("\\langlep,q\\ranglem");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlemp,mq\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlemp,mq\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("simul")].stateValues.latex,
-            ),
-        ).eq("m(e,f)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("simulSimp")].stateValues
+                stateVariables[await resolvePathToNodeIdx("simul")].stateValues
                     .latex,
             ),
         ).eq("m(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("simulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("simulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("m(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ismul")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("simulExp")]
+                    .stateValues.latex,
+            ),
+        ).eq("m(e,f)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("ismul")].stateValues
+                    .latex,
             ),
         ).eq("(e,f)m");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ismulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("ismulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("m(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("ismulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("ismulExp")]
+                    .stateValues.latex,
             ),
         ).eq("m(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2v2ssum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st2v2ssum")]
+                    .stateValues.latex,
             ),
         ).eq("m(a,b)+(c,d)n");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2v2ssumSimp")]
+                stateVariables[await resolvePathToNodeIdx("st2v2ssumSimp")]
                     .stateValues.latex,
             ),
         ).eq("(am+cn,bm+dn)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2v2ssumExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st2v2ssumExp")]
+                    .stateValues.latex,
             ),
         ).eq("(am+cn,bm+dn)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2a2ssum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st2a2ssum")]
+                    .stateValues.latex,
             ),
         ).eq("m(a,b)+\\langlep,q\\ranglen");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2a2ssumSimp")]
+                stateVariables[await resolvePathToNodeIdx("st2a2ssumSimp")]
                     .stateValues.latex,
             ),
         ).eq("(am+np,bm+nq)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st2a2ssumExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st2a2ssumExp")]
+                    .stateValues.latex,
             ),
         ).eq("(am+np,bm+nq)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv2a2ssum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sv2a2ssum")]
+                    .stateValues.latex,
             ),
         ).eq("m(c,d)+\\langlep,q\\ranglen");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv2a2ssumSimp")]
+                stateVariables[await resolvePathToNodeIdx("sv2a2ssumSimp")]
                     .stateValues.latex,
             ),
         ).eq("(cm+np,dm+nq)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv2a2ssumExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sv2a2ssumExp")]
+                    .stateValues.latex,
             ),
         ).eq("(cm+np,dm+nq)");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3t3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3t3sum")]
+                    .stateValues.latex,
             ),
         ).eq("(g,h,i)+(g,h,i)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3t3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3t3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(2g,2h,2i)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3v3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3v3sum")]
+                    .stateValues.latex,
             ),
         ).eq("(j,k,l)+(j,k,l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3v3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3v3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(2j,2k,2l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3a3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3a3sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\langler,s,t\\rangle+\\langler,s,t\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3a3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3a3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langle2r,2s,2t\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3v3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3v3sum")]
+                    .stateValues.latex,
             ),
         ).eq("(g,h,i)+(j,k,l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3v3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3v3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(g+j,h+k,i+l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3t3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3t3sum")]
+                    .stateValues.latex,
             ),
         ).eq("(j,k,l)+(g,h,i)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3t3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3t3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(g+j,h+k,i+l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3a3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3a3sum")]
+                    .stateValues.latex,
             ),
         ).eq("(g,h,i)+\\langler,s,t\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3a3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3a3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(g+r,h+s,i+t)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3t3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3t3sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\langler,s,t\\rangle+(g,h,i)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3t3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3t3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(g+r,h+s,i+t)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3a3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3a3sum")]
+                    .stateValues.latex,
             ),
         ).eq("(j,k,l)+\\langler,s,t\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3a3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3a3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(j+r,k+s,l+t)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3v3sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3v3sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\langler,s,t\\rangle+(j,k,l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3v3sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3v3sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(j+r,k+s,l+t)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3v3diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3v3diff")]
+                    .stateValues.latex,
             ),
         ).eq("(g,h,i)-(j,k,l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3v3diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3v3diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(g-j,h-k,i-l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3t3diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3t3diff")]
+                    .stateValues.latex,
             ),
         ).eq("(j,k,l)-(g,h,i)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3t3diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3t3diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(-g+j,-h+k,-i+l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3a3diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3a3diff")]
+                    .stateValues.latex,
             ),
         ).eq("(g,h,i)-\\langler,s,t\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3a3diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3a3diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(g-r,h-s,i-t)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3t3diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3t3diff")]
+                    .stateValues.latex,
             ),
         ).eq("\\langler,s,t\\rangle-(g,h,i)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3t3diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3t3diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(-g+r,-h+s,-i+t)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3a3diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3a3diff")]
+                    .stateValues.latex,
             ),
         ).eq("(j,k,l)-\\langler,s,t\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3a3diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3a3diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(j-r,k-s,l-t)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3v3diff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3v3diff")]
+                    .stateValues.latex,
             ),
         ).eq("\\langler,s,t\\rangle-(j,k,l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3v3diffSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3v3diffSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(-j+r,-k+s,-l+t)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3mul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("st3mul")].stateValues
                     .latex,
             ),
         ).eq("m(g,h,i)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st3mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(gm,hm,im)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st3mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("(gm,hm,im)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3smul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("t3smul")].stateValues
                     .latex,
             ),
         ).eq("(g,h,i)m");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(gm,hm,im)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t3smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("t3smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("(gm,hm,im)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv3mul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("sv3mul")].stateValues
                     .latex,
             ),
         ).eq("m(j,k,l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv3mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sv3mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(jm,km,lm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv3mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sv3mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("(jm,km,lm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3smul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v3smul")].stateValues
                     .latex,
             ),
         ).eq("(j,k,l)m");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(jm,km,lm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("(jm,km,lm)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sa3mul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("sa3mul")].stateValues
                     .latex,
             ),
         ).eq("m\\langler,s,t\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sa3mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sa3mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlemr,ms,mt\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sa3mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sa3mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlemr,ms,mt\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3smul")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a3smul")].stateValues
                     .latex,
             ),
         ).eq("\\langler,s,t\\ranglem");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlemr,ms,mt\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a3smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlemr,ms,mt\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3v3ssum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st3v3ssum")]
+                    .stateValues.latex,
             ),
         ).eq("m(g,h,i)+(j,k,l)n");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3v3ssumSimp")]
+                stateVariables[await resolvePathToNodeIdx("st3v3ssumSimp")]
                     .stateValues.latex,
             ),
         ).eq("(gm+jn,hm+kn,im+ln)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3v3ssumExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st3v3ssumExp")]
+                    .stateValues.latex,
             ),
         ).eq("(gm+jn,hm+kn,im+ln)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3a3ssum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st3a3ssum")]
+                    .stateValues.latex,
             ),
         ).eq("m(g,h,i)+\\langler,s,t\\ranglen");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3a3ssumSimp")]
+                stateVariables[await resolvePathToNodeIdx("st3a3ssumSimp")]
                     .stateValues.latex,
             ),
         ).eq("(gm+nr,hm+ns,im+nt)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("st3a3ssumExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("st3a3ssumExp")]
+                    .stateValues.latex,
             ),
         ).eq("(gm+nr,hm+ns,im+nt)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv3a3ssum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sv3a3ssum")]
+                    .stateValues.latex,
             ),
         ).eq("m(j,k,l)+\\langler,s,t\\ranglen");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv3a3ssumSimp")]
+                stateVariables[await resolvePathToNodeIdx("sv3a3ssumSimp")]
                     .stateValues.latex,
             ),
         ).eq("(jm+nr,km+ns,lm+nt)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sv3a3ssumExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sv3a3ssumExp")]
+                    .stateValues.latex,
             ),
         ).eq("(jm+nr,km+ns,lm+nt)");
     });
 
     it("add and subtract matrices, multiply by scalar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>matrix22: <math name="matrix22" format="latex">\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}</math></p>
           <p>matrix21: <math name="matrix21" format="latex">\\begin{bmatrix}e\\\\f\\end{bmatrix}</math></p>
@@ -5861,105 +6234,105 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m22sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22m22sum")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}+\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m22sumSimp")]
+                stateVariables[await resolvePathToNodeIdx("m22m22sumSimp")]
                     .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}2a&2b\\\\2c&2d\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21m21sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21m21sum")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}e\\\\f\\end{bmatrix}+\\begin{bmatrix}e\\\\f\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21m21sumSimp")]
+                stateVariables[await resolvePathToNodeIdx("m21m21sumSimp")]
                     .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}2e\\\\2f\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12m12sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12m12sum")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}g&h\\end{bmatrix}+\\begin{bmatrix}g&h\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12m12sumSimp")]
+                stateVariables[await resolvePathToNodeIdx("m12m12sumSimp")]
                     .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}2g&2h\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21t2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21t2sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}e\\\\f\\end{bmatrix}+(i,j)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21t2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21t2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(i,j)+\\begin{bmatrix}e\\\\f\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21v2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21v2sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}e\\\\f\\end{bmatrix}+(k,l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21v2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21v2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(k,l)+\\begin{bmatrix}e\\\\f\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12t2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12t2sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}g&h\\end{bmatrix}+(i,j)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12t2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12t2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(i,j)+\\begin{bmatrix}g&h\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12v2sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12v2sum")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}g&h\\end{bmatrix}+(k,l)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12v2sumSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12v2sumSimp")]
+                    .stateValues.latex,
             ),
         ).eq("(k,l)+\\begin{bmatrix}g&h\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m21sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22m21sum")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}+\\begin{bmatrix}e\\\\f\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m21sumSimp")]
+                stateVariables[await resolvePathToNodeIdx("m22m21sumSimp")]
                     .stateValues.latex,
             ),
         ).eq(
@@ -5967,15 +6340,15 @@ describe("Math tag tests", async () => {
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m12sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22m12sum")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}+\\begin{bmatrix}g&h\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m12sumSimp")]
+                stateVariables[await resolvePathToNodeIdx("m22m12sumSimp")]
                     .stateValues.latex,
             ),
         ).eq(
@@ -5983,15 +6356,15 @@ describe("Math tag tests", async () => {
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21m12sum")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21m12sum")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}e\\\\f\\end{bmatrix}+\\begin{bmatrix}g&h\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21m12sumSimp")]
+                stateVariables[await resolvePathToNodeIdx("m21m12sumSimp")]
                     .stateValues.latex,
             ),
         ).eq(
@@ -5999,8 +6372,9 @@ describe("Math tag tests", async () => {
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m21m12m12m21m22sum")]
-                    .stateValues.latex,
+                stateVariables[
+                    await resolvePathToNodeIdx("m22m21m12m12m21m22sum")
+                ].stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}+\\begin{bmatrix}e\\\\f\\end{bmatrix}+\\begin{bmatrix}g&h\\end{bmatrix}+\\begin{bmatrix}g&h\\end{bmatrix}+\\begin{bmatrix}e\\\\f\\end{bmatrix}+\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}",
@@ -6008,7 +6382,7 @@ describe("Math tag tests", async () => {
         expect(
             cleanLatex(
                 stateVariables[
-                    resolveComponentName("m22m21m12m12m21m22sumSimp")
+                    await resolvePathToNodeIdx("m22m21m12m12m21m22sumSimp")
                 ].stateValues.latex,
             ),
         ).eq(
@@ -6017,165 +6391,165 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm22mul")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm22mul")]
+                    .stateValues.latex,
             ),
         ).eq("m\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm22mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm22mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}am&bm\\\\cm&dm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm22mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm22mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}am&bm\\\\cm&dm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22smul")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22smul")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}m");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}am&bm\\\\cm&dm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}am&bm\\\\cm&dm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm21mul")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm21mul")]
+                    .stateValues.latex,
             ),
         ).eq("m\\begin{bmatrix}e\\\\f\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm21mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm21mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}em\\\\fm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm21mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm21mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}em\\\\fm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21smul")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21smul")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}e\\\\f\\end{bmatrix}m");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}em\\\\fm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}em\\\\fm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm12mul")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm12mul")]
+                    .stateValues.latex,
             ),
         ).eq("m\\begin{bmatrix}g&h\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm12mulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm12mulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}gm&hm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sm12mulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("sm12mulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}gm&hm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12smul")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12smul")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}g&h\\end{bmatrix}m");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12smulSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12smulSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}gm&hm\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12smulExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12smulExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}gm&hm\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m22b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22m22b")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}+\\begin{bmatrix}n&o\\\\p&q\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m22bSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22m22bSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}a+n&b+o\\\\c+p&d+q\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m22bdiff")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22m22bdiff")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}-\\begin{bmatrix}n&o\\\\p&q\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22m22bdiffSimp")]
+                stateVariables[await resolvePathToNodeIdx("m22m22bdiffSimp")]
                     .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}a-n&b-o\\\\c-p&d-q\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22sm22b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22sm22b")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}+m\\begin{bmatrix}n&o\\\\p&q\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22sm22bSimp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22sm22bSimp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22sm22bExpSimp")]
+                stateVariables[await resolvePathToNodeIdx("m22sm22bExpSimp")]
                     .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
     });
 
     it("matrix multiplication", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>matrix22a: <math name="matrix22a" format="latex">\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}</math></p>
           <p>matrix22b: <math name="matrix22b" format="latex">\\begin{bmatrix}e&f\\\\g&h\\end{bmatrix}</math></p>
@@ -6206,111 +6580,111 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22am22b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22am22b")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}\\begin{bmatrix}e&f\\\\g&h\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22am22bExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22am22bExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}ae+bg&af+bh\\\\ce+dg&cf+dh\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22bm22a")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22bm22a")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}e&f\\\\g&h\\end{bmatrix}\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22bm22aExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22bm22aExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}ae+cf&be+df\\\\ag+ch&bg+dh\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21am21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21am21b")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}i\\\\j\\end{bmatrix}\\begin{bmatrix}k\\\\l\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21am21bExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21am21bExp")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}i\\\\j\\end{bmatrix}\\begin{bmatrix}k\\\\l\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12am12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12am12b")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}m&n\\end{bmatrix}\\begin{bmatrix}o&p\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12am12bExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12am12bExp")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}m&n\\end{bmatrix}\\begin{bmatrix}o&p\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21am12a")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21am12a")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}i\\\\j\\end{bmatrix}\\begin{bmatrix}m&n\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m21am12aExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m21am12aExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}im&in\\\\jm&jn\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12am21a")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12am21a")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}m&n\\end{bmatrix}\\begin{bmatrix}i\\\\j\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m12am21aExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m12am21aExp")]
+                    .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}im+jn\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("longmult")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("longmult")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}\\begin{bmatrix}i\\\\j\\end{bmatrix}\\begin{bmatrix}m&n\\end{bmatrix}\\begin{bmatrix}e&f\\\\g&h\\end{bmatrix}\\begin{bmatrix}k\\\\l\\end{bmatrix}\\begin{bmatrix}o&p\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("longmultExp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("longmultExp")]
+                    .stateValues.latex,
             ),
         ).eq(
             "\\begin{bmatrix}aeikmo+afilmo+agikno+ahilno+bejkmo+bfjlmo+bgjkno+bhjlno&aeikmp+afilmp+agiknp+ahilnp+bejkmp+bfjlmp+bgjknp+bhjlnp\\\\ceikmo+cfilmo+cgikno+chilno+dejkmo+dfjlmo+dgjkno+dhjlno&ceikmp+cfilmp+cgiknp+chilnp+dejkmp+dfjlmp+dgjknp+dhjlnp\\end{bmatrix}",
         );
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("longMultResult")]
+                stateVariables[await resolvePathToNodeIdx("longMultResult")]
                     .stateValues.latex,
             ),
         ).eq(
@@ -6319,7 +6693,7 @@ describe("Math tag tests", async () => {
     });
 
     it("matrix-vector multiplication", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>matrix22: <math name="matrix22" format="latex">\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}</math></p>
           <p>tuple2: <math name="tuple2">(e,f)</math></p>
@@ -6344,74 +6718,80 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22t2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m22t2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}(e,f)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22t2Exp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22t2Exp")]
+                    .stateValues.latex,
             ),
         ).eq("(ae+bf,ce+df)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("t2m22")].stateValues.latex,
-            ),
-        ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("t2m22Exp")].stateValues
+                stateVariables[await resolvePathToNodeIdx("t2m22")].stateValues
                     .latex,
             ),
         ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22v2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("t2m22Exp")]
+                    .stateValues.latex,
+            ),
+        ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m22v2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}(g,h)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22v2Exp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22v2Exp")]
+                    .stateValues.latex,
             ),
         ).eq("(ag+bh,cg+dh)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2m22")].stateValues.latex,
-            ),
-        ).eq("(g,h)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2m22Exp")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v2m22")].stateValues
                     .latex,
             ),
         ).eq("(g,h)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2m22Exp")]
+                    .stateValues.latex,
+            ),
+        ).eq("(g,h)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m22a2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}\\langlep,q\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m22a2Exp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m22a2Exp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langleap+bq,cp+dq\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2m22")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2m22")].stateValues
+                    .latex,
             ),
         ).eq("\\langlep,q\\rangle\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2m22Exp")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("a2m22Exp")]
+                    .stateValues.latex,
             ),
         ).eq("\\langlep,q\\rangle\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
     });
 
     it("matrix and vector state variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><text>a</text></p>
           <p>Originals: <math format="latex" name="v1">
@@ -6950,2264 +7330,2522 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)^{T}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6")].stateValues
+                    .latex,
             ),
         ).eq("1,2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)^{T}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10")].stateValues
+                    .latex,
             ),
         ).eq("\\langle1,2\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11")].stateValues
+                    .latex,
             ),
         ).eq("\\langle1,2\\rangle'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12")].stateValues
+                    .latex,
             ),
         ).eq("\\langle1,2\\rangle^{T}");
 
         expect(
-            stateVariables[resolveComponentName("v1nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v1nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v2nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v2nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v3nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v3nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v4nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v4nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v5nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v5nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v6nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v6nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v7nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v7nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v8nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v8nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v9nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v9nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v10nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v10nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v11nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v11nd")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v12nd")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v12nd")].stateValues
+                .value,
         ).eq(2);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11v")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12v")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11vm")].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12vm")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12v")].stateValues
+                    .latex,
             ),
         ).eq("(1,2)");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12vm")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11x")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12x")].stateValues
+                    .latex,
             ),
         ).eq("1");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12xb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12xb")].stateValues
+                    .latex,
             ),
         ).eq("1");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11y")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12y")].stateValues
+                    .latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12yb")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12yb")].stateValues
+                    .latex,
             ),
         ).eq("2");
 
         expect(
-            stateVariables[resolveComponentName("v1ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v1ms")].stateValues
+                .numbers,
         ).eqls([2, 1]);
         expect(
-            stateVariables[resolveComponentName("v2ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v2ms")].stateValues
+                .numbers,
         ).eqls([1, 2]);
         expect(
-            stateVariables[resolveComponentName("v3ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v3ms")].stateValues
+                .numbers,
         ).eqls([2, 1]);
         expect(
-            stateVariables[resolveComponentName("v4ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v4ms")].stateValues
+                .numbers,
         ).eqls([1, 2]);
         expect(
-            stateVariables[resolveComponentName("v5ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v5ms")].stateValues
+                .numbers,
         ).eqls([1, 2]);
         expect(
-            stateVariables[resolveComponentName("v6ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v6ms")].stateValues
+                .numbers,
         ).eqls([2, 1]);
         expect(
-            stateVariables[resolveComponentName("v7ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v7ms")].stateValues
+                .numbers,
         ).eqls([2, 1]);
         expect(
-            stateVariables[resolveComponentName("v8ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v8ms")].stateValues
+                .numbers,
         ).eqls([1, 2]);
         expect(
-            stateVariables[resolveComponentName("v9ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v9ms")].stateValues
+                .numbers,
         ).eqls([1, 2]);
         expect(
-            stateVariables[resolveComponentName("v10ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v10ms")].stateValues
+                .numbers,
         ).eqls([2, 1]);
         expect(
-            stateVariables[resolveComponentName("v11ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v11ms")].stateValues
+                .numbers,
         ).eqls([1, 2]);
         expect(
-            stateVariables[resolveComponentName("v12ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("v12ms")].stateValues
+                .numbers,
         ).eqls([1, 2]);
 
         expect(
-            stateVariables[resolveComponentName("v1nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v1nr")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v2nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v2nr")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v3nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v3nr")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v4nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v4nr")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v5nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v5nr")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v6nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v6nr")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v7nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v7nr")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v8nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v8nr")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v9nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v9nr")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v10nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v10nr")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v11nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v11nr")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v12nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v12nr")].stateValues
+                .value,
         ).eq(1);
 
         expect(
-            stateVariables[resolveComponentName("v1nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v1nc")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v2nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v2nc")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v3nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v3nc")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v4nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v4nc")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v5nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v5nc")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v6nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v6nc")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v7nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v7nc")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v8nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v8nc")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v9nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v9nc")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v10nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v10nc")].stateValues
+                .value,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("v11nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v11nc")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("v12nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("v12nc")].stateValues
+                .value,
         ).eq(2);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12r1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10r1b")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11r1b")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12r1b")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10r1c")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11r1c")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12r1c")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12r2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10r2b")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11r2b")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12r2b")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10r2c")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11r2c")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12r2c")].stateValues
-                    .latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10c1b")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v1m")].stateValues
                     .latex,
             ),
         ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11c1b")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v2m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12m")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12mm")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1r1")].stateValues
                     .latex,
             ),
         ).eq("\\begin{bmatrix}1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12c1b")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v2r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12r1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12r2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12r2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11c1")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12c1")].stateValues
                     .latex,
             ),
         ).eq("\\begin{bmatrix}1\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\\\2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12c1b")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10c2b")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v1c2")].stateValues
                     .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11c2b")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v2c2")].stateValues
                     .latex,
             ),
         ).eq("\\begin{bmatrix}2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12c2b")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v3c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11c2")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12c2")].stateValues
                     .latex,
             ),
         ).eq("\\begin{bmatrix}2\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v1c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1me12")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v2me12")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v3me12")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v4me12")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v5me12")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v6me12")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v7me12")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v8me12")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v9me12")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me12")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me12")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me12")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me12")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me12")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me12")]
+                    .stateValues.latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v1me12b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3me12b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v4me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v5me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v6me12b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v7me12b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v8me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v9me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me12b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me12b")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12me12c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v1me12c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3me12c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v4me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v5me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v6me12c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v7me12c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v8me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v9me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me12c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me12d")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v1me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v2me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v3me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v4me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v5me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v6me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v7me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v8me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v9me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v10me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v11me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("v12me12e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v1me12d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3me12d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v4me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v5me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v6me12d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v7me12d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v8me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v9me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me12d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v1me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v2me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v3me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v4me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v5me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v6me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v7me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v8me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v9me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v10me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v11me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v12me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("v1me21")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v2me21")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v3me21")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v4me21")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v5me21")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v6me21")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v7me21")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v8me21")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me21")].stateValues
+                stateVariables[await resolvePathToNodeIdx("v9me21")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me21")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me21")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me21")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me21")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me21")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me21")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v1me21b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2me21b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3me21b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v4me21b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v5me21b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v6me21b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v7me21b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v8me21b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v9me21b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me21b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me21b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me21b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me21b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v1me21c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2me21c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3me21c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v4me21c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v5me21c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v6me21c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v7me21c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v8me21c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v9me21c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me21c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me21c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me21c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me21c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v1me21d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2me21d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3me21d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v4me21d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v5me21d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v6me21d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v7me21d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v8me21d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v9me21d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me21d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me21d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me21d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me21d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v1me21e")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2me21e")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3me21e")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v4me21e")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v5me21e")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v6me21e")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v7me21e")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v8me21e")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v9me21e")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me21e")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me21e")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me21e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me21e")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v1me21f")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v2me21f")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v3me21f")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v4me21f")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v5me21f")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v6me21f")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v7me21f")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v8me21f")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v9me21f")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v10me21f")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v11me21f")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12me21f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("v12me21f")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         // move vectors
 
         await moveVector({
-            componentIdx: resolveComponentName("v1vb"),
+            componentIdx: await resolvePathToNodeIdx("v1vb"),
             headcoords: [2, 1],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v2vb"),
+            componentIdx: await resolvePathToNodeIdx("v2vb"),
             headcoords: [2, 2],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v3vb"),
+            componentIdx: await resolvePathToNodeIdx("v3vb"),
             headcoords: [2, 3],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v4vb"),
+            componentIdx: await resolvePathToNodeIdx("v4vb"),
             headcoords: [2, 4],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v5vb"),
+            componentIdx: await resolvePathToNodeIdx("v5vb"),
             headcoords: [2, 5],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v6vb"),
+            componentIdx: await resolvePathToNodeIdx("v6vb"),
             headcoords: [2, 6],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v7vb"),
+            componentIdx: await resolvePathToNodeIdx("v7vb"),
             headcoords: [2, 7],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v8vb"),
+            componentIdx: await resolvePathToNodeIdx("v8vb"),
             headcoords: [2, 8],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v9vb"),
+            componentIdx: await resolvePathToNodeIdx("v9vb"),
             headcoords: [2, 9],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v10vb"),
+            componentIdx: await resolvePathToNodeIdx("v10vb"),
             headcoords: [2, 10],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v11vb"),
+            componentIdx: await resolvePathToNodeIdx("v11vb"),
             headcoords: [2, 11],
             core,
         });
         await moveVector({
-            componentIdx: resolveComponentName("v12vb"),
+            componentIdx: await resolvePathToNodeIdx("v12vb"),
             headcoords: [2, 12],
             core,
         });
@@ -9216,69 +9854,81 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}2\\\\1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}2&2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3")].stateValues
+                    .latex,
             ),
         ).eq("(2,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4")].stateValues
+                    .latex,
             ),
         ).eq("(2,4)'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5")].stateValues
+                    .latex,
             ),
         ).eq("(2,5)^{T}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6")].stateValues
+                    .latex,
             ),
         ).eq("2,6");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7")].stateValues
+                    .latex,
             ),
         ).eq("(2,7)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8")].stateValues
+                    .latex,
             ),
         ).eq("(2,8)'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9")].stateValues
+                    .latex,
             ),
         ).eq("(2,9)^{T}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10")].stateValues
+                    .latex,
             ),
         ).eq("\\langle2,10\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11")].stateValues
+                    .latex,
             ),
         ).eq("\\langle2,11\\rangle'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12")].stateValues
+                    .latex,
             ),
         ).eq("\\langle2,12\\rangle^{T}");
 
         // change from matrix inputs
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9286,7 +9936,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             rowInd: 1,
             colInd: 0,
             core,
@@ -9294,7 +9944,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9302,7 +9952,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-2",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -9310,7 +9960,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9318,7 +9968,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             rowInd: 1,
             colInd: 0,
             core,
@@ -9326,7 +9976,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi4"),
+            componentIdx: await resolvePathToNodeIdx("mi4"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9334,7 +9984,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-4",
-            componentIdx: resolveComponentName("mi4"),
+            componentIdx: await resolvePathToNodeIdx("mi4"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -9342,7 +9992,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi5"),
+            componentIdx: await resolvePathToNodeIdx("mi5"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9350,7 +10000,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-5",
-            componentIdx: resolveComponentName("mi5"),
+            componentIdx: await resolvePathToNodeIdx("mi5"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -9358,7 +10008,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi6"),
+            componentIdx: await resolvePathToNodeIdx("mi6"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9366,7 +10016,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-6",
-            componentIdx: resolveComponentName("mi6"),
+            componentIdx: await resolvePathToNodeIdx("mi6"),
             rowInd: 1,
             colInd: 0,
             core,
@@ -9374,7 +10024,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi7"),
+            componentIdx: await resolvePathToNodeIdx("mi7"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9382,7 +10032,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-7",
-            componentIdx: resolveComponentName("mi7"),
+            componentIdx: await resolvePathToNodeIdx("mi7"),
             rowInd: 1,
             colInd: 0,
             core,
@@ -9390,7 +10040,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi8"),
+            componentIdx: await resolvePathToNodeIdx("mi8"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9398,7 +10048,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-8",
-            componentIdx: resolveComponentName("mi8"),
+            componentIdx: await resolvePathToNodeIdx("mi8"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -9406,7 +10056,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi9"),
+            componentIdx: await resolvePathToNodeIdx("mi9"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9414,7 +10064,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-9",
-            componentIdx: resolveComponentName("mi9"),
+            componentIdx: await resolvePathToNodeIdx("mi9"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -9422,7 +10072,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi10"),
+            componentIdx: await resolvePathToNodeIdx("mi10"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9430,7 +10080,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-10",
-            componentIdx: resolveComponentName("mi10"),
+            componentIdx: await resolvePathToNodeIdx("mi10"),
             rowInd: 1,
             colInd: 0,
             core,
@@ -9438,7 +10088,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi11"),
+            componentIdx: await resolvePathToNodeIdx("mi11"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9446,7 +10096,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-11",
-            componentIdx: resolveComponentName("mi11"),
+            componentIdx: await resolvePathToNodeIdx("mi11"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -9454,7 +10104,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi12"),
+            componentIdx: await resolvePathToNodeIdx("mi12"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -9462,7 +10112,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-12",
-            componentIdx: resolveComponentName("mi12"),
+            componentIdx: await resolvePathToNodeIdx("mi12"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -9473,68 +10123,80 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}3\\\\-1\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}3&-2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v3")].stateValues
+                    .latex,
             ),
         ).eq("(3,-3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v4")].stateValues
+                    .latex,
             ),
         ).eq("(3,-4)'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v5")].stateValues
+                    .latex,
             ),
         ).eq("(3,-5)^{T}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v6")].stateValues
+                    .latex,
             ),
         ).eq("3,-6");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v7")].stateValues
+                    .latex,
             ),
         ).eq("(3,-7)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v8")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v8")].stateValues
+                    .latex,
             ),
         ).eq("(3,-8)'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v9")].stateValues
+                    .latex,
             ),
         ).eq("(3,-9)^{T}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v10")].stateValues
+                    .latex,
             ),
         ).eq("\\langle3,-10\\rangle");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v11")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v11")].stateValues
+                    .latex,
             ),
         ).eq("\\langle3,-11\\rangle'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("v12")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("v12")].stateValues
+                    .latex,
             ),
         ).eq("\\langle3,-12\\rangle^{T}");
     });
 
     it("matrix state variables, non vector matrices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>Originals: <math format="latex" name="m1">
             \\begin{pmatrix}
@@ -9773,716 +10435,788 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
 
         expect(
-            stateVariables[resolveComponentName("m1ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("m1ms")].stateValues
+                .numbers,
         ).eqls([3, 2]);
         expect(
-            stateVariables[resolveComponentName("m2ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("m2ms")].stateValues
+                .numbers,
         ).eqls([3, 2]);
         expect(
-            stateVariables[resolveComponentName("m3ms")].stateValues.numbers,
+            stateVariables[await resolvePathToNodeIdx("m3ms")].stateValues
+                .numbers,
         ).eqls([3, 2]);
 
         expect(
-            stateVariables[resolveComponentName("m1nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m1nr")].stateValues
+                .value,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m2nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m2nr")].stateValues
+                .value,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m3nr")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m3nr")].stateValues
+                .value,
         ).eq(3);
 
         expect(
-            stateVariables[resolveComponentName("m1nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m1nc")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("m2nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m2nc")].stateValues
+                .value,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("m3nc")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m3nc")].stateValues
+                .value,
         ).eq(2);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1m")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2m")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2m")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3m")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2mm")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3mm")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3m")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1r1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1mm")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2r1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2mm")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3r1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3mm")].stateValues
+                    .latex,
             ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}1&2\\\\3&4\\\\5&6\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1r1b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1r1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2r1b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2r1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3r1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2r1c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3r1c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3r1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1r2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3r1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3r1c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1&2\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1r2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2r2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2r2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3r2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3r2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1r2b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1r2b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2r2b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2r2b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3r2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2r2c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3r2c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3r2b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1r3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3r2c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}3&4\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1r3")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2r3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2r3")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3r3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3r3")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1r3b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1r3b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2r3b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2r3b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3r3b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1r3c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2r3c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3r3c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3r3b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1r4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1r3c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2r3c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3r3c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}5&6\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1r4")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2r4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2r4")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3r4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3r4")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1r4b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1r4b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2r4b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2r4b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3r4b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1r4c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2r4c")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3r4c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3r4b")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1c1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1r4c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2r4c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3r4c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1c1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2c1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2c1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3c1")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2c1b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3c1b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3c1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1c1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2c1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3c1b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}1\\\\3\\\\5\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1c2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2c2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3c2")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2c2b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3c2b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3c2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1c3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3c2b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}2\\\\4\\\\6\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1c3")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2c3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2c3")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3c3")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1c3b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2c3b")].stateValues.latex,
-            ),
-        ).eq("\\begin{bmatrix}\\end{bmatrix}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3c3b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3c3")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}\\end{bmatrix}");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m1c3b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2c3b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3c3b")].stateValues
+                    .latex,
+            ),
+        ).eq("\\begin{bmatrix}\\end{bmatrix}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1me12")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m2me12")].stateValues
                     .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me12")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m3me12")].stateValues
                     .latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me12b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me12b")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2me12c")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3me12c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me12b")]
+                    .stateValues.latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me12d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me12d")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2me12e")].stateValues
-                    .latex,
-            ),
-        ).eq("2");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3me12e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me12c")]
+                    .stateValues.latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me12f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me12d")]
+                    .stateValues.latex,
             ),
         ).eq("2");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me31")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m1me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3me12e")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3me12f")]
+                    .stateValues.latex,
+            ),
+        ).eq("2");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1me31")].stateValues
                     .latex,
             ),
         ).eq("5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me31")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m2me31")].stateValues
                     .latex,
             ),
         ).eq("5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me31")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m3me31")].stateValues
                     .latex,
             ),
         ).eq("5");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me31b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me31b")]
+                    .stateValues.latex,
             ),
         ).eq("5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me31b")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me31b")]
+                    .stateValues.latex,
             ),
         ).eq("5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me31b")].stateValues
-                    .latex,
-            ),
-        ).eq("5");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1me31c")].stateValues
-                    .latex,
-            ),
-        ).eq("5");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2me31c")].stateValues
-                    .latex,
-            ),
-        ).eq("5");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3me31c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me31b")]
+                    .stateValues.latex,
             ),
         ).eq("5");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me31d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me31c")]
+                    .stateValues.latex,
             ),
         ).eq("5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me31d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me31c")]
+                    .stateValues.latex,
             ),
         ).eq("5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me31d")].stateValues
-                    .latex,
-            ),
-        ).eq("5");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1me31e")].stateValues
-                    .latex,
-            ),
-        ).eq("5");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2me31e")].stateValues
-                    .latex,
-            ),
-        ).eq("5");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3me31e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me31c")]
+                    .stateValues.latex,
             ),
         ).eq("5");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me31f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me31d")]
+                    .stateValues.latex,
             ),
         ).eq("5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me31f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me31d")]
+                    .stateValues.latex,
             ),
         ).eq("5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me31f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me31d")]
+                    .stateValues.latex,
             ),
         ).eq("5");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me23")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m1me31e")]
+                    .stateValues.latex,
+            ),
+        ).eq("5");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2me31e")]
+                    .stateValues.latex,
+            ),
+        ).eq("5");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3me31e")]
+                    .stateValues.latex,
+            ),
+        ).eq("5");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1me31f")]
+                    .stateValues.latex,
+            ),
+        ).eq("5");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2me31f")]
+                    .stateValues.latex,
+            ),
+        ).eq("5");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3me31f")]
+                    .stateValues.latex,
+            ),
+        ).eq("5");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1me23")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me23")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m2me23")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me23")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1me23b")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2me23b")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3me23b")].stateValues
+                stateVariables[await resolvePathToNodeIdx("m3me23")].stateValues
                     .latex,
             ),
         ).eq("\uff3f");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me23c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me23b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me23c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me23b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me23c")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m1me23d")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m2me23d")].stateValues
-                    .latex,
-            ),
-        ).eq("\uff3f");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("m3me23d")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me23b")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me23e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me23c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me23e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me23c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me23e")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me23c")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1me23f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1me23d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2me23f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2me23d")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3me23f")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m3me23d")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1me23e")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2me23e")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3me23e")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1me23f")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2me23f")]
+                    .stateValues.latex,
+            ),
+        ).eq("\uff3f");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3me23f")]
+                    .stateValues.latex,
             ),
         ).eq("\uff3f");
 
         // change from matrix inputs
         await updateMatrixInputValue({
             latex: "a",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -10490,7 +11224,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "b",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -10498,7 +11232,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "c",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             rowInd: 1,
             colInd: 0,
             core,
@@ -10506,7 +11240,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "d",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             rowInd: 1,
             colInd: 1,
             core,
@@ -10514,7 +11248,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "e",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             rowInd: 2,
             colInd: 0,
             core,
@@ -10522,7 +11256,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "f",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             rowInd: 2,
             colInd: 1,
             core,
@@ -10531,7 +11265,7 @@ describe("Math tag tests", async () => {
 
         await updateMatrixInputValue({
             latex: "g",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -10539,7 +11273,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "h",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -10547,7 +11281,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "i",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             rowInd: 1,
             colInd: 0,
             core,
@@ -10555,7 +11289,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "j",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             rowInd: 1,
             colInd: 1,
             core,
@@ -10563,7 +11297,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "k",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             rowInd: 2,
             colInd: 0,
             core,
@@ -10571,7 +11305,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "l",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             rowInd: 2,
             colInd: 1,
             core,
@@ -10580,7 +11314,7 @@ describe("Math tag tests", async () => {
 
         await updateMatrixInputValue({
             latex: "m",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             rowInd: 0,
             colInd: 0,
             core,
@@ -10588,7 +11322,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "n",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             rowInd: 0,
             colInd: 1,
             core,
@@ -10596,7 +11330,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "o",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             rowInd: 1,
             colInd: 0,
             core,
@@ -10604,7 +11338,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "p",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             rowInd: 1,
             colInd: 1,
             core,
@@ -10612,7 +11346,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "q",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             rowInd: 2,
             colInd: 0,
             core,
@@ -10620,7 +11354,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "r",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             rowInd: 2,
             colInd: 1,
             core,
@@ -10631,23 +11365,26 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}a&b\\\\c&d\\\\e&f\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}g&h\\\\i&j\\\\k&l\\end{bmatrix}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("\\begin{bmatrix}m&n\\\\o&p\\\\q&r\\end{bmatrix}");
     });
 
     it("simplify complex numbers", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math simplify name="e1">i^2</math>
           <math simplify name="e2">i^3</math>
@@ -10663,43 +11400,50 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("e1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("e1")].stateValues
+                    .latex,
             ),
         ).eq("-1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("e2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("e2")].stateValues
+                    .latex,
             ),
         ).eq("-i");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("e3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("e3")].stateValues
+                    .latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("e4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("e4")].stateValues
+                    .latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("e5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("e5")].stateValues
+                    .latex,
             ),
         ).eq("-abci");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("e6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("e6")].stateValues
+                    .latex,
             ),
         ).eq("ac+adi+bci-bd");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("e7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("e7")].stateValues
+                    .latex,
             ),
         ).eq("a^{2}+b^{2}");
     });
 
     it("simplify integer square root", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <math simplify name="e1">sqrt(40)</math>
           `,
@@ -10709,13 +11453,14 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("e1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("e1")].stateValues
+                    .latex,
             ),
         ).eq("2\\sqrt{10}");
     });
 
     it("parse scientific notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><math simplify name="m1"><math>2E+3</math>+3E+2</math>
           <math simplify name="m2" parseScientificNotation><math>2E+3</math>+3E+2</math>
@@ -10756,222 +11501,258 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("5E+5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("2300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("3E+2002");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("2E+303");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1a")].stateValues
+                    .latex,
             ),
         ).eq("5E+5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2a")].stateValues
+                    .latex,
             ),
         ).eq("2300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3a")].stateValues
+                    .latex,
             ),
         ).eq("3E+2002");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4a")].stateValues
+                    .latex,
             ),
         ).eq("2E+303");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2\\operatorname{E3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m6")].stateValues
+                    .latex,
             ),
         ).eq("2300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m7")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m7")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m8")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m8")].stateValues
+                    .latex,
             ),
         ).eq("2\\operatorname{E3}+300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m5a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m5a")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2\\operatorname{E3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m6a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m6a")].stateValues
+                    .latex,
             ),
         ).eq("2300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m7a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m7a")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m8a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m8a")].stateValues
+                    .latex,
             ),
         ).eq("2\\operatorname{E3}+300");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9")].stateValues
+                    .latex,
             ),
         ).eq("5E+5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9a")].stateValues
+                    .latex,
             ),
         ).eq("5E+5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2\\operatorname{E3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10a")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2\\operatorname{E3}");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("p1"),
+            componentIdx: await resolvePathToNodeIdx("p1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9")].stateValues
+                    .latex,
             ),
         ).eq("2E+303");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9a")].stateValues
+                    .latex,
             ),
         ).eq("2E+303");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10")].stateValues
+                    .latex,
             ),
         ).eq("2\\operatorname{E3}+300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10a")].stateValues
+                    .latex,
             ),
         ).eq("2\\operatorname{E3}+300");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("p2"),
+            componentIdx: await resolvePathToNodeIdx("p2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9")].stateValues
+                    .latex,
             ),
         ).eq("2300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9a")].stateValues
+                    .latex,
             ),
         ).eq("2300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10")].stateValues
+                    .latex,
             ),
         ).eq("2300");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10a")].stateValues
+                    .latex,
             ),
         ).eq("2300");
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("p1"),
+            componentIdx: await resolvePathToNodeIdx("p1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9")].stateValues
+                    .latex,
             ),
         ).eq("3E+2002");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9a")].stateValues
+                    .latex,
             ),
         ).eq("3E+2002");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2000");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10a")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2000");
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("p2"),
+            componentIdx: await resolvePathToNodeIdx("p2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9")].stateValues
+                    .latex,
             ),
         ).eq("5E+5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m9a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m9a")].stateValues
+                    .latex,
             ),
         ).eq("5E+5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2\\operatorname{E3}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m10a")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m10a")].stateValues
+                    .latex,
             ),
         ).eq("3\\operatorname{E2}+2\\operatorname{E3}");
     });
 
     it("subscripts and superscripts numbers to unicode text", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><math name="m1">2x_1y_23+z_456-a_(7+8-90)</math></p>
           <p><math name="m2">2x^1y^23+z^456-a^(7+8-90)</math></p>
@@ -10988,22 +11769,25 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("m1t")].stateValues.text).eq(
-            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀",
-        );
-        expect(stateVariables[resolveComponentName("m2t")].stateValues.text).eq(
-            "2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰",
-        );
-        expect(stateVariables[resolveComponentName("m3t")].stateValues.text).eq(
-            "a² - b₂",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1t")].stateValues.text,
+        ).eq("2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2t")].stateValues.text,
+        ).eq("2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3t")].stateValues.text,
+        ).eq("a² - b₂");
 
-        await updateValue({ componentIdx: resolveComponentName("uv"), core });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("m3t")].stateValues.text).eq(
-            "a₂ - b²",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3t")].stateValues.text,
+        ).eq("a₂ - b²");
     });
 
     it("math in graph", async () => {
@@ -11018,7 +11802,7 @@ describe("Math tag tests", async () => {
     });
 
     it("math in graph, handle bad anchor coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <graph >
               <math anchor="$anchorCoords1" name="math1">x^2</math>
@@ -11036,15 +11820,15 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("math1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("math1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("x");
 
         // give good anchor coords
         await updateMathInputValue({
             latex: "(6,7)",
-            componentIdx: resolveComponentName("anchorCoords1"),
+            componentIdx: await resolvePathToNodeIdx("anchorCoords1"),
             core,
         });
 
@@ -11052,15 +11836,15 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("math1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("math1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("(6,7)");
 
         // give bad anchor coords again
         await updateMathInputValue({
             latex: "q",
-            componentIdx: resolveComponentName("anchorCoords1"),
+            componentIdx: await resolvePathToNodeIdx("anchorCoords1"),
             core,
         });
 
@@ -11068,14 +11852,14 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("math1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("math1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("q");
     });
 
     it("color math via style", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <setup>
               <styleDefinitions>
@@ -11102,139 +11886,139 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
-        ).eq("black");
-        expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
-        ).eq("black");
-        expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
-        ).eq("none");
-
-        expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
-        ).eq("green");
-        expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
-        ).eq("green");
-        expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
-        ).eq("none");
-
-        expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
                 .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
                 .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
+        ).eq("green");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
+        ).eq("green");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
+                .stateValues.text,
+        ).eq("black");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
+                .stateValues.text,
+        ).eq("black");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("none");
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                 .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                 .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
         ).eq("none");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                 .stateValues.text,
         ).eq("red with a blue background");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                 .stateValues.text,
         ).eq("red");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("blue");
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
         ).eq("none");
     });
 
     it("math copied by plain macro, but not value, reflects style and anchor position", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <setup>
               <styleDefinitions>
@@ -11279,113 +12063,133 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 2]);
         expect(
-            stateVariables[resolveComponentName("m1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1a")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 2]);
         expect(
-            stateVariables[resolveComponentName("m1b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1b")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 2]);
         expect(
-            stateVariables[resolveComponentName("m1c")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1c")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 2]);
         expect(
-            stateVariables[resolveComponentName("m1d")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1d")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 2]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 3]);
         expect(
-            stateVariables[resolveComponentName("m2a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 3]);
         expect(
-            stateVariables[resolveComponentName("m2b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 3]);
         expect(
-            stateVariables[resolveComponentName("m2c")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2c")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 3]);
         expect(
-            stateVariables[resolveComponentName("m2d")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2d")].stateValues.value
+                .tree,
         ).eqls(["^", "x", 3]);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("m1a")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1a")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("m1b")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1b")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("m1c")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1c")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("m1d")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1d")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m2a")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m2b")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("m2c")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2c")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m2d")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2d")].stateValues
+                .styleNumber,
         ).eq(1);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(3,4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1acoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1acoords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2acoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2acoords")]
+                    .stateValues.latex,
             ),
         ).eq("(3,4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1bcoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1bcoords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2bcoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2bcoords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move first maths
         await moveMath({
-            componentIdx: resolveComponentName("m1"),
+            componentIdx: await resolvePathToNodeIdx("m1"),
             x: -2,
             y: 3,
             core,
         });
         await moveMath({
-            componentIdx: resolveComponentName("m2"),
+            componentIdx: await resolvePathToNodeIdx("m2"),
             x: 4,
             y: -5,
             core,
@@ -11394,50 +12198,50 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-2,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(4,-5)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1acoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1acoords")]
+                    .stateValues.latex,
             ),
         ).eq("(-2,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2acoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2acoords")]
+                    .stateValues.latex,
             ),
         ).eq("(4,-5)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1bcoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1bcoords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2bcoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2bcoords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move second maths
         await moveMath({
-            componentIdx: resolveComponentName("m1a"),
+            componentIdx: await resolvePathToNodeIdx("m1a"),
             x: 7,
             y: 1,
             core,
         });
         await moveMath({
-            componentIdx: resolveComponentName("m2a"),
+            componentIdx: await resolvePathToNodeIdx("m2a"),
             x: -8,
             y: 2,
             core,
@@ -11446,50 +12250,50 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1acoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1acoords")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2acoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2acoords")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1bcoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1bcoords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2bcoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2bcoords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move third maths
         await moveMath({
-            componentIdx: resolveComponentName("m1b"),
+            componentIdx: await resolvePathToNodeIdx("m1b"),
             x: -6,
             y: 3,
             core,
         });
         await moveMath({
-            componentIdx: resolveComponentName("m2b"),
+            componentIdx: await resolvePathToNodeIdx("m2b"),
             x: -5,
             y: -4,
             core,
@@ -11498,44 +12302,44 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1acoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1acoords")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2acoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2acoords")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1bcoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1bcoords")]
+                    .stateValues.latex,
             ),
         ).eq("(-6,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2bcoords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2bcoords")]
+                    .stateValues.latex,
             ),
         ).eq("(-5,-4)");
     });
 
     it("vec", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <math name="m1" format="latex">\\vec{a}</math>
             <math name="m2">vec a</math>
@@ -11546,25 +12350,29 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("\\vec{a}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("\\vec{a}");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["vec", "a"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["vec", "a"]);
     });
 
     it("line segment", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <math name="m1" format="latex">\\overline{AB}</math>
             <math name="m2">linesegment(A,B)</math>
@@ -11575,25 +12383,29 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("\\overline{AB}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("\\overline{AB}");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["linesegment", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["linesegment", "A", "B"]);
     });
 
     it("perp", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <math name="m1" format="latex">v \\perp u</math>
             <math name="m2">v perp u</math>
@@ -11606,41 +12418,49 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("v\\perpu");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("v\\perpu");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
             ),
         ).eq("v^{\\perp}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
             ),
         ).eq("v^{\\perp}");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["perp", "v", "u"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["perp", "v", "u"]);
         expect(
-            stateVariables[resolveComponentName("m3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
         ).eqls(["^", "v", "perp"]);
         expect(
-            stateVariables[resolveComponentName("m4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
         ).eqls(["^", "v", "perp"]);
     });
 
     it("parallel", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <math name="m1" format="latex">v \\parallel u</math>
             <math name="m2">v parallel u</math>
@@ -11651,25 +12471,29 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
             ),
         ).eq("v\\parallelu");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
             ),
         ).eq("v\\parallelu");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["parallel", "v", "u"]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["parallel", "v", "u"]);
     });
 
     it("basic units", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>
             <math name="dol5">$5</math>
@@ -11695,117 +12519,130 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dol5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("dol5")].stateValues
+                    .latex,
             ),
         ).eq("\\$5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("perc25")].stateValues
+                stateVariables[await resolvePathToNodeIdx("perc25")].stateValues
                     .latex,
             ),
         ).eq("25\\%");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("deg60")].stateValues.latex,
-            ),
-        ).eq("60^{\\circ}");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("dol5b")].stateValues.latex,
-            ),
-        ).eq("\\$5");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("perc25b")].stateValues
-                    .latex,
-            ),
-        ).eq("25\\%");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("deg60b")].stateValues
+                stateVariables[await resolvePathToNodeIdx("deg60")].stateValues
                     .latex,
             ),
         ).eq("60^{\\circ}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("dol5c")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("dol5b")].stateValues
+                    .latex,
             ),
         ).eq("\\$5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("perc25c")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("perc25b")]
+                    .stateValues.latex,
             ),
         ).eq("25\\%");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("sin90deg")].stateValues
+                stateVariables[await resolvePathToNodeIdx("deg60b")].stateValues
                     .latex,
+            ),
+        ).eq("60^{\\circ}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("dol5c")].stateValues
+                    .latex,
+            ),
+        ).eq("\\$5");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("perc25c")]
+                    .stateValues.latex,
+            ),
+        ).eq("25\\%");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("sin90deg")]
+                    .stateValues.latex,
             ),
         ).eq("\\sin(90^{\\circ})");
 
         expect(
-            stateVariables[resolveComponentName("ndol5")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("ndol5")].stateValues
+                .text,
         ).eq("5");
         expect(
-            stateVariables[resolveComponentName("nperc25")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("nperc25")].stateValues
+                .text,
         ).eq("0.25");
         expect(
             parseFloat(
-                stateVariables[resolveComponentName("ndeg60")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("ndeg60")].stateValues
+                    .text,
             ),
         ).closeTo(Math.PI / 3, 1e-2);
         expect(
-            stateVariables[resolveComponentName("nsin90deg")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("nsin90deg")].stateValues
+                .text,
         ).eq("1");
 
         expect(
-            stateVariables[resolveComponentName("dol5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("dol5")].stateValues.value
+                .tree,
         ).eqls(["unit", "$", 5]);
         expect(
-            stateVariables[resolveComponentName("perc25")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("perc25")].stateValues
+                .value.tree,
         ).eqls(["unit", 25, "%"]);
         expect(
-            stateVariables[resolveComponentName("deg60")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("deg60")].stateValues
+                .value.tree,
         ).eqls(["unit", 60, "deg"]);
         expect(
-            stateVariables[resolveComponentName("dol5b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("dol5b")].stateValues
+                .value.tree,
         ).eqls(["unit", "$", 5]);
         expect(
-            stateVariables[resolveComponentName("perc25b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("perc25b")].stateValues
+                .value.tree,
         ).eqls(["unit", 25, "%"]);
         expect(
-            stateVariables[resolveComponentName("deg60b")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("deg60b")].stateValues
+                .value.tree,
         ).eqls(["unit", 60, "deg"]);
         expect(
-            stateVariables[resolveComponentName("dol5c")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("dol5c")].stateValues
+                .value.tree,
         ).eqls(["unit", "$", 5]);
         expect(
-            stateVariables[resolveComponentName("perc25c")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("perc25c")].stateValues
+                .value.tree,
         ).eqls(["unit", 25, "%"]);
         expect(
-            stateVariables[resolveComponentName("ndol5")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ndol5")].stateValues
+                .value,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("nperc25")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("nperc25")].stateValues
+                .value,
         ).eq(0.25);
         expect(
-            stateVariables[resolveComponentName("ndeg60")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ndeg60")].stateValues
+                .value,
         ).closeTo(Math.PI / 3, 1e-14);
         expect(
-            stateVariables[resolveComponentName("nsin90deg")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("nsin90deg")].stateValues
+                .value,
         ).eq(1);
     });
 
     it("some support for integral", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>
             <math name="indefint">int f(x) dx</math>
@@ -11820,32 +12657,32 @@ describe("Math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("indefint")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("indefint")]
+                    .stateValues.latex,
             ),
         ).eq("\\intf(x)dx");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("defint")].stateValues
+                stateVariables[await resolvePathToNodeIdx("defint")].stateValues
                     .latex,
             ),
         ).eq("\\int_{a}^{b}f(x)dx");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("indefintb")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("indefintb")]
+                    .stateValues.latex,
             ),
         ).eq("\\intf(x)dx");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("defintb")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("defintb")]
+                    .stateValues.latex,
             ),
         ).eq("\\int_{a}^{b}f(x)dx");
     });
 
     it("recover math values through latex state variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>
             <vector name="v">(3,4)</vector>
@@ -11873,34 +12710,41 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("v2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("v2")].stateValues.value
+                .tree,
         ).eqls(["tuple", 3, 4]);
         expect(
-            stateVariables[resolveComponentName("p2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.value
+                .tree,
         ).eqls(["tuple", 5, 6]);
         expect(
-            stateVariables[resolveComponentName("f2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.value
+                .tree,
         ).eqls(["/", ["apply", "sin", "x"], ["apply", "exp", "x"]]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["/", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("math2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("math2")].stateValues
+                .value.tree,
         ).eqls(["/", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("l2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("l2")].stateValues.value
+                .tree,
         ).eqls(["=", "y", ["+", "x", 4]]);
         expect(
-            stateVariables[resolveComponentName("al2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("al2")].stateValues.value
+                .tree,
         ).eqls(["list", ["apply", "sin", "x"], ["apply", "cos", "x"]]);
         expect(
-            stateVariables[resolveComponentName("ml2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("ml2")].stateValues.value
+                .tree,
         ).eqls(["list", ["apply", "tan", "x"], ["apply", "cot", "y"]]);
     });
 
     it("Don't divide by vectors when inverting math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <number name="n">3</number>
           <math name="m" simplify>$n(3,4)</math>
@@ -11914,47 +12758,51 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
-        expect(stateVariables[resolveComponentName("n2")].stateValues.value).eq(
-            3,
-        );
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["tuple", 9, 12]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(12);
 
         await updateMathInputValue({
             latex: "(6,8)",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         await updateMathInputValue({
             latex: "8",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            3,
-        );
-        expect(stateVariables[resolveComponentName("n2")].stateValues.value).eq(
-            2,
-        );
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["tuple", 9, 12]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(8);
     });
 
     it("support for some logical operators", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>
             <math name="not_a">not a</math>
@@ -12021,59 +12869,59 @@ describe("Math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let nots = [
-            resolveComponentName("not_a"),
-            resolveComponentName("not_b"),
-            resolveComponentName("not_c"),
-            resolveComponentName("not_d"),
-            resolveComponentName("not_e"),
+            await resolvePathToNodeIdx("not_a"),
+            await resolvePathToNodeIdx("not_b"),
+            await resolvePathToNodeIdx("not_c"),
+            await resolvePathToNodeIdx("not_d"),
+            await resolvePathToNodeIdx("not_e"),
         ];
         let implies = [
-            resolveComponentName("implies_a"),
-            resolveComponentName("implies_b"),
-            resolveComponentName("implies_c"),
-            resolveComponentName("implies_d"),
-            resolveComponentName("implies_e"),
-            resolveComponentName("implies_f"),
+            await resolvePathToNodeIdx("implies_a"),
+            await resolvePathToNodeIdx("implies_b"),
+            await resolvePathToNodeIdx("implies_c"),
+            await resolvePathToNodeIdx("implies_d"),
+            await resolvePathToNodeIdx("implies_e"),
+            await resolvePathToNodeIdx("implies_f"),
         ];
         let impliedby = [
-            resolveComponentName("impliedby_a"),
-            resolveComponentName("impliedby_b"),
-            resolveComponentName("impliedby_c"),
-            resolveComponentName("impliedby_d"),
-            resolveComponentName("impliedby_e"),
-            resolveComponentName("impliedby_f"),
+            await resolvePathToNodeIdx("impliedby_a"),
+            await resolvePathToNodeIdx("impliedby_b"),
+            await resolvePathToNodeIdx("impliedby_c"),
+            await resolvePathToNodeIdx("impliedby_d"),
+            await resolvePathToNodeIdx("impliedby_e"),
+            await resolvePathToNodeIdx("impliedby_f"),
         ];
         let iff = [
-            resolveComponentName("iff_a"),
-            resolveComponentName("iff_b"),
-            resolveComponentName("iff_c"),
-            resolveComponentName("iff_d"),
-            resolveComponentName("iff_e"),
-            resolveComponentName("iff_f"),
+            await resolvePathToNodeIdx("iff_a"),
+            await resolvePathToNodeIdx("iff_b"),
+            await resolvePathToNodeIdx("iff_c"),
+            await resolvePathToNodeIdx("iff_d"),
+            await resolvePathToNodeIdx("iff_e"),
+            await resolvePathToNodeIdx("iff_f"),
         ];
 
         let rightarrow = [
-            resolveComponentName("rightarrow_a"),
-            resolveComponentName("rightarrow_b"),
-            resolveComponentName("rightarrow_c"),
-            resolveComponentName("rightarrow_d"),
-            resolveComponentName("rightarrow_e"),
-            resolveComponentName("rightarrow_f"),
+            await resolvePathToNodeIdx("rightarrow_a"),
+            await resolvePathToNodeIdx("rightarrow_b"),
+            await resolvePathToNodeIdx("rightarrow_c"),
+            await resolvePathToNodeIdx("rightarrow_d"),
+            await resolvePathToNodeIdx("rightarrow_e"),
+            await resolvePathToNodeIdx("rightarrow_f"),
         ];
         let leftarrow = [
-            resolveComponentName("leftarrow_a"),
-            resolveComponentName("leftarrow_b"),
-            resolveComponentName("leftarrow_c"),
-            resolveComponentName("leftarrow_d"),
-            resolveComponentName("leftarrow_e"),
-            resolveComponentName("leftarrow_f"),
+            await resolvePathToNodeIdx("leftarrow_a"),
+            await resolvePathToNodeIdx("leftarrow_b"),
+            await resolvePathToNodeIdx("leftarrow_c"),
+            await resolvePathToNodeIdx("leftarrow_d"),
+            await resolvePathToNodeIdx("leftarrow_e"),
+            await resolvePathToNodeIdx("leftarrow_f"),
         ];
         let leftrightarrow = [
-            resolveComponentName("leftrightarrow_a"),
-            resolveComponentName("leftrightarrow_b"),
-            resolveComponentName("leftrightarrow_c"),
-            resolveComponentName("leftrightarrow_d"),
-            resolveComponentName("leftrightarrow_e"),
+            await resolvePathToNodeIdx("leftrightarrow_a"),
+            await resolvePathToNodeIdx("leftrightarrow_b"),
+            await resolvePathToNodeIdx("leftrightarrow_c"),
+            await resolvePathToNodeIdx("leftrightarrow_d"),
+            await resolvePathToNodeIdx("leftrightarrow_e"),
         ];
 
         for (let id of nots) {
@@ -12127,7 +12975,7 @@ describe("Math tag tests", async () => {
     });
 
     it("numListItems and list", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><math name="m">2x, 3y, 4z</math>!</p>
 
@@ -12139,23 +12987,24 @@ describe("Math tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Number of list items is 3.",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "list items: 2 x, 3 y, 4 z.",
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            "math list from items: 2 x, 3 y, 4 z.",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Number of list items is 3.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("list items: 2 x, 3 y, 4 z.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("math list from items: 2 x, 3 y, 4 z.");
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.numDimensions,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .numDimensions,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.list.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("m")
+            ].stateValues.list.map((v) => v.tree),
         ).eqls([
             ["*", 2, "x"],
             ["*", 3, "y"],
@@ -12163,9 +13012,9 @@ describe("Math tag tests", async () => {
         ]);
 
         expect(
-            stateVariables[resolveComponentName("ml")].stateValues.maths.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("ml")
+            ].stateValues.maths.map((v) => v.tree),
         ).eqls([
             ["*", 2, "x"],
             ["*", 3, "y"],

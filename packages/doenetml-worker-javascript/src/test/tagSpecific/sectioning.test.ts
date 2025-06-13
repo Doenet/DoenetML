@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -10,7 +10,7 @@ vi.mock("hyperformula");
 describe("Sectioning tag tests", async () => {
     async function test_section_credit(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         check_items: (arg: number[]) => Promise<void>,
     ) {
         let ansCredits = Array(9).fill(0);
@@ -20,31 +20,31 @@ describe("Sectioning tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathinput1Name =
-            stateVariables[resolveComponentName("ans1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput2Name =
-            stateVariables[resolveComponentName("ans2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput3Name =
-            stateVariables[resolveComponentName("ans3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans3")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput4Name =
-            stateVariables[resolveComponentName("ans4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans4")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput5Name =
-            stateVariables[resolveComponentName("ans5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans5")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput6Name =
-            stateVariables[resolveComponentName("ans6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans6")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput7Name =
-            stateVariables[resolveComponentName("ans7")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans7")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput8Name =
-            stateVariables[resolveComponentName("ans8")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans8")].stateValues
                 .inputChildren[0].componentIdx;
         let mathinput9Name =
-            stateVariables[resolveComponentName("ans9")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans9")].stateValues
                 .inputChildren[0].componentIdx;
 
         // enter first correct answer
@@ -54,7 +54,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans1"),
+            componentIdx: await resolvePathToNodeIdx("ans1"),
             core,
         });
         ansCredits[0] = 1;
@@ -67,7 +67,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans3"),
+            componentIdx: await resolvePathToNodeIdx("ans3"),
             core,
         });
         ansCredits[2] = 1;
@@ -77,7 +77,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans5"),
+            componentIdx: await resolvePathToNodeIdx("ans5"),
             core,
         });
         ansCredits[4] = 1;
@@ -87,7 +87,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans7"),
+            componentIdx: await resolvePathToNodeIdx("ans7"),
             core,
         });
         ansCredits[6] = 1;
@@ -100,7 +100,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans2"),
+            componentIdx: await resolvePathToNodeIdx("ans2"),
             core,
         });
         ansCredits[1] = 1;
@@ -110,7 +110,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans4"),
+            componentIdx: await resolvePathToNodeIdx("ans4"),
             core,
         });
         ansCredits[3] = 1;
@@ -120,7 +120,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans6"),
+            componentIdx: await resolvePathToNodeIdx("ans6"),
             core,
         });
         ansCredits[5] = 1;
@@ -130,7 +130,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans8"),
+            componentIdx: await resolvePathToNodeIdx("ans8"),
             core,
         });
         ansCredits[7] = 1;
@@ -143,7 +143,7 @@ describe("Sectioning tag tests", async () => {
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("ans9"),
+            componentIdx: await resolvePathToNodeIdx("ans9"),
             core,
         });
         ansCredits[8] = 1;
@@ -151,7 +151,7 @@ describe("Sectioning tag tests", async () => {
     }
 
     it("sections default to not aggregating scores", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <title>Activity</title>
     <p>Credit achieved for $_document1.title:
@@ -229,7 +229,7 @@ describe("Sectioning tag tests", async () => {
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(`ans${i + 1}`)]
+                    stateVariables[await resolvePathToNodeIdx(`ans${i + 1}`)]
                         .stateValues.creditAchieved,
                 ).eq(credit);
             }
@@ -239,45 +239,46 @@ describe("Sectioning tag tests", async () => {
                 totWeight;
 
             expect(
-                stateVariables[resolveComponentName("docCa")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("docCa")].stateValues
+                    .value,
             ).eq(docCredit);
             expect(
-                stateVariables[resolveComponentName("docPca")].stateValues
+                stateVariables[await resolvePathToNodeIdx("docPca")].stateValues
                     .value,
             ).eq(docCredit * 100);
             expect(
-                stateVariables[resolveComponentName("_document1")].stateValues
-                    .creditAchieved,
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .stateValues.creditAchieved,
             ).eq(docCredit);
             expect(
-                stateVariables[resolveComponentName("_document1")].stateValues
-                    .percentCreditAchieved,
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .stateValues.percentCreditAchieved,
             ).eq(docCredit * 100);
             for (let name of sectionNames) {
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Ca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Ca`)]
                         .stateValues.value,
                 ).eq(0);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Pca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Pca`)]
                         .stateValues.value,
                 ).eq(0);
             }
         }
 
-        await test_section_credit(core, resolveComponentName, check_items);
+        await test_section_credit(core, resolvePathToNodeIdx, check_items);
     });
 
     it("sections aggregating scores default to weight 1", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <document name="doc">
     <title>Activity</title>
@@ -389,36 +390,36 @@ describe("Sectioning tag tests", async () => {
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(`ans${i + 1}`)]
+                    stateVariables[await resolvePathToNodeIdx(`ans${i + 1}`)]
                         .stateValues.creditAchieved,
                 ).eq(credit);
             }
 
             for (let [i, name] of sectionNames.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .creditAchieved,
                 ).eq(sectionCredits[i]);
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .percentCreditAchieved,
                 ).eq(sectionCredits[i] * 100);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Ca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Ca`)]
                         .stateValues.value,
                 ).eq(sectionCredits[i]);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Pca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Pca`)]
                         .stateValues.value,
                 ).eq(sectionCredits[i] * 100);
             }
         }
 
-        await test_section_credit(core, resolveComponentName, check_items);
+        await test_section_credit(core, resolvePathToNodeIdx, check_items);
     });
 
     it("sections aggregating scores, with weights", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <document name="doc">
     <title>Activity</title>
@@ -536,36 +537,36 @@ describe("Sectioning tag tests", async () => {
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(`ans${i + 1}`)]
+                    stateVariables[await resolvePathToNodeIdx(`ans${i + 1}`)]
                         .stateValues.creditAchieved,
                 ).eq(credit);
             }
 
             for (let [i, name] of sectionNames.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .creditAchieved,
                 ).eq(sectionCredits[i]);
                 expect(
-                    stateVariables[resolveComponentName(name)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .percentCreditAchieved,
                 ).eq(sectionCredits[i] * 100);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Ca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Ca`)]
                         .stateValues.value,
                 ).eq(sectionCredits[i]);
                 expect(
-                    stateVariables[resolveComponentName(`${name}Pca`)]
+                    stateVariables[await resolvePathToNodeIdx(`${name}Pca`)]
                         .stateValues.value,
                 ).eq(sectionCredits[i] * 100);
             }
         }
 
-        await test_section_credit(core, resolveComponentName, check_items);
+        await test_section_credit(core, resolvePathToNodeIdx, check_items);
     });
 
     it("warning that cannot add section-wide checkwork button if not aggregating scores", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section sectionWideCheckwork>
       <p>Enter x: <answer name="ans"><mathInput name="mi" />x</answer></p>
@@ -575,13 +576,16 @@ describe("Sectioning tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
-        await submitAnswer({ componentIdx: resolveComponentName("ans"), core });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
 
@@ -601,7 +605,7 @@ describe("Sectioning tag tests", async () => {
     });
 
     it("paragraphs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <paragraphs name="ps"><title>Some paragraphs</title>
 
@@ -614,11 +618,11 @@ describe("Sectioning tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("ps")].stateValues.title).eq(
-            "Some paragraphs",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ps")].stateValues.title,
+        ).eq("Some paragraphs");
         let pNames = stateVariables[
-            resolveComponentName("ps")
+            await resolvePathToNodeIdx("ps")
         ].activeChildren.map((v) => v.componentIdx);
 
         expect(stateVariables[pNames[2]].stateValues.text).eq("Paragraph 1");
@@ -626,7 +630,7 @@ describe("Sectioning tag tests", async () => {
     });
 
     it("copy and overwrite title", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <section includeAutoName includeAutoNumber name="sec">
         <title>A title</title>
@@ -649,31 +653,35 @@ describe("Sectioning tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("sec")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.title,
         ).eq("A title");
         expect(
-            stateVariables[resolveComponentName("sec")].stateValues.titlePrefix,
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .titlePrefix,
         ).eq("Section 1: ");
         expect(
-            stateVariables[resolveComponentName("revised")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("revised")].stateValues
+                .title,
         ).eq("A better title");
         expect(
-            stateVariables[resolveComponentName("revised")].stateValues
+            stateVariables[await resolvePathToNodeIdx("revised")].stateValues
                 .titlePrefix,
         ).eq("Section 2: ");
         expect(
-            stateVariables[resolveComponentName("title1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("title1")].stateValues
+                .value,
         ).eq("A title");
         expect(
-            stateVariables[resolveComponentName("title2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("title2")].stateValues
+                .value,
         ).eq("A better title");
         expect(
-            stateVariables[resolveComponentName("sectionNumber1")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("sectionNumber1")]
+                .stateValues.value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("sectionNumber2")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("sectionNumber2")]
+                .stateValues.value,
         ).eq("2");
     });
 
@@ -808,7 +816,7 @@ describe("Sectioning tag tests", async () => {
       <p>Number for 2.3: <text name="sectionNumber23" extend="$sec23.sectionNumber" /></p>
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             initializeCounters: initialCounter
                 ? { section: initialCounter }
@@ -821,7 +829,8 @@ describe("Sectioning tag tests", async () => {
 
         for (let ind in byIndex) {
             let secStateValues =
-                stateVariables[resolveComponentName(`sec${ind}`)].stateValues;
+                stateVariables[await resolvePathToNodeIdx(`sec${ind}`)]
+                    .stateValues;
             let data = byIndex[ind];
             let title = customTitles ? data.title : `Section ${data.number}`;
             expect(secStateValues.title).eq(title);
@@ -845,12 +854,13 @@ describe("Sectioning tag tests", async () => {
             expect(secStateValues.level).eq(data.level);
 
             expect(
-                stateVariables[resolveComponentName(`title${ind}`)].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx(`title${ind}`)]
+                    .stateValues.value,
             ).eq(title);
             expect(
-                stateVariables[resolveComponentName(`sectionNumber${ind}`)]
-                    .stateValues.value,
+                stateVariables[
+                    await resolvePathToNodeIdx(`sectionNumber${ind}`)
+                ].stateValues.value,
             ).eq(data.number);
         }
     }
@@ -893,7 +903,7 @@ describe("Sectioning tag tests", async () => {
     });
 
     it("Example, problems, exercise do not include parent number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <section name="sec1">
         <problem name="prob11">
@@ -940,80 +950,87 @@ describe("Sectioning tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("sec1")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("sec1")].stateValues
+                .title,
         ).eq("Section 1");
         expect(
-            stateVariables[resolveComponentName("prob11")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("prob11")].stateValues
+                .title,
         ).eq("Problem 1");
         expect(
-            stateVariables[resolveComponentName("exer11")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("exer11")].stateValues
+                .title,
         ).eq("Exercise 2");
         expect(
-            stateVariables[resolveComponentName("exam11")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("exam11")].stateValues
+                .title,
         ).eq("Example 3");
         expect(
-            stateVariables[resolveComponentName("prob12")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("prob12")].stateValues
+                .title,
         ).eq("Problem 4");
         expect(
-            stateVariables[resolveComponentName("exer12")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("exer12")].stateValues
+                .title,
         ).eq("Exercise 5");
         expect(
-            stateVariables[resolveComponentName("exam12")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("exam12")].stateValues
+                .title,
         ).eq("Example 6");
 
         expect(
-            stateVariables[resolveComponentName("titleProb11")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("titleProb11")]
+                .stateValues.value,
         ).eq("Problem 1");
         expect(
-            stateVariables[resolveComponentName("titleExer11")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("titleExer11")]
+                .stateValues.value,
         ).eq("Exercise 2");
         expect(
-            stateVariables[resolveComponentName("titleExam11")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("titleExam11")]
+                .stateValues.value,
         ).eq("Example 3");
         expect(
-            stateVariables[resolveComponentName("titleProb12")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("titleProb12")]
+                .stateValues.value,
         ).eq("Problem 4");
         expect(
-            stateVariables[resolveComponentName("titleExer12")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("titleExer12")]
+                .stateValues.value,
         ).eq("Exercise 5");
         expect(
-            stateVariables[resolveComponentName("titleExam12")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("titleExam12")]
+                .stateValues.value,
         ).eq("Example 6");
 
         expect(
-            stateVariables[resolveComponentName("sectionNumberProb11")]
+            stateVariables[await resolvePathToNodeIdx("sectionNumberProb11")]
                 .stateValues.value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("sectionNumberExer11")]
+            stateVariables[await resolvePathToNodeIdx("sectionNumberExer11")]
                 .stateValues.value,
         ).eq("2");
         expect(
-            stateVariables[resolveComponentName("sectionNumberExam11")]
+            stateVariables[await resolvePathToNodeIdx("sectionNumberExam11")]
                 .stateValues.value,
         ).eq("3");
         expect(
-            stateVariables[resolveComponentName("sectionNumberProb12")]
+            stateVariables[await resolvePathToNodeIdx("sectionNumberProb12")]
                 .stateValues.value,
         ).eq("4");
         expect(
-            stateVariables[resolveComponentName("sectionNumberExer12")]
+            stateVariables[await resolvePathToNodeIdx("sectionNumberExer12")]
                 .stateValues.value,
         ).eq("5");
         expect(
-            stateVariables[resolveComponentName("sectionNumberExam12")]
+            stateVariables[await resolvePathToNodeIdx("sectionNumberExam12")]
                 .stateValues.value,
         ).eq("6");
     });
 
     it("Can open aside in read only mode", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <aside name="aside1">
         <title>Hello</title>
@@ -1027,35 +1044,39 @@ describe("Sectioning tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("aside1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("aside1")].stateValues
+                .open,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ti")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .disabled,
         ).eq(true);
 
         await core.requestAction({
             actionName: "revealSection",
-            componentIdx: resolveComponentName("aside1"),
+            componentIdx: await resolvePathToNodeIdx("aside1"),
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("aside1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("aside1")].stateValues
+                .open,
         ).eq(true);
 
         await core.requestAction({
             actionName: "closeSection",
-            componentIdx: resolveComponentName("aside1"),
+            componentIdx: await resolvePathToNodeIdx("aside1"),
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("aside1")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("aside1")].stateValues
+                .open,
         ).eq(false);
     });
 
     it("aside content with postponeRendering isn't created before opening", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <aside name="aside" postponeRendering>
         <title>My aside</title>
@@ -1065,26 +1086,30 @@ describe("Sectioning tag tests", async () => {
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("aside")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("aside")].stateValues
+                .title,
         ).eq("My aside"); // title is created before opening
-        expect(stateVariables[resolveComponentName("asideText")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("asideText")]).be
+            .undefined;
 
         await core.requestAction({
             actionName: "revealSection",
-            componentIdx: resolveComponentName("aside"),
+            componentIdx: await resolvePathToNodeIdx("aside"),
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("aside")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("aside")].stateValues
+                .title,
         ).eq("My aside");
         expect(
-            stateVariables[resolveComponentName("asideText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("asideText")].stateValues
+                .text,
         ).eq("This is the text of the aside.");
     });
 
     it("aside content without postponeRendering is created before opening", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <aside name="aside">
         <title>My aside</title>
@@ -1094,28 +1119,32 @@ describe("Sectioning tag tests", async () => {
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("aside")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("aside")].stateValues
+                .title,
         ).eq("My aside");
         expect(
-            stateVariables[resolveComponentName("asideText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("asideText")].stateValues
+                .text,
         ).eq("This is the text of the aside.");
 
         await core.requestAction({
             actionName: "revealSection",
-            componentIdx: resolveComponentName("aside"),
+            componentIdx: await resolvePathToNodeIdx("aside"),
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("aside")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("aside")].stateValues
+                .title,
         ).eq("My aside");
         expect(
-            stateVariables[resolveComponentName("asideText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("asideText")].stateValues
+                .text,
         ).eq("This is the text of the aside.");
     });
 
     it("proof content with postponeRendering isn't created before opening", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <proof name="proof" postponeRendering>
         <title>My proof</title>
@@ -1125,26 +1154,30 @@ describe("Sectioning tag tests", async () => {
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("proof")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("proof")].stateValues
+                .title,
         ).eq("My proof"); // title is created before opening
-        expect(stateVariables[resolveComponentName("proofText")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("proofText")]).be
+            .undefined;
 
         await core.requestAction({
             actionName: "revealSection",
-            componentIdx: resolveComponentName("proof"),
+            componentIdx: await resolvePathToNodeIdx("proof"),
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("proof")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("proof")].stateValues
+                .title,
         ).eq("My proof");
         expect(
-            stateVariables[resolveComponentName("proofText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("proofText")].stateValues
+                .text,
         ).eq("This is the text of the proof.");
     });
 
     it("proof content without postponeRendering is created before opening", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <proof name="proof">
         <title>My proof</title>
@@ -1154,28 +1187,32 @@ describe("Sectioning tag tests", async () => {
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("proof")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("proof")].stateValues
+                .title,
         ).eq("My proof");
         expect(
-            stateVariables[resolveComponentName("proofText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("proofText")].stateValues
+                .text,
         ).eq("This is the text of the proof.");
 
         await core.requestAction({
             actionName: "revealSection",
-            componentIdx: resolveComponentName("proof"),
+            componentIdx: await resolvePathToNodeIdx("proof"),
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("proof")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("proof")].stateValues
+                .title,
         ).eq("My proof");
         expect(
-            stateVariables[resolveComponentName("proofText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("proofText")].stateValues
+                .text,
         ).eq("This is the text of the proof.");
     });
 
     it("Exercise with statement, hint, givenanswer, and solution", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
     <exercise name="exer">
@@ -1197,54 +1234,61 @@ describe("Sectioning tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("title")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("title")].stateValues
+                .value,
         ).eq("An exercise");
         expect(
-            stateVariables[resolveComponentName("statement")].activeChildren,
+            stateVariables[await resolvePathToNodeIdx("statement")]
+                .activeChildren,
         ).eqls(["The exercise"]);
         expect(
-            stateVariables[resolveComponentName("hint")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("hint")].stateValues
+                .title,
         ).eq("Hint");
         expect(
-            stateVariables[resolveComponentName("hint")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint")].stateValues.open,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("statement")].activeChildren,
+            stateVariables[await resolvePathToNodeIdx("statement")]
+                .activeChildren,
         ).eqls(["The exercise"]);
-        expect(stateVariables[resolveComponentName("pGivenAns")]).be.undefined;
-        expect(stateVariables[resolveComponentName("pSol")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("pGivenAns")]).be
+            .undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("pSol")]).be.undefined;
 
         await core.requestAction({
-            componentIdx: resolveComponentName("hint"),
+            componentIdx: await resolvePathToNodeIdx("hint"),
             actionName: "revealHint",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("hint")].stateValues.open,
+            stateVariables[await resolvePathToNodeIdx("hint")].stateValues.open,
         ).eq(true);
-        expect(stateVariables[resolveComponentName("pGivenAns")]).be.undefined;
-        expect(stateVariables[resolveComponentName("pSol")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("pGivenAns")]).be
+            .undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("pSol")]).be.undefined;
 
         await core.requestAction({
-            componentIdx: resolveComponentName("givenAnswer"),
+            componentIdx: await resolvePathToNodeIdx("givenAnswer"),
             actionName: "revealSolution",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pGivenAns")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pGivenAns")].stateValues
+                .text,
         ).eq("The correct answer");
-        expect(stateVariables[resolveComponentName("pSol")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("pSol")]).be.undefined;
 
         await core.requestAction({
-            componentIdx: resolveComponentName("solution"),
+            componentIdx: await resolvePathToNodeIdx("solution"),
             actionName: "revealSolution",
             args: {},
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pSol")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pSol")].stateValues.text,
         ).eq("Here's how you do it.");
     });
 });

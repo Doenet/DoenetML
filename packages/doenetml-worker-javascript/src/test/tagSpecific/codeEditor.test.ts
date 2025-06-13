@@ -11,7 +11,7 @@ vi.mock("hyperformula");
 
 describe("Code Editor tag tests", async () => {
     it("code editor with no arguments", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <codeEditor name="editor" />
 
@@ -21,105 +21,110 @@ describe("Code Editor tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "",
-        );
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
                 .immediateValue,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
+                .value,
         ).eq("");
 
         await updateTextInputImmediateValue({
             text: "Hello",
-            componentIdx: resolveComponentName("editor"),
+            componentIdx: await resolvePathToNodeIdx("editor"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "Hello",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "",
-        );
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Hello");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
                 .immediateValue,
         ).eq("Hello");
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
+                .value,
         ).eq("");
 
         // No debouncing since that is initiated by the renderer.
         // Have to explicitly call update value
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("editor"),
+            componentIdx: await resolvePathToNodeIdx("editor"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "Hello",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Hello",
-        );
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Hello");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Hello");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
                 .immediateValue,
         ).eq("Hello");
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
+                .value,
         ).eq("Hello");
 
         // type more in editor
         await updateTextInputImmediateValue({
             text: "Hello\nMore here.",
-            componentIdx: resolveComponentName("editor"),
+            componentIdx: await resolvePathToNodeIdx("editor"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "Hello\nMore here.",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Hello",
-        );
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Hello\nMore here.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Hello");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
                 .immediateValue,
         ).eq("Hello\nMore here.");
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
+                .value,
         ).eq("Hello");
 
         // update value again
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("editor"),
+            componentIdx: await resolvePathToNodeIdx("editor"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "Hello\nMore here.",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Hello\nMore here.",
-        );
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Hello\nMore here.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Hello\nMore here.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
                 .immediateValue,
         ).eq("Hello\nMore here.");
         expect(
-            stateVariables[resolveComponentName("editor")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("editor")].stateValues
+                .value,
         ).eq("Hello\nMore here.");
     });
 
     it("bind value to", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><codeEditor name="ce" bindValueTo="$ti" /></p>
 
@@ -133,96 +138,96 @@ describe("Code Editor tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("piv")].stateValues.text).eq(
-            "immediate value: Hello!",
-        );
-        expect(stateVariables[resolveComponentName("pv")].stateValues.text).eq(
-            "value: Hello!",
-        );
         expect(
-            stateVariables[resolveComponentName("piv2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("piv")].stateValues.text,
         ).eq("immediate value: Hello!");
-        expect(stateVariables[resolveComponentName("pv2")].stateValues.text).eq(
-            "value: Hello!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv")].stateValues.text,
+        ).eq("value: Hello!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("piv2")].stateValues.text,
+        ).eq("immediate value: Hello!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv2")].stateValues.text,
+        ).eq("value: Hello!");
 
         await updateTextInputImmediateValue({
             text: "Hello!\nSelam!",
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("piv")].stateValues.text).eq(
-            "immediate value: Hello!",
-        );
-        expect(stateVariables[resolveComponentName("pv")].stateValues.text).eq(
-            "value: Hello!",
-        );
         expect(
-            stateVariables[resolveComponentName("piv2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("piv")].stateValues.text,
+        ).eq("immediate value: Hello!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv")].stateValues.text,
+        ).eq("value: Hello!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("piv2")].stateValues.text,
         ).eq("immediate value: Hello!\nSelam!");
-        expect(stateVariables[resolveComponentName("pv2")].stateValues.text).eq(
-            "value: Hello!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv2")].stateValues.text,
+        ).eq("value: Hello!");
 
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("piv")].stateValues.text).eq(
-            "immediate value: Hello!\nSelam!",
-        );
-        expect(stateVariables[resolveComponentName("pv")].stateValues.text).eq(
-            "value: Hello!\nSelam!",
-        );
         expect(
-            stateVariables[resolveComponentName("piv2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("piv")].stateValues.text,
         ).eq("immediate value: Hello!\nSelam!");
-        expect(stateVariables[resolveComponentName("pv2")].stateValues.text).eq(
-            "value: Hello!\nSelam!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv")].stateValues.text,
+        ).eq("value: Hello!\nSelam!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("piv2")].stateValues.text,
+        ).eq("immediate value: Hello!\nSelam!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv2")].stateValues.text,
+        ).eq("value: Hello!\nSelam!");
 
         await updateTextInputImmediateValue({
             text: "Hello!\nSelam!\nKaixo!",
-            componentIdx: resolveComponentName("ce"),
+            componentIdx: await resolvePathToNodeIdx("ce"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("piv")].stateValues.text).eq(
-            "immediate value: Hello!\nSelam!\nKaixo!",
-        );
-        expect(stateVariables[resolveComponentName("pv")].stateValues.text).eq(
-            "value: Hello!\nSelam!",
-        );
         expect(
-            stateVariables[resolveComponentName("piv2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("piv")].stateValues.text,
+        ).eq("immediate value: Hello!\nSelam!\nKaixo!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv")].stateValues.text,
+        ).eq("value: Hello!\nSelam!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("piv2")].stateValues.text,
         ).eq("immediate value: Hello!\nSelam!");
-        expect(stateVariables[resolveComponentName("pv2")].stateValues.text).eq(
-            "value: Hello!\nSelam!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv2")].stateValues.text,
+        ).eq("value: Hello!\nSelam!");
 
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ce"),
+            componentIdx: await resolvePathToNodeIdx("ce"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("piv")].stateValues.text).eq(
-            "immediate value: Hello!\nSelam!\nKaixo!",
-        );
-        expect(stateVariables[resolveComponentName("pv")].stateValues.text).eq(
-            "value: Hello!\nSelam!\nKaixo!",
-        );
         expect(
-            stateVariables[resolveComponentName("piv2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("piv")].stateValues.text,
         ).eq("immediate value: Hello!\nSelam!\nKaixo!");
-        expect(stateVariables[resolveComponentName("pv2")].stateValues.text).eq(
-            "value: Hello!\nSelam!\nKaixo!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv")].stateValues.text,
+        ).eq("value: Hello!\nSelam!\nKaixo!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("piv2")].stateValues.text,
+        ).eq("immediate value: Hello!\nSelam!\nKaixo!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv2")].stateValues.text,
+        ).eq("value: Hello!\nSelam!\nKaixo!");
     });
 
     it("prefill from children, ignore indenting", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <codeEditor name="ce">
         <text name="t1">hello</text> <text>there</text>
@@ -235,38 +240,50 @@ describe("Code Editor tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("piv")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("piv")].stateValues.text,
+        ).eq(
             'immediate value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">More</p>\n',
         );
-        expect(stateVariables[resolveComponentName("pv")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv")].stateValues.text,
+        ).eq(
             'value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">More</p>\n',
         );
         // child components not created
-        expect(stateVariables[resolveComponentName("t1")]).eq(undefined);
-        expect(stateVariables[resolveComponentName("p1")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("t1")]).eq(undefined);
+        expect(stateVariables[await resolvePathToNodeIdx("p1")]).eq(undefined);
 
         await updateTextInputImmediateValue({
             text: '<text name="t1">hello</text> <text>there</text>\n<p name="p1">Change</p>\n',
-            componentIdx: resolveComponentName("ce"),
+            componentIdx: await resolvePathToNodeIdx("ce"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("piv")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("piv")].stateValues.text,
+        ).eq(
             'immediate value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">Change</p>\n',
         );
-        expect(stateVariables[resolveComponentName("pv")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv")].stateValues.text,
+        ).eq(
             'value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">More</p>\n',
         );
 
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ce"),
+            componentIdx: await resolvePathToNodeIdx("ce"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("piv")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("piv")].stateValues.text,
+        ).eq(
             'immediate value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">Change</p>\n',
         );
-        expect(stateVariables[resolveComponentName("pv")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pv")].stateValues.text,
+        ).eq(
             'value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">Change</p>\n',
         );
     });
@@ -311,84 +328,92 @@ describe("Code Editor tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("ce1")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ce1")].stateValues
+                    .value,
             ).eq(ce1);
             expect(
-                stateVariables[resolveComponentName("ce2")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ce2")].stateValues
+                    .value,
             ).eq(ce2);
             expect(
-                stateVariables[resolveComponentName("ce3")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ce3")].stateValues
+                    .value,
             ).eq(ce3);
             expect(
-                stateVariables[resolveComponentName("ce4")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ce4")].stateValues
+                    .value,
             ).eq(ce4);
 
             expect(
-                stateVariables[resolveComponentName("ce1a")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ce1a")].stateValues
+                    .value,
             ).eq(ce1);
             expect(
-                stateVariables[resolveComponentName("ce2a")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ce2a")].stateValues
+                    .value,
             ).eq(ce2);
             expect(
-                stateVariables[resolveComponentName("ce3a")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ce3a")].stateValues
+                    .value,
             ).eq(ce3);
             expect(
-                stateVariables[resolveComponentName("ce4a")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ce4a")].stateValues
+                    .value,
             ).eq(ce4);
 
             expect(
-                stateVariables[resolveComponentName("ce1iva")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ce1iva")].stateValues
                     .value,
             ).eq(ce1iv);
             expect(
-                stateVariables[resolveComponentName("ce2iva")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ce2iva")].stateValues
                     .value,
             ).eq(ce2iv);
             expect(
-                stateVariables[resolveComponentName("ce3iva")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ce3iva")].stateValues
                     .value,
             ).eq(ce3iv);
             expect(
-                stateVariables[resolveComponentName("ce4iva")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ce4iva")].stateValues
                     .value,
             ).eq(ce4iv);
 
             expect(
-                stateVariables[resolveComponentName("ce1changed")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("ce1changed")]
+                    .stateValues.value,
             ).eq(ce1changed);
             expect(
-                stateVariables[resolveComponentName("ce2changed")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("ce2changed")]
+                    .stateValues.value,
             ).eq(ce2changed);
             expect(
-                stateVariables[resolveComponentName("ce3changed")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("ce3changed")]
+                    .stateValues.value,
             ).eq(ce3changed);
             expect(
-                stateVariables[resolveComponentName("ce4changed")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("ce4changed")]
+                    .stateValues.value,
             ).eq(ce4changed);
 
             expect(
-                stateVariables[resolveComponentName("ce1ivchanged")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("ce1ivchanged")]
+                    .stateValues.value,
             ).eq(ce1ivchanged);
             expect(
-                stateVariables[resolveComponentName("ce2ivchanged")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("ce2ivchanged")]
+                    .stateValues.value,
             ).eq(ce2ivchanged);
             expect(
-                stateVariables[resolveComponentName("ce3ivchanged")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("ce3ivchanged")]
+                    .stateValues.value,
             ).eq(ce3ivchanged);
             expect(
-                stateVariables[resolveComponentName("ce4ivchanged")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("ce4ivchanged")]
+                    .stateValues.value,
             ).eq(ce4ivchanged);
         }
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
@@ -421,7 +446,7 @@ describe("Code Editor tag tests", async () => {
         ce1ivchanged = true;
         await updateTextInputImmediateValue({
             text: ce1iv,
-            componentIdx: resolveComponentName("ce1"),
+            componentIdx: await resolvePathToNodeIdx("ce1"),
             core,
         });
         await check_items(
@@ -435,7 +460,7 @@ describe("Code Editor tag tests", async () => {
         ce1 = ce3 = ce3iv = ce1iv;
         ce1changed = true;
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ce1"),
+            componentIdx: await resolvePathToNodeIdx("ce1"),
             core,
         });
 
@@ -452,7 +477,7 @@ describe("Code Editor tag tests", async () => {
         ce2ivchanged = true;
         await updateTextInputImmediateValue({
             text: ce2iv,
-            componentIdx: resolveComponentName("ce2"),
+            componentIdx: await resolvePathToNodeIdx("ce2"),
             core,
         });
         await check_items(
@@ -466,7 +491,7 @@ describe("Code Editor tag tests", async () => {
         ce2 = ce2iv;
         ce2changed = true;
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ce2"),
+            componentIdx: await resolvePathToNodeIdx("ce2"),
             core,
         });
 
@@ -482,7 +507,7 @@ describe("Code Editor tag tests", async () => {
         ce3ivchanged = true;
         await updateTextInputImmediateValue({
             text: ce3iv,
-            componentIdx: resolveComponentName("ce3"),
+            componentIdx: await resolvePathToNodeIdx("ce3"),
             core,
         });
         await check_items(
@@ -496,7 +521,7 @@ describe("Code Editor tag tests", async () => {
         ce1 = ce1iv = ce3 = ce3iv;
         ce3changed = true;
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ce3"),
+            componentIdx: await resolvePathToNodeIdx("ce3"),
             core,
         });
 
@@ -512,7 +537,7 @@ describe("Code Editor tag tests", async () => {
         ce4ivchanged = true;
         await updateTextInputImmediateValue({
             text: ce4iv,
-            componentIdx: resolveComponentName("ce4"),
+            componentIdx: await resolvePathToNodeIdx("ce4"),
             core,
         });
         await check_items(
@@ -526,7 +551,7 @@ describe("Code Editor tag tests", async () => {
         ce2 = ce2iv = ce4 = ce4iv;
         ce4changed = true;
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ce4"),
+            componentIdx: await resolvePathToNodeIdx("ce4"),
             core,
         });
 
@@ -538,7 +563,7 @@ describe("Code Editor tag tests", async () => {
         );
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
@@ -571,7 +596,7 @@ describe("Code Editor tag tests", async () => {
         ce3ivchanged = true;
         await updateTextInputImmediateValue({
             text: ce3iv,
-            componentIdx: resolveComponentName("ce3"),
+            componentIdx: await resolvePathToNodeIdx("ce3"),
             core,
         });
         await check_items(
@@ -587,7 +612,7 @@ describe("Code Editor tag tests", async () => {
         ce1ivchanged = true;
         ce3changed = true;
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ce3"),
+            componentIdx: await resolvePathToNodeIdx("ce3"),
             core,
         });
 
@@ -603,7 +628,7 @@ describe("Code Editor tag tests", async () => {
         ce4ivchanged = true;
         await updateTextInputImmediateValue({
             text: ce4iv,
-            componentIdx: resolveComponentName("ce4"),
+            componentIdx: await resolvePathToNodeIdx("ce4"),
             core,
         });
         await check_items(
@@ -619,7 +644,7 @@ describe("Code Editor tag tests", async () => {
         ce2ivchanged = true;
         ce4changed = true;
         await updateTextInputValueToImmediateValue({
-            componentIdx: resolveComponentName("ce4"),
+            componentIdx: await resolvePathToNodeIdx("ce4"),
             core,
         });
 
@@ -632,7 +657,7 @@ describe("Code Editor tag tests", async () => {
     });
 
     it("ignore variants from children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <codeEditor name="ce1" showResults ><selectFromSequence/></codeEditor>
           `,
@@ -642,8 +667,8 @@ describe("Code Editor tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("_document1")].sharedParameters
-                .allPossibleVariants,
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants,
         ).eqls(["a"]);
     });
 });
