@@ -6,7 +6,6 @@ import type {
 import viewerIframeJsSource from "../dist/iframe-viewer/iframe-viewer-index.iife.js?raw";
 // @ts-ignore
 import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife.js?raw";
-import { parseAndCompile } from "@doenet/parser";
 
 export type DoenetViewerProps = Omit<
     React.ComponentProps<typeof DoenetViewerOrig>,
@@ -113,60 +112,4 @@ export function createHtmlForDoenetEditor(
     </body>
     </html>
     `;
-}
-
-/**
- * If doenetML consists of a single `<document>` component with an xmlns prop,
- * attempt to extract the DoenetML version from that prop.
- * Returns the version if found, else returns null.
- */
-export function detectVersionFromDoenetML(doenetML: string) {
-    let result = parseAndCompile(doenetML);
-
-    let serializedComponents = result.components;
-
-    let firstNonBlankComponent;
-    let firstNonBlankInd, lastNonBlankInd;
-
-    // find any beginning or ending blank strings;
-    for (let ind = 0; ind < serializedComponents.length; ind++) {
-        let comp = serializedComponents[ind];
-        if (typeof comp !== "string" || /\S/.test(comp)) {
-            if (firstNonBlankInd === undefined) {
-                firstNonBlankInd = ind;
-                firstNonBlankComponent = comp;
-            }
-            lastNonBlankInd = ind;
-            break;
-        }
-    }
-
-    // Check if we have a single `<document>` component that has props.
-    if (
-        lastNonBlankInd === firstNonBlankInd &&
-        typeof firstNonBlankComponent !== "string" &&
-        firstNonBlankComponent?.componentType === "document" &&
-        "props" in firstNonBlankComponent
-    ) {
-        for (let prop in firstNonBlankComponent.props) {
-            if (prop.toLowerCase() === "xmlns") {
-                // We found the xmlns attribute. Check if it is of the right form.
-                let xmlns = firstNonBlankComponent.props[prop];
-
-                if (
-                    typeof xmlns === "string" &&
-                    xmlns.slice(0, 34) === "https://doenet.org/spec/doenetml/v"
-                ) {
-                    return {
-                        version: xmlns.slice(34),
-                        position: firstNonBlankComponent.position,
-                    };
-                } else {
-                    return {};
-                }
-            }
-        }
-    }
-
-    return {};
 }
