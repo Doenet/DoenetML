@@ -4,7 +4,7 @@ import React from "react";
  * Watch `ref` for any changes in size and update `setHeight` accordingly.
  */
 export function watchForResize(
-    ref: React.RefObject<HTMLIFrameElement>,
+    ref: React.RefObject<HTMLIFrameElement | null>,
     getHeight: () => string,
     setHeight: React.Dispatch<React.SetStateAction<string>>,
 ): () => void {

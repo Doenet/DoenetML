@@ -384,7 +384,9 @@ export function DoenetEditor({
                 getLineCharRange(detectedDoenetMLrange!, allNewlines),
             );
 
-            setInitialErrors([{ position: detectedDoenetMLrange!, message }]);
+            setInitialErrors([
+                { type: "error", position: detectedDoenetMLrange!, message },
+            ]);
             return null;
         }
 
