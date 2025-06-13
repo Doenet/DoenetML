@@ -754,7 +754,8 @@ describe("SamplePrimeNumbers tag tests", async () => {
         expect(pn2c).gt(1).lt(1000);
         expect(pn3c).gt(1000).lt(10000);
 
-        expect(pn1c !== pn1b || pn2c !== pn2b).eq(true);
+        expect(pn1c).eq(pn1b);
+        expect(pn2c).eq(pn2b);
         expect(pn3c).not.eq(pn3);
     });
 });
