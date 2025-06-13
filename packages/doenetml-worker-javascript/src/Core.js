@@ -283,6 +283,11 @@ export default class Core {
             core: this,
         });
 
+        this.globallyAccessibleNames = {
+            byName: {},
+            byIdx: [],
+        };
+
         this.unmatchedChildren = {};
 
         // console.timeEnd('serialize doenetML');
@@ -481,6 +486,7 @@ export default class Core {
         let parent;
         let ancestors = [];
         let createNameContext = "";
+        let globallyAccessiblePrefixes = [];
 
         if (!initialAdd) {
             parent = this._components[parentIdx];
@@ -510,11 +516,21 @@ export default class Core {
             }
 
             createNameContext = `addComponents${this.nTimesAddedComponents}`;
+
+            for (const ancestor of ancestors) {
+                const ancestorGlobalNames =
+                    this.globallyAccessibleNames.byIdx[ancestor.componentIdx];
+                if (ancestorGlobalNames) {
+                    globallyAccessiblePrefixes = ancestorGlobalNames;
+                    break;
+                }
+            }
         }
         let createResult = await this.createIsolatedComponents({
             serializedComponents,
             ancestors,
             createNameContext,
+            globallyAccessiblePrefixes,
         });
         if (!initialAdd) {
             this.parameterStack.pop();
