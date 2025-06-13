@@ -31,7 +31,6 @@ import {
     textNodeToText,
     updateNodePositionData,
 } from "./lezer-to-dast-utils";
-import { gobbleFunctionArguments } from "./gobble-function-arguments";
 import { parseMacrosV06 } from "../macros-v6";
 import { gobbleFunctionArgumentsV6 } from "./gobble-function-arguments-v6";
 
