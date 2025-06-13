@@ -1,3 +1,5 @@
+// TODO: move this function into a `debug-hooks` package or something similar to make it clear that this is a debugging tool.
+
 import {
     FlatPathPart,
     FlatIndex,
