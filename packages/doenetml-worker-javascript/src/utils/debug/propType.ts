@@ -20,8 +20,6 @@ export function determinePropType(
     const publicStateVariableInfo =
         componentInfoObjects.publicStateVariableInfo[componentType];
 
-    console.log({ publicStateVariableInfo });
-
     if (!publicStateVariableInfo) {
         throw Error(`"${componentType}" is not a valid component type`);
     }
@@ -111,13 +109,10 @@ function componentTypeFromWrapping(
         | { componentType: string; isAttributeNamed: string }
     )[][],
 ) {
-    console.log({ wrappingComponents });
     if (wrappingComponents.length > 0) {
         const lastWrapping = wrappingComponents[wrappingComponents.length - 1];
-        console.log({ firstWrapping: lastWrapping });
         if (lastWrapping?.length > 0) {
             const innerWrapping = lastWrapping[0];
-            console.log({ innerWrapping });
             if (typeof innerWrapping === "string") {
                 return {
                     foundComponentType: true as const,
