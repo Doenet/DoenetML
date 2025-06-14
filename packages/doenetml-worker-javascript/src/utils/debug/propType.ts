@@ -14,9 +14,8 @@ const componentInfoObjects = createComponentInfoObjects();
 export function determinePropType(
     componentType: string,
     propName: string,
-    indices?: number[],
+    nIndices = 0,
 ) {
-    // TODO: implement `indices`
     const publicStateVariableInfo =
         componentInfoObjects.publicStateVariableInfo[componentType];
 
@@ -24,12 +23,8 @@ export function determinePropType(
         throw Error(`"${componentType}" is not a valid component type`);
     }
 
-    let varName = propName;
-
-    // If `varName` is an alias, replace with its target
-    if (varName in publicStateVariableInfo.aliases) {
-        varName = publicStateVariableInfo.aliases[varName];
-    }
+    // If `propName` is an alias, replace with its target
+    const varName = publicStateVariableInfo.aliases[propName] ?? propName;
 
     const stateVarInfo =
         publicStateVariableInfo.stateVariableDescriptions[varName];
@@ -55,15 +50,23 @@ export function determinePropType(
                 // if the array entry is wrapped with a different component type, return that component type
                 const wrapResult = componentTypeFromWrapping(
                     prefixInfo.wrappingComponents,
+                    prefixInfo.numDimensions,
+                    nIndices,
                 );
                 if (wrapResult.foundComponentType) {
                     return wrapResult.componentType;
                 }
 
-                // otherwise, use the component type of the array itself
-                return publicStateVariableInfo.stateVariableDescriptions[
-                    prefixInfo.arrayVariableName
-                ].createComponentOfType;
+                if (nIndices <= prefixInfo.numDimensions) {
+                    // otherwise, use the component type of the array itself
+                    return publicStateVariableInfo.stateVariableDescriptions[
+                        prefixInfo.arrayVariableName
+                    ].createComponentOfType;
+                } else {
+                    throw Error(
+                        `"${propName}" with ${nIndices} indices is not a valid prop for a component of type ${componentType} as ${propName} has fewer than ${nIndices} dimensions`,
+                    );
+                }
             }
         }
 
@@ -72,13 +75,27 @@ export function determinePropType(
         );
     }
 
-    if (stateVarInfo.isArray && stateVarInfo.wrappingComponents) {
-        const wrapResult = componentTypeFromWrapping(
-            stateVarInfo.wrappingComponents,
-        );
-        if (wrapResult.foundComponentType) {
-            return wrapResult.componentType;
+    if (stateVarInfo.isArray) {
+        if (stateVarInfo.wrappingComponents) {
+            const wrapResult = componentTypeFromWrapping(
+                stateVarInfo.wrappingComponents,
+                stateVarInfo.numDimensions ?? 1,
+                nIndices,
+            );
+            if (wrapResult.foundComponentType) {
+                return wrapResult.componentType;
+            }
         }
+
+        if (nIndices > (stateVarInfo.numDimensions ?? 1)) {
+            throw Error(
+                `"${propName}" with ${nIndices} indices is not a valid prop for a component of type ${componentType} as ${propName} has fewer than ${nIndices} dimensions`,
+            );
+        }
+    } else if (nIndices > 0) {
+        throw Error(
+            `"${propName}" with ${nIndices} indices is not a valid prop for a component of type ${componentType} as ${propName} is not an array`,
+        );
     }
 
     if (!stateVarInfo.createComponentOfType) {
@@ -108,9 +125,17 @@ function componentTypeFromWrapping(
         | string
         | { componentType: string; isAttributeNamed: string }
     )[][],
+    nDimensions: number,
+    nIndices: number,
 ) {
     if (wrappingComponents.length > 0) {
-        const lastWrapping = wrappingComponents[wrappingComponents.length - 1];
+        const lastWrapping =
+            wrappingComponents[
+                Math.min(
+                    nDimensions - 1 - nIndices,
+                    wrappingComponents.length - 1,
+                )
+            ];
         if (lastWrapping?.length > 0) {
             const innerWrapping = lastWrapping[0];
             if (typeof innerWrapping === "string") {
