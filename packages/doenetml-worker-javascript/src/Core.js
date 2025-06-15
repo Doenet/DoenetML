@@ -37,6 +37,7 @@ import {
     createNewComponentIndices,
     extractCreateComponentIdxMapping,
 } from "./utils/componentIndices";
+import { renderedNameSortFunction } from "./utils/renderedNames";
 
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
@@ -114,6 +115,7 @@ export default class Core {
 
         this.getDast = this.generateDast.bind(this);
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
+        this.getRenderedName = this.getRenderedName.bind(this);
 
         this.componentInfoObjects = componentInfoObjects;
 
@@ -188,6 +190,11 @@ export default class Core {
             suspendTimerId: null,
             suspended: false,
             documentHasBeenVisible: false,
+        };
+
+        this.potentialRenderedNames = {
+            byName: {},
+            byIdx: [],
         };
 
         // console.time('serialize doenetML');
@@ -283,7 +290,7 @@ export default class Core {
             core: this,
         });
 
-        this.globallyAccessibleNames = {
+        this.potentialRenderedNames = {
             byName: {},
             byIdx: [],
         };
@@ -485,8 +492,7 @@ export default class Core {
 
         let parent;
         let ancestors = [];
-        let createNameContext = "";
-        let globallyAccessiblePrefixes = [];
+        let namePrefixes = [""];
 
         if (!initialAdd) {
             parent = this._components[parentIdx];
@@ -507,6 +513,8 @@ export default class Core {
                 ...parent.ancestors,
             ];
 
+            namePrefixes = parent.namePrefixesForChildren;
+
             this.parameterStack.push(parent.sharedParameters, false);
 
             if (!this.nTimesAddedComponents) {
@@ -514,30 +522,14 @@ export default class Core {
             } else {
                 this.nTimesAddedComponents++;
             }
-
-            createNameContext = `addComponents${this.nTimesAddedComponents}`;
-
-            for (const ancestor of ancestors) {
-                const ancestorGlobalNames =
-                    this.globallyAccessibleNames.byIdx[ancestor.componentIdx];
-                if (ancestorGlobalNames) {
-                    globallyAccessiblePrefixes = ancestorGlobalNames;
-                    break;
-                }
-            }
         }
         let createResult = await this.createIsolatedComponents({
             serializedComponents,
             ancestors,
-            createNameContext,
-            globallyAccessiblePrefixes,
+            namePrefixes,
         });
         if (!initialAdd) {
             this.parameterStack.pop();
-        }
-
-        if (createResult.success !== true) {
-            throw Error(createResult.message);
         }
 
         const newComponents = createResult.components;
@@ -1276,27 +1268,11 @@ export default class Core {
     async createIsolatedComponents({
         serializedComponents,
         ancestors,
-        shadow = false,
-    }) {
-        let createResult = await this.createIsolatedComponentsSub({
-            serializedComponents,
-            ancestors,
-            shadow,
-        });
-
-        return {
-            success: true,
-            components: createResult.components,
-        };
-    }
-
-    async createIsolatedComponentsSub({
-        serializedComponents,
-        ancestors,
+        namePrefixes,
         shadow = false,
         componentsReplacementOf,
     }) {
-        let newComponents = [];
+        const newComponents = [];
 
         let lastErrorMessage = "";
 
@@ -1306,10 +1282,7 @@ export default class Core {
             res.createComponentIdxMapping,
         );
 
-        for (let [
-            componentInd,
-            serializedComponent,
-        ] of serializedComponents.entries()) {
+        for (const serializedComponent of serializedComponents) {
             // console.timeLog('core','<-Top serializedComponents ',serializedComponent.componentIdx);
 
             if (typeof serializedComponent !== "object") {
@@ -1317,21 +1290,7 @@ export default class Core {
                 continue;
             }
 
-            // if already corresponds to a created component
-            // add to array
-            if (serializedComponent.createdComponent === true) {
-                let newComponent =
-                    this._components[serializedComponent.componentIdx];
-                newComponents.push(newComponent);
-
-                // set ancestors, in case component has been moved
-                // TODO: do we still need with since removed sugar?
-                this.setAncestors(newComponent, ancestors);
-                // skip rest of processing, as they already occured for this component
-                continue;
-            }
-
-            let componentClass =
+            const componentClass =
                 this.componentInfoObjects.allComponentClasses[
                     serializedComponent.componentType
                 ];
@@ -1340,7 +1299,7 @@ export default class Core {
                 // as it should get caught by the correctComponentTypeCapitalization function.
                 // However, it could get called from Javascript if developers
                 // create a serialized component that doesn't exist.
-                let message = `Invalid component type: <${serializedComponent.componentType}>.`;
+                const message = `Invalid component type: <${serializedComponent.componentType}>.`;
 
                 this.newErrorWarning = true;
 
@@ -1364,18 +1323,9 @@ export default class Core {
 
             let componentIdx = serializedComponent.componentIdx;
             if (componentIdx == undefined) {
-                // throw Error(
-                //     "Found a serialized component without a componentIdx",
-                //     serializedComponent,
-                // );
-
-                // Note: ideally this condition is never met, as sugar and generation of serialized replacements
-                // should create component indices for all components
-                componentIdx = this._components.length;
-                this._components[componentIdx] = undefined;
-                console.log(
-                    `componentIdx was undefined so made it ${componentIdx}`,
-                    // serializedComponent,
+                throw Error(
+                    "Found a serialized component without a componentIdx",
+                    serializedComponent,
                 );
             }
 
@@ -1383,13 +1333,13 @@ export default class Core {
                 serializedComponent,
                 componentIdx,
                 ancestors,
+                namePrefixes,
                 componentClass,
                 shadow,
                 componentsReplacementOf,
-                componentInd,
             });
 
-            let newComponent = createResult.newComponent;
+            const newComponent = createResult.newComponent;
             newComponents.push(newComponent);
 
             if (createResult.lastErrorMessage) {
@@ -1411,6 +1361,7 @@ export default class Core {
         serializedComponent,
         componentIdx,
         ancestors,
+        namePrefixes,
         componentClass,
         shadow = false,
         componentsReplacementOf,
@@ -1428,19 +1379,51 @@ export default class Core {
         }
 
         // first recursively create children and attribute components
-        let serializedChildren = serializedComponent.children;
+        const serializedChildren = serializedComponent.children;
         let definingChildren = [];
-        let childrenToRemainSerialized = [];
+        const childrenToRemainSerialized = [];
 
-        let ancestorsForChildren = [
+        const ancestorsForChildren = [
             { componentIdx, componentClass },
             ...ancestors,
         ];
 
-        // add a new level to parameter stack;
-        let parentSharedParameters = this.parameterStack.parameters;
+        const namePrefixesForChildren =
+            namePrefixes === null ? null : [...namePrefixes];
+
+        if (
+            namePrefixes !== null &&
+            serializedComponent.attributes?.name?.primitive &&
+            !serializedComponent.attributes.name.primitive.value.startsWith("_")
+        ) {
+            const accessibleNames = computeAccessibleNames(
+                serializedComponent,
+                namePrefixes,
+            );
+
+            // If the new component is not a composite, then add accessible names to `potentialRenderedNames`.
+            // Note: it is important to not add composite names themselves so that a unique replacement of a composite
+            // can be accessed by the composite's name
+            if (
+                !this.componentInfoObjects.isCompositeComponent({
+                    componentType: componentClass.componentType,
+                    includeNonStandard: true,
+                })
+            ) {
+                this.addPotentialRenderedNames(accessibleNames, componentIdx);
+            }
+
+            for (const newName of accessibleNames) {
+                if (!namePrefixesForChildren.includes(newName)) {
+                    namePrefixesForChildren.push(newName);
+                }
+            }
+        }
+
+        // add a new level to parameter stack
+        const parentSharedParameters = this.parameterStack.parameters;
         this.parameterStack.push();
-        let sharedParameters = this.parameterStack.parameters;
+        const sharedParameters = this.parameterStack.parameters;
 
         if (
             componentClass.descendantCompositesMustHaveAReplacement &&
@@ -1456,43 +1439,6 @@ export default class Core {
             sharedParameters.compositesMustHaveAReplacement = false;
         }
 
-        if (componentClass.modifySharedParameters) {
-            componentClass.modifySharedParameters({
-                sharedParameters,
-                serializedComponent,
-            });
-        }
-
-        if (serializedComponent.doenetAttributes.pushSharedParameters) {
-            for (let parInstruction of serializedComponent.doenetAttributes
-                .pushSharedParameters) {
-                let pName = parInstruction.parameterName;
-                if (pName in sharedParameters) {
-                    sharedParameters[pName] = [...sharedParameters[pName]];
-                } else {
-                    sharedParameters[pName] = [];
-                }
-                sharedParameters[pName].push(parInstruction.value);
-            }
-        }
-
-        if (serializedComponent.doenetAttributes.addToSharedParameters) {
-            for (let parInstruction of serializedComponent.doenetAttributes
-                .addToSharedParameters) {
-                let pName = parInstruction.parameterName;
-                if (pName in sharedParameters) {
-                    sharedParameters[pName] = Object.assign(
-                        {},
-                        sharedParameters[pName],
-                    );
-                } else {
-                    sharedParameters[pName] = {};
-                }
-                sharedParameters[pName][parInstruction.key] =
-                    parInstruction.value;
-            }
-        }
-
         if (serializedChildren !== undefined) {
             if (componentClass.preprocessSerializedChildren) {
                 componentClass.preprocessSerializedChildren({
@@ -1503,7 +1449,7 @@ export default class Core {
             }
 
             if (componentClass.setUpVariant) {
-                let descendantVariantComponents = gatherVariantComponents({
+                const descendantVariantComponents = gatherVariantComponents({
                     serializedComponents: serializedChildren,
                     componentInfoObjects: this.componentInfoObjects,
                 });
@@ -1516,14 +1462,15 @@ export default class Core {
             }
 
             if (componentClass.keepChildrenSerialized) {
-                let childrenAddressed = new Set([]);
+                const childrenAddressed = new Set([]);
 
-                let keepSerializedInds = componentClass.keepChildrenSerialized({
-                    serializedComponent,
-                    componentInfoObjects: this.componentInfoObjects,
-                });
+                const keepSerializedInds =
+                    componentClass.keepChildrenSerialized({
+                        serializedComponent,
+                        componentInfoObjects: this.componentInfoObjects,
+                    });
 
-                for (let ind of keepSerializedInds) {
+                for (const ind of keepSerializedInds) {
                     if (childrenAddressed.has(Number(ind))) {
                         throw Error(
                             "Invalid instructions to keep children serialized from " +
@@ -1536,22 +1483,21 @@ export default class Core {
                 }
 
                 // create any remaining children
-                let childrenToCreate = [];
-                for (let [ind, child] of serializedChildren.entries()) {
+                const childrenToCreate = [];
+                for (const [ind, child] of serializedChildren.entries()) {
                     if (!childrenAddressed.has(ind)) {
                         childrenToCreate.push(child);
                     }
                 }
 
                 if (childrenToCreate.length > 0) {
-                    let childrenResult = await this.createIsolatedComponentsSub(
-                        {
-                            serializedComponents: childrenToCreate,
-                            ancestors: ancestorsForChildren,
-                            shadow,
-                            componentsReplacementOf,
-                        },
-                    );
+                    const childrenResult = await this.createIsolatedComponents({
+                        serializedComponents: childrenToCreate,
+                        ancestors: ancestorsForChildren,
+                        namePrefixes: namePrefixesForChildren,
+                        shadow,
+                        componentsReplacementOf,
+                    });
 
                     definingChildren = childrenResult.components;
                     if (childrenResult.lastErrorMessage) {
@@ -1561,9 +1507,10 @@ export default class Core {
             } else {
                 //create all children
 
-                let childrenResult = await this.createIsolatedComponentsSub({
+                const childrenResult = await this.createIsolatedComponents({
                     serializedComponents: serializedChildren,
                     ancestors: ancestorsForChildren,
+                    namePrefixes: namePrefixesForChildren,
                     shadow,
                     componentsReplacementOf,
                 });
@@ -1578,20 +1525,18 @@ export default class Core {
         let attributes = {};
 
         if (serializedComponent.attributes) {
-            for (let attrName in serializedComponent.attributes) {
-                let attribute = serializedComponent.attributes[attrName];
+            for (const attrName in serializedComponent.attributes) {
+                const attribute = serializedComponent.attributes[attrName];
 
                 if (attribute.component) {
                     try {
-                        let attrResult = await this.createIsolatedComponentsSub(
-                            {
-                                serializedComponents: [attribute.component],
-                                ancestors: ancestorsForChildren,
-                                shadow,
-                                componentsReplacementOf,
-                                createNameContext: `attribute|${attrName}`,
-                            },
-                        );
+                        const attrResult = await this.createIsolatedComponents({
+                            serializedComponents: [attribute.component],
+                            ancestors: ancestorsForChildren,
+                            namePrefixes: null,
+                            shadow,
+                            componentsReplacementOf,
+                        });
 
                         if (attrResult.lastErrorMessage) {
                             lastErrorMessage = attrResult.lastErrorMessage;
@@ -1616,15 +1561,13 @@ export default class Core {
                     }
                 } else if (attribute.references) {
                     try {
-                        let attrResult = await this.createIsolatedComponentsSub(
-                            {
-                                serializedComponents: attribute.references,
-                                ancestors: ancestorsForChildren,
-                                shadow,
-                                componentsReplacementOf,
-                                createNameContext: `attribute|${attrName}`,
-                            },
-                        );
+                        const attrResult = await this.createIsolatedComponents({
+                            serializedComponents: attribute.references,
+                            ancestors: ancestorsForChildren,
+                            namePrefixes: null,
+                            shadow,
+                            componentsReplacementOf,
+                        });
 
                         if (attrResult.lastErrorMessage) {
                             lastErrorMessage = attrResult.lastErrorMessage;
@@ -1653,22 +1596,24 @@ export default class Core {
             refResolution = unwrapSource(serializedComponent.extending);
 
             if (refResolution.unresolvedPath !== null) {
-                let nodeIdx = refResolution.nodeIdx;
-                let unresolvedPath = [];
+                const nodeIdx = refResolution.nodeIdx;
+                const unresolvedPath = [];
                 for (const pathPart of refResolution.unresolvedPath) {
                     const index = [];
                     for (const indexPiece of pathPart.index) {
-                        let valueResult =
-                            await this.createIsolatedComponentsSub({
+                        const valueResult = await this.createIsolatedComponents(
+                            {
                                 serializedComponents: indexPiece.value,
                                 ancestors: ancestorsForChildren,
+                                namePrefixes: null,
                                 shadow,
                                 componentsReplacementOf,
-                            });
+                            },
+                        );
                         if (valueResult.lastErrorMessage) {
                             lastErrorMessage = valueResult.lastErrorMessage;
                         }
-                        let value = valueResult.components;
+                        const value = valueResult.components;
                         index.push({ value, position: indexPiece.position });
                     }
                     unresolvedPath.push({
@@ -1717,7 +1662,7 @@ export default class Core {
                 ];
         }
 
-        let prescribedDependencies = {};
+        const prescribedDependencies = {};
 
         if (serializedComponent.downstreamDependencies) {
             for (const idxStr in serializedComponent.downstreamDependencies) {
@@ -1742,7 +1687,7 @@ export default class Core {
             }
         }
 
-        let stateVariableDefinitions =
+        const stateVariableDefinitions =
             await this.createStateVariableDefinitions({
                 componentClass,
                 prescribedDependencies,
@@ -1754,9 +1699,10 @@ export default class Core {
         delete this.updateInfo.deletedStateVariables[componentIdx];
 
         // create component itself
-        let newComponent = new componentClass({
+        const newComponent = new componentClass({
             componentIdx,
             ancestors,
+            namePrefixesForChildren,
             definingChildren,
             stateVariableDefinitions,
             serializedChildren: childrenToRemainSerialized,
@@ -1787,10 +1733,10 @@ export default class Core {
 
         for (const idxStr in prescribedDependencies) {
             const idx = Number(idxStr);
-            let depArray = prescribedDependencies[idx];
-            for (let dep of depArray) {
+            const depArray = prescribedDependencies[idx];
+            for (const dep of depArray) {
                 if (dep.dependencyType === "referenceShadow") {
-                    let shadowInfo = {
+                    const shadowInfo = {
                         componentIdx: idx,
                     };
                     Object.assign(shadowInfo, dep);
@@ -1802,13 +1748,13 @@ export default class Core {
                         newComponent.firstLevelReplacement = true;
                     }
 
-                    let shadowedComponent = this._components[idx];
+                    const shadowedComponent = this._components[idx];
                     if (!shadowedComponent.shadowedBy) {
                         shadowedComponent.shadowedBy = [];
                     }
                     shadowedComponent.shadowedBy.push(newComponent);
 
-                    let mediatingShadowComposite =
+                    const mediatingShadowComposite =
                         this._components[shadowInfo.compositeIdx];
                     if (!mediatingShadowComposite.mediatesShadows) {
                         mediatingShadowComposite.mediatesShadows = [];
@@ -1827,7 +1773,7 @@ export default class Core {
                             this.dependencies.updateTriggers
                                 .primaryShadowDependencies[idx]
                         ) {
-                            for (let dep of this.dependencies.updateTriggers
+                            for (const dep of this.dependencies.updateTriggers
                                 .primaryShadowDependencies[idx]) {
                                 await dep.recalculateDownstreamComponents();
                             }
@@ -1853,12 +1799,12 @@ export default class Core {
 
         await this.dependencies.setUpComponentDependencies(newComponent);
 
-        let variablesChanged =
+        const variablesChanged =
             await this.dependencies.checkForDependenciesOnNewComponent(
                 componentIdx,
             );
 
-        for (let varDescription of variablesChanged) {
+        for (const varDescription of variablesChanged) {
             await this.markStateVariableAndUpstreamDependentsStale({
                 component: this._components[varDescription.componentIdx],
                 varName: varDescription.varName,
@@ -1880,9 +1826,113 @@ export default class Core {
         // remove a level from parameter stack;
         this.parameterStack.pop();
 
-        let results = { newComponent: newComponent, lastErrorMessage };
+        const results = { newComponent: newComponent, lastErrorMessage };
 
         return results;
+    }
+
+    /**
+     * Given that a component with `componentIdx` can be accessed via the names in `accessibleNames`,
+     * add those names to `potentialRenderedNames` for `componentIdx`.
+     */
+    addPotentialRenderedNames(accessibleNames, componentIdx) {
+        for (const accessibleName of accessibleNames) {
+            const byName = this.potentialRenderedNames.byName[accessibleName];
+            if (!byName) {
+                // we have a new unique name
+                this.potentialRenderedNames.byName[accessibleName] = {
+                    type: "unique",
+                    componentIdx,
+                };
+            } else {
+                if (byName.type === "unique") {
+                    if (byName.componentIdx !== componentIdx) {
+                        // a formerly unique name is now ambiguous since it matches two components
+                        this.potentialRenderedNames.byName[accessibleName] = {
+                            type: "ambiguous",
+                            componentIndices: [
+                                byName.componentIdx,
+                                componentIdx,
+                            ],
+                        };
+                    }
+                } else if (!byName.componentIndices.includes(componentIdx)) {
+                    // add one more match to an already ambiguous name
+                    byName.componentIndices.push(componentIdx);
+                }
+            }
+        }
+
+        if (!this.potentialRenderedNames.byIdx[componentIdx]) {
+            this.potentialRenderedNames.byIdx[componentIdx] = [];
+        }
+
+        this.potentialRenderedNames.byIdx[componentIdx].push(
+            ...accessibleNames,
+        );
+    }
+
+    /**
+     * Remove `componentIndices` from the `potentialRenderedNames` data structure.
+     */
+    removePotentialRenderedNames(componentIdx) {
+        const potentialNames = this.potentialRenderedNames.byIdx[componentIdx];
+
+        if (potentialNames) {
+            for (const name of potentialNames) {
+                const byName = this.potentialRenderedNames.byName[name];
+                if (byName.type === "unique") {
+                    // remove the only reference to `name`
+                    delete this.potentialRenderedNames.byName[name];
+                } else {
+                    const idx = byName.componentIndices.indexOf(componentIdx);
+                    if (idx !== -1) {
+                        if (byName.componentIndices.length === 2) {
+                            // `name` is now unique
+                            this.potentialRenderedNames.byName[name] = {
+                                type: "unique",
+                                componentIdx: byName.componentIndices[1 - idx],
+                            };
+                        } else {
+                            // `name` is still ambiguous
+                            byName.componentIndices.splice(idx, 1);
+                        }
+                    }
+                }
+            }
+
+            delete this.potentialRenderedNames.byIdx[componentIdx];
+        }
+    }
+
+    /**
+     * Get the "rendered name" for `componentIdx`, i.e., that name that will be used
+     * for its DOM id in the renderer.
+     *
+     * Choose the shortest accessible name for the component that can be uniquely
+     * resolved to the component.
+     */
+    getRenderedName(componentIdx) {
+        const potentialNames = this.potentialRenderedNames.byIdx[componentIdx];
+
+        if (!potentialNames) {
+            return null;
+        }
+
+        // sort names first by increasing length, then alphabetically
+        const sortedNames = [...potentialNames].sort(renderedNameSortFunction);
+
+        // find first name that is unique
+        for (const name of sortedNames) {
+            const byName = this.potentialRenderedNames.byName[name];
+
+            if (byName.type === "unique") {
+                return name;
+            }
+        }
+
+        // no unique name found
+        return null;
     }
 
     async checkForStateVariablesUpdatesForNewComponent(componentIdx) {
@@ -2429,11 +2479,11 @@ export default class Core {
                     [newSerializedChild],
                     originalChild.position,
                 );
-                let newChildrenResult = await this.createIsolatedComponentsSub({
+                let newChildrenResult = await this.createIsolatedComponents({
                     serializedComponents: [newSerializedChild],
                     shadow: true,
                     ancestors: originalChild.ancestors,
-                    createNameContext: originalChild.componentIdx + "|adapter",
+                    namePrefixes: null,
                 });
 
                 adapter = newChildrenResult.components[0];
@@ -3205,12 +3255,25 @@ export default class Core {
     async createAndSetReplacements({ component, serializedReplacements }) {
         this.parameterStack.push(component.sharedParameters, false);
 
+        // to determine if there is a single replacement, ignore any leading or trailing blank strings
+        const trimmedReplacements = trimBlankStringComponents(
+            serializedReplacements,
+        );
+
+        const singleReplacement =
+            trimmedReplacements.length === 1 ? trimmedReplacements[0] : null;
+
+        const namePrefixes = this.calculateRenderedPrefixesForReplacements(
+            component,
+            singleReplacement,
+        );
+
         try {
-            let replacementResult = await this.createIsolatedComponentsSub({
+            let replacementResult = await this.createIsolatedComponents({
                 serializedComponents: serializedReplacements,
                 ancestors: component.ancestors,
+                namePrefixes,
                 shadow: true,
-                createNameContext: component.componentIdx + "|replacements",
                 componentsReplacementOf: component,
             });
             component.replacements = replacementResult.components;
@@ -3227,6 +3290,86 @@ export default class Core {
         await this.dependencies.addBlockersFromChangedReplacements(component);
 
         component.isExpanded = true;
+    }
+
+    /**
+     * Calculate the name prefixes to be used when calculating potential rendered names of `composite`'s replacements.
+     *
+     * In addition, if the composite has a single replacement, also add the composite's name itself
+     * as an potential rendered name for the replacement
+     *
+     * The argument `singleReplacement` should be set to the single serialized replacement if the composite has only one replacement.
+     */
+    calculateRenderedPrefixesForReplacements(composite, singleReplacement) {
+        let namePrefixes = null;
+
+        if (composite.constructor.replacementsAlreadyInResolver) {
+            // in this case, we treat the names of composite replacements using the normal algorithm
+            namePrefixes = composite.namePrefixesForChildren;
+        } else if (
+            composite.attributes.name?.primitive &&
+            !composite.attributes.name.primitive.value.startsWith("_") &&
+            singleReplacement
+        ) {
+            // In general, a replacement of a composite must be prefixed by the composite's name.
+            // We only address the case where we have a single replacement.
+            // For multiple replacements, we don't attempt to create globally unique names
+            // Since composite's name isn't a rendered name, we compute its possible names from its parent
+            // and set that to be its name prefixes for children
+            const namePrefixesFromParent =
+                this._components[composite.ancestors[0].componentIdx]
+                    .namePrefixesForChildren;
+            const accessibleNames = computeAccessibleNames(
+                composite,
+                namePrefixesFromParent,
+            );
+
+            namePrefixes = composite.namePrefixesForChildren = accessibleNames;
+        }
+
+        if (singleReplacement) {
+            // We have a single replacement, so we could potentially use the composite's name for the replacement.
+
+            // First check if this composite is a single replacement of another composite,
+            // in which case we could also (recursively) assign its name to the replacement
+            composite.useNamesForSingleReplacement = [
+                ...(composite.replacementOf?.useNamesForSingleReplacement ??
+                    []),
+            ];
+
+            if (
+                composite.attributes.name?.primitive &&
+                !composite.attributes.name.primitive.value.startsWith("_")
+            ) {
+                // The composite has a name. But, since we don't store accessible names for a composite (it isn't rendered),
+                // we calculate what its potential names are from its parent
+                const namePrefixesFromParent =
+                    this._components[composite.ancestors[0].componentIdx]
+                        .namePrefixesForChildren;
+                const accessibleNames = computeAccessibleNames(
+                    composite,
+                    namePrefixesFromParent,
+                );
+
+                composite.useNamesForSingleReplacement.push(...accessibleNames);
+            }
+
+            if (
+                composite.useNamesForSingleReplacement.length > 0 &&
+                !this.componentInfoObjects.isCompositeComponent({
+                    componentType: singleReplacement.componentType,
+                    includeNonStandard: true,
+                })
+            ) {
+                // The composite has a single non-composite replacement and has potential names to add to the replacement.
+                // Add those potential names to the replacement now.
+                this.addPotentialRenderedNames(
+                    composite.useNamesForSingleReplacement,
+                    singleReplacement.componentIdx,
+                );
+            }
+        }
+        return namePrefixes;
     }
 
     async replaceCompositeChildren(parent) {
@@ -9167,11 +9310,10 @@ export default class Core {
                     false,
                 );
 
-                let createResult = await this.createIsolatedComponentsSub({
+                let createResult = await this.createIsolatedComponents({
                     serializedComponents: shadowingSerializeChildren,
                     ancestors: shadowingParent.ancestors,
-                    createNameContext:
-                        shadowingParent.componentIdx + "|addChildren|",
+                    namePrefixes: shadowingParent.namePrefixesForChildren,
                 });
 
                 this.parameterStack.pop();
@@ -9452,6 +9594,8 @@ export default class Core {
             delete this.unmatchedChildren[component.componentIdx];
 
             delete this.stateVariableChangeTriggers[component.componentIdx];
+
+            this.removePotentialRenderedNames(component.componentIdx);
         }
 
         const componentsToRemoveFromResolver = [];
@@ -9781,55 +9925,70 @@ export default class Core {
                     });
                 }
 
-                if (change.serializedReplacements) {
-                    let serializedReplacements = change.serializedReplacements;
+                if (!change.serializedReplacements) {
+                    throw Error(`Invalid replacement change.`);
+                }
+                let serializedReplacements = change.serializedReplacements;
 
-                    let position =
-                        this.components[component.componentIdx].position;
-                    let overwriteDoenetMLRange =
-                        component.componentType === "_copy";
+                let position = this.components[component.componentIdx].position;
+                let overwriteDoenetMLRange =
+                    component.componentType === "_copy";
 
-                    this.gatherErrorsAndAssignDoenetMLRange({
-                        components: serializedReplacements,
-                        errors: [],
-                        warnings: [],
-                        position,
-                        overwriteDoenetMLRange,
-                    });
+                this.gatherErrorsAndAssignDoenetMLRange({
+                    components: serializedReplacements,
+                    errors: [],
+                    warnings: [],
+                    position,
+                    overwriteDoenetMLRange,
+                });
 
-                    const newNComponents = change.nComponents;
+                const newNComponents = change.nComponents;
 
-                    this.addReplacementsToResolver(
-                        serializedReplacements,
+                this.addReplacementsToResolver(
+                    serializedReplacements,
+                    component,
+                );
+
+                // expand `this._components` to length `newNComponents` so that the component indices will not be reused
+                if (newNComponents > this._components.length) {
+                    this._components[newNComponents - 1] = undefined;
+                }
+
+                const trimmedReplacements = trimBlankStringComponents(
+                    serializedReplacements,
+                );
+
+                const singleReplacement =
+                    trimmedReplacements.length === 1 &&
+                    component.replacements.length <=
+                        numberToDelete + (component.replacementsToWithhold ?? 0)
+                        ? trimmedReplacements[0]
+                        : null;
+
+                const replacedSingleReplacement = singleReplacement !== null;
+
+                const namePrefixes =
+                    this.calculateRenderedPrefixesForReplacements(
                         component,
+                        singleReplacement,
                     );
 
-                    // expand `this._components` to length `newNComponents` so that the component indices will not be reused
-                    if (newNComponents > this._components.length) {
-                        this._components[newNComponents - 1] = undefined;
-                    }
+                try {
+                    let createResult = await this.createIsolatedComponents({
+                        serializedComponents: serializedReplacements,
+                        ancestors: component.ancestors,
+                        namePrefixes,
+                        componentsReplacementOf: component,
+                    });
 
-                    try {
-                        let createResult =
-                            await this.createIsolatedComponentsSub({
-                                serializedComponents: serializedReplacements,
-                                ancestors: component.ancestors,
-                                createNameContext:
-                                    component.componentIdx + "|replacements",
-                                componentsReplacementOf: component,
-                            });
-
-                        newComponents = createResult.components;
-                    } catch (e) {
-                        console.error(e);
-                        // throw e;
-                        newComponents = await this.setErrorReplacements({
-                            composite: component,
-                            message: e.message,
-                        });
-                    }
-                } else {
-                    throw Error(`Invalid replacement change.`);
+                    newComponents = createResult.components;
+                } catch (e) {
+                    console.error(e);
+                    // throw e;
+                    newComponents = await this.setErrorReplacements({
+                        composite: component,
+                        message: e.message,
+                    });
                 }
 
                 this.parameterStack.pop();
@@ -9849,6 +10008,7 @@ export default class Core {
                     let newReplacementsForShadows =
                         await this.createShadowedReplacements({
                             replacementsToShadow: newComponents,
+                            replacedSingleReplacement,
                             componentToShadow: unproxiedComponent,
                             parentToShadow: change.parent,
                             currentShadowedBy,
@@ -10076,10 +10236,10 @@ export default class Core {
 
         composite.isInErrorState = true;
 
-        let createResult = await this.createIsolatedComponentsSub({
+        let createResult = await this.createIsolatedComponents({
             serializedComponents: errorReplacements,
             ancestors: composite.ancestors,
-            createNameContext: composite.componentIdx + "|replacements",
+            namePrefixes: null,
             componentsReplacementOf: composite,
         });
 
@@ -10310,6 +10470,7 @@ export default class Core {
 
     async createShadowedReplacements({
         replacementsToShadow,
+        replacedSingleReplacement,
         componentToShadow,
         parentToShadow,
         currentShadowedBy,
@@ -10472,12 +10633,26 @@ export default class Core {
                     false,
                 );
 
+                const trimmedReplacements = trimBlankStringComponents(
+                    newSerializedReplacements,
+                );
+                const singleReplacement =
+                    replacedSingleReplacement &&
+                    trimmedReplacements.length === 1
+                        ? trimmedReplacements[0]
+                        : null;
+
+                const namePrefixes =
+                    this.calculateRenderedPrefixesForReplacements(
+                        shadowingComponent,
+                        singleReplacement,
+                    );
+
                 try {
-                    let createResult = await this.createIsolatedComponentsSub({
+                    let createResult = await this.createIsolatedComponents({
                         serializedComponents: newSerializedReplacements,
                         ancestors: shadowingComponent.ancestors,
-                        createNameContext:
-                            shadowingComponent.componentIdx + "|replacements",
+                        namePrefixes,
                         componentsReplacementOf: shadowingComponent,
                     });
                     newComponents = createResult.components;
@@ -10531,6 +10706,7 @@ export default class Core {
                     let recursionComponents =
                         await this.createShadowedReplacements({
                             replacementsToShadow: newComponents,
+                            replacedSingleReplacement,
                             componentToShadow: shadowingComponent,
                             parentToShadow: shadowingParent,
                             currentShadowedBy,
@@ -13124,6 +13300,51 @@ export default class Core {
             args,
         });
     }
+}
+
+/**
+ * Trim off any blank string components at the beginning or end of `serializedComponents`
+ */
+function trimBlankStringComponents(serializedComponents) {
+    const firstNonBlankIdx = serializedComponents.findIndex(
+        (repl) => typeof repl !== "string" || repl.trim() !== "",
+    );
+    const lastNonBlankIdx = serializedComponents.findLastIndex(
+        (repl) => typeof repl !== "string" || repl.trim() !== "",
+    );
+
+    let trimmed = [...serializedComponents];
+
+    if (firstNonBlankIdx !== -1 && lastNonBlankIdx !== -1) {
+        trimmed = serializedComponents.slice(
+            firstNonBlankIdx,
+            lastNonBlankIdx + 1,
+        );
+    }
+
+    return trimmed;
+}
+
+/**
+ * Calculate the potentially accessible names for serialized or instantiated `component`
+ * given the `namePrefixes`.
+ *
+ * Assuming the component is named, the accessible names are the prefixes concatentated via a '.' with the component name.
+ */
+function computeAccessibleNames(component, namePrefixes) {
+    if (namePrefixes === null) {
+        return [];
+    }
+
+    const accessibleNames = [];
+
+    const name = component.attributes?.name?.primitive.value;
+    if (name) {
+        accessibleNames.push(
+            ...namePrefixes.map((v) => (v ? `${v}.${name}` : name)),
+        );
+    }
+    return accessibleNames;
 }
 
 function validateAttributeValue({ value, attributeSpecification, attribute }) {
